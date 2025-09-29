@@ -1,0 +1,415 @@
+/* eslint-disable react/no-unescaped-entities */
+"use client"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import Header from "@/components/Header"
+import Footer from "@/components/Footer"
+import OptionButton from "@/components/OptionButton"
+import MultiOptionButton from "@/components/MultiOptionButton"
+import { loadFromStorage, saveToStorage } from "@/lib/storage"
+import type { AnswerMap } from "@/lib/types"
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return <h2 className="text-xl md:text-2xl font-bold text-blue-700 mb-4">{children}</h2>
+}
+const Q = ({ children }: { children: React.ReactNode }) =>
+  <p className="mb-1 text-base md:text-lg font-semibold text-black">{children}</p>
+const Instr = ({ children }: { children: React.ReactNode }) =>
+  <p className="mb-4 text-sm text-gray-600">{children}</p>
+
+const ROW = {
+  short: "auto-rows-[96px]",
+  med:   "auto-rows-[96px]",
+  long:  "auto-rows-[96px]",
+}
+const BTN_TEXT = "text-left text-sm md:text-base"
+
+export default function CurrentSupportPage /* resolved */() {
+  const router = useRouter()
+  const [step, setStep] = useState(1)
+  const [ans, setAns] = useState<AnswerMap>(() => loadFromStorage<AnswerMap>("current_support_data", {} as AnswerMap))
+  useEffect(() => { saveToStorage("current_support_data", ans) }, [ans])
+
+  const setField = (k: string, v: AnswerMap[keyof AnswerMap]) => setAns(p => ({ ...p, [k]: v }))
+  const toggleMulti = (k: string, v: string, none?: string) =>
+    setAns(p => {
+      const cur = Array.isArray(p[k]) ? (p[k] as string[]) : []
+      if (none && v === none) return { ...p, [k]: cur.includes(v) ? [] : [v] }
+      const withoutNone = none ? cur.filter(x => x !== none) : cur
+      return withoutNone.includes(v)
+        ? { ...p, [k]: withoutNone.filter(x => x !== v) }
+        : { ...p, [k]: [...withoutNone, v] }
+    })
+
+  const required = (k: string) => {
+    const v = ans[k]
+    return Array.isArray(v) ? v.length > 0 : (typeof v === "string" ? v.trim().length > 0 : !!v)
+  }
+  const v = (s: number) => {
+    switch (s) {
+      case 2: if (!required("cb3a")) return "Please select one option."; return null
+      case 3: if (!required("cb3b")) return "Please select at least one option."; return null
+      case 4: if (!required("cb3c")) return "Please select one option."; return null
+      case 5: if (!required("cb3d")) return "Please select at least one option."; return null
+      case 6: if (!required("or1"))  return "Please select one option."; return null
+      case 7: if (!required("or2a")) return "Please select at least one option."; return null
+      case 8: if (!required("or2b_text")) return "Please provide a response."; return null
+      case 9: if (!required("or3")) return "Please select at least one option."; return null
+      case 10:
+  if (!required("or4_a")) return "Please select one condition.";
+  if (ans.or4_a === "Some other condition (specify):" && !String(ans.or4_a_other ?? "").trim()) return "Please specify.";
+  return null
+      case 11: if (!required("or4_b")) return "Please select a second condition."; if (ans.or4_b === ans.or4_a) return "Choose a different condition."; return null
+      case 12: if (!required("or5a")) return "Please select at least one option."; return null
+      case 13: if (!required("or6")) return "Please select one option."; return null
+      default: return null
+    }
+  }
+  const next = () => { const e = v(step); if (e) { alert(e); return } setStep(step + 1) }
+  const back = () => setStep(s => s - 1)
+
+  const OR1 = [
+    "No formal approach: Handle case-by-case",
+    "Developing approach: Currently building our programs",
+    "Legal minimum only: Meet legal requirements only (FMLA, ADA)",
+    "Moderate support: Some programs beyond legal requirements",
+    "Enhanced support: Meaningful programs beyond legal minimums",
+    "Comprehensive support: Extensive programs well beyond legal requirements",
+  ]
+  const OR2A = [
+    "Employee(s) diagnosed with serious illness highlighted gaps",
+    "Leadership personal experience with serious illness",
+    "Competitor/peer company practices",
+    "Employee survey feedback",
+    "Recruitment/retention goals or challenges",
+    "Legal case or compliance issue",
+    "Union negotiations",
+    "ESG/corporate responsibility commitments",
+    "Inspired by Working with Cancer Initiative or similar programs",
+    "Other (specify):",
+  ]
+  const OR3 = [
+    "Budget constraints","Lack of executive support","Small number of cases doesn't justify investment",
+    "Concerns about setting precedent","Limited HR and/or Benefits team bandwidth","Lack of expertise/knowledge",
+    "Other priorities take precedence","Concerns about fairness across conditions","Uncertainty about ROI",
+    "Data privacy concerns (HIPAA, GDPR, other regulations)","Complex/varying legal requirements across markets",
+    "Global consistency challenges","Some other reason (specify):",
+  ]
+  const OR4 = [
+    "Cancer (all types)",
+    "Chronic conditions (e.g., MS, ALS, Parkinson's, Crohn's, lupus, rheumatoid arthritis)",
+    "Heart disease (including heart attack, heart failure)","HIV / AIDS","Kidney disease (including dialysis, kidney failure)",
+    "Major surgery recovery (planned or emergency)","Mental health crises (requiring extended leave)",
+    "Musculoskeletal conditions (chronic or acute)","Neurological conditions (e.g., epilepsy, brain injury)",
+    "Organ transplant (pre and post)","Respiratory conditions (e.g., COPD, cystic fibrosis)","Stroke",
+    "Some other condition (specify):",
+  ]
+  const OR5A = [
+    "Flexible work schedules","Remote work options","Paid caregiver leave","Unpaid leave with job protection",
+    "Employee assistance program (EAP) counseling","Caregiver support groups","Referrals to eldercare/dependent care resources",
+    "Financial assistance or subsidies","Respite care coverage","Modified job duties/reduced workload",
+    "Manager training on supporting caregivers","Emergency dependent care when regular arrangements unavailable",
+    "Legal/financial planning resources","Some other support (specify):","Not able to provide caregiver support at this time",
+  ]
+  const OR6 = [
+    "Aggregate metrics and analytics only","De-identified case tracking","General program utilization data",
+    "Voluntary employee feedback/surveys","Some other approach (specify):","No systematic monitoring",
+  ]
+
+  const NONE_OR5A = "Not able to provide caregiver support at this time";
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+      <Header />
+      <main className="max-w-5xl mx-auto px-6 py-8 flex-1">
+        <SectionHeader>Current Support for Employees Managing Cancer</SectionHeader>
+
+        {/* STEP 1: FULL VERBATIM INTRO */}
+        {step === 1 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-base text-gray-800 space-y-4">
+            <p>
+              For the rest of the survey, please think about support your organization provides or may provide for
+              employees managing cancer or other serious health conditions requiring time away for treatment or
+              recovery, workplace adjustments, or ongoing support.
+            </p>
+
+            <h3 className="text-blue-700 font-bold">Balancing Employee Support with Organizational Realities</h3>
+
+            <p>
+              We understand that all organizations want to support employees managing cancer and other serious health conditions.
+            </p>
+
+            <p>
+              But, we also recognize that every organization faces real constraints:
+            </p>
+            <ul className="list-disc ml-6">
+              <li>Budget limitations and competing priorities</li>
+              <li>Business continuity and productivity needs</li>
+              <li>Resource and bandwidth constraints</li>
+              <li>Balancing fairness across all employee needs</li>
+            </ul>
+
+            <p>
+              These realities do not diminish your commitment to employees - they're simply part of running an organization.
+            </p>
+
+            <p>
+              This survey aims to capture what organizations actually provide within these constraints. Your honest responses - including what you're unable to offer - will create realistic benchmarks that help all employers understand what's feasible and identify opportunities for improvement.
+            </p>
+
+            <p className="text-blue-700 font-bold">Throughout the survey, please indicate only:</p>
+            <ul className="list-disc ml-6">
+              <li>✓ What your organization <span className="text-blue-700 font-bold">CURRENTLY</span> has in place</li>
+              <li>✓ Programs with dedicated resources (not ad hoc arrangements)</li>
+              <li>✓ Benefits beyond standard health insurance coverage</li>
+            </ul>
+
+            <p>
+              "Not currently available" is a valid and common response. Most organizations are still developing these capabilities, and an accurate picture is more valuable than an aspirational one.
+            </p>
+          </div>
+        )}
+
+        {/* STEP 2: CB3a */}
+        {step === 2 && (
+          <div>
+            <Q>Does your organization offer any benefits, resources, or support for employees with serious medical conditions that go beyond what is legally required in your markets?</Q>
+            <Instr>(Select ONE)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch ${ROW.med}`}>
+              {[
+                "Yes, we offer additional support beyond legal requirements",
+                "Currently developing enhanced support offerings",
+                "At this time, we primarily focus on meeting legal compliance requirements",
+                "Not yet, but actively exploring options",
+              ].map(opt => (
+                <OptionButton key={opt} field="cb3a" value={opt}
+                  selected={ans.cb3a === opt} onClick={() => setField("cb3a", opt)}
+                  className={BTN_TEXT} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: CB3b */}
+        {step === 3 && (
+          <div>
+            <Q>Which of the following best describes how these supports are structured?</Q>
+            <Instr>(Select ALL that apply)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch ${ROW.med}`}>
+              {[
+                "Individual benefits or policies (e.g., extended leave, flexible work options)",
+                "Coordinated support services - single point of contact for multiple resources (e.g., nurse navigation, case management)",
+                "Internally developed formal program with a specific name (e.g., \"We Care at Work\")",
+                "Participation in external initiatives, certifications, or pledges (e.g., Working with Cancer pledge, CEO Cancer Gold Standard)",
+                "Comprehensive framework that integrates multiple support elements",
+                "Ad hoc/case-by-case support as needs arise",
+                "Other (specify):",
+              ].map(opt => (
+                <MultiOptionButton key={opt} field="cb3b" value={opt}
+                  selected={Array.isArray(ans.cb3b) && ans.cb3b.includes(opt)}
+                  onClick={() => toggleMulti("cb3b", opt)}
+                  className={BTN_TEXT} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 4: CB3c */}
+        {step === 4 && (
+          <div>
+            <Q>Beyond legal requirements, when did your organization first begin offering formal support programs for employees with serious medical conditions?</Q>
+            <Instr>(Select ONE)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch ${ROW.short}`}>
+              {[
+                "Within the past year","1 to less than 2 years ago","2 to less than 5 years ago",
+                "5 to less than 10 years ago","10 or more years ago","Unsure/Don't know",
+              ].map(opt => (
+                <OptionButton key={opt} field="cb3c" value={opt}
+                  selected={ans.cb3c === opt} onClick={() => setField("cb3c", opt)}
+                  className={BTN_TEXT} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 5: CB3d */}
+        {step === 5 && (
+          <div>
+            <Q>How were your workplace support programs primarily developed?</Q>
+            <Instr>(Select ALL that apply)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch ${ROW.med}`}>
+              {[
+                "Internally by HR team","With assistance from benefits broker","With specialized consultant support",
+                "Adopted from parent/acquiring company","Benchmarked from peer companies","Employee/union driven",
+                "Some other way (specify):",
+              ].map(opt => (
+                <MultiOptionButton key={opt} field="cb3d" value={opt}
+                  selected={Array.isArray(ans.cb3d) && ans.cb3d.includes(opt)}
+                  onClick={() => toggleMulti("cb3d", opt)}
+                  className={BTN_TEXT} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 6: OR1 */}
+        {step === 6 && (
+          <div>
+            <Q>Which best describes your organization's current approach to supporting employees with serious medical conditions?</Q>
+            <Instr>(Select ONE)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch ${ROW.med}`}>
+              {OR1.map(opt => (
+                <OptionButton key={opt} field="or1" value={opt}
+                  selected={ans.or1 === opt} onClick={() => setField("or1", opt)}
+                  className={BTN_TEXT} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 7: OR2a */}
+        {step === 7 && (
+          <div>
+            <Q>What triggered your organization to develop support beyond basic legal requirements?</Q>
+            <Instr>(Select ALL that apply)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch ${ROW.med}`}>
+              {OR2A.map(opt => (
+                <MultiOptionButton key={opt} field="or2a" value={opt}
+                  selected={Array.isArray(ans.or2a) && ans.or2a.includes(opt)}
+                  onClick={() => toggleMulti("or2a", opt)}
+                  className={BTN_TEXT} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 8: OR2b */}
+        {step === 8 && (
+          <div>
+            <Q>What has been the single most impactful change your organization has made to support employees with serious medical conditions?</Q>
+            <Instr>(Open-end)</Instr>
+            <textarea
+              value={String(ans.or2b_text ?? "")}
+              onChange={(e) => setField("or2b_text", e.target.value)}
+              className="w-full min-h-[140px] px-3 py-2 border-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        )}
+
+        {/* STEP 9: OR3 */}
+        {step === 9 && (
+          <div>
+            <Q>What are the primary barriers preventing more comprehensive support for employees with serious medical conditions?</Q>
+            <Instr>(Select ALL that apply)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch ${ROW.med}`}>
+              {OR3.map(opt => (
+                <MultiOptionButton key={opt} field="or3" value={opt}
+                  selected={Array.isArray(ans.or3) && ans.or3.includes(opt)}
+                  onClick={() => toggleMulti("or3", opt)}
+                  className={BTN_TEXT} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 10: OR4A */}
+        {step === 10 && (
+          <div>
+            <Q>Which of these medical conditions is most critical for your organization to support?</Q>
+            <Instr>(Select ONE)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch ${ROW.med}`}>
+              {OR4.map(opt => (
+                <OptionButton key={opt} field="or4_a" value={opt}
+                  selected={ans.or4_a === opt} onClick={() => setField("or4_a", opt)}
+                  className={BTN_TEXT} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 11: OR4B */}
+        {step === 11 && (
+          <div>
+            <Q>And which is next most critical?</Q>
+            <Instr>(Select ONE)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch ${ROW.med}`}>
+              {OR4.filter(o => o !== ans.or4_a).map(opt => (
+                <OptionButton key={opt} field="or4_b" value={opt}
+                  selected={ans.or4_b === opt} onClick={() => setField("or4_b", opt)}
+                  className={BTN_TEXT} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 12: OR5a (exclusive NONE) */}
+        {step === 12 && (
+          <div>
+            <Q>What types of caregiver support does your organization provide?</Q>
+            <Instr>(Select ALL that apply)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch auto-rows-[96px]`}>
+              {OR5A.map(opt => {
+                const noneOn = Array.isArray(ans.or5a) && ans.or5a.includes(NONE_OR5A);
+                const isNone = opt === NONE_OR5A;
+                const disabled = noneOn && !isNone;
+                return (
+                  <MultiOptionButton
+                    key={opt}
+                    field="or5a"
+                    value={opt}
+                    selected={Array.isArray(ans.or5a) && ans.or5a.includes(opt)}
+                    onClick={() => toggleMulti("or5a", opt, NONE_OR5A)}
+                    className={`text-left ${disabled ? "opacity-50 pointer-events-none" : ""}`}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 13: OR6 */}
+        {step === 13 && (
+          <div>
+            <Q>How does your organization monitor the effectiveness of its workplace support programs while maintaining employee privacy?</Q>
+            <Instr>(Select ONE)</Instr>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch ${ROW.med}`}>
+              {OR6.map(opt => (
+                <OptionButton key={opt} field="or6" value={opt}
+                  selected={ans.or6 === opt} onClick={() => setField("or6", opt)}
+                  className={BTN_TEXT} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 14: Save */}
+        {step === 14 && (
+          <div className="text-center">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">
+              You’ve completed the <span className="text-blue-700 font-bold">Current Support</span> section.
+            </h2>
+            <button onClick={() => router.push("/dashboard")}
+              className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold">
+              Save & Continue &rarr;
+            </button>
+          </div>
+        )}
+
+        <div className="flex justify-between mt-10">
+          {step > 1 ? (
+            <button onClick={back} className="px-6 py-2 border rounded-lg hover:bg-gray-50">Back</button>
+          ) : (
+            <button onClick={() => router.push("/dashboard")} className="px-6 py-2 border rounded-lg hover:bg-gray-50">Back to Dashboard</button>
+          )}
+          {step < 14 && (
+            <button onClick={next} className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold">
+              Next &rarr;
+            </button>
+          )}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  )
+}
+

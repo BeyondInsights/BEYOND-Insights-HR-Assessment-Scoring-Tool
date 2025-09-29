@@ -1,0 +1,331 @@
+/* eslint-disable react/no-unescaped-entities */
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import OptionButton from "@/components/OptionButton";
+import MultiOptionButton from "@/components/MultiOptionButton";
+import { loadFromStorage, saveToStorage } from "@/lib/storage";
+import type { AnswerMap } from "@/lib/types";
+
+/* ---------- Shared UI helpers ---------- */
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return <h2 className="text-xl md:text-2xl font-bold text-blue-700 mb-4">{children}</h2>;
+}
+const Q = ({ children }: { children: React.ReactNode }) => (
+  <p className="mb-1 text-base md:text-lg font-semibold text-black">{children}</p>
+);
+const Instr = ({ children }: { children: React.ReactNode }) => (
+  <p className="mb-4 text-sm text-gray-600">{children}</p>
+);
+function ErrorToast({ message }: { message: string }) {
+  return (
+    <div className="mt-4 flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-800">
+      <img src="/logo-beyond.svg" alt="BEYOND INSIGHTS" className="h-6 w-auto" />
+      <span className="font-semibold">Please correct:</span>
+      <span>{message}</span>
+    </div>
+  );
+}
+
+/* Identical tile heights per question */
+const ROW = {
+  short: "auto-rows-[64px]",
+  med:   "auto-rows-[88px]",
+  long:  "auto-rows-[112px]",
+};
+const BTN_TEXT = "text-left text-sm md:text-base"
+const OTHER_TEXT = "text-left text-sm md:text-base font-normal";
+
+/* ---------- Page ---------- */
+export default function CompanyProfilePage() {
+  const router = useRouter();
+  const [step, setStep] = useState(1);
+  const [ans, setAns] = useState<AnswerMap>(() =>
+    loadFromStorage<AnswerMap>("company_profile_data", {} as AnswerMap)
+  );
+  const [errMsg, setErrMsg] = useState("");
+
+  useEffect(() => {
+    saveToStorage("company_profile_data", ans);
+  }, [ans]);
+
+  const setField = (k: string, v: AnswerMap[keyof AnswerMap]) => setAns((p) => ({ ...p, [k]: v }));
+  const toggleMulti = (k: string, v: string, none?: string) =>
+    setAns((p) => {
+      const cur = Array.isArray(p[k]) ? (p[k] as string[]) : [];
+      if (none && v === none) return { ...p, [k]: cur.includes(v) ? [] : [v] };
+      const withoutNone = none ? cur.filter((x) => x !== none) : cur;
+      return withoutNone.includes(v)
+        ? { ...p, [k]: withoutNone.filter((x) => x !== v) }
+        : { ...p, [k]: [...withoutNone, v] };
+    });
+
+  /* ----- Lists (FINAL HR survey) ----- */
+  const S2 = ["Male", "Female", "Non-binary", "Prefer to self-describe (specify)", "Prefer not to say"];
+  const S4A = [
+    "Accounting or Finance","Benefits","Communications / Public Relations","Customer Service / Customer Success",
+    "Human Resources / People Operations","Information Technology (IT)","Legal / Compliance","Logistics / Supply Chain",
+    "Manufacturing","Marketing","Research and Development","Sales / Business Development","Other (specify):"
+  ];
+  const S4B = [
+    "Human Resources","Benefits / Compensation","People & Culture","Talent Management","Some other function (specify):"
+  ];
+  const S5 = [
+    "C-level executive (CHRO, CPO)","Executive/Senior Vice President","Vice President",
+    "Director","Senior Manager","Manager","HR Generalist","Benefits Specialist / Coordinator",
+    "HR Specialist / Coordinator","HR Assistant / Administrative","Some other level (specify):"
+  ];
+  const S6 = [
+    "Employee benefits selection / updates","Leave policies (FMLA, STD, LTD)","Employee health & wellness programs",
+    "Workplace accommodations and adjustments","Manager training & development","Employee assistance programs (EAP)",
+    "Workers' compensation","Organizational culture initiatives","Wellness initiatives","Flexible work arrangements",
+    "None of these"
+  ];
+  const S7 = [
+    "Primary decision maker","Part of decision-making team","Make recommendations that are usually adopted",
+    "Provide input but limited influence","No influence"
+  ];
+  const S8 = [
+    "Fewer than 100","100-249","250-499","500-999","1,000-2,499","2,500-4,999",
+    "5,000-9,999","10,000-24,999","25,000-49,999","50,000+"
+  ];
+
+  /* ----- Validation ----- */
+  const v = (s: number) => {
+    switch (s) {
+      case 1:
+        if (!ans.s1) return "Enter birth year";
+        if (!ans.s2) return "Select identity";
+        if (ans.s2 === "Prefer to self-describe (specify)" && !String(ans.s2_other ?? "").trim())
+          return "Please specify";
+        return null;
+      case 2:
+        if (!ans.s4a) return "Select department/function";
+        if (ans.s4a === "Other (specify):" && !String(ans.s4a_other ?? "").trim()) return "Please specify";
+        if (!ans.s4b) return "Select primary job function";
+        if (ans.s4b === "Some other function (specify):" && !String(ans.s4b_other ?? "").trim()) return "Please specify";
+        return null;
+      case 3:
+        if (!ans.s5) return "Select level";
+        if (ans.s5 === "Some other level (specify):" && !String(ans.s5_other ?? "").trim()) return "Please specify";
+        if (Array.isArray(ans.s6) && ans.s6.includes("None of these")) return null;
+        if (!Array.isArray(ans.s6) || ans.s6.length < 1) return "Select responsibilities";
+        return null;
+      case 4: if (!ans.s7) return "Select influence"; return null;
+      case 5: if (!ans.s8) return "Select organization size"; return null;
+      default: return null;
+    }
+  };
+
+  const next = () => {
+    const e = v(step);
+    if (e) { setErrMsg(e); return; }
+    setErrMsg("");
+    setStep(step + 1);
+  };
+  const back = () => setStep((s) => s - 1);
+
+  /* ---------- UI ---------- */
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+      <Header />
+      <main className="max-w-5xl mx-auto px-6 py-8 flex-1">
+        <SectionHeader>Company Profile</SectionHeader>
+
+        {/* STEP 1: Gender */}
+        {step === 1 && (
+          <div className="space-y-10">
+            <div>
+              <Q>In what year were you born?</Q>
+              <Instr>(Enter YYYY)</Instr>
+              <input
+                type="number"
+                value={String(ans.s1 ?? "")}
+                onChange={(e) => setField("s1", e.target.value)}
+                className="w-40 px-3 py-2 border-2 rounded-lg text-base"
+              />
+            </div>
+
+            <div>
+              <Q>How do you currently identify?</Q>
+              <Instr>(Select ONE)</Instr>
+              <div className={`grid grid-cols-1 gap-3 items-stretch ${ROW.short}`}>
+                {S2.map((opt) => (
+                  <div key={opt} className="flex items-center gap-2">
+                    <OptionButton
+                      field="s2"
+                      value={opt}
+                      selected={ans.s2 === opt}
+                      onClick={() => setField("s2", opt)}
+                      className="text-sm md:text-base font-normal"
+                    />
+                    {opt === "Prefer to self-describe (specify)" && ans.s2 === opt && (
+                      <input
+                        className="flex-1 border-2 rounded-lg px-3 py-2 text-sm md:text-base"
+                        placeholder="Please specify"
+                        value={String(ans.s2_other ?? "")}
+                        onChange={(e) => setField("s2_other", e.target.value)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {errMsg && <ErrorToast message={errMsg} />}
+          </div>
+        )}
+
+        {/* STEP 2: Department + Job Function */}
+        {step === 2 && (
+          <div className="space-y-12">
+            <div>
+              <Q>
+                Which <span className="text-blue-700 font-bold">department or function</span> do you currently work in?
+              </Q>
+              <Instr>(Select ONE)</Instr>
+              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch ${ROW.med}`}>
+                {S4A.map((opt) => (
+                  <div key={opt} className="space-y-2">
+                    <OptionButton
+                      field="s4a"
+                      value={opt}
+                      selected={ans.s4a === opt}
+                      onClick={() => setField("s4a", opt)}
+                      className="text-sm md:text-base font-normal"
+                    />
+                    {opt === "Other (specify):" && ans.s4a === opt && (
+                      <input
+                        className="w-full border-2 rounded-lg px-3 py-2 text-sm md:text-base mt-2 mb-4"
+                        placeholder="Please specify"
+                        value={String(ans.s4a_other ?? "")}
+                        onChange={(e) => setField("s4a_other", e.target.value)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Q>
+                Which best describes your <span className="text-blue-700 font-bold">primary job function</span>?
+              </Q>
+              <Instr>(Select ONE)</Instr>
+              <div className={`grid grid-cols-1 gap-3 items-stretch ${ROW.short}`}>
+                {S4B.map((opt) => (
+                  <div key={opt} className="space-y-2">
+                    <OptionButton
+                      field="s4b"
+                      value={opt}
+                      selected={ans.s4b === opt}
+                      onClick={() => setField("s4b", opt)}
+                      className="text-sm md:text-base font-normal"
+                    />
+                    {opt === "Some other function (specify):" && ans.s4b === opt && (
+                      <input
+                        className="w-full border-2 rounded-lg px-3 py-2 text-sm md:text-base mt-2 mb-4"
+                        placeholder="Please specify"
+                        value={String(ans.s4b_other ?? "")}
+                        onChange={(e) => setField("s4b_other", e.target.value)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {errMsg && <ErrorToast message={errMsg} />}
+          </div>
+        )}
+
+        {/* STEP 3: Level + Responsibilities */}
+        {step === 3 && (
+          <div className="space-y-12">
+            <div>
+              <Q>
+                What is your current <span className="text-blue-700 font-bold">level</span> within the organization?
+              </Q>
+              <Instr>(Select ONE)</Instr>
+              <div className={`grid grid-cols-1 gap-3 items-stretch ${ROW.short}`}>
+                {S5.map((opt) => (
+                  <div key={opt} className="space-y-2">
+                    <OptionButton
+                      field="s5"
+                      value={opt}
+                      selected={ans.s5 === opt}
+                      onClick={() => setField("s5", opt)}
+                      className="text-sm md:text-base font-normal"
+                    />
+                    {opt === "Some other level (specify):" && ans.s5 === opt && (
+                      <input
+                        className="w-full border-2 rounded-lg px-3 py-2 text-sm md:text-base mt-2 mb-4"
+                        placeholder="Please specify"
+                        value={String(ans.s5_other ?? "")}
+                        onChange={(e) => setField("s5_other", e.target.value)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Q>Which areas fall under your <span className="text-blue-700 font-bold">responsibility or influence</span>?</Q>
+              <Instr>(Select ALL that apply)</Instr>
+              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch ${ROW.med}`}>
+                {S6.map((opt) => (
+                  <MultiOptionButton
+                    key={opt}
+                    field="s6"
+                    value={opt}
+                    selected={Array.isArray(ans.s6) && ans.s6.includes(opt)}
+                    onClick={() => toggleMulti("s6", opt, "None of these")}
+                    className="text-sm md:text-base font-normal"
+                  />
+                ))}
+              </div>
+            </div>
+
+            {errMsg && <ErrorToast message={errMsg} />}
+          </div>
+        )}
+
+        {/* Remaining steps (S7–C6) unchanged … */}
+
+        {/* Final screen */}
+        {step === 10 && (
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              You’ve completed the <span className="text-blue-700 font-bold">Company Profile</span> section.
+            </h2>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold"
+            >
+              Save &amp; Continue &rarr;
+            </button>
+          </div>
+        )}
+
+        {/* Nav */}
+        <div className="flex justify-between mt-10">
+          {step > 1 ? (
+            <button onClick={back} className="px-6 py-2 border rounded-lg hover:bg-gray-50">&larr; Back</button>
+          ) : (
+            <span />
+          )}
+          {step < 10 && (
+            <button onClick={next} className="px-8 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold">
+              Next &rarr;
+            </button>
+          )}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
