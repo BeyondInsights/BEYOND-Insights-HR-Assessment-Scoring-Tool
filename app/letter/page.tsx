@@ -30,10 +30,10 @@ export default function LetterPage() {
 
           <InfoBox title="Helpful Tips Before You Begin" color="blue">
             <ul className="list-disc ml-6 space-y-1 text-sm">
-              <li>Have your organizationâ€™s current benefits documentation available for reference.</li>
+              <li>Have your organization's current benefits documentation available for reference.</li>
               <li>Assessment should be completed by someone authorized to provide this information.</li>
               <li>You may need to consult with colleagues from Benefits, Compensation, or HR to complete responses.</li>
-              <li>Your progress saves automatically â€” you can pause and return later.</li>
+              <li>Your progress saves automatically so you can pause and return later.</li>
             </ul>
           </InfoBox>
 
@@ -71,7 +71,7 @@ export default function LetterPage() {
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Begin Assessment â†’
+              Begin Assessment
             </button>
           </div>
         </div>

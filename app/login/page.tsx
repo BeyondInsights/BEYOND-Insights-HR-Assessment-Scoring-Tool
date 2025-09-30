@@ -73,7 +73,7 @@ export default function LoginPage() {
                 type="submit"
                 className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transform hover:-translate-y-0.5 transition-all"
               >
-                Begin â†’
+                Begin
               </button>
             </form>
 

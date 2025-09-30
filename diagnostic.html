@@ -1,0 +1,23 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Storage Diagnostic</title>
+</head>
+<body>
+    <h1>LocalStorage Diagnostic</h1>
+    <pre id="output"></pre>
+    <script>
+        const output = document.getElementById('output');
+        let report = "=== LOCALSTORAGE CONTENTS ===\n\n";
+        
+        for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+                const value = localStorage.getItem(key);
+                report += `${key}:\n${value}\n\n`;
+            }
+        }
+        
+        output.textContent = report;
+    </script>
+</body>
+</html>

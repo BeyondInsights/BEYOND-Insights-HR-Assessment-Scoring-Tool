@@ -657,7 +657,7 @@ export default function GeneralBenefitsPage() {
               You've successfully completed the General Employee Benefits section.
             </p>
             <button
-              onClick={() => { 
+              oonClick={() => { 
   localStorage.setItem("general_benefits_complete", "true");
   router.push("/dashboard");
 }}
@@ -695,6 +695,9 @@ export default function GeneralBenefitsPage() {
     </div>
   );
 }
+
+
+
 
 
 

@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Storage Check</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .section { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        .data { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        .complete { color: green; }
+        .partial { color: orange; }
+        .empty { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Survey Storage Check</h1>
+    <button onclick="location.reload()">Refresh</button>
+    <button onclick="clearAll()">Clear All Data</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        function checkStorage() {
+            const results = document.getElementById('results');
+            let html = '';
+            
+            // Check each section
+            const sections = [
+                'firmographics_data',
+                'general-benefits_data', 
+                'current-support_data',
+                'dimension1_data'
+            ];
+            
+            sections.forEach(section => {
+                const data = localStorage.getItem(section);
+                const complete = localStorage.getItem(section.replace('_data', '_complete'));
+                
+                let status = 'empty';
+                let count = 0;
+                if (data) {
+                    try {
+                        const parsed = JSON.parse(data);
+                        count = Object.keys(parsed).length;
+                        status = count > 0 ? 'partial' : 'empty';
+                    } catch(e) {}
+                }
+                if (complete === 'true') status = 'complete';
+                
+                html += `
+                    <div class="section">
+                        <h3>${section}</h3>
+                        <div>Status: <span class="${status}">${status}</span></div>
+                        <div>Fields saved: ${count}</div>
+                        <div>Complete flag: ${complete || 'not set'}</div>
+                        <div class="data">${data ? data.substring(0, 200) + '...' : 'No data'}</div>
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+        }
+        
+        function clearAll() {
+            if (confirm('Clear all survey data?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+        
+        checkStorage();
+        setInterval(checkStorage, 2000); // Auto-refresh every 2 seconds
+    </script>
+</body>
+</html>

@@ -19,7 +19,7 @@ export default function Header() {
               onClick={() => router.push('/dashboard')}
               className="bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-orange-700 transition"
             >
-              â† Back to Dashboard
+              Back to Dashboard
             </button>
           ) : (
             <div className="w-40" /> // spacer keeps logos centered

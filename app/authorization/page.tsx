@@ -133,7 +133,7 @@ export default function AuthorizationPage() {
                 : 'opacity-50 cursor-not-allowed'
             }`}
           >
-            Continue â†’
+            Continue
           </button>
         </div>
       </main>

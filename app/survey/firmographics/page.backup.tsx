@@ -77,19 +77,23 @@ export default function FirmographicsPage() {
         const data = JSON.parse(saved);
         setAns(data);
         console.log("Loaded firmographics:", data);
-        // Determine last completed step
-        let lastStep = 1;
-        if (data.c6) lastStep = 9;
-        else if (data.c5 || data.c4 || data.c4a || data.c3) lastStep = 9;
-        else if (data.c2) lastStep = 7;
-        else if (data.s9a || data.s9) lastStep = 6;
-        else if (data.s8) lastStep = 5;
-        else if (data.s7) lastStep = 4;
-        else if (data.s6 || data.s5) lastStep = 3;
-        else if (data.s4b || data.s4a) lastStep = 2;
-        else if (data.s2 || data.s1) lastStep = 1;
-        
-        setStep(Math.min(lastStep, 10)); // Cap at step 10
+        // Set step based on progress
+        if (data.c6) setStep(16);
+        else if (data.c5) setStep(15);
+        else if (data.c4a) setStep(14);
+        else if (data.c4) setStep(13);
+        else if (data.c3) setStep(12);
+        else if (data.c2) setStep(11);
+        else if (data.s9a) setStep(10);
+        else if (data.s8) setStep(9);
+        else if (data.s7) setStep(8);
+        else if (data.s6) setStep(7);
+        else if (data.s5) setStep(6);
+        else if (data.s4b) setStep(5);
+        else if (data.s4a) setStep(4);
+        else if (data.s3) setStep(3);
+        else if (data.s2) setStep(2);
+        else if (data.s1) setStep(1);
       } catch (e) {
         console.error("Error loading firmographics:", e);
       }
@@ -1025,4 +1029,19 @@ export default function FirmographicsPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
