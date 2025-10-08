@@ -345,7 +345,7 @@ return (
           </div>
         )}
 
-{/* Step 1: D1.a Progressive Cards WITH EXTENDED FADE */}
+{/* Step 1: D1.a Progressive Cards WITH EXTENDED FADE (CHECK) */}
         {step === 1 && (
           <div className="bg-white rounded-xl shadow-sm">
             {/* Header with gradient */}
