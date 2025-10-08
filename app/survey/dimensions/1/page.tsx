@@ -345,7 +345,7 @@ return (
           </div>
         )}
 
-        {/* Step 1: D1.a Progressive Cards */}
+{/* Step 1: D1.a Progressive Cards WITH EXTENDED FADE */}
         {step === 1 && (
           <div className="bg-white rounded-xl shadow-sm">
             {/* Header with gradient */}
@@ -372,21 +372,34 @@ return (
                       <button
                         key={idx}
                         onClick={() => goToItem(idx)}
-                        className={`h-2 transition-all rounded-full ${
-                          ans.d1a?.[item] 
-                            ? "w-8 bg-blue-600 hover:bg-blue-700 cursor-pointer" 
+                        className={`h-2 transition-all duration-500 rounded-full ${
+                          ans.d1a?.[item]
+                            ? "w-8 bg-green-600 hover:bg-green-700 cursor-pointer"
+                            : idx === currentItemIndex
+                            ? "w-8 bg-blue-600"
                             : "w-2 bg-gray-300 hover:bg-gray-400 cursor-pointer"
                         }`}
                         title={item}
+                        disabled={isTransitioning}
                       />
                     ))}
                   </div>
                 </div>
               </div>
 
-              {/* Current Item Card */}
+              {/* Current Item Card WITH EXTENDED TRANSITIONS */}
               <div className="mb-6">
-                <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50 p-8 rounded-xl border-2 border-blue-100">
+                <div
+                  className={`bg-gradient-to-br from-blue-50 via-white to-blue-50 p-8 rounded-xl border-2 border-blue-100 transition-all duration-700 ease-in-out ${
+                    isTransitioning
+                      ? 'opacity-0 transform scale-95 blur-sm'
+                      : 'opacity-100 transform scale-100 blur-0'
+                  }`}
+                  style={{
+                    transitionProperty: 'opacity, transform, filter',
+                    transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                >
                   <h3 className="text-lg font-semibold text-gray-900 mb-6">
                     {D1A_ITEMS[currentItemIndex]}
                   </h3>
@@ -396,7 +409,12 @@ return (
                       <button
                         key={status}
                         onClick={() => setStatus(D1A_ITEMS[currentItemIndex], status)}
-                        className={`w-full p-4 text-left rounded-lg border-2 transition-all transform hover:scale-[1.02] ${
+                        disabled={isTransitioning}
+                        className={`w-full p-4 text-left rounded-lg border-2 transition-all transform ${
+                          isTransitioning
+                            ? 'cursor-not-allowed opacity-50'
+                            : 'hover:scale-[1.02] cursor-pointer'
+                        } ${
                           ans.d1a?.[D1A_ITEMS[currentItemIndex]] === status
                             ? "border-blue-500 bg-blue-50 shadow-lg"
                             : "border-gray-200 hover:border-gray-300 bg-white hover:shadow"
@@ -420,28 +438,27 @@ return (
                     ))}
                   </div>
                 </div>
-
               </div>
 
-              {/* Previous button only - no summary */}
+              {/* Previous button and Continue button */}
               <div className="flex justify-between items-center mt-6">
                 <button
-                  onClick={() => setCurrentItemIndex(Math.max(0, currentItemIndex - 1))}
-                  disabled={currentItemIndex === 0}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    currentItemIndex === 0 
-                      ? "text-gray-300 cursor-not-allowed" 
+                  onClick={() => goToItem(Math.max(0, currentItemIndex - 1))}
+                  disabled={currentItemIndex === 0 || isTransitioning}
+                  className={`px-4 py-2 text-sm font-medium transition-all ${
+                    currentItemIndex === 0 || isTransitioning
+                      ? "text-gray-300 cursor-not-allowed"
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
                   ← View previous option
                 </button>
-                
+
                 {/* Continue button only shows when ALL items answered */}
-                {Object.keys(ans.d1a || {}).length === D1A_ITEMS.length && (
+                {Object.keys(ans.d1a || {}).length === D1A_ITEMS.length && !isTransitioning && (
                   <button
                     onClick={next}
-                    className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+                    className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
                   >
                     Continue →
                   </button>
@@ -450,7 +467,7 @@ return (
             </div>
           </div>
         )}
-
+        
         {/* Step 2: D1.aa (conditional for multi-country) */}
         {step === 2 && isMultiCountry && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
