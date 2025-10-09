@@ -11,7 +11,8 @@ export default function Dimension1Page() {
   const [errors, setErrors] = useState<string>("");
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isMultiCountry, setIsMultiCountry] = useState(false);
-
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
   // Load saved answers on mount
   useEffect(() => {
     const saved = localStorage.getItem("dimension1_data");
@@ -46,28 +47,42 @@ export default function Dimension1Page() {
   };
 
   // Set status for D1.a grid items
-  const setStatus = (item: string, status: string) => {
-    setAns((prev: any) => ({
-      ...prev,
-      d1a: { ...(prev.d1a || {}), [item]: status }
-    }));
-    
-    // Auto-advance to next unanswered item
+  
+const setStatus = (item: string, status: string) => {
+  setAns((prev: any) => ({
+    ...prev,
+    d1a: { ...(prev.d1a || {}), [item]: status }
+  }));
+  
+  setIsTransitioning(true);
+  
+  setTimeout(() => {
     const nextUnansweredIndex = D1A_ITEMS.findIndex((itm, idx) => 
       idx > currentItemIndex && !ans.d1a?.[itm]
     );
     
     if (nextUnansweredIndex !== -1) {
-      setTimeout(() => setCurrentItemIndex(nextUnansweredIndex), 300);
+      setCurrentItemIndex(nextUnansweredIndex);
     } else if (currentItemIndex < D1A_ITEMS.length - 1) {
-      setTimeout(() => setCurrentItemIndex(currentItemIndex + 1), 300);
+      setCurrentItemIndex(currentItemIndex + 1);
     }
-  };
+    
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 400);
+  }, 800);
+};
 
   // Navigate to specific item
-  const goToItem = (index: number) => {
+const goToItem = (index: number) => {
+  setIsTransitioning(true);
+  setTimeout(() => {
     setCurrentItemIndex(index);
-  };
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 400);
+  }, 500);
+};
 
   // Data for D1.a
   const D1A_ITEMS = [
