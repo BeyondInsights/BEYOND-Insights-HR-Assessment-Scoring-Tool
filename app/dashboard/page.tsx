@@ -225,41 +225,33 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Certification Section - ADD THIS */}
-        {overallProgress >= 70 && (
-          <div className="mt-12 bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-8 shadow-lg">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                  🏆 You Qualify for Certification!
-                </h2>
-                <p className="text-gray-700 mb-4">
-                  Congratulations! With an assessment score of <span className="font-bold text-indigo-600">{overallProgress}%</span>, 
-                  your organization qualifies for the <strong>Best Companies for Working with Cancer</strong> certification.
-                </p>
-                <p className="text-sm text-gray-600 mb-6">
-                  Join leading employers committed to supporting employees through cancer and serious health conditions.
-                </p>
-                <button 
-                  onClick={() => router.push('/certification/apply')}
-                  className="bg-indigo-600 text-white px-8 py-4 rounded-lg font-semibold text-lg
-                           hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 
-                           shadow-md hover:shadow-xl"
-                >
-                  Apply for Certification - $1,200
-                </button>
-                <p className="text-xs text-gray-500 mt-3">
-                  Certification includes official designation, marketing materials, and inclusion in our directory.
-                </p>
-              </div>
-              <div className="ml-6 hidden sm:block">
-                <div className="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl font-bold text-indigo-600">{overallProgress}%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+       {/* Certification Section */}
+{overallProgress >= 50 && (
+  <div className="mt-12 bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-8 shadow-lg">
+    <div className="flex-1">
+      <h2 className="text-2xl font-bold text-gray-900 mb-3">
+        Your Organization Qualifies for Certification!
+      </h2>
+      <p className="text-gray-700 mb-4">
+        Congratulations! Your organization qualifies for the <strong>Best Companies for Working with Cancer</strong> certification.
+      </p>
+      <p className="text-sm text-gray-600 mb-6">
+        Join leading employers committed to supporting employees through cancer and serious health conditions.
+      </p>
+      <button 
+        onClick={() => router.push('/certification/apply')}
+        className="bg-indigo-600 text-white px-8 py-4 rounded-lg font-semibold text-lg
+                 hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 
+                 shadow-md hover:shadow-xl"
+      >
+        Apply for Certification
+      </button>
+      <p className="text-xs text-gray-500 mt-3">
+        Certification includes official designation, marketing materials, and inclusion in our directory.
+      </p>
+    </div>
+  </div>
+)}
         {/* End Certification Section */}
 
       </main>
