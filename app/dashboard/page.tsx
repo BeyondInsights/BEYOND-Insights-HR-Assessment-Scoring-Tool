@@ -230,10 +230,10 @@ export default function DashboardPage() {
   <div className="mt-12 bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-8 shadow-lg">
     <div className="flex-1">
       <h2 className="text-2xl font-bold text-gray-900 mb-3">
-        Your Organization is Invited to Apply for Certification for Best Companies for Working with Cancer!
+        Your Organization is Invited to Apply for <strong>Best Companies for Working with Cancer</strong> certification!
       </h2>
       <p className="text-gray-700 mb-4">
-        Click the Apply for Certificatoin buttonbelow to begin the application process for the <strong>Best Companies for Working with Cancer</strong> certification.
+        Click the Apply for Certification button below to begin the application process.
       </p>
       <p className="text-sm text-gray-600 mb-6">
         Join leading employers committed to supporting employees through cancer and serious health conditions.
