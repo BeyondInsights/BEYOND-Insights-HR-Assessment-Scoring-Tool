@@ -263,9 +263,7 @@ export default function DashboardPage() {
         {/* End Certification Section */}
 
       </main>
-      
-      </main>
-
+   
       <Footer overallProgress={overallProgress} />
     </div>
   )
