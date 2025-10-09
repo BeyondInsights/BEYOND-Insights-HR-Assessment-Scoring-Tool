@@ -225,8 +225,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-      </div>
-
         {/* Certification Section - ADD THIS */}
         {overallProgress >= 70 && (
           <div className="mt-12 bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-8 shadow-lg">
