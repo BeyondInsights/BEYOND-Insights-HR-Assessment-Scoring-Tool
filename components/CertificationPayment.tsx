@@ -116,40 +116,34 @@ export default function CertificationPayment({
               <h2 className="text-3xl font-bold text-gray-900">
                 Congratulations! You're Eligible for Certification
               </h2>
-              <p className="text-gray-600 mt-1">
-                Your organization has achieved the requirements for certification
-              </p>
-            </div>
+              </div>
           </div>
 
           {/* Company Info Summary */}
-          <div className="bg-white rounded-lg p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Application Summary</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center">
-                <Building2 className="w-5 h-5 text-gray-400 mr-2" />
-                <div>
-                  <p className="text-sm text-gray-500">Organization</p>
-                  <p className="font-medium">{companyData.name || 'Your Organization'}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Assessment Score</p>
-                <p className="font-medium text-green-600">{score}/100 ✓</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Certification Level</p>
-                <p className="font-medium">
-                  {score >= 90 ? 'Gold' : score >= 80 ? 'Silver' : 'Bronze'} Level
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Certification Fee</p>
-                <p className="font-medium">$1,200</p>
-              </div>
-            </div>
-          </div>
-
+<div className="bg-white rounded-lg p-6 mb-6">
+  <h3 className="text-lg font-semibold text-gray-900 mb-4">Application Summary</h3>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="flex items-center">
+      <Building2 className="w-5 h-5 text-gray-400 mr-2" />
+      <div>
+        <p className="text-sm text-gray-500">Organization</p>
+        <p className="font-medium">{companyData.name || 'Your Organization'}</p>
+      </div>
+    </div>
+    <div>
+      <p className="text-sm text-gray-500">Certification Status</p>
+      <p className="font-medium text-green-600">Eligible ✓</p>
+    </div>
+    <div>
+      <p className="text-sm text-gray-500">Application Type</p>
+      <p className="font-medium">Standard Certification</p>
+    </div>
+    <div>
+      <p className="text-sm text-gray-500">Certification Fee</p>
+      <p className="font-medium">$1,200</p>
+    </div>
+  </div>
+</div>
           {/* Benefits List */}
           <div className="bg-white/50 rounded-lg p-6 mb-6">
             <h3 className="font-semibold text-gray-900 mb-3">Your Certification Includes:</h3>
