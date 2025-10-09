@@ -69,8 +69,8 @@ const setStatus = (item: string, status: string) => {
     
     setTimeout(() => {
       setIsTransitioning(false);
-    }, 400);
-  }, 800);
+    }, 250);
+  }, 500);
 };
 
   // Navigate to specific item
