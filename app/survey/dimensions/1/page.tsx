@@ -96,7 +96,7 @@ const goToItem = (index: number) => {
     "Leave donation bank (employees can donate PTO to colleagues)",
     "Disability pay top-up (employer adds to disability insurance)",
     "PTO accrual during leave",
-    "Paid micro-breaks for side effects"
+    "Paid micro-breaks for medical-related side effects"
   ];
 
   const STATUS_OPTIONS = [
