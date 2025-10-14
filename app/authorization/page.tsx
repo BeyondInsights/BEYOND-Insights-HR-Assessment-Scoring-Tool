@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
@@ -32,9 +32,25 @@ function Card({
 
 export default function AuthorizationPage() {
   const router = useRouter()
+  const [companyInfo, setCompanyInfo] = useState({
+    companyName: '',
+    firstName: '',
+    lastName: '',
+    title: ''
+  })
   const [au1, setAu1] = useState<string>('')        // Yes/No answer
   const [au2, setAu2] = useState<string[]>([])      // Selected options
   const [other, setOther] = useState<string>('')    // Free text for "Other"
+  const [errors, setErrors] = useState('')
+
+  useEffect(() => {
+    // Check if user came from login
+    const email = localStorage.getItem('login_email')
+    if (!email) {
+      router.push('/')
+      return
+    }
+  }, [router])
 
   // Toggle function for AU2 checkboxes
   const toggleAu2 = (option: string) => {
@@ -45,24 +61,131 @@ export default function AuthorizationPage() {
     )
   }
 
-  const canContinue = au1 === 'Yes' && au2.length > 0
+  const canContinue = 
+    companyInfo.companyName.trim() &&
+    companyInfo.firstName.trim() &&
+    companyInfo.lastName.trim() &&
+    companyInfo.title.trim() &&
+    au1 === 'Yes' && 
+    au2.length > 0
 
   const handleContinue = () => {
-  if (canContinue) {
-    localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
-    localStorage.setItem('auth_completed', 'true')  // ADD THIS LINE
-    router.push('/payment')
+    if (!companyInfo.companyName.trim()) {
+      setErrors('Please enter your company name')
+      return
+    }
+    if (!companyInfo.firstName.trim()) {
+      setErrors('Please enter your first name')
+      return
+    }
+    if (!companyInfo.lastName.trim()) {
+      setErrors('Please enter your last name')
+      return
+    }
+    if (!companyInfo.title.trim()) {
+      setErrors('Please enter your title')
+      return
+    }
+    if (au1 !== 'Yes') {
+      setErrors('You must be authorized to complete this assessment')
+      return
+    }
+    if (au2.length === 0) {
+      setErrors('Please select at least one authorization description')
+      return
+    }
+
+    if (canContinue) {
+      // Store company info
+      localStorage.setItem('login_company_name', companyInfo.companyName)
+      localStorage.setItem('login_first_name', companyInfo.firstName)
+      localStorage.setItem('login_last_name', companyInfo.lastName)
+      localStorage.setItem('login_title', companyInfo.title)
+      
+      // Store authorization
+      localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
+      localStorage.setItem('auth_completed', 'true')
+      
+      router.push('/payment')
+    }
   }
-}
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
 
       <main className="max-w-4xl mx-auto px-6 py-10 flex-1">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Authorization</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Organization & Authorization</h1>
         <p className="text-base text-gray-600 mb-6">
-          Please confirm your role and authorization to complete this assessment.
+          Please provide your organization details and confirm your authorization to complete this assessment.
         </p>
+
+        {errors && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700 text-sm">{errors}</p>
+          </div>
+        )}
+
+        {/* Company Information */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Organization Information</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Company Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={companyInfo.companyName}
+                onChange={(e) => setCompanyInfo(prev => ({ ...prev, companyName: e.target.value }))}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="Enter company name"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  First Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={companyInfo.firstName}
+                  onChange={(e) => setCompanyInfo(prev => ({ ...prev, firstName: e.target.value }))}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="First name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Last Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={companyInfo.lastName}
+                  onChange={(e) => setCompanyInfo(prev => ({ ...prev, lastName: e.target.value }))}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Last name"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={companyInfo.title}
+                onChange={(e) => setCompanyInfo(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="e.g., Director of HR, Benefits Manager"
+              />
+            </div>
+          </div>
+        </div>
 
         {/* AU1: Confirm authorization */}
         <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -110,7 +233,7 @@ export default function AuthorizationPage() {
                 value={other}
                 onChange={(e) => setOther(e.target.value)}
                 className="w-full mt-2 px-4 py-3 border-2 rounded-lg"
-                placeholder="Please specify:"
+                placeholder="Please specify…"
               />
             )}
           </div>
@@ -119,12 +242,14 @@ export default function AuthorizationPage() {
         {/* Navigation Buttons */}
         <div className="flex justify-between mt-10">
           <button
-            onClick={() => router.push('/letter')}
-            className="px-6 py-2 border rounded-lg"
+            type="button"
+            onClick={() => router.push('/')}
+            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Back
           </button>
           <button
+            type="button"
             onClick={handleContinue}
             disabled={!canContinue}
             className={`px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold ${
@@ -133,7 +258,7 @@ export default function AuthorizationPage() {
                 : 'opacity-50 cursor-not-allowed'
             }`}
           >
-            Continue
+            Continue →
           </button>
         </div>
       </main>
