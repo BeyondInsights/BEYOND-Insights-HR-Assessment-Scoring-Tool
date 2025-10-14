@@ -63,12 +63,12 @@ export default function LoginPage() {
           {/* Login Card */}
           <div className="bg-white rounded-2xl shadow-2xl p-10">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-center text-gray-900 leading-snug mb-3">
-              Welcome to the<br />
-              <span className="text-orange-600">
-                Best Companies for Working with Cancer Index
-              </span><br />
-              Assessment
-            </h2>
+  Welcome to the<br />
+  <span className="text-orange-600 whitespace-nowrap">
+    Best Companies for Working with Cancer Index
+  </span><br />
+  Assessment
+</h2>
             <p className="text-center text-gray-600 mb-8">
               Enter your information to access the assessment
             </p>
