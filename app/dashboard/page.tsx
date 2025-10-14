@@ -1,11 +1,11 @@
-// app/dashboard/page.tsx - Updated with payment gating
+// app/dashboard/page.tsx - Updated with payment gating and NO certification button
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import ProgressCircle from '@/components/ProgressCircle'
-import { Lock, CheckCircle, CreditCard, AlertCircle } from 'lucide-react'
+import { Lock, CheckCircle, CreditCard } from 'lucide-react'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -21,6 +21,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+    
+    // Check authentication
+    const authCompleted = localStorage.getItem('auth_completed') === 'true';
+    if (!authCompleted) {
+      router.push('/authorization');
+      return;
+    }
     
     const handleFocus = () => {
       calculateProgress();
@@ -82,7 +89,7 @@ export default function DashboardPage() {
         firmProg = Math.round((firmCount / firmRequired.length) * 100);
       }
       
-      // General benefits progress - FIXED FIELD NAMES
+      // General benefits progress
       if (genComplete) {
         genProg = 100;
       } else {
@@ -108,12 +115,21 @@ export default function DashboardPage() {
         general: genProg,
         current: curProg,
       });
+
+      // Check if everything is 100% complete
+      const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
+                          dimProgress.every(p => p === 100);
+      
+      if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
+        localStorage.setItem('assessment_completion_shown', 'true');
+        router.push('/completion');
+      }
     }
     
     calculateProgress();
     
     return () => window.removeEventListener("focus", handleFocus);
-  }, [])
+  }, [router])
 
   const overallProgress = Math.round(
     (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
@@ -138,14 +154,14 @@ export default function DashboardPage() {
 
   const handleSectionClick = (sectionId: string) => {
     if (!paymentCompleted) {
-      return; // Do nothing if payment not completed
+      return;
     }
     router.push(`/survey/${sectionId}`)
   }
 
   const handleDimensionClick = (idx: number) => {
     if (!paymentCompleted) {
-      return; // Do nothing if payment not completed
+      return;
     }
     if (allCoreDone || idx === 0) {
       router.push(`/survey/dimensions/${idx+1}`)
@@ -185,7 +201,7 @@ export default function DashboardPage() {
                   Payment Required to Begin Assessment
                 </h3>
                 <p className="text-amber-800 mb-4">
-                  Complete your certification payment to unlock all assessment sections. You can explore the dashboard structure, but assessment sections will remain locked until payment is processed.
+                  Complete your application payment to unlock all assessment sections. You can explore the dashboard structure, but assessment sections will remain locked until payment is processed.
                 </p>
                 <button
                   onClick={() => router.push('/certification')}
@@ -323,35 +339,6 @@ export default function DashboardPage() {
             );
           })}
         </div>
-
-        {/* Certification Section - Only show if payment complete AND progress >= 25% */}
-        {paymentCompleted && overallProgress >= 25 && (
-          <div className="mt-12 bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-8 shadow-lg">
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                Your Organization is Invited to Apply for <strong>Best Companies for Working with Cancer</strong> certification!
-              </h2>
-              <p className="text-gray-700 mb-4">
-                Click the Apply for Certification button below to begin the application process.
-              </p>
-              <p className="text-sm text-gray-600 mb-6">
-                Join leading employers committed to supporting employees through cancer and serious health conditions.
-              </p>
-              <button 
-                onClick={() => router.push('/certification/apply')}
-                className="bg-indigo-600 text-white px-8 py-4 rounded-lg font-semibold text-lg
-                         hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 
-                         shadow-md hover:shadow-xl"
-              >
-                Apply for Certification
-              </button>
-              <p className="text-xs text-gray-500 mt-3">
-                Certification includes official designation, marketing materials, and inclusion in our directory.
-              </p>
-            </div>
-          </div>
-        )}
-        {/* End Certification Section */}
 
       </main>
    
