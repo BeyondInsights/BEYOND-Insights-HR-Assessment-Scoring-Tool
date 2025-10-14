@@ -37,15 +37,14 @@ export default function AuthorizationPage() {
     firstName: '',
     lastName: '',
     title: '',
-    titleOther: ''  
+    titleOther: ''
   })
-  const [au1, setAu1] = useState<string>('')        // Yes/No answer
-  const [au2, setAu2] = useState<string[]>([])      // Selected options
-  const [other, setOther] = useState<string>('')    // Free text for "Other"
+  const [au1, setAu1] = useState<string>('')
+  const [au2, setAu2] = useState<string[]>([])
+  const [other, setOther] = useState<string>('')
   const [errors, setErrors] = useState('')
 
   useEffect(() => {
-    // Check if user came from login
     const email = localStorage.getItem('login_email')
     if (!email) {
       router.push('/')
@@ -53,7 +52,6 @@ export default function AuthorizationPage() {
     }
   }, [router])
 
-  // Toggle function for AU2 checkboxes
   const toggleAu2 = (option: string) => {
     setAu2((prev) =>
       prev.includes(option)
@@ -63,12 +61,12 @@ export default function AuthorizationPage() {
   }
 
   const canContinue = 
-  companyInfo.companyName.trim() &&
-  companyInfo.firstName.trim() &&
-  companyInfo.lastName.trim() &&
-  (companyInfo.title !== 'Other' ? companyInfo.title.trim() : companyInfo.titleOther?.trim()) &&
-  au1 === 'Yes' && 
-  au2.length > 0
+    companyInfo.companyName.trim() &&
+    companyInfo.firstName.trim() &&
+    companyInfo.lastName.trim() &&
+    (companyInfo.title !== 'Other' ? companyInfo.title.trim() : (companyInfo.titleOther?.trim() || '')) &&
+    au1 === 'Yes' && 
+    au2.length > 0
 
   const handleContinue = () => {
     if (!companyInfo.companyName.trim()) {
@@ -84,7 +82,11 @@ export default function AuthorizationPage() {
       return
     }
     if (!companyInfo.title.trim()) {
-      setErrors('Please enter your title')
+      setErrors('Please select your title')
+      return
+    }
+    if (companyInfo.title === 'Other' && !companyInfo.titleOther?.trim()) {
+      setErrors('Please specify your title')
       return
     }
     if (au1 !== 'Yes') {
@@ -97,14 +99,13 @@ export default function AuthorizationPage() {
     }
 
     if (canContinue) {
-      // Store company info
       localStorage.setItem('login_company_name', companyInfo.companyName)
       localStorage.setItem('login_first_name', companyInfo.firstName)
       localStorage.setItem('login_last_name', companyInfo.lastName)
-      const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
-      localStorage.setItem('login_title', titleToStore)
       
-      // Store authorization
+      const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
+      localStorage.setItem('login_title', titleToStore || '')
+      
       localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
       localStorage.setItem('auth_completed', 'true')
       
@@ -128,7 +129,6 @@ export default function AuthorizationPage() {
           </div>
         )}
 
-        {/* Company Information */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Organization Information</h2>
           
@@ -161,63 +161,62 @@ export default function AuthorizationPage() {
               </div>
 
               <div>
-  <label className="block text-sm font-medium mb-2">
-    Title <span className="text-red-500">*</span>
-  </label>
-  <select
-    value={companyInfo.title}
-    onChange={(e) => setCompanyInfo(prev => ({ ...prev, title: e.target.value }))}
-    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-  >
-    <option value="">Select your title</option>
-    <option value="Chief Human Resources Officer (CHRO)">Chief Human Resources Officer (CHRO)</option>
-    <option value="VP of Human Resources">VP of Human Resources</option>
-    <option value="Director of Human Resources">Director of Human Resources</option>
-    <option value="HR Director">HR Director</option>
-    <option value="HR Manager">HR Manager</option>
-    <option value="HR Business Partner">HR Business Partner</option>
-    <option value="VP of Benefits">VP of Benefits</option>
-    <option value="Director of Benefits">Director of Benefits</option>
-    <option value="Benefits Manager">Benefits Manager</option>
-    <option value="Benefits Administrator">Benefits Administrator</option>
-    <option value="Compensation and Benefits Manager">Compensation and Benefits Manager</option>
-    <option value="Director of Total Rewards">Director of Total Rewards</option>
-    <option value="Total Rewards Manager">Total Rewards Manager</option>
-    <option value="Employee Benefits Specialist">Employee Benefits Specialist</option>
-    <option value="Director of People Operations">Director of People Operations</option>
-    <option value="People Operations Manager">People Operations Manager</option>
-    <option value="Talent Management Director">Talent Management Director</option>
-    <option value="Other">Other</option>
-  </select>
-  
-  {/* Show text input if "Other" is selected */}
-  {companyInfo.title === 'Other' && (
-    <input
-      type="text"
-      value={companyInfo.titleOther || ''}
-      onChange={(e) => setCompanyInfo(prev => ({ ...prev, titleOther: e.target.value }))}
-      className="w-full mt-3 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-      placeholder="Please specify your title"
-    />
-  )}
-</div>
+                <label className="block text-sm font-medium mb-2">
+                  Last Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={companyInfo.lastName}
+                  onChange={(e) => setCompanyInfo(prev => ({ ...prev, lastName: e.target.value }))}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Last name"
+                />
+              </div>
+            </div>
 
             <div>
               <label className="block text-sm font-medium mb-2">
                 Title <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 value={companyInfo.title}
                 onChange={(e) => setCompanyInfo(prev => ({ ...prev, title: e.target.value }))}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                placeholder="e.g., Director of HR, Benefits Manager"
-              />
+              >
+                <option value="">Select your title</option>
+                <option value="Chief Human Resources Officer (CHRO)">Chief Human Resources Officer (CHRO)</option>
+                <option value="VP of Human Resources">VP of Human Resources</option>
+                <option value="Director of Human Resources">Director of Human Resources</option>
+                <option value="HR Director">HR Director</option>
+                <option value="HR Manager">HR Manager</option>
+                <option value="HR Business Partner">HR Business Partner</option>
+                <option value="VP of Benefits">VP of Benefits</option>
+                <option value="Director of Benefits">Director of Benefits</option>
+                <option value="Benefits Manager">Benefits Manager</option>
+                <option value="Benefits Administrator">Benefits Administrator</option>
+                <option value="Compensation and Benefits Manager">Compensation and Benefits Manager</option>
+                <option value="Director of Total Rewards">Director of Total Rewards</option>
+                <option value="Total Rewards Manager">Total Rewards Manager</option>
+                <option value="Employee Benefits Specialist">Employee Benefits Specialist</option>
+                <option value="Director of People Operations">Director of People Operations</option>
+                <option value="People Operations Manager">People Operations Manager</option>
+                <option value="Talent Management Director">Talent Management Director</option>
+                <option value="Other">Other</option>
+              </select>
+              
+              {companyInfo.title === 'Other' && (
+                <input
+                  type="text"
+                  value={companyInfo.titleOther || ''}
+                  onChange={(e) => setCompanyInfo(prev => ({ ...prev, titleOther: e.target.value }))}
+                  className="w-full mt-3 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Please specify your title"
+                />
+              )}
             </div>
           </div>
         </div>
 
-        {/* AU1: Confirm authorization */}
         <h2 className="text-xl font-bold text-gray-900 mb-2">
           Are you <span className="text-blue-700 font-bold">authorized</span> to provide information on behalf of your organization?
         </h2>
@@ -231,7 +230,6 @@ export default function AuthorizationPage() {
           </Card>
         </div>
 
-        {/* AU2: Describe authorization (only if AU1 = Yes) */}
         {au1 === 'Yes' && (
           <div className="mt-12">
             <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -269,7 +267,6 @@ export default function AuthorizationPage() {
           </div>
         )}
 
-        {/* Navigation Buttons */}
         <div className="flex justify-between mt-10">
           <button
             type="button"
