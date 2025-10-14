@@ -24,9 +24,9 @@ export default function Dimension2Page() {
       }
     }
 
-    const screenerData = localStorage.getItem("screener_data");
-    if (screenerData) {
-      const parsed = JSON.parse(screenerData);
+    const firmographicsData = localStorage.getItem("firmographics_data");
+    if (firmographicsData) {
+      const parsed = JSON.parse(firmographicsData);
       setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
     }
   }, []);
@@ -106,7 +106,7 @@ export default function Dimension2Page() {
   ];
 
   const getTotalSteps = () => {
-    let total = 4; // intro, D2.a, D2.aa (if multi), D2.b, completion
+    let total = 4;
     return total;
   };
 
@@ -119,7 +119,12 @@ export default function Dimension2Page() {
         return null;
       
       case 2:
-        if (isMultiCountry && !ans.d2aa) return "Please select one option";
+        const hasAnyOffered = Object.values(ans.d2a || {}).some(
+          (status) => status === "Currently offer"
+        );
+        if (isMultiCountry && hasAnyOffered && !ans.d2aa) {
+          return "Please select one option";
+        }
         return null;
         
       case 3:
@@ -138,7 +143,11 @@ export default function Dimension2Page() {
     }
 
     if (step === 1) {
-      if (isMultiCountry) {
+      const hasAnyOffered = Object.values(ans.d2a || {}).some(
+        (status) => status === "Currently offer"
+      );
+      
+      if (isMultiCountry && hasAnyOffered) {
         setStep(2);
       } else {
         setStep(3);
@@ -146,7 +155,7 @@ export default function Dimension2Page() {
     } else if (step === 2) {
       setStep(3);
     } else if (step === 3) {
-      setStep(4); // Go to completion
+      setStep(4);
     } else if (step === 4) {
       localStorage.setItem("dimension2_complete", "true");
       router.push("/dashboard");
@@ -158,7 +167,10 @@ export default function Dimension2Page() {
 
   const back = () => {
     if (step === 3) {
-      setStep(isMultiCountry ? 2 : 1);
+      const hasAnyOffered = Object.values(ans.d2a || {}).some(
+        (status) => status === "Currently offer"
+      );
+      setStep(isMultiCountry && hasAnyOffered ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
     } else if (step > 0) {
@@ -167,12 +179,16 @@ export default function Dimension2Page() {
     setErrors("");
   };
 
+  const hasAnyOffered = Object.values(ans.d2a || {}).some(
+    (status) => status === "Currently offer"
+  );
+  const showD2aa = isMultiCountry && hasAnyOffered;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
-        {/* Progress indicator */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
@@ -193,7 +209,6 @@ export default function Dimension2Page() {
           </div>
         )}
 
-        {/* Step 0: Introduction */}
         {step === 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
             <div className="max-w-3xl mx-auto">
@@ -247,7 +262,6 @@ export default function Dimension2Page() {
           </div>
         )}
 
-        {/* Step 1: D2.a Progressive Cards */}
         {step === 1 && (
           <div className="bg-white rounded-xl shadow-sm">
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 rounded-t-xl">
@@ -361,8 +375,7 @@ export default function Dimension2Page() {
           </div>
         )}
         
-        {/* Step 2: D2.aa (conditional for multi-country) */}
-        {step === 2 && isMultiCountry && (
+        {step === 2 && showD2aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
@@ -394,7 +407,6 @@ export default function Dimension2Page() {
           </div>
         )}
 
-        {/* Step 3: D2.b open-end */}
         {step === 3 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Benefits</h3>
@@ -426,7 +438,6 @@ export default function Dimension2Page() {
           </div>
         )}
 
-        {/* Step 4: Completion */}
         {step === 4 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
@@ -452,7 +463,6 @@ export default function Dimension2Page() {
           </div>
         )}
 
-        {/* Universal Navigation */}
         {step > 1 && step < 4 && (
           <div className="flex justify-between mt-8">
             <button 
