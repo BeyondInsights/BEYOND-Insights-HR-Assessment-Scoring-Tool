@@ -48,12 +48,12 @@ export default function AuthorizationPage() {
   const canContinue = au1 === 'Yes' && au2.length > 0
 
   const handleContinue = () => {
-    if (canContinue) {
-      localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
-      router.push('/payment')
-    }
+  if (canContinue) {
+    localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
+    localStorage.setItem('auth_completed', 'true')  // ADD THIS LINE
+    router.push('/payment')
   }
-
+}
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
