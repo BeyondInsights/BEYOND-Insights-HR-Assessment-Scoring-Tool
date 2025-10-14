@@ -110,7 +110,7 @@ export default function AuthorizationPage() {
                 value={other}
                 onChange={(e) => setOther(e.target.value)}
                 className="w-full mt-2 px-4 py-3 border-2 rounded-lg"
-                placeholder="Please specifyâ€¦"
+                placeholder="Please specify:"
               />
             )}
           </div>
@@ -133,7 +133,7 @@ export default function AuthorizationPage() {
                 : 'opacity-50 cursor-not-allowed'
             }`}
           >
-            Continue â†’
+            Continue ’
           </button>
         </div>
       </main>
