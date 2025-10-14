@@ -176,15 +176,15 @@ Best regards`
             </pre>
           </div>
 
-          {/* Back Button */}
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => router.push('/authorization')}
-              className="text-gray-600 hover:text-gray-900 font-medium"
-            >
-              ← Back to Authorization
-            </button>
-          </div>
+          {/* Close Instructions */}
+<div className="mt-8 text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+  <p className="text-sm text-gray-600">
+    Once you've shared the assessment information, you can close this tab.
+  </p>
+  <p className="text-xs text-gray-500 mt-2">
+    The authorized person will use the link and Application ID you shared to complete the assessment.
+  </p>
+</div>
         </div>
       </main>
 
