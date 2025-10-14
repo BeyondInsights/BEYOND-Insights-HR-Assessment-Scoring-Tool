@@ -137,7 +137,7 @@ export default function StripePaymentPage() {
 
           {/* Back Button */}
           <button
-            onClick={() => router.push('/certification')}
+            onClick={() => router.push('/payment')}
             className="w-full px-6 py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-all"
           >
             ← Change Payment Method
