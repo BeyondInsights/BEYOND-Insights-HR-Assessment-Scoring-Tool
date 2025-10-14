@@ -82,11 +82,18 @@ export default function PaymentSuccessPage() {
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800">
-              <strong>Confirmation Email Sent:</strong> A receipt has been sent to your email address. You can access it anytime from your dashboard.
-            </p>
-          </div>
-
+  <p className="text-sm text-blue-800">
+    <strong>Payment Confirmation:</strong> Your payment has been processed. You can now access the full assessment from your dashboard.
+  </p>
+</div>
+  {/* Download Receipt Button - ADD THIS */}
+  <button
+    onClick={handleDownloadReceipt}
+    className="w-full px-6 py-3 bg-gray-100 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+  >
+    <FileText className="w-5 h-5" />
+    Download Payment Receipt (PDF)
+  </button>
           {/* What's Next */}
           <div className="border-t pt-6">
             <h3 className="font-bold text-gray-900 mb-4">What's Next?</h3>
