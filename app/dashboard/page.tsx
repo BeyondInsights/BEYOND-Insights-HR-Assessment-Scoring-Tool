@@ -167,8 +167,8 @@ useEffect(() => {
     if (!paymentCompleted) {
       return;
     }
-    if (allCoreDone || idx === 0) {
-      router.push(`/survey/dimensions/${idx+1}`)
+    if (allCoreDone || idx === 0 || idx === 1) {
+    router.push(`/survey/dimensions/${idx+1}`)
     }
   }
 
