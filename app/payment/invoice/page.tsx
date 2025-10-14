@@ -464,9 +464,6 @@ export default function InvoicePaymentPage() {
           onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
           className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
         >
-          <option value="United States">United States</option>
-          <option value="Canada">Canada</option>
-          <option value="United Kingdom">United Kingdom</option>
           <option value="Australia">Australia</option>
           <option value="Afghanistan">Afghanistan</option>
           <option value="Albania">Albania</option>
@@ -496,6 +493,7 @@ export default function InvoicePaymentPage() {
           <option value="Burundi">Burundi</option>
           <option value="Cambodia">Cambodia</option>
           <option value="Cameroon">Cameroon</option>
+          <option value="Canada">Canada</option>
           <option value="Cape Verde">Cape Verde</option>
           <option value="Central African Republic">Central African Republic</option>
           <option value="Chad">Chad</option>
@@ -648,6 +646,8 @@ export default function InvoicePaymentPage() {
           <option value="Uganda">Uganda</option>
           <option value="Ukraine">Ukraine</option>
           <option value="United Arab Emirates">United Arab Emirates</option>
+          <option value="United Kingdom">United Kingdom</option>
+          <option value="United States">United States</option>
           <option value="Uruguay">Uruguay</option>
           <option value="Uzbekistan">Uzbekistan</option>
           <option value="Vanuatu">Vanuatu</option>
