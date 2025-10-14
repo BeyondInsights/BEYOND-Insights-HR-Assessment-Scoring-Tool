@@ -8,10 +8,7 @@ import { ExternalLink, AlertCircle } from 'lucide-react'
 export default function LoginPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
-    companyName: '',
-    firstName: '',
-    lastName: '',
-    title: '',
+    email: '',
     applicationId: ''
   })
   const [errors, setErrors] = useState('')
@@ -21,20 +18,12 @@ export default function LoginPage() {
     e.preventDefault()
     
     // Validation
-    if (!formData.companyName.trim()) {
-      setErrors('Please enter your company name')
+    if (!formData.email.trim()) {
+      setErrors('Please enter your email address')
       return
     }
-    if (!formData.firstName.trim()) {
-      setErrors('Please enter your first name')
-      return
-    }
-    if (!formData.lastName.trim()) {
-      setErrors('Please enter your last name')
-      return
-    }
-    if (!formData.title.trim()) {
-      setErrors('Please enter your title')
+    if (!formData.email.includes('@')) {
+      setErrors('Please enter a valid email address')
       return
     }
     if (!formData.applicationId.trim()) {
@@ -43,24 +32,15 @@ export default function LoginPage() {
     }
 
     // Store login info in localStorage
-    localStorage.setItem('login_company_name', formData.companyName)
-    localStorage.setItem('login_first_name', formData.firstName)
-    localStorage.setItem('login_last_name', formData.lastName)
-    localStorage.setItem('login_title', formData.title)
+    localStorage.setItem('login_email', formData.email)
     localStorage.setItem('login_application_id', formData.applicationId)
-    localStorage.setItem('login_completed', 'true')
+    localStorage.setItem('auth_email', formData.email) // For compatibility
     
-    // Also set auth_email for compatibility with existing code
-    const email = `${formData.firstName.toLowerCase()}.${formData.lastName.toLowerCase()}@${formData.companyName.toLowerCase().replace(/\s+/g, '')}.com`
-    localStorage.setItem('auth_email', email)
-
-    // Route to authorization page (AU1, AU2 questions)
+    // Route to authorization page
     router.push('/authorization')
   }
 
   const handleRequestApplicationId = () => {
-    // Open CAC website in new tab
-    // TODO: Update to specific Application ID request page when available
     window.open('https://www.cancerandcareers.org', '_blank')
     setShowRequestIdMessage(true)
   }
@@ -68,9 +48,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-gray-50 flex flex-col">
       <main className="flex flex-1 items-center justify-center px-4 py-12">
-  <div className="w-full max-w-3xl relative">
-    {/* Award badge */}
-    <div className="flex justify-center -mt-16 mb-[-1rem]">
+        <div className="w-full max-w-3xl relative">
+          {/* Award badge */}
+          <div className="flex justify-center -mt-16 mb-[-1rem]">
             <div className="bg-white rounded-full p-3 shadow-lg">
               <img
                 src="/best-companies-2026-logo.png"
@@ -82,7 +62,7 @@ export default function LoginPage() {
 
           {/* Login Card */}
           <div className="bg-white rounded-2xl shadow-2xl p-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-3xl font-extrabold text-center text-gray-900 leading-snug mb-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-center text-gray-900 leading-snug mb-3">
               Welcome to the<br />
               <span className="text-orange-600">
                 Best Companies for Working with Cancer Index
@@ -116,68 +96,18 @@ export default function LoginPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Company Name */}
+              {/* Email Address */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Company Name <span className="text-red-500">*</span>
+                  Email Address <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="text"
-                  value={formData.companyName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="Enter company name"
+                  placeholder="your.email@company.com"
                 />
-              </div>
-
-              {/* Point of Contact Header */}
-              <div className="pt-2 border-t border-gray-200">
-                <h3 className="text-base font-semibold text-gray-900 mb-4">
-                  Point of Contact
-                </h3>
-
-                {/* First and Last Name - Side by Side */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      First Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.firstName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      placeholder="First name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Last Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.lastName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      placeholder="Last name"
-                    />
-                  </div>
-                </div>
-
-                {/* Title */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Title <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="e.g., Director of HR, Benefits Manager"
-                  />
-                </div>
               </div>
 
               {/* Application ID */}
