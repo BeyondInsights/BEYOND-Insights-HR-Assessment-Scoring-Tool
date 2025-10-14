@@ -50,7 +50,7 @@ export default function AuthorizationPage() {
   const handleContinue = () => {
     if (canContinue) {
       localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
-      router.push('/dashboard')
+      router.push('/payment')
     }
   }
 
