@@ -120,7 +120,7 @@ export default function InvoicePaymentPage() {
           setTimeout(resolve, 1000) // Timeout after 1 second
         })
         if (cacImg.complete) {
-          doc.addImage(cacImg, 'PNG', 20, yPos, 35, 12)
+          doc.addImage(cacImg, 'PNG', 20, yPos, 50, 18)  // Increased from 35x12 to 50x18
         }
 
         const bcImg = new Image()
