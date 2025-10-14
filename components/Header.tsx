@@ -1,51 +1,51 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function Header() {
   const router = useRouter()
-  const pathname = usePathname()
 
-  // Hide Back to Dashboard on Dashboard, Letter, and Authorization pages
-  const showBack = !['/dashboard', '/letter', '/authorization'].includes(pathname)
+  const handleReset = () => {
+    if (confirm('Clear all data and restart? This will log you out and cannot be undone.')) {
+      localStorage.clear()
+      sessionStorage.clear()
+      window.location.href = '/'
+    }
+  }
 
   return (
-    <header className="shadow-md">
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
-          {/* Left: Back button */}
-          {showBack ? (
+    <header className="bg-white border-b-4 border-orange-500 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        {/* Left side - Reset button (only in development) */}
+        <div className="flex items-center gap-4">
+          {process.env.NODE_ENV === 'development' && (
             <button
-              onClick={() => router.push('/dashboard')}
-              className="bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-orange-700 transition"
+              onClick={handleReset}
+              className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg font-semibold hover:bg-red-700 transition-colors"
+              title="Reset all data and start over"
             >
-              Back to Dashboard
+              🔄 Reset
             </button>
-          ) : (
-            <div className="w-40" /> // spacer keeps logos centered
           )}
-
-          {/* Center: Award logo */}
-          <div className="flex-1 flex justify-center">
-            <img
-              src="/best-companies-2026-logo.png"
-              alt="Best Companies for Working with Cancer Award Logo"
-              className="h-14 sm:h-20 lg:h-24 w-auto drop-shadow-md"
-            />
-          </div>
-
-          {/* Right: CAC logo */}
-          <div className="flex justify-end">
-            <img
-              src="/cancer-careers-logo.png"
-              alt="Cancer and Careers Logo"
-              className="h-10 sm:h-14 lg:h-16 w-auto"
-            />
-          </div>
         </div>
+
+        {/* Center - Logos */}
+        <div className="flex items-center gap-8">
+          <img
+            src="/best-companies-2026-logo.png"
+            alt="Best Companies Award"
+            className="h-16 w-auto"
+          />
+          <img
+            src="/cancer-careers-logo.png"
+            alt="Cancer and Careers"
+            className="h-12 w-auto"
+          />
+        </div>
+
+        {/* Right side - Empty for balance */}
+        <div className="w-24"></div>
       </div>
-      <div className="h-2 bg-orange-600" />
     </header>
   )
 }
-
