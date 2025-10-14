@@ -26,17 +26,17 @@ export default function StripePaymentPage() {
 
   // Simulate payment completion (replace with real Stripe integration)
   const handlePaymentSuccess = () => {
-    setIsProcessing(true);
+  setIsProcessing(true);
+  
+  // Simulate processing time
+  setTimeout(() => {
+    localStorage.setItem('payment_completed', 'true');
+    localStorage.setItem('payment_date', new Date().toISOString());
+    localStorage.setItem('payment_method', paymentMethod === 'ach' ? 'ach' : 'card'); // Use the actual paymentMethod state
     
-    // Simulate processing time
-    setTimeout(() => {
-      localStorage.setItem('payment_completed', 'true');
-      localStorage.setItem('payment_date', new Date().toISOString());
-      localStorage.setItem('payment_method', paymentMethod);
-      
-      router.push('/payment/success');
-    }, 2000);
-  };
+    router.push('/payment/success');
+  }, 2000);
+};
 
   if (isProcessing) {
     return (
