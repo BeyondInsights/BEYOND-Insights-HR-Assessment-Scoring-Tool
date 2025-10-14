@@ -1,14 +1,17 @@
-﻿'use client'
+// app/dashboard/page.tsx - Updated with payment gating
+'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
-import ProgressCircle from '@/components/ProgressCircle';
+import ProgressCircle from '@/components/ProgressCircle'
+import { Lock, CheckCircle, CreditCard, AlertCircle } from 'lucide-react'
 
 export default function DashboardPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [paymentCompleted, setPaymentCompleted] = useState(false)
   const [dimensionProgress, setDimensionProgress] = useState(new Array(13).fill(0))
   const [sectionProgress, setSectionProgress] = useState({
     firmographics: 0,
@@ -27,6 +30,10 @@ export default function DashboardPage() {
     const calculateProgress = () => {
       const savedEmail = localStorage.getItem('auth_email') || ''
       setEmail(savedEmail)
+      
+      // Check payment status
+      const paid = localStorage.getItem('payment_completed') === 'true'
+      setPaymentCompleted(paid)
       
       const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
       if (firmo?.companyName) setCompanyName(firmo.companyName)
@@ -129,6 +136,22 @@ export default function DashboardPage() {
     sectionProgress.general === 100 &&
     sectionProgress.current === 100
 
+  const handleSectionClick = (sectionId: string) => {
+    if (!paymentCompleted) {
+      return; // Do nothing if payment not completed
+    }
+    router.push(`/survey/${sectionId}`)
+  }
+
+  const handleDimensionClick = (idx: number) => {
+    if (!paymentCompleted) {
+      return; // Do nothing if payment not completed
+    }
+    if (allCoreDone || idx === 0) {
+      router.push(`/survey/dimensions/${idx+1}`)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
@@ -150,36 +173,96 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Payment Status Banner */}
+        {!paymentCompleted ? (
+          <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-6 mb-8 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Lock className="w-6 h-6 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-amber-900 text-lg mb-2">
+                  Payment Required to Begin Assessment
+                </h3>
+                <p className="text-amber-800 mb-4">
+                  Complete your certification payment to unlock all assessment sections. You can explore the dashboard structure, but assessment sections will remain locked until payment is processed.
+                </p>
+                <button
+                  onClick={() => router.push('/certification')}
+                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2"
+                >
+                  <CreditCard className="w-5 h-5" />
+                  Complete Payment ($1,200)
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-green-50 border-2 border-green-300 rounded-xl p-6 mb-8 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-green-900 text-lg mb-1">
+                  ✓ Payment Complete - Assessment Unlocked
+                </h3>
+                <p className="text-green-800">
+                  All assessment sections are now available. Your progress saves automatically as you work.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-10">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">How this works</h2>
           <ul className="list-disc ml-5 space-y-1 text-sm text-gray-700">
             <li>Start in any order. Your work saves automatically on every change.</li>
-            <li>Stop anytime you will return here and resume where you left off.</li>
-            <li>Progress meters reflect partial completion you can re-enter completed sections to review/edit.</li>
+            <li>Stop anytime - you can return here and resume where you left off.</li>
+            <li>Progress meters reflect partial completion - you can re-enter completed sections to review/edit.</li>
           </ul>
         </div>
 
         {/* Core Sections */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {sections.map((s, idx) => (
-            <div
-              key={s.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => router.push(`/survey/${s.id}`)}
-              onKeyDown={(e) => e.key === 'Enter' && router.push(`/survey/${s.id}`)}
-              className={`rounded-xl border-2 p-6 flex justify-between items-center cursor-pointer shadow-sm transition-all duration-300 transform hover:scale-105
-                bg-gradient-to-br from-white to-gray-50 hover:bg-blue-50 hover:shadow-md ${s.completion === 100 ? "border-green-400" : s.completion > 0 ? "border-orange-400" : "border-gray-200"}`}
-            >
-              <div>
-                <h3 className="text-md font-semibold text-gray-900">{s.title}</h3>
-                <p className="text-xs text-gray-600">
-                  {s.completion === 100 ? "Completed" : `${s.questions} questions | ${s.completion}%`}
-                </p>
+          {sections.map((s) => {
+            const isLocked = !paymentCompleted;
+            
+            return (
+              <div
+                key={s.id}
+                role="button"
+                tabIndex={isLocked ? -1 : 0}
+                onClick={() => handleSectionClick(s.id)}
+                onKeyDown={(e) => !isLocked && e.key === 'Enter' && handleSectionClick(s.id)}
+                className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300 
+                  ${isLocked 
+                    ? 'cursor-not-allowed opacity-60 bg-gray-100 border-gray-300' 
+                    : `cursor-pointer transform hover:scale-105 bg-gradient-to-br from-white to-gray-50 hover:bg-blue-50 hover:shadow-md ${
+                        s.completion === 100 ? "border-green-400" : s.completion > 0 ? "border-orange-400" : "border-gray-200"
+                      }`
+                  }`}
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-md font-semibold text-gray-900">{s.title}</h3>
+                    {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    {isLocked ? (
+                      'Payment required'
+                    ) : s.completion === 100 ? (
+                      "Completed"
+                    ) : (
+                      `${s.questions} questions | ${s.completion}%`
+                    )}
+                  </p>
+                </div>
+                <ProgressCircle completion={isLocked ? 0 : s.completion} />
               </div>
-              <ProgressCircle completion={s.completion} />
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Dimensions */}
@@ -200,63 +283,79 @@ export default function DashboardPage() {
         
         <h2 className="text-xl font-bold text-gray-900 mb-4">13 Dimensions of Support</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {dimensions.map((dim, idx) => (
-            <div
-              key={dim}
-              role="button"
-              tabIndex={0}
-              onClick={() => { 
-                if (allCoreDone || idx === 0) router.push(`/survey/dimensions/${idx+1}`) 
-              }}
-              onKeyDown={(e) => { if (allCoreDone && e.key==='Enter') router.push(`/survey/dimensions/${idx+1}`) }}
-              className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300 transform hover:scale-105
-                ${allCoreDone || idx === 0
-                  ? 'cursor-pointer bg-white hover:bg-blue-50 hover:shadow-md border-gray-200'
-                  : 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-60'}`}
-            >
-              <div>
-                <h3 className="text-base font-semibold text-gray-800">{dim}</h3>
-                <p className="text-xs text-gray-500">
-                  {dimensionProgress[idx] === 100 ? 'Completed' : (allCoreDone || idx === 0) ? 'Click to begin' : 'Available after completing all 3 sections'}
-                </p>
+          {dimensions.map((dim, idx) => {
+            const isLocked = !paymentCompleted;
+            const canAccess = allCoreDone || idx === 0;
+            const isClickable = !isLocked && canAccess;
+            
+            return (
+              <div
+                key={dim}
+                role="button"
+                tabIndex={isClickable ? 0 : -1}
+                onClick={() => handleDimensionClick(idx)}
+                onKeyDown={(e) => isClickable && e.key === 'Enter' && handleDimensionClick(idx)}
+                className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300
+                  ${isLocked || !canAccess
+                    ? 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-60'
+                    : 'cursor-pointer bg-white hover:bg-blue-50 hover:shadow-md border-gray-200 transform hover:scale-105'
+                  }`}
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-base font-semibold text-gray-800">{dim}</h3>
+                    {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {isLocked ? (
+                      'Payment required'
+                    ) : dimensionProgress[idx] === 100 ? (
+                      'Completed'
+                    ) : canAccess ? (
+                      'Click to begin'
+                    ) : (
+                      'Complete all 3 core sections first'
+                    )}
+                  </p>
+                </div>
+                <ProgressCircle completion={isLocked ? 0 : (dimensionProgress[idx] || 0)} />
               </div>
-              <ProgressCircle completion={dimensionProgress[idx] || 0} />
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-       {/* Certification Section */}
-{overallProgress >= 25 && (
-  <div className="mt-12 bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-8 shadow-lg">
-    <div className="flex-1">
-      <h2 className="text-2xl font-bold text-gray-900 mb-3">
-        Your Organization is Invited to Apply for <strong>Best Companies for Working with Cancer</strong> certification!
-      </h2>
-      <p className="text-gray-700 mb-4">
-        Click the Apply for Certification button below to begin the application process.
-      </p>
-      <p className="text-sm text-gray-600 mb-6">
-        Join leading employers committed to supporting employees through cancer and serious health conditions.
-      </p>
-      <button 
-        onClick={() => router.push('/certification/apply')}
-        className="bg-indigo-600 text-white px-8 py-4 rounded-lg font-semibold text-lg
-                 hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 
-                 shadow-md hover:shadow-xl"
-      >
-        Apply for Certification
-      </button>
-      <p className="text-xs text-gray-500 mt-3">
-        Certification includes official designation, marketing materials, and inclusion in our directory.
-      </p>
-    </div>
-  </div>
-)}
+        {/* Certification Section - Only show if payment complete AND progress >= 25% */}
+        {paymentCompleted && overallProgress >= 25 && (
+          <div className="mt-12 bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-8 shadow-lg">
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                Your Organization is Invited to Apply for <strong>Best Companies for Working with Cancer</strong> certification!
+              </h2>
+              <p className="text-gray-700 mb-4">
+                Click the Apply for Certification button below to begin the application process.
+              </p>
+              <p className="text-sm text-gray-600 mb-6">
+                Join leading employers committed to supporting employees through cancer and serious health conditions.
+              </p>
+              <button 
+                onClick={() => router.push('/certification/apply')}
+                className="bg-indigo-600 text-white px-8 py-4 rounded-lg font-semibold text-lg
+                         hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 
+                         shadow-md hover:shadow-xl"
+              >
+                Apply for Certification
+              </button>
+              <p className="text-xs text-gray-500 mt-3">
+                Certification includes official designation, marketing materials, and inclusion in our directory.
+              </p>
+            </div>
+          </div>
+        )}
         {/* End Certification Section */}
 
       </main>
    
-      <Footer overallProgress={overallProgress} />
+      <Footer overallProgress={paymentCompleted ? overallProgress : 0} />
     </div>
   )
 }
