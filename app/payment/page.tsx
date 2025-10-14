@@ -131,11 +131,11 @@ export default function PaymentPage() {
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-blue-600 mr-2">✓</span>
-                Net 30 payment terms
+                Net 14 days payment terms
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-blue-600 mr-2">✓</span>
-                Access after payment received
+                Certification / Score available after payment received
               </li>
             </ul>
             <div className="text-gray-600 font-semibold group-hover:text-blue-600 group-hover:underline">
