@@ -292,13 +292,13 @@ export default function InvoicePaymentPage() {
       doc.text('• For ACH Transfer (Bank Transfer):', 30, yPos)
       doc.setFont(undefined, 'normal')
       yPos += 4
-      doc.text('Bank Name: Bank of America', 35, yPos)
+      doc.text('Bank Name: ACME BANK ANYWHERE USA', 35, yPos)
       yPos += 4
       doc.text('Bank Account Name: Checking', 35, yPos)
       yPos += 4
-      doc.text('Bank Account Number: 4460 5614 6022', 35, yPos)
+      doc.text('Bank Account Number: #### #### ####', 35, yPos)
       yPos += 4
-      doc.text('Bank Routing Number: 052001633', 35, yPos)
+      doc.text('Bank Routing Number: #########', 35, yPos)
       yPos += 4
       doc.text(`Reference/Invoice Number: ${data.invoiceNumber}`, 35, yPos)
       yPos += 5
@@ -306,7 +306,7 @@ export default function InvoicePaymentPage() {
       doc.setTextColor(100, 100, 100)
       doc.text('Please initiate the ACH transfer to the bank details provided above.', 35, yPos)
       yPos += 4
-      doc.text('Kindly ensure that the reference/invoice number is included in the transfer description.', 35, yPos)
+      doc.text('Kindly ensure that the invoice number is included in the transfer description.', 35, yPos)
 
       // Footer
       yPos = doc.internal.pageSize.getHeight() - 20
