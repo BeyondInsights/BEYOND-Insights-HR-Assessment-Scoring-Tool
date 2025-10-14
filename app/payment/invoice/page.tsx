@@ -5,9 +5,17 @@ import { FileText, Building2, MapPin, Download, Loader2 } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
+// Declare jsPDF type
+declare global {
+  interface Window {
+    jspdf: any;
+  }
+}
+
 export default function InvoicePaymentPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [scriptLoaded, setScriptLoaded] = useState(false)
   const [companyData, setCompanyData] = useState({
     companyName: '',
     contactName: '',
@@ -34,11 +42,27 @@ export default function InvoicePaymentPage() {
       contactName: `${firstName} ${lastName}`,
       title
     })
+
+    // Load jsPDF library
+    const script = document.createElement('script')
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+    script.async = true
+    script.onload = () => setScriptLoaded(true)
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
+    }
   }, [])
 
-  const handleDownloadInvoice = () => {
+  const handleDownloadInvoice = async () => {
     if (!formData.addressLine1 || !formData.city || !formData.state || !formData.zipCode || !formData.country) {
       alert('Please fill in all required address fields')
+      return
+    }
+
+    if (!scriptLoaded) {
+      alert('PDF library is still loading. Please try again in a moment.')
       return
     }
 
@@ -55,9 +79,9 @@ export default function InvoicePaymentPage() {
     }
     localStorage.setItem('invoice_data', JSON.stringify(invoiceData))
 
-    // Generate and download invoice
-    setTimeout(() => {
-      generateInvoiceHTML(invoiceData)
+    // Generate PDF
+    setTimeout(async () => {
+      await generateInvoicePDF(invoiceData)
       setLoading(false)
       
       // Grant access to dashboard
@@ -70,215 +94,193 @@ export default function InvoicePaymentPage() {
     }, 1000)
   }
 
-  const generateInvoiceHTML = (data: any) => {
-    const invoiceHTML = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Invoice ${data.invoiceNumber}</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 40px;
-      color: #333;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: start;
-      margin-bottom: 40px;
-      padding-bottom: 20px;
-      border-bottom: 3px solid #ff6b35;
-    }
-    .logo-section {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    .logo-box {
-      background: #f5f5f5;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: bold;
-      color: #ff6b35;
-    }
-    .invoice-details {
-      text-align: right;
-    }
-    .invoice-details h1 {
-      margin: 0 0 10px 0;
-      color: #ff6b35;
-      font-size: 32px;
-    }
-    .invoice-details p {
-      margin: 5px 0;
-    }
-    .section {
-      margin-bottom: 30px;
-    }
-    .section h2 {
-      color: #333;
-      font-size: 16px;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-      margin-bottom: 40px;
-    }
-    .info-box {
-      background: #f9f9f9;
-      padding: 20px;
-      border-radius: 8px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-    }
-    th {
-      background: #333;
-      color: white;
-      padding: 12px;
-      text-align: left;
-      font-weight: 600;
-    }
-    td {
-      padding: 15px 12px;
-      border-bottom: 1px solid #ddd;
-    }
-    .total-row {
-      background: #f5f5f5;
-      font-weight: bold;
-      font-size: 18px;
-    }
-    .total-row td {
-      border-bottom: none;
-    }
-    .footer {
-      margin-top: 50px;
-      padding-top: 20px;
-      border-top: 2px solid #ddd;
-      text-align: center;
-      color: #666;
-      font-size: 12px;
-    }
-    .payment-terms {
-      background: #fff8f0;
-      border: 2px solid #ff6b35;
-      padding: 20px;
-      border-radius: 8px;
-      margin: 30px 0;
-    }
-    .payment-terms h3 {
-      color: #ff6b35;
-      margin-top: 0;
-    }
-    @media print {
-      body { padding: 20px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <div class="logo-section">
-      <div class="logo-box">CANCER + CAREERS</div>
-      <div class="logo-box">BEST COMPANIES FOR<br>WORKING WITH CANCER</div>
-    </div>
-    <div class="invoice-details">
-      <h1>INVOICE</h1>
-      <p><strong>Invoice #:</strong> ${data.invoiceNumber}</p>
-      <p><strong>Invoice Date:</strong> ${data.invoiceDate}</p>
-      <p><strong>Due Date:</strong> ${data.dueDate}</p>
-      <p><strong>Payment Terms:</strong> Net 14</p>
-    </div>
-  </div>
+  const loadImage = (url: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => resolve(img)
+      img.onerror = reject
+      img.src = url
+    })
+  }
 
-  <div class="info-grid">
-    <div class="info-box">
-      <h2>From</h2>
-      <p><strong>Cancer and Careers</strong></p>
-      <p>75 Maiden Lane, Suite 501</p>
-      <p>New York, NY 10038</p>
-      <p>United States</p>
-      <p>Email: info@cancerandcareers.org</p>
-    </div>
-    <div class="info-box">
-      <h2>Bill To</h2>
-      <p><strong>${data.companyName}</strong></p>
-      <p>${data.contactName}</p>
-      <p>${data.title}</p>
-      <p>${data.addressLine1}</p>
-      ${data.addressLine2 ? `<p>${data.addressLine2}</p>` : ''}
-      <p>${data.city}, ${data.state} ${data.zipCode}</p>
-      <p>${data.country}</p>
-      ${data.poNumber ? `<p><strong>PO #:</strong> ${data.poNumber}</p>` : ''}
-    </div>
-  </div>
+  const generateInvoicePDF = async (data: any) => {
+    const { jsPDF } = window.jspdf
 
-  <table>
-    <thead>
-      <tr>
-        <th>Description</th>
-        <th style="text-align: right; width: 150px;">Amount</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>
-          <strong>Application / Certification Fee</strong><br>
-          <span style="color: #666; font-size: 14px;">
-            Best Companies for Working with Cancer Index - Standard Certification
-          </span>
-        </td>
-        <td style="text-align: right;">$1,200.00</td>
-      </tr>
-      <tr class="total-row">
-        <td style="text-align: right;">TOTAL DUE:</td>
-        <td style="text-align: right;">$1,200.00</td>
-      </tr>
-    </tbody>
-  </table>
+    const doc = new jsPDF()
+    const pageWidth = doc.internal.pageSize.getWidth()
+    let yPos = 20
 
-  <div class="payment-terms">
-    <h3>Payment Terms & Instructions</h3>
-    <p><strong>Payment is due within 14 days of invoice date.</strong></p>
-    <p style="margin-top: 15px;"><strong>Payment Methods:</strong></p>
-    <ul>
-      <li>Check payable to: Cancer and Careers</li>
-      <li>Wire Transfer: Contact info@cancerandcareers.org for details</li>
-      <li>ACH: Contact info@cancerandcareers.org for details</li>
-    </ul>
-    <p style="margin-top: 15px;">
-      Please include invoice number <strong>${data.invoiceNumber}</strong> with your payment.
-    </p>
-  </div>
+    // Add logos at the top
+    try {
+      // Load both logos
+      const bestCompaniesLogo = await loadImage('/best-companies-2026-logo.png')
+      const cacLogo = await loadImage('/cancer-careers-logo.png')
+      
+      // Add Best Companies logo (left)
+      doc.addImage(bestCompaniesLogo, 'PNG', 20, yPos, 40, 40)
+      
+      // Add CAC logo (below Best Companies)
+      doc.addImage(cacLogo, 'PNG', 20, yPos + 45, 40, 15)
+    } catch (error) {
+      console.error('Error loading logos:', error)
+      // Continue without logos if they fail to load
+      doc.setFontSize(12)
+      doc.setTextColor(255, 107, 53)
+      doc.text('CANCER + CAREERS', 20, yPos)
+      doc.text('BEST COMPANIES', 20, yPos + 10)
+    }
 
-  <div class="footer">
-    <p>Thank you for your commitment to supporting employees with cancer!</p>
-    <p>Cancer and Careers | www.cancerandcareers.org | info@cancerandcareers.org</p>
-  </div>
-</body>
-</html>
-    `
+    // Invoice header (right side)
+    doc.setFontSize(28)
+    doc.setTextColor(255, 107, 53)
+    doc.text('INVOICE', pageWidth - 20, yPos, { align: 'right' })
+    
+    doc.setFontSize(10)
+    doc.setTextColor(0, 0, 0)
+    yPos += 10
+    doc.text(`Invoice #: ${data.invoiceNumber}`, pageWidth - 20, yPos, { align: 'right' })
+    yPos += 6
+    doc.text(`Invoice Date: ${data.invoiceDate}`, pageWidth - 20, yPos, { align: 'right' })
+    yPos += 6
+    doc.text(`Due Date: ${data.dueDate}`, pageWidth - 20, yPos, { align: 'right' })
+    yPos += 6
+    doc.text('Payment Terms: Net 14', pageWidth - 20, yPos, { align: 'right' })
 
-    // Create and download the invoice
-    const blob = new Blob([invoiceHTML], { type: 'text/html' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `Invoice-${data.invoiceNumber}.html`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
+    // Line separator
+    yPos = 75
+    doc.setDrawColor(255, 107, 53)
+    doc.setLineWidth(1)
+    doc.line(20, yPos, pageWidth - 20, yPos)
+
+    // From and Bill To sections
+    yPos += 10
+    
+    // From section (left)
+    doc.setFontSize(11)
+    doc.setFont(undefined, 'bold')
+    doc.text('From', 20, yPos)
+    doc.setFont(undefined, 'normal')
+    doc.setFontSize(10)
+    yPos += 6
+    doc.text('Cancer and Careers', 20, yPos)
+    yPos += 5
+    doc.text('75 Maiden Lane, Suite 501', 20, yPos)
+    yPos += 5
+    doc.text('New York, NY 10038', 20, yPos)
+    yPos += 5
+    doc.text('United States', 20, yPos)
+    yPos += 5
+    doc.text('Email: info@cancerandcareers.org', 20, yPos)
+
+    // Bill To section (right)
+    let rightYPos = 95
+    doc.setFontSize(11)
+    doc.setFont(undefined, 'bold')
+    doc.text('Bill To', pageWidth / 2 + 10, rightYPos)
+    doc.setFont(undefined, 'normal')
+    doc.setFontSize(10)
+    rightYPos += 6
+    doc.text(data.companyName, pageWidth / 2 + 10, rightYPos)
+    rightYPos += 5
+    doc.text(data.contactName, pageWidth / 2 + 10, rightYPos)
+    rightYPos += 5
+    doc.text(data.title, pageWidth / 2 + 10, rightYPos)
+    rightYPos += 5
+    doc.text(data.addressLine1, pageWidth / 2 + 10, rightYPos)
+    if (data.addressLine2) {
+      rightYPos += 5
+      doc.text(data.addressLine2, pageWidth / 2 + 10, rightYPos)
+    }
+    rightYPos += 5
+    doc.text(`${data.city}, ${data.state} ${data.zipCode}`, pageWidth / 2 + 10, rightYPos)
+    rightYPos += 5
+    doc.text(data.country, pageWidth / 2 + 10, rightYPos)
+    if (data.poNumber) {
+      rightYPos += 5
+      doc.setFont(undefined, 'bold')
+      doc.text(`PO #: ${data.poNumber}`, pageWidth / 2 + 10, rightYPos)
+      doc.setFont(undefined, 'normal')
+    }
+
+    // Table header
+    yPos = Math.max(yPos, rightYPos) + 15
+    doc.setFillColor(51, 51, 51)
+    doc.rect(20, yPos, pageWidth - 40, 10, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFont(undefined, 'bold')
+    doc.text('Description', 25, yPos + 7)
+    doc.text('Amount', pageWidth - 25, yPos + 7, { align: 'right' })
+
+    // Table content
+    yPos += 15
+    doc.setTextColor(0, 0, 0)
+    doc.setFont(undefined, 'bold')
+    doc.text('Application / Certification Fee', 25, yPos)
+    doc.setFont(undefined, 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(100, 100, 100)
+    yPos += 5
+    doc.text('Best Companies for Working with Cancer Index - Standard Certification', 25, yPos)
+    
+    doc.setFontSize(10)
+    doc.setTextColor(0, 0, 0)
+    doc.text('$1,200.00', pageWidth - 25, yPos - 5, { align: 'right' })
+
+    // Total row
+    yPos += 10
+    doc.setDrawColor(200, 200, 200)
+    doc.line(20, yPos, pageWidth - 20, yPos)
+    yPos += 8
+    doc.setFillColor(245, 245, 245)
+    doc.rect(20, yPos - 5, pageWidth - 40, 10, 'F')
+    doc.setFont(undefined, 'bold')
+    doc.setFontSize(12)
+    doc.text('TOTAL DUE:', pageWidth / 2, yPos + 2, { align: 'right' })
+    doc.text('$1,200.00', pageWidth - 25, yPos + 2, { align: 'right' })
+
+    // Payment Terms box
+    yPos += 20
+    doc.setDrawColor(255, 107, 53)
+    doc.setLineWidth(0.5)
+    doc.rect(20, yPos, pageWidth - 40, 40)
+    
+    doc.setFontSize(11)
+    doc.setTextColor(255, 107, 53)
+    doc.setFont(undefined, 'bold')
+    yPos += 7
+    doc.text('Payment Terms & Instructions', 25, yPos)
+    
+    doc.setFontSize(10)
+    doc.setTextColor(0, 0, 0)
+    doc.setFont(undefined, 'bold')
+    yPos += 7
+    doc.text('Payment is due within 14 days of invoice date.', 25, yPos)
+    
+    doc.setFont(undefined, 'normal')
+    yPos += 7
+    doc.text('Payment Methods:', 25, yPos)
+    doc.setFontSize(9)
+    yPos += 5
+    doc.text('• Check payable to: Cancer and Careers', 30, yPos)
+    yPos += 4
+    doc.text('• Wire Transfer: Contact info@cancerandcareers.org for details', 30, yPos)
+    yPos += 4
+    doc.text('• ACH: Contact info@cancerandcareers.org for details', 30, yPos)
+
+    // Footer
+    yPos = doc.internal.pageSize.getHeight() - 30
+    doc.setDrawColor(200, 200, 200)
+    doc.line(20, yPos, pageWidth - 20, yPos)
+    yPos += 7
+    doc.setFontSize(9)
+    doc.setTextColor(100, 100, 100)
+    doc.text('Thank you for your commitment to supporting employees with cancer!', pageWidth / 2, yPos, { align: 'center' })
+    yPos += 5
+    doc.text('Cancer and Careers | www.cancerandcareers.org | info@cancerandcareers.org', pageWidth / 2, yPos, { align: 'center' })
+
+    // Save the PDF
+    doc.save(`Invoice-${data.invoiceNumber}.pdf`)
   }
 
   return (
@@ -444,13 +446,18 @@ export default function InvoicePaymentPage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !scriptLoaded}
                 className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Generating Invoice...
+                  </>
+                ) : !scriptLoaded ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Loading PDF Library...
                   </>
                 ) : (
                   <>
