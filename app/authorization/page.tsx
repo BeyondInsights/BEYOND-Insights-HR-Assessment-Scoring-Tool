@@ -230,6 +230,27 @@ export default function AuthorizationPage() {
           </Card>
         </div>
 
+        {/* If user selected No, show message and redirect */}
+{au1 === 'No' && (
+  <div className="mt-6 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+    <p className="text-yellow-900 font-semibold mb-2">
+      You must be authorized to complete this assessment
+    </p>
+    <p className="text-yellow-800 text-sm mb-4">
+      Please forward this assessment to someone in your organization who has the appropriate authorization.
+    </p>
+    <button
+      type="button"
+      onClick={() => router.push('/not-authorized')}
+      className="px-6 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700"
+    >
+      Continue to Share Options
+    </button>
+  </div>
+)}
+
+
+        
         {au1 === 'Yes' && (
           <div className="mt-12">
             <h2 className="text-xl font-bold text-gray-900 mb-2">
