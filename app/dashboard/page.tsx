@@ -268,7 +268,7 @@ useEffect(() => {
         {/* Core Sections */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {sections.map((s) => {
-            const isLocked = !paymentCompleted;
+           const isLocked = false // Always allow access if they've completed payment (any method)
             
             return (
               <div
