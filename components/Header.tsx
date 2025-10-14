@@ -1,9 +1,14 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { RotateCcw } from 'lucide-react'
 
 export default function Header() {
   const router = useRouter()
+  const pathname = usePathname()
+  
+  // Hide Back to Dashboard on Dashboard, Letter, and Authorization pages
+  const showBack = !['/dashboard', '/letter', '/authorization'].includes(pathname)
 
   const handleReset = () => {
     if (confirm('Clear all data and restart? This will log you out and cannot be undone.')) {
@@ -14,37 +19,52 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-white border-b-4 border-orange-500 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        {/* Left - Reset Button */}
-        <div>
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm rounded-lg font-semibold hover:bg-red-700 transition-colors"
-            title="Reset all data and start over"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Reset
-          </button>
-        </div>
+    <header className="shadow-md">
+      <div className="bg-white">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+          {/* Left: Reset button + Back button */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-red-700 transition text-sm"
+              title="Reset all data"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset
+            </button>
+            
+            {showBack ? (
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-orange-700 transition"
+              >
+                Back to Dashboard
+              </button>
+            ) : (
+              <div className="w-40" /> // spacer keeps logos centered
+            )}
+          </div>
 
-        {/* Center - Logos */}
-        <div className="flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
-          <img
-            src="/best-companies-2026-logo.png"
-            alt="Best Companies Award"
-            className="h-16 w-auto"
-          />
-          <img
-            src="/cancer-careers-logo.png"
-            alt="Cancer and Careers"
-            className="h-12 w-auto"
-          />
-        </div>
+          {/* Center: Award logo */}
+          <div className="flex-1 flex justify-center">
+            <img
+              src="/best-companies-2026-logo.png"
+              alt="Best Companies for Working with Cancer Award Logo"
+              className="h-14 sm:h-20 lg:h-24 w-auto drop-shadow-md"
+            />
+          </div>
 
-        {/* Right - Empty for balance */}
-        <div></div>
+          {/* Right: CAC logo */}
+          <div className="flex justify-end">
+            <img
+              src="/cancer-careers-logo.png"
+              alt="Cancer and Careers Logo"
+              className="h-10 sm:h-14 lg:h-16 w-auto"
+            />
+          </div>
+        </div>
       </div>
+      <div className="h-2 bg-orange-600" />
     </header>
   )
 }
