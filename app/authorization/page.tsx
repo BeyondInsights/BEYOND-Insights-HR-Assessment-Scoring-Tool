@@ -218,39 +218,21 @@ export default function AuthorizationPage() {
         </div>
 
         <h2 className="text-xl font-bold text-gray-900 mb-2">
-          Are you <span className="text-blue-700 font-bold">authorized</span> to provide information on behalf of your organization?
-        </h2>
-        <p className="text-base text-gray-600 mb-4">(Select ONE)</p>
-        <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 mt-6 mb-8">
-          <Card selected={au1 === 'Yes'} onClick={() => setAu1('Yes')}>
-            Yes, I am authorized
-          </Card>
-          <Card selected={au1 === 'No'} onClick={() => setAu1('No')}>
-            No, I am not authorized
-          </Card>
-        </div>
+  Are you <span className="text-blue-700 font-bold">authorized</span> to provide information on behalf of your organization?
+</h2>
+<p className="text-base text-gray-600 mb-4">(Select ONE)</p>
+<div className="grid md:grid-cols-2 gap-x-8 gap-y-4 mt-6 mb-8">
+  <Card selected={au1 === 'Yes'} onClick={() => setAu1('Yes')}>
+    Yes, I am authorized
+  </Card>
+  <Card selected={au1 === 'No'} onClick={() => {
+    setAu1('No')
+    router.push('/not-authorized')
+  }}>
+    No, I am not authorized
+  </Card>
+</div>
 
-        {/* If user selected No, show message and redirect */}
-{au1 === 'No' && (
-  <div className="mt-6 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-    <p className="text-yellow-900 font-semibold mb-2">
-      You must be authorized to complete this assessment
-    </p>
-    <p className="text-yellow-800 text-sm mb-4">
-      Please forward this assessment to someone in your organization who has the appropriate authorization.
-    </p>
-    <button
-      type="button"
-      onClick={() => router.push('/not-authorized')}
-      className="px-6 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700"
-    >
-      Continue to Share Options
-    </button>
-  </div>
-)}
-
-
-        
         {au1 === 'Yes' && (
           <div className="mt-12">
             <h2 className="text-xl font-bold text-gray-900 mb-2">
