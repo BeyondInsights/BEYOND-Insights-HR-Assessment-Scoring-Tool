@@ -1,12 +1,40 @@
-// app/payment/success/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle, Award, ArrowRight } from 'lucide-react';
-const handleDownloadReceipt = () => {
-  // Create simple HTML receipt
-  const receiptHTML = `
+import { CheckCircle, Award, ArrowRight, FileText } from 'lucide-react';
+
+export default function PaymentSuccessPage() {
+  const router = useRouter();
+  const [paymentInfo, setPaymentInfo] = useState({
+    method: '',
+    date: '',
+    transactionId: ''
+  });
+
+  useEffect(() => {
+    const method = localStorage.getItem('payment_method') || 'card';
+    const date = localStorage.getItem('payment_date') || new Date().toISOString();
+    const txnId = `TXN-${Date.now()}`;
+    
+    let methodDisplay = 'Credit Card';
+    if (method === 'ach') {
+      methodDisplay = 'ACH Transfer';
+    } else if (method === 'invoice') {
+      methodDisplay = 'Invoice';
+    } else if (method === 'card') {
+      methodDisplay = 'Credit Card';
+    }
+    
+    setPaymentInfo({
+      method: methodDisplay,
+      date: new Date(date).toLocaleDateString(),
+      transactionId: txnId
+    });
+  }, []);
+
+  const handleDownloadReceipt = () => {
+    const receiptHTML = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -129,53 +157,22 @@ const handleDownloadReceipt = () => {
   </div>
 </body>
 </html>
-  `;
+    `;
 
-  // Create and download
-  const blob = new Blob([receiptHTML], { type: 'text/html' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `Payment-Receipt-${paymentInfo.transactionId}.html`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  window.URL.revokeObjectURL(url);
-};
-export default function PaymentSuccessPage() {
-  const router = useRouter();
-  const [paymentInfo, setPaymentInfo] = useState({
-    method: '',
-    date: '',
-    transactionId: ''
-  });
-
- useEffect(() => {
-  const method = localStorage.getItem('payment_method') || 'card';
-  const date = localStorage.getItem('payment_date') || new Date().toISOString();
-  const txnId = `TXN-${Date.now()}`;
-  
-  // Map payment method to display name
-  let methodDisplay = 'Credit Card';
-  if (method === 'ach') {
-    methodDisplay = 'ACH Transfer';
-  } else if (method === 'invoice') {
-    methodDisplay = 'Invoice';
-  } else if (method === 'card') {
-    methodDisplay = 'Credit Card';
-  }
-  
-  setPaymentInfo({
-    method: methodDisplay,
-    date: new Date(date).toLocaleDateString(),
-    transactionId: txnId
-  });
-}, []);
+    const blob = new Blob([receiptHTML], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Payment-Receipt-${paymentInfo.transactionId}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
-        {/* Success Icon */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full mb-6 animate-bounce">
             <CheckCircle className="w-16 h-16 text-green-600" />
@@ -195,7 +192,6 @@ export default function PaymentSuccessPage() {
           </div>
         </div>
 
-        {/* Payment Details Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Payment Confirmation</h2>
           
@@ -219,19 +215,19 @@ export default function PaymentSuccessPage() {
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-  <p className="text-sm text-blue-800">
-    <strong>Payment Confirmation:</strong> Your payment has been processed. You can now access the full assessment from your dashboard.
-  </p>
-</div>
-  {/* Download Receipt Button - ADD THIS */}
-  <button
-    onClick={handleDownloadReceipt}
-    className="w-full px-6 py-3 bg-gray-100 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
-  >
-    <FileText className="w-5 h-5" />
-    Download Payment Receipt (PDF)
-  </button>
-          {/* What's Next */}
+            <p className="text-sm text-blue-800">
+              <strong>Payment Confirmation:</strong> Your payment has been processed. You can now access the full assessment from your dashboard.
+            </p>
+          </div>
+
+          <button
+            onClick={handleDownloadReceipt}
+            className="w-full px-6 py-3 bg-gray-100 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-2 mb-6"
+          >
+            <FileText className="w-5 h-5" />
+            Download Payment Receipt
+          </button>
+
           <div className="border-t pt-6">
             <h3 className="font-bold text-gray-900 mb-4">What's Next?</h3>
             <div className="space-y-3">
@@ -268,7 +264,6 @@ export default function PaymentSuccessPage() {
           </div>
         </div>
 
-        {/* CTA Button */}
         <button
           onClick={() => router.push('/dashboard')}
           className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-3"
