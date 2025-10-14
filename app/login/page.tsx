@@ -82,7 +82,7 @@ export default function LoginPage() {
 
           {/* Login Card */}
           <div className="bg-white rounded-2xl shadow-2xl p-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-center text-gray-900 leading-snug mb-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-3xl font-extrabold text-center text-gray-900 leading-snug mb-3">
               Welcome to the<br />
               <span className="text-orange-600">
                 Best Companies for Working with Cancer Index
