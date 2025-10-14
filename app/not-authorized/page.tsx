@@ -177,11 +177,14 @@ Best regards`
           </div>
 
           {/* Close Instructions */}
-<div className="mt-8 text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-  <p className="text-sm text-gray-600">
+<div className="mt-8 text-center p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-300 shadow-md">
+  <h3 className="text-lg font-bold text-gray-900 mb-2">
+    ✓ You're All Set!
+  </h3>
+  <p className="text-base text-gray-800 font-semibold mb-2">
     Once you've shared the assessment information, you can close this tab.
   </p>
-  <p className="text-xs text-gray-500 mt-2">
+  <p className="text-sm text-gray-600">
     The authorized person will use the link and Application ID you shared to complete the assessment.
   </p>
 </div>
