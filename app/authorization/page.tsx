@@ -36,7 +36,7 @@ export default function AuthorizationPage() {
     companyName: '',
     firstName: '',
     lastName: '',
-    title: ''
+    title: '',
     titleOther: ''  
   })
   const [au1, setAu1] = useState<string>('')        // Yes/No answer
