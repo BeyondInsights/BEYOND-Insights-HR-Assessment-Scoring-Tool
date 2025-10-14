@@ -13,18 +13,28 @@ export default function PaymentSuccessPage() {
     transactionId: ''
   });
 
-  useEffect(() => {
-    const method = localStorage.getItem('payment_method') || 'card';
-    const date = localStorage.getItem('payment_date') || new Date().toISOString();
-    const txnId = `TXN-${Date.now()}`;
-    
-    setPaymentInfo({
-      method: method === 'card' ? 'Credit Card' : 'ACH Transfer',
-      date: new Date(date).toLocaleDateString(),
-      transactionId: txnId
-    });
-  }, []);
-
+ useEffect(() => {
+  const method = localStorage.getItem('payment_method') || 'card';
+  const date = localStorage.getItem('payment_date') || new Date().toISOString();
+  const txnId = `TXN-${Date.now()}`;
+  
+  // Map payment method to display name
+  let methodDisplay = 'Credit Card';
+  if (method === 'ach') {
+    methodDisplay = 'ACH Transfer';
+  } else if (method === 'invoice') {
+    methodDisplay = 'Invoice';
+  } else if (method === 'card') {
+    methodDisplay = 'Credit Card';
+  }
+  
+  setPaymentInfo({
+    method: methodDisplay,
+    date: new Date(date).toLocaleDateString(),
+    transactionId: txnId
+  });
+}, []);
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
