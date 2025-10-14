@@ -19,32 +19,36 @@ export default function DashboardPage() {
     current: 0,
   })
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
+useEffect(() => {
+  if (typeof window === 'undefined') return
+  
+  // Check authentication
+  const authCompleted = localStorage.getItem('auth_completed') === 'true';
+  if (!authCompleted) {
+    router.push('/authorization');
+    return;
+  }
+  
+  const handleFocus = () => {
+    calculateProgress();
+  };
+  window.addEventListener("focus", handleFocus);
+  
+  const calculateProgress = () => {
+    const savedEmail = localStorage.getItem('auth_email') || ''
+    setEmail(savedEmail)
     
-    // Check authentication
-    const authCompleted = localStorage.getItem('auth_completed') === 'true';
-    if (!authCompleted) {
-      router.push('/authorization');
-      return;
-    }
+    // Check payment status and method
+    const paymentStatus = localStorage.getItem('payment_completed')
+    const paymentMethod = localStorage.getItem('payment_method')
     
-    const handleFocus = () => {
-      calculateProgress();
-    };
-    window.addEventListener("focus", handleFocus);
+    // Allow access if ANY payment method was selected
+    setPaymentCompleted(paymentStatus === 'true' || paymentStatus === 'invoice')
     
-    const calculateProgress = () => {
-      const savedEmail = localStorage.getItem('auth_email') || ''
-      setEmail(savedEmail)
-      
-      // Check payment status
-      const paid = localStorage.getItem('payment_completed') === 'true'
-      setPaymentCompleted(paid)
-      
-      const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
-      if (firmo?.companyName) setCompanyName(firmo.companyName)
-      
+    const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
+    if (firmo?.companyName) setCompanyName(firmo.companyName)
+    
+     
       const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}')
       const current = JSON.parse(localStorage.getItem('current-support_data') || '{}')
       
@@ -190,46 +194,67 @@ export default function DashboardPage() {
         </div>
 
         {/* Payment Status Banner */}
-        {!paymentCompleted ? (
-          <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-6 mb-8 shadow-sm">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Lock className="w-6 h-6 text-amber-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-amber-900 text-lg mb-2">
-                  Payment Required to Begin Assessment
-                </h3>
-                <p className="text-amber-800 mb-4">
-                  Complete your application payment to unlock all assessment sections. You can explore the dashboard structure, but assessment sections will remain locked until payment is processed.
-                </p>
-                <button
-                  onClick={() => router.push('/certification')}
-                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2"
-                >
-                  <CreditCard className="w-5 h-5" />
-                  Complete Payment ($1,200)
-                </button>
-              </div>
-            </div>
-          </div>
+{!paymentCompleted && (
+  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8 rounded-lg">
+    <div className="flex items-start">
+      <Lock className="w-6 h-6 text-yellow-600 mr-3 mt-1" />
+      <div className="flex-1">
+        <h3 className="text-lg font-bold text-yellow-900 mb-2">
+          Payment Required to Begin Assessment
+        </h3>
+        <p className="text-yellow-800 mb-4">
+          Complete your application payment to unlock all assessment sections. You can review the dashboard structure, but assessment sections will remain locked until payment is received.
+        </p>
+        <button
+          onClick={() => router.push('/payment')}
+          className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors"
+        >
+          <CreditCard className="w-5 h-5 mr-2" />
+          Complete Payment ($1,200)
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{paymentCompleted && (() => {
+  const paymentMethod = localStorage.getItem('payment_method')
+  const isInvoice = paymentMethod === 'invoice'
+  
+  return (
+    <div className={`border-l-4 p-6 mb-8 rounded-lg ${
+      isInvoice ? 'bg-blue-50 border-blue-400' : 'bg-green-50 border-green-400'
+    }`}>
+      <div className="flex items-start">
+        {isInvoice ? (
+          <CreditCard className="w-6 h-6 text-blue-600 mr-3 mt-1" />
         ) : (
-          <div className="bg-green-50 border-2 border-green-300 rounded-xl p-6 mb-8 shadow-sm">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-green-900 text-lg mb-1">
-                  ✓ Payment Complete - Assessment Unlocked
-                </h3>
-                <p className="text-green-800">
-                  All assessment sections are now available. Your progress saves automatically as you work.
-                </p>
-              </div>
-            </div>
-          </div>
+          <CheckCircle className="w-6 h-6 text-green-600 mr-3 mt-1" />
         )}
+        <div className="flex-1">
+          <h3 className={`text-lg font-bold mb-2 ${
+            isInvoice ? 'text-blue-900' : 'text-green-900'
+          }`}>
+            Payment Method: {isInvoice ? 'Invoice (Payment Pending)' : 
+              paymentMethod === 'card' ? 'Credit Card' : 
+              paymentMethod === 'ach' ? 'ACH Transfer' : 'Processed'}
+          </h3>
+          <p className={isInvoice ? 'text-blue-800' : 'text-green-800'}>
+            {isInvoice 
+              ? 'Your invoice has been generated. You can continue working on your assessment while we process your payment. Payment is due within 14 days.'
+              : 'Transaction completed successfully. Your payment has been processed and you have full access to complete your assessment.'
+            }
+          </p>
+          {!isInvoice && (
+            <p className="text-sm text-gray-600 mt-2">
+              Payment Date: {new Date(localStorage.getItem('payment_date') || Date.now()).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+})()}
 
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-10">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">How this works</h2>
