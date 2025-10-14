@@ -68,7 +68,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-gray-50 flex flex-col">
       <main className="flex flex-1 items-center justify-center px-4 py-8">
-       <div className="w-full max-w-3xl relative">
+       <div className="w-full max-w-5xl relative">
           {/* Award badge */}
           <div className="flex justify-center -mt-24 mb-[-2rem]">
             <div className="bg-white rounded-full p-3 shadow-lg">
