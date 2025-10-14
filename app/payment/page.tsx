@@ -25,7 +25,7 @@ export default function PaymentPage() {
             Payment for Application / Certification
           </h1>
           <p className="text-lg text-gray-600">
-            Complete your certification by selecting a payment method
+            Begin your certification / application by selecting a payment method
           </p>
         </div>
 
