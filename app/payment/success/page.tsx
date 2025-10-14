@@ -4,7 +4,144 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Award, ArrowRight } from 'lucide-react';
+const handleDownloadReceipt = () => {
+  // Create simple HTML receipt
+  const receiptHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Receipt</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 40px;
+      color: #333;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid #ff6b35;
+    }
+    .header h1 {
+      color: #ff6b35;
+      margin: 0;
+    }
+    .checkmark {
+      font-size: 60px;
+      color: #10b981;
+      margin-bottom: 10px;
+    }
+    .details {
+      background: #f9f9f9;
+      padding: 30px;
+      border-radius: 8px;
+      margin: 30px 0;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+    .label {
+      color: #666;
+      font-size: 14px;
+    }
+    .value {
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .amount {
+      font-size: 24px;
+      color: #10b981;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid #e5e5e5;
+      color: #666;
+      font-size: 12px;
+    }
+    .next-steps {
+      background: #eff6ff;
+      border: 2px solid #3b82f6;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 30px 0;
+    }
+    .next-steps h3 {
+      color: #1e40af;
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="checkmark">✓</div>
+    <h1>Payment Receipt</h1>
+    <p>Best Companies for Working with Cancer Index Assessment</p>
+  </div>
 
+  <div class="details">
+    <div class="detail-row">
+      <span class="label">Transaction ID</span>
+      <span class="value">${paymentInfo.transactionId}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Date</span>
+      <span class="value">${paymentInfo.date}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Payment Method</span>
+      <span class="value">${paymentInfo.method}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Amount Paid</span>
+      <span class="value amount">$1,200.00</span>
+    </div>
+  </div>
+
+  <div class="next-steps">
+    <h3>What's Next?</h3>
+    <p><strong>1. Complete Your Assessment</strong><br>
+    All assessment sections are now unlocked and ready for completion.</p>
+    
+    <p><strong>2. Review & Submit</strong><br>
+    Your progress saves automatically - complete sections at your own pace.</p>
+    
+    <p><strong>3. Receive Certification</strong><br>
+    After review (5-7 business days), receive your official certification and materials.</p>
+  </div>
+
+  <div class="footer">
+    <p><strong>Cancer and Careers</strong></p>
+    <p>75 Maiden Lane, Suite 501 | New York, NY 10038</p>
+    <p>www.cancerandcareers.org | info@cancerandcareers.org</p>
+    <p style="margin-top: 20px;">Thank you for your commitment to supporting employees with cancer!</p>
+  </div>
+</body>
+</html>
+  `;
+
+  // Create and download
+  const blob = new Blob([receiptHTML], { type: 'text/html' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Payment-Receipt-${paymentInfo.transactionId}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+};
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const [paymentInfo, setPaymentInfo] = useState({
