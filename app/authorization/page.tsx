@@ -37,6 +37,7 @@ export default function AuthorizationPage() {
     firstName: '',
     lastName: '',
     title: ''
+    titleOther: ''  
   })
   const [au1, setAu1] = useState<string>('')        // Yes/No answer
   const [au2, setAu2] = useState<string[]>([])      // Selected options
@@ -62,12 +63,12 @@ export default function AuthorizationPage() {
   }
 
   const canContinue = 
-    companyInfo.companyName.trim() &&
-    companyInfo.firstName.trim() &&
-    companyInfo.lastName.trim() &&
-    companyInfo.title.trim() &&
-    au1 === 'Yes' && 
-    au2.length > 0
+  companyInfo.companyName.trim() &&
+  companyInfo.firstName.trim() &&
+  companyInfo.lastName.trim() &&
+  (companyInfo.title !== 'Other' ? companyInfo.title.trim() : companyInfo.titleOther?.trim()) &&
+  au1 === 'Yes' && 
+  au2.length > 0
 
   const handleContinue = () => {
     if (!companyInfo.companyName.trim()) {
@@ -100,7 +101,8 @@ export default function AuthorizationPage() {
       localStorage.setItem('login_company_name', companyInfo.companyName)
       localStorage.setItem('login_first_name', companyInfo.firstName)
       localStorage.setItem('login_last_name', companyInfo.lastName)
-      localStorage.setItem('login_title', companyInfo.title)
+      const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
+      localStorage.setItem('login_title', titleToStore)
       
       // Store authorization
       localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
@@ -159,18 +161,46 @@ export default function AuthorizationPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Last Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={companyInfo.lastName}
-                  onChange={(e) => setCompanyInfo(prev => ({ ...prev, lastName: e.target.value }))}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="Last name"
-                />
-              </div>
-            </div>
+  <label className="block text-sm font-medium mb-2">
+    Title <span className="text-red-500">*</span>
+  </label>
+  <select
+    value={companyInfo.title}
+    onChange={(e) => setCompanyInfo(prev => ({ ...prev, title: e.target.value }))}
+    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+  >
+    <option value="">Select your title</option>
+    <option value="Chief Human Resources Officer (CHRO)">Chief Human Resources Officer (CHRO)</option>
+    <option value="VP of Human Resources">VP of Human Resources</option>
+    <option value="Director of Human Resources">Director of Human Resources</option>
+    <option value="HR Director">HR Director</option>
+    <option value="HR Manager">HR Manager</option>
+    <option value="HR Business Partner">HR Business Partner</option>
+    <option value="VP of Benefits">VP of Benefits</option>
+    <option value="Director of Benefits">Director of Benefits</option>
+    <option value="Benefits Manager">Benefits Manager</option>
+    <option value="Benefits Administrator">Benefits Administrator</option>
+    <option value="Compensation and Benefits Manager">Compensation and Benefits Manager</option>
+    <option value="Director of Total Rewards">Director of Total Rewards</option>
+    <option value="Total Rewards Manager">Total Rewards Manager</option>
+    <option value="Employee Benefits Specialist">Employee Benefits Specialist</option>
+    <option value="Director of People Operations">Director of People Operations</option>
+    <option value="People Operations Manager">People Operations Manager</option>
+    <option value="Talent Management Director">Talent Management Director</option>
+    <option value="Other">Other</option>
+  </select>
+  
+  {/* Show text input if "Other" is selected */}
+  {companyInfo.title === 'Other' && (
+    <input
+      type="text"
+      value={companyInfo.titleOther || ''}
+      onChange={(e) => setCompanyInfo(prev => ({ ...prev, titleOther: e.target.value }))}
+      className="w-full mt-3 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+      placeholder="Please specify your title"
+    />
+  )}
+</div>
 
             <div>
               <label className="block text-sm font-medium mb-2">
