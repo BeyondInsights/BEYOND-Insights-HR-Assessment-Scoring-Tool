@@ -325,9 +325,9 @@ useEffect(() => {
         <h2 className="text-xl font-bold text-gray-900 mb-4">13 Dimensions of Support</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dimensions.map((dim, idx) => {
-            const isLocked = !paymentCompleted;
-            const canAccess = allCoreDone || idx === 0;
-            const isClickable = !isLocked && canAccess;
+  const isLocked = !paymentCompleted;
+  const canAccess = allCoreDone || idx === 0 || idx === 1;  // Add || idx === #
+  const isClickable = !isLocked && canAccess;
             
             return (
               <div
