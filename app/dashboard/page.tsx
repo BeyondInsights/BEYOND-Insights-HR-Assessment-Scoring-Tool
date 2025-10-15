@@ -167,7 +167,7 @@ useEffect(() => {
   if (!paymentCompleted) {
     return;
   }
-  if (allCoreDone || idx === 0 || idx === 1 || idx === 2) {  // Add || idx === 2
+  iif (allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3) {   
     router.push(`/survey/dimensions/${idx+1}`)
   }
 }
