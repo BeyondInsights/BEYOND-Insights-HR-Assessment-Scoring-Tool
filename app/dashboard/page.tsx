@@ -489,43 +489,43 @@ if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
         <h2 className="text-xl font-bold text-gray-900 mb-4">13 Dimensions of Support</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {dimensions.map((dim, idx) => {
-            const isLocked = !paymentCompleted || !allCoreDone;
-            const isClickable = !isLocked;
-            
-            return (
-              <div
-                key={dim}
-                role="button"
-                tabIndex={isClickable ? 0 : -1}
-                onClick={() => handleDimensionClick(idx)}
-                onKeyDown={(e) => isClickable && e.key === 'Enter' && handleDimensionClick(idx)}
-                className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300
-                  ${isLocked || !canAccess
-                    ? 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-60'
-                    : 'cursor-pointer bg-white hover:bg-blue-50 hover:shadow-md border-gray-200 transform hover:scale-105'
-                  }`}
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-base font-semibold text-gray-800">{dim}</h3>
-                    {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {isLocked ? (
-                      'Payment required'
-                    ) : dimensionProgress[idx] === 100 ? (
-                      'Completed'
-                    ) : canAccess ? (
-                      'Click to begin'
-                    ) : (
-                      'Complete all 3 core sections first'
-                    )}
-                  </p>
-                </div>
-                <ProgressCircle completion={isLocked ? 0 : (dimensionProgress[idx] || 0)} />
-              </div>
-            );
-          })}
+  const isLocked = !paymentCompleted || !allCoreDone;
+  const isClickable = !isLocked;
+  
+  return (
+    <div
+      key={dim}
+      role="button"
+      tabIndex={isClickable ? 0 : -1}
+      onClick={() => handleDimensionClick(idx)}
+      onKeyDown={(e) => isClickable && e.key === 'Enter' && handleDimensionClick(idx)}
+      className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300
+        ${isLocked
+          ? 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-60'
+          : 'cursor-pointer bg-white hover:bg-blue-50 hover:shadow-md border-gray-200 transform hover:scale-105'
+        }`}
+    >
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-1">
+          <h3 className="text-base font-semibold text-gray-800">{dim}</h3>
+          {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
+        </div>
+        <p className="text-xs text-gray-500">
+          {!paymentCompleted ? (
+            'Payment required'
+          ) : !allCoreDone ? (
+            'Complete all 3 core sections first'
+          ) : dimensionProgress[idx] === 100 ? (
+            'Completed'
+          ) : (
+            'Click to begin'
+          )}
+        </p>
+      </div>
+      <ProgressCircle completion={isLocked ? 0 : (dimensionProgress[idx] || 0)} />
+    </div>
+  );
+})}
         </div>
 
         {/* Advanced Assessment Sections - Locked until all 13 dimensions complete */}
