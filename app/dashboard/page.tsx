@@ -164,13 +164,13 @@ useEffect(() => {
   }
 
   const handleDimensionClick = (idx: number) => {
-    if (!paymentCompleted) {
-      return;
-    }
-    if (allCoreDone || idx === 0 || idx === 1 || idx === 2) {
-    router.push(`/survey/dimensions/${idx+1}`)
-    }
+  if (!paymentCompleted) {
+    return;
   }
+  if (allCoreDone || idx === 0 || idx === 1 || idx === 2) {  // Add || idx === 2
+    router.push(`/survey/dimensions/${idx+1}`)
+  }
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
@@ -326,7 +326,7 @@ useEffect(() => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dimensions.map((dim, idx) => {
   const isLocked = !paymentCompleted;
-  const canAccess = allCoreDone || idx === 0 || idx === 1;  // Add || idx === #
+  const canAccess = allCoreDone || idx === 0 || idx === 1 || idx === 2;  // Add || idx === 2
   const isClickable = !isLocked && canAccess;
             
             return (
