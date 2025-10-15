@@ -413,7 +413,7 @@ export default function Dimension2Page() {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Benefits</h3>
             
-            <p className="font-bold text-gray-900 mb-4">
+           <p className="font-bold text-gray-900 mb-4">
   What other <span className="text-blue-600 font-bold">insurance or financial protection benefits</span> does your organization offer that weren't listed?
 </p>
             <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
