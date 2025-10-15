@@ -532,7 +532,7 @@ if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
         {paymentCompleted && (
           <>
             <div className="bg-purple-50 border-l-4 border-purple-600 p-6 mb-6 rounded-lg">
-              <h3 className="text-lg font-bold text-purple-900 mb-2">Advanced Assessment Modules</h3>
+              <h3 className="text-lg font-bold text-purple-900 mb-2">Two Additional Assessment Modules</h3>
               <p className="text-gray-700">
                 {all13DimensionsDone ? (
                   <>These sections are now available. They provide deeper insights into employee impact and cross-cutting organizational themes.</>
