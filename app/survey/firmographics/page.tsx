@@ -265,8 +265,9 @@ export default function FirmographicsPage() {
     "Employees in certain countries/regions",
     "Employees below certain tenure",
     "Certain job levels/categories",
-    "None - all employees eligible",
-    "Some other employee group (specify)"
+    "Some other employee group (specify)",  
+    "Other (specify):",
+    "None - all eligible for standard benefits"
   ];
 
   const C5_REVENUE = [
