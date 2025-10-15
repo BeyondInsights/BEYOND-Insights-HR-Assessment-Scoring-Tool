@@ -382,9 +382,9 @@ export default function Dimension2Page() {
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-              Are the <span className="text-blue-600">Insurance & Financial Protection support options</span> your 
-              organization currently offers...?
-            </p>
+  Are the <span className="text-blue-600 font-bold">Insurance & Financial Protection support options</span> your 
+  organization <span className="text-blue-600 font-bold">currently offers</span>...?
+</p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
             <div className="space-y-2">
@@ -414,8 +414,8 @@ export default function Dimension2Page() {
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Benefits</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-              What other insurance or financial protection benefits does your organization offer that weren't listed?
-            </p>
+  What other <span className="text-blue-600 font-bold">insurance or financial protection benefits</span> does your organization offer that weren't listed?
+</p>
             <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
             
             <textarea
