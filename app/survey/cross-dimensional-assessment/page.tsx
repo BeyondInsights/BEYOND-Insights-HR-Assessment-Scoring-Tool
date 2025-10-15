@@ -213,7 +213,7 @@ export default function CrossDimensionalPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
+       <main className="flex-1 max-w-6xl mx-auto px-4 py-8"  >
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
