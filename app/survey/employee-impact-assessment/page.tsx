@@ -281,18 +281,18 @@ export default function EmployeeImpactPage() {
 
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-purple-50">
-                    <th className="border border-gray-300 p-3 text-left font-semibold text-gray-900 min-w-[200px]">
-                      Outcome Area
-                    </th>
-                    {EI1_OPTIONS.map(opt => (
-                      <th key={opt.value} className="border border-gray-300 p-3 text-center font-semibold text-gray-900 min-w-[120px]">
-                        {opt.label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
+               <thead>
+  <tr className="bg-blue-600">
+    <th className="border border-gray-300 p-3 text-left font-semibold text-white min-w-[200px]">
+      Outcome Area
+    </th>
+    {EI1_OPTIONS.map(opt => (
+      <th key={opt.value} className="border border-gray-300 p-3 text-center font-semibold text-white min-w-[120px]">
+        {opt.label}
+      </th>
+    ))}
+  </tr>
+</thead>
                 <tbody>
                   {shuffledItems.map((item, idx) => (
                     <tr key={item} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
