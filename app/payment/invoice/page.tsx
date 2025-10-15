@@ -247,7 +247,7 @@ export default function InvoicePaymentPage() {
       
       doc.setFontSize(10)
       doc.setTextColor(0, 0, 0)
-      doc.text('$1,200.00', pageWidth - 25, yPos - 5, { align: 'right' })
+      doc.text('$1,250.00', pageWidth - 25, yPos - 5, { align: 'right' })
 
       // Total row
       yPos += 10
@@ -259,7 +259,7 @@ export default function InvoicePaymentPage() {
       doc.setFont(undefined, 'bold')
       doc.setFontSize(12)
       doc.text('TOTAL DUE:', pageWidth / 2, yPos + 2, { align: 'right' })
-      doc.text('$1,200.00', pageWidth - 25, yPos + 2, { align: 'right' })
+      doc.text('$1,250.00', pageWidth - 25, yPos + 2, { align: 'right' })
 
       // Payment Terms box
       yPos += 20
@@ -667,7 +667,7 @@ export default function InvoicePaymentPage() {
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-700">Application / Certification Fee</span>
-                <span className="text-2xl font-bold text-gray-900">$1,200.00</span>
+                <span className="text-2xl font-bold text-gray-900">$1,250.00</span>
               </div>
               <p className="text-sm text-gray-600">Payment Terms: Net 14 Days</p>
             </div>
