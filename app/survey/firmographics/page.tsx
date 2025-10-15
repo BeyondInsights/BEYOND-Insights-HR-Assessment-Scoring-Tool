@@ -265,8 +265,8 @@ export default function FirmographicsPage() {
   "Employees in certain countries/regions",
   "Employees below certain tenure",
   "Certain job levels/categories",
-  "Some other group (specify):",  
-  "None - all eligible for standard benefits"  // ← EXCLUSIVE
+  "Some other group (specify):",  // ← FIXED to match button text
+  "None - all eligible for standard benefits"
 ];
 
   const C5_REVENUE = [
@@ -831,7 +831,7 @@ export default function FirmographicsPage() {
                   })}
                 </div>
 
-                {Array.isArray(ans.c4) && ans.c4.includes("Other (specify):") && (
+                {Array.isArray(ans.c4) && ans.c4.includes("Some other group (specify):") && (
                   <input
                     type="text"
                     value={ans.c4_other || ""}
@@ -884,10 +884,12 @@ export default function FirmographicsPage() {
 
             {/* C6: Remote/Hybrid - UPDATED OPTIONS */}
             <div>
-              <p className="text-base font-bold text-gray-900 mb-3">
-                Which best describes your organization's approach to remote/hybrid work?
+              <p className="text-base font-bold text-gray-900 mb-1">
+                Which best describes your organization's approach to{" "}
+                <span className="text-blue-600">remote/hybrid work</span>?
               </p>
-              <div className="space-y-2">
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+              <div className="space-y-2 max-w-3xl">
                 {C6_REMOTE.map(opt => {
                   const parts = opt.split(' - ');
                   const boldPart = parts[0];
@@ -897,13 +899,13 @@ export default function FirmographicsPage() {
                     <button
                       key={opt}
                       onClick={() => setField("c6", opt)}
-                      className={`w-full px-4 py-3 text-left text-sm rounded-lg border-2 transition-all ${
+                      className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                         ans.c6 === opt
                           ? "border-blue-500 bg-blue-50"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <span className="font-bold text-gray-900">{boldPart}</span>
+                      <span className="font-bold">{boldPart}</span>
                       {normalPart && <span className="font-normal"> - {normalPart}</span>}
                     </button>
                   );
