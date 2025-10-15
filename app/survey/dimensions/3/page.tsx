@@ -411,9 +411,9 @@ export default function Dimension3Page() {
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-              Are the <span className="text-blue-600">Manager Preparedness & Capability support options</span> your 
-              organization currently offers...?
-            </p>
+  Are the <span className="text-blue-600 font-bold">Manager Preparedness & Capability support options</span> your 
+  organization <span className="text-blue-600 font-bold">currently offers</span>...?
+</p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
             <div className="space-y-2">
@@ -444,8 +444,8 @@ export default function Dimension3Page() {
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Initiatives</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-              What other manager preparedness initiatives does your organization offer that weren't listed?
-            </p>
+  What other <span className="text-blue-600 font-bold">manager preparedness initiatives</span> does your organization offer that weren't listed?
+</p>
             <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
             
             <textarea
@@ -475,9 +475,9 @@ export default function Dimension3Page() {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Training Requirements</h3>
             
-            <p className="font-bold text-gray-900 mb-4">
-              Is <strong>manager training</strong> on supporting <strong>employees managing cancer or other serious health conditions</strong>...?
-            </p>
+           <p className="font-bold text-gray-900 mb-4">
+  Is <span className="text-blue-600 font-bold">manager training</span> on supporting <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>...?
+</p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
             <div className="space-y-2">
@@ -509,8 +509,8 @@ export default function Dimension3Page() {
             <h3 className="text-xl font-bold text-gray-900 mb-4">Training Completion</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-              Within the past 2 years, what percentage of <strong>managers completed training</strong> on supporting <strong>employees managing cancer or other serious health conditions</strong>?
-            </p>
+  Within the past 2 years, what percentage of <span className="text-blue-600 font-bold">managers completed training</span> on supporting <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>?
+</p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE) - Your best estimate is fine. If varies, report overall average</p>
             
             <div className="space-y-2">
