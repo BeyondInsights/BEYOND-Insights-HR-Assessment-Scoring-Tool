@@ -4,12 +4,42 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+const EI1_ITEMS = [
+  "Employee retention/tenure",
+  "Employee morale",
+  "Job satisfaction scores",
+  "Productivity during treatment",
+  "Time to return to work",
+  "Recruitment success",
+  "Team cohesion",
+  "Trust in leadership",
+  "Willingness to disclose health issues",
+  "Overall engagement scores"
+];
+
+const EI1_OPTIONS = [
+  { value: "no_impact", label: "No positive impact" },
+  { value: "minimal", label: "Minimal positive impact" },
+  { value: "moderate", label: "Moderate positive impact" },
+  { value: "significant", label: "Significant positive impact" },
+  { value: "unable", label: "Unable to assess" }
+];
+
 export default function EmployeeImpactPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
   const [allDimensionsComplete, setAllDimensionsComplete] = useState(false);
+  const [assignedQuestion, setAssignedQuestion] = useState<'ei4' | 'ei5'>('ei4');
+  const [shuffledItems] = useState(() => {
+    const shuffled = [...EI1_ITEMS];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  });
 
   useEffect(() => {
     // Check if all 13 dimensions are complete
@@ -34,21 +64,51 @@ export default function EmployeeImpactPage() {
       try {
         const parsed = JSON.parse(saved);
         setAns(parsed);
+        
+        // Check if they already have an assignment
+        if (parsed.assignedQuestion) {
+          setAssignedQuestion(parsed.assignedQuestion);
+        } else {
+          // Randomly assign them to EI4 or EI5 (50/50 split)
+          const assigned = Math.random() < 0.5 ? 'ei4' : 'ei5';
+          setAssignedQuestion(assigned);
+          setAns((prev: any) => ({ ...prev, assignedQuestion: assigned }));
+        }
       } catch (e) {
         console.error("Error loading saved data:", e);
+        // New respondent - randomly assign
+        const assigned = Math.random() < 0.5 ? 'ei4' : 'ei5';
+        setAssignedQuestion(assigned);
+        setAns({ assignedQuestion: assigned });
       }
+    } else {
+      // New respondent - randomly assign
+      const assigned = Math.random() < 0.5 ? 'ei4' : 'ei5';
+      setAssignedQuestion(assigned);
+      setAns({ assignedQuestion: assigned });
     }
   }, [router]);
 
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("employee_impact-assessment_data", JSON.stringify(ans));
+      localStorage.setItem("employee-impact-assessment_data", JSON.stringify(ans));
     }
   }, [ans]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
+
+  const handleGridChange = (item: string, value: string) => {
+    setAns((prev: any) => ({
+      ...prev,
+      ei1: {
+        ...prev.ei1,
+        [item]: value
+      }
+    }));
+    setErrors("");
+  };
 
   const handleRadioChange = (field: string, value: string) => {
     setAns({ ...ans, [field]: value });
@@ -60,28 +120,33 @@ export default function EmployeeImpactPage() {
     setErrors("");
   };
 
+  const handleCheckboxChange = (field: string, checked: boolean) => {
+    if (checked) {
+      setAns({ ...ans, [field]: "", [`${field}_none`]: true });
+    } else {
+      setAns({ ...ans, [`${field}_none`]: false });
+    }
+  };
+
   const validateStep = () => {
     if (step === 1) {
-      if (!ans.ei1) {
-        return "Please select an option";
+      // Check all EI1 items are answered
+      const allAnswered = shuffledItems.every(item => ans.ei1?.[item]);
+      if (!allAnswered) {
+        return "Please rate all items";
       }
     } else if (step === 2) {
       if (!ans.ei2) {
         return "Please select an option";
       }
     } else if (step === 3) {
-      if (!ans.ei3) {
-        return "Please select an option";
-      }
-    } else if (step === 4) {
-      if (!ans.ei4) {
-        return "Please select an option";
-      }
-    } else if (step === 5) {
-      if (!ans.ei5) {
+      // Only validate EI3 if they should see it
+      const shouldShowEI3 = ans.ei2 === "yes_comprehensive" || ans.ei2 === "yes_basic";
+      if (shouldShowEI3 && !ans.ei3) {
         return "Please select an option";
       }
     }
+    // No validation needed for step 4 (EI4/EI5) - text is optional
     return null;
   };
 
@@ -92,41 +157,60 @@ export default function EmployeeImpactPage() {
       return;
     }
 
-    if (step < 6) {
+    // Handle skip logic for EI2
+    if (step === 2) {
+      const skipToEI4 = ["currently_conducting", "planning", "no_plans"].includes(ans.ei2);
+      if (skipToEI4) {
+        setStep(4); // Skip EI3, go directly to EI4/EI5
+      } else {
+        setStep(3); // Go to EI3
+      }
+      setErrors("");
+      return;
+    }
+
+    if (step < 4) {
       setStep(step + 1);
       setErrors("");
     } else {
-      localStorage.setItem("employee_impact_complete", "true");
+      // Step 4 is the final step (EI4 or EI5)
+      localStorage.setItem("employee-impact-assessment_complete", "true");
       router.push("/dashboard");
     }
   };
 
   const back = () => {
-    if (step > 1) {
+    if (step === 4 && ["currently_conducting", "planning", "no_plans"].includes(ans.ei2)) {
+      // If we're at EI4/EI5 and we skipped EI3, go back to EI2
+      setStep(2);
+    } else if (step > 1) {
       setStep(step - 1);
-      setErrors("");
     }
+    setErrors("");
   };
 
   if (!allDimensionsComplete) {
     return null;
   }
 
+  // Determine if we should show EI3
+  const shouldShowEI3 = step === 3 && (ans.ei2 === "yes_comprehensive" || ans.ei2 === "yes_basic");
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-6xl mx-auto px-4 py-8">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
-              employee-impact-assessment
+              Employee-Impact Assessment
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all"
-              style={{ width: `${(step / 6) * 100}%` }}
+              style={{ width: `${(step / 4) * 100}%` }}
             />
           </div>
         </div>
@@ -145,10 +229,10 @@ export default function EmployeeImpactPage() {
               
               <div className="bg-purple-50 border-l-4 border-purple-600 p-6 mb-6 rounded-lg">
                 <p className="text-gray-700 mb-4">
-                  This section focuses on understanding the real-world impact of your support programs on employees managing serious health conditions.
+                  This section focuses on understanding the real-world impact and return on investment of your support programs for employees managing serious health conditions.
                 </p>
                 <p className="text-gray-700">
-                  We'll explore employee satisfaction, program utilization, and the effectiveness of your current support landscape from the employee perspective.
+                  We'll explore measurable outcomes, ROI analysis, and gather insights from your experience implementing these programs.
                 </p>
               </div>
 
@@ -157,23 +241,19 @@ export default function EmployeeImpactPage() {
                 <ul className="space-y-2 text-gray-700">
                   <li className="flex items-start">
                     <span className="text-purple-600 mr-2">•</span>
-                    <span>Employee awareness of available support programs</span>
+                    <span>Positive outcomes across 10 key organizational metrics</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-purple-600 mr-2">•</span>
-                    <span>Utilization rates and barriers to accessing support</span>
+                    <span>Whether you've measured return on investment (ROI)</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-purple-600 mr-2">•</span>
-                    <span>Employee satisfaction with current support offerings</span>
+                    <span>The approximate ROI of your programs (if measured)</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-purple-600 mr-2">•</span>
-                    <span>Perceived impact on employee outcomes and wellbeing</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-purple-600 mr-2">•</span>
-                    <span>Opportunities for improvement based on employee feedback</span>
+                    <span>Your insights and recommendations based on implementation experience</span>
                   </li>
                 </ul>
               </div>
@@ -190,68 +270,79 @@ export default function EmployeeImpactPage() {
           </div>
         )}
 
-        {/* Step 1: EI1 - Employee Awareness */}
+        {/* Step 1: EI1 - Outcomes Grid */}
         {step === 1 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Employee Awareness</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Program Outcomes</h2>
             
             <p className="font-bold text-gray-900 mb-6">
-              How would you rate employee awareness of the support programs available to those managing serious health conditions?
+              To what extent has your organization seen <span className="text-purple-600">positive outcomes</span> in the following areas as a result of your workplace support programs for <span className="text-purple-600">employees managing cancer or other serious health conditions</span>?
             </p>
-            
-            <div className="space-y-3">
-              {[
-                { value: "very_high", label: "Very High - Most employees are well aware of available programs" },
-                { value: "high", label: "High - Many employees know about available programs" },
-                { value: "moderate", label: "Moderate - Some employees are aware, but many are not" },
-                { value: "low", label: "Low - Few employees know about available programs" },
-                { value: "very_low", label: "Very Low - Very few employees are aware of support programs" },
-                { value: "unknown", label: "Unknown - We haven't measured employee awareness" }
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleRadioChange('ei1', option.value)}
-                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                    ans.ei1 === option.value
-                      ? "border-purple-500 bg-purple-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                      ans.ei1 === option.value
-                        ? "border-purple-500 bg-purple-500"
-                        : "border-gray-300"
-                    }`}>
-                      {ans.ei1 === option.value && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
-                    </div>
-                    <span>{option.label}</span>
-                  </div>
-                </button>
-              ))}
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-purple-50">
+                    <th className="border border-gray-300 p-3 text-left font-semibold text-gray-900 min-w-[200px]">
+                      Outcome Area
+                    </th>
+                    {EI1_OPTIONS.map(opt => (
+                      <th key={opt.value} className="border border-gray-300 p-3 text-center font-semibold text-gray-900 min-w-[120px]">
+                        {opt.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {shuffledItems.map((item, idx) => (
+                    <tr key={item} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="border border-gray-300 p-3 font-medium text-gray-900">
+                        {item}
+                      </td>
+                      {EI1_OPTIONS.map(opt => (
+                        <td key={opt.value} className="border border-gray-300 p-3 text-center">
+                          <button
+                            onClick={() => handleGridChange(item, opt.value)}
+                            className={`w-6 h-6 rounded-full border-2 mx-auto flex items-center justify-center transition-all ${
+                              ans.ei1?.[item] === opt.value
+                                ? 'border-purple-500 bg-purple-500'
+                                : 'border-gray-300 hover:border-purple-300'
+                            }`}
+                          >
+                            {ans.ei1?.[item] === opt.value && (
+                              <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
+                            )}
+                          </button>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 text-sm text-gray-600">
+              Answered: {Object.keys(ans.ei1 || {}).length} of {shuffledItems.length}
             </div>
           </div>
         )}
 
-        {/* Step 2: EI2 - Program Utilization */}
+        {/* Step 2: EI2 - ROI Measurement */}
         {step === 2 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Program Utilization</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">ROI Measurement</h2>
             
             <p className="font-bold text-gray-900 mb-6">
-              What percentage of eligible employees utilize available support programs when managing serious health conditions?
+              Have you <span className="text-purple-600">measured the ROI</span> of your workplace support programs for <span className="text-purple-600">employees managing cancer or other serious health conditions</span>?
             </p>
             
             <div className="space-y-3">
               {[
-                { value: "76_100", label: "76-100% - Very high utilization" },
-                { value: "51_75", label: "51-75% - High utilization" },
-                { value: "26_50", label: "26-50% - Moderate utilization" },
-                { value: "10_25", label: "10-25% - Low utilization" },
-                { value: "0_9", label: "0-9% - Very low utilization" },
-                { value: "unknown", label: "Unknown - We don't track utilization rates" }
+                { value: "yes_comprehensive", label: "Yes, comprehensive ROI analysis completed" },
+                { value: "yes_basic", label: "Yes, basic ROI analysis completed" },
+                { value: "currently_conducting", label: "Currently conducting ROI analysis" },
+                { value: "planning", label: "Planning to measure ROI" },
+                { value: "no_plans", label: "No plans to measure ROI" }
               ].map((option) => (
                 <button
                   key={option.value}
@@ -272,7 +363,7 @@ export default function EmployeeImpactPage() {
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       )}
                     </div>
-                    <span>{option.label}</span>
+                    <span className="text-gray-900">{option.label}</span>
                   </div>
                 </button>
               ))}
@@ -280,23 +371,23 @@ export default function EmployeeImpactPage() {
           </div>
         )}
 
-        {/* Step 3: EI3 - Employee Satisfaction */}
-        {step === 3 && (
+        {/* Step 3: EI3 - ROI Amount (conditional) */}
+        {shouldShowEI3 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Employee Satisfaction</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Approximate ROI</h2>
             
             <p className="font-bold text-gray-900 mb-6">
-              Based on available feedback, how satisfied are employees with the support they receive when managing serious health conditions?
+              What was the <span className="text-purple-600">approximate ROI</span> of your workplace support programs?
             </p>
             
             <div className="space-y-3">
               {[
-                { value: "very_satisfied", label: "Very Satisfied - Strong positive feedback" },
-                { value: "satisfied", label: "Satisfied - Generally positive feedback" },
-                { value: "neutral", label: "Neutral - Mixed or neutral feedback" },
-                { value: "dissatisfied", label: "Dissatisfied - Generally negative feedback" },
-                { value: "very_dissatisfied", label: "Very Dissatisfied - Significant concerns expressed" },
-                { value: "unknown", label: "Unknown - We haven't collected this feedback" }
+                { value: "negative", rating: "Negative ROI", description: "costs exceed benefits by more than 100%" },
+                { value: "breakeven", rating: "Break-even", description: "costs and benefits are roughly equal" },
+                { value: "1_1_2_0", rating: "1.1 - 2.0x ROI", description: "benefits are 10-100% more than costs" },
+                { value: "2_1_3_0", rating: "2.1 - 3.0x ROI", description: "benefits are 2-3 times the costs" },
+                { value: "3_1_5_0", rating: "3.1 - 5.0x ROI", description: "benefits are 3-5 times the costs" },
+                { value: "greater_5", rating: "Greater than 5.0x ROI", description: "benefits exceed 5 times the costs" }
               ].map((option) => (
                 <button
                   key={option.value}
@@ -317,7 +408,10 @@ export default function EmployeeImpactPage() {
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       )}
                     </div>
-                    <span>{option.label}</span>
+                    <span>
+                      <span className="font-bold text-gray-900">{option.rating}</span>
+                      <span className="text-gray-700"> ({option.description})</span>
+                    </span>
                   </div>
                 </button>
               ))}
@@ -325,153 +419,103 @@ export default function EmployeeImpactPage() {
           </div>
         )}
 
-        {/* Step 4: EI4 - Barriers to Access */}
-        {step === 4 && (
+        {/* Step 4: EI4 OR EI5 (50/50 split) */}
+        {step === 4 && assignedQuestion === 'ei4' && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Barriers to Access</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Advice for Other HR Leaders</h2>
             
             <p className="font-bold text-gray-900 mb-6">
-              What do you believe is the biggest barrier preventing employees from accessing available support programs?
+              Based on learnings from implementation of your programs and policies, <span className="text-purple-600">what advice would you give to other HR leaders who want to improve support</span> for <span className="text-purple-600">employees managing cancer or other serious health conditions</span>?
             </p>
+
+            <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
             
-            <div className="space-y-3">
-              {[
-                { value: "lack_awareness", label: "Lack of awareness about available programs" },
-                { value: "stigma", label: "Fear of stigma or discrimination" },
-                { value: "process_complexity", label: "Complex or confusing processes" },
-                { value: "manager_support", label: "Lack of manager understanding or support" },
-                { value: "privacy_concerns", label: "Privacy concerns" },
-                { value: "inadequate_programs", label: "Programs don't meet employee needs" },
-                { value: "work_demands", label: "Too busy with work demands" },
-                { value: "no_barriers", label: "No significant barriers - programs are accessible" },
-                { value: "unknown", label: "Unknown - We haven't identified barriers" }
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleRadioChange('ei4', option.value)}
-                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                    ans.ei4 === option.value
-                      ? "border-purple-500 bg-purple-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                      ans.ei4 === option.value
-                        ? "border-purple-500 bg-purple-500"
-                        : "border-gray-300"
-                    }`}>
-                      {ans.ei4 === option.value && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
-                    </div>
-                    <span>{option.label}</span>
-                  </div>
-                </button>
-              ))}
+            <textarea
+              value={ans.ei4_none ? "" : (ans.ei4 || "")}
+              onChange={(e) => handleTextChange('ei4', e.target.value)}
+              disabled={ans.ei4_none}
+              rows={8}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Share your insights and recommendations..."
+            />
+
+            <div className="mt-4">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={ans.ei4_none || false}
+                  onChange={(e) => handleCheckboxChange('ei4', e.target.checked)}
+                  className="w-5 h-5 rounded border-2 border-gray-300 text-purple-600 focus:ring-purple-500"
+                />
+                <span className="ml-3 text-gray-700">No additional advice</span>
+              </label>
             </div>
 
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Additional context or other barriers (optional):
-              </label>
-              <textarea
-                value={ans.ei4_details || ""}
-                onChange={(e) => handleTextChange('ei4_details', e.target.value)}
-                rows={3}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                placeholder="Provide any additional details..."
-              />
+            <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-start">
+                <svg className="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-green-900 mb-2">Ready to Complete</h3>
+                  <p className="text-green-800">
+                    Click "Complete Assessment" below to save your responses and return to the dashboard.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Step 5: EI5 - Perceived Impact */}
-        {step === 5 && (
+        {step === 4 && assignedQuestion === 'ei5' && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Perceived Impact</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Additional Aspects</h2>
             
             <p className="font-bold text-gray-900 mb-6">
-              How effective do you believe your current support programs are in improving outcomes for employees managing serious health conditions?
+              Are there <span className="text-purple-600">any important aspects of supporting employees managing cancer or other serious health conditions</span> that this survey did not address?
             </p>
+
+            <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
             
-            <div className="space-y-3">
-              {[
-                { value: "very_effective", label: "Very Effective - Significantly improves employee outcomes" },
-                { value: "effective", label: "Effective - Positively impacts employee outcomes" },
-                { value: "somewhat_effective", label: "Somewhat Effective - Has some positive impact" },
-                { value: "minimally_effective", label: "Minimally Effective - Limited impact on outcomes" },
-                { value: "not_effective", label: "Not Effective - Little to no impact on outcomes" },
-                { value: "unknown", label: "Unknown - We haven't measured effectiveness" }
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleRadioChange('ei5', option.value)}
-                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                    ans.ei5 === option.value
-                      ? "border-purple-500 bg-purple-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                      ans.ei5 === option.value
-                        ? "border-purple-500 bg-purple-500"
-                        : "border-gray-300"
-                    }`}>
-                      {ans.ei5 === option.value && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
-                    </div>
-                    <span>{option.label}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <textarea
+              value={ans.ei5_none ? "" : (ans.ei5 || "")}
+              onChange={(e) => handleTextChange('ei5', e.target.value)}
+              disabled={ans.ei5_none}
+              rows={8}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Share any additional aspects or considerations..."
+            />
 
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                What metrics or feedback inform your assessment? (optional):
+            <div className="mt-4">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={ans.ei5_none || false}
+                  onChange={(e) => handleCheckboxChange('ei5', e.target.checked)}
+                  className="w-5 h-5 rounded border-2 border-gray-300 text-purple-600 focus:ring-purple-500"
+                />
+                <span className="ml-3 text-gray-700">None that I can think of</span>
               </label>
-              <textarea
-                value={ans.ei5_details || ""}
-                onChange={(e) => handleTextChange('ei5_details', e.target.value)}
-                rows={3}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                placeholder="E.g., employee surveys, retention data, return-to-work success rates..."
-              />
             </div>
-          </div>
-        )}
 
-        {/* Step 6: Completion */}
-        {step === 6 && (
-          <div className="bg-white p-8 rounded-lg shadow-sm text-center">
-            <div className="mb-6">
-              <svg className="w-16 h-16 mx-auto text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-start">
+                <svg className="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-green-900 mb-2">Ready to Complete</h3>
+                  <p className="text-green-800">
+                    Click "Complete Assessment" below to save your responses and return to the dashboard.
+                  </p>
+                </div>
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">
-              Employee-Impact Assessment Complete!
-            </h2>
-            <p className="text-gray-600 mb-8">
-              You've successfully completed the employee-impact assessment.
-            </p>
-            <button
-              onClick={() => { 
-                localStorage.setItem("employee_impact_complete", "true"); 
-                router.push("/dashboard"); 
-              }}
-              className="px-10 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
-            >
-              Save & Return to Dashboard →
-            </button>
           </div>
         )}
 
         {/* Navigation */}
-        {step > 0 && step < 6 && (
+        {step > 0 && (
           <div className="flex justify-between mt-8">
             <button 
               onClick={back} 
@@ -483,7 +527,7 @@ export default function EmployeeImpactPage() {
               onClick={next} 
               className="px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Continue →
+              {step === 4 ? 'Complete Assessment →' : 'Continue →'}
             </button>
           </div>
         )}
