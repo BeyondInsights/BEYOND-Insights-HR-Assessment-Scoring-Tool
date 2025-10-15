@@ -140,7 +140,7 @@ export default function CertificationPayment({
     </div>
     <div>
       <p className="text-sm text-gray-500">Certification Fee</p>
-      <p className="font-medium">$1,200</p>
+      <p className="font-medium">$1,250</p>
     </div>
   </div>
 </div>
