@@ -129,12 +129,14 @@ export default function DashboardPage() {
 
      // In dashboard/page.tsx, replace the advanced progress calculation with:
 
+    // In dashboard/page.tsx, replace the advanced progress calculation section with:
+
     // Calculate progress for advanced sections
-    const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}')
-    const crossDim = JSON.parse(localStorage.getItem('cross-dimensional-assessment_data') || '{}')
+    const empImpact = JSON.parse(localStorage.getItem('employee_impact_data') || '{}')
+    const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}')
     
-    const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true'
-    const crossDimComplete = localStorage.getItem('cross-dimensional-assessment_complete') === 'true'
+    const empImpactComplete = localStorage.getItem('employee_impact_complete') === 'true'
+    const crossDimComplete = localStorage.getItem('cross_dimensional_complete') === 'true'
     
     let empImpactProg = 0
     let crossDimProg = 0
@@ -142,26 +144,27 @@ export default function DashboardPage() {
     if (empImpactComplete) {
       empImpactProg = 100
     } else {
-      const empKeys = Object.keys(empImpact).filter(k => empImpact[k] !== '' && empImpact[k] !== null).length
+      const empKeys = Object.keys(empImpact).filter(k => empImpact[k] !== '' && empImpact[k] !== null && empImpact[k] !== undefined).length
       empImpactProg = empKeys > 0 ? Math.min(95, empKeys * 5) : 0
     }
     
     if (crossDimComplete) {
       crossDimProg = 100
     } else {
-      // Count both top3 and bottom3 selections plus rationale
-      const top3 = Array.isArray(crossDim.top3) ? crossDim.top3.length : 0
-      const bottom3 = Array.isArray(crossDim.bottom3) ? crossDim.bottom3.length : 0
-      const hasRationale = crossDim.rationale && crossDim.rationale.trim().length > 0
+      // Count cd1a (top 3), cd1b (bottom 3), and cd2 (challenges)
+      const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0
+      const bottom3Count = Array.isArray(crossDim.cd1b) ? crossDim.cd1b.length : 0
+      const challengesCount = Array.isArray(crossDim.cd2) ? crossDim.cd2.length : 0
       
-      const totalItems = top3 + bottom3 + (hasRationale ? 1 : 0)
-      crossDimProg = Math.round((totalItems / 7) * 100) // 3 top + 3 bottom + 1 rationale = 7 total
+      // Total expected: 3 top + 3 bottom + 1-3 challenges = minimum 7, maximum 9
+      const totalAnswered = top3Count + bottom3Count + (challengesCount > 0 ? 1 : 0)
+      crossDimProg = Math.round((totalAnswered / 7) * 100)
     }
-
-      setAdvancedProgress({
-        crossDimensional: crossDimProg,
-        employeeImpact: empImpactProg,
-      })
+    
+    setAdvancedProgress({
+      employeeImpact: empImpactProg,
+      crossDimensional: crossDimProg,
+    })
 
       // Check if everything is 100% complete
       const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
