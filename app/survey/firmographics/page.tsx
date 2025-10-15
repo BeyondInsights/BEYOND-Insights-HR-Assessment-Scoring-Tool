@@ -251,24 +251,23 @@ export default function FirmographicsPage() {
   ];
 
   const C3_ELIGIBILITY = [
-    "All employees (100%)",
-    "Most employees (75-99%)",
-    "Many employees (50-74%)",
-    "Some employees (25-49%)",
-    "Few employees (<25%)",
-    "Varies significantly by location"
-  ];
+  "All employees (100%)",
+  "Most employees (75-99%)",
+  "Many employees (50-74%)",
+  "Some employees (25-49%)",
+  "Few employees (<25%)",
+  "Varies significantly by location"
+];
   
-  const C4_EXCLUDED = [
-    "Part-time employees",
-    "Contract/temporary workers",
-    "Employees in certain countries/regions",
-    "Employees below certain tenure",
-    "Certain job levels/categories",
-    "Some other employee group (specify)",  
-    "Other (specify):",
-    "None - all eligible for standard benefits"
-  ];
+  const C4_EXCLUDED_GROUPS = [
+  "Part-time employees",
+  "Contract/temporary workers",
+  "Employees in certain countries/regions",
+  "Employees below certain tenure",
+  "Certain job levels/categories",
+  "Some other group (specify):",  
+  "None - all eligible for standard benefits"  // ← EXCLUSIVE
+];
 
   const C5_REVENUE = [
     "Less than $10 million",
