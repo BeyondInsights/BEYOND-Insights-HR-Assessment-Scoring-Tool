@@ -249,13 +249,13 @@ if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
   }
 
   const handleDimensionClick = (idx: number) => {
-    if (!paymentCompleted) {
-      return;
-    }
-    if (allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4 || idx === 5 || idx === 6 || idx === 7 || idx === 8 || idx === 9 || idx === 10 || idx === 11 || idx === 12 || idx === 13) {
-      router.push(`/survey/dimensions/${idx+1}`)
-    }
-  } 
+  if (!paymentCompleted) {
+    return;
+  }
+  if (allCoreDone) {
+    router.push(`/survey/dimensions/${idx+1}`)
+  }
+}
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
@@ -380,15 +380,55 @@ if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
     </div>
   );
 })()}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-10">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">How this works</h2>
-          <ul className="list-disc ml-5 space-y-1 text-sm text-gray-700">
-            <li>Start in any order. Your work saves automatically on every change.</li>
-            <li>Stop anytime - you can return here and resume where you left off.</li>
-            <li>Progress meters reflect partial completion - you can re-enter completed sections to review/edit.</li>
-          </ul>
-        </div>
-
+<div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-10">
+  <h2 className="text-lg font-semibold text-gray-900 mb-2">How this works</h2>
+  <p className="text-sm text-gray-700 mb-4">
+    Complete this assessment in three stages. Your work saves automatically on every change, and you can stop anytime to return later.
+  </p>
+  
+  <div className="space-y-4">
+    <div className="flex gap-3">
+      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+        1
+      </div>
+      <div>
+        <h3 className="font-semibold text-gray-900 text-sm">Complete Core Sections</h3>
+        <p className="text-sm text-gray-600">
+          Complete Company Profile, General Employee Benefits, and Current Support (in any order)
+        </p>
+      </div>
+    </div>
+    
+    <div className="flex gap-3">
+      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+        2
+      </div>
+      <div>
+        <h3 className="font-semibold text-gray-900 text-sm">Rate 13 Dimensions of Support</h3>
+        <p className="text-sm text-gray-600">
+          Once Stage 1 is complete, assess all 13 dimensions (in any order)
+        </p>
+      </div>
+    </div>
+    
+    <div className="flex gap-3">
+      <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+        3
+      </div>
+      <div>
+        <h3 className="font-semibold text-gray-900 text-sm">Complete Advanced Assessments</h3>
+        <p className="text-sm text-gray-600">
+          After finishing all 13 dimensions, complete the Cross-Dimensional and Employee-Impact assessments
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <p className="text-xs text-gray-500 mt-4 italic">
+    Progress meters reflect partial completion - you can re-enter any section to review or edit your responses.
+  </p>
+</div>
+        
         {/* Core Sections */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {sections.map((s) => {
@@ -449,9 +489,8 @@ if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
         <h2 className="text-xl font-bold text-gray-900 mb-4">13 Dimensions of Support</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {dimensions.map((dim, idx) => {
-            const isLocked = !paymentCompleted;
-            const canAccess = allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4 || idx === 5 || idx === 6 || idx === 7 || idx === 8 || idx === 9 || idx === 10 || idx === 11 || idx === 12 || idx === 13;
-            const isClickable = !isLocked && canAccess;
+            const isLocked = !paymentCompleted || !allCoreDone;
+            const isClickable = !isLocked;
             
             return (
               <div
