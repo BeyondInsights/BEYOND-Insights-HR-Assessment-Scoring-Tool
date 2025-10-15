@@ -43,29 +43,29 @@ export default function Dimension3Page() {
   };
 
   const setStatus = (item: string, status: string) => {
-    setAns((prev: any) => ({
-      ...prev,
-      d3a: { ...(prev.d3a || {}), [item]: status }
-    }));
+  setAns((prev: any) => ({
+    ...prev,
+    d3a: { ...(prev.d3a || {}), [item]: status }
+  }));
+  
+  setIsTransitioning(true);
+  
+  setTimeout(() => {
+    const nextUnansweredIndex = D3A_ITEMS.findIndex((itm, idx) =>  // Changed from D1A_ITEMS
+      idx > currentItemIndex && !ans.d3a?.[itm]
+    );
     
-    setIsTransitioning(true);
+    if (nextUnansweredIndex !== -1) {
+      setCurrentItemIndex(nextUnansweredIndex);
+    } else if (currentItemIndex < D3A_ITEMS.length - 1) {  // Changed from D1A_ITEMS
+      setCurrentItemIndex(currentItemIndex + 1);
+    }
     
     setTimeout(() => {
-      const nextUnansweredIndex = D3A_ITEMS.findIndex((itm, idx) => 
-        idx > currentItemIndex && !ans.d3a?.[itm]
-      );
-      
-      if (nextUnansweredIndex !== -1) {
-        setCurrentItemIndex(nextUnansweredIndex);
-      } else if (currentItemIndex < D3A_ITEMS.length - 1) {
-        setCurrentItemIndex(currentItemIndex + 1);
-      }
-      
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 250);
-    }, 500);
-  };
+      setIsTransitioning(false);
+    }, 250);
+  }, 500);
+};
 
   const goToItem = (index: number) => {
     setIsTransitioning(true);
