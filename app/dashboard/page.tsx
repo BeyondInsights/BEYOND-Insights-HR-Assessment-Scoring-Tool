@@ -1,4 +1,4 @@
-// app/dashboard/page.tsx - Updated with payment gating and NO certification button
+// app/dashboard/page.tsx - Updated with payment gating and advanced sections
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -22,37 +22,40 @@ export default function DashboardPage() {
     general: 0,
     current: 0,
   })
+  const [advancedProgress, setAdvancedProgress] = useState({
+    employeeImpact: 0,
+    crossDimensional: 0,
+  })
 
-useEffect(() => {
-  if (typeof window === 'undefined') return
-  
-  // Check authentication
-  const authCompleted = localStorage.getItem('auth_completed') === 'true';
-  if (!authCompleted) {
-    router.push('/authorization');
-    return;
-  }
-  
-  const handleFocus = () => {
-    calculateProgress();
-  };
-  window.addEventListener("focus", handleFocus);
-  
-  const calculateProgress = () => {
-    const savedEmail = localStorage.getItem('auth_email') || ''
-    setEmail(savedEmail)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
     
-    // Check payment status and method
-    const paymentStatus = localStorage.getItem('payment_completed')
-    const paymentMethod = localStorage.getItem('payment_method')
+    // Check authentication
+    const authCompleted = localStorage.getItem('auth_completed') === 'true';
+    if (!authCompleted) {
+      router.push('/authorization');
+      return;
+    }
     
-    // Allow access if ANY payment method was selected
-    setPaymentCompleted(paymentStatus === 'true' || paymentStatus === 'invoice')
+    const handleFocus = () => {
+      calculateProgress();
+    };
+    window.addEventListener("focus", handleFocus);
     
-    const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
-    if (firmo?.companyName) setCompanyName(firmo.companyName)
-    
-     
+    const calculateProgress = () => {
+      const savedEmail = localStorage.getItem('auth_email') || ''
+      setEmail(savedEmail)
+      
+      // Check payment status and method
+      const paymentStatus = localStorage.getItem('payment_completed')
+      const paymentMethod = localStorage.getItem('payment_method')
+      
+      // Allow access if ANY payment method was selected
+      setPaymentCompleted(paymentStatus === 'true' || paymentStatus === 'invoice')
+      
+      const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
+      if (firmo?.companyName) setCompanyName(firmo.companyName)
+      
       const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}')
       const current = JSON.parse(localStorage.getItem('current-support_data') || '{}')
       
@@ -124,9 +127,39 @@ useEffect(() => {
         current: curProg,
       });
 
+      // Calculate progress for advanced sections
+      const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}')
+      const crossDim = JSON.parse(localStorage.getItem('cross-dimensional-assessment_data') || '{}')
+
+      const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true'
+      const crossDimComplete = localStorage.getItem('cross-dimensional-assessment_complete') === 'true'
+
+      let empImpactProg = 0
+      let crossDimProg = 0
+
+      if (empImpactComplete) {
+        empImpactProg = 100
+      } else {
+        const empKeys = Object.keys(empImpact).length
+        empImpactProg = empKeys > 0 ? Math.min(90, empKeys * 10) : 0
+      }
+
+      if (crossDimComplete) {
+        crossDimProg = 100
+      } else {
+        const crossKeys = Object.keys(crossDim).length
+        crossDimProg = crossKeys > 0 ? Math.min(90, crossKeys * 10) : 0
+      }
+
+      setAdvancedProgress({
+        employeeImpact: empImpactProg,
+        crossDimensional: crossDimProg,
+      })
+
       // Check if everything is 100% complete
       const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
-                          dimProgress.every(p => p === 100);
+                          dimProgress.every(p => p === 100) &&
+                          empImpactProg === 100 && crossDimProg === 100;
       
       if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
         localStorage.setItem('assessment_completion_shown', 'true');
@@ -160,6 +193,8 @@ useEffect(() => {
     sectionProgress.general === 100 &&
     sectionProgress.current === 100
 
+  const all13DimensionsDone = dimensionProgress.every(p => p === 100)
+
   const handleSectionClick = (sectionId: string) => {
     if (!paymentCompleted) {
       return;
@@ -168,13 +203,13 @@ useEffect(() => {
   }
 
   const handleDimensionClick = (idx: number) => {
-  if (!paymentCompleted) {
-    return;
-  }
-  if (allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4 || idx === 5 || idx === 6 || idx === 7 || idx === 8 || idx === 9 || idx === 10 || idx === 11 || idx === 12 || idx === 13) {
-  router.push(`/survey/dimensions/${idx+1}`)
-}
-} 
+    if (!paymentCompleted) {
+      return;
+    }
+    if (allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4 || idx === 5 || idx === 6 || idx === 7 || idx === 8 || idx === 9 || idx === 10 || idx === 11 || idx === 12 || idx === 13) {
+      router.push(`/survey/dimensions/${idx+1}`)
+    }
+  } 
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
@@ -198,67 +233,67 @@ useEffect(() => {
         </div>
 
         {/* Payment Status Banner */}
-{!paymentCompleted && (
-  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8 rounded-lg">
-    <div className="flex items-start">
-      <Lock className="w-6 h-6 text-yellow-600 mr-3 mt-1" />
-      <div className="flex-1">
-        <h3 className="text-lg font-bold text-yellow-900 mb-2">
-          Payment Required to Begin Assessment
-        </h3>
-        <p className="text-yellow-800 mb-4">
-          Complete your application payment to unlock all assessment sections. You can review the dashboard structure, but assessment sections will remain locked until payment is received.
-        </p>
-        <button
-          onClick={() => router.push('/payment')}
-          className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors"
-        >
-          <CreditCard className="w-5 h-5 mr-2" />
-          Complete Payment ($1,250)
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-{paymentCompleted && (() => {
-  const paymentMethod = localStorage.getItem('payment_method')
-  const isInvoice = paymentMethod === 'invoice'
-  
-  return (
-    <div className={`border-l-4 p-6 mb-8 rounded-lg ${
-      isInvoice ? 'bg-blue-50 border-blue-400' : 'bg-green-50 border-green-400'
-    }`}>
-      <div className="flex items-start">
-        {isInvoice ? (
-          <CreditCard className="w-6 h-6 text-blue-600 mr-3 mt-1" />
-        ) : (
-          <CheckCircle className="w-6 h-6 text-green-600 mr-3 mt-1" />
+        {!paymentCompleted && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8 rounded-lg">
+            <div className="flex items-start">
+              <Lock className="w-6 h-6 text-yellow-600 mr-3 mt-1" />
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-yellow-900 mb-2">
+                  Payment Required to Begin Assessment
+                </h3>
+                <p className="text-yellow-800 mb-4">
+                  Complete your application payment to unlock all assessment sections. You can review the dashboard structure, but assessment sections will remain locked until payment is received.
+                </p>
+                <button
+                  onClick={() => router.push('/payment')}
+                  className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors"
+                >
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  Complete Payment ($1,250)
+                </button>
+              </div>
+            </div>
+          </div>
         )}
-        <div className="flex-1">
-          <h3 className={`text-lg font-bold mb-2 ${
-            isInvoice ? 'text-blue-900' : 'text-green-900'
-          }`}>
-            Payment Method: {isInvoice ? 'Invoice (Payment Pending)' : 
-              paymentMethod === 'card' ? 'Credit Card' : 
-              paymentMethod === 'ach' ? 'ACH Transfer' : 'Processed'}
-          </h3>
-          <p className={isInvoice ? 'text-blue-800' : 'text-green-800'}>
-            {isInvoice 
-              ? 'Your invoice has been generated. You can continue working on your assessment while we process your payment. Payment is due within 14 days.'
-              : 'Transaction completed successfully. Your payment has been processed and you have full access to complete your assessment.'
-            }
-          </p>
-          {!isInvoice && (
-            <p className="text-sm text-gray-600 mt-2">
-              Payment Date: {new Date(localStorage.getItem('payment_date') || Date.now()).toLocaleDateString()}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-})()}
+
+        {paymentCompleted && (() => {
+          const paymentMethod = localStorage.getItem('payment_method')
+          const isInvoice = paymentMethod === 'invoice'
+          
+          return (
+            <div className={`border-l-4 p-6 mb-8 rounded-lg ${
+              isInvoice ? 'bg-blue-50 border-blue-400' : 'bg-green-50 border-green-400'
+            }`}>
+              <div className="flex items-start">
+                {isInvoice ? (
+                  <CreditCard className="w-6 h-6 text-blue-600 mr-3 mt-1" />
+                ) : (
+                  <CheckCircle className="w-6 h-6 text-green-600 mr-3 mt-1" />
+                )}
+                <div className="flex-1">
+                  <h3 className={`text-lg font-bold mb-2 ${
+                    isInvoice ? 'text-blue-900' : 'text-green-900'
+                  }`}>
+                    Payment Method: {isInvoice ? 'Invoice (Payment Pending)' : 
+                      paymentMethod === 'card' ? 'Credit Card' : 
+                      paymentMethod === 'ach' ? 'ACH Transfer' : 'Processed'}
+                  </h3>
+                  <p className={isInvoice ? 'text-blue-800' : 'text-green-800'}>
+                    {isInvoice 
+                      ? 'Your invoice has been generated. You can continue working on your assessment while we process your payment. Payment is due within 14 days.'
+                      : 'Transaction completed successfully. Your payment has been processed and you have full access to complete your assessment.'
+                    }
+                  </p>
+                  {!isInvoice && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      Payment Date: {new Date(localStorage.getItem('payment_date') || Date.now()).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
 
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-10">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">How this works</h2>
@@ -272,7 +307,7 @@ useEffect(() => {
         {/* Core Sections */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {sections.map((s) => {
-           const isLocked = false // Always allow access if they've completed payment (any method)
+            const isLocked = false // Always allow access if they've completed payment (any method)
             
             return (
               <div
@@ -327,11 +362,11 @@ useEffect(() => {
         </div>
         
         <h2 className="text-xl font-bold text-gray-900 mb-4">13 Dimensions of Support</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {dimensions.map((dim, idx) => {
-  const isLocked = !paymentCompleted;
-  const canAccess = allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4 || idx === 5 || idx === 6 || idx === 7 || idx === 8 || idx === 9 || idx === 10 || idx === 11 || idx === 12 || idx === 13;
-  const isClickable = !isLocked && canAccess;
+            const isLocked = !paymentCompleted;
+            const canAccess = allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4 || idx === 5 || idx === 6 || idx === 7 || idx === 8 || idx === 9 || idx === 10 || idx === 11 || idx === 12 || idx === 13;
+            const isClickable = !isLocked && canAccess;
             
             return (
               <div
@@ -368,6 +403,75 @@ useEffect(() => {
             );
           })}
         </div>
+
+        {/* Advanced Assessment Sections - Locked until all 13 dimensions complete */}
+        {paymentCompleted && (
+          <>
+            <div className="bg-purple-50 border-l-4 border-purple-600 p-6 mb-6 rounded-lg">
+              <h3 className="text-lg font-bold text-purple-900 mb-2">Advanced Assessment Modules</h3>
+              <p className="text-gray-700">
+                {all13DimensionsDone ? (
+                  <>These sections are now available. They provide deeper insights into employee impact and cross-cutting organizational themes.</>
+                ) : (
+                  <>These advanced modules will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
+                )}
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 mb-12">
+              {[
+                { 
+                  id: 'employee-impact-assessment', 
+                  title: 'Employee-Impact Assessment', 
+                  description: 'Assess the impact on employees',
+                  completion: advancedProgress.employeeImpact 
+                },
+                { 
+                  id: 'cross-dimensional-assessment', 
+                  title: 'Cross-Dimensional Assessment', 
+                  description: 'Evaluate cross-cutting themes',
+                  completion: advancedProgress.crossDimensional 
+                },
+              ].map((section) => {
+                const isLocked = !all13DimensionsDone
+                
+                return (
+                  <div
+                    key={section.id}
+                    role="button"
+                    tabIndex={isLocked ? -1 : 0}
+                    onClick={() => !isLocked && router.push(`/survey/${section.id}`)}
+                    onKeyDown={(e) => !isLocked && e.key === 'Enter' && router.push(`/survey/${section.id}`)}
+                    className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300 
+                      ${isLocked 
+                        ? 'cursor-not-allowed opacity-60 bg-gray-100 border-gray-300' 
+                        : `cursor-pointer transform hover:scale-105 bg-gradient-to-br from-white to-purple-50 hover:bg-purple-100 hover:shadow-md ${
+                            section.completion === 100 ? "border-green-400" : section.completion > 0 ? "border-purple-400" : "border-gray-200"
+                          }`
+                      }`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-md font-semibold text-gray-900">{section.title}</h3>
+                        {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        {isLocked ? (
+                          'Complete all 13 dimensions first'
+                        ) : section.completion === 100 ? (
+                          'Completed'
+                        ) : (
+                          `${section.completion}% complete`
+                        )}
+                      </p>
+                    </div>
+                    <ProgressCircle completion={isLocked ? 0 : section.completion} />
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
 
       </main>
    
