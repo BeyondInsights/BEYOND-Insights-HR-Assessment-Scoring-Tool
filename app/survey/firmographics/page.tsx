@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -9,104 +9,28 @@ export default function FirmographicsPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [ans, setAns] = useState<any>({});
-  
-  // Debug: Log every time ans changes
-  useEffect(() => {
-    console.log("FIRMOGRAPHICS ans changed:", ans);
-    if (Object.keys(ans).length > 0) {
-      localStorage.setItem("firmographics_data", JSON.stringify(ans));
-      console.log("SAVED to localStorage");
-    }
-  }, [ans]);
-  
-  // Debug: Try to load on mount
-  useEffect(() => {
-    console.log("FIRMOGRAPHICS checking for saved data...");
-    const saved = localStorage.getItem("firmographics_data");
-    if (saved) {
-      console.log("FOUND saved data:", saved);
-      setAns(JSON.parse(saved));
-    } else {
-      console.log("NO saved data found");
-    }
-  }, []);
-
-  // Auto-save firmographics on every change
-  useEffect(() => {
-    if (Object.keys(ans).length > 0) {
-      localStorage.setItem("firmographics_data", JSON.stringify(ans));
-      console.log("Firmographics auto-saved:", ans);
-    }
-  }, [ans]);
-
-  // Load saved firmographics on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("firmographics_data");
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        setAns(data);
-        console.log("Loaded firmographics:", data);
-        // Determine which step to show based on saved data
-        const fields = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c4a','c5','c6'];
-        for (let i = fields.length - 1; i >= 0; i--) {
-          if (data[fields[i]]) {
-            setStep(i + 1);
-            break;
-          }
-        }
-      } catch (e) {
-        console.error("Error loading firmographics:", e);
-      }
-    }
-  }, []);
-
-  // Auto-save firmographics on every change
-  useEffect(() => {
-    if (Object.keys(ans).length > 0) {
-      localStorage.setItem("firmographics_data", JSON.stringify(ans));
-      console.log("Firmographics auto-saved:", ans);
-    }
-  }, [ans]);
-
-  // Load saved firmographics on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("firmographics_data");
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        setAns(data);
-        console.log("Loaded firmographics:", data);
-        // Determine last completed step
-        let lastStep = 1;
-        if (data.c6) lastStep = 9;
-        else if (data.c5 || data.c4 || data.c4a || data.c3) lastStep = 9;
-        else if (data.c2) lastStep = 7;
-        else if (data.s9a || data.s9) lastStep = 6;
-        else if (data.s8) lastStep = 5;
-        else if (data.s7) lastStep = 4;
-        else if (data.s6 || data.s5) lastStep = 3;
-        else if (data.s4b || data.s4a) lastStep = 2;
-        else if (data.s2 || data.s1) lastStep = 1;
-        
-        setStep(Math.min(lastStep, 10)); // Cap at step 10
-      } catch (e) {
-        console.error("Error loading firmographics:", e);
-      }
-    }
-  }, []);
   const [errors, setErrors] = useState<string>("");
 
   // Load saved answers on mount
   useEffect(() => {
     const saved = localStorage.getItem("firmographics_data");
-    if (saved) setAns(JSON.parse(saved));
-    
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        setAns(data);
+        console.log("Loaded firmographics:", data);
+      } catch (e) {
+        console.error("Error loading firmographics:", e);
+      }
+    }
   }, []);
 
   // Save answers when they change
   useEffect(() => {
-    localStorage.setItem("firmographics_data_data", JSON.stringify(ans));
+    if (Object.keys(ans).length > 0) {
+      localStorage.setItem("firmographics_data", JSON.stringify(ans));
+      console.log("Firmographics auto-saved:", ans);
+    }
   }, [ans]);
 
   // Set field helper
@@ -180,7 +104,7 @@ export default function FirmographicsPage() {
 
       case 6: // HQ Country & Other countries
         if (!ans.s9) return "Please select your headquarters country";
-        if (ans.s9 === "Other (specify):" && !ans.s9_other?.trim())
+        if (ans.s9 === "Other" && !ans.s9_other?.trim())
           return "Please specify your country";
         if (!ans.s9a) return "Please select number of other countries";
         return null;
@@ -193,19 +117,22 @@ export default function FirmographicsPage() {
 
       case 8: // Benefits eligibility
         if (!ans.c3) return "Please select workforce eligibility percentage";
-  
-      // SKIP C3a (excluded groups) if C3 = "All employees (100%)"
+        
+        // SKIP C3a (excluded groups) if C3 = "All employees (100%)"
         if (ans.c3 !== "All employees (100%)") {
-        if (!Array.isArray(ans.c4) || ans.c4.length === 0)
-          return "Please select which groups are excluded (or select 'None')";
-        if (ans.c4.includes("Some other employee group (specify)") && !ans.c4_other?.trim())
-          return "Please specify other excluded groups";
+          if (!Array.isArray(ans.c4) || ans.c4.length === 0)
+            return "Please select which groups are excluded (or select 'None')";
+          if (ans.c4.includes("Some other employee group (specify)") && !ans.c4_other?.trim())
+            return "Please specify other excluded groups";
         }
-      return null;
+        return null;
 
       case 9: // Revenue & Remote policy  
         if (!ans.c5) return "Please select annual revenue";
         if (!ans.c6) return "Please select remote/hybrid work approach";
+        return null;
+
+      default:
         return null;
     }
   };
@@ -313,7 +240,7 @@ export default function FirmographicsPage() {
     "50,000+"
   ];
 
-      const S9A_OTHER_COUNTRIES = [
+  const S9A_OTHER_COUNTRIES = [
     "No other countries - headquarters only",
     "1 to 2 other countries",
     "3 to 4 other countries",
@@ -338,9 +265,8 @@ export default function FirmographicsPage() {
     "Employees in certain countries/regions",
     "Employees below certain tenure",
     "Certain job levels/categories",
+    "None - all employees eligible",
     "Some other employee group (specify)"
-    "Other (specify):",
-    "None - all eligible for standard benefits"
   ];
 
   const C5_REVENUE = [
@@ -412,8 +338,7 @@ export default function FirmographicsPage() {
             <span className="text-sm text-gray-600">Step {step} of 10</span>
             <button 
               onClick={() => { localStorage.setItem("firmographics_complete", "true"); router.push("/dashboard"); }}
-  
-            className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+              className="text-sm text-orange-600 hover:text-orange-700 font-medium"
             >
               ← Back to Dashboard
             </button>
@@ -743,7 +668,7 @@ export default function FirmographicsPage() {
                 <option value="United Kingdom">United Kingdom</option>
                 <option value="United States">United States</option>
                 <option value="Other">Other (specify)</option>
-</select>
+              </select>
               
               {ans.s9 === "Other" && (
                 <input
@@ -834,78 +759,93 @@ export default function FirmographicsPage() {
 
         {/* Step 8: Benefits Eligibility */}
         {step === 8 && (
-          <div className="space-y-10 bg-white p-6 rounded-lg shadow-sm">
+          <div className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-2xl font-bold text-gray-900">Company Profile</h2>
             
+            {/* C3: Percentage eligible */}
             <div>
               <p className="text-base font-bold text-gray-900 mb-1">
                 Approximately what percentage of your workforce is{" "}
-                <span className="text-blue-600">eligible for standard employee benefits</span>?
+                <span className="text-blue-600">eligible for standard employee benefits</span>{" "}
+                (health insurance, paid leave, etc.)?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Enter percentage)</p>
-              <div className="flex items-center gap-2 max-w-xs">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={ans.c3 || ""}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === "" || (parseInt(val) >= 0 && parseInt(val) <= 100)) {
-                      setField("c3", val);
-                    }
-                  }}
-                  className="w-24 px-4 py-2 border-2 border-gray-300 rounded-lg text-center font-semibold"
-                  placeholder="0"
-                />
-                <span className="text-lg font-semibold">%</span>
+              <p className="text-sm text-gray-600 mb-3">Your best estimate is fine</p>
+              
+              <div className="space-y-2">
+                {C3_ELIGIBILITY.map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      setField("c3", opt);
+                      // Clear C4 if selecting 100%
+                      if (opt === "All employees (100%)") {
+                        setField("c4", []);
+                        setField("c4_other", "");
+                      }
+                    }}
+                    className={`w-full px-4 py-3 text-left text-sm font-semibold rounded-lg border-2 transition-all ${
+                      ans.c3 === opt
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div>
-              <p className="text-base font-bold text-gray-900 mb-1">
-                Which employee groups are{" "}
-                <span className="text-blue-600">typically excluded</span> from benefits?
-              </p>
-              <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {C4_EXCLUDED.map(opt => {
-                  const isSelected = Array.isArray(ans.c4) && ans.c4.includes(opt);
-                  const isNone = opt === "None - all eligible for standard benefits";
-                  const isOther = opt === "Other (specify):";
-                  const hasNone = Array.isArray(ans.c4) && ans.c4.includes("None - all eligible for standard benefits");
-                  
-                  return (
-                    <button
+            {/* C4: Excluded groups - ONLY show if NOT 100% */}
+            {ans.c3 && ans.c3 !== "All employees (100%)" && (
+              <div className="mt-6">
+                <p className="text-base font-bold text-gray-900 mb-3">
+                  Which employee groups are typically{" "}
+                  <span className="text-blue-600">EXCLUDED</span> from workplace support benefits?
+                </p>
+                <p className="text-sm text-gray-600 mb-3">Select ALL that apply</p>
+                
+                <div className="space-y-2">
+                  {C4_EXCLUDED.map(opt => (
+                    <label
                       key={opt}
-                      onClick={() => toggleMulti("c4", opt, "None - all eligible for standard benefits")}
-                      disabled={!isNone && hasNone && !isSelected}
-                      className={`px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                        isNone || isOther ? "font-normal" : ""
-                      } ${
-                        isSelected
+                      className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        ans.c4?.includes(opt)
                           ? "border-blue-500 bg-blue-50"
-                          : !isNone && hasNone
-                          ? "border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      {opt}
-                    </button>
-                  );
-                })}
+                      <input
+                        type="checkbox"
+                        checked={ans.c4?.includes(opt) || false}
+                        onChange={() => toggleMulti("c4", opt, "None - all employees eligible")}
+                        className="w-5 h-5 text-blue-600 mr-3"
+                      />
+                      <span className="text-sm font-semibold">{opt}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {/* Other specify textbox */}
+                {ans.c4?.includes("Some other employee group (specify)") && (
+                  <input
+                    type="text"
+                    value={ans.c4_other || ""}
+                    onChange={(e) => setField("c4_other", e.target.value)}
+                    className="mt-3 w-full px-4 py-2 border-2 border-blue-500 rounded-lg"
+                    placeholder="Please specify other employee groups..."
+                  />
+                )}
               </div>
-              
-              {Array.isArray(ans.c4) && ans.c4.includes("Other (specify):") && (
-                <input
-                  type="text"
-                  value={ans.c4_other || ""}
-                  onChange={(e) => setField("c4_other", e.target.value)}
-                  className="mt-3 w-full max-w-md px-4 py-2 border-2 border-blue-500 rounded-lg"
-                  placeholder="Please specify other excluded groups..."
-                />
-              )}
-            </div>
+            )}
+
+            {/* Show note if 100% selected */}
+            {ans.c3 === "All employees (100%)" && (
+              <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-500 rounded">
+                <p className="text-sm text-green-800">
+                  ✓ All employees eligible - skipping excluded groups question
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -939,39 +879,33 @@ export default function FirmographicsPage() {
               </div>
             </div>
 
+            {/* C6: Remote/Hybrid - UPDATED OPTIONS */}
             <div>
-              <p className="text-base font-bold text-gray-900 mb-1">
-                What is your organization's current{" "}
-                <span className="text-blue-600">remote / hybrid work policy</span>?
+              <p className="text-base font-bold text-gray-900 mb-3">
+                Which best describes your organization's approach to remote/hybrid work?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
-              <div className="space-y-2 max-w-3xl">
-                {C6_REMOTE.map(opt => (
-                  <button
-                    key={opt}
-                    onClick={() => setField("c6", opt)}
-                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                      opt.includes("(specify)") ? "font-normal" : ""
-                    } ${
-                      ans.c6 === opt
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
+              <div className="space-y-2">
+                {C6_REMOTE.map(opt => {
+                  const parts = opt.split(' - ');
+                  const boldPart = parts[0];
+                  const normalPart = parts[1];
+                  
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => setField("c6", opt)}
+                      className={`w-full px-4 py-3 text-left text-sm rounded-lg border-2 transition-all ${
+                        ans.c6 === opt
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <span className="font-bold text-gray-900">{boldPart}</span>
+                      {normalPart && <span className="font-normal"> - {normalPart}</span>}
+                    </button>
+                  );
+                })}
               </div>
-              
-              {ans.c6 === "Other arrangement (specify):" && (
-                <input
-                  type="text"
-                  value={ans.c6_other || ""}
-                  onChange={(e) => setField("c6_other", e.target.value)}
-                  className="mt-3 w-full max-w-md px-4 py-2 border-2 border-blue-500 rounded-lg"
-                  placeholder="Please describe your arrangement..."
-                />
-              )}
             </div>
           </div>
         )}
@@ -1026,4 +960,3 @@ export default function FirmographicsPage() {
     </div>
   );
 }
-
