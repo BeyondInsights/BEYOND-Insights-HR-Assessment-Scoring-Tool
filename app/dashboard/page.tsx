@@ -361,7 +361,7 @@ if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
             <path d="M30 10 L35 23 L48 27 L38 37 L40 50 L30 43 L20 50 L22 37 L12 27 L25 23 Z" fill="white"/>
           </svg>
           <div>
-            <h3 className="text-2xl font-bold mb-2">🎉 Congratulations!</h3>
+            <h3 className="text-2xl font-bold mb-2">Congratulations!</h3>
             <p className="text-lg mb-1">
               You've completed all sections of the assessment!
             </p>
