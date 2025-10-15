@@ -368,23 +368,23 @@ export default function CrossDimensionalPage() {
         )}
 
         {/* Step 2: CD1b - Lowest Priority */}
-        {step === 2 && (
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Lowest Priority Dimensions</h2>
-            
-            <p className="font-bold text-gray-900 mb-2">
-              Which THREE areas are the <span className="text-blue-600">lowest priority</span> for your organization?
-            </p>
-            <p className="text-sm text-gray-600 mb-2">(Select exactly 3)</p>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start">
-              <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-blue-900">
-                Click the <Info className="w-4 h-4 inline" /> icon next to any dimension to view its full definition
-              </p>
-            </div>
-            
-            <div className="space-y-2">
+{step === 2 && (
+  <div className="bg-white p-6 rounded-lg shadow-sm">  {/* Same as step 1 */}
+    <h2 className="text-2xl font-bold text-gray-900 mb-4">Lowest Priority Dimensions</h2>
+    
+    <p className="font-bold text-gray-900 mb-2">
+      Which THREE areas are the <span className="text-blue-600">lowest priority</span> for your organization?
+    </p>
+    <p className="text-sm text-gray-600 mb-2">(Select exactly 3)</p>
+    
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start">
+      <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
+      <p className="text-sm text-blue-900">
+        Click the <Info className="w-4 h-4 inline" /> icon next to any dimension to view its full definition
+      </p>
+    </div>
+    
+    <div className="space-y-2">  {/* Same as step 1 */}
               {cd1bOptions.map(dim => (
                 <div key={dim} className="flex items-center gap-2">
                   <button
