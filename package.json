@@ -19,6 +19,7 @@
     "survey-react-ui": "^2.3.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
