@@ -9,7 +9,7 @@ export default defineConfig({
   reporter: 'html',
   
   use: {
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'https://your-netlify-site.netlify.app',
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'https://effervescent-concha-95d2df.netlify.app',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
