@@ -14,29 +14,36 @@ export default function Dimension2Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   useEffect(() => {
-    const saved = localStorage.getItem("dimension2_data");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAns(parsed);
-      } catch (e) {
-        console.error("Error loading saved data:", e);
-      }
+  const saved = localStorage.getItem("dimension2_data");
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      setAns(parsed);
+    } catch (e) {
+      console.error("Error loading saved data:", e);
     }
+  }
 
-    const firmographicsData = localStorage.getItem("firmographics_data");
-    if (firmographicsData) {
-      const parsed = JSON.parse(firmographicsData);
-      setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
-    }
-  }, []);
+  const firmographicsData = localStorage.getItem("firmographics_data");
+  if (firmographicsData) {
+    const parsed = JSON.parse(firmographicsData);
+    setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
+  }
+}, []);
 
-  useEffect(() => {
-    if (Object.keys(ans).length > 0) {
-      localStorage.setItem("dimension2_data", JSON.stringify(ans));
-    }
-  }, [ans]);
+useEffect(() => {
+  if (Object.keys(ans).length > 0) {
+    localStorage.setItem("dimension3_data", JSON.stringify(ans));
+  }
+}, [ans]);
 
+// Scroll to top when step changes (but not for progressive card navigation)
+useEffect(() => {
+  if (step !== 1) { // Don't scroll for step 1 (progressive cards)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}, [step]);
+  
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
     setErrors("");
