@@ -45,12 +45,18 @@ export default function CreditCardPaymentPage() {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin === 'https://fundraise.givesmart.com') {
         if (event.data.type === 'payment_complete') {
-          setPaymentStatus('success')
-          setTimeout(() => {
-            handleCloseModal()
-            router.push('/payment/success')
-          }, 2000)
-        }
+  setPaymentStatus('success')
+  
+  // Set payment status in localStorage
+  localStorage.setItem('payment_completed', 'true')
+  localStorage.setItem('payment_method', 'card')
+  localStorage.setItem('payment_date', new Date().toISOString())
+  
+  setTimeout(() => {
+    handleCloseModal()
+    router.push('/payment/success')
+  }, 2000)
+}
       }
     }
 
