@@ -127,44 +127,79 @@ export default function DashboardPage() {
         current: curProg,
       });
 
-     // In dashboard/page.tsx, replace the advanced progress calculation with:
+      // Calculate progress for advanced sections
+      const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}')
+      const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}')
 
-    // In dashboard/page.tsx, replace the advanced progress calculation section with:
+      const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true'
+      const crossDimComplete = localStorage.getItem('cross_dimensional_complete') === 'true'
 
-    // Calculate progress for advanced sections
-    const empImpact = JSON.parse(localStorage.getItem('employee_impact_data') || '{}')
-    const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}')
-    
-    const empImpactComplete = localStorage.getItem('employee_impact_complete') === 'true'
-    const crossDimComplete = localStorage.getItem('cross_dimensional_complete') === 'true'
-    
-    let empImpactProg = 0
-    let crossDimProg = 0
-    
-    if (empImpactComplete) {
-      empImpactProg = 100
-    } else {
-      const empKeys = Object.keys(empImpact).filter(k => empImpact[k] !== '' && empImpact[k] !== null && empImpact[k] !== undefined).length
-      empImpactProg = empKeys > 0 ? Math.min(95, empKeys * 5) : 0
-    }
-    
-    if (crossDimComplete) {
-      crossDimProg = 100
-    } else {
-      // Count cd1a (top 3), cd1b (bottom 3), and cd2 (challenges)
-      const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0
-      const bottom3Count = Array.isArray(crossDim.cd1b) ? crossDim.cd1b.length : 0
-      const challengesCount = Array.isArray(crossDim.cd2) ? crossDim.cd2.length : 0
-      
-      // Total expected: 3 top + 3 bottom + 1-3 challenges = minimum 7, maximum 9
-      const totalAnswered = top3Count + bottom3Count + (challengesCount > 0 ? 1 : 0)
-      crossDimProg = Math.round((totalAnswered / 7) * 100)
-    }
-    
-    setAdvancedProgress({
-      employeeImpact: empImpactProg,
-      crossDimensional: crossDimProg,
-    })
+      let empImpactProg = 0
+      let crossDimProg = 0
+
+      if (empImpactComplete) {
+        empImpactProg = 100
+      } else {
+        let completedSteps = 0
+        let totalSteps = 4 // EI1, EI2, EI3 (conditional), EI4/EI5
+        
+        // Check EI1 (all 10 items answered)
+        if (empImpact.ei1) {
+          const ei1Items = Object.keys(empImpact.ei1).length
+          if (ei1Items === 10) {
+            completedSteps += 1
+          } else if (ei1Items > 0) {
+            completedSteps += (ei1Items / 10) // Partial credit
+          }
+        }
+        
+        // Check EI2
+        if (empImpact.ei2) {
+          completedSteps += 1
+        }
+        
+        // Check EI3 (only counts if they should answer it)
+        const shouldAnswerEI3 = empImpact.ei2 === "yes_comprehensive" || empImpact.ei2 === "yes_basic"
+        if (shouldAnswerEI3) {
+          if (empImpact.ei3) {
+            completedSteps += 1
+          }
+        } else if (empImpact.ei2) {
+          // If they don't need to answer EI3, count it as complete
+          completedSteps += 1
+        }
+        
+        // Check EI4 or EI5 (whichever they were assigned)
+        if (empImpact.assignedQuestion === 'ei4') {
+          if (empImpact.ei4 || empImpact.ei4_none) {
+            completedSteps += 1
+          }
+        } else if (empImpact.assignedQuestion === 'ei5') {
+          if (empImpact.ei5 || empImpact.ei5_none) {
+            completedSteps += 1
+          }
+        }
+        
+        empImpactProg = Math.round((completedSteps / totalSteps) * 100)
+      }
+
+      if (crossDimComplete) {
+        crossDimProg = 100
+      } else {
+        // Count cd1a (top 3), cd1b (bottom 3), and cd2 (challenges)
+        const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0
+        const bottom3Count = Array.isArray(crossDim.cd1b) ? crossDim.cd1b.length : 0
+        const challengesCount = Array.isArray(crossDim.cd2) ? crossDim.cd2.length : 0
+        
+        // Total expected: 3 top + 3 bottom + 1-3 challenges = minimum 7, maximum 9
+        const totalAnswered = top3Count + bottom3Count + (challengesCount > 0 ? 1 : 0)
+        crossDimProg = Math.round((totalAnswered / 7) * 100)
+      }
+
+      setAdvancedProgress({
+        crossDimensional: crossDimProg,
+        employeeImpact: empImpactProg,
+      })
 
       // Check if everything is 100% complete
       const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
@@ -414,16 +449,16 @@ export default function DashboardPage() {
           })}
         </div>
 
-        {/* Additional Assessment Sections - Locked until all 13 dimensions complete */}
+        {/* Advanced Assessment Sections - Locked until all 13 dimensions complete */}
         {paymentCompleted && (
           <>
             <div className="bg-purple-50 border-l-4 border-purple-600 p-6 mb-6 rounded-lg">
-              <h3 className="text-lg font-bold text-purple-900 mb-2">Additional Assessment Modules</h3>
+              <h3 className="text-lg font-bold text-purple-900 mb-2">Advanced Assessment Modules</h3>
               <p className="text-gray-700">
                 {all13DimensionsDone ? (
-                  <>These sections are now available. They provide deeper insights into most critical dimensions and workplace support programs impact on employees.</>
+                  <>These sections are now available. They provide deeper insights into employee impact and cross-cutting organizational themes.</>
                 ) : (
-                  <>These modules will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
+                  <>These advanced modules will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
                 )}
               </p>
             </div>
@@ -435,13 +470,12 @@ export default function DashboardPage() {
                   title: 'Cross-Dimensional Assessment', 
                   description: 'Evaluate cross-cutting themes',
                   completion: advancedProgress.crossDimensional 
-                                  },
+                },
                 { 
                   id: 'employee-impact-assessment', 
                   title: 'Employee-Impact Assessment', 
                   description: 'Assess the impact on employees',
                   completion: advancedProgress.employeeImpact 
- 
                 },
               ].map((section) => {
                 const isLocked = !all13DimensionsDone
