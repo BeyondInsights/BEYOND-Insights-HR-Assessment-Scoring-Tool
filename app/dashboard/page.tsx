@@ -171,9 +171,9 @@ useEffect(() => {
   if (!paymentCompleted) {
     return;
   }
-  if (allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4) || idx === 5) {
-    router.push(`/survey/dimensions/${idx+1}`)
-  }
+  if (allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4 || idx === 5) {
+  router.push(`/survey/dimensions/${idx+1}`)
+}
 } 
   
   return (
