@@ -309,7 +309,7 @@ export default function CrossDimensionalPage() {
 
         {/* Step 1: CD1a - Best Outcomes */}
         {step === 1 && (
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="bg-white p-6 rounded-lg shadow-sm min-h-[600px]"  >
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Priority Dimensions for Enhancement</h2>
             
             <p className="font-bold text-gray-900 mb-2">
@@ -324,7 +324,7 @@ export default function CrossDimensionalPage() {
               </p>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-2 max-w-4xl">
               {shuffledDimensions.map(dim => (
                 <div key={dim} className="flex items-center gap-2">
                   <button
@@ -369,7 +369,7 @@ export default function CrossDimensionalPage() {
 
         {/* Step 2: CD1b - Lowest Priority */}
 {step === 2 && (
-  <div className="bg-white p-6 rounded-lg shadow-sm">  {/* Same as step 1 */}
+  <div className="bg-white p-6 rounded-lg shadow-sm min-h-[600px]">
     <h2 className="text-2xl font-bold text-gray-900 mb-4">Lowest Priority Dimensions</h2>
     
     <p className="font-bold text-gray-900 mb-2">
@@ -384,7 +384,7 @@ export default function CrossDimensionalPage() {
       </p>
     </div>
     
-    <div className="space-y-2">  {/* Same as step 1 */}
+    <div className="space-y-2 max-w-4xl">  {/* Same as step 1 */}
               {cd1bOptions.map(dim => (
                 <div key={dim} className="flex items-center gap-2">
                   <button
@@ -429,7 +429,7 @@ export default function CrossDimensionalPage() {
 
         {/* Step 3: CD2 - Challenges */}
         {step === 3 && (
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="bg-white p-6 rounded-lg shadow-sm min-h-[600px]">      
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Organizational Challenges</h2>
             
             <p className="font-bold text-gray-900 mb-2">
@@ -437,7 +437,7 @@ export default function CrossDimensionalPage() {
             </p>
             <p className="text-sm text-gray-600 mb-6">(Select up to 3)</p>
             
-            <div className="space-y-2">
+            <div className="space-y-2 max-w-4xl">
               {CD2_CHALLENGES.map(challenge => (
                 <button
                   key={challenge}
