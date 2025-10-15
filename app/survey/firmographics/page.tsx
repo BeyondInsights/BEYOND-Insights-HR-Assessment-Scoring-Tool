@@ -759,7 +759,7 @@ export default function FirmographicsPage() {
 
         {/* Step 8: Benefits Eligibility */}
         {step === 8 && (
-          <div className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
+          <div className="space-y-10 bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-2xl font-bold text-gray-900">Company Profile</h2>
             
             {/* C3: Percentage eligible */}
@@ -769,21 +769,20 @@ export default function FirmographicsPage() {
                 <span className="text-blue-600">eligible for standard employee benefits</span>{" "}
                 (health insurance, paid leave, etc.)?
               </p>
-              <p className="text-sm text-gray-600 mb-3">Your best estimate is fine</p>
+              <p className="text-sm text-gray-600 mb-4">Your best estimate is fine</p>
               
-              <div className="space-y-2">
+              <div className="space-y-2 max-w-2xl">
                 {C3_ELIGIBILITY.map(opt => (
                   <button
                     key={opt}
                     onClick={() => {
                       setField("c3", opt);
-                      // Clear C4 if selecting 100%
                       if (opt === "All employees (100%)") {
                         setField("c4", []);
                         setField("c4_other", "");
                       }
                     }}
-                    className={`w-full px-4 py-3 text-left text-sm font-semibold rounded-lg border-2 transition-all ${
+                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                       ans.c3 === opt
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-200 hover:border-gray-300"
@@ -797,50 +796,55 @@ export default function FirmographicsPage() {
 
             {/* C4: Excluded groups - ONLY show if NOT 100% */}
             {ans.c3 && ans.c3 !== "All employees (100%)" && (
-              <div className="mt-6">
-                <p className="text-base font-bold text-gray-900 mb-3">
+              <div>
+                <p className="text-base font-bold text-gray-900 mb-1">
                   Which employee groups are typically{" "}
                   <span className="text-blue-600">EXCLUDED</span> from workplace support benefits?
                 </p>
-                <p className="text-sm text-gray-600 mb-3">Select ALL that apply</p>
+                <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
                 
-                <div className="space-y-2">
-                  {C4_EXCLUDED.map(opt => (
-                    <label
-                      key={opt}
-                      className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                        ans.c4?.includes(opt)
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={ans.c4?.includes(opt) || false}
-                        onChange={() => toggleMulti("c4", opt, "None - all employees eligible")}
-                        className="w-5 h-5 text-blue-600 mr-3"
-                      />
-                      <span className="text-sm font-semibold">{opt}</span>
-                    </label>
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {C4_EXCLUDED.map(opt => {
+                    const isSelected = Array.isArray(ans.c4) && ans.c4.includes(opt);
+                    const isNone = opt === "None - all eligible for standard benefits";
+                    const isOther = opt === "Other (specify):";
+                    const hasNone = Array.isArray(ans.c4) && ans.c4.includes("None - all eligible for standard benefits");
+                    
+                    return (
+                      <button
+                        key={opt}
+                        onClick={() => toggleMulti("c4", opt, "None - all eligible for standard benefits")}
+                        disabled={!isNone && hasNone && !isSelected}
+                        className={`px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                          isNone || isOther ? "font-normal" : ""
+                        } ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-50"
+                            : !isNone && hasNone
+                            ? "border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* Other specify textbox */}
-                {ans.c4?.includes("Some other employee group (specify)") && (
+                {Array.isArray(ans.c4) && ans.c4.includes("Other (specify):") && (
                   <input
                     type="text"
                     value={ans.c4_other || ""}
                     onChange={(e) => setField("c4_other", e.target.value)}
-                    className="mt-3 w-full px-4 py-2 border-2 border-blue-500 rounded-lg"
+                    className="mt-3 w-full max-w-md px-4 py-2 border-2 border-blue-500 rounded-lg"
                     placeholder="Please specify other employee groups..."
                   />
                 )}
               </div>
             )}
 
-            {/* Show note if 100% selected */}
             {ans.c3 === "All employees (100%)" && (
-              <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-500 rounded">
+              <div className="p-4 bg-green-50 border-l-4 border-green-500 rounded">
                 <p className="text-sm text-green-800">
                   ✓ All employees eligible - skipping excluded groups question
                 </p>
@@ -848,7 +852,6 @@ export default function FirmographicsPage() {
             )}
           </div>
         )}
-
         {/* Step 9: Revenue & Remote Policy */}
         {step === 9 && (
           <div className="space-y-10 bg-white p-6 rounded-lg shadow-sm">
