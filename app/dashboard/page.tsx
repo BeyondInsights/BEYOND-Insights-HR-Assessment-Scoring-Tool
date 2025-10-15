@@ -23,8 +23,8 @@ export default function DashboardPage() {
     current: 0,
   })
   const [advancedProgress, setAdvancedProgress] = useState({
-    employeeImpact: 0,
     crossDimensional: 0,
+    employeeImpact: 0,
   })
 
   useEffect(() => {
@@ -128,21 +128,14 @@ export default function DashboardPage() {
       });
 
       // Calculate progress for advanced sections
-      const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}')
       const crossDim = JSON.parse(localStorage.getItem('cross-dimensional-assessment_data') || '{}')
+      const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}')
 
-      const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true'
       const crossDimComplete = localStorage.getItem('cross-dimensional-assessment_complete') === 'true'
+      const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true'
 
-      let empImpactProg = 0
       let crossDimProg = 0
-
-      if (empImpactComplete) {
-        empImpactProg = 100
-      } else {
-        const empKeys = Object.keys(empImpact).length
-        empImpactProg = empKeys > 0 ? Math.min(90, empKeys * 10) : 0
-      }
+      let empImpactProg = 0
 
       if (crossDimComplete) {
         crossDimProg = 100
@@ -151,15 +144,23 @@ export default function DashboardPage() {
         crossDimProg = crossKeys > 0 ? Math.min(90, crossKeys * 10) : 0
       }
 
+      if (empImpactComplete) {
+        empImpactProg = 100
+      } else {
+        const empKeys = Object.keys(empImpact).length
+        empImpactProg = empKeys > 0 ? Math.min(90, empKeys * 10) : 0
+      }
+
+
       setAdvancedProgress({
-        employeeImpact: empImpactProg,
         crossDimensional: crossDimProg,
+        employeeImpact: empImpactProg,
       })
 
       // Check if everything is 100% complete
       const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
                           dimProgress.every(p => p === 100) &&
-                          empImpactProg === 100 && crossDimProg === 100;
+                          crossDimProg === 100 && empImpactProg === 100;
       
       if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
         localStorage.setItem('assessment_completion_shown', 'true');
@@ -404,16 +405,16 @@ export default function DashboardPage() {
           })}
         </div>
 
-        {/* Advanced Assessment Sections - Locked until all 13 dimensions complete */}
+        {/* Additional Assessment Sections - Locked until all 13 dimensions complete */}
         {paymentCompleted && (
           <>
             <div className="bg-purple-50 border-l-4 border-purple-600 p-6 mb-6 rounded-lg">
-              <h3 className="text-lg font-bold text-purple-900 mb-2">Advanced Assessment Modules</h3>
+              <h3 className="text-lg font-bold text-purple-900 mb-2">Additional Assessment Modules</h3>
               <p className="text-gray-700">
                 {all13DimensionsDone ? (
-                  <>These sections are now available. They provide deeper insights into employee impact and cross-cutting organizational themes.</>
+                  <>These sections are now available. They provide deeper insights into most critical dimensions and workplace support programs impact on employees.</>
                 ) : (
-                  <>These advanced modules will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
+                  <>These modules will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
                 )}
               </p>
             </div>
@@ -421,16 +422,17 @@ export default function DashboardPage() {
             <div className="grid md:grid-cols-2 gap-6 mb-12">
               {[
                 { 
-                  id: 'employee-impact-assessment', 
-                  title: 'Employee-Impact Assessment', 
-                  description: 'Assess the impact on employees',
-                  completion: advancedProgress.employeeImpact 
-                },
-                { 
                   id: 'cross-dimensional-assessment', 
                   title: 'Cross-Dimensional Assessment', 
                   description: 'Evaluate cross-cutting themes',
                   completion: advancedProgress.crossDimensional 
+                                  },
+                { 
+                  id: 'employee-impact-assessment', 
+                  title: 'Employee-Impact Assessment', 
+                  description: 'Assess the impact on employees',
+                  completion: advancedProgress.employeeImpact 
+ 
                 },
               ].map((section) => {
                 const isLocked = !all13DimensionsDone
