@@ -241,17 +241,14 @@ export default function Dimension3Page() {
               </p>
 
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl mb-8">
-                <h2 className="text-3xl font-bold text-white mb-3">MANAGER PREPAREDNESS & CAPABILITY</h2>
-                <p className="text-blue-100 text-lg">
-                  Training and resources that equip managers to support employees managing cancer or other serious health conditions.
-                </p>
-              </div>
-
-              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
-                <p className="text-sm text-gray-700 italic">
-                  Training programs can be in-person, virtual, or hybrid
-                </p>
-              </div>
+  <h2 className="text-3xl font-bold text-white mb-3">MANAGER PREPAREDNESS & CAPABILITY</h2>
+  <p className="text-blue-100 text-lg">
+    Training and resources that equip managers to support employees managing cancer or other serious health conditions.
+  </p>
+  <p className="text-blue-100 text-sm mt-3 italic">
+    Training programs can be in-person, virtual, or hybrid
+  </p>
+</div>
 
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                 <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
@@ -339,12 +336,15 @@ export default function Dimension3Page() {
                       : 'opacity-100 transform scale-100 blur-0'
                   }`}
                 >
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                    {D3A_ITEMS[currentItemIndex]}
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+  {D1A_ITEMS[currentItemIndex]}
+</h3>
+<p className="text-xs italic text-gray-600 mb-4">
+  We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+</p>
 
-                  <div className="space-y-2">
-                    {STATUS_OPTIONS.map((status) => (
+<div className="space-y-2">
+  {STATUS_OPTIONS.map((status) => (
                       <button
                         key={status}
                         onClick={() => setStatus(D3A_ITEMS[currentItemIndex], status)}
