@@ -202,14 +202,15 @@ export default function DashboardPage() {
       })
 
       // Check if everything is 100% complete
-      const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
-                          dimProgress.every(p => p === 100) &&
-                          crossDimProg === 100 && empImpactProg === 100;
-      
-      if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
-        localStorage.setItem('assessment_completion_shown', 'true');
-        router.push('/completion');
-      }
+const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
+                    dimProgress.every(p => p === 100) &&
+                    crossDimProg === 100 && empImpactProg === 100;
+
+// Only auto-redirect once, but allow manual access via button
+if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
+  localStorage.setItem('assessment_completion_shown', 'true');
+  router.push('/completion');
+}
     }
     
     calculateProgress();
@@ -339,7 +340,46 @@ export default function DashboardPage() {
             </div>
           )
         })()}
+{/* Completion Banner - Shows when everything is 100% complete */}
+{paymentCompleted && (() => {
+  const allSectionsComplete = 
+    sectionProgress.firmographics === 100 &&
+    sectionProgress.general === 100 &&
+    sectionProgress.current === 100 &&
+    dimensionProgress.every(p => p === 100) &&
+    advancedProgress.crossDimensional === 100 &&
+    advancedProgress.employeeImpact === 100;
 
+  if (!allSectionsComplete) return null;
+
+  return (
+    <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-orange-600 rounded-xl p-8 mb-8 shadow-xl">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-start gap-4 text-white flex-1">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none" className="flex-shrink-0">
+            <circle cx="30" cy="30" r="28" fill="white" opacity="0.2"/>
+            <path d="M30 10 L35 23 L48 27 L38 37 L40 50 L30 43 L20 50 L22 37 L12 27 L25 23 Z" fill="white"/>
+          </svg>
+          <div>
+            <h3 className="text-2xl font-bold mb-2">🎉 Congratulations!</h3>
+            <p className="text-lg mb-1">
+              You've completed all sections of the assessment!
+            </p>
+            <p className="text-white/90">
+              Learn about next steps, upload supporting documentation, and discover how to use the certification badge if your organization qualifies.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => router.push('/completion')}
+          className="px-8 py-4 bg-white text-purple-600 rounded-lg font-bold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 whitespace-nowrap"
+        >
+          View What's Next →
+        </button>
+      </div>
+    </div>
+  );
+})()}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-10">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">How this works</h2>
           <ul className="list-disc ml-5 space-y-1 text-sm text-gray-700">
