@@ -1,77 +1,62 @@
-import React, { useEffect, useState } from 'react';
+'use client'
+import React, { useEffect, useState } from 'react'
 
 // CAC Brand Colors
 const COLORS = {
-  purple: {
-    primary: '#6B2C91',
-    light: '#8B4DB3',
-    bg: '#F5EDFF',
-    border: '#D4B5E8'
-  },
-  teal: {
-    primary: '#00A896',
-    light: '#33BDAD',
-    bg: '#E6F9F7',
-    border: '#99E6DD'
-  },
-  orange: {
-    primary: '#FF6B35',
-    bg: '#FFF0EC',
-    border: '#FFD4C4'
-  },
-  gray: {
-    dark: '#2D3748',
-    medium: '#4A5568',
-    light: '#CBD5E0',
-    bg: '#F7FAFC'
-  }
+  purple: { primary: '#6B2C91', light: '#8B4DB3', bg: '#F3E8FF', border: '#D8B4FE' },
+  orange: { primary: '#F97316', light: '#FB923C', bg: '#FFF4ED', border: '#FED7AA' },
+  teal: { primary: '#14B8A6', light: '#2DD4BF', bg: '#F0FDFA', border: '#99F6E4' },
+  gray: { dark: '#1F2937', medium: '#6B7280', light: '#D1D5DB', bg: '#F9FAFB' }
 };
 
-// Custom SVG Icons
+// SVG Icons
 const Icons = {
   Building: () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="4" y="2" width="16" height="20" rx="2"/>
-      <path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>
+      <rect x="4" y="2" width="16" height="20" rx="2" />
+      <path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01" />
     </svg>
   ),
   Heart: () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   ),
   Shield: () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   ),
   TrendUp: () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M22 7l-8.5 8.5-3.5-3.5-7 7M22 7h-6M22 7v6"/>
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+      <polyline points="17 6 23 6 23 12" />
     </svg>
   ),
   Award: () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="8" r="7"/>
-      <path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12"/>
-    </svg>
-  ),
-  Download: () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M10 3v11m0 0l-4-4m4 4l4-4M3 17h14"/>
+      <circle cx="12" cy="8" r="7" />
+      <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
     </svg>
   ),
   Print: () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M6 9V2h8v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h12a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
-      <path d="M6 14h8v4H6z"/>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="6 9 6 2 18 2 18 9" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" />
+    </svg>
+  ),
+  Download: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   )
 };
 
-// CAC Logo Component
 const CACLogo = () => (
-  <div className="flex items-center gap-3">
+  <div className="flex items-center justify-center gap-3 mb-4">
     <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
       <rect width="48" height="48" rx="8" fill={COLORS.purple.primary}/>
       <path d="M24 12c-6.6 0-12 5.4-12 12s5.4 12 12 12 12-5.4 12-12-5.4-12-12-12zm0 20c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z" fill="white"/>
