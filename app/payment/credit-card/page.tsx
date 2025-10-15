@@ -96,7 +96,7 @@ export default function CreditCardPaymentPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Certification Fee</p>
-                <p className="font-medium text-2xl text-gray-900">$1,200</p>
+                <p className="font-medium text-2xl text-gray-900">$1,250</p>
               </div>
             </div>
           </div>
