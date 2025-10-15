@@ -1,13 +1,15 @@
-// app/completion/page.tsx - Enhanced
+// app/completion/page.tsx
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
+import { Upload, Award } from 'lucide-react'
 
 export default function CompletionPage() {
   const router = useRouter()
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -19,6 +21,15 @@ export default function CompletionPage() {
     const savedEmail = localStorage.getItem('auth_email') || ''
     setEmail(savedEmail)
   }, [])
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (files) {
+      const fileNames = Array.from(files).map(f => f.name)
+      setUploadedFiles(prev => [...prev, ...fileNames])
+      // In production, you would upload these files to your server here
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-orange-50 relative overflow-hidden">
@@ -45,71 +56,54 @@ export default function CompletionPage() {
             <rect x="15" y="15" width="30" height="30" fill="#10B981" opacity="0.2" transform="rotate(45 30 30)"/>
           </svg>
         </div>
-
-        <div className="absolute top-1/3 right-10 animate-float-slow">
-          <svg width="50" height="50" viewBox="0 0 50 50" fill="none">
-            <circle cx="25" cy="25" r="20" stroke="#8B5CF6" strokeWidth="2" fill="none" opacity="0.3"/>
-            <circle cx="25" cy="25" r="12" fill="#8B5CF6" opacity="0.2"/>
-          </svg>
-        </div>
       </div>
       
       <main className="max-w-5xl mx-auto px-6 py-12 relative z-10">
         <div className="relative">
           {/* Main content card */}
-          <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all">
-            {/* Decorative header stripe with shimmer effect */}
+          <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden">
+            {/* Decorative header stripe */}
             <div className="h-4 bg-gradient-to-r from-purple-600 via-blue-600 to-orange-600 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer"></div>
             </div>
             
             <div className="p-8 sm:p-12">
-              {/* Large animated checkmark SVG */}
+              {/* Large animated celebration icon */}
               <div className="flex justify-center mb-10">
                 <div className="relative">
-                  <svg width="160" height="160" viewBox="0 0 160 160" fill="none" className="animate-scale-in">
-                    {/* Outer glow circles */}
-                    <circle cx="80" cy="80" r="75" stroke="#10B981" strokeWidth="2" fill="none" opacity="0.15"/>
-                    <circle cx="80" cy="80" r="65" stroke="#10B981" strokeWidth="3" fill="none" opacity="0.25"/>
+                  {/* Trophy/Award SVG */}
+                  <svg width="140" height="140" viewBox="0 0 140 140" fill="none" className="animate-scale-in">
+                    {/* Trophy base */}
+                    <rect x="50" y="110" width="40" height="8" rx="2" fill="#D97706" opacity="0.8"/>
+                    <rect x="45" y="118" width="50" height="6" rx="2" fill="#D97706" opacity="0.6"/>
                     
-                    {/* Main circle with gradient */}
-                    <defs>
-                      <radialGradient id="checkGradient" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="#10B981" stopOpacity="1"/>
-                        <stop offset="100%" stopColor="#059669" stopOpacity="1"/>
-                      </radialGradient>
-                    </defs>
-                    <circle cx="80" cy="80" r="50" fill="url(#checkGradient)" className="animate-pulse-slow"/>
+                    {/* Trophy stem */}
+                    <rect x="65" y="95" width="10" height="15" fill="#FCD34D"/>
                     
-                    {/* Checkmark with stroke animation */}
-                    <path 
-                      d="M55 80 L70 95 L105 60" 
-                      stroke="white" 
-                      strokeWidth="7" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      fill="none"
-                      className="animate-draw-check"
-                    />
+                    {/* Trophy cup */}
+                    <path d="M 45 95 Q 45 70 45 60 L 55 45 L 85 45 L 95 60 Q 95 70 95 95 Z" fill="#FBBF24"/>
+                    <ellipse cx="70" cy="95" rx="25" ry="8" fill="#F59E0B"/>
+                    
+                    {/* Left handle */}
+                    <path d="M 45 60 Q 30 60 30 70 Q 30 80 45 80" stroke="#FBBF24" strokeWidth="6" fill="none"/>
+                    
+                    {/* Right handle */}
+                    <path d="M 95 60 Q 110 60 110 70 Q 110 80 95 80" stroke="#FBBF24" strokeWidth="6" fill="none"/>
+                    
+                    {/* Stars around trophy */}
+                    <g className="animate-pulse-slow">
+                      <path d="M 70 25 L 73 33 L 82 33 L 75 38 L 78 46 L 70 41 L 62 46 L 65 38 L 58 33 L 67 33 Z" fill="#4F46E5" opacity="0.7"/>
+                      <path d="M 25 50 L 27 55 L 32 55 L 28 58 L 30 63 L 25 60 L 20 63 L 22 58 L 18 55 L 23 55 Z" fill="#10B981" opacity="0.6"/>
+                      <path d="M 115 50 L 117 55 L 122 55 L 118 58 L 120 63 L 115 60 L 110 63 L 112 58 L 108 55 L 113 55 Z" fill="#FF6B35" opacity="0.6"/>
+                    </g>
+                    
+                    {/* Shine effect */}
+                    <ellipse cx="60" cy="65" rx="8" ry="15" fill="white" opacity="0.3"/>
                   </svg>
-                  
-                  {/* Radiating celebration lines */}
-                  <div className="absolute inset-0 animate-spin-slow">
-                    <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
-                      <line x1="80" y1="5" x2="80" y2="20" stroke="#10B981" strokeWidth="3" opacity="0.5"/>
-                      <line x1="130" y1="30" x2="120" y2="40" stroke="#10B981" strokeWidth="3" opacity="0.5"/>
-                      <line x1="155" y1="80" x2="140" y2="80" stroke="#10B981" strokeWidth="3" opacity="0.5"/>
-                      <line x1="130" y1="130" x2="120" y2="120" stroke="#10B981" strokeWidth="3" opacity="0.5"/>
-                      <line x1="80" y1="155" x2="80" y2="140" stroke="#10B981" strokeWidth="3" opacity="0.5"/>
-                      <line x1="30" y1="130" x2="40" y2="120" stroke="#10B981" strokeWidth="3" opacity="0.5"/>
-                      <line x1="5" y1="80" x2="20" y2="80" stroke="#10B981" strokeWidth="3" opacity="0.5"/>
-                      <line x1="30" y1="30" x2="40" y2="40" stroke="#10B981" strokeWidth="3" opacity="0.5"/>
-                    </svg>
-                  </div>
                 </div>
               </div>
 
-              {/* Congratulations heading with gradient */}
+              {/* Congratulations heading */}
               <h1 className="text-4xl sm:text-6xl font-bold text-center mb-4 bg-gradient-to-r from-purple-600 via-blue-600 to-orange-600 bg-clip-text text-transparent animate-fade-in">
                 Congratulations!
               </h1>
@@ -145,6 +139,76 @@ export default function CompletionPage() {
                   Your thoughtful responses provide valuable insights into your organization's current support landscape and will help identify meaningful opportunities to enhance care for employees during their most challenging times.
                 </p>
 
+                {/* Documentation Upload Section */}
+                <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-orange-50 rounded-2xl p-8 mt-10 border border-gray-200 shadow-lg">
+                  <div className="flex justify-center mb-6">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Upload className="w-8 h-8 text-blue-600" />
+                    </div>
+                  </div>
+                  
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 text-center">Supporting Documentation</h2>
+                  
+                  <p className="text-base sm:text-lg text-gray-700 leading-relaxed text-center mb-6">
+                    To verify the workplace support options available to employees managing cancer and other serious health conditions, please upload relevant supporting documentation.
+                  </p>
+                  
+                  <p className="text-sm text-gray-600 text-center mb-6">
+                    Examples: benefit summaries, policy documents, program guidelines, employee handbooks, or other materials that confirm available support.
+                  </p>
+
+                  <div className="flex flex-col items-center gap-4">
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        multiple
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                      />
+                      <div className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                        <Upload className="w-5 h-5" />
+                        Upload Documents
+                      </div>
+                    </label>
+                    
+                    {uploadedFiles.length > 0 && (
+                      <div className="w-full bg-white rounded-lg p-4 border border-gray-200">
+                        <p className="text-sm font-semibold text-gray-700 mb-2">Uploaded files:</p>
+                        <ul className="space-y-1">
+                          {uploadedFiles.map((file, idx) => (
+                            <li key={idx} className="text-sm text-gray-600 flex items-center gap-2">
+                              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              {file}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Badge & Marketing Section */}
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-8 mt-8 border border-amber-200 shadow-lg">
+                  <div className="flex justify-center mb-6">
+                    <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
+                      <Award className="w-8 h-8 text-amber-600" />
+                    </div>
+                  </div>
+                  
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 text-center">Recognition & Marketing Materials</h2>
+                  
+                  <p className="text-base sm:text-lg text-gray-700 leading-relaxed text-center mb-4">
+                    Organizations that meet or exceed our benchmark standards will be eligible to receive the <strong>Best Companies for Working with Cancer</strong> certification badge and access to marketing materials.
+                  </p>
+                  
+                  <p className="text-sm text-gray-600 text-center">
+                    If your organization qualifies, we'll provide comprehensive guidelines for using the certification badge in your recruiting materials, website, and employee communications, along with supporting marketing assets.
+                  </p>
+                </div>
+
                 {/* Next steps card */}
                 <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-orange-50 rounded-2xl p-8 mt-10 border border-gray-200 shadow-lg">
                   <div className="flex justify-center mb-6">
@@ -158,7 +222,7 @@ export default function CompletionPage() {
                   <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 text-center">What Happens Next?</h2>
                   
                   <p className="text-base sm:text-lg text-gray-700 leading-relaxed text-center mb-4">
-                    A member of the Cancer and Careers team will carefully review your assessment and reach out to you at{' '}
+                    A member of the Cancer and Careers team will carefully review your assessment and supporting documentation, then reach out to you at{' '}
                     <span className="font-semibold text-blue-600 break-all">{email}</span>{' '}
                     within the next few business days.
                   </p>
@@ -169,20 +233,13 @@ export default function CompletionPage() {
                 </div>
               </div>
 
-              {/* Action buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
+              {/* Action button */}
+              <div className="flex justify-center mt-12">
                 <button
                   onClick={() => router.push('/dashboard')}
-                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+                  className="px-10 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 text-lg"
                 >
                   Return to Dashboard
-                </button>
-                
-                <button
-                  onClick={() => window.print()}
-                  className="px-8 py-4 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow hover:shadow-lg transform hover:scale-105 active:scale-95"
-                >
-                  Print Summary
                 </button>
               </div>
 
@@ -227,19 +284,9 @@ export default function CompletionPage() {
           50% { opacity: 0.85; transform: scale(0.98); }
         }
         
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
-        }
-        
-        @keyframes draw-check {
-          0% { stroke-dasharray: 0 100; }
-          100% { stroke-dasharray: 100 0; }
         }
         
         @keyframes fade-in {
@@ -272,17 +319,8 @@ export default function CompletionPage() {
           animation: pulse-slow 3s ease-in-out infinite;
         }
         
-        .animate-spin-slow {
-          animation: spin-slow 25s linear infinite;
-        }
-        
         .animate-shimmer {
           animation: shimmer 2s infinite;
-        }
-        
-        .animate-draw-check {
-          stroke-dasharray: 100;
-          animation: draw-check 0.6s ease-out 0.4s forwards;
         }
         
         .animate-fade-in {
@@ -302,10 +340,6 @@ export default function CompletionPage() {
         
         .animate-bounce-slow {
           animation: bounce-slow 2s ease-in-out infinite;
-        }
-        
-        @media print {
-          .no-print { display: none; }
         }
       `}</style>
     </div>
