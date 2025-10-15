@@ -4,6 +4,28 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+const D3A_ITEMS_BASE = [
+    "Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams",
+    "Clear escalation protocol for manager response",
+    "Dedicated manager resource hub",
+    "Empathy/communication skills training",
+    "Legal compliance training",
+    "Senior leader coaching on supporting impacted employees",
+    "Manager evaluations include how well they support impacted employees",
+    "Manager peer support / community building",
+    "AI-powered guidance tools",
+    "Privacy protection and confidentiality management"
+  ];
+
 export default function Dimension3Page() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -12,6 +34,7 @@ export default function Dimension3Page() {
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [D3A_ITEMS] = useState(() => shuffleArray(D3A_ITEMS_BASE));
   
  useEffect(() => {
   const saved = localStorage.getItem("dimension3_data");
@@ -84,18 +107,7 @@ useEffect(() => {
     }, 500);
   };
 
-  const D3A_ITEMS = [
-    "Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams",
-    "Clear escalation protocol for manager response",
-    "Dedicated manager resource hub",
-    "Empathy/communication skills training",
-    "Legal compliance training",
-    "Senior leader coaching on supporting impacted employees",
-    "Manager evaluations include how well they support impacted employees",
-    "Manager peer support / community building",
-    "AI-powered guidance tools",
-    "Privacy protection and confidentiality management"
-  ];
+
 
   const STATUS_OPTIONS = [
     "Not able to provide in foreseeable future",
