@@ -13,33 +13,39 @@ export default function Dimension1Page() {
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   
-  // Load saved answers on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("dimension1_data");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAns(parsed);
-      } catch (e) {
-        console.error("Error loading saved data:", e);
-      }
+// Load saved answers on mount
+useEffect(() => {
+  const saved = localStorage.getItem("dimension1_data");
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      setAns(parsed);
+    } catch (e) {
+      console.error("Error loading saved data:", e);
     }
+  }
+  // Check if multi-country from screener
+  const screenerData = localStorage.getItem("screener_data");
+  if (screenerData) {
+    const parsed = JSON.parse(screenerData);
+    setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
+  }
+}, []);
 
-    // Check if multi-country from screener
-    const screenerData = localStorage.getItem("screener_data");
-    if (screenerData) {
-      const parsed = JSON.parse(screenerData);
-      setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
-    }
-  }, []);
+// Save answers when they change
+useEffect(() => {
+  if (Object.keys(ans).length > 0) {
+    localStorage.setItem("dimension1_data", JSON.stringify(ans));
+  }
+}, [ans]);
 
-  // Save answers when they change
-  useEffect(() => {
-    if (Object.keys(ans).length > 0) {
-      localStorage.setItem("dimension1_data", JSON.stringify(ans));
-    }
-  }, [ans]);
-
+// Scroll to top when step changes (but not for progressive card navigation)
+useEffect(() => {
+  if (step !== 1) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}, [step]);
+  
   // Set field helper
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
