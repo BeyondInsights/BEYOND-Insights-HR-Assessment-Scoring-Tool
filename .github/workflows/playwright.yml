@@ -42,27 +42,3 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
-```
-
-### Step 5: Add GitHub Secrets
-
-1. Go to your GitHub repo → Settings → Secrets and variables → Actions
-2. Click "New repository secret"
-3. Add these secrets:
-
-**NETLIFY_SITE_ID:**
-- Go to Netlify → Your Site → Site settings → General
-- Copy the "Site ID"
-
-**NETLIFY_TOKEN:**
-- Go to Netlify → User settings → Applications → Personal access tokens
-- Click "New access token"
-- Give it a name and copy the token
-
-### Step 6: Update .gitignore
-
-Add to your `.gitignore`:
-```
-test-results/
-playwright-report/
-playwright/.cache/
