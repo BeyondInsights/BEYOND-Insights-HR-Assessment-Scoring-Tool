@@ -418,7 +418,10 @@ return (
                   <h3 className="text-lg font-semibold text-gray-900 mb-6">
                     {D1A_ITEMS[currentItemIndex]}
                   </h3>
-
+                  <p className="text-xs italic text-gray-600 mb-4">
+                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                  </p>
+                  
                   <div className="space-y-2">
                     {STATUS_OPTIONS.map((status) => (
                       <button
