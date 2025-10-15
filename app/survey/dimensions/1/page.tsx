@@ -4,6 +4,30 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// Data for D1.a
+  const D1A_ITEMS_BASE = [
+    "Paid medical leave beyond local / legal requirements",
+    "Intermittent leave beyond local / legal requirements",
+    "Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)",
+    "Remote work options for on-site employees",
+    "Reduced schedule/part-time with full benefits",
+    "Job protection beyond local / legal requirements",
+    "Emergency leave within 24 hours",
+    "Leave donation bank (employees can donate PTO to colleagues)",
+    "Disability pay top-up (employer adds to disability insurance)",
+    "PTO accrual during leave",
+    "Paid micro-breaks for medical-related side effects"
+  ];
+
 export default function Dimension1Page() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -12,6 +36,7 @@ export default function Dimension1Page() {
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [D1A_ITEMS] = useState(() => shuffleArray(D1A_ITEMS_BASE));
   
 // Load saved answers on mount
 useEffect(() => {
@@ -90,20 +115,7 @@ const goToItem = (index: number) => {
   }, 500);
 };
 
-  // Data for D1.a
-  const D1A_ITEMS = [
-    "Paid medical leave beyond local / legal requirements",
-    "Intermittent leave beyond local / legal requirements",
-    "Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)",
-    "Remote work options for on-site employees",
-    "Reduced schedule/part-time with full benefits",
-    "Job protection beyond local / legal requirements",
-    "Emergency leave within 24 hours",
-    "Leave donation bank (employees can donate PTO to colleagues)",
-    "Disability pay top-up (employer adds to disability insurance)",
-    "PTO accrual during leave",
-    "Paid micro-breaks for medical-related side effects"
-  ];
+  
 
   const STATUS_OPTIONS = [
     "Not able to offer in foreseeable future",
