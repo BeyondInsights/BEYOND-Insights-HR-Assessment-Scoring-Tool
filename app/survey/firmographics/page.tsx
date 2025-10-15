@@ -259,7 +259,7 @@ export default function FirmographicsPage() {
   "Varies significantly by location"
 ];
   
-  const C4_EXCLUDED_GROUPS = [
+  const C4_EXCLUDED = [
   "Part-time employees",
   "Contract/temporary workers",
   "Employees in certain countries/regions",
