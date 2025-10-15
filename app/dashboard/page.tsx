@@ -167,11 +167,11 @@ useEffect(() => {
   if (!paymentCompleted) {
     return;
   }
-  const canAccess = allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4;   
+  if (allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4) {
     router.push(`/survey/dimensions/${idx+1}`)
   }
-}
-
+} 
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
