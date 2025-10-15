@@ -167,7 +167,7 @@ useEffect(() => {
   if (!paymentCompleted) {
     return;
   }
-  if (allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3) {   
+  if (allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3) || idx === 4) {   
     router.push(`/survey/dimensions/${idx+1}`)
   }
 }
@@ -326,7 +326,7 @@ useEffect(() => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dimensions.map((dim, idx) => {
   const isLocked = !paymentCompleted;
-  const canAccess = allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3;
+  const canAccess = allCoreDone || idx === 0 || idx === 1 || idx === 2 || idx === 3 || idx === 4;
   const isClickable = !isLocked && canAccess;
             
             return (
