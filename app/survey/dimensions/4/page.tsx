@@ -11,8 +11,8 @@ export default function Dimension4Page() {
   const [errors, setErrors] = useState<string>("");
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isMultiCountry, setIsMultiCountry] = useState(false);
-
-  // Load saved answers on mount
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
   useEffect(() => {
     const saved = localStorage.getItem("dimension4_data");
     if (saved) {
@@ -23,15 +23,14 @@ export default function Dimension4Page() {
         console.error("Error loading saved data:", e);
       }
     }
-    // Check if multi-country from screener
-    const screenerData = localStorage.getItem("screener_data");
-    if (screenerData) {
-      const parsed = JSON.parse(screenerData);
+
+    const firmographicsData = localStorage.getItem("firmographics_data");
+    if (firmographicsData) {
+      const parsed = JSON.parse(firmographicsData);
       setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
     }
   }, []);
 
-  // Save answers when they change
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension4_data", JSON.stringify(ans));
@@ -44,6 +43,46 @@ export default function Dimension4Page() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [step]);
+
+  const setField = (key: string, value: any) => {
+    setAns((prev: any) => ({ ...prev, [key]: value }));
+    setErrors("");
+  };
+
+  const setStatus = (item: string, status: string) => {
+    setAns((prev: any) => ({
+      ...prev,
+      d4a: { ...(prev.d4a || {}), [item]: status }
+    }));
+    
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      const nextUnansweredIndex = D4A_ITEMS.findIndex((itm, idx) => 
+        idx > currentItemIndex && !ans.d4a?.[itm]
+      );
+      
+      if (nextUnansweredIndex !== -1) {
+        setCurrentItemIndex(nextUnansweredIndex);
+      } else if (currentItemIndex < D4A_ITEMS.length - 1) {
+        setCurrentItemIndex(currentItemIndex + 1);
+      }
+      
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 250);
+    }, 500);
+  };
+
+  const goToItem = (index: number) => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentItemIndex(index);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 400);
+    }, 500);
+  };
 
   const D4A_ITEMS = [
     "Dedicated navigation support to help employees understand benefits and access medical care",
@@ -58,50 +97,25 @@ export default function Dimension4Page() {
     "Occupational therapy/vocational rehabilitation"
   ];
 
-  const D4_1A_OPTIONS = [
-    "Credentialed internal staff dedicated to employee navigation (e.g. nurse, social worker, etc.)",
-    "External vendor / service (contracted)",
-    "Through health insurance carrier",
-    "Through specialized medical provider",
-    "Partnership with specialized health organization",
-    "Other approach (specify):"
+  const STATUS_OPTIONS = [
+    "Not able to offer in foreseeable future",
+    "Assessing feasibility",
+    "In active planning / development",
+    "Currently offer"
   ];
 
-  const D4_1B_OPTIONS = [
-    "Clinical guidance from a licensed medical/healthcare professional",
-    "Insurance navigation",
-    "Mental health support",
-    "Caregiver resources",
-    "Financial planning",
-    "Return-to-work planning",
-    "Treatment decision support / second opinion",
-    "Company-sponsored peer support networks",
-    "Some other service (specify)"
-  ];
+  const hasAnyOffered = Object.values(ans.d4a || {}).some(
+    (status) => status === "Currently offer"
+  );
+  
+  const showD4aa = isMultiCountry && hasAnyOffered;
+  const showD4_1 = ans.d4a?.["Dedicated navigation support to help employees understand benefits and access medical care"] === "Currently offer";
 
-  const setField = (key: string, value: any) => {
-    setAns((prev: any) => ({ ...prev, [key]: value }));
-    setErrors("");
-  };
-
-  const setStatus = (item: string, status: string) => {
-    setAns((prev: any) => ({
-      ...prev,
-      d4a: { ...(prev.d4a || {}), [item]: status }
-    }));
-    
-    const nextUnansweredIndex = D4A_ITEMS.findIndex((itm, idx) => 
-      idx > currentItemIndex && !ans.d4a?.[itm]
-    );
-    
-    if (nextUnansweredIndex !== -1) {
-      setTimeout(() => setCurrentItemIndex(nextUnansweredIndex), 300);
-    } else {
-      const allAnswered = D4A_ITEMS.every(item => ans.d4a?.[item]);
-      if (allAnswered) {
-        setTimeout(() => setStep(2), 500);
-      }
-    }
+  const getTotalSteps = () => {
+    let total = 4; // intro, D4.a, D4.aa (conditional), D4.b
+    if (showD4_1) total += 2; // D4.1a and D4.1b
+    total++; // completion
+    return total;
   };
 
   const toggleMultiSelect = (key: string, value: string) => {
@@ -116,11 +130,6 @@ export default function Dimension4Page() {
     setErrors("");
   };
 
-  // Conditional logic
-  const hasOfferedItems = ans.d4a && Object.values(ans.d4a).some((v: any) => v === "Currently offer");
-  const showD4aa = isMultiCountry && hasOfferedItems;
-  const showD4_1 = ans.d4a?.["Dedicated navigation support to help employees understand benefits and access medical care"] === "Currently offer";
-
   const validateStep = () => {
     switch(step) {
       case 1:
@@ -128,17 +137,28 @@ export default function Dimension4Page() {
         if (answeredCount < D4A_ITEMS.length) 
           return `Please evaluate all ${D4A_ITEMS.length} items (${answeredCount} completed)`;
         return null;
+      
       case 2:
-        if (showD4aa && !ans.d4aa) return "Please select one option";
+        if (showD4aa && !ans.d4aa) {
+          return "Please select one option";
+        }
         return null;
+        
+      case 3:
+        return null;
+        
       case 4:
-        if (showD4_1 && (!ans.d4_1a || ans.d4_1a.length === 0)) 
-          return "Please select at least one provider type";
+        if (showD4_1 && (!ans.d4_1a || ans.d4_1a.length === 0)) {
+          return "Please select at least one option";
+        }
         return null;
+        
       case 5:
-        if (showD4_1 && (!ans.d4_1b || ans.d4_1b.length === 0)) 
-          return "Please select at least one service";
+        if (showD4_1 && (!ans.d4_1b || ans.d4_1b.length === 0)) {
+          return "Please select at least one option";
+        }
         return null;
+        
       default:
         return null;
     }
@@ -152,145 +172,266 @@ export default function Dimension4Page() {
     }
 
     if (step === 1) {
-      setStep(showD4aa ? 2 : 3);
+      if (showD4aa) {
+        setStep(2);
+      } else {
+        setStep(3);
+      }
     } else if (step === 2) {
       setStep(3);
     } else if (step === 3) {
-      setStep(showD4_1 ? 4 : 6);
+      if (showD4_1) {
+        setStep(4);
+      } else {
+        setStep(6); // Go to completion
+      }
     } else if (step === 4) {
       setStep(5);
     } else if (step === 5) {
-      setStep(6);
+      setStep(6); // Go to completion
     } else if (step === 6) {
       localStorage.setItem("dimension4_complete", "true");
       router.push("/dashboard");
+      return;
     }
+    
+    setErrors("");
   };
 
   const back = () => {
-    if (step === 2) {
-      setStep(1);
-    } else if (step === 3) {
-      setStep(showD4aa ? 2 : 1);
-    } else if (step === 4) {
-      setStep(3);
+    if (step === 6) {
+      setStep(showD4_1 ? 5 : 3);
     } else if (step === 5) {
       setStep(4);
-    } else if (step === 6) {
-      setStep(showD4_1 ? 5 : 3);
-    } else {
+    } else if (step === 4) {
+      setStep(3);
+    } else if (step === 3) {
+      setStep(showD4aa ? 2 : 1);
+    } else if (step === 2) {
+      setStep(1);
+    } else if (step > 0) {
       setStep(step - 1);
     }
+    setErrors("");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8 max-w-4xl">
-        
-        {/* Step 0: Intro */}
-        {step === 0 && (
-          <div className="bg-white p-8 rounded-lg shadow-sm">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+      
+      <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-600">
               Dimension 4: Navigation & Expert Resources
-            </h1>
-            <div className="prose max-w-none text-gray-700 space-y-4">
-              <p className="text-lg">
-                This dimension assesses <strong>professionals providing healthcare coordination and guidance</strong>, including resources that help employees understand benefits and treatment access and access to expert support.
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-full transition-all"
+              style={{ width: `${(step / getTotalSteps()) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {errors && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {errors}
+          </div>
+        )}
+
+        {/* Step 0: Introduction */}
+        {step === 0 && (
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            <div className="max-w-3xl mx-auto">
+              <p className="text-lg text-gray-700 mb-6">
+                Here is the next aspect of <strong>support programs</strong> for{" "}
+                <strong>employees managing cancer or other serious health conditions</strong>:
               </p>
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 my-6">
-                <p className="font-semibold text-blue-900 mb-2">What you'll evaluate:</p>
-                <ul className="list-disc list-inside space-y-1 text-blue-800">
-                  <li>Navigation support and benefits optimization</li>
-                  <li>Insurance advocacy and clinical trial matching</li>
-                  <li>Care coordination and online health tools</li>
-                  <li>Survivorship planning and rehabilitation support</li>
-                  <li>Provider types and service availability</li>
+
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl mb-8">
+                <h2 className="text-3xl font-bold text-white mb-3">NAVIGATION & EXPERT RESOURCES</h2>
+                <p className="text-blue-100 text-lg">
+                  Professionals providing healthcare coordination and guidance including resources that help employees understand benefits and treatment access and access to expert support.
+                </p>
+              </div>
+
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
+                <ul className="space-y-3 text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span>You'll see different support options associated with this dimension, one at a time</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span>Indicate the current status of each option within your organization</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span>After selecting a response, it will automatically advance to the next option</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span>Use the navigation dots or arrows to review or change any response</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span>Once all support options are evaluated, the Continue button will appear</span>
+                  </li>
                 </ul>
               </div>
+
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={() => setStep(1)}
+                  className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all text-lg"
+                >
+                  Begin Assessment
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() => setStep(1)}
-              className="mt-6 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
-            >
-              Begin Assessment →
-            </button>
           </div>
         )}
 
-        {/* Step 1: D4.a - Progressive Cards */}
+        {/* Step 1: D4.a Progressive Cards */}
         {step === 1 && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Navigation & Expert Resources Programs
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Please indicate the status of each support option within your organization.
-              </p>
-              <div className="text-sm text-gray-500 mb-6">
-                Progress: {Object.keys(ans.d4a || {}).length} of {D4A_ITEMS.length} items completed
-              </div>
-            </div>
-
-            {D4A_ITEMS.map((item, idx) => (
-              <div
-                key={idx}
-                className={`bg-white p-6 rounded-lg shadow-sm transition-all ${
-                  idx === currentItemIndex
-                    ? "ring-2 ring-blue-500 scale-[1.02]"
-                    : idx < currentItemIndex
-                    ? "opacity-60"
-                    : "opacity-40"
-                }`}
-              >
-                <h3 className="font-semibold text-gray-900 mb-4">{item}</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {["Not able to offer in foreseeable future", "Assessing feasibility", "In active planning / development", "Currently offer"].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setStatus(item, status)}
-                      disabled={idx !== currentItemIndex}
-                      className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                        ans.d4a?.[item] === status
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-200 hover:border-gray-300 text-gray-700"
-                      } ${idx !== currentItemIndex ? "cursor-not-allowed" : "cursor-pointer"}`}
-                    >
-                      {status}
-                    </button>
-                  ))}
+          <div className="bg-white rounded-xl shadow-sm">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 rounded-t-xl">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-white mb-2">NAVIGATION & EXPERT RESOURCES</h2>
+                  <p className="text-gray-300 text-sm">
+                    Professionals providing healthcare coordination and guidance
+                  </p>
                 </div>
               </div>
-            ))}
+            </div>
 
-            {Object.keys(ans.d4a || {}).length === D4A_ITEMS.length && (
-              <button
-                onClick={() => setStep(showD4aa ? 2 : 3)}
-                className="w-full px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
-              >
-                Continue →
-              </button>
-            )}
+            <div className="p-8">
+              <div className="mb-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold text-gray-800">
+                    Item {currentItemIndex + 1} of {D4A_ITEMS.length}
+                  </span>
+                  <div className="flex gap-1">
+                    {D4A_ITEMS.map((item, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => goToItem(idx)}
+                        className={`h-2 transition-all duration-500 rounded-full ${
+                          ans.d4a?.[item]
+                            ? "w-8 bg-green-600 hover:bg-green-700 cursor-pointer"
+                            : idx === currentItemIndex
+                            ? "w-8 bg-blue-600"
+                            : "w-2 bg-gray-300 hover:bg-gray-400 cursor-pointer"
+                        }`}
+                        title={item}
+                        disabled={isTransitioning}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div
+                  className={`bg-gradient-to-br from-blue-50 via-white to-blue-50 p-8 rounded-xl border-2 border-blue-100 transition-all duration-700 ease-in-out ${
+                    isTransitioning
+                      ? 'opacity-0 transform scale-95 blur-sm'
+                      : 'opacity-100 transform scale-100 blur-0'
+                  }`}
+                >
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {D4A_ITEMS[currentItemIndex]}
+                  </h3>
+                  <p className="text-xs italic text-gray-600 mb-4">
+                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                  </p>
+
+                  <div className="space-y-2">
+                    {STATUS_OPTIONS.map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => setStatus(D4A_ITEMS[currentItemIndex], status)}
+                        disabled={isTransitioning}
+                        className={`w-full p-4 text-left rounded-lg border-2 transition-all transform ${
+                          isTransitioning
+                            ? 'cursor-not-allowed opacity-50'
+                            : 'hover:scale-[1.02] cursor-pointer'
+                        } ${
+                          ans.d4a?.[D4A_ITEMS[currentItemIndex]] === status
+                            ? "border-blue-500 bg-blue-50 shadow-lg"
+                            : "border-gray-200 hover:border-gray-300 bg-white hover:shadow"
+                        }`}
+                      >
+                        <div className="flex items-center">
+                          <div className={`w-5 h-5 rounded-full border-2 mr-3 transition-all ${
+                            ans.d4a?.[D4A_ITEMS[currentItemIndex]] === status
+                              ? "border-blue-500 bg-blue-500"
+                              : "border-gray-300 bg-white"
+                          }`}>
+                            {ans.d4a?.[D4A_ITEMS[currentItemIndex]] === status && (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full" />
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-base">{status}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center mt-6">
+                <button
+                  onClick={() => goToItem(Math.max(0, currentItemIndex - 1))}
+                  disabled={currentItemIndex === 0 || isTransitioning}
+                  className={`px-4 py-2 text-sm font-medium transition-all ${
+                    currentItemIndex === 0 || isTransitioning
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                >
+                  ← View previous option
+                </button>
+
+                {Object.keys(ans.d4a || {}).length === D4A_ITEMS.length && !isTransitioning && (
+                  <button
+                    onClick={next}
+                    className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
+                  >
+                    Continue →
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
-
-        {/* Step 2: D4.aa - Geographic Availability (conditional) */}
+        
+        {/* Step 2: D4.aa (conditional for multi-country) */}
         {step === 2 && showD4aa && (
-          <div className="bg-white p-8 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Geographic Availability
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Are the <strong>Navigation & Expert Resources</strong> your organization currently offers...?
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
+            
+            <p className="font-bold text-gray-900 mb-4">
+              Are the <span className="text-blue-600 font-bold">Navigation & Expert Resources</span> your 
+              organization <span className="text-blue-600 font-bold">currently offers</span>...?
             </p>
-            {errors && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{errors}</div>}
-            <div className="space-y-3">
-              {["Only available in select locations", "Vary across locations", "Generally consistent across all locations"].map((opt) => (
+            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+            
+            <div className="space-y-2">
+              {[
+                "Only available in select locations",
+                "Vary across locations", 
+                "Generally consistent across all locations"
+              ].map(opt => (
                 <button
                   key={opt}
                   onClick={() => setField("d4aa", opt)}
-                  className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+                  className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                     ans.d4aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
@@ -303,49 +444,61 @@ export default function Dimension4Page() {
           </div>
         )}
 
-        {/* Step 3: D4.b - Open-ended */}
+        {/* Step 3: D4.b open-end */}
         {step === 3 && (
-          <div className="bg-white p-8 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Additional Resources
-            </h2>
-            <p className="text-gray-600 mb-6">
-              What other navigation or expert resources does your organization offer in any location that weren't listed? (Please be as specific and detailed as possible)
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Resources</h3>
+            
+            <p className="font-bold text-gray-900 mb-4">
+              What other <span className="text-blue-600 font-bold">navigation or expert resources</span> does your organization offer in any location that weren't listed?
             </p>
+            <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
+            
             <textarea
               value={ans.d4b || ""}
               onChange={(e) => setField("d4b", e.target.value)}
-              placeholder="Describe any additional navigation or expert resources..."
-              className="w-full h-32 p-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+              className="w-full min-h-[120px] px-4 py-3 border-2 border-gray-300 rounded-lg"
+              placeholder="Describe any additional resources..."
             />
-            <label className="flex items-center mt-4 text-gray-600">
+            
+            <label className="flex items-center mt-3">
               <input
                 type="checkbox"
-                checked={ans.d4b === "No other resources"}
-                onChange={(e) => setField("d4b", e.target.checked ? "No other resources" : "")}
-                className="mr-2"
+                checked={ans.d4b_none || false}
+                onChange={(e) => {
+                  setField("d4b_none", e.target.checked);
+                  if (e.target.checked) setField("d4b", "");
+                }}
+                className="w-4 h-4 mr-2"
               />
-              No other resources
+              <span className="text-sm">No other resources</span>
             </label>
           </div>
         )}
 
-        {/* Step 4: D4.1a - Navigation Providers (conditional) */}
+        {/* Step 4: D4.1a (conditional if navigation support offered) */}
         {step === 4 && showD4_1 && (
-          <div className="bg-white p-8 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Navigation Support Providers
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Who provides <strong>navigation support</strong> for employees managing cancer or other serious health conditions at your organization? (Select ALL that apply)
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Navigation Support Providers</h3>
+            
+            <p className="font-bold text-gray-900 mb-4">
+              Who provides <span className="text-blue-600 font-bold">navigation support</span> for <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span> at your organization?
             </p>
-            {errors && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{errors}</div>}
-            <div className="space-y-3">
-              {D4_1A_OPTIONS.map((opt) => (
+            <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+            
+            <div className="space-y-2">
+              {[
+                "Credentialed internal staff dedicated to employee navigation (e.g. nurse, social worker, etc.)",
+                "External vendor / service (contracted)",
+                "Through health insurance carrier",
+                "Through specialized medical provider",
+                "Partnership with specialized health organization",
+                "Other approach (specify):"
+              ].map(opt => (
                 <div key={opt}>
                   <button
                     onClick={() => toggleMultiSelect("d4_1a", opt)}
-                    className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                       ans.d4_1a?.includes(opt)
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-200 hover:border-gray-300"
@@ -359,7 +512,7 @@ export default function Dimension4Page() {
                       value={ans.d4_1a_other || ""}
                       onChange={(e) => setField("d4_1a_other", e.target.value)}
                       placeholder="Please specify..."
-                      className="mt-2 w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                      className="mt-2 w-full px-4 py-3 border-2 border-gray-300 rounded-lg"
                     />
                   )}
                 </div>
@@ -368,22 +521,33 @@ export default function Dimension4Page() {
           </div>
         )}
 
-        {/* Step 5: D4.1b - Navigation Services (conditional) */}
+        {/* Step 5: D4.1b (conditional if navigation support offered) */}
         {step === 5 && showD4_1 && (
-          <div className="bg-white p-8 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Available Navigation Services
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Which of the following <strong>services</strong> are available through your organization's navigation support for employees managing cancer or other serious health conditions? (Select ALL that apply)
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Available Services</h3>
+            
+            <p className="font-bold text-gray-900 mb-4">
+              Which of the following <span className="text-blue-600 font-bold">services</span> are available through your organization's navigation support for <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>?
             </p>
-            {errors && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{errors}</div>}
-            <div className="space-y-3">
-              {D4_1B_OPTIONS.map((opt) => (
+            <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+            <p className="text-xs italic text-gray-500 mb-4">Select a service if offered at any location</p>
+            
+            <div className="space-y-2">
+              {[
+                "Clinical guidance from a licensed medical/healthcare professional",
+                "Insurance navigation",
+                "Mental health support",
+                "Caregiver resources",
+                "Financial planning",
+                "Return-to-work planning",
+                "Treatment decision support / second opinion",
+                "Company-sponsored peer support networks",
+                "Some other service (specify)"
+              ].map(opt => (
                 <div key={opt}>
                   <button
                     onClick={() => toggleMultiSelect("d4_1b", opt)}
-                    className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                       ans.d4_1b?.includes(opt)
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-200 hover:border-gray-300"
@@ -397,7 +561,7 @@ export default function Dimension4Page() {
                       value={ans.d4_1b_other || ""}
                       onChange={(e) => setField("d4_1b_other", e.target.value)}
                       placeholder="Please specify..."
-                      className="mt-2 w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                      className="mt-2 w-full px-4 py-3 border-2 border-gray-300 rounded-lg"
                     />
                   )}
                 </div>
@@ -432,8 +596,8 @@ export default function Dimension4Page() {
           </div>
         )}
 
-        {/* Navigation - shows on steps 2-5 */}
-        {step >= 2 && step <= 5 && (
+        {/* Universal Navigation */}
+        {step > 1 && step < 6 && (
           <div className="flex justify-between mt-8">
             <button 
               onClick={back} 
@@ -450,7 +614,7 @@ export default function Dimension4Page() {
           </div>
         )}
       </main>
+      
       <Footer />
     </div>
   );
-}
