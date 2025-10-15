@@ -32,7 +32,7 @@ export default function StripePaymentPage() {
   setTimeout(() => {
     localStorage.setItem('payment_completed', 'true');
     localStorage.setItem('payment_date', new Date().toISOString());
-    localStorage.setItem('payment_method', paymentMethod === 'ach' ? 'ach' : 'card'); // Use the actual paymentMethod state
+    localStorage.setItem('payment_method', 'ach')
     
     router.push('/payment/success');
   }, 2000);
