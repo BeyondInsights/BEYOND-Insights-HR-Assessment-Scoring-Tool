@@ -615,6 +615,7 @@ export default function Dimension4Page() {
         )}
       </main>
       
-      <Footer />
+  <Footer />
     </div>
   );
+}
