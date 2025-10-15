@@ -4,6 +4,35 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+const D2A_ITEMS_BASE = [
+    "Coverage for clinical trials and experimental treatments not covered by standard health insurance",
+    "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance",
+    "Paid time off for clinical trial participation",
+    "Set out-of-pocket maximums (for in-network single coverage)",
+    "Travel/lodging reimbursement for specialized care beyond insurance coverage",
+    "Financial counseling services",
+    "Voluntary supplemental illness insurance (with employer contribution)",
+    "Real-time cost estimator tools",
+    "Insurance advocacy/pre-authorization support",
+    "$0 copay for specialty drugs",
+    "Hardship grants program funded by employer",
+    "Tax/estate planning assistance",
+    "Short-term disability covering 60%+ of salary",
+    "Long-term disability covering 60%+ of salary",
+    "Employer-paid disability insurance supplements",
+    "Guaranteed job protection",
+    "Accelerated life insurance benefits (partial payout for terminal / critical illness)"
+  ];
+
 export default function Dimension2Page() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -12,6 +41,7 @@ export default function Dimension2Page() {
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [D2A_ITEMS] = useState(() => shuffleArray(D2A_ITEMS_BASE));
   
   useEffect(() => {
   const saved = localStorage.getItem("dimension2_data");
@@ -84,26 +114,7 @@ useEffect(() => {
     }, 500);
   };
 
-  const D2A_ITEMS = [
-    "Coverage for clinical trials and experimental treatments not covered by standard health insurance",
-    "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance",
-    "Paid time off for clinical trial participation",
-    "Set out-of-pocket maximums (for in-network single coverage)",
-    "Travel/lodging reimbursement for specialized care beyond insurance coverage",
-    "Financial counseling services",
-    "Voluntary supplemental illness insurance (with employer contribution)",
-    "Real-time cost estimator tools",
-    "Insurance advocacy/pre-authorization support",
-    "$0 copay for specialty drugs",
-    "Hardship grants program funded by employer",
-    "Tax/estate planning assistance",
-    "Short-term disability covering 60%+ of salary",
-    "Long-term disability covering 60%+ of salary",
-    "Employer-paid disability insurance supplements",
-    "Guaranteed job protection",
-    "Accelerated life insurance benefits (partial payout for terminal / critical illness)"
-  ];
-
+  
   const STATUS_OPTIONS = [
     "Not able to offer in foreseeable future",
     "Assessing feasibility",
