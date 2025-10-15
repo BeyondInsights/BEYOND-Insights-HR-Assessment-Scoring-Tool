@@ -192,24 +192,20 @@ export default function FirmographicsPage() {
         return null;
 
       case 8: // Benefits eligibility
-        if (!ans.c3) return "Please enter percentage of workforce eligible";
-        const pct = parseInt(ans.c3);
-        if (isNaN(pct) || pct < 0 || pct > 100)
-          return "Please enter a valid percentage (0-100)";
+        if (!ans.c3) return "Please select workforce eligibility percentage";
+  
+      // SKIP C3a (excluded groups) if C3 = "All employees (100%)"
+        if (ans.c3 !== "All employees (100%)") {
         if (!Array.isArray(ans.c4) || ans.c4.length === 0)
           return "Please select which groups are excluded (or select 'None')";
-        if (ans.c4.includes("Other (specify):") && !ans.c4_other?.trim())
+        if (ans.c4.includes("Some other employee group (specify)") && !ans.c4_other?.trim())
           return "Please specify other excluded groups";
-        return null;
+        }
+      return null;
 
-      case 9: // Revenue & Remote policy
+      case 9: // Revenue & Remote policy  
         if (!ans.c5) return "Please select annual revenue";
-        if (!ans.c6) return "Please select remote / hybrid policy";
-        if (ans.c6 === "Other arrangement (specify):" && !ans.c6_other?.trim())
-          return "Please specify your arrangement";
-        return null;
-
-      default:
+        if (!ans.c6) return "Please select remote/hybrid work approach";
         return null;
     }
   };
@@ -327,15 +323,22 @@ export default function FirmographicsPage() {
     "50 or more countries"
   ];
 
+  const C3_ELIGIBILITY = [
+    "All employees (100%)",
+    "Most employees (75-99%)",
+    "Many employees (50-74%)",
+    "Some employees (25-49%)",
+    "Few employees (<25%)",
+    "Varies significantly by location"
+  ];
+  
   const C4_EXCLUDED = [
     "Part-time employees",
-    "Contract/Temporary workers",
-    "Seasonal workers",
-    "Interns",
-    "Remote workers",
-    "Unionized employees",
-    "Employees in certain countries",
+    "Contract/temporary workers",
+    "Employees in certain countries/regions",
     "Employees below certain tenure",
+    "Certain job levels/categories",
+    "Some other employee group (specify)"
     "Other (specify):",
     "None - all eligible for standard benefits"
   ];
@@ -354,14 +357,12 @@ export default function FirmographicsPage() {
   ];
 
   const C6_REMOTE = [
-    "Fully in-office (no remote work)",
-    "Primarily in-office (1-2 days remote allowed)",
-    "Hybrid (3+ days remote required)",
-    "Flexible (employee choice)",
-    "Primarily remote (occasional office required)",
-    "Fully remote (no office requirement)",
-    "Varies by role/department",
-    "Other arrangement (specify):"
+    "Fully flexible - Most roles can be remote/hybrid by employee choice",
+    "Selectively flexible - Many roles eligible based on job requirements",
+    "Limited flexibility - Some roles eligible but most require on-site presence",
+    "Minimal flexibility - Very few roles eligible for remote/hybrid",
+    "No flexibility - All employees required on-site",
+    "Varies significantly by location/business unit"
   ];
 
   const INDUSTRIES = {
