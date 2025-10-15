@@ -4,8 +4,12 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
-import ProgressCircle from '@/components/ProgressCircle'
+import dynamic from 'next/dynamic'
 import { Lock, CheckCircle, CreditCard } from 'lucide-react'
+
+const ProgressCircle = dynamic(() => import('@/components/ProgressCircle'), {
+  ssr: false
+})
 
 export default function DashboardPage() {
   const router = useRouter()
