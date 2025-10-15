@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Info, X } from "lucide-react";
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -30,12 +31,42 @@ const DIMENSIONS_BASE = [
   "Communication & Awareness"
 ];
 
+const DIMENSION_DEFINITIONS: Record<string, string> = {
+  "Medical Leave & Flexibility": "Policies and practices that allow employees to take necessary time off for treatment, recovery, and medical appointments while maintaining job security and benefits. Includes flexible work arrangements, extended leave options, and accommodations for ongoing medical needs.",
+  
+  "Insurance & Financial Protection": "Health insurance coverage, disability benefits, life insurance, and other financial protections that help employees manage the costs associated with serious illness. Includes supplemental insurance options and financial assistance programs.",
+  
+  "Manager Preparedness & Capability": "Training, resources, and support for managers to effectively lead and support team members facing serious health conditions. Includes communication skills, understanding of available resources, and ability to balance empathy with business needs.",
+  
+  "Navigation & Expert Resources": "Access to care coordinators, patient advocates, benefits specialists, and expert resources that help employees navigate the healthcare system, understand their benefits, and connect with appropriate support services.",
+  
+  "Workplace Accommodations": "Physical and operational adjustments to the work environment that enable employees to continue working during and after treatment. Includes ergonomic modifications, schedule adjustments, job restructuring, and accessibility improvements.",
+  
+  "Culture & Psychological Safety": "An organizational environment where employees feel comfortable disclosing health conditions, requesting accommodations, and accessing support without fear of stigma, discrimination, or negative career impact.",
+  
+  "Career Continuity & Advancement": "Policies and practices that protect career progression and development opportunities for employees managing serious health conditions. Ensures that taking medical leave or requesting accommodations doesn't derail career growth.",
+  
+  "Return-to-Work Excellence": "Structured programs and processes that support employees' successful transition back to work after medical leave. Includes phased return options, accommodation planning, and ongoing check-ins to ensure sustainable re-integration.",
+  
+  "Executive Commitment & Resources": "Visible leadership support, dedicated budget, and organizational resources allocated to supporting employees with serious health conditions. Demonstrates that employee health and wellbeing is a strategic priority.",
+  
+  "Caregiver & Family Support": "Programs and benefits that recognize and support employees who are caring for family members with serious health conditions. Includes caregiver leave, flexible scheduling, support groups, and respite resources.",
+  
+  "Prevention, Wellness & Legal Compliance": "Proactive health and wellness programs, preventive care benefits, and compliance with legal requirements (ADA, FMLA, etc.). Focuses on early detection, health promotion, and ensuring the organization meets all legal obligations.",
+  
+  "Continuous Improvement & Outcomes": "Systems for measuring program effectiveness, gathering employee feedback, tracking outcomes, and using data to continuously improve support for employees with serious health conditions. Includes regular program evaluation and evidence-based refinements.",
+  
+  "Communication & Awareness": "Strategic and ongoing communication about available programs, benefits, and resources to ensure employees know what support is available and how to access it. Includes multiple channels, clear messaging, and regular updates."
+};
+
 export default function CrossDimensionalPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
   const [allDimensionsComplete, setAllDimensionsComplete] = useState(false);
+  const [showDefinitionModal, setShowDefinitionModal] = useState(false);
+  const [selectedDimension, setSelectedDimension] = useState<string>("");
   
   const [shuffledDimensions] = useState(() => shuffleArray(DIMENSIONS_BASE));
 
@@ -84,6 +115,10 @@ export default function CrossDimensionalPage() {
       if (current.includes(dimension)) {
         return { ...prev, [field]: current.filter((d: string) => d !== dimension) };
       } else {
+        if (current.length >= 3) {
+          setErrors("You can only select 3 dimensions");
+          return prev;
+        }
         return { ...prev, [field]: [...current, dimension] };
       }
     });
@@ -104,6 +139,11 @@ export default function CrossDimensionalPage() {
       }
     });
     setErrors("");
+  };
+
+  const openDefinition = (dimension: string) => {
+    setSelectedDimension(dimension);
+    setShowDefinitionModal(true);
   };
 
   const CD2_CHALLENGES = [
@@ -194,6 +234,34 @@ export default function CrossDimensionalPage() {
           </div>
         )}
 
+        {/* Definition Modal */}
+        {showDefinitionModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-start justify-between">
+                <h3 className="text-2xl font-bold text-gray-900 pr-8">{selectedDimension}</h3>
+                <button
+                  onClick={() => setShowDefinitionModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="p-6">
+                <p className="text-gray-700 text-lg leading-relaxed">
+                  {DIMENSION_DEFINITIONS[selectedDimension]}
+                </p>
+                <button
+                  onClick={() => setShowDefinitionModal(false)}
+                  className="mt-6 w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Step 0: Introduction */}
         {step === 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
@@ -247,39 +315,54 @@ export default function CrossDimensionalPage() {
             <p className="font-bold text-gray-900 mb-2">
               Which THREE dimensions would <span className="text-blue-600">provide the best outcomes</span> if you were to enhance them from their current state?
             </p>
-            <p className="text-sm text-gray-600 mb-6">(Select exactly 3)</p>
+            <p className="text-sm text-gray-600 mb-2">(Select exactly 3)</p>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start">
+              <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-blue-900">
+                Click the <Info className="w-4 h-4 inline" /> icon next to any dimension to view its full definition
+              </p>
+            </div>
             
             <div className="space-y-2">
               {shuffledDimensions.map(dim => (
-                <button
-                  key={dim}
-                  onClick={() => toggleDimension(dim, 'cd1a')}
-                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                    ans.cd1a?.includes(dim)
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
+                <div key={dim} className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleDimension(dim, 'cd1a')}
+                    className={`flex-1 px-4 py-3 text-left rounded-lg border-2 transition-all ${
                       ans.cd1a?.includes(dim)
-                        ? "border-blue-500 bg-blue-500"
-                        : "border-gray-300"
-                    }`}>
-                      {ans.cd1a?.includes(dim) && (
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center flex-shrink-0 ${
+                        ans.cd1a?.includes(dim)
+                          ? "border-blue-500 bg-blue-500"
+                          : "border-gray-300"
+                      }`}>
+                        {ans.cd1a?.includes(dim) && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <span>{dim}</span>
                     </div>
-                    <span>{dim}</span>
-                  </div>
-                </button>
+                  </button>
+                  <button
+                    onClick={() => openDefinition(dim)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
+                    title="View definition"
+                  >
+                    <Info className="w-5 h-5" />
+                  </button>
+                </div>
               ))}
             </div>
 
-            <div className="mt-4 text-sm text-gray-600">
-              Selected: {ans.cd1a?.length || 0} of 3
+            <div className="mt-4 text-sm font-medium text-gray-700">
+              Selected: <span className={ans.cd1a?.length === 3 ? "text-green-600" : "text-orange-600"}>{ans.cd1a?.length || 0} of 3</span>
             </div>
           </div>
         )}
@@ -292,39 +375,54 @@ export default function CrossDimensionalPage() {
             <p className="font-bold text-gray-900 mb-2">
               Which THREE areas are the <span className="text-blue-600">lowest priority</span> for your organization?
             </p>
-            <p className="text-sm text-gray-600 mb-6">(Select exactly 3)</p>
+            <p className="text-sm text-gray-600 mb-2">(Select exactly 3)</p>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start">
+              <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-blue-900">
+                Click the <Info className="w-4 h-4 inline" /> icon next to any dimension to view its full definition
+              </p>
+            </div>
             
             <div className="space-y-2">
               {cd1bOptions.map(dim => (
-                <button
-                  key={dim}
-                  onClick={() => toggleDimension(dim, 'cd1b')}
-                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                    ans.cd1b?.includes(dim)
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
+                <div key={dim} className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleDimension(dim, 'cd1b')}
+                    className={`flex-1 px-4 py-3 text-left rounded-lg border-2 transition-all ${
                       ans.cd1b?.includes(dim)
-                        ? "border-blue-500 bg-blue-500"
-                        : "border-gray-300"
-                    }`}>
-                      {ans.cd1b?.includes(dim) && (
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center flex-shrink-0 ${
+                        ans.cd1b?.includes(dim)
+                          ? "border-blue-500 bg-blue-500"
+                          : "border-gray-300"
+                      }`}>
+                        {ans.cd1b?.includes(dim) && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <span>{dim}</span>
                     </div>
-                    <span>{dim}</span>
-                  </div>
-                </button>
+                  </button>
+                  <button
+                    onClick={() => openDefinition(dim)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
+                    title="View definition"
+                  >
+                    <Info className="w-5 h-5" />
+                  </button>
+                </div>
               ))}
             </div>
 
-            <div className="mt-4 text-sm text-gray-600">
-              Selected: {ans.cd1b?.length || 0} of 3
+            <div className="mt-4 text-sm font-medium text-gray-700">
+              Selected: <span className={ans.cd1b?.length === 3 ? "text-green-600" : "text-orange-600"}>{ans.cd1b?.length || 0} of 3</span>
             </div>
           </div>
         )}
@@ -368,19 +466,19 @@ export default function CrossDimensionalPage() {
               ))}
             </div>
 
-            <div className="space-y-2 mt-4">
+            <div className="space-y-2 mt-6">
               <label className="block text-sm font-medium text-gray-700">Other (specify):</label>
               <input
                 type="text"
                 value={ans.cd2_other || ""}
                 onChange={(e) => setAns({ ...ans, cd2_other: e.target.value })}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                 placeholder="Describe any other challenge..."
               />
             </div>
 
-            <div className="mt-4 text-sm text-gray-600">
-              Selected: {ans.cd2?.length || 0} of 3
+            <div className="mt-4 text-sm font-medium text-gray-700">
+              Selected: <span className={ans.cd2?.length >= 1 ? "text-green-600" : "text-orange-600"}>{ans.cd2?.length || 0} of 3</span>
             </div>
           </div>
         )}
