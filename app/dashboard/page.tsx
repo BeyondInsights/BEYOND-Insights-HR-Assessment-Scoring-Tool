@@ -535,7 +535,7 @@ if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
               <h3 className="text-lg font-bold text-purple-900 mb-2">Two Additional Assessment Modules</h3>
               <p className="text-gray-700">
                 {all13DimensionsDone ? (
-                  <>These sections are now available. They provide deeper insights into employee impact and cross-cutting organizational themes.</>
+                  <>These sections are now available. They provide deeper insights into dimension and employee impact within your organization.</>
                 ) : (
                   <>These assessments will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
                 )}
