@@ -416,7 +416,7 @@ if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
         3
       </div>
       <div>
-        <h3 className="font-semibold text-gray-900 text-sm">Complete Advanced Assessments</h3>
+        <h3 className="font-semibold text-gray-900 text-sm">Complete 2 Additional Assessments</h3>
         <p className="text-sm text-gray-600">
           After finishing all 13 dimensions, complete the Cross-Dimensional and Employee-Impact assessments
         </p>
@@ -528,7 +528,7 @@ if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
 })}
         </div>
 
-        {/* Advanced Assessment Sections - Locked until all 13 dimensions complete */}
+        {/* Additional Assessment Sections - Locked until all 13 dimensions complete */}
         {paymentCompleted && (
           <>
             <div className="bg-purple-50 border-l-4 border-purple-600 p-6 mb-6 rounded-lg">
@@ -537,7 +537,7 @@ if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
                 {all13DimensionsDone ? (
                   <>These sections are now available. They provide deeper insights into employee impact and cross-cutting organizational themes.</>
                 ) : (
-                  <>These advanced modules will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
+                  <>These assessments will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
                 )}
               </p>
             </div>
