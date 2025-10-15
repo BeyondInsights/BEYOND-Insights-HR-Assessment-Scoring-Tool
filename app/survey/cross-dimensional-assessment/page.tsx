@@ -309,180 +309,185 @@ export default function CrossDimensionalPage() {
 
         {/* Step 1: CD1a - Best Outcomes */}
         {step === 1 && (
-            <div className="bg-white p-6 rounded-lg shadow-sm min-h-[600px]"  >
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Priority Dimensions for Enhancement</h2>
-            
-            <p className="font-bold text-gray-900 mb-2">
-              Which THREE dimensions would <span className="text-blue-600">provide the best outcomes</span> if you were to enhance them from their current state?
-            </p>
-            <p className="text-sm text-gray-600 mb-2">(Select exactly 3)</p>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start">
-              <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-blue-900">
-                Click the <Info className="w-4 h-4 inline" /> icon next to any dimension to view its full definition
+          <div className="bg-white p-8 rounded-lg shadow-sm">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Priority Dimensions for Enhancement</h2>
+              
+              <p className="font-bold text-gray-900 mb-2">
+                Which THREE dimensions would <span className="text-blue-600">provide the best outcomes</span> if you were to enhance them from their current state?
               </p>
-            </div>
-            
-            <div className="space-y-2 max-w-4xl">
-              {shuffledDimensions.map(dim => (
-                <div key={dim} className="flex items-center gap-2">
-                  <button
-                    onClick={() => toggleDimension(dim, 'cd1a')}
-                    className={`flex-1 px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                      ans.cd1a?.includes(dim)
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center flex-shrink-0 ${
+              <p className="text-sm text-gray-600 mb-2">(Select exactly 3)</p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start">
+                <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-900">
+                  Click the <Info className="w-4 h-4 inline" /> icon next to any dimension to view its full definition
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                {shuffledDimensions.map(dim => (
+                  <div key={dim} className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggleDimension(dim, 'cd1a')}
+                      className={`flex-1 px-4 py-3 text-left rounded-lg border-2 transition-all ${
                         ans.cd1a?.includes(dim)
-                          ? "border-blue-500 bg-blue-500"
-                          : "border-gray-300"
-                      }`}>
-                        {ans.cd1a?.includes(dim) && (
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center flex-shrink-0 ${
+                          ans.cd1a?.includes(dim)
+                            ? "border-blue-500 bg-blue-500"
+                            : "border-gray-300"
+                        }`}>
+                          {ans.cd1a?.includes(dim) && (
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <span>{dim}</span>
                       </div>
-                      <span>{dim}</span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => openDefinition(dim)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
-                    title="View definition"
-                  >
-                    <Info className="w-5 h-5" />
-                  </button>
-                </div>
-              ))}
-            </div>
+                    </button>
+                    <button
+                      onClick={() => openDefinition(dim)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
+                      title="View definition"
+                    >
+                      <Info className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
 
-            <div className="mt-4 text-sm font-medium text-gray-700">
-              Selected: <span className={ans.cd1a?.length === 3 ? "text-green-600" : "text-orange-600"}>{ans.cd1a?.length || 0} of 3</span>
+              <div className="mt-4 text-sm font-medium text-gray-700">
+                Selected: <span className={ans.cd1a?.length === 3 ? "text-green-600" : "text-orange-600"}>{ans.cd1a?.length || 0} of 3</span>
+              </div>
             </div>
           </div>
         )}
 
         {/* Step 2: CD1b - Lowest Priority */}
-{step === 2 && (
-  <div className="bg-white p-6 rounded-lg shadow-sm min-h-[600px]">
-    <h2 className="text-2xl font-bold text-gray-900 mb-4">Lowest Priority Dimensions</h2>
-    
-    <p className="font-bold text-gray-900 mb-2">
-      Which THREE areas are the <span className="text-blue-600">lowest priority</span> for your organization?
-    </p>
-    <p className="text-sm text-gray-600 mb-2">(Select exactly 3)</p>
-    
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start">
-      <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
-      <p className="text-sm text-blue-900">
-        Click the <Info className="w-4 h-4 inline" /> icon next to any dimension to view its full definition
-      </p>
-    </div>
-    
-    <div className="space-y-2 max-w-4xl">  {/* Same as step 1 */}
-              {cd1bOptions.map(dim => (
-                <div key={dim} className="flex items-center gap-2">
-                  <button
-                    onClick={() => toggleDimension(dim, 'cd1b')}
-                    className={`flex-1 px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                      ans.cd1b?.includes(dim)
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center flex-shrink-0 ${
+        {step === 2 && (
+          <div className="bg-white p-8 rounded-lg shadow-sm">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Lowest Priority Dimensions</h2>
+              
+              <p className="font-bold text-gray-900 mb-2">
+                Which THREE areas are the <span className="text-blue-600">lowest priority</span> for your organization?
+              </p>
+              <p className="text-sm text-gray-600 mb-2">(Select exactly 3)</p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start">
+                <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-900">
+                  Click the <Info className="w-4 h-4 inline" /> icon next to any dimension to view its full definition
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                {cd1bOptions.map(dim => (
+                  <div key={dim} className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggleDimension(dim, 'cd1b')}
+                      className={`flex-1 px-4 py-3 text-left rounded-lg border-2 transition-all ${
                         ans.cd1b?.includes(dim)
-                          ? "border-blue-500 bg-blue-500"
-                          : "border-gray-300"
-                      }`}>
-                        {ans.cd1b?.includes(dim) && (
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center flex-shrink-0 ${
+                          ans.cd1b?.includes(dim)
+                            ? "border-blue-500 bg-blue-500"
+                            : "border-gray-300"
+                        }`}>
+                          {ans.cd1b?.includes(dim) && (
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <span>{dim}</span>
                       </div>
-                      <span>{dim}</span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => openDefinition(dim)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
-                    title="View definition"
-                  >
-                    <Info className="w-5 h-5" />
-                  </button>
-                </div>
-              ))}
-            </div>
+                    </button>
+                    <button
+                      onClick={() => openDefinition(dim)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
+                      title="View definition"
+                    >
+                      <Info className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
 
-            <div className="mt-4 text-sm font-medium text-gray-700">
-              Selected: <span className={ans.cd1b?.length === 3 ? "text-green-600" : "text-orange-600"}>{ans.cd1b?.length || 0} of 3</span>
+              <div className="mt-4 text-sm font-medium text-gray-700">
+                Selected: <span className={ans.cd1b?.length === 3 ? "text-green-600" : "text-orange-600"}>{ans.cd1b?.length || 0} of 3</span>
+              </div>
             </div>
           </div>
         )}
 
         {/* Step 3: CD2 - Challenges */}
         {step === 3 && (
-            <div className="bg-white p-6 rounded-lg shadow-sm min-h-[600px]">      
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Organizational Challenges</h2>
-            
-            <p className="font-bold text-gray-900 mb-2">
-              What are the <span className="text-blue-600">biggest challenges</span> your organization faces in <span className="text-blue-600">supporting employees managing cancer or other serious health conditions</span>?
-            </p>
-            <p className="text-sm text-gray-600 mb-6">(Select up to 3)</p>
-            
-            <div className="space-y-2 max-w-4xl">
-              {CD2_CHALLENGES.map(challenge => (
-                <button
-                  key={challenge}
-                  onClick={() => toggleChallenge(challenge)}
-                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                    ans.cd2?.includes(challenge)
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
+          <div className="bg-white p-8 rounded-lg shadow-sm">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Organizational Challenges</h2>
+              
+              <p className="font-bold text-gray-900 mb-2">
+                What are the <span className="text-blue-600">biggest challenges</span> your organization faces in <span className="text-blue-600">supporting employees managing cancer or other serious health conditions</span>?
+              </p>
+              <p className="text-sm text-gray-600 mb-6">(Select up to 3)</p>
+              
+              <div className="space-y-2">
+                {CD2_CHALLENGES.map(challenge => (
+                  <button
+                    key={challenge}
+                    onClick={() => toggleChallenge(challenge)}
+                    className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
                       ans.cd2?.includes(challenge)
-                        ? "border-blue-500 bg-blue-500"
-                        : "border-gray-300"
-                    }`}>
-                      {ans.cd2?.includes(challenge) && (
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
+                        ans.cd2?.includes(challenge)
+                          ? "border-blue-500 bg-blue-500"
+                          : "border-gray-300"
+                      }`}>
+                        {ans.cd2?.includes(challenge) && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <span>{challenge}</span>
                     </div>
-                    <span>{challenge}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
+                  </button>
+                ))}
+              </div>
 
-            <div className="space-y-2 mt-6">
-              <label className="block text-sm font-medium text-gray-700">Other (specify):</label>
-              <input
-                type="text"
-                value={ans.cd2_other || ""}
-                onChange={(e) => setAns({ ...ans, cd2_other: e.target.value })}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                placeholder="Describe any other challenge..."
-              />
-            </div>
+              <div className="space-y-2 mt-6">
+                <label className="block text-sm font-medium text-gray-700">Other (specify):</label>
+                <input
+                  type="text"
+                  value={ans.cd2_other || ""}
+                  onChange={(e) => setAns({ ...ans, cd2_other: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  placeholder="Describe any other challenge..."
+                />
+              </div>
 
-            <div className="mt-4 text-sm font-medium text-gray-700">
-              Selected: <span className={ans.cd2?.length >= 1 ? "text-green-600" : "text-orange-600"}>{ans.cd2?.length || 0} of 3</span>
+              <div className="mt-4 text-sm font-medium text-gray-700">
+                Selected: <span className={ans.cd2?.length >= 1 ? "text-green-600" : "text-orange-600"}>{ans.cd2?.length || 0} of 3</span>
+              </div>
             </div>
           </div>
         )}
-
         {/* Step 4: Completion */}
         {step === 4 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
