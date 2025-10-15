@@ -82,7 +82,7 @@ export default function StripePaymentPage() {
           {/* Amount Display */}
           <div className="bg-gray-50 rounded-lg p-4 mb-6 text-center">
             <p className="text-sm text-gray-600 mb-1">Amount to Pay</p>
-            <p className="text-3xl font-bold text-green-600">$1,200</p>
+            <p className="text-3xl font-bold text-green-600">$1,250</p>
             <p className="text-sm text-gray-500 mt-2">
               {companyData.name} - Certification Fee
             </p>
