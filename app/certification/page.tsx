@@ -94,7 +94,7 @@ export default function CertificationPage() {
                   <span className="text-xl mt-1">💰</span>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Certification Fee</p>
-                    <p className="font-semibold text-gray-900">$1,200</p>
+                    <p className="font-semibold text-gray-900">$1,250</p>
                   </div>
                 </div>
               </div>
@@ -176,7 +176,7 @@ export default function CertificationPage() {
         {/* Amount Display */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8 text-center">
           <p className="text-sm text-gray-600 mb-1">Certification Fee</p>
-          <p className="text-4xl font-bold text-green-600">$1,200</p>
+          <p className="text-4xl font-bold text-green-600">$1,250</p>
           <p className="text-sm text-gray-500 mt-2">One-time annual certification fee</p>
         </div>
 
