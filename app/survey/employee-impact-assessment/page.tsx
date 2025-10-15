@@ -29,7 +29,7 @@ export default function EmployeeImpactPage() {
     
     setAllDimensionsComplete(true);
 
-    const saved = localStorage.getItem("employee_impact_data");
+    const saved = localStorage.getItem("employee-impact-assessment_data");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -42,7 +42,7 @@ export default function EmployeeImpactPage() {
 
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("employee_impact_data", JSON.stringify(ans));
+      localStorage.setItem("employee_impact-assessment_data", JSON.stringify(ans));
     }
   }, [ans]);
 
@@ -120,7 +120,7 @@ export default function EmployeeImpactPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
-              Employee-Impact Assessment
+              employee-impact-assessment
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
