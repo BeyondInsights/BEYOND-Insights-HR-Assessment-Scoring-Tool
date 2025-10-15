@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
 import { useRouter, usePathname } from 'next/navigation'
-import { RotateCcw } from 'lucide-react'
+import { RotateCcw, FileText } from 'lucide-react'
 
 export default function Header() {
   const router = useRouter()
@@ -9,7 +9,7 @@ export default function Header() {
   
   // Hide Back to Dashboard on Dashboard, Letter, and Authorization pages
   const showBack = !['/dashboard', '/letter', '/authorization'].includes(pathname)
-
+  
   const handleReset = () => {
     if (confirm('Clear all data and restart? This will log you out and cannot be undone.')) {
       localStorage.clear()
@@ -22,7 +22,7 @@ export default function Header() {
     <header className="shadow-md">
       <div className="bg-white">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
-          {/* Left: Reset button + Back button */}
+          {/* Left: Reset button + Profile button + Back button */}
           <div className="flex items-center gap-3">
             <button
               onClick={handleReset}
@@ -31,6 +31,15 @@ export default function Header() {
             >
               <RotateCcw className="w-4 h-4" />
               Reset
+            </button>
+
+            <button
+              onClick={() => router.push('/company-profile')}
+              className="flex items-center gap-2 bg-purple-700 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-purple-800 transition text-sm"
+              title="View your company profile"
+            >
+              <FileText className="w-4 h-4" />
+              Review Your Company Profile
             </button>
             
             {showBack ? (
