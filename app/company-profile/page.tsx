@@ -1,77 +1,98 @@
 'use client'
 import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 // CAC Brand Colors
 const COLORS = {
-  purple: { primary: '#6B2C91', light: '#8B4DB3', bg: '#F3E8FF', border: '#D8B4FE' },
-  orange: { primary: '#F97316', light: '#FB923C', bg: '#FFF4ED', border: '#FED7AA' },
-  teal: { primary: '#14B8A6', light: '#2DD4BF', bg: '#F0FDFA', border: '#99F6E4' },
-  gray: { dark: '#1F2937', medium: '#6B7280', light: '#D1D5DB', bg: '#F9FAFB' }
+  purple: '#6B2C91',
+  orange: '#F97316', 
+  teal: '#14B8A6',
+  gray: { dark: '#1F2937', medium: '#6B7280', light: '#E5E7EB', bg: '#F9FAFB' }
 };
-
-// SVG Icons
-const Icons = {
-  Building: () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="4" y="2" width="16" height="20" rx="2" />
-      <path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01" />
-    </svg>
-  ),
-  Heart: () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
-  ),
-  Shield: () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  ),
-  TrendUp: () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-      <polyline points="17 6 23 6 23 12" />
-    </svg>
-  ),
-  Award: () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="8" r="7" />
-      <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-    </svg>
-  ),
-  Print: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="6 9 6 2 18 2 18 9" />
-      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-      <rect x="6" y="14" width="12" height="8" />
-    </svg>
-  ),
-  Download: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="7 10 12 15 17 10" />
-      <line x1="12" y1="15" x2="12" y2="3" />
-    </svg>
-  )
-};
-
-const CACLogo = () => (
-  <div className="flex items-center justify-center gap-3 mb-4">
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <rect width="48" height="48" rx="8" fill={COLORS.purple.primary}/>
-      <path d="M24 12c-6.6 0-12 5.4-12 12s5.4 12 12 12 12-5.4 12-12-5.4-12-12-12zm0 20c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z" fill="white"/>
-      <circle cx="24" cy="24" r="4" fill={COLORS.teal.primary}/>
-    </svg>
-    <div className="text-white">
-      <div className="font-bold text-lg">Cancer and Careers</div>
-      <div className="text-sm opacity-90">Best Companies for Working with Cancer</div>
-    </div>
-  </div>
-);
 
 export default function CompanyProfile() {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter()
+  const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Load all data from localStorage
+    const firmographics = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
+    const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}')
+    const current = JSON.parse(localStorage.getItem('current-support_data') || '{}')
+    
+    const dimensions = []
+    for (let i = 1; i <= 13; i++) {
+      const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}')
+      if (Object.keys(dimData).length > 0) {
+        dimensions.push({ number: i, data: dimData })
+      }
+    }
+
+    const crossDimensional = JSON.parse(localStorage.getItem('cross-dimensional_data') || '{}')
+    const employeeImpact = JSON.parse(localStorage.getItem('employee-impact_data') || '{}')
+
+    setProfile({
+      companyName: firmographics.companyName || firmographics.s8 || 'Your Organization',
+      email: localStorage.getItem('auth_email') || '',
+      firmographics,
+      general,
+      current,
+      dimensions,
+      crossDimensional,
+      employeeImpact
+    })
+    setLoading(false)
+  }, [])
+
+  const handlePrint = () => window.print()
+  
+  const handleDownload = () => {
+    let report = `COMPANY PROFILE REPORT - ${profile.companyName}\n`
+    report += `Generated: ${new Date().toLocaleDateString()}\n\n`
+    report += `${'='.repeat(80)}\n\n`
+    
+    // Add all sections
+    report += `ORGANIZATION PROFILE\n${'-'.repeat(80)}\n`
+    Object.entries(profile.firmographics).forEach(([key, value]) => {
+      if (value) report += `${key}: ${JSON.stringify(value)}\n`
+    })
+    report += `\n`
+    
+    if (Object.keys(profile.general).length > 0) {
+      report += `GENERAL BENEFITS\n${'-'.repeat(80)}\n`
+      Object.entries(profile.general).forEach(([key, value]) => {
+        if (value) report += `${key}: ${JSON.stringify(value)}\n`
+      })
+      report += `\n`
+    }
+    
+    profile.dimensions.forEach((dim: any) => {
+      report += `DIMENSION ${dim.number}\n${'-'.repeat(80)}\n`
+      Object.entries(dim.data).forEach(([key, value]) => {
+        if (value) report += `${key}: ${JSON.stringify(value)}\n`
+      })
+      report += `\n`
+    })
+    
+    const blob = new Blob([report], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${profile.companyName.replace(/\s+/g, '_')}_Detailed_Profile.txt`
+    a.click()
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-700 mx-auto"></div>
+          <p className="mt-4 text-gray-600 text-lg">Loading your comprehensive profile...</p>
+        </div>
+      </div>
+    )
+  }
 
   const dimensionNames = {
     1: "Medical Leave & Flexibility",
@@ -87,275 +108,261 @@ export default function CompanyProfile() {
     11: "Prevention, Wellness & Legal Compliance",
     12: "Continuous Improvement & Outcomes",
     13: "Communication & Awareness"
-  };
-
-  useEffect(() => {
-    const firmographics = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
-    const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}');
-    const current = JSON.parse(localStorage.getItem('current-support_data') || '{}');
-    
-    const dimensions = [];
-    for (let i = 1; i <= 13; i++) {
-      const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
-      if (Object.keys(dimData).length > 0) {
-        dimensions.push({ number: i, data: dimData });
-      }
-    }
-
-    const crossDimensional = JSON.parse(localStorage.getItem('cross-dimensional_data') || '{}');
-    const employeeImpact = JSON.parse(localStorage.getItem('employee-impact_data') || '{}');
-
-    setProfile({
-      companyName: firmographics.companyName || 'Your Organization',
-      firmographics,
-      general,
-      current,
-      dimensions,
-      crossDimensional,
-      employeeImpact,
-      email: localStorage.getItem('auth_email') || ''
-    });
-    setLoading(false);
-  }, []);
-
-  const handlePrint = () => window.print();
-
-  const handleDownload = () => {
-    let report = `COMPANY PROFILE REPORT\n${profile.companyName}\nGenerated: ${new Date().toLocaleDateString()}\n\n${'='.repeat(60)}\n\n`;
-    report += `ORGANIZATION PROFILE\n${'-'.repeat(60)}\n`;
-    Object.entries(profile.firmographics).forEach(([key, value]) => {
-      if (value && key !== 'companyName') report += `${key}: ${JSON.stringify(value)}\n`;
-    });
-    
-    const blob = new Blob([report], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${profile.companyName.replace(/\s+/g, '_')}_Profile.txt`;
-    a.click();
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: COLORS.gray.bg}}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{borderColor: COLORS.purple.primary}}></div>
-          <p className="mt-4" style={{color: COLORS.gray.medium}}>Loading your profile...</p>
-        </div>
-      </div>
-    );
   }
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: COLORS.gray.bg}}>
-      {/* Header - Hidden when printing */}
-      <div className="print:hidden bg-white border-b sticky top-0 z-10 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div style={{color: COLORS.purple.primary}}>
-              <Icons.Building />
-            </div>
-            <h1 className="text-2xl font-bold" style={{color: COLORS.gray.dark}}>Company Profile</h1>
-          </div>
-          <div className="flex gap-2">
+    <div className="min-h-screen bg-gray-50">
+      {/* Action Bar - Hidden when printing */}
+      <div className="print:hidden bg-white border-b shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium"
+          >
+            ← Back to Dashboard
+          </button>
+          <div className="flex gap-3">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 bg-white border-2 rounded-lg transition-all hover:shadow-md"
-              style={{borderColor: COLORS.gray.light, color: COLORS.gray.dark}}
+              className="px-4 py-2 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-semibold transition-all flex items-center gap-2"
             >
-              <Icons.Print />
-              Print
+              🖨️ Print
             </button>
             <button
               onClick={handleDownload}
-              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-all hover:shadow-lg"
-              style={{backgroundColor: COLORS.purple.primary}}
+              className="px-4 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-800 font-semibold transition-all flex items-center gap-2"
             >
-              <Icons.Download />
-              Download
+              📥 Download
             </button>
           </div>
         </div>
       </div>
 
-      {/* Print Header */}
-      <div className="hidden print:block bg-white p-8 border-b-2" style={{borderColor: COLORS.purple.primary}}>
-        <div className="text-center mb-4">
-          <CACLogo />
+      {/* Header with Logo */}
+      <div className="bg-gradient-to-r from-purple-700 to-purple-900 text-white py-12 print:py-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">{profile.companyName}</h1>
+              <p className="text-xl text-purple-100">Comprehensive Workplace Support Profile</p>
+              <p className="text-sm text-purple-200 mt-2">Generated: {new Date().toLocaleDateString()}</p>
+              {profile.email && <p className="text-sm text-purple-200">Contact: {profile.email}</p>}
+            </div>
+            <img 
+              src="/cancer-careers-logo.png" 
+              alt="Cancer and Careers Logo" 
+              className="h-16 lg:h-20 w-auto"
+            />
+          </div>
         </div>
-        <h1 className="text-3xl font-bold text-center mb-2" style={{color: COLORS.gray.dark}}>{profile.companyName}</h1>
-        <p className="text-lg text-center" style={{color: COLORS.gray.medium}}>Workplace Support Profile</p>
-        <p className="text-sm text-center mt-2" style={{color: COLORS.gray.medium}}>Generated: {new Date().toLocaleDateString()}</p>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 print:py-4">
-        {/* Company Header Card */}
-        <div className="rounded-xl shadow-lg p-8 mb-8 text-white print:shadow-none" 
-             style={{background: `linear-gradient(135deg, ${COLORS.purple.primary} 0%, ${COLORS.purple.light} 100%)`}}>
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">{profile.companyName}</h2>
-              <p className="text-purple-100 text-lg">Best Companies for Working with Cancer Assessment</p>
-              {profile.email && <p className="text-purple-100 text-sm mt-2">Contact: {profile.email}</p>}
-            </div>
-            <div className="print:hidden" style={{color: 'rgba(255,255,255,0.5)'}}>
-              <Icons.Award />
-            </div>
-          </div>
-        </div>
-
-        {/* Organization Profile */}
-        <ProfileSection icon={<Icons.Building />} title="Organization Profile" color={COLORS.purple}>
+      <div className="max-w-7xl mx-auto px-6 py-8 print:py-4">
+        
+        {/* Organization Profile / Firmographics */}
+        <Section title="Organization Profile" icon="🏢" color={COLORS.purple}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {profile.firmographics.s8 && <DataItem label="Organization Size" value={profile.firmographics.s8} />}
-            {profile.firmographics.s9 && <DataItem label="Headquarters Location" value={profile.firmographics.s9} />}
-            {profile.firmographics.s9a && <DataItem label="Countries with Operations" value={profile.firmographics.s9a} />}
-            {profile.firmographics.c2 && <DataItem label="Industry" value={profile.firmographics.c2} />}
-            {profile.firmographics.c4 && <DataItem label="Annual Revenue" value={profile.firmographics.c4} />}
-            {profile.firmographics.c6 && <DataItem label="Remote/Hybrid Policy" value={profile.firmographics.c6} />}
+            {profile.firmographics.s1 && <DetailItem label="Birth Year" value={profile.firmographics.s1} />}
+            {profile.firmographics.s2 && <DetailItem label="Gender Identity" value={profile.firmographics.s2} />}
+            {profile.firmographics.s3 && <DetailItem label="Department" value={profile.firmographics.s3} />}
+            {profile.firmographics.s4 && <DetailItem label="Primary Job Function" value={profile.firmographics.s4} />}
+            {profile.firmographics.s5 && <DetailItem label="Current Level" value={profile.firmographics.s5} />}
+            {profile.firmographics.s6 && <DetailItem label="Areas of Responsibility" value={profile.firmographics.s6} />}
+            {profile.firmographics.s7 && <DetailItem label="Influence on Benefits" value={profile.firmographics.s7} />}
+            {profile.firmographics.s8 && <DetailItem label="Organization Size" value={profile.firmographics.s8} />}
+            {profile.firmographics.s9 && <DetailItem label="Headquarters Location" value={profile.firmographics.s9} />}
+            {profile.firmographics.s9a && <DetailItem label="Other Countries" value={profile.firmographics.s9a} />}
+            {profile.firmographics.c2 && <DetailItem label="Industry" value={profile.firmographics.c2} />}
+            {profile.firmographics.c3 && <DetailItem label="Excluded Employee Groups" value={profile.firmographics.c3} />}
+            {profile.firmographics.c4 && <DetailItem label="Annual Revenue" value={profile.firmographics.c4} />}
+            {profile.firmographics.c5 && <DetailItem label="Healthcare Access" value={profile.firmographics.c5} />}
+            {profile.firmographics.c6 && <DetailItem label="Remote/Hybrid Policy" value={profile.firmographics.c6} />}
           </div>
-        </ProfileSection>
+        </Section>
 
-        {/* General Benefits */}
+        {/* General Employee Benefits */}
         {Object.keys(profile.general).length > 0 && (
-          <ProfileSection icon={<Icons.Heart />} title="General Employee Benefits" color={COLORS.teal}>
-            {profile.general.gb1 && Array.isArray(profile.general.gb1) && (
-              <div className="mb-4">
-                <h4 className="font-semibold mb-2" style={{color: COLORS.gray.dark}}>Current Benefits:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {profile.general.gb1.map((benefit, idx) => (
-                    <span key={idx} className="px-3 py-1 rounded-full text-sm"
-                          style={{backgroundColor: COLORS.teal.bg, color: COLORS.teal.primary}}>
-                      {benefit}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {profile.general.gb2 && <DataItem label="Benefits Package Characterization" value={profile.general.gb2} />}
-            {profile.general.cb3 && Array.isArray(profile.general.cb3) && (
-              <div className="mt-4">
-                <h4 className="font-semibold mb-2" style={{color: COLORS.gray.dark}}>Conditions Supported:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {profile.general.cb3.map((condition, idx) => (
-                    <span key={idx} className="px-3 py-1 rounded-full text-sm"
-                          style={{backgroundColor: COLORS.purple.bg, color: COLORS.purple.primary}}>
-                      {condition}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </ProfileSection>
+          <Section title="General Employee Benefits" icon="💼" color={COLORS.teal}>
+            {Object.entries(profile.general).map(([key, value]: [string, any]) => {
+              if (!value) return null
+              
+              if (Array.isArray(value)) {
+                return (
+                  <div key={key} className="mb-6">
+                    <h4 className="font-bold text-gray-800 mb-3">{formatKey(key)}</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {value.map((item, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-sm border border-teal-200">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+              
+              return <DetailItem key={key} label={formatKey(key)} value={value} />
+            })}
+          </Section>
         )}
 
         {/* Current Support */}
         {Object.keys(profile.current).length > 0 && (
-          <ProfileSection icon={<Icons.Shield />} title="Current Support for Employees Managing Cancer" color={COLORS.orange}>
-            {profile.current.or1 && (
-              <div className="mb-4 p-4 rounded-lg" style={{backgroundColor: COLORS.orange.bg}}>
-                <h4 className="font-semibold mb-2" style={{color: COLORS.gray.dark}}>Support Level:</h4>
-                <p style={{color: COLORS.gray.dark}} dangerouslySetInnerHTML={{ __html: profile.current.or1 }} />
-              </div>
-            )}
-            {profile.current.or2a && Array.isArray(profile.current.or2a) && (
-              <div className="mb-4">
-                <h4 className="font-semibold mb-2" style={{color: COLORS.gray.dark}}>Triggers for Support Development:</h4>
-                <ul className="list-disc list-inside space-y-1" style={{color: COLORS.gray.medium}}>
-                  {profile.current.or2a.map((trigger, idx) => <li key={idx}>{trigger}</li>)}
-                </ul>
-              </div>
-            )}
-            {profile.current.or2b && (
-              <div className="mb-4">
-                <h4 className="font-semibold mb-2" style={{color: COLORS.gray.dark}}>Most Impactful Change:</h4>
-                <p className="italic" style={{color: COLORS.gray.medium}}>{profile.current.or2b}</p>
-              </div>
-            )}
-          </ProfileSection>
+          <Section title="Current Support for Employees Managing Cancer" icon="🛡️" color={COLORS.orange}>
+            {Object.entries(profile.current).map(([key, value]: [string, any]) => {
+              if (!value) return null
+              
+              if (Array.isArray(value)) {
+                return (
+                  <div key={key} className="mb-6">
+                    <h4 className="font-bold text-gray-800 mb-3">{formatKey(key)}</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {value.map((item, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm border border-orange-200">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+              
+              return <DetailItem key={key} label={formatKey(key)} value={value} />
+            })}
+          </Section>
         )}
 
-        {/* Dimensions */}
-        {profile.dimensions.length > 0 && (
-          <ProfileSection icon={<Icons.TrendUp />} title="13 Dimensions of Support" color={COLORS.purple}>
+        {/* 13 Dimensions of Support */}
+        {profile.dimensions.map((dim: any) => (
+          <Section 
+            key={dim.number}
+            title={`Dimension ${dim.number}: ${dimensionNames[dim.number as keyof typeof dimensionNames]}`}
+            icon="📊"
+            color={COLORS.purple}
+          >
             <div className="space-y-4">
-              {profile.dimensions.map(dim => (
-                <div key={dim.number} className="pl-4 py-2" style={{borderLeft: `4px solid ${COLORS.purple.primary}`}}>
-                  <h4 className="font-bold mb-1" style={{color: COLORS.gray.dark}}>
-                    Dimension {dim.number}: {dimensionNames[dim.number]}
-                  </h4>
-                  <p className="text-sm" style={{color: COLORS.gray.medium}}>
-                    {Object.keys(dim.data).length} items completed
-                  </p>
-                </div>
-              ))}
+              {Object.entries(dim.data).map(([key, value]: [string, any]) => {
+                if (!value) return null
+                
+                // Handle likert scales
+                if (typeof value === 'string' && ['offer', 'plan', 'do not plan', 'not applicable'].some(v => value.toLowerCase().includes(v))) {
+                  return (
+                    <div key={key} className="flex items-start justify-between py-3 border-b border-gray-200">
+                      <span className="text-gray-700 flex-1">{formatKey(key)}</span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getLikertColor(value)}`}>
+                        {value}
+                      </span>
+                    </div>
+                  )
+                }
+                
+                // Handle arrays
+                if (Array.isArray(value)) {
+                  return (
+                    <div key={key} className="mb-4">
+                      <h5 className="font-semibold text-gray-800 mb-2">{formatKey(key)}</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {value.map((item, idx) => (
+                          <span key={idx} className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm border border-purple-200">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                }
+                
+                // Handle text responses
+                return <DetailItem key={key} label={formatKey(key)} value={value} />
+              })}
             </div>
-          </ProfileSection>
+          </Section>
+        ))}
+
+        {/* Cross-Dimensional Assessment */}
+        {Object.keys(profile.crossDimensional).length > 0 && (
+          <Section title="Cross-Dimensional Assessment" icon="🔗" color={COLORS.teal}>
+            {Object.entries(profile.crossDimensional).map(([key, value]: [string, any]) => {
+              if (!value) return null
+              return <DetailItem key={key} label={formatKey(key)} value={value} />
+            })}
+          </Section>
         )}
 
-        {/* Additional Modules */}
-        {(Object.keys(profile.crossDimensional).length > 0 || Object.keys(profile.employeeImpact).length > 0) && (
-          <ProfileSection icon={<Icons.Award />} title="Additional Assessment Modules" color={COLORS.teal}>
-            <div className="space-y-4">
-              {Object.keys(profile.crossDimensional).length > 0 && (
-                <div className="pl-4 py-2" style={{borderLeft: `4px solid ${COLORS.teal.primary}`}}>
-                  <h4 className="font-bold mb-1" style={{color: COLORS.gray.dark}}>Cross-Dimensional Assessment</h4>
-                  <p className="text-sm" style={{color: COLORS.gray.medium}}>
-                    {Object.keys(profile.crossDimensional).length} items completed
-                  </p>
-                </div>
-              )}
-              {Object.keys(profile.employeeImpact).length > 0 && (
-                <div className="pl-4 py-2" style={{borderLeft: `4px solid ${COLORS.teal.primary}`}}>
-                  <h4 className="font-bold mb-1" style={{color: COLORS.gray.dark}}>Employee-Impact Assessment</h4>
-                  <p className="text-sm" style={{color: COLORS.gray.medium}}>
-                    {Object.keys(profile.employeeImpact).length} items completed
-                  </p>
-                </div>
-              )}
-            </div>
-          </ProfileSection>
+        {/* Employee Impact Assessment */}
+        {Object.keys(profile.employeeImpact).length > 0 && (
+          <Section title="Employee Impact Assessment" icon="👥" color={COLORS.orange}>
+            {Object.entries(profile.employeeImpact).map(([key, value]: [string, any]) => {
+              if (!value) return null
+              return <DetailItem key={key} label={formatKey(key)} value={value} />
+            })}
+          </Section>
         )}
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm print:mt-12" style={{color: COLORS.gray.medium}}>
-          <p>Generated from Best Companies for Working with Cancer: Employer Index</p>
-          <p className="mt-1">© {new Date().getFullYear()} Cancer and Careers & CEW Foundation</p>
+        <div className="mt-12 pt-8 border-t-2 border-gray-200 text-center text-sm text-gray-600 print:mt-8">
+          <p className="font-semibold">Best Companies for Working with Cancer: Employer Index</p>
+          <p className="mt-2">© {new Date().getFullYear()} Cancer and Careers & CEW Foundation</p>
+          <p className="mt-1 text-xs">All responses collected and analyzed by BEYOND Insights, LLC</p>
         </div>
       </div>
 
       <style jsx>{`
         @media print {
-          @page { margin: 0.5in; }
-          body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+          @page { 
+            margin: 0.75in; 
+            size: letter;
+          }
+          body { 
+            print-color-adjust: exact; 
+            -webkit-print-color-adjust: exact; 
+          }
         }
       `}</style>
     </div>
-  );
+  )
 }
 
-function ProfileSection({ icon, title, color, children }) {
+function Section({ title, icon, color, children }: { title: string, icon: string, color: string, children: React.ReactNode }) {
   return (
-    <div className="border-2 rounded-xl p-6 mb-6 print:break-inside-avoid"
-         style={{backgroundColor: color.bg, borderColor: color.border}}>
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 rounded-lg" style={{backgroundColor: 'white', color: color.primary}}>
-          {icon}
-        </div>
-        <h3 className="text-xl font-bold" style={{color: COLORS.gray.dark}}>{title}</h3>
+    <div className="mb-8 print:break-inside-avoid">
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b-4" style={{ borderColor: color }}>
+        <span className="text-3xl">{icon}</span>
+        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
       </div>
-      {children}
+      <div className="bg-white rounded-xl shadow-sm p-6 border-2 border-gray-100">
+        {children}
+      </div>
     </div>
-  );
+  )
 }
 
-function DataItem({ label, value }) {
-  if (!value) return null;
-  const displayValue = typeof value === 'object' ? JSON.stringify(value) : value;
+function DetailItem({ label, value }: { label: string, value: any }) {
+  const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
+  
   return (
-    <div className="mb-3">
-      <dt className="text-sm font-semibold mb-1" style={{color: COLORS.gray.medium}}>{label}</dt>
-      <dd className="text-base" style={{color: COLORS.gray.dark}}>{displayValue}</dd>
+    <div className="mb-4 pb-4 border-b border-gray-200 last:border-b-0">
+      <dt className="text-sm font-semibold text-gray-600 mb-1">{label}</dt>
+      <dd className="text-base text-gray-900 whitespace-pre-wrap">{displayValue}</dd>
     </div>
-  );
+  )
+}
+
+function formatKey(key: string): string {
+  // Convert camelCase or snake_case to Title Case
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/_/g, ' ')
+    .replace(/^./, str => str.toUpperCase())
+    .trim()
+}
+
+function getLikertColor(value: string): string {
+  const v = value.toLowerCase()
+  if (v.includes('offer consistently') || v.includes('currently offer')) return 'bg-green-100 text-green-800 border border-green-300'
+  if (v.includes('offer in at least one') || v.includes('offer to eligible')) return 'bg-blue-100 text-blue-800 border border-blue-300'
+  if (v.includes('plan to offer')) return 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+  if (v.includes('do not plan')) return 'bg-gray-100 text-gray-800 border border-gray-300'
+  if (v.includes('not applicable')) return 'bg-gray-50 text-gray-600 border border-gray-200'
+  return 'bg-purple-100 text-purple-800 border border-purple-300'
 }
