@@ -233,7 +233,14 @@ export default function CompletionPage() {
                 </div>
               </div>
 
-              {/* Action button */}
+              {/* Info note */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center">
+                  <p className="text-sm text-blue-900">
+                    💡 You can return to this page anytime from your dashboard to review next steps and upload additional documentation.
+                  </p>
+                </div>
+                
+  {/* Action button */}
               <div className="flex justify-center mt-12">
                 <button
                   onClick={() => router.push('/dashboard')}
