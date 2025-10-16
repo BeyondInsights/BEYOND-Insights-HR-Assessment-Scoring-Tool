@@ -197,12 +197,20 @@ export default function CompanyProfile() {
     monitoring: formatArray(cur?.or6),
   };
 
+  const SectionHeader = ({ title, icon }: { title: string; icon?: string }) => (
+    <div className="flex items-center gap-3 mb-6">
+      {icon && <span className="text-2xl">{icon}</span>}
+      <h2 className="text-2xl font-bold" style={{ color: '#1f2937' }}>{title}</h2>
+      <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, #e5e7eb, transparent)' }}></div>
+    </div>
+  );
+
   const DataRow = ({ label, value }: {label:string; value:any}) => {
     const displayValue = value || '—';
     return (
-      <div className="py-3 border-b" style={{borderColor: '#e5e7eb'}}>
-        <div className="text-xs font-medium mb-1" style={{color: '#6b7280'}}>{label}</div>
-        <div className="text-sm" style={{color: '#1f2937'}}>{displayValue}</div>
+      <div className="group hover:bg-gray-50 transition-colors rounded-lg px-4 py-3 -mx-4">
+        <div className="text-xs font-semibold mb-1.5 uppercase tracking-wide" style={{color: '#6b7280'}}>{label}</div>
+        <div className="text-sm font-medium" style={{color: '#1f2937'}}>{displayValue}</div>
       </div>
     );
   };
@@ -253,7 +261,6 @@ export default function CompanyProfile() {
     txtContent += `Primary caregiver support programs offered: ${support.caregiver || '—'}\n`;
     txtContent += `How monitor effectiveness of workplace support program: ${support.monitoring || '—'}\n\n`;
 
-    // Add dimensions
     if (data.dimensions && data.dimensions.length > 0) {
       txtContent += `===== 13 DIMENSIONS OF SUPPORT =====\n\n`;
       data.dimensions.forEach((dim: any) => {
@@ -271,7 +278,6 @@ export default function CompanyProfile() {
       });
     }
 
-    // Add assessment sections
     if (Object.keys(data.cross || {}).length > 0) {
       txtContent += `===== CROSS-DIMENSIONAL ASSESSMENT =====\n`;
       Object.entries(data.cross).forEach(([key, value]: [string, any]) => {
@@ -298,82 +304,89 @@ export default function CompanyProfile() {
   };
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#f8f9fa'}}>
-      {/* Header */}
-      <div className="bg-white border-b" style={{borderColor: '#e5e7eb'}}>
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-32"></div>
+    <div className="min-h-screen" style={{background: 'linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%)'}}>
+      
+      {/* Hero Header */}
+      <div className="relative overflow-hidden" style={{
+        background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+        borderBottom: '4px solid #f97316'
+      }}>
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }}></div>
+        
+        <div className="max-w-7xl mx-auto px-6 py-12 relative">
+          <div className="flex items-center justify-between mb-8">
             <img
               src="/best-companies-2026-logo.png"
               alt="Best Companies Award"
-              className="h-16"
+              className="h-20 drop-shadow-2xl"
             />
             <img
               src="/cancer-careers-logo.png"
               alt="Cancer and Careers"
-              className="h-12"
+              className="h-14"
             />
           </div>
 
           <div className="text-center">
-            <h1 className="text-3xl font-bold mb-1" style={{color: '#1f2937'}}>
+            <h1 className="text-5xl font-black mb-3 text-white drop-shadow-lg">
               {data.companyName}
             </h1>
-            <p className="text-sm" style={{color: '#6b7280'}}>
+            <p className="text-xl text-gray-300 mb-2">
               Company Profile & Survey Summary
             </p>
-            <p className="text-xs mt-1" style={{color: '#9ca3af'}}>
+            <p className="text-sm text-gray-400">
               Generated: {data.generatedAt}
-              {data.email && <span className="ml-1">• {data.email}</span>}
+              {data.email && <span className="ml-2">• {data.email}</span>}
             </p>
 
-            <div className="mt-4 flex items-center justify-center gap-3 print:hidden">
+            <div className="mt-8 flex items-center justify-center gap-4 print:hidden">
               <a 
                 href="/dashboard" 
-                className="px-4 py-2 text-sm font-semibold rounded-lg border-2 transition-all"
+                className="px-6 py-3 text-sm font-bold rounded-lg border-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 style={{
-                  borderColor: '#d1d5db',
-                  color: '#374151',
-                  backgroundColor: 'white'
+                  borderColor: '#ffffff',
+                  color: '#ffffff',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(10px)'
                 }}
               >
-                Back to Dashboard
+                ← Back to Dashboard
               </a>
               <button 
                 onClick={downloadPDF}
-                className="px-6 py-2 text-sm font-semibold rounded-lg text-white transition-all"
+                className="px-8 py-3 text-sm font-bold rounded-lg text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 style={{
-                  background: 'linear-gradient(to right, #7c3aed, #a855f7)'
+                  background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)'
                 }}
               >
-                Download PDF
+                📄 Download PDF
               </button>
               <button 
                 onClick={downloadTXT}
-                className="px-4 py-2 text-sm font-semibold rounded-lg text-white transition-all"
+                className="px-6 py-3 text-sm font-bold rounded-lg text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 style={{
-                  background: 'linear-gradient(to right, #f97316, #fb923c)'
+                  background: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)'
                 }}
               >
-                Download TXT
+                📝 Download TXT
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-6 py-12">
         
-        {/* Company Profile + POC Profile */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Company & POC - Side by Side Cards with Shadow */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           
-          <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
-            <h2 className="text-base font-bold mb-4" style={{color: '#1f2937'}}>
-              Company Profile
-            </h2>
-            <div>
-              <DataRow label="Co. Name" value={company.name} />
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
+            <SectionHeader title="Company Profile" icon="🏢" />
+            <div className="space-y-1">
+              <DataRow label="Company Name" value={company.name} />
               <DataRow label="Industry" value={company.industry} />
               <DataRow label="Annual Revenue" value={company.revenue} />
               <DataRow label="Employee Size" value={company.size} />
@@ -382,11 +395,9 @@ export default function CompanyProfile() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
-            <h2 className="text-base font-bold mb-4" style={{color: '#1f2937'}}>
-              POC Profile
-            </h2>
-            <div>
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
+            <SectionHeader title="Point of Contact" icon="👤" />
+            <div className="space-y-1">
               <DataRow label="Name" value={poc.name} />
               <DataRow label="Email Address" value={poc.email} />
               <DataRow label="Department" value={poc.department} />
@@ -398,61 +409,65 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* General Benefits + Current Support */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Benefits & Support */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           
-          <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
-            <h2 className="text-base font-bold mb-4" style={{color: '#1f2937'}}>
-              General Benefits Landscape
-            </h2>
-            <div>
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
+            <SectionHeader title="General Benefits Landscape" icon="💼" />
+            <div className="space-y-1">
               <DataRow label="% of Emp w/ access to national healthcare" value={benefits.nationalHealthcare} />
               <DataRow label="% of Emp eligible for Standard Benefits" value={benefits.eligibility} />
               
-              <div className="py-3 border-b" style={{borderColor: '#e5e7eb'}}>
-                <div className="text-xs font-bold" style={{color: '#1f2937'}}>Types of Benefits offered:</div>
+              <div className="pt-4 pb-2">
+                <div className="text-xs font-bold uppercase tracking-wide" style={{color: '#f97316'}}>Types of Benefits Offered</div>
               </div>
-              <DataRow label="Standard Benefits offered" value={benefits.standard} />
-              <DataRow label="Leave & flexibility programs" value={benefits.leave} />
-              <DataRow label="Wellness & support programs" value={benefits.wellness} />
-              <DataRow label="Financial & legal assistance programs" value={benefits.financial} />
-              <DataRow label="Care navigation & support services" value={benefits.navigation} />
               
-              <DataRow label="Programs plan to rollout over N2Y" value={benefits.planned} />
-              <DataRow label="Approach to remote / hybrid work" value={benefits.remote} />
+              <DataRow label="Standard Benefits" value={benefits.standard} />
+              <DataRow label="Leave & Flexibility Programs" value={benefits.leave} />
+              <DataRow label="Wellness & Support Programs" value={benefits.wellness} />
+              <DataRow label="Financial & Legal Assistance" value={benefits.financial} />
+              <DataRow label="Care Navigation & Support" value={benefits.navigation} />
+              <DataRow label="Programs Planned (Next 2 Years)" value={benefits.planned} />
+              <DataRow label="Remote / Hybrid Work Approach" value={benefits.remote} />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
-            <h2 className="text-base font-bold mb-4" style={{color: '#1f2937'}}>
-              Current Support for EMCs
-            </h2>
-            <div>
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
+            <SectionHeader title="Current Support for EMCs" icon="🤝" />
+            <div className="space-y-1">
               <DataRow label="Status of Support Offerings" value={support.status} />
-              <DataRow label="Current approach to supporting EMCs" value={support.approach} />
-              <DataRow label="% of Emp excluded from workplace support benefits" value={support.excludedPercent} />
-              <DataRow label="Emp Groups excluded from workplace support benefits" value={support.excluded} />
-              <DataRow label="Triggers for developing programs" value={support.triggers} />
+              <DataRow label="Current Approach to Supporting EMCs" value={support.approach} />
+              <DataRow label="% of Employees Excluded" value={support.excludedPercent} />
+              <DataRow label="Employee Groups Excluded" value={support.excluded} />
+              <DataRow label="Triggers for Developing Programs" value={support.triggers} />
               {support.impactfulChange && (
-                <DataRow label="Most impactful change" value={support.impactfulChange} />
+                <DataRow label="Most Impactful Change" value={support.impactfulChange} />
               )}
               {support.barriers && (
-                <DataRow label="Barriers to development" value={support.barriers} />
+                <DataRow label="Barriers to Development" value={support.barriers} />
               )}
-              <DataRow label="Primary caregiver support programs offered" value={support.caregiver} />
-              <DataRow label="How monitor effectiveness of workplace support program" value={support.monitoring} />
+              <DataRow label="Caregiver Support Programs" value={support.caregiver} />
+              <DataRow label="How Effectiveness is Monitored" value={support.monitoring} />
             </div>
           </div>
         </div>
 
-        {/* 13 Dimensions */}
+        {/* 13 Dimensions - Full Width Header */}
         {data.dimensions && data.dimensions.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-lg font-bold mb-4" style={{color: '#1f2937'}}>
-              13 Dimensions of Support
-            </h2>
+          <div className="mb-12">
+            <div className="text-center mb-10">
+              <h2 className="text-4xl font-black mb-3" style={{
+                background: 'linear-gradient(135deg, #7c3aed 0%, #f97316 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                13 Dimensions of Support
+              </h2>
+              <p className="text-gray-600">Comprehensive assessment across all dimensions</p>
+            </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {data.dimensions.map((dim: any) => {
                 const dimData = dim.data || {};
                 const hasData = Object.keys(dimData).length > 0;
@@ -468,25 +483,30 @@ export default function CompanyProfile() {
                 if (filteredData.length === 0) return null;
                 
                 return (
-                  <div key={dim.number} className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
-                    <h3 className="text-base font-bold mb-4" style={{color: '#7c3aed'}}>
-                      Dimension {dim.number}: {dim.name}
-                    </h3>
-                    <div>
+                  <div key={dim.number} className="bg-white rounded-2xl p-8 shadow-xl border-2 hover:shadow-2xl transition-all" style={{borderColor: '#7c3aed'}}>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg" style={{background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)'}}>
+                        {dim.number}
+                      </div>
+                      <h3 className="text-lg font-bold flex-1" style={{color: '#7c3aed'}}>
+                        {dim.name}
+                      </h3>
+                    </div>
+                    <div className="space-y-1">
                       {filteredData.map(([key, value]: [string, any]) => {
                         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
                           const entries = Object.entries(value);
                           return (
-                            <div key={key} className="mb-3">
-                              <div className="text-xs font-bold mb-2 pb-2" style={{color: '#1f2937', borderBottom: '1px solid #e5e7eb'}}>
+                            <div key={key} className="mb-4 pb-4 border-b border-gray-200">
+                              <div className="text-xs font-bold uppercase tracking-wide mb-3" style={{color: '#f97316'}}>
                                 Programs & Offerings
                               </div>
-                              <div>
+                              <div className="space-y-2">
                                 {entries.map(([item, status]: [string, any]) => (
-                                  <div key={item} className="flex items-center justify-between py-3 border-b" style={{borderColor: '#e5e7eb'}}>
-                                    <div className="text-xs font-medium flex-1 pr-4" style={{color: '#6b7280'}}>{item}</div>
+                                  <div key={item} className="flex items-center justify-between gap-4 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+                                    <span className="text-xs font-medium flex-1" style={{color: '#4b5563'}}>{item}</span>
                                     <span 
-                                      className="inline-block px-2 py-1 rounded text-xs font-medium whitespace-nowrap"
+                                      className="inline-block px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap"
                                       style={{
                                         backgroundColor: status === 'Currently offer' ? '#d1fae5' : 
                                                         status === 'In active planning / development' ? '#dbeafe' :
@@ -528,18 +548,18 @@ export default function CompanyProfile() {
 
         {/* Assessment Sections */}
         {(Object.keys(data.cross || {}).length > 0 || Object.keys(data.impact || {}).length > 0) && (
-          <div className="mb-6">
-            <h2 className="text-lg font-bold mb-4" style={{color: '#1f2937'}}>
-              Assessment Sections
-            </h2>
+          <div className="mb-12">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-black mb-2" style={{color: '#1f2937'}}>
+                Additional Assessments
+              </h2>
+            </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {Object.keys(data.cross || {}).length > 0 && (
-                <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
-                  <h3 className="text-base font-bold mb-4" style={{color: '#7c3aed'}}>
-                    Cross-Dimensional Assessment
-                  </h3>
-                  <div>
+                <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
+                  <SectionHeader title="Cross-Dimensional" icon="🔗" />
+                  <div className="space-y-1">
                     {Object.entries(data.cross).map(([key, value]: [string, any]) => (
                       <DataRow key={key} label={key.toUpperCase()} value={formatArray(value)} />
                     ))}
@@ -548,11 +568,9 @@ export default function CompanyProfile() {
               )}
 
               {Object.keys(data.impact || {}).length > 0 && (
-                <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
-                  <h3 className="text-base font-bold mb-4" style={{color: '#7c3aed'}}>
-                    Employee Impact Assessment
-                  </h3>
-                  <div>
+                <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
+                  <SectionHeader title="Employee Impact" icon="📊" />
+                  <div className="space-y-1">
                     {Object.entries(data.impact).map(([key, value]: [string, any]) => (
                       <DataRow key={key} label={key.toUpperCase()} value={formatArray(value)} />
                     ))}
