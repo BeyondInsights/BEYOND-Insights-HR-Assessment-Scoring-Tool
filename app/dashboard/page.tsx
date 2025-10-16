@@ -132,7 +132,6 @@ export default function DashboardPage() {
     general: genProg,
     current: curProg,
   })
-}
       // Calculate progress for advanced sections
       const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}')
       const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}')
