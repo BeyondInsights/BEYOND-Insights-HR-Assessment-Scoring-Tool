@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -15,11 +15,11 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 const D7A_ITEMS_BASE = [
-  "Continued access to training/development",
+  "Continued access to training / development",
   "Structured reintegration programs",
   "Peer mentorship program (employees who had similar condition mentoring current employees)",
-  "Professional coach/mentor for employees managing cancer or other serious health conditions",
-  "Adjusted performance goals/deliverables during treatment and recovery",
+  "Professional coach / mentor for employees managing cancer or other serious health conditions",
+  "Adjusted performance goals / deliverables during treatment and recovery",
   "Career coaching for employees managing cancer or other serious health conditions",
   "Succession planning protections",
   "Project continuity protocols",
@@ -318,7 +318,7 @@ export default function Dimension7Page() {
                     {D7A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
-                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                    We recognize that implementation may vary based on country / jurisdiction-specific laws and regulations.
                   </p>
 
                   <div className="space-y-2">

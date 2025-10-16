@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 export default function GeneralBenefitsPage() {
   console.log("GENERAL BENEFITS PAGE LOADED");
@@ -153,13 +153,13 @@ export default function GeneralBenefitsPage() {
     "Life insurance",
     "Short-term disability (or temporary incapacity benefits)",
     "Long-term disability (or income protection)",
-    "Paid time off (PTO/vacation)",
+    "Paid time off (PTO / vacation)",
     "Sick days (separate from PTO and legally mandated sick leave)",
     "None of these"
   ];
 
   const CB1_LEAVE = [
-    "Paid family/medical leave beyond legal requirements",
+    "Paid family / medical leave beyond legal requirements",
     "Flexible work schedules",
     "Remote work options",
     "Job sharing programs",
@@ -181,10 +181,10 @@ export default function GeneralBenefitsPage() {
   ];
 
   const CB1_FINANCIAL = [
-    "Financial counseling/planning",
+    "Financial counseling / planning",
     "Student loan assistance",
     "Identity theft protection",
-    "Legal assistance/services (will preparation, family law, medical directives)",
+    "Legal assistance / services (will preparation, family law, medical directives)",
     "None of these"
   ];
 
@@ -235,7 +235,7 @@ export default function GeneralBenefitsPage() {
 }}
               className="text-sm text-orange-600 hover:text-orange-700 font-medium"
             >
-              ← Back to Dashboard
+              ? Back to Dashboard
             </button>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -663,7 +663,7 @@ export default function GeneralBenefitsPage() {
 }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Save & Continue to Dashboard →
+              Save & Continue to Dashboard ?
             </button>
           </div>
         )}
@@ -676,7 +676,7 @@ export default function GeneralBenefitsPage() {
                 onClick={back} 
                 className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
               >
-                ← Back
+                ? Back
               </button>
             ) : (
               <span />
@@ -685,7 +685,7 @@ export default function GeneralBenefitsPage() {
               onClick={next} 
               className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Next →
+              Next ?
             </button>
           </div>
         )}

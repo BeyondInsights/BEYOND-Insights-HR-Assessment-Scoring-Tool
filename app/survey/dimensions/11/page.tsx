@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -16,17 +16,17 @@ function shuffleArray<T>(array: T[]): T[] {
 
 const D11A_ITEMS_BASE = [
   "At least 70% coverage for regionally / locally recommended screenings",
-  "Full or partial coverage for annual health screenings/checkups",
+  "Full or partial coverage for annual health screenings / checkups",
   "Targeted risk-reduction programs",
   "Paid time off for preventive care appointments",
   "Legal protections beyond requirements",
   "Workplace safety assessments to minimize health risks",
   "Regular health education sessions",
   "Individual health assessments (online or in-person)",
-  "Genetic screening/counseling",
+  "Genetic screening / counseling",
   "On-site vaccinations",
   "Lifestyle coaching programs",
-  "Risk factor tracking/reporting",
+  "Risk factor tracking / reporting",
   "Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)"
 ];
 
@@ -125,9 +125,9 @@ export default function Dimension11Page() {
   const showD11aa = isMultiCountry && hasAnyOffered;
   const showD11_1 = ans.d11a?.["At least 70% coverage for regionally / locally recommended screenings"] === "Currently offer";
   const D11_1_OPTIONS = [
-    "Cervical cancer screening (Pap smear/HPV test)",
+    "Cervical cancer screening (Pap smear / HPV test)",
     "Colonoscopy (colorectal cancer)",
-    "Dense breast tissue screening (ultrasound/MRI)",
+    "Dense breast tissue screening (ultrasound / MRI)",
     "Gastric / stomach cancer screening",
     "H. pylori testing",
     "Liver cancer screening (AFP test + ultrasound)",
@@ -137,7 +137,7 @@ export default function Dimension11Page() {
     "Skin cancer screening",
     "Other cancer screening (specify):",
     // GENETIC TESTING
-    "BRCA1/BRCA2 testing (breast/ovarian cancer risk)",
+    "BRCA1 / BRCA2 testing (breast / ovarian cancer risk)",
     "Lynch syndrome testing (colorectal cancer risk)",
     "Genetic counseling services",
     "Other genetic testing (specify):",
@@ -367,7 +367,7 @@ export default function Dimension11Page() {
                     {D11A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
-                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                    We recognize that implementation may vary based on country / jurisdiction-specific laws and regulations.
                   </p>
 
                   <div className="space-y-2">

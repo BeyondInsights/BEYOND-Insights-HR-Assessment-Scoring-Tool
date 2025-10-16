@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -17,9 +17,9 @@ function shuffleArray<T>(array: T[]): T[] {
   const D1A_ITEMS_BASE = [
     "Paid medical leave beyond local / legal requirements",
     "Intermittent leave beyond local / legal requirements",
-    "Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)",
+    "Flexible work hours during treatment (e.g., varying start / end times, compressed schedules)",
     "Remote work options for on-site employees",
-    "Reduced schedule/part-time with full benefits",
+    "Reduced schedule / part-time with full benefits",
     "Job protection beyond local / legal requirements",
     "Emergency leave within 24 hours",
     "Leave donation bank (employees can donate PTO to colleagues)",
@@ -141,7 +141,7 @@ const goToItem = (index: number) => {
   const showD1_1 = ans.d1a?.["Paid medical leave beyond local / legal requirements"] === "Currently offer";
   const showD1_2 = ans.d1a?.["Intermittent leave beyond local / legal requirements"] === "Currently offer";
   const showD1_4a = ans.d1a?.["Remote work options for on-site employees"] === "Currently offer";
-  const showD1_4b = ans.d1a?.["Reduced schedule/part-time with full benefits"] === "Currently offer";
+  const showD1_4b = ans.d1a?.["Reduced schedule / part-time with full benefits"] === "Currently offer";
   const showD1_5 = ans.d1a?.["Job protection beyond local / legal requirements"] === "Currently offer";
   const showD1_6 = ans.d1a?.["Disability pay top-up (employer adds to disability insurance)"] === "Currently offer";
 
@@ -342,7 +342,7 @@ return (
       {isEditMode && (
         <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-600 rounded">
           <p className="text-blue-800 font-medium">
-            ✏️ You've already completed this dimension. You can review and edit your responses below.
+            ?? You've already completed this dimension. You can review and edit your responses below.
           </p>
         </div>
       )}
@@ -364,23 +364,23 @@ return (
                 <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
                 <ul className="space-y-3 text-gray-700">
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">�</span>
                     <span>You'll see different support options associated with this dimension, one at a time</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">�</span>
                     <span><strong>Indicate the current status of each option within your organization</strong></span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">�</span>
                     <span>After selecting a response, it will automatically advance to the next option</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">�</span>
                     <span>Use the navigation dots or arrows to review or change any response</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">�</span>
                     <span>Once all support options are evaluated, the Continue button will appear</span>
                   </li>
                 </ul>
@@ -457,7 +457,7 @@ return (
                     {D1A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
-                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                    We recognize that implementation may vary based on country / jurisdiction-specific laws and regulations.
                   </p>
                   
                   <div className="space-y-2">
@@ -507,7 +507,7 @@ return (
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous option
+                  ? View previous option
                 </button>
 
                 {/* Continue button only shows when ALL items answered */}
@@ -516,7 +516,7 @@ return (
                     onClick={next}
                     className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
                   >
-                    Continue →
+                    Continue ?
                   </button>
                 )}
               </div>
@@ -608,7 +608,7 @@ return (
               <table className="w-full border border-gray-300 table-fixed">
                 <thead>
                   <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-                    <th className="text-left p-2 border-b border-r font-medium w-1/4">Market</th>
+                    <th className="text-left p-2 border-b border-r font-medium w-1 / 4">Market</th>
                     <th className="p-2 border-b border-r text-center text-sm">1 to less than<br/>3 weeks</th>
                     <th className="p-2 border-b border-r text-center text-sm">3 to less than<br/>5 weeks</th>
                     <th className="p-2 border-b border-r text-center text-sm">5 to less than<br/>9 weeks</th>
@@ -771,12 +771,12 @@ return (
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Remote Work Time</h3>
             
             <p className="text-gray-700 mb-6">
-              Beyond local/legal requirements and your standard company policy, how much <strong>additional</strong> remote work time do you provide for employees <strong>managing cancer or another serious health condition</strong> in positions that normally require on-site / office presence?
+              Beyond local / legal requirements and your standard company policy, how much <strong>additional</strong> remote work time do you provide for employees <strong>managing cancer or another serious health condition</strong> in positions that normally require on-site / office presence?
             </p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
             <div className="space-y-2">
-              {/* Number inputs for weeks/months */}
+              {/* Number inputs for weeks / months */}
               <div className="border-2 border-gray-200 rounded-lg p-4">
                 <label className="flex items-center">
                   <input
@@ -859,10 +859,10 @@ return (
         {/* D1.4b - Reduced schedule with full benefits */}
         {step === 7 && showD1_4b && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Part-Time/Reduced Schedule with Full Benefits</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Part-Time / Reduced Schedule with Full Benefits</h3>
             
             <p className="text-gray-700 mb-6">
-              Beyond local/legal requirements and your standard company policy, how long can employees <strong>managing cancer or another serious health condition</strong> work part-time/reduced schedule while keeping full benefits?
+              Beyond local / legal requirements and your standard company policy, how long can employees <strong>managing cancer or another serious health condition</strong> work part-time / reduced schedule while keeping full benefits?
             </p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
@@ -910,7 +910,7 @@ return (
               <table className="w-full border border-gray-300 table-fixed">
                 <thead>
                   <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-                    <th className="text-left p-2 border-b border-r font-medium w-1/4">Market</th>
+                    <th className="text-left p-2 border-b border-r font-medium w-1 / 4">Market</th>
                     <th className="p-2 border-b border-r text-center text-sm">1 to less than<br/>4 weeks</th>
                     <th className="p-2 border-b border-r text-center text-sm">4 to less than<br/>12 weeks</th>
                     <th className="p-2 border-b border-r text-center text-sm">12 to less than<br/>26 weeks</th>
@@ -1052,7 +1052,7 @@ return (
       }}
       className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
     >
-      Save & Return to Dashboard →
+      Save & Return to Dashboard ?
     </button>
   </div>
 )}
@@ -1064,13 +1064,13 @@ return (
       onClick={back} 
       className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
     >
-      ← Back
+      ? Back
     </button>
     <button 
       onClick={next} 
       className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
     >
-      Continue →
+      Continue ?
     </button>
   </div>
 )}

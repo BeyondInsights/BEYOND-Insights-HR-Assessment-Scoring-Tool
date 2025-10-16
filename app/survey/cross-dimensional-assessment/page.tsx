@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 import { Info, X } from "lucide-react";
 
 // Fisher-Yates shuffle algorithm
@@ -147,10 +147,10 @@ export default function CrossDimensionalPage() {
   };
 
   const CD2_CHALLENGES = [
-    "Budget/resource constraints",
+    "Budget / resource constraints",
     "Lack of executive support",
-    "Complex/varying legal requirements across markets",
-    "Manager capability/training gaps",
+    "Complex / varying legal requirements across markets",
+    "Manager capability / training gaps",
     "Employee privacy concerns",
     "Difficulty measuring program effectiveness",
     "Low employee awareness of available programs",

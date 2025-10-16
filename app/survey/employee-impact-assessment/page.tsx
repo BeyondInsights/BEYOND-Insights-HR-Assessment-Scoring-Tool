@@ -1,11 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 const EI1_ITEMS = [
-  "Employee retention/tenure",
+  "Employee retention / tenure",
   "Employee morale",
   "Job satisfaction scores",
   "Productivity during treatment",
@@ -69,7 +69,7 @@ export default function EmployeeImpactPage() {
         if (parsed.assignedQuestion) {
           setAssignedQuestion(parsed.assignedQuestion);
         } else {
-          // Randomly assign them to EI4 or EI5 (50/50 split)
+          // Randomly assign them to EI4 or EI5 (50 / 50 split)
           const assigned = Math.random() < 0.5 ? 'ei4' : 'ei5';
           setAssignedQuestion(assigned);
           setAns((prev: any) => ({ ...prev, assignedQuestion: assigned }));
@@ -146,7 +146,7 @@ export default function EmployeeImpactPage() {
         return "Please select an option";
       }
     }
-    // No validation needed for step 4 (EI4/EI5) - text is optional
+    // No validation needed for step 4 (EI4 / EI5) - text is optional
     return null;
   };
 
@@ -161,7 +161,7 @@ export default function EmployeeImpactPage() {
     if (step === 2) {
       const skipToEI4 = ["currently_conducting", "planning", "no_plans"].includes(ans.ei2);
       if (skipToEI4) {
-        setStep(4); // Skip EI3, go directly to EI4/EI5
+        setStep(4); // Skip EI3, go directly to EI4 / EI5
       } else {
         setStep(3); // Go to EI3
       }
@@ -181,7 +181,7 @@ export default function EmployeeImpactPage() {
 
   const back = () => {
     if (step === 4 && ["currently_conducting", "planning", "no_plans"].includes(ans.ei2)) {
-      // If we're at EI4/EI5 and we skipped EI3, go back to EI2
+      // If we're at EI4 / EI5 and we skipped EI3, go back to EI2
       setStep(2);
     } else if (step > 1) {
       setStep(step - 1);
@@ -419,7 +419,7 @@ export default function EmployeeImpactPage() {
           </div>
         )}
 
-        {/* Step 4: EI4 OR EI5 (50/50 split) */}
+        {/* Step 4: EI4 OR EI5 (50 / 50 split) */}
         {step === 4 && assignedQuestion === 'ei4' && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Advice for Other HR Leaders</h2>
