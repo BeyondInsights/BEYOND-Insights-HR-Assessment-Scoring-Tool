@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -20,9 +20,9 @@ const D13A_ITEMS_BASE = [
   "Regular company-wide awareness campaigns (at least quarterly)",
   "New hire orientation coverage",
   "Manager toolkit for cascade communications",
-  "Employee testimonials/success stories",
+  "Employee testimonials / success stories",
   "Multi-channel communication strategy",
-  "Family/caregiver communication inclusion",
+  "Family / caregiver communication inclusion",
   "Anonymous information access options"
 ];
 
@@ -325,7 +325,7 @@ export default function Dimension13Page() {
                     {D13A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
-                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                    We recognize that implementation may vary based on country / jurisdiction-specific laws and regulations.
                   </p>
 
                   <div className="space-y-2">
@@ -471,7 +471,7 @@ export default function Dimension13Page() {
                 "Quarterly",
                 "Twice per year",
                 "Annually (typically during enrollment or on World Cancer Day)",
-                "Only when asked/reactive only",
+                "Only when asked / reactive only",
                 "No regular communication schedule"
               ].map(opt => (
                 <button

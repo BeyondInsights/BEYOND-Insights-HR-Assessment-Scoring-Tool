@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 export default function CurrentSupportPage() {
   const router = useRouter();
@@ -261,10 +261,10 @@ export default function CurrentSupportPage() {
     "Leadership personal experience with cancer",
     "Keep up with industry standards and peer company practices",
     "Employee survey feedback",
-    "Recruitment/retention goals or challenges",
+    "Recruitment / retention goals or challenges",
     "Legal case or compliance issue",
     "Union negotiations",
-    "ESG/corporate responsibility commitments",
+    "ESG / corporate responsibility commitments",
     "Inspired by Working with Cancer Initiative or similar programs",
     "Other (specify)"
   ];
@@ -275,13 +275,13 @@ export default function CurrentSupportPage() {
     "Lack of executive support",
     "Small number of cases doesn't justify investment",
     "Concerns about setting precedent",
-    "Limited HR and/or Benefits team bandwidth",
-    "Lack of expertise/knowledge",
+    "Limited HR and / or Benefits team bandwidth",
+    "Lack of expertise / knowledge",
     "Other priorities take precedence",
     "Concerns about fairness across conditions",
     "Uncertainty about ROI",
     "Data privacy concerns (HIPAA, GDPR, other regulations)",
-    "Complex/varying legal requirements across markets",
+    "Complex / varying legal requirements across markets",
     "Global consistency challenges",
     "Some other reason (specify)"
   ];
@@ -294,13 +294,13 @@ export default function CurrentSupportPage() {
     "Unpaid leave with job protection",
     "Employee assistance program (EAP) counseling",
     "Caregiver support groups",
-    "Referrals to eldercare/dependent care resources",
+    "Referrals to eldercare / dependent care resources",
     "Financial assistance or subsidies",
     "Respite care coverage",
-    "Modified job duties/reduced workload",
+    "Modified job duties / reduced workload",
     "Manager training on supporting caregivers",
     "Emergency dependent care when regular arrangements unavailable",
-    "Legal/financial planning resources",
+    "Legal / financial planning resources",
     "Some other support (specify):",
     "Not able to provide caregiver support at this time"
   ];

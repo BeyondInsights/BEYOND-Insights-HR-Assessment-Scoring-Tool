@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -18,14 +18,14 @@ const D2A_ITEMS_BASE = [
     "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance",
     "Paid time off for clinical trial participation",
     "Set out-of-pocket maximums (for in-network single coverage)",
-    "Travel/lodging reimbursement for specialized care beyond insurance coverage",
+    "Travel / lodging reimbursement for specialized care beyond insurance coverage",
     "Financial counseling services",
     "Voluntary supplemental illness insurance (with employer contribution)",
     "Real-time cost estimator tools",
-    "Insurance advocacy/pre-authorization support",
+    "Insurance advocacy / pre-authorization support",
     "$0 copay for specialty drugs",
     "Hardship grants program funded by employer",
-    "Tax/estate planning assistance",
+    "Tax / estate planning assistance",
     "Short-term disability covering 60%+ of salary",
     "Long-term disability covering 60%+ of salary",
     "Employer-paid disability insurance supplements",
@@ -331,7 +331,7 @@ useEffect(() => {
                     {D2A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
-                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                    We recognize that implementation may vary based on country / jurisdiction-specific laws and regulations.
                   </p>
                   <div className="space-y-2">
                     {STATUS_OPTIONS.map((status) => (

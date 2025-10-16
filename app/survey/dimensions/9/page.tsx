@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -18,14 +18,14 @@ const D9A_ITEMS_BASE = [
   "Executive accountability metrics",
   "Public success story celebrations",
   "Compensation tied to support outcomes",
-  "ESG/CSR reporting inclusion",
+  "ESG / CSR reporting inclusion",
   "Year-over-year budget growth",
   "Executive sponsors communicate regularly about workplace support programs",
   "Dedicated budget allocation for serious illness support programs",
-  "C-suite executive serves as program champion/sponsor",
-  "Support programs included in investor/stakeholder communications",
+  "C-suite executive serves as program champion / sponsor",
+  "Support programs included in investor / stakeholder communications",
   "Cross-functional executive steering committee for workplace support programs",
-  "Support metrics included in annual report/sustainability reporting"
+  "Support metrics included in annual report / sustainability reporting"
 ];
 
 export default function Dimension9Page() {

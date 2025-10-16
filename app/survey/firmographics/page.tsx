@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 export default function FirmographicsPage() {
   console.log("FIRMOGRAPHICS PAGE LOADED");
@@ -129,7 +129,7 @@ export default function FirmographicsPage() {
 
       case 9: // Revenue & Remote policy  
         if (!ans.c5) return "Please select annual revenue";
-        if (!ans.c6) return "Please select remote/hybrid work approach";
+        if (!ans.c6) return "Please select remote / hybrid work approach";
         return null;
 
       default:
@@ -193,7 +193,7 @@ export default function FirmographicsPage() {
 
   const S5_LEVEL = [
     "C-level executive (CHRO, CPO)",
-    "Executive/Senior Vice President",
+    "Executive / Senior Vice President",
     "Vice President",
     "Director",
     "Senior Manager",
@@ -261,10 +261,10 @@ export default function FirmographicsPage() {
   
   const C4_EXCLUDED = [
   "Part-time employees",
-  "Contract/temporary workers",
-  "Employees in certain countries/regions",
+  "Contract / temporary workers",
+  "Employees in certain countries / regions",
   "Employees below certain tenure",
-  "Certain job levels/categories",
+  "Certain job levels / categories",
   "Some other group (specify):",  // ← FIXED to match button text
   "None - all eligible for standard benefits"
 ];
@@ -283,12 +283,12 @@ export default function FirmographicsPage() {
   ];
 
   const C6_REMOTE = [
-    "Fully flexible - Most roles can be remote/hybrid by employee choice",
+    "Fully flexible - Most roles can be remote / hybrid by employee choice",
     "Selectively flexible - Many roles eligible based on job requirements",
     "Limited flexibility - Some roles eligible but most require on-site presence",
-    "Minimal flexibility - Very few roles eligible for remote/hybrid",
+    "Minimal flexibility - Very few roles eligible for remote / hybrid",
     "No flexibility - All employees required on-site",
-    "Varies significantly by location/business unit"
+    "Varies significantly by location / business unit"
   ];
 
   const INDUSTRIES = {
@@ -322,7 +322,7 @@ export default function FirmographicsPage() {
     ],
     "Other Sectors": [
       "Government / Public Administration",
-      "Non-profit/NGO",
+      "Non-profit / NGO",
       "Other industry / Services (specify)"
     ]
   };
@@ -882,11 +882,11 @@ export default function FirmographicsPage() {
               </div>
             </div>
 
-            {/* C6: Remote/Hybrid - UPDATED OPTIONS */}
+            {/* C6: Remote / Hybrid - UPDATED OPTIONS */}
             <div>
               <p className="text-base font-bold text-gray-900 mb-1">
                 Which best describes your organization's approach to{" "}
-                <span className="text-blue-600">remote/hybrid work</span>?
+                <span className="text-blue-600">remote / hybrid work</span>?
               </p>
               <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
               <div className="space-y-2 max-w-3xl">

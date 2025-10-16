@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -19,16 +19,16 @@ const D10A_ITEMS_BASE = [
   "Flexible work arrangements for caregivers",
   "Dependent care subsidies",
   "Emergency caregiver funds",
-  "Dependent care account matching/contributions",
+  "Dependent care account matching / contributions",
   "Family navigation support",
   "Caregiver peer support groups",
   "Mental health support specifically for caregivers",
   "Manager training for supervising caregivers",
   "Practical support for managing caregiving and work",
   "Emergency dependent care when regular arrangements unavailable",
-  "Respite care funding/reimbursement",
-  "Caregiver resource navigator/concierge",
-  "Legal/financial planning assistance for caregivers",
+  "Respite care funding / reimbursement",
+  "Caregiver resource navigator / concierge",
+  "Legal / financial planning assistance for caregivers",
   "Modified job duties during peak caregiving periods",
   "Unpaid leave job protection beyond local / legal requirements",
   "Eldercare consultation and referral services",
@@ -327,7 +327,7 @@ export default function Dimension10Page() {
                     {D10A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
-                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                    We recognize that implementation may vary based on country / jurisdiction-specific laws and regulations.
                   </p>
 
                   <div className="space-y-2">

@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -19,7 +19,7 @@ function shuffleArray<T>(array: T[]): T[] {
     "Manager training on handling sensitive health information",
     "Written anti-retaliation policies for health disclosures",
     "Employee peer support groups (internal employees with shared experience)",
-    "Professional-led support groups (external facilitator/counselor)",
+    "Professional-led support groups (external facilitator / counselor)",
     "Stigma-reduction initiatives",
     "Specialized emotional counseling",
     "Optional open health dialogue forums",
@@ -348,7 +348,7 @@ export default function Dimension6Page() {
                     {D6A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
-                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                    We recognize that implementation may vary based on country / jurisdiction-specific laws and regulations.
                   </p>
 
                   <div className="space-y-2">

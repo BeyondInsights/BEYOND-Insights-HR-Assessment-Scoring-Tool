@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -19,14 +19,14 @@ const D8A_ITEMS_BASE = [
   "Phased return-to-work plans",
   "Workload adjustments during treatment",
   "Flexibility for medical setbacks",
-  "Buddy/mentor pairing for support",
+  "Buddy / mentor pairing for support",
   "Structured progress reviews",
   "Contingency planning for treatment schedules",
   "Long-term success tracking",
-  "Access to occupational therapy/vocational rehabilitation",
+  "Access to occupational therapy / vocational rehabilitation",
   "Online peer support forums",
   "Access to specialized work resumption professionals",
-  "Manager training on supporting team members during treatment/return"
+  "Manager training on supporting team members during treatment / return"
 ];
 
 export default function Dimension8Page() {
@@ -327,7 +327,7 @@ export default function Dimension8Page() {
                     {D8A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
-                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                    We recognize that implementation may vary based on country / jurisdiction-specific laws and regulations.
                   </p>
 
                   <div className="space-y-2">

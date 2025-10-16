@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -14,10 +14,10 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 const D3A_ITEMS_BASE = [
-    "Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams",
+    "Manager training on supporting employees managing cancer or other serious health conditions / illnesses and their teams",
     "Clear escalation protocol for manager response",
     "Dedicated manager resource hub",
-    "Empathy/communication skills training",
+    "Empathy / communication skills training",
     "Legal compliance training",
     "Senior leader coaching on supporting impacted employees",
     "Manager evaluations include how well they support impacted employees",
@@ -359,7 +359,7 @@ useEffect(() => {
   {D3A_ITEMS[currentItemIndex]}
 </h3>
 <p className="text-xs italic text-gray-600 mb-4">
-  We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+  We recognize that implementation may vary based on country / jurisdiction-specific laws and regulations.
 </p>
 
 <div className="space-y-2">

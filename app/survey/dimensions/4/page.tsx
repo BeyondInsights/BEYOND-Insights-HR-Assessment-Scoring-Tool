@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useRouter } from "next / navigation";
+import Header from "@/components / Header";
+import Footer from "@/components / Footer";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -15,14 +15,14 @@ function shuffleArray<T>(array: T[]): T[] {
  const D4A_ITEMS_BASE = [
     "Dedicated navigation support to help employees understand benefits and access medical care",
     "Benefits optimization assistance (maximizing coverage, minimizing costs)",
-    "Insurance advocacy/appeals support",
+    "Insurance advocacy / appeals support",
     "Clinical trial matching service",
     "Care coordination concierge",
-    "Online tools, apps, or portals for health/benefits support",
+    "Online tools, apps, or portals for health / benefits support",
     "Survivorship planning assistance",
     "Nutrition coaching",
     "Physical rehabilitation support",
-    "Occupational therapy/vocational rehabilitation"
+    "Occupational therapy / vocational rehabilitation"
   ];
 
 export default function Dimension4Page() {
@@ -357,7 +357,7 @@ export default function Dimension4Page() {
                     {D4A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
-                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                    We recognize that implementation may vary based on country / jurisdiction-specific laws and regulations.
                   </p>
 
                   <div className="space-y-2">
@@ -545,7 +545,7 @@ export default function Dimension4Page() {
             
             <div className="space-y-2">
               {[
-                "Clinical guidance from a licensed medical/healthcare professional",
+                "Clinical guidance from a licensed medical / healthcare professional",
                 "Insurance navigation",
                 "Mental health support",
                 "Caregiver resources",
