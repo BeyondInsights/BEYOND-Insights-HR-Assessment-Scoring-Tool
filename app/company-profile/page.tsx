@@ -17,8 +17,14 @@ export default function CompanyProfile() {
 
   useEffect(() => {
     const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
-    const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}');
-    const current = JSON.parse(localStorage.getItem('current-support_data') || '{}');
+    // Try both storage keys for general benefits
+    const general = JSON.parse(localStorage.getItem('general-benefits_data') || localStorage.getItem('general_benefits_data') || '{}');
+    const current = JSON.parse(localStorage.getItem('current-support_data') || localStorage.getItem('current_support_data') || '{}');
+    
+    // Load dimensions 1-3
+    const dim1 = JSON.parse(localStorage.getItem('dimension1_data') || '{}');
+    const dim2 = JSON.parse(localStorage.getItem('dimension2_data') || '{}');
+    const dim3 = JSON.parse(localStorage.getItem('dimension3_data') || '{}');
 
     // Get from authorization page storage
     const companyName = localStorage.getItem('login_company_name') || firmo.companyName || 'Organization';
@@ -37,6 +43,11 @@ export default function CompanyProfile() {
       firmographics: firmo,
       general,
       current,
+      dimensions: [
+        { number: 1, name: 'Medical Leave & Flexibility', data: dim1 },
+        { number: 2, name: 'Insurance & Financial Protection', data: dim2 },
+        { number: 3, name: 'Manager Preparedness & Capability', data: dim3 },
+      ]
     });
     setLoading(false);
   }, []);
@@ -60,12 +71,12 @@ export default function CompanyProfile() {
     return String(arr);
   };
 
-  // POC data - pulled from authorization page
+  // POC data - pulled from authorization page AND firmographics
   const poc = {
     name: `${data.firstName} ${data.lastName}`.trim() || null,
     email: data.email || null,
     department: firmo?.s3 || null,
-    jobFunction: firmo?.s4a || null,
+    jobFunction: firmo?.s4a || firmo?.s4b || null,
     title: data.title || firmo?.s5 || null,
     responsibilities: formatArray(firmo?.s6),
     influence: firmo?.s7 || null,
@@ -75,7 +86,7 @@ export default function CompanyProfile() {
   const company = {
     name: data.companyName,
     industry: firmo?.c2 || null,
-    revenue: firmo?.c4 || firmo?.c5 || null,
+    revenue: firmo?.c5 || null,  // c5 is revenue, NOT c4
     size: firmo?.s8 || null,
     hq: firmo?.s9 || null,
     countries: firmo?.s9a || null,
@@ -83,8 +94,8 @@ export default function CompanyProfile() {
 
   // General benefits data - SHOW ALL THE FUCKING DETAILS
   const benefits = {
-    nationalHealthcare: firmo?.c5 || null,
-    eligibility: firmo?.c3 || null,
+    nationalHealthcare: gen?.c5 || null,  // This is % access to national healthcare
+    eligibility: firmo?.c3 || null,  // This is % eligible for standard benefits
     // Show each category separately with ALL items
     standard: formatArray(gen?.cb1_standard),
     leave: formatArray(gen?.cb1_leave),
@@ -203,7 +214,7 @@ export default function CompanyProfile() {
         </div>
 
         {/* ROW 2: General Benefits + Current Support */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           
           {/* General Benefits Landscape */}
           <div className="bg-white border rounded-md p-4" style={{borderColor:BRAND.gray[200]}}>
@@ -243,6 +254,55 @@ export default function CompanyProfile() {
             </div>
           </div>
         </div>
+
+        {/* DIMENSIONS */}
+        {data.dimensions && data.dimensions.length > 0 && (
+          <div className="mt-6">
+            <h2 className="text-lg font-bold mb-3" style={{color:BRAND.gray[900]}}>
+              13 Dimensions of Support
+            </h2>
+            
+            {data.dimensions.map((dim: any) => {
+              const dimData = dim.data || {};
+              const hasData = Object.keys(dimData).length > 0;
+              
+              if (!hasData) return null;
+              
+              return (
+                <div key={dim.number} className="bg-white border rounded-md p-4 mb-3" style={{borderColor:BRAND.gray[200]}}>
+                  <h3 className="text-sm font-bold mb-2" style={{color:BRAND.primary}}>
+                    Dimension {dim.number}: {dim.name}
+                  </h3>
+                  <div className="space-y-0">
+                    {Object.entries(dimData).map(([key, value]: [string, any]) => {
+                      if (typeof value === 'object' && value !== null) {
+                        // Handle nested objects (like d1a, d2a, d3a grids)
+                        return (
+                          <div key={key} className="py-1.5 border-b" style={{borderColor:BRAND.gray[200]}}>
+                            <div className="text-xs font-semibold mb-1" style={{color:BRAND.gray[600]}}>
+                              {key.toUpperCase()}:
+                            </div>
+                            <div className="pl-3 space-y-0.5">
+                              {Object.entries(value).map(([item, status]: [string, any]) => (
+                                <div key={item} className="flex justify-between text-xs">
+                                  <span style={{color:BRAND.gray[700]}}>{item}</span>
+                                  <span style={{color:BRAND.gray[900]}} className="font-medium">{status}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      } else {
+                        // Handle simple key-value pairs
+                        return <Field key={key} label={key} value={value || '—'} />;
+                      }
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
       </main>
 
