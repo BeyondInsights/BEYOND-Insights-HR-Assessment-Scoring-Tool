@@ -23,7 +23,7 @@ const DIM_NAME: Record<number, string> = {
   2:'Insurance & Financial Protection',
   3:'Manager Preparedness & Capability',
   4:'Navigation & Expert Resources',
-  5:'Workplace Accommodations',
+  5:'Workplace Accommodations & Modifications',
   6:'Culture & Psychological Safety',
   7:'Career Continuity & Advancement',
   8:'Work Continuation & Resumption',
