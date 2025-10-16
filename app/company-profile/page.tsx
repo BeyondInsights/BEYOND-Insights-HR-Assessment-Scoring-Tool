@@ -451,13 +451,40 @@ ${'-'.repeat(100)}
             ))}
         </SectionCard>
 
-        {/* 13 Dimensions */}
+        {/* 13 Dimensions - ENHANCED DISPLAY */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-6" style={{ color: COLORS.orange.primary }}>
             13 Support Dimensions
           </h2>
           {reportData.sections.dimensions.map((dim, idx) => {
-            const hasDimData = Object.keys(dim.data).filter(k => dim.data[k] && dim.data[k] !== '').length > 0;
+            const dimData = dim.data;
+            const hasDimData = Object.keys(dimData).filter(k => dimData[k] && dimData[k] !== '').length > 0;
+            
+            // Separate grid items from other questions
+            const gridItems = {};
+            const customQuestions = {};
+            const multiCountry = {};
+            const openEnded = {};
+            
+            Object.entries(dimData).forEach(([key, value]) => {
+              if (key.startsWith('d' + (idx + 1) + 'a') || key.match(/^d\d+[a-z]$/i)) {
+                // Grid item responses (likert-4)
+                if (typeof value === 'object' && !Array.isArray(value)) {
+                  Object.entries(value).forEach(([item, response]) => {
+                    gridItems[item] = response;
+                  });
+                } else {
+                  gridItems[key] = value;
+                }
+              } else if (key.includes('_aa') || key.includes('d_aa')) {
+                multiCountry[key] = value;
+              } else if (key.includes('_b') || key.includes('other')) {
+                openEnded[key] = value;
+              } else {
+                customQuestions[key] = value;
+              }
+            });
+
             return (
               <SectionCard 
                 key={idx}
@@ -465,15 +492,81 @@ ${'-'.repeat(100)}
                 color={COLORS.orange}
                 hasData={hasDimData}
               >
-                {Object.entries(dim.data)
-                  .filter(([k, v]) => v && v !== '' && v !== '—')
-                  .map(([key, value]) => (
-                    <DataField 
-                      key={key} 
-                      label={key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} 
-                      value={value} 
-                    />
-                  ))}
+                {/* Grid Items - Support Options */}
+                {Object.keys(gridItems).length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-bold text-lg mb-3 pb-2 border-b-2" 
+                        style={{ color: COLORS.orange.primary, borderColor: COLORS.orange.border }}>
+                      Support Options & Status
+                    </h4>
+                    {Object.entries(gridItems).map(([item, response]) => (
+                      <div key={item} className="grid grid-cols-3 gap-4 py-2 border-b" 
+                           style={{ borderColor: COLORS.gray.light }}>
+                        <dt className="font-semibold col-span-2" style={{ color: COLORS.gray.dark }}>
+                          {item.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </dt>
+                        <dd className="col-span-1 text-right">
+                          <span className="px-3 py-1 rounded-full text-sm font-medium"
+                                style={{ 
+                                  backgroundColor: response === 'Currently offer' ? COLORS.teal.bg : 
+                                                  response === 'Plan to offer within the next 12 months' ? COLORS.orange.bg :
+                                                  response === 'Assessing feasibility' ? '#FEF3C7' : '#FEE2E2',
+                                  color: response === 'Currently offer' ? COLORS.teal.primary : 
+                                        response === 'Plan to offer within the next 12 months' ? COLORS.orange.primary :
+                                        response === 'Assessing feasibility' ? '#92400E' : '#991B1B'
+                                }}>
+                            {response}
+                          </span>
+                        </dd>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Multi-Country Implementation */}
+                {Object.keys(multiCountry).length > 0 && (
+                  <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: COLORS.teal.bg }}>
+                    <h4 className="font-bold mb-2" style={{ color: COLORS.teal.primary }}>
+                      Multi-Country Implementation
+                    </h4>
+                    {Object.entries(multiCountry).map(([key, value]) => (
+                      <DataField key={key} 
+                                label="Support Options Are" 
+                                value={value} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Custom Follow-up Questions */}
+                {Object.keys(customQuestions).length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-bold text-lg mb-3 pb-2 border-b-2" 
+                        style={{ color: COLORS.purple.primary, borderColor: COLORS.purple.border }}>
+                      Additional Details
+                    </h4>
+                    {Object.entries(customQuestions).map(([key, value]) => (
+                      <DataField key={key} 
+                                label={key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} 
+                                value={value} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Open-Ended Responses */}
+                {Object.keys(openEnded).length > 0 && (
+                  <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.purple.bg }}>
+                    <h4 className="font-bold mb-2" style={{ color: COLORS.purple.primary }}>
+                      Other Benefits Offered
+                    </h4>
+                    {Object.entries(openEnded).map(([key, value]) => (
+                      <div key={key} className="mt-2">
+                        <p className="text-sm font-medium" style={{ color: COLORS.gray.dark }}>
+                          {value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </SectionCard>
             );
           })}
