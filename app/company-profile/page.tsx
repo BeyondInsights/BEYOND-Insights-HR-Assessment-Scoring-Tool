@@ -32,7 +32,9 @@ export default function CompanyProfile() {
     const dims: any[] = [];
     for (let i = 1; i <= 13; i++) {
       const raw = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
-      dims.push({ number: i, name: DIM_TITLES[i], data: raw || {} });
+      if (Object.keys(raw).length > 0) {
+        dims.push({ number: i, name: DIM_TITLES[i], data: raw || {} });
+      }
     }
 
     const companyName = localStorage.getItem('login_company_name') || firmo.companyName || 'Organization';
@@ -76,79 +78,38 @@ export default function CompanyProfile() {
     return String(arr);
   };
 
-  const getDimensionFieldLabel = (key: string): string => {
-    // Dimension 1 - Medical Leave & Flexibility
-    if (key.includes('d1aa')) return 'Multi-country consistency';
-    if (key.includes('d1_1')) return 'Additional weeks of paid medical leave (USA)';
-    if (key.includes('d1_1b')) return 'Additional weeks of paid medical leave (Non-USA)';
-    if (key.includes('d1_2')) return 'How program effectiveness is measured';
-    if (key.includes('d1_4a')) return 'Additional remote work time allowed during treatment';
-    if (key.includes('d1_4b')) return 'Duration of part-time/reduced schedule options';
-    if (key.includes('d1_5_usa')) return 'Job protection guarantee duration (USA)';
-    if (key.includes('d1_5_non_usa')) return 'Job protection guarantee duration (Non-USA)';
-    if (key.includes('d1_6')) return 'Disability benefit enhancements offered';
+  const getDimensionFieldLabel = (key: string, dimNumber: number): string => {
+    // Dimension 1 specific
+    if (dimNumber === 1) {
+      if (key === 'd1aa') return 'Multi-country consistency';
+      if (key === 'd1_1') return 'Additional weeks of paid medical leave (USA)';
+      if (key === 'd1_1b') return 'Additional weeks of paid medical leave (Non-USA)';
+      if (key === 'd1_2') return 'How medical leave effectiveness is measured';
+      if (key === 'd1_4a') return 'Additional remote work time allowed during treatment';
+      if (key === 'd1_4b') return 'Duration of part-time/reduced schedule options';
+      if (key === 'd1_5_usa') return 'Job protection guarantee duration (USA)';
+      if (key === 'd1_5_non_usa') return 'Job protection guarantee duration (Non-USA)';
+      if (key === 'd1_6') return 'Disability benefit enhancements offered';
+    }
     
-    // Dimension 2 - Insurance & Financial Protection
-    if (key.includes('d2aa')) return 'Multi-country consistency';
-    if (key.includes('d2_1')) return 'Additional insurance coverage details';
-    if (key.includes('d2_2')) return 'How financial protection effectiveness is measured';
-    if (key.includes('d2_5')) return 'Health insurance premium handling during leave';
-    if (key.includes('d2_6')) return 'Financial counseling provider';
+    // Dimension 2 specific
+    if (dimNumber === 2) {
+      if (key === 'd2aa') return 'Multi-country consistency';
+      if (key === 'd2_1') return 'Additional insurance coverage details';
+      if (key === 'd2_2') return 'How financial protection effectiveness is measured';
+      if (key === 'd2_5') return 'Health insurance premium handling during leave';
+      if (key === 'd2_6') return 'Financial counseling provider';
+    }
     
-    // Dimension 3 - Manager Preparedness & Capability
-    if (key.includes('d3aa')) return 'Multi-country consistency';
-    if (key.includes('d3_1')) return 'Manager training requirement type';
-    if (key.includes('d3_2')) return 'Manager training completion rate';
+    // Dimension 3 specific
+    if (dimNumber === 3) {
+      if (key === 'd3aa') return 'Multi-country consistency';
+      if (key === 'd3_1') return 'Manager training requirement type';
+      if (key === 'd3_2') return 'Manager training completion rate';
+    }
     
-    // Dimension 4 - Navigation & Expert Resources
-    if (key.includes('d4aa')) return 'Multi-country consistency';
-    if (key.includes('d4_1')) return 'Care navigation provider';
-    if (key.includes('d4_2')) return 'How navigation effectiveness is measured';
-    
-    // Dimension 5 - Workplace Accommodations
-    if (key.includes('d5aa')) return 'Multi-country consistency';
-    if (key.includes('d5_1')) return 'Accommodation request process';
-    if (key.includes('d5_2')) return 'How accommodation effectiveness is measured';
-    
-    // Dimension 6 - Culture & Psychological Safety
-    if (key.includes('d6aa')) return 'Multi-country consistency';
-    if (key.includes('d6_1')) return 'Cultural safety initiatives';
-    if (key.includes('d6_2')) return 'How psychological safety is measured';
-    
-    // Dimension 7 - Career Continuity & Advancement
-    if (key.includes('d7aa')) return 'Multi-country consistency';
-    if (key.includes('d7_1')) return 'Career protection policies';
-    if (key.includes('d7_2')) return 'How career continuity is measured';
-    
-    // Dimension 8 - Return-to-Work Excellence
-    if (key.includes('d8aa')) return 'Multi-country consistency';
-    if (key.includes('d8_1')) return 'Return-to-work program details';
-    if (key.includes('d8_2')) return 'How return-to-work success is measured';
-    
-    // Dimension 9 - Executive Commitment & Resources
-    if (key.includes('d9aa')) return 'Multi-country consistency';
-    if (key.includes('d9_1')) return 'Executive sponsorship details';
-    if (key.includes('d9_2')) return 'How executive commitment is measured';
-    
-    // Dimension 10 - Caregiver & Family Support
-    if (key.includes('d10aa')) return 'Multi-country consistency';
-    if (key.includes('d10_1')) return 'Caregiver support programs';
-    if (key.includes('d10_2')) return 'How caregiver support effectiveness is measured';
-    
-    // Dimension 11 - Prevention, Wellness & Legal Compliance
-    if (key.includes('d11aa')) return 'Multi-country consistency';
-    if (key.includes('d11_1')) return 'Prevention program details';
-    if (key.includes('d11_2')) return 'How prevention effectiveness is measured';
-    
-    // Dimension 12 - Continuous Improvement & Outcomes
-    if (key.includes('d12aa')) return 'Multi-country consistency';
-    if (key.includes('d12_1')) return 'Improvement tracking methods';
-    if (key.includes('d12_2')) return 'How outcomes are measured';
-    
-    // Dimension 13 - Communication & Awareness
-    if (key.includes('d13aa')) return 'Multi-country consistency';
-    if (key.includes('d13_1')) return 'Communication frequency';
-    if (key.includes('d13_2')) return 'How communication effectiveness is measured';
+    // Generic patterns for other dimensions
+    if (key.includes('aa')) return 'Multi-country consistency';
     
     // Fallback - clean up key
     return key.replace(/_/g, ' ').replace(/^d\d+[a-z]?_?/, '').replace(/\b\w/g, l => l.toUpperCase());
@@ -197,9 +158,8 @@ export default function CompanyProfile() {
     monitoring: formatArray(cur?.or6),
   };
 
-  const SectionHeader = ({ title, icon }: { title: string; icon?: string }) => (
+  const SectionHeader = ({ title }: { title: string }) => (
     <div className="flex items-center gap-3 mb-6">
-      {icon && <span className="text-2xl">{icon}</span>}
       <h2 className="text-2xl font-bold" style={{ color: '#1f2937' }}>{title}</h2>
       <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, #e5e7eb, transparent)' }}></div>
     </div>
@@ -269,7 +229,7 @@ export default function CompanyProfile() {
           txtContent += `--- Dimension ${dim.number}: ${dim.name} ---\n`;
           Object.entries(dimData).forEach(([key, value]) => {
             if (!key.match(/^d\d+_?b$/i) && !key.match(/^d\d+_?b_/i)) {
-              const label = getDimensionFieldLabel(key);
+              const label = getDimensionFieldLabel(key, dim.number);
               txtContent += `${label}: ${formatArray(value) || '—'}\n`;
             }
           });
@@ -321,12 +281,12 @@ export default function CompanyProfile() {
             <img
               src="/best-companies-2026-logo.png"
               alt="Best Companies Award"
-              className="h-20 drop-shadow-2xl"
+              className="h-32 drop-shadow-2xl"
             />
             <img
               src="/cancer-careers-logo.png"
               alt="Cancer and Careers"
-              className="h-14"
+              className="h-24 brightness-0 invert"
             />
           </div>
 
@@ -362,7 +322,10 @@ export default function CompanyProfile() {
                   background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)'
                 }}
               >
-                📄 Download PDF
+                <svg className="inline-block w-4 h-4 mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Download PDF
               </button>
               <button 
                 onClick={downloadTXT}
@@ -371,7 +334,10 @@ export default function CompanyProfile() {
                   background: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)'
                 }}
               >
-                📝 Download TXT
+                <svg className="inline-block w-4 h-4 mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Download TXT
               </button>
             </div>
           </div>
@@ -380,11 +346,11 @@ export default function CompanyProfile() {
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         
-        {/* Company & POC - Side by Side Cards with Shadow */}
+        {/* Company & POC */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           
           <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
-            <SectionHeader title="Company Profile" icon="🏢" />
+            <SectionHeader title="Company Profile" />
             <div className="space-y-1">
               <DataRow label="Company Name" value={company.name} />
               <DataRow label="Industry" value={company.industry} />
@@ -396,7 +362,7 @@ export default function CompanyProfile() {
           </div>
 
           <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
-            <SectionHeader title="Point of Contact" icon="👤" />
+            <SectionHeader title="Point of Contact" />
             <div className="space-y-1">
               <DataRow label="Name" value={poc.name} />
               <DataRow label="Email Address" value={poc.email} />
@@ -413,7 +379,7 @@ export default function CompanyProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           
           <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
-            <SectionHeader title="General Benefits Landscape" icon="💼" />
+            <SectionHeader title="General Benefits Landscape" />
             <div className="space-y-1">
               <DataRow label="% of Emp w/ access to national healthcare" value={benefits.nationalHealthcare} />
               <DataRow label="% of Emp eligible for Standard Benefits" value={benefits.eligibility} />
@@ -433,7 +399,7 @@ export default function CompanyProfile() {
           </div>
 
           <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
-            <SectionHeader title="Current Support for EMCs" icon="🤝" />
+            <SectionHeader title="Current Support for EMCs" />
             <div className="space-y-1">
               <DataRow label="Status of Support Offerings" value={support.status} />
               <DataRow label="Current Approach to Supporting EMCs" value={support.approach} />
@@ -452,7 +418,7 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* 13 Dimensions - Full Width Header */}
+        {/* 13 Dimensions */}
         {data.dimensions && data.dimensions.length > 0 && (
           <div className="mb-12">
             <div className="text-center mb-10">
@@ -470,9 +436,6 @@ export default function CompanyProfile() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {data.dimensions.map((dim: any) => {
                 const dimData = dim.data || {};
-                const hasData = Object.keys(dimData).length > 0;
-                
-                if (!hasData) return null;
                 
                 const filteredData = Object.entries(dimData).filter(([key]) => {
                   if (key.match(/^d\d+_?b$/i)) return false;
@@ -524,7 +487,7 @@ export default function CompanyProfile() {
                             </div>
                           );
                         } else {
-                          const label = getDimensionFieldLabel(key);
+                          const label = getDimensionFieldLabel(key, dim.number);
                           let displayValue = value;
                           
                           if (Array.isArray(value) && value.some((v: string) => v.includes('Other') || v.includes('specify'))) {
@@ -558,7 +521,7 @@ export default function CompanyProfile() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {Object.keys(data.cross || {}).length > 0 && (
                 <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
-                  <SectionHeader title="Cross-Dimensional" icon="🔗" />
+                  <SectionHeader title="Cross-Dimensional" />
                   <div className="space-y-1">
                     {Object.entries(data.cross).map(([key, value]: [string, any]) => (
                       <DataRow key={key} label={key.toUpperCase()} value={formatArray(value)} />
@@ -569,7 +532,7 @@ export default function CompanyProfile() {
 
               {Object.keys(data.impact || {}).length > 0 && (
                 <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
-                  <SectionHeader title="Employee Impact" icon="📊" />
+                  <SectionHeader title="Employee Impact" />
                   <div className="space-y-1">
                     {Object.entries(data.impact).map(([key, value]: [string, any]) => (
                       <DataRow key={key} label={key.toUpperCase()} value={formatArray(value)} />
