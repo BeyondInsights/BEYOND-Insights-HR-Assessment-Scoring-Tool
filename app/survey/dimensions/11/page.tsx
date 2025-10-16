@@ -473,7 +473,7 @@ export default function Dimension11Page() {
     <p className="font-bold text-gray-900 mb-4">
       Which <span className="text-blue-600 font-bold">early detection and preventive care services</span> are covered for employees at <span className="text-blue-600 font-bold">100%</span> based on regional / locally recommended screenings?
     </p>
-    <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+    <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
     
     <div className="space-y-2">
       {D11_1_OPTIONS.map(opt => {

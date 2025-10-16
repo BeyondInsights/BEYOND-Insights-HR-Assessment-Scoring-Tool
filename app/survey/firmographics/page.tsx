@@ -529,7 +529,7 @@ export default function FirmographicsPage() {
               <p className="text-base font-bold text-gray-900 mb-1">
                 Which areas fall under your <span className="text-blue-600">responsibility or influence</span>?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {S6_RESPONSIBILITIES.map(opt => {
                   const isSelected = Array.isArray(ans.s6) && ans.s6.includes(opt);
@@ -801,7 +801,7 @@ export default function FirmographicsPage() {
                   Which employee groups are typically{" "}
                   <span className="text-blue-600">EXCLUDED</span> from workplace support benefits?
                 </p>
-                <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+                <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {C4_EXCLUDED.map(opt => {

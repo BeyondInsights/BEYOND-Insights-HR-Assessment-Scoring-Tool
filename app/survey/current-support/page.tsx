@@ -439,7 +439,7 @@ export default function CurrentSupportPage() {
                 Which of the following best describes how these support programs {ans.cb3a === "Yes, we offer additional support beyond legal requirements" ? "are" : "will be"} structured
                 for <span className="text-blue-600">employees managing cancer or other serious health conditions</span>?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
               
               <div className="grid grid-cols-1 gap-2 auto-rows-fr">
                 {CB3B_OPTIONS.map(opt => {
@@ -485,7 +485,7 @@ export default function CurrentSupportPage() {
               <p className="text-base font-bold text-gray-900 mb-1">
                 Which <span className="text-blue-600">serious health conditions</span> {ans.cb3a === "Yes, we offer additional support beyond legal requirements" ? "does" : "will"} your program address?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
               
               {ans.s9a !== "No other countries - headquarters only" && (
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4 text-sm">
@@ -537,7 +537,7 @@ export default function CurrentSupportPage() {
               <p className="text-base font-bold text-gray-900 mb-1">
                 And, how {ans.cb3a === "Yes, we offer additional support beyond legal requirements" ? "were" : "will"} the workplace support programs for <span className="text-blue-600">employees managing cancer or other serious health conditions</span> (be) primarily <span className="underline">developed</span>?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-fr">
                 {CB3D_OPTIONS.map(opt => {
@@ -629,7 +629,7 @@ export default function CurrentSupportPage() {
               <p className="text-base font-bold text-gray-900 mb-1">
                 What <span className="text-blue-600">triggered</span> your organization to develop support beyond basic legal requirements?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-fr">
                 {OR2A_TRIGGERS.map(opt => {
@@ -696,7 +696,7 @@ export default function CurrentSupportPage() {
               <p className="text-base font-bold text-gray-900 mb-1">
                 What are the <span className="text-blue-600">primary barriers</span> preventing more comprehensive support for employees managing cancer or other serious health conditions?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-fr">
                 {OR3_BARRIERS.map(opt => {
@@ -742,7 +742,7 @@ export default function CurrentSupportPage() {
               <p className="text-base font-bold text-gray-900 mb-1">
                 What types of <span className="text-blue-600">caregiver support</span> does your organization provide to employees who have taken on primary caregiver responsibilities for someone <span className="text-blue-600">managing cancer or another serious health condition</span>?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
               <p className="text-sm text-gray-500 italic mb-4">Select if offered in at least one location</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-fr">
@@ -794,7 +794,7 @@ export default function CurrentSupportPage() {
               <p className="text-base font-bold text-gray-900 mb-1">
                 How does your organization <span className="text-blue-600">monitor effectiveness</span> of workplace support programs while maintaining employee privacy?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-fr">
                 {OR6_MONITORING.map(opt => {
