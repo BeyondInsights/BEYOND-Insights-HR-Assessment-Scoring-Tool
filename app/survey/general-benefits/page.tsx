@@ -685,7 +685,7 @@ export default function GeneralBenefitsPage() {
  onClick={next} 
  className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
  >
- Next ?
+ Next  →
  </button>
  </div>
  )}
