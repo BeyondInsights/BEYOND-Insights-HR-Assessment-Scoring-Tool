@@ -77,10 +77,27 @@ export default function DashboardPage() {
           dimProgress.push(100)
         } else {
           const keys = Object.keys(dimData).length
-          dimProgress.push(keys > 0 ? Math.min(90, keys * 5) : 0)
-        }
-      }
-      setDimensionProgress(dimProgress)
+         // Check dimension completions with partial progress
+const dimProgress = []
+for (let i = 1; i <= 13; i++) {
+  const dimData = JSON.parse(localStorage.getItem(`dimension_${i}_data`) || '{}')
+  const complete = localStorage.getItem(`dimension_${i}_complete`) === 'true'
+  
+  if (complete) {
+    dimProgress.push(100);
+  } else {
+    const keys = Object.keys(dimData).length;
+    if (keys === 0) {
+      dimProgress.push(0);
+    } else {
+      // Assume ~20-30 questions per dimension, calculate real %
+      const estimatedTotal = 25;
+      const actualProgress = Math.min(95, Math.round((keys / estimatedTotal) * 100));
+      dimProgress.push(actualProgress);
+    }
+  }
+}
+setDimensionProgress(dimProgress)
       
       // Calculate progress for each section
       let firmProg = 0;
