@@ -6,87 +6,97 @@ import {
   INSTRUMENT_ITEMS,
   type InstrumentItem,
   getItemsByRoute,
-} from '../../data/instrument-items';
+} from '../../data/instrument-items'; // master map
 
-/* ===================== CAC Palette ===================== */
-const BRAND = {
-  purple: '#6B2C91',
-  purpleDark: '#4F1F6A',
-  teal:   '#14B8A6',
-  orange: '#F97316',
-  gray900:'#0F172A',
-  gray700:'#334155',
-  gray600:'#475569',
-  gray300:'#CBD5E1',
-  gray200:'#E5E7EB',
-  gray100:'#F1F5F9',
-  bg:     '#F9FAFB',
+/* ================== CAC Brand Colors ================== */
+const COLORS = {
+  purple: { primary: '#6B2C91', light: '#8B4DB3', bg: '#F5EDFF', border: '#D4B5E8' },
+  teal:   { primary: '#00A896', light: '#33BDAD', bg: '#E6F9F7', border: '#99E6DD' },
+  orange: { primary: '#FF6B35', light: '#FF8C65', bg: '#FFF0EC', border: '#FFD4C4' },
+  gray:   { dark: '#2D3748', medium: '#4A5568', light: '#CBD5E0', bg: '#F7FAFC' }
 };
 
-/* =============== Dimension Names (section titles) =============== */
-const DIM_NAME: Record<number, string> = {
-  1:'Medical Leave & Flexibility',
-  2:'Insurance & Financial Protection',
-  3:'Manager Preparedness & Capability',
-  4:'Navigation & Expert Resources',
-  5:'Workplace Accommodations',
-  6:'Culture & Psychological Safety',
-  7:'Career Continuity & Advancement',
-  8:'Work Continuation & Resumption',
-  9:'Executive Commitment & Resources',
-  10:'Caregiver & Family Support',
-  11:'Prevention, Wellness & Legal Compliance',
-  12:'Continuous Improvement & Outcomes',
-  13:'Communication & Awareness', // D13 = 5-pt incl. Unsure/NA
+/* ============== Dimension Names (for section titles) ============== */
+const DIM_NAMES: Record<number,string> = {
+  1:'Medical Leave & Flexibility', 2:'Insurance & Financial Protection', 3:'Manager Preparedness & Capability',
+  4:'Navigation & Expert Resources', 5:'Workplace Accommodations', 6:'Culture & Psychological Safety',
+  7:'Career Continuity & Advancement', 8:'Work Continuation & Resumption', 9:'Executive Commitment & Resources',
+  10:'Caregiver & Family Support', 11:'Prevention, Wellness & Legal Compliance', 12:'Continuous Improvement & Outcomes',
+  13:'Communication & Awareness' // D13 = 5-pt incl. Unsure/NA
 };
 
-/* ===================== Custom SVG (no emojis) ===================== */
-const Bar = ({ className='', color=BRAND.purple }) => (
-  <svg className={className} viewBox="0 0 24 4" aria-hidden="true">
-    <rect width="24" height="4" rx="2" fill={color} />
-  </svg>
+/* ================== Small custom SVG (no emojis) ================== */
+const AccentBar = ({ color }: { color: string }) => (
+  <svg viewBox="0 0 24 4" className="w-6 h-1"><rect width="24" height="4" rx="2" fill={color}/></svg>
 );
 
-/* ===================== Utilities ===================== */
-const titleize = (s: string) =>
-  s.replace(/([A-Z])/g,' $1').replace(/_/g,' ').replace(/\s+/g,' ')
-   .trim().replace(/^./, m => m.toUpperCase());
-
-const looksScale = (v: string) =>
+/* ================== Utilities ================== */
+const looksScale = (v:string) =>
   /(currently|offer|plan|eligible|not applicable|unsure|reactive)/i.test(v);
 
-/* firmographic items we never show */
-const hideKey = (k:string) => {
+const hideFirmoKey = (k:string) => {
   const l = k.toLowerCase();
   return l === 's1' || l.includes('birth') || l.includes('age');
 };
 
-/* Split items evenly for two-column layout */
 function splitEven<T>(arr: T[]) {
   const mid = Math.ceil(arr.length / 2);
   return [arr.slice(0, mid), arr.slice(mid)];
 }
 
-/* =============== Pull items by logical sections =============== */
 function itemsFirmoAndClass(): InstrumentItem[] {
   const out: InstrumentItem[] = [];
   Object.values(INSTRUMENT_ITEMS).forEach(it => {
     const s = (it.section || '').toUpperCase();
     if (s.startsWith('S') || s.startsWith('CLASS')) out.push(it);
   });
-  // stable sort by section+id
   return out.sort((a,b)=> (a.section+a.id).localeCompare(b.section+b.id));
 }
+
 function itemsForDimension(n:number): InstrumentItem[] {
   return Object.values(INSTRUMENT_ITEMS)
     .filter(i => (i.section || '').toUpperCase() === `D${n}`)
-    .sort((a,b)=> (a.id).localeCompare(b.id));
+    .sort((a,b)=> a.id.localeCompare(b.id));
 }
 
-/* ===================== Compact Row ===================== */
-function Row({
-  label, value, accent=BRAND.purple,
-}: { label: string; value: any; accent?: string }) {
+/* ================== Section Shell (matches attached style) ================== */
+function Section({
+  title, tone, children, badge,
+}: {
+  title: string;
+  tone: typeof COLORS.purple;
+  children: React.ReactNode;
+  badge?: string;
+}) {
+  return (
+    <div className="mb-6 rounded-xl border-2 overflow-hidden" style={{borderColor: tone.border}}>
+      <div className="px-6 py-3 flex items-center justify-between" style={{backgroundColor: tone.primary}}>
+        <h2 className="text-lg sm:text-xl font-bold text-white">{title}</h2>
+        {badge && (
+          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white"
+                style={{ borderColor: '#E5E7EB', color: '#334155' }}>
+            {badge}
+          </span>
+        )}
+      </div>
+      <div className="p-6 bg-white">
+        {/* two-column on desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================== Tight Row (label:left + ":" , value right) ================== */
+function DataRow({
+  label, value, color,
+}: {
+  label: string;
+  value: any;
+  color: string;
+}) {
   const display =
     value === undefined || value === null || value === '' ? '—'
     : Array.isArray(value) ? value.join(', ')
@@ -94,15 +104,18 @@ function Row({
     : String(value);
 
   return (
-    <div className="grid grid-cols-12 items-start gap-3 py-1.5">
-      <div className="col-span-5 md:col-span-4 lg:col-span-5 flex items-center min-w-0">
-        <Bar className="w-5 h-1 mr-2 shrink-0" color={accent} />
-        <span className="text-[13px] font-semibold text-slate-700 truncate">{label}</span>
+    <div className="py-1.5 border-b last:border-b-0 flex items-start gap-3" style={{borderColor: COLORS.gray.light}}>
+      <div className="shrink-0 flex items-center min-w-[10rem]">
+        <AccentBar color={color} />
+        <span className="ml-2 text-sm font-semibold" style={{color: COLORS.gray.medium}}>
+          {label}:
+        </span>
       </div>
-      <div className="col-span-7 md:col-span-8 lg:col-span-7 text-[13px] text-slate-900 min-w-0">
+      <div className="text-sm text-right grow" style={{color: COLORS.gray.dark}}>
         {display !== null ? (
           looksScale(display) ? (
-            <span className="px-2.5 py-0.5 rounded-full border text-[12px] bg-purple-50 text-purple-800 border-purple-200 break-words">
+            <span className="px-2.5 py-0.5 rounded-full border text-[12px]"
+                  style={{ backgroundColor: COLORS.purple.bg, color: COLORS.purple.primary, borderColor: COLORS.purple.border }}>
               {display}
             </span>
           ) : (
@@ -110,16 +123,17 @@ function Row({
           )
         ) : (
           <div className="space-y-1">
-            {Object.entries(value as Record<string, any>).map(([k, vv]) =>
+            {Object.entries(value as Record<string, any>).map(([k, vv]) => (
               vv ? (
                 <div key={k} className="flex items-center justify-between gap-3">
-                  <span className="text-[12px] text-slate-600 truncate">{k}</span>
-                  <span className="px-2 py-0.5 rounded-full border text-[12px] bg-purple-50 text-purple-800 border-purple-200">
+                  <span className="text-[12px]" style={{color: COLORS.gray.medium}}>{k}</span>
+                  <span className="px-2 py-0.5 rounded-full border text-[12px]"
+                        style={{ backgroundColor: COLORS.purple.bg, color: COLORS.purple.primary, borderColor: COLORS.purple.border }}>
                     {String(vv)}
                   </span>
                 </div>
               ) : null
-            )}
+            ))}
           </div>
         )}
       </div>
@@ -127,48 +141,24 @@ function Row({
   );
 }
 
-/* ===================== Section Shell ===================== */
-function Section({
-  title, children, badge,
-}: { title: string; children: React.ReactNode; badge?: string }) {
-  return (
-    <section className="rounded-xl border bg-white">
-      <div className="flex items-center justify-between px-5 py-3 border-b">
-        <h3 className="text-sm font-bold text-slate-900">{title}</h3>
-        {badge && (
-          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white text-slate-700">
-            {badge}
-          </span>
-        )}
-      </div>
-      <div className="p-5">
-        {/* two-column on lg, one-column on mobile */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
-          {children}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ===================== Page ===================== */
+/* ================== Page ================== */
 export default function CompanyProfile() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
 
-  // raw section data as stored by app
-  const [firmo, setFirmo] = useState<Record<string, any>>({});
+  const [firmo, setFirmo]     = useState<Record<string, any>>({});
   const [general, setGeneral] = useState<Record<string, any>>({});
   const [current, setCurrent] = useState<Record<string, any>>({});
-  const [cross, setCross] = useState<Record<string, any>>({});
-  const [impact, setImpact] = useState<Record<string, any>>({});
-  const [dims, setDims] = useState<Array<{number:number; data:Record<string,any>}>>([]);
-  const [companyName, setCompanyName] = useState<string>('Your Organization');
-  const [accountEmail, setAccountEmail] = useState<string>('');
-  const [generatedAt, setGeneratedAt] = useState<string>('');
+  const [cross, setCross]     = useState<Record<string, any>>({});
+  const [impact, setImpact]   = useState<Record<string, any>>({});
+  const [dims, setDims]       = useState<Array<{number:number; data:Record<string,any>}>>([]);
 
-  /* Load everything */
-  useEffect(() => {
+  const [companyName, setCompanyName]   = useState<string>('Your Organization');
+  const [accountEmail, setAccountEmail] = useState<string>('');
+  const [generatedAt, setGeneratedAt]   = useState<string>('');
+  const [loading, setLoading]           = useState(true);
+
+  /* Load everything from localStorage (NO MOCKS) */
+  useEffect(()=>{
     const f = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
     const g = JSON.parse(localStorage.getItem('general-benefits_data') || '{}');
     const c = JSON.parse(localStorage.getItem('current-support_data') || '{}');
@@ -178,8 +168,7 @@ export default function CompanyProfile() {
     const d: Array<{number:number; data:Record<string,any>}> = [];
     for (let i=1;i<=13;i++){
       const raw = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
-      // include all dims so ALL questions appear, even if unanswered
-      d.push({ number:i, data: raw || {} });
+      d.push({ number:i, data: raw || {} }); // include all dims (so all questions appear)
     }
 
     setFirmo(f); setGeneral(g); setCurrent(c); setCross(x); setImpact(e); setDims(d);
@@ -189,140 +178,48 @@ export default function CompanyProfile() {
     setCompanyName(f.companyName || f.s8 || 'Your Organization');
     setGeneratedAt(new Date().toLocaleDateString());
     setLoading(false);
-  }, []);
+  },[]);
 
-  /* ---------- Master label lookup: always use instrument text ---------- */
-  function labelForItem(it: InstrumentItem) {
-    return it?.text?.trim() || titleize(it?.id || '');
+  /* ---------- Build the “every question” lists from master map ---------- */
+  const firmoItems   = useMemo(()=> itemsFirmoAndClass().filter(it => !hideFirmoKey(it.id)), []);
+  const generalItems = useMemo(()=> getItemsByRoute('/survey/general-benefits').sort((a,b)=>a.id.localeCompare(b.id)), []);
+  const currentItems = useMemo(()=> getItemsByRoute('/survey/current-support').sort((a,b)=>a.id.localeCompare(b.id)), []);
+  const crossItems   = useMemo(()=> getItemsByRoute('/survey/cross-dimensional-assessment').sort((a,b)=>a.id.localeCompare(b.id)), []);
+  const impactItems  = useMemo(()=> getItemsByRoute('/survey/employee-impact-assessment').sort((a,b)=>a.id.localeCompare(b.id)), []);
+
+  const [firmoL, firmoR]     = useMemo(()=> splitEven(firmoItems),   [firmoItems]);
+  const [generalL, generalR] = useMemo(()=> splitEven(generalItems), [generalItems]);
+  const [currentL, currentR] = useMemo(()=> splitEven(currentItems), [currentItems]);
+  const [crossL, crossR]     = useMemo(()=> splitEven(crossItems),   [crossItems]);
+  const [impactL, impactR]   = useMemo(()=> splitEven(impactItems),  [impactItems]);
+
+  function valueFrom(source: Record<string,any>, it: InstrumentItem): any {
+    if (it.id in source) return source[it.id];
+    const t = (it.text || '').toLowerCase();
+    const hit = Object.entries(source).find(([k]) => k.toLowerCase() === t || k.toLowerCase() === it.id.toLowerCase());
+    return hit ? hit[1] : '';
   }
-
-  /* Resolve a value for an item from a given source object */
-  function valueFrom(source: Record<string, any>, item: InstrumentItem): any {
-    // try by id
-    if (item.id in source) return source[item.id];
-    // try exact text key
-    const t = (item.text || '').toLowerCase();
-    const byText = Object.entries(source).find(([k]) => k.toLowerCase() === t);
-    if (byText) return byText[1];
-    // try simple id fallback (some pages store short ids)
-    const alt = Object.entries(source).find(([k]) => k.toLowerCase() === item.id.toLowerCase());
-    if (alt) return alt[1];
-    // not found
-    return '';
-  }
-
-  /* ---------- Build item lists from master map (EVERY question) ---------- */
-  const firmoItems = useMemo(() => itemsFirmoAndClass()
-    .filter(it => !hideKey(it.id)), []);
-
-  const generalItems = useMemo(
-    () => getItemsByRoute('/survey/general-benefits').sort((a,b)=>a.id.localeCompare(b.id)),
-    []
-  );
-  const currentItems = useMemo(
-    () => getItemsByRoute('/survey/current-support').sort((a,b)=>a.id.localeCompare(b.id)),
-    []
-  );
-  const crossItems = useMemo(
-    () => getItemsByRoute('/survey/cross-dimensional-assessment').sort((a,b)=>a.id.localeCompare(b.id)),
-    []
-  );
-  const impactItems = useMemo(
-    () => getItemsByRoute('/survey/employee-impact-assessment').sort((a,b)=>a.id.localeCompare(b.id)),
-    []
-  );
-
-  /* ---------- Split lists for two-column render ---------- */
-  const [firmoL, firmoR]     = useMemo(()=>splitEven(firmoItems),       [firmoItems]);
-  const [generalL, generalR] = useMemo(()=>splitEven(generalItems),     [generalItems]);
-  const [currentL, currentR] = useMemo(()=>splitEven(currentItems),     [currentItems]);
-  const [crossL, crossR]     = useMemo(()=>splitEven(crossItems),       [crossItems]);
-  const [impactL, impactR]   = useMemo(()=>splitEven(impactItems),      [impactItems]);
-
-  /* ---------- HR POC (collect everything except age/birth) ---------- */
-  const hrPOC = useMemo(() => {
-    const name = [firmo?.contactFirst, firmo?.contactLast].filter(Boolean).join(' ')
-      || firmo?.contactName || firmo?.hr_name || '';
-    const title = firmo?.contactTitle || firmo?.hr_title || firmo?.title || '';
-    const department = firmo?.s3 || firmo?.department || '';
-    const email = firmo?.contactEmail || firmo?.hr_email || accountEmail || '';
-    const phone = firmo?.contactPhone || firmo?.hr_phone || firmo?.phone || '';
-    const location = firmo?.hq || firmo?.s9 || '';
-    return { name, title, department, email, phone, location };
-  }, [firmo, accountEmail]);
-
-  /* ---------- Actions ---------- */
-  const printPDF = () => window.print();
-  const downloadJSON = () => {
-    const bundle = {
-      meta: { companyName, accountEmail, generatedAt },
-      firmographics: firmo, general, current, cross, impact, dimensions: dims,
-    };
-    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type:'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement('a'), {
-      href: url, download: `${companyName.replace(/\s+/g,'_')}_Company_Profile.json`,
-    });
-    a.click(); URL.revokeObjectURL(url);
-  };
-  const downloadTXT = () => {
-    let out = `COMPANY PROFILE — ${companyName}\nGenerated: ${new Date().toLocaleString()}\n\n`;
-    const pushRows = (title:string, items:InstrumentItem[], source:Record<string,any>)=>{
-      out += `${title}\n`;
-      items.forEach(it=>{
-        const v = valueFrom(source, it);
-        const disp = v === undefined || v === null || v === '' ? '—'
-                    : Array.isArray(v) ? v.join(', ')
-                    : typeof v === 'object' ? JSON.stringify(v) : String(v);
-        out += `  • ${labelForItem(it)}: ${disp}\n`;
-      });
-      out += '\n';
-    };
-    pushRows('Company Profile (Firmographics & Classification)', firmoItems, firmo);
-    pushRows('General Benefits', generalItems, general);
-    pushRows('Current Support', currentItems, current);
-    pushRows('Cross-Dimensional Assessment', crossItems, cross);
-    pushRows('Employee Impact Assessment', impactItems, impact);
-    dims.forEach(({number, data})=>{
-      const dItems = itemsForDimension(number);
-      out += `Dimension ${number}: ${DIM_NAME[number]}\n`;
-      dItems.forEach(it=>{
-        const v = valueFrom(data, it);
-        const disp = v === undefined || v === null || v === '' ? '—'
-                    : Array.isArray(v) ? v.join(', ')
-                    : typeof v === 'object' ? JSON.stringify(v) : String(v);
-        out += `  • ${labelForItem(it)}: ${disp}\n`;
-      });
-      out += '\n';
-    });
-    const blob = new Blob([out], { type:'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement('a'), {
-      href: url, download: `${companyName.replace(/\s+/g,'_')}_Company_Profile.txt`,
-    });
-    a.click(); URL.revokeObjectURL(url);
-  };
 
   if (loading) {
     return (
-      <div className="min-h-screen grid place-items-center" style={{ background: BRAND.bg }}>
-        <div className="text-slate-600 text-sm">Loading…</div>
+      <div className="min-h-screen grid place-items-center" style={{backgroundColor: COLORS.gray.bg}}>
+        <div className="text-sm" style={{color: COLORS.gray.medium}}>Loading profile…</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[rgb(249,250,251)]">
-      {/* ===== Header with your logos ===== */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-6 py-5">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen" style={{backgroundColor: COLORS.gray.bg}}>
+      {/* ===== Header with your logos (center award, right CAC) ===== */}
+      <div className="bg-white border-b" style={{borderColor: COLORS.gray.light}}>
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between mb-6">
             <div className="w-28" />
             <div className="flex-1 flex justify-center">
               <img
                 src="/best-companies-2026-logo.png"
                 alt="Best Companies for Working with Cancer Award Logo"
-                className="h-14 sm:h-20 lg:h-24 w-auto drop-shadow-md"
+                className="h-16 sm:h-20 lg:h-24 w-auto drop-shadow-md"
               />
             </div>
             <div className="flex justify-end">
@@ -334,21 +231,36 @@ export default function CompanyProfile() {
             </div>
           </div>
 
-          <div className="mt-4 text-center">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: BRAND.purple }}>
+          <div className="text-center">
+            <h1 className="text-4xl sm:text-5xl font-black mb-1" style={{color: COLORS.purple.primary}}>
               {companyName}
             </h1>
-            <p className="text-sm text-slate-600">Company Profile & Survey Summary</p>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-base" style={{color: COLORS.gray.medium}}>Company Profile & Survey Summary</p>
+            <p className="text-sm mt-1" style={{color: COLORS.gray.medium}}>
               Generated: {generatedAt}{accountEmail ? ` • ${accountEmail}` : ''}
             </p>
-          </div>
 
-          <div className="mt-4 flex items-center justify-center gap-3 print:hidden">
-            <button onClick={()=>router.push('/dashboard')} className="px-3 py-1.5 text-sm border rounded hover:bg-slate-50 text-slate-800">Back to Dashboard</button>
-            <button onClick={printPDF} className="px-3 py-1.5 text-sm border rounded hover:bg-slate-50 text-slate-800">Download PDF</button>
-            <button onClick={downloadTXT} className="px-3 py-1.5 text-sm border rounded hover:bg-slate-50 text-slate-800">Download .TXT</button>
-            <button onClick={downloadJSON} className="px-3 py-1.5 text-sm border rounded hover:bg-slate-50 text-slate-800">Download .JSON</button>
+            <div className="mt-4 flex items-center justify-center gap-2 print:hidden">
+              <button onClick={()=>router.push('/dashboard')} className="px-3 py-1.5 text-sm font-semibold border rounded" style={{borderColor: COLORS.gray.light, color: COLORS.gray.dark}}>
+                Back to Dashboard
+              </button>
+              <button onClick={()=>window.print()} className="px-3 py-1.5 text-sm font-semibold rounded text-white" style={{backgroundColor: COLORS.purple.primary}}>
+                Print PDF
+              </button>
+              <button
+                onClick={()=>{
+                  const blob = new Blob([JSON.stringify({ firmographics: firmo, general, current, cross, impact, dimensions: dims }, null, 2)], {type:'application/json'});
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url; a.download = `${companyName.replace(/\s+/g,'_')}_Profile.json`; a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="px-3 py-1.5 text-sm font-semibold border rounded"
+                style={{borderColor: COLORS.gray.light, color: COLORS.gray.dark}}
+              >
+                Download JSON
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -357,153 +269,159 @@ export default function CompanyProfile() {
       <section className="max-w-7xl mx-auto px-6 mt-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Stat label="Headquarters" value={firmo?.s9 || firmo?.hq || '—'} />
-            <Stat label="Industry" value={firmo?.c2 || '—'} />
-            <Stat label="Employee Size" value={firmo?.s8 || '—'} />
-            <Stat label="Global Footprint" value={firmo?.s9a || '—'} />
+            <Tile label="Headquarters" value={firmo?.s9 || firmo?.hq || '—'} />
+            <Tile label="Industry" value={firmo?.c2 || '—'} />
+            <Tile label="Employee Size" value={firmo?.s8 || '—'} />
+            <Tile label="Global Footprint" value={firmo?.s9a || '—'} />
           </div>
-          <div className="border rounded-xl bg-white p-4">
-            <div className="text-xs font-semibold text-slate-600 mb-2">HR Point of Contact</div>
+          <div className="border rounded-xl bg-white p-4" style={{borderColor: COLORS.gray.light}}>
+            <div className="text-xs font-semibold mb-2" style={{color: COLORS.gray.medium}}>HR Point of Contact</div>
             <div className="space-y-1">
-              <div className="text-sm font-semibold text-slate-900">{hrPOC.name || '—'}</div>
-              <div className="text-sm text-slate-800">{hrPOC.title || '—'}</div>
-              <div className="text-sm text-slate-800">{hrPOC.department || '—'}</div>
-              <div className="text-sm text-slate-800">{hrPOC.email || '—'}</div>
-              <div className="text-sm text-slate-800">{hrPOC.phone || '—'}</div>
-              <div className="text-sm text-slate-800">{hrPOC.location || '—'}</div>
+              <div className="text-sm font-semibold" style={{color: COLORS.gray.dark}}>
+                {([firmo?.contactFirst, firmo?.contactLast].filter(Boolean).join(' ') || firmo?.contactName || firmo?.hr_name || '—')}
+              </div>
+              <div className="text-sm" style={{color: COLORS.gray.dark}}>{firmo?.contactTitle || firmo?.hr_title || firmo?.title || '—'}</div>
+              <div className="text-sm" style={{color: COLORS.gray.dark}}>{firmo?.s3 || firmo?.department || '—'}</div>
+              <div className="text-sm" style={{color: COLORS.gray.dark}}>{firmo?.contactEmail || firmo?.hr_email || accountEmail || '—'}</div>
+              <div className="text-sm" style={{color: COLORS.gray.dark}}>{firmo?.contactPhone || firmo?.hr_phone || firmo?.phone || '—'}</div>
+              <div className="text-sm" style={{color: COLORS.gray.dark}}>{firmo?.hq || firmo?.s9 || '—'}</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== Two-column sections (EVERY question + response) ===== */}
+      {/* ===== Company Profile / General / Current / Cross / Impact ===== */}
       <main className="max-w-7xl mx-auto px-6 mt-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Section title="Company Profile (Firmographics & Classification)">
-            <div className="divide-y divide-slate-100">
-              {firmoL.map(it => (
-                <Row key={it.id} label={labelForItem(it)} value={valueFrom(firmo, it)} accent={BRAND.purple} />
-              ))}
-            </div>
-            <div className="divide-y divide-slate-100">
-              {firmoR.map(it => (
-                <Row key={it.id} label={labelForItem(it)} value={valueFrom(firmo, it)} accent={BRAND.purple} />
-              ))}
-            </div>
-          </Section>
+        {/* Company Profile (Firmographics & Classification) */}
+        <Section title="Company Profile (Firmographics & Classification)" tone={COLORS.purple}>
+          <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+            {firmoL.map(it=>(
+              <DataRow key={it.id} label={it.text} value={valueFrom(firmo, it)} color={COLORS.purple.primary}/>
+            ))}
+          </div>
+          <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+            {firmoR.map(it=>(
+              <DataRow key={it.id} label={it.text} value={valueFrom(firmo, it)} color={COLORS.purple.primary}/>
+            ))}
+          </div>
+        </Section>
 
-          <Section title="General Benefits">
-            <div className="divide-y divide-slate-100">
-              {generalL.map(it => (
-                <Row key={it.id} label={labelForItem(it)} value={valueFrom(general, it)} accent={BRAND.teal} />
-              ))}
-            </div>
-            <div className="divide-y divide-slate-100">
-              {generalR.map(it => (
-                <Row key={it.id} label={labelForItem(it)} value={valueFrom(general, it)} accent={BRAND.teal} />
-              ))}
-            </div>
-          </Section>
+        {/* General Benefits */}
+        <Section title="General Employee Benefits" tone={COLORS.teal}>
+          <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+            {generalL.map(it=>(
+              <DataRow key={it.id} label={it.text} value={valueFrom(general, it)} color={COLORS.teal.primary}/>
+            ))}
+          </div>
+          <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+            {generalR.map(it=>(
+              <DataRow key={it.id} label={it.text} value={valueFrom(general, it)} color={COLORS.teal.primary}/>
+            ))}
+          </div>
+        </Section>
 
-          <Section title="Current Support">
-            <div className="divide-y divide-slate-100">
-              {currentL.map(it => (
-                <Row key={it.id} label={labelForItem(it)} value={valueFrom(current, it)} accent={BRAND.orange} />
-              ))}
-            </div>
-            <div className="divide-y divide-slate-100">
-              {currentR.map(it => (
-                <Row key={it.id} label={labelForItem(it)} value={valueFrom(current, it)} accent={BRAND.orange} />
-              ))}
-            </div>
-          </Section>
+        {/* Current Support */}
+        <Section title="Current Support for Employees Managing Cancer" tone={COLORS.orange}>
+          <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+            {currentL.map(it=>(
+              <DataRow key={it.id} label={it.text} value={valueFrom(current, it)} color={COLORS.orange.primary}/>
+            ))}
+          </div>
+          <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+            {currentR.map(it=>(
+              <DataRow key={it.id} label={it.text} value={valueFrom(current, it)} color={COLORS.orange.primary}/>
+            ))}
+          </div>
+        </Section>
 
-          <Section title="Cross-Dimensional Assessment">
-            <div className="divide-y divide-slate-100">
-              {crossL.map(it => (
-                <Row key={it.id} label={labelForItem(it)} value={valueFrom(cross, it)} accent={BRAND.teal} />
-              ))}
-            </div>
-            <div className="divide-y divide-slate-100">
-              {crossR.map(it => (
-                <Row key={it.id} label={labelForItem(it)} value={valueFrom(cross, it)} accent={BRAND.teal} />
-              ))}
-            </div>
-          </Section>
+        {/* Cross-Dimensional */}
+        <Section title="Cross-Dimensional Assessment" tone={COLORS.purple}>
+          <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+            {crossL.map(it=>(
+              <DataRow key={it.id} label={it.text} value={valueFrom(cross, it)} color={COLORS.purple.primary}/>
+            ))}
+          </div>
+          <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+            {crossR.map(it=>(
+              <DataRow key={it.id} label={it.text} value={valueFrom(cross, it)} color={COLORS.purple.primary}/>
+            ))}
+          </div>
+        </Section>
 
-          <Section title="Employee Impact Assessment">
-            <div className="divide-y divide-slate-100">
-              {impactL.map(it => (
-                <Row key={it.id} label={labelForItem(it)} value={valueFrom(impact, it)} accent={BRAND.orange} />
-              ))}
-            </div>
-            <div className="divide-y divide-slate-100">
-              {impactR.map(it => (
-                <Row key={it.id} label={labelForItem(it)} value={valueFrom(impact, it)} accent={BRAND.orange} />
-              ))}
-            </div>
-          </Section>
+        {/* Employee Impact */}
+        <Section title="Employee Impact Assessment" tone={COLORS.orange}>
+          <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+            {impactL.map(it=>(
+              <DataRow key={it.id} label={it.text} value={valueFrom(impact, it)} color={COLORS.orange.primary}/>
+            ))}
+          </div>
+          <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+            {impactR.map(it=>(
+              <DataRow key={it.id} label={it.text} value={valueFrom(impact, it)} color={COLORS.orange.primary}/>
+            ))}
+          </div>
+        </Section>
+
+        {/* 13 Dimensions */}
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base font-bold" style={{color: COLORS.gray.dark}}>13 Dimensions of Support</h2>
+          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white"
+                style={{ borderColor: COLORS.gray.light, color: COLORS.gray.medium }}>
+            D13 uses 5-point scale (includes Unsure/NA)
+          </span>
         </div>
 
-        {/* ===== 13 Dimensions ===== */}
-        <section className="mt-8">
-          <div className="flex items-baseline justify-between mb-2">
-            <h2 className="text-base font-bold text-slate-900">13 Dimensions of Support</h2>
-            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white">
-              D13 uses 5-point scale (includes Unsure/NA)
-            </span>
-          </div>
+        {dims.map(({number, data})=>{
+          const dItems = itemsForDimension(number);
+          const [dL, dR] = splitEven(dItems);
+          return (
+            <Section
+              key={number}
+              title={`Dimension ${number}: ${DIM_NAMES[number]}`}
+              tone={COLORS.purple}
+              badge={number===13 ? '5-point scale' : undefined}
+            >
+              <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+                {dL.map(it=>(
+                  <DataRow key={it.id} label={it.text} value={valueFrom(data, it)} color={COLORS.purple.primary}/>
+                ))}
+              </div>
+              <div className="divide-y" style={{borderColor: COLORS.gray.light}}>
+                {dR.map(it=>(
+                  <DataRow key={it.id} label={it.text} value={valueFrom(data, it)} color={COLORS.purple.primary}/>
+                ))}
+              </div>
+            </Section>
+          );
+        })}
 
-          <div className="space-y-5">
-            {dims.map(({number, data}) => {
-              const dItems = itemsForDimension(number);
-              const [dL, dR] = splitEven(dItems);
-              return (
-                <Section
-                  key={number}
-                  title={`Dimension ${number}: ${DIM_NAME[number] || ''}`}
-                >
-                  <div className="divide-y divide-slate-100">
-                    {dL.map(it => (
-                      <Row key={it.id} label={labelForItem(it)} value={valueFrom(data, it)} accent={BRAND.purple} />
-                    ))}
-                  </div>
-                  <div className="divide-y divide-slate-100">
-                    {dR.map(it => (
-                      <Row key={it.id} label={labelForItem(it)} value={valueFrom(data, it)} accent={BRAND.purple} />
-                    ))}
-                  </div>
-                </Section>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ===== Footer ===== */}
-        <footer className="text-center text-xs text-slate-600 mt-10 pb-10 border-t pt-4">
+        {/* Footer */}
+        <div className="mt-10 pt-6 border-t text-center text-xs"
+             style={{borderColor: COLORS.gray.light, color: COLORS.gray.medium}}>
           Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers & CEW Foundation •
           All responses collected and analyzed by BEYOND Insights, LLC
-        </footer>
+        </div>
       </main>
 
-      {/* ===== Print CSS ===== */}
+      {/* Print CSS */}
       <style jsx>{`
         @media print {
           @page { size: letter; margin: 0.5in; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          header, section { break-inside: avoid; }
+          section { break-inside: avoid; }
+          .print\\:hidden { display: none !important; }
         }
       `}</style>
     </div>
   );
 }
 
-/* ===================== Stat tile ===================== */
-function Stat({ label, value }: { label: string; value: any }) {
+/* ================== Small Stat Tile ================== */
+function Tile({ label, value }: { label: string; value: any }) {
   return (
-    <div className="bg-white border rounded-xl px-3 py-2">
-      <div className="text-[11px] text-slate-500">{label}</div>
-      <div className="text-sm font-semibold text-slate-900">{(value ?? '—') || '—'}</div>
+    <div className="bg-white border rounded-xl px-3 py-2" style={{borderColor: COLORS.gray.light}}>
+      <div className="text-[11px]" style={{color: COLORS.gray.medium}}>{label}</div>
+      <div className="text-sm font-semibold" style={{color: COLORS.gray.dark}}>{(value ?? '—') || '—'}</div>
     </div>
   );
 }
