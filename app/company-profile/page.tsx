@@ -77,6 +77,23 @@ export default function CompanyProfile() {
     return String(arr);
   };
 
+  // Helper to get proper field labels
+  const getDimensionFieldLabel = (key: string, dimNumber: number): string => {
+    // Common patterns across dimensions
+    if (key.includes('aa')) return 'Multi-country consistency';
+    if (key.includes('_1') && !key.includes('_1b')) return 'Additional weeks offered (USA market)';
+    if (key.includes('_1b')) return 'Additional weeks offered (Non-USA markets)';
+    if (key.includes('_2')) return 'How effectiveness is measured';
+    if (key.includes('_4a')) return 'Additional remote work time allowed';
+    if (key.includes('_4b')) return 'Part-time/reduced schedule duration';
+    if (key.includes('_5_usa')) return 'Job protection guarantee (USA)';
+    if (key.includes('_5_non_usa')) return 'Job protection guarantee (Non-USA)';
+    if (key.includes('_6')) return 'Disability benefit enhancements';
+    
+    // Just return the key if no match
+    return key.replace(/_/g, ' ').toUpperCase();
+  };
+
   // POC data - pulled from authorization page AND firmographics
   const poc = {
     name: `${data.firstName} ${data.lastName}`.trim() || null,
@@ -129,10 +146,32 @@ export default function CompanyProfile() {
     const displayValue = value || '—';
     return (
       <div className="flex py-1.5 border-b last:border-0" style={{borderColor:BRAND.gray[200]}}>
-        <div className="w-2/5 pr-3">
+        <div className="w-64 pr-4 flex-shrink-0">
           <span className="text-xs font-medium" style={{color:BRAND.gray[600]}}>{label}:</span>
         </div>
-        <div className="w-3/5">
+        <div className="flex-1">
+          <span className="text-xs" style={{color:BRAND.gray[900]}}>{displayValue}</span>
+        </div>
+      </div>
+    );
+  };
+
+  // Helper to format arrays into comma-separated strings
+  const formatArray = (arr: any) => {
+    if (!arr) return null;
+    if (Array.isArray(arr)) return arr.join(', ');
+    return String(arr);
+  };
+
+  const Field = ({ label, value }: {label:string; value:any}) => {
+    // ALWAYS SHOW THE FIELD - use — for empty
+    const displayValue = value || '—';
+    return (
+      <div className="flex py-1.5 border-b last:border-0" style={{borderColor:BRAND.gray[200]}}>
+        <div className="w-64 pr-4 flex-shrink-0">
+          <span className="text-xs font-medium" style={{color:BRAND.gray[600]}}>{label}:</span>
+        </div>
+        <div className="flex-1">
           <span className="text-xs" style={{color:BRAND.gray[900]}}>{displayValue}</span>
         </div>
       </div>
@@ -310,32 +349,30 @@ export default function CompanyProfile() {
                               </div>
                               <div className="space-y-1">
                                 {entries.map(([item, status]: [string, any]) => (
-                                  <div key={item} className="flex items-start gap-2 py-1 text-xs">
-                                    <span className="flex-1" style={{color:BRAND.gray[700]}}>{item}</span>
-                                    <span className="px-2 py-0.5 rounded text-xs whitespace-nowrap" 
-                                          style={{
-                                            color: status === 'Currently offer' ? '#059669' : 
-                                                   status === 'In active planning / development' ? '#0284c7' :
-                                                   status === 'Assessing feasibility' ? '#d97706' : BRAND.gray[600],
-                                            backgroundColor: status === 'Currently offer' ? '#d1fae5' : 
-                                                             status === 'In active planning / development' ? '#e0f2fe' :
-                                                             status === 'Assessing feasibility' ? '#fef3c7' : BRAND.gray[100],
-                                            fontWeight: 500
-                                          }}>
-                                      {status}
-                                    </span>
+                                  <div key={item} className="py-1 text-xs">
+                                    <div className="flex items-start gap-2">
+                                      <span className="flex-1" style={{color:BRAND.gray[700]}}>{item}</span>
+                                      <span className="px-2 py-0.5 rounded text-xs whitespace-nowrap flex-shrink-0" 
+                                            style={{
+                                              color: status === 'Currently offer' ? '#059669' : 
+                                                     status === 'In active planning / development' ? '#0284c7' :
+                                                     status === 'Assessing feasibility' ? '#d97706' : BRAND.gray[600],
+                                              backgroundColor: status === 'Currently offer' ? '#d1fae5' : 
+                                                               status === 'In active planning / development' ? '#e0f2fe' :
+                                                               status === 'Assessing feasibility' ? '#fef3c7' : BRAND.gray[100],
+                                              fontWeight: 500
+                                            }}>
+                                        {status}
+                                      </span>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           );
                         } else {
-                          // Handle simple key-value pairs with better labels
-                          let label = key;
-                          if (key.includes('aa')) label = 'Multi-country consistency';
-                          else if (key.includes('_1')) label = 'Additional details';
-                          else if (key.includes('_2')) label = 'Measurement approach';
-                          
+                          // Handle simple key-value pairs with PROPER DESCRIPTIVE LABELS
+                          const label = getDimensionFieldLabel(key, dim.number);
                           return <Field key={key} label={label} value={value || '—'} />;
                         }
                       })}
