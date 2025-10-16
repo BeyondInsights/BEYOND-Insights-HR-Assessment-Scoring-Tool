@@ -14,7 +14,7 @@ export default function GeneralBenefitsPage() {
  useEffect(() => {
  console.log("GENERAL ans changed:", ans);
  if (Object.keys(ans).length > 0) {
- localStorage.setItem("general-benefits_data", JSON.stringify(ans));
+ localStorage.setItem("general_benefits_data", JSON.stringify(ans));
  console.log("SAVED general-benefits to localStorage");
  }
  }, [ans]);
@@ -22,7 +22,7 @@ export default function GeneralBenefitsPage() {
  // Debug: Try to load on mount
  useEffect(() => {
  console.log("GENERAL checking for saved data...");
- const saved = localStorage.getItem("general-benefits_data");
+ const saved = localStorage.getItem("general_benefits_data");
  if (saved) {
  console.log("FOUND saved general data:", saved);
  setAns(JSON.parse(saved));
@@ -34,14 +34,14 @@ export default function GeneralBenefitsPage() {
 
  // Load saved answers on mount
  useEffect(() => {
- const saved = localStorage.getItem("general-benefits_data");
+ const saved = localStorage.getItem("general_benefits_data");
  if (saved) setAns(JSON.parse(saved));
  
  }, []);
 
  // Save answers when they change
  useEffect(() => {
- localStorage.setItem("general-benefits_data", JSON.stringify(ans));
+ localStorage.setItem("general_benefits_data", JSON.stringify(ans));
  }, [ans]);
 
  // Set field helper
