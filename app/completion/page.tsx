@@ -105,7 +105,7 @@ export default function CompletionPage() {
 
               {/* Congratulations heading */}
               <h1 className="text-4xl sm:text-6xl font-bold text-center mb-4 bg-gradient-to-r from-purple-600 via-blue-600 to-orange-600 bg-clip-text text-transparent animate-fade-in">
-                Congratulations!
+               Thank You!
               </h1>
               
               <p className="text-xl sm:text-3xl text-center text-gray-700 font-semibold mb-6 animate-fade-in-delay">
