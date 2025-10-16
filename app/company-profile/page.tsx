@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 /* ===== Professional palette - grayscale + single accent ===== */
 const BRAND = {
@@ -31,25 +31,20 @@ const DIM_TITLE: Record<number,string> = {
 
 /* ===== Field labels (short descriptors) ===== */
 const LABELS: Record<string, string> = {
-  // Firmographics / Classification
   companyName:'Company Name', s2:'Gender', s3:'Department',
   s4a:'Primary Job Function', s4b:'Other Function', s5:'Current Level',
   s6:'Areas of Responsibility', s7:'Benefits Influence', s8:'Employee Size',
   s9:'Headquarters', s9a:'Countries with Employees',
   c2:'Industry', c3:'Excluded Employee Groups', c4:'Annual Revenue',
   c5:'Healthcare Access', c6:'Remote/Hybrid Policy',
-
-  // General / Current examples
   cb3a:'Program Characterization', cb3b:'Key Benefits', cb3c:'Conditions Covered', cb3d:'Communication Methods',
   or1:'Current Approach', or2a:'Development Triggers', or2b:'Most Impactful Change',
   or3:'Support Resources', or5a:'Program Features', or6:'Monitoring Approach',
-
-  // Cross-Dimensional / Impact examples
   cd1a:'Top 3 Dimensions', cd1b:'Bottom 3 Dimensions', cd2:'Implementation Challenges',
   ei1:'Retention Impact', ei2:'Absence Impact', ei3:'Performance Impact', ei5:'Return-to-Work Quality',
 };
 
-/* ===== HELPER FUNCTIONS - DEFINED ONCE ONLY ===== */
+/* ===== HELPER FUNCTIONS ===== */
 
 const looksScale = (v:string) =>
   /(currently|offer|plan|eligible|not applicable|unsure|reactive)/i.test(v);
@@ -64,11 +59,6 @@ function formatLabel(key: string): string {
     .replace(/\b\w/g, l => l.toUpperCase());
 }
 
-function formatArray(arr: any): string {
-  if (!Array.isArray(arr)) return '';
-  return arr.filter(Boolean).join('; ');
-}
-
 function selectedOnly(value: any): string[] | string | null {
   if (value == null) return null;
 
@@ -78,26 +68,32 @@ function selectedOnly(value: any): string[] | string | null {
   }
 
   if (typeof value === 'object') {
-    const selected = Object.entries(value)
-      .filter(([_, v]) => {
-        if (typeof v === 'boolean') return v;
+    const picks = Object.entries(value)
+      .filter(([, v]) => {
+        if (v === true) return true;
+        if (typeof v === 'number') return true;
         if (typeof v === 'string') {
-          const lower = v.toLowerCase().trim();
-          return lower && lower !== 'no' && lower !== 'false';
+          const s = v.trim().toLowerCase();
+          if (!s) return false;
+          if (['yes','selected','checked','true'].includes(s)) return true;
+          if (['no','false','none','not selected'].includes(s)) return false;
+          return true;
         }
-        return Boolean(v);
+        return false;
       })
       .map(([k]) => k);
-    return selected.length ? selected : null;
+    return picks.length ? picks : null;
   }
 
-  const strVal = String(value).trim();
-  return strVal ? strVal : null;
+  const s = String(value).trim();
+  return s || null;
 }
 
-function hasAnySelected(obj: Record<string,any>): boolean {
-  return Object.values(obj).some(v => selectedOnly(v) != null);
-}
+const hasAnySelected = (obj: Record<string, any>) =>
+  Object.values(obj || {}).some(v => {
+    const s = selectedOnly(v);
+    return s && (Array.isArray(s) ? s.length > 0 : s.trim().length > 0);
+  });
 
 function getDimensionFieldLabel(dimNumber: number, fieldKey: string): string {
   const prefix = `d${dimNumber}_`;
@@ -105,9 +101,82 @@ function getDimensionFieldLabel(dimNumber: number, fieldKey: string): string {
   return formatLabel(suffix);
 }
 
+/* ===== SUB-COMPONENTS ===== */
+
+function Chips({items}:{items:string[]}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map((v,i)=>(
+        <span key={i} className="px-2 py-0.5 rounded border text-xs bg-white"
+              style={{borderColor:BRAND.gray[300], color:BRAND.gray[900]}}>
+          {v}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function DataRow({ label, selected }:{label:string; selected:string | string[] | null}) {
+  const pill = (txt: string) => (
+    <span className="px-2 py-0.5 rounded-full border text-xs bg-gray-50"
+          style={{color:BRAND.primary, borderColor:BRAND.gray[300]}}>
+      {txt}
+    </span>
+  );
+
+  return (
+    <div className="py-2 border-b last:border-b-0 flex items-start gap-3"
+         style={{borderColor:BRAND.gray[200]}}>
+      <div className="w-56 shrink-0">
+        <span className="text-xs font-semibold" style={{color:BRAND.gray[600]}}>
+          {label}
+        </span>
+      </div>
+      <div className="text-xs flex-1" style={{color:BRAND.gray[900]}}>
+        {selected == null
+          ? <span>—</span>
+          : Array.isArray(selected)
+              ? (selected.length ? <Chips items={selected}/> : <span>—</span>)
+              : (looksScale(selected) ? pill(selected) : <span>{selected}</span>)}
+      </div>
+    </div>
+  );
+}
+
+function Section({
+  title, children, badge, placeholderWhenEmpty,
+}:{
+  title:string;
+  children:React.ReactNode;
+  badge?:string;
+  placeholderWhenEmpty?: boolean;
+}) {
+  return (
+    <section className="mb-6 rounded-lg border overflow-hidden" style={{borderColor:BRAND.gray[300]}}>
+      <div className="px-6 py-3 flex items-center justify-between bg-white border-b"
+           style={{borderColor:BRAND.gray[300]}}>
+        <h2 className="text-base font-bold" style={{color:BRAND.gray[900]}}>{title}</h2>
+        {badge &&
+          <span className="text-xs font-semibold px-2 py-0.5 rounded border bg-gray-50"
+                style={{borderColor:BRAND.gray[300], color:BRAND.gray[700]}}>
+            {badge}
+          </span>
+        }
+      </div>
+      <div className="p-6 bg-white">
+        {placeholderWhenEmpty ? (
+          <div className="text-xs text-slate-500 mt-1">No selections made in this section</div>
+        ) : (
+          children
+        )}
+      </div>
+    </section>
+  );
+}
+
 /* ===== MAIN COMPONENT ===== */
 
-export default function CompanyProfilePage() {
+export default function CompanyProfile() {
   const [data, setData] = useState<any>({
     companyName: 'Your Organization',
     generatedAt: new Date().toLocaleDateString('en-US', {
@@ -117,32 +186,42 @@ export default function CompanyProfilePage() {
   });
 
   useEffect(() => {
-    const f = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
-    const gen = JSON.parse(localStorage.getItem('general-benefits_data') || '{}');
-    const cur = JSON.parse(localStorage.getItem('current-support_data') || '{}');
-    const cd = JSON.parse(localStorage.getItem('cross-dimensional_data') || '{}');
-    const ei = JSON.parse(localStorage.getItem('employee-impact_data') || '{}');
-
-    const dims: Array<{number:number; data:Record<string,any>}> = [];
+    // SECTION 1: FIRMOGRAPHICS
+    const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
+    
+    // SECTION 2: GENERAL BENEFITS
+    const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}');
+    
+    // SECTION 3: CURRENT SUPPORT
+    const current = JSON.parse(localStorage.getItem('current-support_data') || '{}');
+    
+    // SECTION 4: 13 DIMENSIONS (D1-D13)
+    const dims: Array<{ number: number; data: Record<string, any> }> = [];
     for (let i = 1; i <= 13; i++) {
       const dimData = JSON.parse(localStorage.getItem(`dimension_${i}_data`) || '{}');
       if (Object.keys(dimData).length > 0) {
         dims.push({ number: i, data: dimData });
       }
     }
+    
+    // SECTION 5: CROSS-DIMENSIONAL
+    const cross = JSON.parse(localStorage.getItem('cross-dimensional_data') || '{}');
+    
+    // SECTION 6: EMPLOYEE IMPACT
+    const impact = JSON.parse(localStorage.getItem('employee-impact_data') || '{}');
 
     setData({
-      companyName: f.companyName || f.company_name || f.s8 || 'Your Organization',
+      companyName: firmo.companyName || firmo.company_name || firmo.s8 || 'Your Organization',
       generatedAt: new Date().toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric'
       }),
-      email: f.contactEmail || f.email || null,
-      firmographics: f,
-      general: gen,
-      current: cur,
-      crossDimensional: cd,
-      employeeImpact: ei,
+      email: firmo.contactEmail || firmo.email || null,
+      firmographics: firmo,
+      general: general,
+      current: current,
       dimensions: dims,
+      crossDimensional: cross,
+      employeeImpact: impact,
     });
   }, []);
 
@@ -150,7 +229,6 @@ export default function CompanyProfilePage() {
   const gen = data.general || {};
   const cur = data.current || {};
 
-  // Point of contact data
   const poc = {
     name: firmo.contactName || [firmo.contactFirst, firmo.contactLast].filter(Boolean).join(' ') || null,
     email: firmo.contactEmail || data.email || null,
@@ -160,7 +238,6 @@ export default function CompanyProfilePage() {
     location: firmo.s9 || null,
   };
 
-  // Company data (topline)
   const company = {
     hq: firmo.s9 || null,
     industry: firmo.c2 || null,
@@ -170,49 +247,6 @@ export default function CompanyProfilePage() {
   };
 
   const sectionEmpty = (obj:Record<string,any>) => !hasAnySelected(obj);
-
-  /* ===== SUB-COMPONENTS - DEFINED ONCE ONLY ===== */
-
-  const Section = ({ title, placeholderWhenEmpty, children }: {
-    title: string;
-    placeholderWhenEmpty?: boolean;
-    children: React.ReactNode;
-  }) => (
-    <section className="bg-white border rounded-lg p-6 mb-6" style={{borderColor:BRAND.gray[200]}}>
-      <h2 className="text-xl font-bold mb-4" style={{color:BRAND.gray[900]}}>{title}</h2>
-      {placeholderWhenEmpty ? (
-        <p className="text-sm italic" style={{color:BRAND.gray[400]}}>
-          No selections made in this section
-        </p>
-      ) : (
-        children
-      )}
-    </section>
-  );
-
-  const DataRow = ({ label, selected }: { label: string; selected: string[] | string | null }) => {
-    if (!selected) return null;
-
-    const displayValue = Array.isArray(selected) ? selected.join('; ') : selected;
-    
-    return (
-      <div className="flex py-1.5 border-b last:border-0" style={{borderColor:BRAND.gray[200]}}>
-        <div className="w-64 pr-4 flex-shrink-0">
-          <span className="text-xs font-medium" style={{color:BRAND.gray[600]}}>{label}:</span>
-        </div>
-        <div className="flex-1">
-          <span className="text-xs" style={{color:BRAND.gray[900]}}>{displayValue}</span>
-        </div>
-      </div>
-    );
-  };
-
-  const Stat = ({ label, value }: {label:string; value:any}) => (
-    <div className="bg-white border rounded-xl px-3 py-2" style={{borderColor:BRAND.gray[200]}}>
-      <div className="text-[11px]" style={{color:BRAND.gray[600]}}>{label}</div>
-      <div className="text-sm font-semibold" style={{color:BRAND.gray[900]}}>{value || '—'}</div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen" style={{backgroundColor:BRAND.gray.bg}}>
@@ -287,11 +321,10 @@ export default function CompanyProfilePage() {
         </div>
       </section>
 
-      {/* Full sections */}
+      {/* SECTION 1: FIRMOGRAPHICS - Full details */}
       <main className="max-w-7xl mx-auto px-6 mt-6">
-        {/* Company Profile (full firmographics) */}
         <Section
-          title="Company Profile & Firmographics (Full)"
+          title="Section 1: Company Profile & Firmographics (Full)"
           placeholderWhenEmpty={sectionEmpty(firmo)}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
@@ -314,9 +347,9 @@ export default function CompanyProfilePage() {
           </div>
         </Section>
 
-        {/* General Benefits */}
+        {/* SECTION 2: GENERAL BENEFITS */}
         <Section
-          title="General Employee Benefits"
+          title="Section 2: General Employee Benefits"
           placeholderWhenEmpty={sectionEmpty(gen)}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
@@ -337,9 +370,9 @@ export default function CompanyProfilePage() {
           </div>
         </Section>
 
-        {/* Current Support */}
+        {/* SECTION 3: CURRENT SUPPORT */}
         <Section
-          title="Current Support for Employees Managing Cancer"
+          title="Section 3: Current Support for Employees Managing Cancer"
           placeholderWhenEmpty={sectionEmpty(cur)}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
@@ -360,28 +393,28 @@ export default function CompanyProfilePage() {
           </div>
         </Section>
 
-        {/* Dimensions */}
+        {/* SECTION 4: 13 DIMENSIONS */}
         {data.dimensions?.length > 0 && (
-          <Section title="13 Dimensions of Support">
+          <Section title="Section 4: 13 Dimensions of Support">
             <div className="space-y-6">
-              {data.dimensions.map(({number, data}: {number:number; data:Record<string,any>}) => (
-                <div key={number} className="border-l-4 pl-4" style={{borderColor:BRAND.primary}}>
-                  <h3 className="text-base font-bold mb-3" style={{color:BRAND.gray[900]}>
-                    Dimension {number}: {DIM_TITLE[number]}
+              {data.dimensions.map((dim: {number:number; data:Record<string,any>}) => (
+                <div key={dim.number} className="border-l-4 pl-4" style={{borderColor:BRAND.primary}}>
+                  <h3 className="text-base font-bold mb-3" style={{color:BRAND.gray[900]}}>
+                    Dimension {dim.number}: {DIM_TITLE[dim.number]}
                   </h3>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
                     <div>
-                      {Object.entries(data)
-                        .slice(0, Math.ceil(Object.keys(data).length / 2))
+                      {Object.entries(dim.data)
+                        .slice(0, Math.ceil(Object.keys(dim.data).length / 2))
                         .map(([k, v]) => (
-                          <DataRow key={k} label={getDimensionFieldLabel(number, k)} selected={selectedOnly(v)} />
+                          <DataRow key={k} label={getDimensionFieldLabel(dim.number, k)} selected={selectedOnly(v)} />
                         ))}
                     </div>
                     <div>
-                      {Object.entries(data)
-                        .slice(Math.ceil(Object.keys(data).length / 2))
+                      {Object.entries(dim.data)
+                        .slice(Math.ceil(Object.keys(dim.data).length / 2))
                         .map(([k, v]) => (
-                          <DataRow key={k} label={getDimensionFieldLabel(number, k)} selected={selectedOnly(v)} />
+                          <DataRow key={k} label={getDimensionFieldLabel(dim.number, k)} selected={selectedOnly(v)} />
                         ))}
                     </div>
                   </div>
@@ -391,9 +424,9 @@ export default function CompanyProfilePage() {
           </Section>
         )}
 
-        {/* Cross-Dimensional */}
+        {/* SECTION 5: CROSS-DIMENSIONAL */}
         {Object.keys(data.crossDimensional || {}).length > 0 && (
-          <Section title="Cross-Dimensional Assessment">
+          <Section title="Section 5: Cross-Dimensional Assessment">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
               {Object.entries(data.crossDimensional).map(([k, v]) => (
                 <DataRow key={k} label={formatLabel(k)} selected={selectedOnly(v)} />
@@ -402,9 +435,9 @@ export default function CompanyProfilePage() {
           </Section>
         )}
 
-        {/* Employee Impact */}
+        {/* SECTION 6: EMPLOYEE IMPACT */}
         {Object.keys(data.employeeImpact || {}).length > 0 && (
-          <Section title="Employee-Impact Assessment">
+          <Section title="Section 6: Employee-Impact Assessment">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
               {Object.entries(data.employeeImpact).map(([k, v]) => (
                 <DataRow key={k} label={formatLabel(k)} selected={selectedOnly(v)} />
