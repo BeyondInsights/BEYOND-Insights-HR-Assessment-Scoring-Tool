@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -17,7 +17,6 @@ export default function CurrentSupportPage() {
       try {
         const parsed = JSON.parse(saved);
         setAns(parsed);
-        
       } catch (e) {
         console.error("Error loading saved data:", e);
       }
@@ -36,7 +35,6 @@ export default function CurrentSupportPage() {
     setAns((prev: any) => ({ ...prev, [key]: value }));
     setErrors("");
   };
-
 
   // Toggle multi-select with exclusivity
   const toggleMulti = (key: string, value: string, exclusiveValue?: string) => {
@@ -104,7 +102,7 @@ export default function CurrentSupportPage() {
       case 8: // OR2a (conditional)
         if (!Array.isArray(ans.or2a) || ans.or2a.length === 0)
           return "Please select at least one trigger";
-        if (ans.or2a.includes("Other (specify):") && !ans.or2a_other?.trim())
+        if (ans.or2a.includes("Other (specify)") && !ans.or2a_other?.trim())
           return "Please specify other trigger";
         return null;
 
@@ -115,14 +113,14 @@ export default function CurrentSupportPage() {
       case 10: // OR3 (conditional)
         if (!Array.isArray(ans.or3) || ans.or3.length === 0)
           return "Please select at least one barrier";
-        if (ans.or3.includes("Other (specify):") && !ans.or3_other?.trim())
+        if (ans.or3.includes("Some other reason (specify)") && !ans.or3_other?.trim())
           return "Please specify other barriers";
         return null;
 
       case 11: // OR5a
         if (!Array.isArray(ans.or5a) || ans.or5a.length === 0)
           return "Please select at least one type of support";
-        if (ans.or5a.includes("Other (specify):") && !ans.or5a_other?.trim())
+        if (ans.or5a.includes("Some other support (specify):") && !ans.or5a_other?.trim())
           return "Please specify other support";
         return null;
 
@@ -154,16 +152,18 @@ export default function CurrentSupportPage() {
       }
     }
 
+    // FIXED: Skip logic now matches Word doc exactly
     if (step === 7) {
-      const moderateOrHigher = [
-        "<strong>Moderate support</strong> â€“ coordinated resources with clear processes",
-        "<strong>Strong support</strong> â€“ integrated framework addressing multiple needs",
-        "<strong>Leading-edge support</strong> â€“ comprehensive, innovative programs"
+      const skipToOR3 = [
+        "No formal approach: Handle case-by-case",
+        "Developing approach: Currently building our programs",
+        "Legal minimum only: Meet legal requirements only (FMLA, ADA)"
       ];
-      if (moderateOrHigher.includes(ans.or1)) {
-        setStep(8); // Go to OR2a
-      } else {
+      
+      if (skipToOR3.includes(ans.or1)) {
         setStep(10); // Skip to OR3
+      } else {
+        setStep(8); // Go to OR2a
       }
       return;
     }
@@ -191,15 +191,15 @@ export default function CurrentSupportPage() {
       setStep(7); // Go back to OR1
     } else if (step === 11) {
       // Check where we came from
-      const moderateOrHigher = [
-        "<strong>Moderate support</strong> â€“ coordinated resources with clear processes",
-        "<strong>Strong support</strong> â€“ integrated framework addressing multiple needs",
-        "<strong>Leading-edge support</strong> â€“ comprehensive, innovative programs"
+      const skipToOR3 = [
+        "No formal approach: Handle case-by-case",
+        "Developing approach: Currently building our programs",
+        "Legal minimum only: Meet legal requirements only (FMLA, ADA)"
       ];
-      if (moderateOrHigher.includes(ans.or1)) {
-        setStep(9); // Go back to OR2b
-      } else {
+      if (skipToOR3.includes(ans.or1)) {
         setStep(10); // Go back to OR3
+      } else {
+        setStep(9); // Go back to OR2b
       }
     } else if (step > 1) {
       setStep(step - 1);
@@ -245,55 +245,63 @@ export default function CurrentSupportPage() {
     "Some other way (specify):"
   ];
 
+  // FIXED: Updated OR1 options to match Word doc exactly
   const OR1_OPTIONS = [
-    "<strong>No formal approach</strong> - handle situations as they arise",
-    "<strong>Developing approach</strong> - currently building programs and policies",
-    "<strong>Basic support</strong> - legal minimums plus some informal flexibility",
-    "<strong>Moderate support</strong> - coordinated resources with clear processes",
-    "<strong>Strong support</strong> - integrated framework addressing multiple needs",
-    "<strong>Leading-edge support</strong> - comprehensive, innovative programs"
+    "No formal approach: Handle case-by-case",
+    "Developing approach: Currently building our programs",
+    "Legal minimum only: Meet legal requirements only (FMLA, ADA)",
+    "Moderate support: Some programs beyond legal requirements",
+    "Enhanced support: Meaningful programs beyond legal minimums",
+    "Comprehensive support: Extensive programs well beyond legal requirements"
   ];
 
+  // FIXED: Updated OR2A triggers to match Word doc
   const OR2A_TRIGGERS = [
-    "Employee(s) diagnosed with serious medical condition",
-    "Leadership personal experience or commitment",
-    "Employee feedback / requests",
-    "Retention / recruitment challenges",
-    "Productivity / business continuity concerns",
-    "DEI / ESG commitments",
-    "Industry best practices / peer pressure",
-    "Legal / compliance evolution",
+    "Employee(s) diagnosed with cancer or other serious health conditions highlighted gaps",
+    "Leadership personal experience with cancer",
+    "Keep up with industry standards and peer company practices",
+    "Employee survey feedback",
+    "Recruitment/retention goals or challenges",
+    "Legal case or compliance issue",
     "Union negotiations",
-    "Parent company directive",
-    "Other (specify):"
+    "ESG/corporate responsibility commitments",
+    "Inspired by Working with Cancer Initiative or similar programs",
+    "Other (specify)"
   ];
 
+  // FIXED: Updated OR3 barriers to match Word doc
   const OR3_BARRIERS = [
     "Budget constraints",
-    "Limited HR bandwidth",
-    "Lack of expertise / knowledge",
-    "Competing priorities",
-    "Small employee population",
-    "Geographic / jurisdictional complexity",
-    "Privacy / legal concerns",
-    "Leadership buy-in",
-    "Unclear ROI / business case",
-    "Fear of setting precedent",
-    "Equity concerns across conditions",
-    "Other (specify):"
+    "Lack of executive support",
+    "Small number of cases doesn't justify investment",
+    "Concerns about setting precedent",
+    "Limited HR and/or Benefits team bandwidth",
+    "Lack of expertise/knowledge",
+    "Other priorities take precedence",
+    "Concerns about fairness across conditions",
+    "Uncertainty about ROI",
+    "Data privacy concerns (HIPAA, GDPR, other regulations)",
+    "Complex/varying legal requirements across markets",
+    "Global consistency challenges",
+    "Some other reason (specify)"
   ];
 
+  // FIXED: Added 5 missing items + reordered to match Word doc
   const OR5A_SUPPORT = [
-    "Flexible work arrangements",
-    "Caregiver leave (paid)",
-    "Caregiver leave (unpaid)",
-    "Employee assistance program (EAP) with caregiver resources",
+    "Flexible work schedules",
+    "Remote work options",
+    "Paid caregiver leave",
+    "Unpaid leave with job protection",
+    "Employee assistance program (EAP) counseling",
     "Caregiver support groups",
-    "Backup care services",
-    "Financial assistance / subsidies",
-    "Resource referrals",
+    "Referrals to eldercare/dependent care resources",
+    "Financial assistance or subsidies",
+    "Respite care coverage",
+    "Modified job duties/reduced workload",
     "Manager training on supporting caregivers",
-    "Other (specify):",
+    "Emergency dependent care when regular arrangements unavailable",
+    "Legal/financial planning resources",
+    "Some other support (specify):",
     "Not able to provide caregiver support at this time"
   ];
 
@@ -317,9 +325,9 @@ export default function CurrentSupportPage() {
             <span className="text-sm text-gray-600">Step {step} of 13</span>
             <button 
               onClick={() => { 
-  localStorage.setItem("current_support_complete", "true");
-  router.push("/dashboard");
-}}
+                localStorage.setItem("current_support_complete", "true");
+                router.push("/dashboard");
+              }}
               className="text-sm text-orange-600 hover:text-orange-700 font-medium"
             >
               ← Back to Dashboard
@@ -412,7 +420,7 @@ export default function CurrentSupportPage() {
                         : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
-                    <span dangerouslySetInnerHTML={{ __html: opt }} />
+                    {opt}
                   </button>
                 ))}
               </div>
@@ -449,7 +457,7 @@ export default function CurrentSupportPage() {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <span dangerouslySetInnerHTML={{ __html: opt }} />
+                      {opt}
                     </button>
                   );
                 })}
@@ -501,7 +509,7 @@ export default function CurrentSupportPage() {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <span dangerouslySetInnerHTML={{ __html: opt }} />
+                      {opt}
                     </button>
                   );
                 })}
@@ -547,7 +555,7 @@ export default function CurrentSupportPage() {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <span dangerouslySetInnerHTML={{ __html: opt }} />
+                      {opt}
                     </button>
                   );
                 })}
@@ -582,14 +590,14 @@ export default function CurrentSupportPage() {
           </div>
         )}
 
-        {/* Step 7: OR1 */}
+        {/* Step 7: OR1 - FIXED QUESTION TEXT */}
         {step === 7 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Current Support</h2>
             
             <div>
               <p className="text-base font-bold text-gray-900 mb-1">
-                Which best describes your organization's <span className="text-blue-600">current approach</span> to supporting employees with serious medical conditions?
+                Which best describes your organization's current approach to supporting <span className="text-blue-600">employees managing cancer or other serious health conditions</span>?
               </p>
               <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
               
@@ -604,8 +612,8 @@ export default function CurrentSupportPage() {
                         : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
-                    <span dangerouslySetInnerHTML={{ __html: opt }} />
-                     </button>
+                    {opt}
+                  </button>
                 ))}
               </div>
             </div>
@@ -629,7 +637,7 @@ export default function CurrentSupportPage() {
                   
                   return (
                     <button
-                      key={`or1-${OR1_OPTIONS.indexOf(opt)}`}
+                      key={opt}
                       onClick={() => toggleMulti("or2a", opt)}
                       className={`px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                         opt.includes("(specify)") ? "font-normal" : ""
@@ -639,13 +647,13 @@ export default function CurrentSupportPage() {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <span dangerouslySetInnerHTML={{ __html: opt }} />
+                      {opt}
                     </button>
                   );
                 })}
               </div>
               
-              {Array.isArray(ans.or2a) && ans.or2a.includes("Other (specify):") && (
+              {Array.isArray(ans.or2a) && ans.or2a.includes("Other (specify)") && (
                 <input
                   type="text"
                   value={ans.or2a_other || ""}
@@ -665,9 +673,9 @@ export default function CurrentSupportPage() {
             
             <div>
               <p className="text-base font-bold text-gray-900 mb-1">
-                What has been the <span className="text-blue-600">single most impactful change</span> your organization has made to support employees with serious medical conditions?
+                What has been the <span className="text-blue-600">single most impactful change</span> your organization has made to support employees managing cancer or other serious health conditions?
               </p>
-              <p className="text-sm text-gray-600 mb-4">(Open-end)</p>
+              <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
               
               <textarea
                 value={ans.or2b || ""}
@@ -686,7 +694,7 @@ export default function CurrentSupportPage() {
             
             <div>
               <p className="text-base font-bold text-gray-900 mb-1">
-                What are the <span className="text-blue-600">primary barriers</span> preventing more comprehensive support for employees with serious medical conditions?
+                What are the <span className="text-blue-600">primary barriers</span> preventing more comprehensive support for employees managing cancer or other serious health conditions?
               </p>
               <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
               
@@ -706,13 +714,13 @@ export default function CurrentSupportPage() {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <span dangerouslySetInnerHTML={{ __html: opt }} />
+                      {opt}
                     </button>
                   );
                 })}
               </div>
               
-              {Array.isArray(ans.or3) && ans.or3.includes("Other (specify):") && (
+              {Array.isArray(ans.or3) && ans.or3.includes("Some other reason (specify)") && (
                 <input
                   type="text"
                   value={ans.or3_other || ""}
@@ -725,16 +733,17 @@ export default function CurrentSupportPage() {
           </div>
         )}
 
-        {/* Step 11: OR5a */}
+        {/* Step 11: OR5a - FIXED: Added 5 missing items + updated question text */}
         {step === 11 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Current Support</h2>
             
             <div>
               <p className="text-base font-bold text-gray-900 mb-1">
-                What types of <span className="text-blue-600">caregiver support</span> does your organization provide for employees caring for someone with a serious medical condition?
+                What types of <span className="text-blue-600">caregiver support</span> does your organization provide to employees who have taken on primary caregiver responsibilities for someone <span className="text-blue-600">managing cancer or another serious health condition</span>?
               </p>
               <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+              <p className="text-sm text-gray-500 italic mb-4">Select if offered in at least one location</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-fr">
                 {OR5A_SUPPORT.map(opt => {
@@ -757,13 +766,13 @@ export default function CurrentSupportPage() {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <span dangerouslySetInnerHTML={{ __html: opt }} />
+                      {opt}
                     </button>
                   );
                 })}
               </div>
               
-              {Array.isArray(ans.or5a) && ans.or5a.includes("Other (specify):") && (
+              {Array.isArray(ans.or5a) && ans.or5a.includes("Some other support (specify):") && (
                 <input
                   type="text"
                   value={ans.or5a_other || ""}
@@ -783,11 +792,11 @@ export default function CurrentSupportPage() {
             
             <div>
               <p className="text-base font-bold text-gray-900 mb-1">
-                How does your organization <span className="text-blue-600">monitor effectiveness</span> of workplace support programs for employees with serious medical conditions while maintaining employee privacy?
+                How does your organization <span className="text-blue-600">monitor effectiveness</span> of workplace support programs while maintaining employee privacy?
               </p>
               <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-[80px] auto-rows-fr">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-fr">
                 {OR6_MONITORING.map(opt => {
                   const isSelected = Array.isArray(ans.or6) && ans.or6.includes(opt);
                   const isNone = opt === "No systematic monitoring";
@@ -808,7 +817,7 @@ export default function CurrentSupportPage() {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <span dangerouslySetInnerHTML={{ __html: opt }} />
+                      {opt}
                     </button>
                   );
                 })}
@@ -843,12 +852,12 @@ export default function CurrentSupportPage() {
             </p>
             <button
               onClick={() => { 
-  localStorage.setItem("current_support_complete", "true"); 
-  router.push("/dashboard"); 
-}}
+                localStorage.setItem("current_support_complete", "true"); 
+                router.push("/dashboard"); 
+              }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Save & Continue to Dashboard
+              Save & Continue to Dashboard →
             </button>
           </div>
         )}
@@ -880,4 +889,3 @@ export default function CurrentSupportPage() {
     </div>
   );
 }
-
