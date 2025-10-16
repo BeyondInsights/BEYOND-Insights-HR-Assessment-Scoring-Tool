@@ -216,7 +216,7 @@ export default function DashboardPage() {
           localStorage.setItem('assessment_completion_shown', 'true');
           router.push('/completion');
         }
-    
+    }    
     calculateProgress();
     
     return () => window.removeEventListener("focus", handleFocus);
