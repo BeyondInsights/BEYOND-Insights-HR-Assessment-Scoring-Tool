@@ -77,16 +77,81 @@ export default function CompanyProfile() {
   };
 
   const getDimensionFieldLabel = (key: string): string => {
-    if (key.includes('aa')) return 'Multi-country consistency';
-    if (key.includes('_1') && !key.includes('_1b')) return 'Additional weeks offered (USA market)';
-    if (key.includes('_1b')) return 'Additional weeks offered (Non-USA markets)';
-    if (key.includes('_2')) return 'How effectiveness is measured';
-    if (key.includes('_4a')) return 'Additional remote work time allowed';
-    if (key.includes('_4b')) return 'Part-time/reduced schedule duration';
-    if (key.includes('_5_usa')) return 'Job protection guarantee (USA)';
-    if (key.includes('_5_non_usa')) return 'Job protection guarantee (Non-USA)';
-    if (key.includes('_6')) return 'Disability benefit enhancements';
-    return key.replace(/_/g, ' ').replace(/^d\d+[a-z]?_?/, '').toUpperCase();
+    // Dimension 1 - Medical Leave & Flexibility
+    if (key.includes('d1aa')) return 'Multi-country consistency';
+    if (key.includes('d1_1')) return 'Additional weeks of paid medical leave (USA)';
+    if (key.includes('d1_1b')) return 'Additional weeks of paid medical leave (Non-USA)';
+    if (key.includes('d1_2')) return 'How program effectiveness is measured';
+    if (key.includes('d1_4a')) return 'Additional remote work time allowed during treatment';
+    if (key.includes('d1_4b')) return 'Duration of part-time/reduced schedule options';
+    if (key.includes('d1_5_usa')) return 'Job protection guarantee duration (USA)';
+    if (key.includes('d1_5_non_usa')) return 'Job protection guarantee duration (Non-USA)';
+    if (key.includes('d1_6')) return 'Disability benefit enhancements offered';
+    
+    // Dimension 2 - Insurance & Financial Protection
+    if (key.includes('d2aa')) return 'Multi-country consistency';
+    if (key.includes('d2_1')) return 'Additional insurance coverage details';
+    if (key.includes('d2_2')) return 'How financial protection effectiveness is measured';
+    if (key.includes('d2_5')) return 'Health insurance premium handling during leave';
+    if (key.includes('d2_6')) return 'Financial counseling provider';
+    
+    // Dimension 3 - Manager Preparedness & Capability
+    if (key.includes('d3aa')) return 'Multi-country consistency';
+    if (key.includes('d3_1')) return 'Manager training requirement type';
+    if (key.includes('d3_2')) return 'Manager training completion rate';
+    
+    // Dimension 4 - Navigation & Expert Resources
+    if (key.includes('d4aa')) return 'Multi-country consistency';
+    if (key.includes('d4_1')) return 'Care navigation provider';
+    if (key.includes('d4_2')) return 'How navigation effectiveness is measured';
+    
+    // Dimension 5 - Workplace Accommodations
+    if (key.includes('d5aa')) return 'Multi-country consistency';
+    if (key.includes('d5_1')) return 'Accommodation request process';
+    if (key.includes('d5_2')) return 'How accommodation effectiveness is measured';
+    
+    // Dimension 6 - Culture & Psychological Safety
+    if (key.includes('d6aa')) return 'Multi-country consistency';
+    if (key.includes('d6_1')) return 'Cultural safety initiatives';
+    if (key.includes('d6_2')) return 'How psychological safety is measured';
+    
+    // Dimension 7 - Career Continuity & Advancement
+    if (key.includes('d7aa')) return 'Multi-country consistency';
+    if (key.includes('d7_1')) return 'Career protection policies';
+    if (key.includes('d7_2')) return 'How career continuity is measured';
+    
+    // Dimension 8 - Return-to-Work Excellence
+    if (key.includes('d8aa')) return 'Multi-country consistency';
+    if (key.includes('d8_1')) return 'Return-to-work program details';
+    if (key.includes('d8_2')) return 'How return-to-work success is measured';
+    
+    // Dimension 9 - Executive Commitment & Resources
+    if (key.includes('d9aa')) return 'Multi-country consistency';
+    if (key.includes('d9_1')) return 'Executive sponsorship details';
+    if (key.includes('d9_2')) return 'How executive commitment is measured';
+    
+    // Dimension 10 - Caregiver & Family Support
+    if (key.includes('d10aa')) return 'Multi-country consistency';
+    if (key.includes('d10_1')) return 'Caregiver support programs';
+    if (key.includes('d10_2')) return 'How caregiver support effectiveness is measured';
+    
+    // Dimension 11 - Prevention, Wellness & Legal Compliance
+    if (key.includes('d11aa')) return 'Multi-country consistency';
+    if (key.includes('d11_1')) return 'Prevention program details';
+    if (key.includes('d11_2')) return 'How prevention effectiveness is measured';
+    
+    // Dimension 12 - Continuous Improvement & Outcomes
+    if (key.includes('d12aa')) return 'Multi-country consistency';
+    if (key.includes('d12_1')) return 'Improvement tracking methods';
+    if (key.includes('d12_2')) return 'How outcomes are measured';
+    
+    // Dimension 13 - Communication & Awareness
+    if (key.includes('d13aa')) return 'Multi-country consistency';
+    if (key.includes('d13_1')) return 'Communication frequency';
+    if (key.includes('d13_2')) return 'How communication effectiveness is measured';
+    
+    // Fallback - clean up key
+    return key.replace(/_/g, ' ').replace(/^d\d+[a-z]?_?/, '').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   const poc = {
