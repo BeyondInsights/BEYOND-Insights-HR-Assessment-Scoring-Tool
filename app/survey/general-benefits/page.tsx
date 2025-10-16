@@ -676,7 +676,7 @@ export default function GeneralBenefitsPage() {
  onClick={back} 
  className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
  >
- ? Back
+ ← Back
  </button>
  ) : (
  <span />
