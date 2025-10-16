@@ -11,6 +11,22 @@ const BRAND = {
   },
 };
 
+const DIMENSION_NAMES: Record<number, string> = {
+  1: 'Medical Leave & Flexibility',
+  2: 'Insurance & Financial Protection',
+  3: 'Manager Preparedness & Capability',
+  4: 'Navigation & Expert Resources',
+  5: 'Workplace Accommodations',
+  6: 'Culture & Psychological Safety',
+  7: 'Career Continuity & Advancement',
+  8: 'Work Continuation & Resumption',
+  9: 'Executive Commitment & Resources',
+  10: 'Caregiver & Family Support',
+  11: 'Prevention, Wellness & Legal Compliance',
+  12: 'Continuous Improvement & Outcomes',
+  13: 'Communication & Awareness',
+};
+
 export default function CompanyProfile() {
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState(true);
@@ -35,7 +51,6 @@ export default function CompanyProfile() {
     const dim12 = JSON.parse(localStorage.getItem('dimension12_data') || '{}');
     const dim13 = JSON.parse(localStorage.getItem('dimension13_data') || '{}');
 
-    // Get from authorization page storage
     const companyName = localStorage.getItem('login_company_name') || firmo.companyName || 'Organization';
     const email = localStorage.getItem('login_email') || '';
     const firstName = localStorage.getItem('login_first_name') || '';
@@ -53,19 +68,19 @@ export default function CompanyProfile() {
       general,
       current,
       dimensions: [
-        { number: 1, name: 'Medical Leave & Flexibility', data: dim1 },
-        { number: 2, name: 'Insurance & Financial Protection', data: dim2 },
-        { number: 3, name: 'Manager Preparedness & Capability', data: dim3 },
-        { number: 4, name: 'Navigation & Expert Resources', data: dim4 },
-        { number: 5, name: 'Workplace Accommodations', data: dim5 },
-        { number: 6, name: 'Culture & Psychological Safety', data: dim6 },
-        { number: 7, name: 'Career Continuity & Advancement', data: dim7 },
-        { number: 8, name: 'Work Continuation & Resumption', data: dim8 },
-        { number: 9, name: 'Executive Commitment & Resources', data: dim9 },
-        { number: 10, name: 'Caregiver & Family Support', data: dim10 },
-        { number: 11, name: 'Prevention, Wellness & Legal Compliance', data: dim11 },
-        { number: 12, name: 'Continuous Improvement & Outcomes', data: dim12 },
-        { number: 13, name: 'Communication & Awareness', data: dim13 },
+        { number: 1, name: DIMENSION_NAMES[1], data: dim1 },
+        { number: 2, name: DIMENSION_NAMES[2], data: dim2 },
+        { number: 3, name: DIMENSION_NAMES[3], data: dim3 },
+        { number: 4, name: DIMENSION_NAMES[4], data: dim4 },
+        { number: 5, name: DIMENSION_NAMES[5], data: dim5 },
+        { number: 6, name: DIMENSION_NAMES[6], data: dim6 },
+        { number: 7, name: DIMENSION_NAMES[7], data: dim7 },
+        { number: 8, name: DIMENSION_NAMES[8], data: dim8 },
+        { number: 9, name: DIMENSION_NAMES[9], data: dim9 },
+        { number: 10, name: DIMENSION_NAMES[10], data: dim10 },
+        { number: 11, name: DIMENSION_NAMES[11], data: dim11 },
+        { number: 12, name: DIMENSION_NAMES[12], data: dim12 },
+        { number: 13, name: DIMENSION_NAMES[13], data: dim13 },
       ]
     });
     setLoading(false);
@@ -83,14 +98,12 @@ export default function CompanyProfile() {
   const gen = data.general || {};
   const cur = data.current || {};
 
-  // Helper to format arrays into comma-separated strings
   const formatArray = (arr: any) => {
     if (!arr) return null;
     if (Array.isArray(arr)) return arr.join(', ');
     return String(arr);
   };
 
-  // Helper to get proper field labels
   const getDimensionFieldLabel = (key: string, dimNumber: number): string => {
     if (key.includes('aa')) return 'Multi-country consistency';
     if (key.includes('_1') && !key.includes('_1b')) return 'Additional weeks offered (USA market)';
@@ -105,7 +118,6 @@ export default function CompanyProfile() {
     return key.replace(/_/g, ' ').toUpperCase();
   };
 
-  // POC data
   const poc = {
     name: `${data.firstName} ${data.lastName}`.trim() || null,
     email: data.email || null,
@@ -116,7 +128,6 @@ export default function CompanyProfile() {
     influence: firmo?.s7 || null,
   };
 
-  // Company data
   const company = {
     name: data.companyName,
     industry: firmo?.c2 || null,
@@ -126,7 +137,6 @@ export default function CompanyProfile() {
     countries: firmo?.s9a || null,
   };
 
-  // General benefits data
   const benefits = {
     nationalHealthcare: gen?.cb1a || null,
     eligibility: gen?.c3 || firmo?.c3 || null,
@@ -139,7 +149,6 @@ export default function CompanyProfile() {
     remote: firmo?.c6 || null,
   };
 
-  // Current support data
   const support = {
     status: cur?.cb3a || null,
     approach: cur?.or1 || null,
@@ -155,7 +164,7 @@ export default function CompanyProfile() {
     const displayValue = value || '—';
     return (
       <div className="flex py-1.5 border-b last:border-0" style={{borderColor:BRAND.gray[200]}}>
-        <div className="w-64 pr-4 flex-shrink-0">
+        <div className="w-80 pr-4 flex-shrink-0">
           <span className="text-xs font-medium" style={{color:BRAND.gray[600]}}>{label}:</span>
         </div>
         <div className="flex-1">
@@ -209,8 +218,8 @@ export default function CompanyProfile() {
       {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto px-6 py-6">
         
-        {/* ROW 1: Company Profile + POC Profile */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        {/* ROW 1: Company Profile + POC Profile - EQUAL WIDTH COLUMNS */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
           
           {/* Company Profile */}
           <div className="bg-white border rounded-md p-4" style={{borderColor:BRAND.gray[200]}}>
@@ -244,8 +253,8 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* ROW 2: General Benefits + Current Support */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        {/* ROW 2: General Benefits + Current Support - EQUAL WIDTH COLUMNS */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
           
           {/* General Benefits Landscape */}
           <div className="bg-white border rounded-md p-4" style={{borderColor:BRAND.gray[200]}}>
@@ -292,14 +301,14 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* ALL 13 DIMENSIONS - 2 per row */}
+        {/* ALL 13 DIMENSIONS - 2 per row, EQUAL WIDTH */}
         {data.dimensions && data.dimensions.length > 0 && (
           <div className="mt-6">
             <h2 className="text-lg font-bold mb-3" style={{color:BRAND.gray[900]}}>
               13 Dimensions of Support
             </h2>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               {data.dimensions.map((dim: any) => {
                 const dimData = dim.data || {};
                 const hasData = Object.keys(dimData).length > 0;
@@ -323,7 +332,7 @@ export default function CompanyProfile() {
                     <div className="space-y-0">
                       {filteredData.map(([key, value]: [string, any]) => {
                         if (typeof value === 'object' && value !== null) {
-                          // Handle nested objects
+                          // Handle nested objects (grid items)
                           const entries = Object.entries(value);
                           return (
                             <div key={key} className="mb-2">
@@ -354,6 +363,7 @@ export default function CompanyProfile() {
                             </div>
                           );
                         } else {
+                          // Handle simple key-value pairs
                           const label = getDimensionFieldLabel(key, dim.number);
                           return <Field key={key} label={label} value={value || '—'} />;
                         }
