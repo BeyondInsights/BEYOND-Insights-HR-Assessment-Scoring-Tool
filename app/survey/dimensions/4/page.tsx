@@ -276,7 +276,7 @@ export default function Dimension4Page() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>Indicate the current status of each option within your organization</span>
+                    <span><strong>Indicate the current status of each option within your organization</strong></span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
@@ -495,7 +495,7 @@ export default function Dimension4Page() {
             <p className="font-bold text-gray-900 mb-4">
               Who provides <span className="text-blue-600 font-bold">navigation support</span> for <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span> at your organization?
             </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
             <div className="space-y-2">
               {[
@@ -540,7 +540,7 @@ export default function Dimension4Page() {
             <p className="font-bold text-gray-900 mb-4">
               Which of the following <span className="text-blue-600 font-bold">services</span> are available through your organization's navigation support for <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>?
             </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             <p className="text-xs italic text-gray-500 mb-4">Select a service if offered at any location</p>
             
             <div className="space-y-2">
