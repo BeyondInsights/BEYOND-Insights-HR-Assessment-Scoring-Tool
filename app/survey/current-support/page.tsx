@@ -12,7 +12,7 @@ export default function CurrentSupportPage() {
 
  // Load saved answers on mount
  useEffect(() => {
- const saved = localStorage.getItem("current-support_data");
+ const saved = localStorage.getItem("current_support_data");
  if (saved) {
  try {
  const parsed = JSON.parse(saved);
@@ -26,7 +26,7 @@ export default function CurrentSupportPage() {
  // Save answers when they change
  useEffect(() => {
  if (Object.keys(ans).length > 0) {
- localStorage.setItem("current-support_data", JSON.stringify(ans));
+ localStorage.setItem("current_support_data", JSON.stringify(ans));
  }
  }, [ans]);
 
