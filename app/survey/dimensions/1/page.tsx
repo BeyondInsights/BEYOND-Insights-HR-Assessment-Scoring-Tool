@@ -893,111 +893,160 @@ return (
  </div>
  )}
 
-{/* D1.5 - Job protection GRID */}
- {step === 8 && showD1_5 && (
- <div className="bg-white p-6 rounded-lg shadow-sm">
- <h3 className="text-xl font-bold text-gray-900 mb-4">Job Protection Guarantee</h3>
- 
- <p className="text-gray-700 mb-2">
- <span className="underline">Beyond legally required leave</span>, how many weeks do you <strong>guarantee job protection</strong> for <strong>employees managing cancer or other serious health conditions</strong>?
- </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE for each market)</p>
- <p className="text-xs text-gray-500 italic mb-6">
- For markets outside USA, provide the most common scenario OR the average if it varies significantly
- </p>
- 
- <div className="overflow-x-auto">
- <table className="w-full border border-gray-300 table-fixed">
- <thead>
- <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
- <th className="text-left p-2 border-b border-r font-medium w-1 / 4">Market</th>
- <th className="p-2 border-b border-r text-center text-sm">1 to less than<br/>4 weeks</th>
- <th className="p-2 border-b border-r text-center text-sm">4 to less than<br/>12 weeks</th>
- <th className="p-2 border-b border-r text-center text-sm">12 to less than<br/>26 weeks</th>
- <th className="p-2 border-b border-r text-center text-sm">26 to less than<br/>52 weeks</th>
- <th className="p-2 border-b border-r text-center text-sm">52 weeks<br/>or more</th>
- <th className="p-2 border-b text-center text-sm">Does not<br/>apply</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-gray-200">
- <tr className="hover:bg-orange-50 transition-colors">
- <td className="p-2 border-b border-r text-sm">
- <strong>Employees based in the USA</strong><br/>
- <span className="text-sm text-gray-600">(beyond FMLA / state requirements)</span>
- </td>
- <td className="p-2 border-b border-r text-center">
- <input type="radio" name="d1_5_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_usa", "1 to less than 4 weeks")}
- checked={ans.d1_5_usa === "1 to less than 4 weeks"}/>
- </td>
- <td className="p-2 border-b border-r text-center">
- <input type="radio" name="d1_5_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_usa", "4 to less than 12 weeks")}
- checked={ans.d1_5_usa === "4 to less than 12 weeks"}/>
- </td>
- <td className="p-2 border-b border-r text-center">
- <input type="radio" name="d1_5_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_usa", "12 to less than 26 weeks")}
- checked={ans.d1_5_usa === "12 to less than 26 weeks"}/>
- </td>
- <td className="p-2 border-b border-r text-center">
- <input type="radio" name="d1_5_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_usa", "26 to less than 52 weeks")}
- checked={ans.d1_5_usa === "26 to less than 52 weeks"}/>
- </td>
- <td className="p-2 border-b border-r text-center">
- <input type="radio" name="d1_5_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_usa", "52 weeks or more")}
- checked={ans.d1_5_usa === "52 weeks or more"}/>
- </td>
- <td className="p-2 border-b text-center">
- <input type="radio" name="d1_5_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_usa", "Does not apply")}
- checked={ans.d1_5_usa === "Does not apply"}/>
- </td>
- </tr>
- <tr className="hover:bg-orange-50 transition-colors">
- <td className="p-2 border-r text-sm">
- <strong>Employees based <span className="underline">outside</span> the USA</strong><br/>
- <span className="text-sm text-gray-600">(beyond statutory requirements)</span>
- </td>
- <td className="p-2 border-r text-center">
- <input type="radio" name="d1_5_non_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_non_usa", "1 to less than 4 weeks")}
- checked={ans.d1_5_non_usa === "1 to less than 4 weeks"}/>
- </td>
- <td className="p-2 border-r text-center">
- <input type="radio" name="d1_5_non_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_non_usa", "4 to less than 12 weeks")}
- checked={ans.d1_5_non_usa === "4 to less than 12 weeks"}/>
- </td>
- <td className="p-2 border-r text-center">
- <input type="radio" name="d1_5_non_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_non_usa", "12 to less than 26 weeks")}
- checked={ans.d1_5_non_usa === "12 to less than 26 weeks"}/>
- </td>
- <td className="p-2 border-r text-center">
- <input type="radio" name="d1_5_non_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_non_usa", "26 to less than 52 weeks")}
- checked={ans.d1_5_non_usa === "26 to less than 52 weeks"}/>
- </td>
- <td className="p-2 border-r text-center">
- <input type="radio" name="d1_5_non_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_non_usa", "52 weeks or more")}
- checked={ans.d1_5_non_usa === "52 weeks or more"}/>
- </td>
- <td className="p-2 text-center">
- <input type="radio" name="d1_5_non_usa" className="w-4 h-4"
- onChange={() => setField("d1_5_non_usa", "Does not apply")}
- checked={ans.d1_5_non_usa === "Does not apply"}/>
- </td>
- </tr>
- </tbody>
- </table>
- </div>
- </div>
- )}
-
+{/* Step 8: D1.5 - Job protection GRID - FIXED VERSION */}
+{step === 8 && showD1_5 && (
+  <div className="bg-white p-6 rounded-lg shadow-sm">
+    <h3 className="text-xl font-bold text-gray-900 mb-4">Job Protection Guarantee</h3>
+    
+    <p className="text-gray-700 mb-2">
+      <span className="underline">Beyond legally required leave</span>, how many weeks do you <strong>guarantee job protection</strong> for <strong>employees managing cancer or other serious health conditions</strong>?
+    </p>
+    <p className="text-sm text-gray-600 mb-2">(Select ONE for each market)</p>
+    <p className="text-xs text-gray-500 italic mb-6">
+      For markets outside USA, provide the most common scenario OR the average if it varies significantly
+    </p>
+    
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+            <th className="text-left p-3 border border-gray-300 font-semibold w-1/4">Market</th>
+            <th className="p-3 border border-gray-300 text-center text-sm font-semibold w-1/7">1 to less than<br/>4 weeks</th>
+            <th className="p-3 border border-gray-300 text-center text-sm font-semibold w-1/7">4 to less than<br/>12 weeks</th>
+            <th className="p-3 border border-gray-300 text-center text-sm font-semibold w-1/7">12 to less than<br/>26 weeks</th>
+            <th className="p-3 border border-gray-300 text-center text-sm font-semibold w-1/7">26 to less than<br/>52 weeks</th>
+            <th className="p-3 border border-gray-300 text-center text-sm font-semibold w-1/7">52 weeks<br/>or more</th>
+            <th className="p-3 border border-gray-300 text-center text-sm font-semibold w-1/7">Does not<br/>apply</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="hover:bg-blue-50 transition-colors">
+            <td className="p-3 border border-gray-300 align-top">
+              <div className="font-semibold text-gray-900">Employees based in the USA</div>
+              <div className="text-xs text-gray-600 mt-1">(beyond FMLA / state requirements)</div>
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_usa", "1 to less than 4 weeks")}
+                checked={ans.d1_5_usa === "1 to less than 4 weeks"}
+              />
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_usa", "4 to less than 12 weeks")}
+                checked={ans.d1_5_usa === "4 to less than 12 weeks"}
+              />
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_usa", "12 to less than 26 weeks")}
+                checked={ans.d1_5_usa === "12 to less than 26 weeks"}
+              />
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_usa", "26 to less than 52 weeks")}
+                checked={ans.d1_5_usa === "26 to less than 52 weeks"}
+              />
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_usa", "52 weeks or more")}
+                checked={ans.d1_5_usa === "52 weeks or more"}
+              />
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_usa", "Does not apply")}
+                checked={ans.d1_5_usa === "Does not apply"}
+              />
+            </td>
+          </tr>
+          
+          <tr className="hover:bg-blue-50 transition-colors">
+            <td className="p-3 border border-gray-300 align-top">
+              <div className="font-semibold text-gray-900">Employees based outside the USA</div>
+              <div className="text-xs text-gray-600 mt-1">(beyond statutory requirements)</div>
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_non_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_non_usa", "1 to less than 4 weeks")}
+                checked={ans.d1_5_non_usa === "1 to less than 4 weeks"}
+              />
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_non_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_non_usa", "4 to less than 12 weeks")}
+                checked={ans.d1_5_non_usa === "4 to less than 12 weeks"}
+              />
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_non_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_non_usa", "12 to less than 26 weeks")}
+                checked={ans.d1_5_non_usa === "12 to less than 26 weeks"}
+              />
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_non_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_non_usa", "26 to less than 52 weeks")}
+                checked={ans.d1_5_non_usa === "26 to less than 52 weeks"}
+              />
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_non_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_non_usa", "52 weeks or more")}
+                checked={ans.d1_5_non_usa === "52 weeks or more"}
+              />
+            </td>
+            <td className="p-3 border border-gray-300 text-center align-middle">
+              <input 
+                type="radio" 
+                name="d1_5_non_usa" 
+                className="w-5 h-5 cursor-pointer"
+                onChange={() => setField("d1_5_non_usa", "Does not apply")}
+                checked={ans.d1_5_non_usa === "Does not apply"}
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+  
  {/* D1.6 - Disability pay enhancement */}
  {step === 9 && showD1_6 && (
  <div className="bg-white p-6 rounded-lg shadow-sm">
