@@ -238,7 +238,7 @@ export default function Dimension12Page() {
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl mb-8">
                 <h2 className="text-3xl font-bold text-white mb-3">CONTINUOUS IMPROVEMENT & OUTCOMES</h2>
                 <p className="text-blue-100 text-lg">
-                  Systematic measurement, feedback integration, and program evolution based on outcomes.
+                  Systematic measurement, feedback integration, and program evolution based on outcomes for workplace support programs for employees managing cancer or other serious health conditions.
                 </p>
               </div>
 
