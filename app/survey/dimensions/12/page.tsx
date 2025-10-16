@@ -157,32 +157,27 @@ export default function Dimension12Page() {
  return;
  }
 
- if (step === 1) {
- if (showD12aa) {
- setStep(2); // D12.aa
- } else {
- setStep(showD12aa ? 3 : 2); // D12.b
- }
- } else if (step === 2) {
- if (showD12aa) {
- setStep(3); // D12.b
- } else {
- setStep(showD12_1 ? 4 : 6); // D12.1 or completion
- }
- } else if (step === 3) {
- setStep(showD12_1 ? 4 : 6); // D12.1 or completion
- } else if (step === 4) {
- setStep(showD12_2 ? 5 : 6); // D12.2 or completion
- } else if (step === 5) {
- setStep(6); // completion
- } else if (step === 6) {
- localStorage.setItem("dimension12_complete", "true");
- router.push("/dashboard");
- return;
- }
- 
- setErrors("");
- };
+  if (step === 1) {
+  if (showD12aa) {
+    setStep(2); // Go to D12.aa
+  } else {
+    setStep(3); // Skip D12.aa, go to D12.b
+  }
+} else if (step === 2) {
+  setStep(3); // After D12.aa, always go to D12.b
+} else if (step === 3) {
+  setStep(showD12_1 ? 4 : 6); // After D12.b, go to D12.1 or completion
+} else if (step === 4) {
+  setStep(showD12_2 ? 5 : 6); // After D12.1, go to D12.2 or completion
+} else if (step === 5) {
+  setStep(6); // After D12.2, go to completion
+} else if (step === 6) {
+  localStorage.setItem("dimension12_complete", "true");
+  router.push("/dashboard");
+  return;
+}
+
+setErrors("");
 
  const back = () => {
  if (step === 6) {
