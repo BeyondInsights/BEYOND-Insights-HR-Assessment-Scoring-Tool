@@ -37,14 +37,19 @@ export default function Dimension1Page() {
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D1A_ITEMS] = useState(() => shuffleArray(D1A_ITEMS_BASE));
+  const [isEditMode, setIsEditMode] = useState(false);
   
 // Load saved answers on mount
 useEffect(() => {
   const saved = localStorage.getItem("dimension1_data");
+  const isComplete = localStorage.getItem("dimension1_complete") === "true";
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
       setAns(parsed);
+      if (isComplete) {
+        setIsEditMode(true);
+      }
     } catch (e) {
       console.error("Error loading saved data:", e);
     }
@@ -73,9 +78,13 @@ useEffect(() => {
   
   // Set field helper
   const setField = (key: string, value: any) => {
-    setAns((prev: any) => ({ ...prev, [key]: value }));
-    setErrors("");
-  };
+  setAns((prev: any) => ({ ...prev, [key]: value }));
+  setErrors(""); 
+  if (isEditMode) {
+    localStorage.removeItem("dimension1_complete");
+    setIsEditMode(false);
+  }
+};
 
   // Set status for D1.a grid items
   
@@ -84,7 +93,10 @@ const setStatus = (item: string, status: string) => {
     ...prev,
     d1a: { ...(prev.d1a || {}), [item]: status }
   }));
-  
+  if (isEditMode) {
+    localStorage.removeItem("dimension1_complete");
+    setIsEditMode(false);
+  }
   setIsTransitioning(true);
   
   setTimeout(() => {
@@ -327,6 +339,15 @@ return (
         {step === 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
             <div className="max-w-3xl mx-auto">
+       }
+      {isEditMode && (
+        <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-600 rounded">
+          <p className="text-blue-800 font-medium">
+            ✏️ You've already completed this dimension. You can review and edit your responses below.
+          </p>
+        </div>
+      )}
+      {/* END OF EDIT MODE BANNER */}
               <p className="text-lg text-gray-700 mb-6">
                 Here is the first aspect of <strong>support programs</strong> for{" "}
                 <strong>employees managing cancer or other serious health conditions</strong>:
@@ -349,7 +370,7 @@ return (
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>Indicate the current status of each option within your organization</span>
+                    <span><strong>Indicate the current status of each option within your organization</strong></span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
