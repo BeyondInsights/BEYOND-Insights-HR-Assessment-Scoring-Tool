@@ -359,23 +359,21 @@ export default function CompanyProfile() {
                               </div>
                               <div>
                                 {entries.map(([item, status]: [string, any]) => (
-                                  <div key={item} className="py-3 border-b" style={{borderColor: '#e5e7eb'}}>
-                                    <div className="text-xs font-medium mb-1" style={{color: '#6b7280'}}>{item}</div>
-                                    <div>
-                                      <span 
-                                        className="inline-block px-2 py-1 rounded text-xs font-medium"
-                                        style={{
-                                          backgroundColor: status === 'Currently offer' ? '#d1fae5' : 
-                                                          status === 'In active planning / development' ? '#dbeafe' :
-                                                          status === 'Assessing feasibility' ? '#fef3c7' : '#f3f4f6',
-                                          color: status === 'Currently offer' ? '#065f46' : 
-                                                status === 'In active planning / development' ? '#1e40af' :
-                                                status === 'Assessing feasibility' ? '#92400e' : '#4b5563'
-                                        }}
-                                      >
-                                        {status}
-                                      </span>
-                                    </div>
+                                  <div key={item} className="flex items-center justify-between py-3 border-b" style={{borderColor: '#e5e7eb'}}>
+                                    <div className="text-xs font-medium flex-1 pr-4" style={{color: '#6b7280'}}>{item}</div>
+                                    <span 
+                                      className="inline-block px-2 py-1 rounded text-xs font-medium whitespace-nowrap"
+                                      style={{
+                                        backgroundColor: status === 'Currently offer' ? '#d1fae5' : 
+                                                        status === 'In active planning / development' ? '#dbeafe' :
+                                                        status === 'Assessing feasibility' ? '#fef3c7' : '#f3f4f6',
+                                        color: status === 'Currently offer' ? '#065f46' : 
+                                              status === 'In active planning / development' ? '#1e40af' :
+                                              status === 'Assessing feasibility' ? '#92400e' : '#4b5563'
+                                      }}
+                                    >
+                                      {status}
+                                    </span>
                                   </div>
                                 ))}
                               </div>
