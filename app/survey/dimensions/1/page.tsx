@@ -339,7 +339,6 @@ return (
         {step === 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
             <div className="max-w-3xl mx-auto">
-       }
       {isEditMode && (
         <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-600 rounded">
           <p className="text-blue-800 font-medium">
