@@ -279,8 +279,8 @@ ${'-'.repeat(100)}
     return (
       <div className={`grid grid-cols-3 gap-4 py-3 border-b ${highlight ? 'bg-purple-50' : ''}`} 
            style={{ borderColor: COLORS.gray.light }}>
-        <dt className="font-semibold col-span-1" style={{ color: COLORS.gray.dark }}>{label}</dt>
-        <dd className="col-span-2" style={{ color: COLORS.gray.medium }}>{displayValue}</dd>
+        <dt className="font-semibold col-span-1 text-sm" style={{ color: COLORS.gray.dark }}>{label}</dt>
+        <dd className="col-span-2 text-sm" style={{ color: COLORS.gray.medium }}>{displayValue}</dd>
       </div>
     );
   };
@@ -373,9 +373,11 @@ ${'-'.repeat(100)}
              style={{ background: `linear-gradient(135deg, ${COLORS.purple.primary} 0%, ${COLORS.purple.light} 100%)` }}>
           <div className="flex items-center justify-between relative z-10">
             <div className="flex-1">
-              <h2 className="text-3xl font-bold mb-2">{reportData.companyName}</h2>
-              <p className="text-purple-100 text-lg mb-1">Workplace Cancer Support Assessment</p>
-              <p className="text-sm text-purple-100">{reportData.contactName} • {reportData.email}</p>
+              <h2 className="text-4xl font-bold mb-3">{reportData.companyName}</h2>
+              <p className="text-purple-100 text-xl mb-2">Workplace Cancer Support Assessment</p>
+              <p className="text-sm text-purple-100">
+                Contact: {reportData.contactName} ({reportData.email})
+              </p>
             </div>
             <div className="text-center bg-white bg-opacity-20 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-5xl font-bold mb-2">{overallProgress}%</div>
@@ -392,9 +394,10 @@ ${'-'.repeat(100)}
             <DataField label="Title" value={firmo.contactTitle || firmo.hr_title} />
             <DataField label="Phone" value={firmo.contactPhone || firmo.hr_phone} />
             <DataField label="Department" value={firmo.s3 || firmo.department} />
-            <DataField label="Job Function" value={firmo.s4a} />
-            <DataField label="Primary Function" value={firmo.s4b} />
+            <DataField label="Primary Function" value={firmo.s4a} />
             <DataField label="Current Level" value={firmo.s5} />
+            <DataField label="Areas of Responsibility" value={firmo.s6} />
+            <DataField label="Influence on Benefits" value={firmo.s7} />
           </SectionCard>
 
           <SectionCard title="Company Overview" color={COLORS.teal} hasData={true}>
@@ -412,15 +415,13 @@ ${'-'.repeat(100)}
           <div className="grid md:grid-cols-2 gap-x-8">
             <div>
               <DataField label="Benefits Eligibility %" value={firmo.c5} highlight />
-              <DataField label="Excluded Groups" value={firmo.c3} />
+              <DataField label="Excluded Groups (from standard benefits)" value={firmo.c3} />
               <DataField label="Remote/Hybrid Policy" value={firmo.c6} />
-              <DataField label="Remote Policy Details" value={firmo.c6_other} />
             </div>
             <div>
-              <DataField label="Areas of Responsibility" value={firmo.s6} />
-              <DataField label="Influence on Benefits" value={firmo.s7} highlight />
+              <DataField label="Remote Policy Details" value={firmo.c6_other} />
               <DataField label="Level Specification" value={firmo.s5_other} />
-              <DataField label="Other Job Function" value={firmo.s4b_other} />
+              <DataField label="Other Job Function Details" value={firmo.s4b_other} />
             </div>
           </div>
         </SectionCard>
