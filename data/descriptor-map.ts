@@ -1,8 +1,14 @@
 // /data/descriptor-map.ts
-// Short human descriptors for items (id → label). Anything not listed is auto-shortened.
+// Builds a short, human descriptor for EVERY InstrumentItem in your six maps.
+// 1) Uses explicit overrides you care about
+// 2) Falls back to an auto-shortened version of the instrument text
+// Exported helpers: DESCRIPTORS (id -> label), descriptorFor(item)
 
-export const SHORT_LABELS: Record<string, string> = {
-  // ===== Firmographics & Classification =====
+import { ALL_ITEMS, type InstrumentItem } from './instrument-items';
+
+// === 1) Explicit overrides (edit freely; leave keys you don't care about) ===
+const OVERRIDES: Record<string, string> = {
+  // ---- Firmographics & Classification ----
   companyName: 'Company Name',
   s3: 'Department',
   s4: 'Primary Job Function',
@@ -21,39 +27,66 @@ export const SHORT_LABELS: Record<string, string> = {
   c7: 'Union/Works Council',
   hq: 'Headquarters',
 
-  // ===== General Benefits (examples – extend as needed) =====
+  // ---- General Benefits (examples – extend as you want) ----
   'CB1.1': 'Health Insurance (Medical)',
   'CB1.2': 'Dental',
   'CB1.3': 'Vision',
   'CB1.4': 'EAP',
   'CB2.1': 'STD (Paid)',
   'CB2.2': 'LTD',
-  'CB2.3': 'Leave Beyond Statutory',
   'CB3.1': 'Travel/Lodging for Care',
   'CB3.2': 'Clinical Trials Support',
-  'CB3.3': 'Second Opinion/Expert Review',
 
-  // ===== Current Support / OR (examples) =====
-  CS1: 'Global Policy Availability',
+  // ---- Current Support / Cross-Dimensional / Impact (examples) ----
+  CS1: 'Global Policy',
   CS2: 'Regional Variations',
-  CS3: 'Documentation/Guides',
-
-  // ===== Cross-Dimensional (examples) =====
+  CS3: 'Documentation',
   CD1a: 'Cross-Dept Coordination',
   CD1b: 'Navigation Ownership',
   CD2: 'Measurement Approach',
-
-  // ===== Employee Impact (examples) =====
   EI1: 'Retention Impact',
   EI2: 'Absence Impact',
   EI3: 'Performance Impact',
   EI5: 'Return-to-Work Quality',
-
-  // ===== Dimension examples (add any exact wordings you want) =====
-  D2_TRAVEL: 'Travel/Lodging Coverage',
-  D2_TRIALS: 'Clinical Trials Coverage',
-  D2_OOP_MAX: 'OOP Maximums',
-  D2_DISABILITY: 'Disability %',
-  D3_TRAINING: 'Manager Training',
-  D3_TALK_TRACKS: 'Talk Tracks/Guides',
 };
+
+// === 2) Auto-shortener (safe, terse) ===
+function autoShort(text: string | undefined): string {
+  if (!text) return '';
+  let s = text
+    .replace(/\[[^\]]*\]/g, '')          // [ASK IF], [NOTE], etc.
+    .replace(/\([^)]*\)/g, '')           // (clarifiers)
+    .split(/[?•:\n]/)[0]                 // first clause only
+    .trim();
+
+  s = s
+    .replace(/^please (indicate|select)\s+/i, '')
+    .replace(/^does your (company|organization)\s+/i, '')
+    .replace(/^what is your (company|organization)[’']?s?\s+/i, '')
+    .replace(/^to what extent\s+/i, '')
+    .replace(/^how (well|much|often)\s+/i, '')
+    // compress common phrases
+    .replace(/\bshort[-\s]?term disability\b/gi, 'STD')
+    .replace(/\blong[-\s]?term disability\b/gi, 'LTD')
+    .replace(/\bemployee assistance program\b/gi, 'EAP')
+    .replace(/\bclinical trials?\b/gi, 'Clinical Trials');
+
+  const words = s.split(/\s+/);
+  if (words.length > 8) s = words.slice(0, 8).join(' ');
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+}
+
+// === 3) Build a complete map for ALL items ===
+export const DESCRIPTORS: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  for (const it of ALL_ITEMS) {
+    if (!it?.id) continue;
+    map[it.id] = OVERRIDES[it.id] || autoShort(it.text) || it.id;
+  }
+  return map;
+})();
+
+// === 4) Helper ===
+export function descriptorFor(it: InstrumentItem): string {
+  return DESCRIPTORS[it.id] || autoShort(it.text) || it.id;
+}
