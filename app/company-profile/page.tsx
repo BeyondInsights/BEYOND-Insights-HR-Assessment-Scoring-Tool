@@ -18,7 +18,7 @@ const DIM_TITLE: Record<number,string> = {
   2:'Insurance & Financial Protection', 
   3:'Manager Preparedness & Capability',
   4:'Navigation & Expert Resources', 
-  5:'Workplace Accommodations & Modifications', 
+  5:'Workplace Accommodations', 
   6:'Culture & Psychological Safety',
   7:'Career Continuity & Advancement', 
   8:'Work Continuation & Resumption', 
@@ -203,7 +203,7 @@ export default function CompanyProfile() {
       <div className="bg-white border-b" style={{borderColor:BRAND.gray[200]}}>
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="text-center">
-            <h1 className="text-4xl font-black mb-2" style={{color:BRAND.primary}}>
+            <h1 className="text-5xl font-black mb-2" style={{color:BRAND.primary}}>
               {data.companyName}
             </h1>
             <p className="text-base" style={{color:BRAND.gray[600]}}>
@@ -229,13 +229,37 @@ export default function CompanyProfile() {
         </div>
       </div>
 
-      {/* Top Stats */}
+      {/* HR Contact & Company Overview */}
       <section className="max-w-7xl mx-auto px-6 mt-6">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Tile label="Headquarters" value={data.firmographics?.s9 || data.firmographics?.hq} />
-          <Tile label="Industry" value={data.firmographics?.c2} />
-          <Tile label="Employee Size" value={data.firmographics?.s8} />
-          <Tile label="Global Footprint" value={data.firmographics?.s9a} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left: HR Point of Contact */}
+          <div className="bg-white border rounded-lg p-6" style={{borderColor:BRAND.gray[200]}}>
+            <h2 className="text-lg font-bold mb-4" style={{color:BRAND.gray[900]}}>
+              HR Point of Contact
+            </h2>
+            <div className="space-y-3">
+              <DataRow label="Name" value={formatValue(data.firmographics?.contactName || 
+                [data.firmographics?.contactFirst, data.firmographics?.contactLast].filter(Boolean).join(' '))} />
+              <DataRow label="Title" value={formatValue(data.firmographics?.contactTitle || data.firmographics?.title)} />
+              <DataRow label="Department" value={formatValue(data.firmographics?.s3 || data.firmographics?.department)} />
+              <DataRow label="Email" value={formatValue(data.firmographics?.contactEmail || data.email)} />
+              <DataRow label="Phone" value={formatValue(data.firmographics?.contactPhone)} />
+            </div>
+          </div>
+
+          {/* Right: Company Profile */}
+          <div className="bg-white border rounded-lg p-6" style={{borderColor:BRAND.gray[200]}}>
+            <h2 className="text-lg font-bold mb-4" style={{color:BRAND.gray[900]}}>
+              Company Profile
+            </h2>
+            <div className="space-y-3">
+              <DataRow label="Headquarters" value={formatValue(data.firmographics?.s9 || data.firmographics?.hq)} />
+              <DataRow label="Industry" value={formatValue(data.firmographics?.c2)} />
+              <DataRow label="Employee Size" value={formatValue(data.firmographics?.s8)} />
+              <DataRow label="Global Footprint" value={formatValue(data.firmographics?.s9a)} />
+              <DataRow label="Annual Revenue" value={formatValue(data.firmographics?.c4)} />
+            </div>
+          </div>
         </div>
       </section>
 
