@@ -316,6 +316,7 @@ export default function CompanyProfile() {
                 
                 if (!hasData) return null;
                 
+                // Filter out open-ended fields but keep track of them for "other specify"
                 const filteredData = Object.entries(dimData).filter(([key]) => {
                   if (key.match(/^d\d+_?b$/i)) return false;
                   if (key.match(/^d\d+_?b_/i)) return false;
@@ -331,7 +332,8 @@ export default function CompanyProfile() {
                     </h3>
                     <div>
                       {filteredData.map(([key, value]: [string, any]) => {
-                        if (typeof value === 'object' && value !== null) {
+                        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                          // Handle grid objects (like d1a, d2a, etc.)
                           const entries = Object.entries(value);
                           return (
                             <div key={key} className="mb-3">
@@ -340,23 +342,39 @@ export default function CompanyProfile() {
                               </div>
                               <div className="space-y-1.5">
                                 {entries.map(([item, status]: [string, any]) => (
-                                  <div key={item} className="flex items-start gap-2 text-xs">
-                                    <span className="flex-1 text-gray-700">{item}</span>
-                                    <span className={`px-2 py-0.5 rounded text-xs whitespace-nowrap flex-shrink-0 font-medium ${
-                                      status === 'Currently offer' ? 'bg-green-100 text-green-700' : 
-                                      status === 'In active planning / development' ? 'bg-blue-100 text-blue-700' :
-                                      status === 'Assessing feasibility' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'
-                                    }`}>
-                                      {status}
-                                    </span>
+                                  <div key={item} className="flex items-start py-2 border-b border-gray-200 last:border-0">
+                                    <div className="w-72 flex-shrink-0 pr-4">
+                                      <span className="text-xs text-gray-700">{item}</span>
+                                    </div>
+                                    <div className="flex-1">
+                                      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                                        status === 'Currently offer' ? 'bg-green-100 text-green-700' : 
+                                        status === 'In active planning / development' ? 'bg-blue-100 text-blue-700' :
+                                        status === 'Assessing feasibility' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'
+                                      }`}>
+                                        {status}
+                                      </span>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           );
                         } else {
+                          // Handle regular fields
                           const label = getDimensionFieldLabel(key);
-                          return <DataRow key={key} label={label} value={value} />;
+                          let displayValue = value;
+                          
+                          // Check for "other specify" fields
+                          if (Array.isArray(value) && value.some((v: string) => v.includes('Other') || v.includes('specify'))) {
+                            const otherKey = key + '_other';
+                            const otherText = dimData[otherKey];
+                            if (otherText) {
+                              displayValue = [...value, `Other: ${otherText}`];
+                            }
+                          }
+                          
+                          return <DataRow key={key} label={label} value={formatArray(displayValue)} />;
                         }
                       })}
                     </div>
