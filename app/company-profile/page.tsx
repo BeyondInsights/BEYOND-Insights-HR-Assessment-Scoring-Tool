@@ -11,7 +11,7 @@ const BRAND = {
   },
 };
 
-const DIMENSION_NAMES: Record<number, string> = {
+const DIM_TITLES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
   3: 'Manager Preparedness & Capability',
@@ -19,7 +19,7 @@ const DIMENSION_NAMES: Record<number, string> = {
   5: 'Workplace Accommodations',
   6: 'Culture & Psychological Safety',
   7: 'Career Continuity & Advancement',
-  8: 'Work Continuation & Resumption',
+  8: 'Return-to-Work Excellence',
   9: 'Executive Commitment & Resources',
   10: 'Caregiver & Family Support',
   11: 'Prevention, Wellness & Legal Compliance',
@@ -35,21 +35,14 @@ export default function CompanyProfile() {
     const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
     const general = JSON.parse(localStorage.getItem('general-benefits_data') || localStorage.getItem('general_benefits_data') || '{}');
     const current = JSON.parse(localStorage.getItem('current-support_data') || localStorage.getItem('current_support_data') || '{}');
+    const cross = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}');
+    const impact = JSON.parse(localStorage.getItem('employee_impact_data') || '{}');
     
-    // Load ALL 13 dimensions
-    const dim1 = JSON.parse(localStorage.getItem('dimension1_data') || '{}');
-    const dim2 = JSON.parse(localStorage.getItem('dimension2_data') || '{}');
-    const dim3 = JSON.parse(localStorage.getItem('dimension3_data') || '{}');
-    const dim4 = JSON.parse(localStorage.getItem('dimension4_data') || '{}');
-    const dim5 = JSON.parse(localStorage.getItem('dimension5_data') || '{}');
-    const dim6 = JSON.parse(localStorage.getItem('dimension6_data') || '{}');
-    const dim7 = JSON.parse(localStorage.getItem('dimension7_data') || '{}');
-    const dim8 = JSON.parse(localStorage.getItem('dimension8_data') || '{}');
-    const dim9 = JSON.parse(localStorage.getItem('dimension9_data') || '{}');
-    const dim10 = JSON.parse(localStorage.getItem('dimension10_data') || '{}');
-    const dim11 = JSON.parse(localStorage.getItem('dimension11_data') || '{}');
-    const dim12 = JSON.parse(localStorage.getItem('dimension12_data') || '{}');
-    const dim13 = JSON.parse(localStorage.getItem('dimension13_data') || '{}');
+    const dims: any[] = [];
+    for (let i = 1; i <= 13; i++) {
+      const raw = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
+      dims.push({ number: i, name: DIM_TITLES[i], data: raw || {} });
+    }
 
     const companyName = localStorage.getItem('login_company_name') || firmo.companyName || 'Organization';
     const email = localStorage.getItem('login_email') || '';
@@ -67,21 +60,9 @@ export default function CompanyProfile() {
       firmographics: firmo,
       general,
       current,
-      dimensions: [
-        { number: 1, name: DIMENSION_NAMES[1], data: dim1 },
-        { number: 2, name: DIMENSION_NAMES[2], data: dim2 },
-        { number: 3, name: DIMENSION_NAMES[3], data: dim3 },
-        { number: 4, name: DIMENSION_NAMES[4], data: dim4 },
-        { number: 5, name: DIMENSION_NAMES[5], data: dim5 },
-        { number: 6, name: DIMENSION_NAMES[6], data: dim6 },
-        { number: 7, name: DIMENSION_NAMES[7], data: dim7 },
-        { number: 8, name: DIMENSION_NAMES[8], data: dim8 },
-        { number: 9, name: DIMENSION_NAMES[9], data: dim9 },
-        { number: 10, name: DIMENSION_NAMES[10], data: dim10 },
-        { number: 11, name: DIMENSION_NAMES[11], data: dim11 },
-        { number: 12, name: DIMENSION_NAMES[12], data: dim12 },
-        { number: 13, name: DIMENSION_NAMES[13], data: dim13 },
-      ]
+      cross,
+      impact,
+      dimensions: dims,
     });
     setLoading(false);
   }, []);
@@ -104,7 +85,7 @@ export default function CompanyProfile() {
     return String(arr);
   };
 
-  const getDimensionFieldLabel = (key: string, dimNumber: number): string => {
+  const getDimensionFieldLabel = (key: string): string => {
     if (key.includes('aa')) return 'Multi-country consistency';
     if (key.includes('_1') && !key.includes('_1b')) return 'Additional weeks offered (USA market)';
     if (key.includes('_1b')) return 'Additional weeks offered (Non-USA markets)';
@@ -114,7 +95,6 @@ export default function CompanyProfile() {
     if (key.includes('_5_usa')) return 'Job protection guarantee (USA)';
     if (key.includes('_5_non_usa')) return 'Job protection guarantee (Non-USA)';
     if (key.includes('_6')) return 'Disability benefit enhancements';
-    
     return key.replace(/_/g, ' ').toUpperCase();
   };
 
@@ -165,18 +145,21 @@ export default function CompanyProfile() {
     return (
       <div className="flex py-1.5 border-b last:border-0" style={{borderColor:BRAND.gray[200]}}>
         <div className="w-80 pr-4 flex-shrink-0">
-          <span className="text-xs font-medium" style={{color:BRAND.gray[600]}}>{label}:</span>
+          <span className="text-xs font-medium" style={{color:BRAND.gray[600]}}>{label}</span>
         </div>
-        <div className="flex-1">
+        <div className="flex-1 text-left">
           <span className="text-xs" style={{color:BRAND.gray[900]}}>{displayValue}</span>
         </div>
       </div>
     );
   };
 
+  const downloadPDF = () => {
+    window.print();
+  };
+
   return (
     <div className="min-h-screen" style={{backgroundColor:BRAND.gray.bg}}>
-      {/* HEADER */}
       <div className="bg-white border-b" style={{borderColor:BRAND.gray[200]}}>
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-center mb-4">
@@ -205,23 +188,20 @@ export default function CompanyProfile() {
                  style={{borderColor:BRAND.gray[300], color:BRAND.gray[700]}}>
                 ← Dashboard
               </a>
-              <button onClick={()=>window.print()}
+              <button onClick={downloadPDF}
                       className="px-3 py-1.5 text-xs font-medium rounded text-white"
                       style={{backgroundColor:BRAND.primary}}>
-                Print PDF
+                Download PDF
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto px-6 py-6">
         
-        {/* ROW 1: Company Profile + POC Profile - EQUAL WIDTH COLUMNS */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           
-          {/* Company Profile */}
           <div className="bg-white border rounded-md p-4" style={{borderColor:BRAND.gray[200]}}>
             <h2 className="text-base font-bold mb-3" style={{color:BRAND.gray[900]}}>
               Company Profile
@@ -236,7 +216,6 @@ export default function CompanyProfile() {
             </div>
           </div>
 
-          {/* POC Profile */}
           <div className="bg-white border rounded-md p-4" style={{borderColor:BRAND.gray[200]}}>
             <h2 className="text-base font-bold mb-3" style={{color:BRAND.gray[900]}}>
               POC Profile
@@ -253,10 +232,8 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* ROW 2: General Benefits + Current Support - EQUAL WIDTH COLUMNS */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           
-          {/* General Benefits Landscape */}
           <div className="bg-white border rounded-md p-4" style={{borderColor:BRAND.gray[200]}}>
             <h2 className="text-base font-bold mb-3" style={{color:BRAND.gray[900]}}>
               General Benefits Landscape
@@ -268,54 +245,51 @@ export default function CompanyProfile() {
               <div className="py-1.5 border-b" style={{borderColor:BRAND.gray[200]}}>
                 <div className="text-xs font-bold mb-1" style={{color:BRAND.gray[900]}}>Types of Benefits offered:</div>
               </div>
-              <Field label="Standard Benefits offered" value={benefits.standard || '—'} />
-              <Field label="Leave & flexibility programs" value={benefits.leave || '—'} />
-              <Field label="Wellness & support programs" value={benefits.wellness || '—'} />
-              <Field label="Financial & legal assistance programs" value={benefits.financial || '—'} />
-              <Field label="Care navigation & support services" value={benefits.navigation || '—'} />
+              <Field label="Standard Benefits offered" value={benefits.standard} />
+              <Field label="Leave & flexibility programs" value={benefits.leave} />
+              <Field label="Wellness & support programs" value={benefits.wellness} />
+              <Field label="Financial & legal assistance programs" value={benefits.financial} />
+              <Field label="Care navigation & support services" value={benefits.navigation} />
               
               <Field label="Programs plan to rollout over N2Y" value={benefits.planned} />
               <Field label="Approach to remote / hybrid work" value={benefits.remote} />
             </div>
           </div>
 
-          {/* Current Support */}
           <div className="bg-white border rounded-md p-4" style={{borderColor:BRAND.gray[200]}}>
             <h2 className="text-base font-bold mb-3" style={{color:BRAND.gray[900]}}>
               Current Support for EMCs
             </h2>
             <div className="space-y-0">
-              <Field label="Status of Support Offerings" value={support.status || '—'} />
-              <Field label="Current approach to supporting EMCs" value={support.approach || '—'} />
-              <Field label="Emp Grps excluded from workplace support benefits" value={support.excluded || '—'} />
-              <Field label="Triggers for developing programs" value={support.triggers || '—'} />
+              <Field label="Status of Support Offerings" value={support.status} />
+              <Field label="Current approach to supporting EMCs" value={support.approach} />
+              <Field label="Emp Grps excluded from workplace support benefits" value={support.excluded} />
+              <Field label="Triggers for developing programs" value={support.triggers} />
               {support.impactfulChange && (
                 <Field label="Most impactful change" value={support.impactfulChange} />
               )}
               {support.barriers && (
                 <Field label="Barriers to development" value={support.barriers} />
               )}
-              <Field label="Primary caregiver support programs offered" value={support.caregiver || '—'} />
-              <Field label="How monitor effectiveness of workplace support program" value={support.monitoring || '—'} />
+              <Field label="Primary caregiver support programs offered" value={support.caregiver} />
+              <Field label="How monitor effectiveness of workplace support program" value={support.monitoring} />
             </div>
           </div>
         </div>
 
-        {/* ALL 13 DIMENSIONS - 2 per row, EQUAL WIDTH */}
         {data.dimensions && data.dimensions.length > 0 && (
           <div className="mt-6">
             <h2 className="text-lg font-bold mb-3" style={{color:BRAND.gray[900]}}>
               13 Dimensions of Support
             </h2>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {data.dimensions.map((dim: any) => {
                 const dimData = dim.data || {};
                 const hasData = Object.keys(dimData).length > 0;
                 
                 if (!hasData) return null;
                 
-                // Filter out open-ended text fields
                 const filteredData = Object.entries(dimData).filter(([key]) => {
                   if (key.match(/^d\d+_?b$/i)) return false;
                   if (key.match(/^d\d+_?b_/i)) return false;
@@ -332,7 +306,6 @@ export default function CompanyProfile() {
                     <div className="space-y-0">
                       {filteredData.map(([key, value]: [string, any]) => {
                         if (typeof value === 'object' && value !== null) {
-                          // Handle nested objects (grid items)
                           const entries = Object.entries(value);
                           return (
                             <div key={key} className="mb-2">
@@ -363,9 +336,8 @@ export default function CompanyProfile() {
                             </div>
                           );
                         } else {
-                          // Handle simple key-value pairs
-                          const label = getDimensionFieldLabel(key, dim.number);
-                          return <Field key={key} label={label} value={value || '—'} />;
+                          const label = getDimensionFieldLabel(key);
+                          return <Field key={key} label={label} value={value} />;
                         }
                       })}
                     </div>
@@ -376,9 +348,44 @@ export default function CompanyProfile() {
           </div>
         )}
 
+        {(Object.keys(data.cross || {}).length > 0 || Object.keys(data.impact || {}).length > 0) && (
+          <div className="mt-6">
+            <h2 className="text-lg font-bold mb-3" style={{color:BRAND.gray[900]}}>
+              Assessment Sections
+            </h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {Object.keys(data.cross || {}).length > 0 && (
+                <div className="bg-white border rounded-md p-4" style={{borderColor:BRAND.gray[200]}}>
+                  <h3 className="text-sm font-bold mb-3" style={{color:BRAND.primary}}>
+                    Cross-Dimensional Assessment
+                  </h3>
+                  <div className="space-y-0">
+                    {Object.entries(data.cross).map(([key, value]: [string, any]) => (
+                      <Field key={key} label={key.toUpperCase()} value={formatArray(value)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {Object.keys(data.impact || {}).length > 0 && (
+                <div className="bg-white border rounded-md p-4" style={{borderColor:BRAND.gray[200]}}>
+                  <h3 className="text-sm font-bold mb-3" style={{color:BRAND.primary}}>
+                    Employee Impact Assessment
+                  </h3>
+                  <div className="space-y-0">
+                    {Object.entries(data.impact).map(([key, value]: [string, any]) => (
+                      <Field key={key} label={key.toUpperCase()} value={formatArray(value)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
       </main>
 
-      {/* Print Styles */}
       <style jsx>{`
         @media print {
           @page { size: letter; margin: 0.5in; }
