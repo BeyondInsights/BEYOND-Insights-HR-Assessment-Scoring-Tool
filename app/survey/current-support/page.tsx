@@ -154,11 +154,11 @@ export default function CurrentSupportPage() {
 
  // FIXED: Skip logic now matches Word doc exactly
  if (step === 7) {
- const skipToOR3 = [
- "No formal approach: Handle case-by-case",
- "Developing approach: Currently building our programs",
- "Legal minimum only: Meet legal requirements only (FMLA, ADA)"
- ];
+const skipToOR3 = [
+ "No formal approach: Handle situations as they arise",
+ "Developing approach: Currently building programs and policies",
+ "Basic support -- legal minimums plus some informal flexibility"
+];
  
  if (skipToOR3.includes(ans.or1)) {
  setStep(10); // Skip to OR3
@@ -246,14 +246,14 @@ export default function CurrentSupportPage() {
  ];
 
  // FIXED: Updated OR1 options to match Word doc exactly
- const OR1_OPTIONS = [
- "No formal approach: Handle case-by-case",
- "Developing approach: Currently building our programs",
- "Legal minimum only: Meet legal requirements only (FMLA, ADA)",
+const OR1_OPTIONS = [
+ "No formal approach: Handle situations as they arise",
+ "Developing approach: Currently building programs and policies",
+ "Basic support -- legal minimums plus some informal flexibility",
  "Moderate support: Some programs beyond legal requirements",
- "Enhanced support: Meaningful programs beyond legal minimums",
- "Comprehensive support: Extensive programs well beyond legal requirements"
- ];
+ "Strong support: Meaningful programs beyond legal minimums",
+ "Leading-edge support: Extensive, innovative programs"
+];
 
  // FIXED: Updated OR2A triggers to match Word doc
  const OR2A_TRIGGERS = [
