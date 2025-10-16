@@ -163,7 +163,7 @@ export default function CompanyProfile() {
     }
 
     setData({
-      companyName: firmo.companyName || firmo.s8 || 'Organization',
+      companyName: firmo.companyName || firmo.company_name || firmo.s8 || 'Organization',
       email: localStorage.getItem('auth_email') || '',
       generatedAt: new Date().toLocaleDateString('en-US', { 
         year: 'numeric', month: 'long', day: 'numeric' 
@@ -238,11 +238,21 @@ export default function CompanyProfile() {
               HR Point of Contact
             </h2>
             <div className="space-y-3">
-              <DataRow label="Name" value={formatValue(data.firmographics?.contactName || 
-                [data.firmographics?.contactFirst, data.firmographics?.contactLast].filter(Boolean).join(' '))} />
-              <DataRow label="Title" value={formatValue(data.firmographics?.contactTitle || data.firmographics?.title)} />
-              <DataRow label="Department" value={formatValue(data.firmographics?.s3 || data.firmographics?.department)} />
-              <DataRow label="Email" value={formatValue(data.firmographics?.contactEmail || data.email)} />
+              <DataRow label="Name" value={formatValue(
+                [data.firmographics?.contactFirst, data.firmographics?.contactLast].filter(Boolean).join(' ') ||
+                data.firmographics?.contactName ||
+                data.firmographics?.hr_name
+              )} />
+              <DataRow label="Title" value={formatValue(
+                data.firmographics?.contactTitle || 
+                data.firmographics?.hr_title ||
+                data.firmographics?.s5
+              )} />
+              <DataRow label="Department" value={formatValue(data.firmographics?.s3)} />
+              <DataRow label="Email" value={formatValue(
+                data.firmographics?.contactEmail || 
+                data.email
+              )} />
               <DataRow label="Phone" value={formatValue(data.firmographics?.contactPhone)} />
             </div>
           </div>
