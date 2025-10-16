@@ -43,97 +43,96 @@ export default function DashboardPage() {
     window.addEventListener("focus", handleFocus);
     
     const calculateProgress = () => {
-      const savedEmail = localStorage.getItem('auth_email') || ''
-      setEmail(savedEmail)
-      
-      // Check payment status and method
-      const paymentStatus = localStorage.getItem('payment_completed')
-      const paymentMethod = localStorage.getItem('payment_method')
-      
-      // Allow access if ANY payment method was selected
-      setPaymentCompleted(paymentStatus === 'true' || paymentStatus === 'invoice')
-      
-      const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
-      if (firmo?.companyName) setCompanyName(firmo.companyName)
-      
-      const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}')
-      const current = JSON.parse(localStorage.getItem('current-support_data') || '{}')
-      
-      const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6']
-      const genRequired = ['cb1_standard', 'cb1_leave', 'cb1_wellness', 'cb1_financial', 'cb1_navigation', 'cb1a', 'cb2b']
-      const curRequired = ['cb3a','cb3b','cb3c','cb3d','or1','or2a','or2b','or3','or5a','or6']
+  const savedEmail = localStorage.getItem('auth_email') || ''
+  setEmail(savedEmail)
+  
+  const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
+  if (firmo?.companyName) setCompanyName(firmo.companyName)
+  
+  const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}')
+  const current = JSON.parse(localStorage.getItem('current-support_data') || '{}')
+  
+  // CORRECT FIELD NAMES - these match what the pages actually save
+  const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6']
+  const genRequired = ['cb3a','cb3b','cb3c','cb3d']  // FIXED - these are the ACTUAL keys
+  const curRequired = ['or1','or2a','or3','or5a','or6']  // FIXED - removed cb3a/b/c/d (those are in general)
 
-      // Check completion flags
-      const firmComplete = localStorage.getItem('firmographics_complete') === 'true'
-      const genComplete = localStorage.getItem('general_benefits_complete') === 'true'
-      const curComplete = localStorage.getItem('current_support_complete') === 'true'
-      
-       // Check dimension completions with partial progress
-      const dimProgress = []
-      for (let i = 1; i <= 13; i++) {
-        const dimData = JSON.parse(localStorage.getItem(`dimension_${i}_data`) || '{}')
-        const complete = localStorage.getItem(`dimension_${i}_complete`) === 'true'
-        
-        if (complete) {
-          dimProgress.push(100);
-        } else {
-          const keys = Object.keys(dimData).length;
-          if (keys === 0) {
-            dimProgress.push(0);
-          } else {
-            const estimatedTotal = 25;
-            const actualProgress = Math.min(95, Math.round((keys / estimatedTotal) * 100));
-            dimProgress.push(actualProgress);
-          }
-        }
-      }
-      setDimensionProgress(dimProgress)
-      
-      // Calculate progress for each section
-      let firmProg = 0;
-      let genProg = 0;
-      let curProg = 0;
-      
-      // Firmographics progress
-      if (firmComplete) {
-        firmProg = 100;
+  // Check completion flags
+  const firmComplete = localStorage.getItem('firmographics_complete') === 'true'
+  const genComplete = localStorage.getItem('general_benefits_complete') === 'true'
+  const curComplete = localStorage.getItem('current_support_complete') === 'true'
+  
+  // Check dimension completions with partial progress - USE CONSISTENT KEY
+  const dimProgress = []
+  for (let i = 1; i <= 13; i++) {
+    const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}')  // NO UNDERSCORE
+    const complete = localStorage.getItem(`dimension${i}_complete`) === 'true'  // NO UNDERSCORE
+    if (complete) {
+      dimProgress.push(100)
+    } else {
+      const keys = Object.keys(dimData).length
+      if (keys === 0) {
+        dimProgress.push(0)
       } else {
-        const firmCount = firmRequired.filter(field => {
-          if (field === 's6' || field === 'c4') {
-            return Array.isArray(firmo[field]) && firmo[field].length > 0;
-          }
-          return firmo[field] && firmo[field] !== '';
-        }).length;
-        firmProg = Math.round((firmCount / firmRequired.length) * 100);
+        const estimatedTotal = 25
+        const actualProgress = Math.min(95, Math.round((keys / estimatedTotal) * 100))
+        dimProgress.push(actualProgress)
       }
-      
-      // General benefits progress
-      if (genComplete) {
-        genProg = 100;
-      } else {
-        const genCount = genRequired.filter(field => {
-          if (field.startsWith('cb1') && field !== 'cb1a') {
-            return Array.isArray(general[field]) && general[field].length > 0;
-          }
-          return general[field] !== undefined && general[field] !== '';
-        }).length;
-        genProg = Math.round((genCount / genRequired.length) * 100);
+    }
+  }
+  setDimensionProgress(dimProgress)
+  
+  // Calculate progress for each section
+  let firmProg = 0
+  let genProg = 0
+  let curProg = 0
+  
+  // Firmographics progress
+  if (firmComplete) {
+    firmProg = 100
+  } else {
+    const firmCount = firmRequired.filter(field => {
+      if (field === 's6' || field === 'c4') {
+        return Array.isArray(firmo[field]) && firmo[field].length > 0
       }
-      
-      // Current support progress  
-      if (curComplete) {
-        curProg = 100;
-      } else {
-        const curCount = curRequired.filter(field => current[field] && current[field] !== '').length;
-        curProg = Math.round((curCount / curRequired.length) * 100);
+      return firmo[field] && firmo[field] !== ''
+    }).length
+    firmProg = Math.round((firmCount / firmRequired.length) * 100)
+  }
+  
+  // General benefits progress - FIXED LOGIC
+  if (genComplete) {
+    genProg = 100
+  } else {
+    const genCount = genRequired.filter(field => {
+      // All of these are arrays or text fields
+      if (Array.isArray(general[field])) {
+        return general[field].length > 0
       }
-      
-      setSectionProgress({
-        firmographics: firmProg,
-        general: genProg,
-        current: curProg,
-      });
-
+      return general[field] && general[field] !== ''
+    }).length
+    genProg = Math.round((genCount / genRequired.length) * 100)
+  }
+  
+  // Current support progress
+  if (curComplete) {
+    curProg = 100
+  } else {
+    const curCount = curRequired.filter(field => {
+      if (Array.isArray(current[field])) {
+        return current[field].length > 0
+      }
+      return current[field] && current[field] !== ''
+    }).length
+    curProg = Math.round((curCount / curRequired.length) * 100)
+  }
+  
+  setSectionProgress({
+    firmographics: firmProg,
+    general: genProg,
+    current: curProg,
+  })
+}
       // Calculate progress for advanced sections
       const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}')
       const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}')
