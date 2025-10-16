@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { INSTRUMENT_ITEMS, type InstrumentItem } from '@/data/instrument-items'; // <-- master map
+import { INSTRUMENT_ITEMS, type InstrumentItem } from '../../data/instrument-items';
 
 /* ===== Brand palette ===== */
 const BRAND = {
