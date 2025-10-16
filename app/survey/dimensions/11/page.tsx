@@ -187,44 +187,55 @@ export default function Dimension11Page() {
   };
 
   const next = () => {
-    const error = validateStep();
-    if (error) {
-      setErrors(error);
-      return;
-    }
+  const error = validateStep();
+  if (error) {
+    setErrors(error);
+    return;
+  }
 
-    if (step === 1) {
-      if (showD11aa) {
-        setStep(2);
-      } else {
-        setStep(3);
-      }
-    } else if (step === 2) {
+  if (step === 1) {
+    if (showD11aa) {
+      setStep(2);
+    } else if (showD11_1) {
       setStep(3);
-    } else if (step === 3) {
-      setStep(4); // Go to completion
-    } else if (step === 4) {
-      localStorage.setItem("dimension11_complete", "true");
-      router.push("/dashboard");
-      return;
+    } else {
+      setStep(4);
     }
-    
-    setErrors("");
-  };
+  } else if (step === 2) {
+    if (showD11_1) {
+      setStep(3);
+    } else {
+      setStep(4);
+    }
+  } else if (step === 3) {
+    setStep(4);
+  } else if (step === 4) {
+    setStep(5);
+  } else if (step === 5) {
+    localStorage.setItem("dimension11_complete", "true");
+    router.push("/dashboard");
+    return;
+  }
+  
+  setErrors("");
+};
 
   const back = () => {
-    if (step === 4) {
+  if (step === 5) {
+    setStep(4);
+  } else if (step === 4) {
+    if (showD11_1) {
       setStep(3);
-    } else if (step === 3) {
+    } else {
       setStep(showD11aa ? 2 : 1);
-    } else if (step === 2) {
-      setStep(1);
-    } else if (step > 0) {
-      setStep(step - 1);
     }
-    setErrors("");
-  };
-
+  } else if (step === 3) {
+    setStep(showD11aa ? 2 : 1);
+  } else if (step === 2) {
+    setStep(1);
+  }
+  setErrors("");
+};
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
