@@ -228,7 +228,7 @@ export default function Dimension11Page() {
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl mb-8">
                 <h2 className="text-3xl font-bold text-white mb-3">PREVENTION, WELLNESS & LEGAL COMPLIANCE</h2>
                 <p className="text-blue-100 text-lg">
-                  Proactive health programs, legal protections beyond minimums, and workplace safety measures.
+                  Proactive health programs, legal protections beyond minimums, and workplace safety measures for employees managing cancer or other serious health conditions.
                 </p>
               </div>
 
