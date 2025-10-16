@@ -8,7 +8,7 @@ import {
   getItemsByRoute,
 } from '../../data/instrument-items';
 
-/* ================== CAC brand palette ================== */
+/* =============== CAC palette =============== */
 const BRAND = {
   purple: { primary: '#6B2C91', bg: '#F5EDFF', border: '#D4B5E8' },
   teal:   { primary: '#14B8A6', bg: '#E6F9F7', border: '#99E6DD' },
@@ -16,14 +16,13 @@ const BRAND = {
   gray:   { 900:'#0F172A', 700:'#334155', 600:'#475569', 400:'#94A3B8', 300:'#CBD5E1', 200:'#E5E7EB', bg:'#F9FAFB' },
 };
 
-/* ================== Short descriptor overrides (add more as you like) ================== */
+/* =============== Short descriptor overrides (add as needed) =============== */
 const SHORT: Record<string, string> = {
-  // Firmographics & Classification
   companyName:'Company Name', s3:'Department', s4:'Primary Job Function', s5:'Current Level',
   s6:'Areas of Responsibility', s7:'Benefits Influence', s8:'Employee Size', s9:'Headquarters',
   s9a:'Countries with Employees', c1:'Legal Name', c2:'Industry', c3:'Excluded Employee Groups',
   c4:'Annual Revenue', c5:'Healthcare Access', c6:'Remote/Hybrid Policy', c7:'Union/Works Council', hq:'Headquarters',
-  // A few CB/CS/CD/EI examples; rest will auto-shorten
+
   'CB1.1':'Health Insurance (Medical)', 'CB1.2':'Dental', 'CB1.3':'Vision', 'CB1.4':'EAP',
   'CB2.1':'STD (Paid)', 'CB2.2':'LTD', 'CB3.1':'Travel/Lodging for Care', 'CB3.2':'Clinical Trials Support',
   CS1:'Global Policy', CS2:'Regional Variations', CS3:'Documentation',
@@ -31,7 +30,7 @@ const SHORT: Record<string, string> = {
   EI1:'Retention Impact', EI2:'Absence Impact', EI3:'Performance Impact', EI5:'Return-to-Work Quality',
 };
 
-/* ================== Dimension names (titles) ================== */
+/* =============== Dimension names (titles) =============== */
 const DIM_NAME: Record<number, string> = {
   1:'Medical Leave & Flexibility',
   2:'Insurance & Financial Protection',
@@ -45,48 +44,31 @@ const DIM_NAME: Record<number, string> = {
   10:'Caregiver & Family Support',
   11:'Prevention, Wellness & Legal Compliance',
   12:'Continuous Improvement & Outcomes',
-  13:'Communication & Awareness', // D13 is 5-pt incl. Unsure/NA
+  13:'Communication & Awareness', // 5-point incl. Unsure/NA
 };
 
-/* ================== Inline SVG (no emojis) ================== */
+/* =============== SVG (no emoji) =============== */
 const Accent = ({ color }: { color: string }) => (
   <svg viewBox="0 0 24 4" className="w-5 h-1"><rect width="24" height="4" rx="2" fill={color}/></svg>
 );
 
-/* ================== Helpers ================== */
+/* =============== utils =============== */
+const hideFirmoKey = (k:string) => {
+  const l=k.toLowerCase();
+  return l==='s1' || l.includes('birth') || l.includes('age');
+};
+const splitEven = <T,>(a:T[]) => {
+  const m=Math.ceil(a.length/2); return [a.slice(0,m), a.slice(m)];
+};
 const looksScale = (v:string) =>
   /(currently|offer|plan|eligible|not applicable|unsure|reactive)/i.test(v);
 
-const hideFirmoKey = (k:string) => {
-  const l = k.toLowerCase();
-  return l === 's1' || l.includes('birth') || l.includes('age'); // never show age/birth
-};
-
-function splitEven<T>(arr:T[]) {
-  const m=Math.ceil(arr.length/2); return [arr.slice(0,m), arr.slice(m)];
-}
-
-function itemsFirmoClass(): InstrumentItem[] {
-  const out: InstrumentItem[] = [];
-  Object.values(INSTRUMENT_ITEMS).forEach(it=>{
-    const s=(it.section||'').toUpperCase();
-    if (s.startsWith('S') || s.startsWith('CLASS')) out.push(it);
-  });
-  return out.sort((a,b)=> (a.section+a.id).localeCompare(b.section+b.id));
-}
-function itemsForDimension(n:number): InstrumentItem[] {
-  return Object.values(INSTRUMENT_ITEMS)
-    .filter(i => (i.section||'').toUpperCase() === `D${n}`)
-    .sort((a,b)=> a.id.localeCompare(b.id));
-}
-
-/* Shorten question text to descriptor when not in SHORT map */
+/* shortener when not in SHORT map */
 function autoShort(text:string){
   if (!text) return '';
   let s=text
-    .replace(/\[[^\]]*\]/g,'')        // [ASK IF]
-    .replace(/\([^)]*\)/g,'')         // (notes)
-    .split(/[?•:\n]/)[0].trim();      // first clause
+    .replace(/\[[^\]]*\]/g,'').replace(/\([^)]*\)/g,'')
+    .split(/[?•:\n]/)[0].trim();
   s=s.replace(/^please (indicate|select)\s+/i,'')
      .replace(/^does your (company|organization)\s+/i,'')
      .replace(/^what is your (company|organization)[’']?s?\s+/i,'')
@@ -99,31 +81,81 @@ function autoShort(text:string){
   const w=s.split(/\s+/); if (w.length>8) s=w.slice(0,8).join(' ');
   return s ? s.charAt(0).toUpperCase()+s.slice(1) : '';
 }
-function descriptorFor(it:InstrumentItem){ return SHORT[it.id] || autoShort(it.text) || it.id; }
+const descriptorFor = (it:InstrumentItem) => SHORT[it.id] || autoShort(it.text) || it.id;
 
-/* Render array as compact chips (no bullets) */
-function Chips({items}:{items:any[]}){
+/* ====== SHOW ONLY WHAT WAS SELECTED ======
+ * Arrays: show non-empty items
+ * Objects: show keys where value is "selected" (true / 'yes' / 'selected' / 'checked' / a non-empty string not equal to 'no')
+ * Strings/Numbers: show as-is
+ */
+function isSelectedVal(val:any){
+  if (val === true) return true;
+  if (typeof val === 'string') {
+    const s = val.trim().toLowerCase();
+    if (!s) return false;
+    if (['yes','selected','checked','true'].includes(s)) return true;
+    if (['no','false','none','not selected'].includes(s)) return false;
+    // for Likert/status answers we want the actual answer text
+    return true;
+  }
+  if (typeof val === 'number') return true;
+  return false;
+}
+function onlySelected(value:any): string[] | string | null {
+  if (value == null) return null;
+
+  // array: already selected list; drop empties
+  if (Array.isArray(value)) {
+    const items = value.map(v => String(v)).filter(v => v.trim().length);
+    return items.length ? items : null;
+  }
+
+  // object: return list of keys where the value is "selected"
+  if (typeof value === 'object') {
+    const picks = Object.entries(value)
+      .filter(([,v]) => isSelectedVal(v))
+      .map(([k]) => k);
+    return picks.length ? picks : null;
+  }
+
+  // primitive: return as string
+  const s = String(value).trim();
+  return s ? s : null;
+}
+
+/* firmo/classification items list */
+function itemsFirmoClass(){
+  const out: InstrumentItem[] = [];
+  Object.values(INSTRUMENT_ITEMS).forEach(it=>{
+    const s=(it.section||'').toUpperCase();
+    if (s.startsWith('S') || s.startsWith('CLASS')) out.push(it);
+  });
+  return out.sort((a,b)=> (a.section+a.id).localeCompare(b.section+b.id));
+}
+function itemsForDimension(n:number){
+  return Object.values(INSTRUMENT_ITEMS)
+    .filter(i => (i.section||'').toUpperCase()===`D${n}`)
+    .sort((a,b)=> a.id.localeCompare(b.id));
+}
+
+/* =============== chips =============== */
+function Chips({items}:{items:string[]}){
   return (
     <div className="flex flex-wrap gap-1.5">
       {items.map((v,i)=>(
-        <span key={i}
-          className="px-2 py-0.5 rounded border text-[12px] bg-white"
-          style={{borderColor:BRAND.gray[300], color:BRAND.gray[900]}}>
-          {String(v)}
+        <span key={i} className="px-2 py-0.5 rounded border text-[12px] bg-white"
+              style={{borderColor:BRAND.gray[300], color:BRAND.gray[900]}}>
+          {v}
         </span>
       ))}
     </div>
   );
 }
 
-/* ================== The row (descriptor left, answer right) ================== */
-function Row({ label, value, color }:{label:string; value:any; color:string}){
-  const display =
-    value===undefined || value===null || value==='' ? '—'
-      : Array.isArray(value) ? value.filter(v=>v!=='' && v!==null)
-      : typeof value==='object' ? value
-      : String(value);
-
+/* =============== row =============== */
+function Row({ label, selected, color }:{
+  label:string; selected:string[]|string|null; color:string;
+}){
   return (
     <div className="py-1.5 border-b last:border-b-0 flex items-start gap-3"
          style={{borderColor:BRAND.gray[200]}}>
@@ -134,37 +166,25 @@ function Row({ label, value, color }:{label:string; value:any; color:string}){
           {label}:
         </span>
       </div>
-      <div className="text-[13px] grow" style={{color:BRAND.gray[900], wordBreak:'break-word', hyphens:'auto'}}>
-        {Array.isArray(display) ? (
-          display.length ? <Chips items={display}/> : <span>—</span>
-        ) : (typeof display==='object' && display!==null) ? (
-          <div className="space-y-1">
-            {Object.entries(display).map(([k,v])=> v ? (
-              <div key={k} className="flex items-center justify-between gap-3">
-                <span className="text-[12px]" style={{color:BRAND.gray[600]}}>{k}</span>
-                <span className="px-2 py-0.5 rounded border text-[12px]"
-                      style={{backgroundColor:BRAND.purple.bg, color:BRAND.purple.primary, borderColor:BRAND.purple.border}}>
-                  {String(v)}
-                </span>
-              </div>
-            ) : null)}
-          </div>
-        ) : (
-          display==='—'
-            ? <span>—</span>
-            : looksScale(String(display))
-              ? <span className="px-2.5 py-0.5 rounded-full border text-[12px]"
-                      style={{backgroundColor:BRAND.purple.bg, color:BRAND.purple.primary, borderColor:BRAND.purple.border}}>
-                  {String(display)}
-                </span>
-              : <span>{String(display)}</span>
-        )}
+      <div className="text-[13px] grow text-left" style={{color:BRAND.gray[900], wordBreak:'break-word', hyphens:'auto'}}>
+        {selected == null
+          ? <span>—</span>
+          : Array.isArray(selected)
+              ? (selected.length ? <Chips items={selected}/> : <span>—</span>)
+              : (looksScale(selected)
+                   ? <span className="px-2.5 py-0.5 rounded-full border text-[12px]"
+                           style={{backgroundColor:BRAND.purple.bg, color:BRAND.purple.primary, borderColor:BRAND.purple.border}}>
+                       {selected}
+                     </span>
+                   : <span>{selected}</span>
+                )
+        }
       </div>
     </div>
   );
 }
 
-/* ================== Section shell ================== */
+/* =============== section shell =============== */
 function Section({
   title, tone, children, badge,
 }:{
@@ -172,10 +192,8 @@ function Section({
   children:React.ReactNode; badge?:string;
 }){
   return (
-    <section className="mb-6 rounded-xl border-2 overflow-hidden"
-             style={{borderColor:tone.border}}>
-      <div className="px-6 py-3 flex items-center justify-between"
-           style={{backgroundColor:tone.primary}}>
+    <section className="mb-6 rounded-xl border-2 overflow-hidden" style={{borderColor:tone.border}}>
+      <div className="px-6 py-3 flex items-center justify-between" style={{backgroundColor:tone.primary}}>
         <h2 className="text-base sm:text-lg font-bold text-white">{title}</h2>
         {badge && (
           <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white"
@@ -185,7 +203,6 @@ function Section({
         )}
       </div>
       <div className="p-6 bg-white">
-        {/* two equal columns on desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
           {children}
         </div>
@@ -194,7 +211,7 @@ function Section({
   );
 }
 
-/* ================== Page ================== */
+/* =============== page =============== */
 export default function CompanyProfile(){
   const router = useRouter();
 
@@ -220,7 +237,7 @@ export default function CompanyProfile(){
     const d:Array<{number:number; data:Record<string,any>}> = [];
     for (let i=1;i<=13;i++){
       const raw = JSON.parse(localStorage.getItem(`dimension${i}_data`)||'{}');
-      d.push({ number:i, data: raw || {} }); // include all dims so EVERY item renders
+      d.push({ number:i, data: raw || {} });
     }
 
     setFirmo(f); setGeneral(g); setCurrent(c); setCross(x); setImpact(e); setDims(d);
@@ -232,7 +249,7 @@ export default function CompanyProfile(){
     setLoading(false);
   },[]);
 
-  // Build section item lists from the instrument (ensures every question appears)
+  // instrument-driven lists (EVERY item appears; we only show the chosen response)
   const firmoItems   = useMemo(()=> itemsFirmoClass().filter(it=>!hideFirmoKey(it.id)), []);
   const generalItems = useMemo(()=> getItemsByRoute('/survey/general-benefits').sort((a,b)=>a.id.localeCompare(b.id)), []);
   const currentItems = useMemo(()=> getItemsByRoute('/survey/current-support').sort((a,b)=>a.id.localeCompare(b.id)), []);
@@ -245,13 +262,15 @@ export default function CompanyProfile(){
   const [crossL, crossR]     = useMemo(()=> splitEven(crossItems),   [crossItems]);
   const [impactL, impactR]   = useMemo(()=> splitEven(impactItems),  [impactItems]);
 
-  function valueFrom(source:Record<string,any>, it:InstrumentItem): any {
-    if (it.id in source) return source[it.id];
-    const t=(it.text||'').toLowerCase();
+  function selectedFrom(source:Record<string,any>, it:InstrumentItem): string[] | string | null {
+    // by id
+    if (it.id in source) return onlySelected(source[it.id]);
+    // by exact question text / simple id fallback
+    const t = (it.text||'').toLowerCase();
     const hit = Object.entries(source).find(([k]) =>
       k.toLowerCase()===t || k.toLowerCase()===it.id.toLowerCase()
     );
-    return hit ? hit[1] : '';
+    return hit ? onlySelected(hit[1]) : null;
   }
 
   if (loading){
@@ -264,7 +283,7 @@ export default function CompanyProfile(){
 
   return (
     <div className="min-h-screen" style={{backgroundColor:BRAND.gray.bg}}>
-      {/* Header with your logos */}
+      {/* header with logos */}
       <div className="bg-white border-b" style={{borderColor:BRAND.gray[200]}}>
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between mb-6">
@@ -299,22 +318,12 @@ export default function CompanyProfile(){
                       style={{backgroundColor:BRAND.purple.primary}}>
                 Print PDF
               </button>
-              <button onClick={()=>{
-                        const blob=new Blob([JSON.stringify({firmographics:firmo,general,current,cross,impact,dimensions:dims},null,2)],{type:'application/json'});
-                        const url=URL.createObjectURL(blob);
-                        const a=document.createElement('a'); a.href=url; a.download=`${companyName.replace(/\s+/g,'_')}_Profile.json`; a.click();
-                        URL.revokeObjectURL(url);
-                      }}
-                      className="px-3 py-1.5 text-sm font-semibold border rounded"
-                      style={{borderColor:BRAND.gray[200], color:BRAND.gray[900]}}>
-                Download JSON
-              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Top Stats + HR POC */}
+      {/* quick stats + HR POC */}
       <section className="max-w-7xl mx-auto px-6 mt-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -331,7 +340,7 @@ export default function CompanyProfile(){
               </div>
               <div>{firmo?.contactTitle || firmo?.hr_title || firmo?.title || '—'}</div>
               <div>{firmo?.s3 || firmo?.department || '—'}</div>
-              <div>{firmo?.contactEmail || firmo?.hr_email || accountEmail || '—'}</div>
+              <div>{firmo?.contactEmail || firmo?.hr_email || '—'}</div>
               <div>{firmo?.contactPhone || firmo?.hr_phone || firmo?.phone || '—'}</div>
               <div>{firmo?.hq || firmo?.s9 || '—'}</div>
             </div>
@@ -339,55 +348,100 @@ export default function CompanyProfile(){
         </div>
       </section>
 
-      {/* ===== Sections ===== */}
+      {/* sections */}
       <main className="max-w-7xl mx-auto px-6 mt-6">
-        {/* Firmographics & Classification */}
         <Section title="Company Profile (Firmographics & Classification)" tone={BRAND.purple}>
           <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {firmoL.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(firmo,it)} color={BRAND.purple.primary}/>)}
+            {firmoL.map(it=>(
+              <Row key={it.id}
+                   label={descriptorFor(it)}
+                   selected={selectedFrom(firmo,it)}
+                   color={BRAND.purple.primary}/>
+            ))}
           </div>
           <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {firmoR.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(firmo,it)} color={BRAND.purple.primary}/>)}
+            {firmoR.map(it=>(
+              <Row key={it.id}
+                   label={descriptorFor(it)}
+                   selected={selectedFrom(firmo,it)}
+                   color={BRAND.purple.primary}/>
+            ))}
           </div>
         </Section>
 
-        {/* General Benefits */}
         <Section title="General Employee Benefits" tone={BRAND.teal}>
           <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {generalL.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(general,it)} color={BRAND.teal.primary}/>)}
+            {generalL.map(it=>(
+              <Row key={it.id}
+                   label={descriptorFor(it)}
+                   selected={selectedFrom(general,it)}
+                   color={BRAND.teal.primary}/>
+            ))}
           </div>
           <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {generalR.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(general,it)} color={BRAND.teal.primary}/>)}
+            {generalR.map(it=>(
+              <Row key={it.id}
+                   label={descriptorFor(it)}
+                   selected={selectedFrom(general,it)}
+                   color={BRAND.teal.primary}/>
+            ))}
           </div>
         </Section>
 
-        {/* Current Support */}
         <Section title="Current Support for Employees Managing Cancer" tone={BRAND.orange}>
           <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {currentL.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(current,it)} color={BRAND.orange.primary}/>)}
+            {currentL.map(it=>(
+              <Row key={it.id}
+                   label={descriptorFor(it)}
+                   selected={selectedFrom(current,it)}
+                   color={BRAND.orange.primary}/>
+            ))}
           </div>
           <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {currentR.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(current,it)} color={BRAND.orange.primary}/>)}
+            {currentR.map(it=>(
+              <Row key={it.id}
+                   label={descriptorFor(it)}
+                   selected={selectedFrom(current,it)}
+                   color={BRAND.orange.primary}/>
+            ))}
           </div>
         </Section>
 
-        {/* Cross-Dimensional */}
         <Section title="Cross-Dimensional Assessment" tone={BRAND.purple}>
           <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {crossL.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(cross,it)} color={BRAND.purple.primary}/>)}
+            {crossL.map(it=>(
+              <Row key={it.id}
+                   label={descriptorFor(it)}
+                   selected={selectedFrom(cross,it)}
+                   color={BRAND.purple.primary}/>
+            ))}
           </div>
           <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {crossR.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(cross,it)} color={BRAND.purple.primary}/>)}
+            {crossR.map(it=>(
+              <Row key={it.id}
+                   label={descriptorFor(it)}
+                   selected={selectedFrom(cross,it)}
+                   color={BRAND.purple.primary}/>
+            ))}
           </div>
         </Section>
 
-        {/* Employee Impact */}
         <Section title="Employee Impact Assessment" tone={BRAND.orange}>
           <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {impactL.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(impact,it)} color={BRAND.orange.primary}/>)}
+            {impactL.map(it=>(
+              <Row key={it.id}
+                   label={descriptorFor(it)}
+                   selected={selectedFrom(impact,it)}
+                   color={BRAND.orange.primary}/>
+            ))}
           </div>
           <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {impactR.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(impact,it)} color={BRAND.orange.primary}/>)}
+            {impactR.map(it=>(
+              <Row key={it.id}
+                   label={descriptorFor(it)}
+                   selected={selectedFrom(impact,it)}
+                   color={BRAND.orange.primary}/>
+            ))}
           </div>
         </Section>
 
@@ -401,22 +455,31 @@ export default function CompanyProfile(){
         </div>
 
         {dims.map(({number, data})=>{
-          const dItems=itemsForDimension(number);
-          const [dL,dR]=splitEven(dItems);
+          const dItems = itemsForDimension(number);
+          const [dL, dR] = splitEven(dItems);
           return (
             <Section key={number} title={`Dimension ${number}: ${DIM_NAME[number]}`} tone={BRAND.purple}
                      badge={number===13 ? '5-point' : undefined}>
               <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-                {dL.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(data,it)} color={BRAND.purple.primary}/>)}
+                {dL.map(it=>(
+                  <Row key={it.id}
+                       label={descriptorFor(it)}
+                       selected={selectedFrom(data,it)}
+                       color={BRAND.purple.primary}/>
+                ))}
               </div>
               <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-                {dR.map(it=> <Row key={it.id} label={descriptorFor(it)} value={valueFrom(data,it)} color={BRAND.purple.primary}/>)}
+                {dR.map(it=>(
+                  <Row key={it.id}
+                       label={descriptorFor(it)}
+                       selected={selectedFrom(data,it)}
+                       color={BRAND.purple.primary}/>
+                ))}
               </div>
             </Section>
           );
         })}
 
-        {/* Footer */}
         <div className="mt-10 pt-6 border-t text-center text-xs"
              style={{borderColor:BRAND.gray[200], color:BRAND.gray[700]}}>
           Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers & CEW Foundation •
@@ -424,20 +487,19 @@ export default function CompanyProfile(){
         </div>
       </main>
 
-      {/* Print CSS */}
+      {/* print */}
       <style jsx>{`
         @media print {
           @page { size: letter; margin: 0.5in; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           section { break-inside: avoid; }
-          .label-col { break-inside: avoid; }
         }
       `}</style>
     </div>
   );
 }
 
-/* ================== stat tile ================== */
+/* =============== stat tile =============== */
 function Stat({ label, value }:{label:string; value:any}){
   return (
     <div className="bg-white border rounded-xl px-3 py-2" style={{borderColor:BRAND.gray[200]}}>
