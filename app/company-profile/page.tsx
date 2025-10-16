@@ -8,7 +8,7 @@ import {
   getItemsByRoute,
 } from '../../data/instrument-items';
 
-/* =============== CAC palette =============== */
+/* ===== CAC palette ===== */
 const BRAND = {
   purple: { primary: '#6B2C91', bg: '#F5EDFF', border: '#D4B5E8' },
   teal:   { primary: '#14B8A6', bg: '#E6F9F7', border: '#99E6DD' },
@@ -16,54 +16,43 @@ const BRAND = {
   gray:   { 900:'#0F172A', 700:'#334155', 600:'#475569', 400:'#94A3B8', 300:'#CBD5E1', 200:'#E5E7EB', bg:'#F9FAFB' },
 };
 
-/* =============== Short descriptor overrides (add as needed) =============== */
+/* ===== Short descriptor overrides (add anything you want locked) ===== */
 const SHORT: Record<string, string> = {
   companyName:'Company Name', s3:'Department', s4:'Primary Job Function', s5:'Current Level',
   s6:'Areas of Responsibility', s7:'Benefits Influence', s8:'Employee Size', s9:'Headquarters',
   s9a:'Countries with Employees', c1:'Legal Name', c2:'Industry', c3:'Excluded Employee Groups',
   c4:'Annual Revenue', c5:'Healthcare Access', c6:'Remote/Hybrid Policy', c7:'Union/Works Council', hq:'Headquarters',
-
   'CB1.1':'Health Insurance (Medical)', 'CB1.2':'Dental', 'CB1.3':'Vision', 'CB1.4':'EAP',
-  'CB2.1':'STD (Paid)', 'CB2.2':'LTD', 'CB3.1':'Travel/Lodging for Care', 'CB3.2':'Clinical Trials Support',
+  'CB2.1':'STD (Paid)', 'CB2.2':'LTD',
+  'CB3.1':'Travel/Lodging for Care', 'CB3.2':'Clinical Trials Support',
   CS1:'Global Policy', CS2:'Regional Variations', CS3:'Documentation',
   CD1a:'Cross-Dept Coordination', CD1b:'Navigation Ownership', CD2:'Measurement Approach',
   EI1:'Retention Impact', EI2:'Absence Impact', EI3:'Performance Impact', EI5:'Return-to-Work Quality',
 };
 
-/* =============== Dimension names (titles) =============== */
-const DIM_NAME: Record<number, string> = {
-  1:'Medical Leave & Flexibility',
-  2:'Insurance & Financial Protection',
-  3:'Manager Preparedness & Capability',
-  4:'Navigation & Expert Resources',
-  5:'Workplace Accommodations',
-  6:'Culture & Psychological Safety',
-  7:'Career Continuity & Advancement',
-  8:'Work Continuation & Resumption',
-  9:'Executive Commitment & Resources',
-  10:'Caregiver & Family Support',
-  11:'Prevention, Wellness & Legal Compliance',
-  12:'Continuous Improvement & Outcomes',
-  13:'Communication & Awareness', // 5-point incl. Unsure/NA
+/* ===== Dimension names for titles ===== */
+const DIM_TITLE: Record<number,string> = {
+  1:'Medical Leave & Flexibility', 2:'Insurance & Financial Protection', 3:'Manager Preparedness & Capability',
+  4:'Navigation & Expert Resources', 5:'Workplace Accommodations', 6:'Culture & Psychological Safety',
+  7:'Career Continuity & Advancement', 8:'Work Continuation & Resumption', 9:'Executive Commitment & Resources',
+  10:'Caregiver & Family Support', 11:'Prevention, Wellness & Legal Compliance',
+  12:'Continuous Improvement & Outcomes', 13:'Communication & Awareness', // D13 special 5-pt
 };
 
-/* =============== SVG (no emoji) =============== */
+/* ===== Tiny inline SVG (no emojis) ===== */
 const Accent = ({ color }: { color: string }) => (
   <svg viewBox="0 0 24 4" className="w-5 h-1"><rect width="24" height="4" rx="2" fill={color}/></svg>
 );
 
-/* =============== utils =============== */
+/* ===== Helpers ===== */
 const hideFirmoKey = (k:string) => {
-  const l=k.toLowerCase();
-  return l==='s1' || l.includes('birth') || l.includes('age');
-};
-const splitEven = <T,>(a:T[]) => {
-  const m=Math.ceil(a.length/2); return [a.slice(0,m), a.slice(m)];
+  const l = k.toLowerCase();
+  return l === 's1' || l.includes('birth') || l.includes('age'); // never show age/birth
 };
 const looksScale = (v:string) =>
   /(currently|offer|plan|eligible|not applicable|unsure|reactive)/i.test(v);
 
-/* shortener when not in SHORT map */
+/* shorten long questions into short descriptors if not in SHORT map */
 function autoShort(text:string){
   if (!text) return '';
   let s=text
@@ -81,65 +70,48 @@ function autoShort(text:string){
   const w=s.split(/\s+/); if (w.length>8) s=w.slice(0,8).join(' ');
   return s ? s.charAt(0).toUpperCase()+s.slice(1) : '';
 }
-const descriptorFor = (it:InstrumentItem) => SHORT[it.id] || autoShort(it.text) || it.id;
+const labelFor = (it:InstrumentItem) => SHORT[it.id] || autoShort(it.text) || it.id;
 
-/* ====== SHOW ONLY WHAT WAS SELECTED ======
- * Arrays: show non-empty items
- * Objects: show keys where value is "selected" (true / 'yes' / 'selected' / 'checked' / a non-empty string not equal to 'no')
- * Strings/Numbers: show as-is
- */
+/* ===== “Only selected” logic ===== */
 function isSelectedVal(val:any){
   if (val === true) return true;
-  if (typeof val === 'string') {
+  if (typeof val==='number') return true;
+  if (typeof val==='string'){
     const s = val.trim().toLowerCase();
     if (!s) return false;
     if (['yes','selected','checked','true'].includes(s)) return true;
     if (['no','false','none','not selected'].includes(s)) return false;
-    // for Likert/status answers we want the actual answer text
-    return true;
+    return true; // Likert/status strings (we want the chosen text)
   }
-  if (typeof val === 'number') return true;
   return false;
 }
-function onlySelected(value:any): string[] | string | null {
+function pickSelected(value:any): string[] | string | null {
   if (value == null) return null;
-
-  // array: already selected list; drop empties
-  if (Array.isArray(value)) {
-    const items = value.map(v => String(v)).filter(v => v.trim().length);
-    return items.length ? items : null;
+  if (Array.isArray(value)){
+    const out = value.map(v=>String(v)).filter(v=>v.trim().length);
+    return out.length ? out : null;
   }
-
-  // object: return list of keys where the value is "selected"
-  if (typeof value === 'object') {
-    const picks = Object.entries(value)
-      .filter(([,v]) => isSelectedVal(v))
-      .map(([k]) => k);
-    return picks.length ? picks : null;
+  if (typeof value==='object'){
+    const keys = Object.entries(value).filter(([,v])=>isSelectedVal(v)).map(([k])=>k);
+    return keys.length ? keys : null;
   }
-
-  // primitive: return as string
-  const s = String(value).trim();
+  const s=String(value).trim();
   return s ? s : null;
 }
 
-/* firmo/classification items list */
-function itemsFirmoClass(){
+/* ===== Build lists from instrument ===== */
+function firmoItems(): InstrumentItem[] {
   const out: InstrumentItem[] = [];
   Object.values(INSTRUMENT_ITEMS).forEach(it=>{
     const s=(it.section||'').toUpperCase();
-    if (s.startsWith('S') || s.startsWith('CLASS')) out.push(it);
+    if ((s.startsWith('S') || s.startsWith('CLASS')) && !hideFirmoKey(it.id)) out.push(it);
   });
-  return out.sort((a,b)=> (a.section+a.id).localeCompare(b.section+b.id));
+  return out.sort((a,b)=>(a.section+a.id).localeCompare(b.section+b.id));
 }
-function itemsForDimension(n:number){
-  return Object.values(INSTRUMENT_ITEMS)
-    .filter(i => (i.section||'').toUpperCase()===`D${n}`)
-    .sort((a,b)=> a.id.localeCompare(b.id));
-}
+function dimItems(n:number){return Object.values(INSTRUMENT_ITEMS).filter(i=>(i.section||'').toUpperCase()===`D${n}`).sort((a,b)=>a.id.localeCompare(b.id));}
 
-/* =============== chips =============== */
-function Chips({items}:{items:string[]}){
+/* ===== Chips (selected multi) ===== */
+function Chips({items}:{items:string[]}) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {items.map((v,i)=>(
@@ -152,19 +124,13 @@ function Chips({items}:{items:string[]}){
   );
 }
 
-/* =============== row =============== */
-function Row({ label, selected, color }:{
-  label:string; selected:string[]|string|null; color:string;
-}){
+/* ===== Single row (descriptor + selected value) ===== */
+function Row({ label, selected, color }:{label:string; selected:string[]|string|null; color:string}){
   return (
     <div className="py-1.5 border-b last:border-b-0 flex items-start gap-3"
          style={{borderColor:BRAND.gray[200]}}>
-      <div className="shrink-0 flex items-center gap-2"
-           style={{width:'16rem', maxWidth:'45%'}}>
-        <Accent color={color}/>
-        <span className="text-[13px] font-semibold" style={{color:BRAND.gray[600]}}>
-          {label}:
-        </span>
+      <div className="shrink-0 flex items-center gap-2" style={{width:'16rem', maxWidth:'45%'}}>
+        <Accent color={color}/><span className="text-[13px] font-semibold" style={{color:BRAND.gray[600]}}>{label}:</span>
       </div>
       <div className="text-[13px] grow text-left" style={{color:BRAND.gray[900], wordBreak:'break-word', hyphens:'auto'}}>
         {selected == null
@@ -172,11 +138,11 @@ function Row({ label, selected, color }:{
           : Array.isArray(selected)
               ? (selected.length ? <Chips items={selected}/> : <span>—</span>)
               : (looksScale(selected)
-                   ? <span className="px-2.5 py-0.5 rounded-full border text-[12px]"
-                           style={{backgroundColor:BRAND.purple.bg, color:BRAND.purple.primary, borderColor:BRAND.purple.border}}>
-                       {selected}
-                     </span>
-                   : <span>{selected}</span>
+                  ? <span className="px-2.5 py-0.5 rounded-full border text-[12px]"
+                          style={{backgroundColor:BRAND.purple.bg, color:BRAND.purple.primary, borderColor:BRAND.purple.border}}>
+                      {selected}
+                    </span>
+                  : <span>{selected}</span>
                 )
         }
       </div>
@@ -184,34 +150,46 @@ function Row({ label, selected, color }:{
   );
 }
 
-/* =============== section shell =============== */
+/* ===== Section shell ===== */
 function Section({
   title, tone, children, badge,
-}:{
-  title:string; tone:{primary:string; bg:string; border:string};
-  children:React.ReactNode; badge?:string;
-}){
+}:{title:string; tone:{primary:string; bg:string; border:string}; children:React.ReactNode; badge?:string;}){
   return (
     <section className="mb-6 rounded-xl border-2 overflow-hidden" style={{borderColor:tone.border}}>
       <div className="px-6 py-3 flex items-center justify-between" style={{backgroundColor:tone.primary}}>
         <h2 className="text-base sm:text-lg font-bold text-white">{title}</h2>
-        {badge && (
-          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white"
-                style={{borderColor:BRAND.gray[200], color:BRAND.gray[700]}}>
-            {badge}
-          </span>
-        )}
+        {badge && <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white"
+                         style={{borderColor:BRAND.gray[200], color:BRAND.gray[700]}}>{badge}</span>}
       </div>
       <div className="p-6 bg-white">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
-          {children}
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">{children}</div>
       </div>
     </section>
   );
 }
 
-/* =============== page =============== */
+/* ===== Balance columns by what will actually render (selected-only) ===== */
+function balanceBySelected(items: InstrumentItem[], source: Record<string,any>) {
+  const left: InstrumentItem[] = [];
+  const right: InstrumentItem[] = [];
+  let l=0, r=0;
+  for (const it of items){
+    const sel = pickSelected( valueFrom(source, it) );
+    if (sel==null) continue; // skip rows w/ nothing selected
+    if (l<=r){ left.push(it); l++; } else { right.push(it); r++; }
+  }
+  return {left, right};
+}
+
+/* value resolver: id → value, or by stored key matching text/id */
+function valueFrom(source:Record<string,any>, it:InstrumentItem){
+  if (it.id in source) return source[it.id];
+  const t=(it.text||'').toLowerCase();
+  const hit = Object.entries(source).find(([k]) => k.toLowerCase()===t || k.toLowerCase()===it.id.toLowerCase());
+  return hit ? hit[1] : null;
+}
+
+/* ===== Page ===== */
 export default function CompanyProfile(){
   const router = useRouter();
 
@@ -249,29 +227,19 @@ export default function CompanyProfile(){
     setLoading(false);
   },[]);
 
-  // instrument-driven lists (EVERY item appears; we only show the chosen response)
-  const firmoItems   = useMemo(()=> itemsFirmoClass().filter(it=>!hideFirmoKey(it.id)), []);
-  const generalItems = useMemo(()=> getItemsByRoute('/survey/general-benefits').sort((a,b)=>a.id.localeCompare(b.id)), []);
-  const currentItems = useMemo(()=> getItemsByRoute('/survey/current-support').sort((a,b)=>a.id.localeCompare(b.id)), []);
-  const crossItems   = useMemo(()=> getItemsByRoute('/survey/cross-dimensional-assessment').sort((a,b)=>a.id.localeCompare(b.id)), []);
-  const impactItems  = useMemo(()=> getItemsByRoute('/survey/employee-impact-assessment').sort((a,b)=>a.id.localeCompare(b.id)), []);
+  // instrument-driven lists
+  const firmoAll   = useMemo(()=> firmoItems(), []);
+  const generalAll = useMemo(()=> getItemsByRoute('/survey/general-benefits').sort((a,b)=>a.id.localeCompare(b.id)), []);
+  const currentAll = useMemo(()=> getItemsByRoute('/survey/current-support').sort((a,b)=>a.id.localeCompare(b.id)), []);
+  const crossAll   = useMemo(()=> getItemsByRoute('/survey/cross-dimensional-assessment').sort((a,b)=>a.id.localeCompare(b.id)), []);
+  const impactAll  = useMemo(()=> getItemsByRoute('/survey/employee-impact-assessment').sort((a,b)=>a.id.localeCompare(b.id)), []);
 
-  const [firmoL, firmoR]     = useMemo(()=> splitEven(firmoItems),   [firmoItems]);
-  const [generalL, generalR] = useMemo(()=> splitEven(generalItems), [generalItems]);
-  const [currentL, currentR] = useMemo(()=> splitEven(currentItems), [currentItems]);
-  const [crossL, crossR]     = useMemo(()=> splitEven(crossItems),   [crossItems]);
-  const [impactL, impactR]   = useMemo(()=> splitEven(impactItems),  [impactItems]);
-
-  function selectedFrom(source:Record<string,any>, it:InstrumentItem): string[] | string | null {
-    // by id
-    if (it.id in source) return onlySelected(source[it.id]);
-    // by exact question text / simple id fallback
-    const t = (it.text||'').toLowerCase();
-    const hit = Object.entries(source).find(([k]) =>
-      k.toLowerCase()===t || k.toLowerCase()===it.id.toLowerCase()
-    );
-    return hit ? onlySelected(hit[1]) : null;
-  }
+  // balanced, selected-only columns
+  const firmoCols   = useMemo(()=> balanceBySelected(firmoAll,   firmo),   [firmoAll, firmo]);
+  const generalCols = useMemo(()=> balanceBySelected(generalAll, general), [generalAll, general]);
+  const currentCols = useMemo(()=> balanceBySelected(currentAll, current), [currentAll, current]);
+  const crossCols   = useMemo(()=> balanceBySelected(crossAll,   cross),   [crossAll, cross]);
+  const impactCols  = useMemo(()=> balanceBySelected(impactAll,  impact),  [impactAll, impact]);
 
   if (loading){
     return (
@@ -281,9 +249,41 @@ export default function CompanyProfile(){
     );
   }
 
+  // helper: render section (auto-hide if no rows selected)
+  const renderSection = (
+    title:string,
+    tone:{primary:string; bg:string; border:string},
+    cols:{left:InstrumentItem[]; right:InstrumentItem[]},
+    source:Record<string,any>,
+    badge?:string
+  )=>{
+    const count = cols.left.length + cols.right.length;
+    if (count===0) return null; // hide empty section entirely
+    return (
+      <Section title={title} tone={tone} badge={badge}>
+        <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
+          {cols.left.map(it=>(
+            <Row key={it.id}
+                 label={labelFor(it)}
+                 selected={pickSelected( valueFrom(source,it) )}
+                 color={tone.primary}/>
+          ))}
+        </div>
+        <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
+          {cols.right.map(it=>(
+            <Row key={it.id}
+                 label={labelFor(it)}
+                 selected={pickSelected( valueFrom(source,it) )}
+                 color={tone.primary}/>
+          ))}
+        </div>
+      </Section>
+    );
+  };
+
   return (
     <div className="min-h-screen" style={{backgroundColor:BRAND.gray.bg}}>
-      {/* header with logos */}
+      {/* header w/ your logos */}
       <div className="bg-white border-b" style={{borderColor:BRAND.gray[200]}}>
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between mb-6">
@@ -323,14 +323,14 @@ export default function CompanyProfile(){
         </div>
       </div>
 
-      {/* quick stats + HR POC */}
+      {/* top stats + HR POC */}
       <section className="max-w-7xl mx-auto px-6 mt-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Stat label="Headquarters" value={firmo?.s9 || firmo?.hq || '—'} />
-            <Stat label="Industry" value={firmo?.c2 || '—'} />
-            <Stat label="Employee Size" value={firmo?.s8 || '—'} />
-            <Stat label="Global Footprint" value={firmo?.s9a || '—'} />
+            <Tile label="Headquarters" value={firmo?.s9 || firmo?.hq || '—'} />
+            <Tile label="Industry" value={firmo?.c2 || '—'} />
+            <Tile label="Employee Size" value={firmo?.s8 || '—'} />
+            <Tile label="Global Footprint" value={firmo?.s9a || '—'} />
           </div>
           <div className="border rounded-xl bg-white p-4" style={{borderColor:BRAND.gray[200]}}>
             <div className="text-xs font-semibold mb-2" style={{color:BRAND.gray[600]}}>HR Point of Contact</div>
@@ -348,102 +348,13 @@ export default function CompanyProfile(){
         </div>
       </section>
 
-      {/* sections */}
+      {/* sections (auto-hide if empty) */}
       <main className="max-w-7xl mx-auto px-6 mt-6">
-        <Section title="Company Profile (Firmographics & Classification)" tone={BRAND.purple}>
-          <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {firmoL.map(it=>(
-              <Row key={it.id}
-                   label={descriptorFor(it)}
-                   selected={selectedFrom(firmo,it)}
-                   color={BRAND.purple.primary}/>
-            ))}
-          </div>
-          <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {firmoR.map(it=>(
-              <Row key={it.id}
-                   label={descriptorFor(it)}
-                   selected={selectedFrom(firmo,it)}
-                   color={BRAND.purple.primary}/>
-            ))}
-          </div>
-        </Section>
-
-        <Section title="General Employee Benefits" tone={BRAND.teal}>
-          <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {generalL.map(it=>(
-              <Row key={it.id}
-                   label={descriptorFor(it)}
-                   selected={selectedFrom(general,it)}
-                   color={BRAND.teal.primary}/>
-            ))}
-          </div>
-          <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {generalR.map(it=>(
-              <Row key={it.id}
-                   label={descriptorFor(it)}
-                   selected={selectedFrom(general,it)}
-                   color={BRAND.teal.primary}/>
-            ))}
-          </div>
-        </Section>
-
-        <Section title="Current Support for Employees Managing Cancer" tone={BRAND.orange}>
-          <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {currentL.map(it=>(
-              <Row key={it.id}
-                   label={descriptorFor(it)}
-                   selected={selectedFrom(current,it)}
-                   color={BRAND.orange.primary}/>
-            ))}
-          </div>
-          <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {currentR.map(it=>(
-              <Row key={it.id}
-                   label={descriptorFor(it)}
-                   selected={selectedFrom(current,it)}
-                   color={BRAND.orange.primary}/>
-            ))}
-          </div>
-        </Section>
-
-        <Section title="Cross-Dimensional Assessment" tone={BRAND.purple}>
-          <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {crossL.map(it=>(
-              <Row key={it.id}
-                   label={descriptorFor(it)}
-                   selected={selectedFrom(cross,it)}
-                   color={BRAND.purple.primary}/>
-            ))}
-          </div>
-          <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {crossR.map(it=>(
-              <Row key={it.id}
-                   label={descriptorFor(it)}
-                   selected={selectedFrom(cross,it)}
-                   color={BRAND.purple.primary}/>
-            ))}
-          </div>
-        </Section>
-
-        <Section title="Employee Impact Assessment" tone={BRAND.orange}>
-          <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {impactL.map(it=>(
-              <Row key={it.id}
-                   label={descriptorFor(it)}
-                   selected={selectedFrom(impact,it)}
-                   color={BRAND.orange.primary}/>
-            ))}
-          </div>
-          <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-            {impactR.map(it=>(
-              <Row key={it.id}
-                   label={descriptorFor(it)}
-                   selected={selectedFrom(impact,it)}
-                   color={BRAND.orange.primary}/>
-            ))}
-          </div>
-        </Section>
+        {renderSection('Company Profile (Firmographics & Classification)', BRAND.purple, firmoCols, firmo)}
+        {renderSection('General Employee Benefits', BRAND.teal, generalCols, general)}
+        {renderSection('Current Support for Employees Managing Cancer', BRAND.orange, currentCols, current)}
+        {renderSection('Cross-Dimensional Assessment', BRAND.purple, crossCols, cross)}
+        {renderSection('Employee Impact Assessment', BRAND.orange, impactCols, impact)}
 
         {/* 13 Dimensions */}
         <div className="flex items-baseline justify-between mb-2">
@@ -455,31 +366,17 @@ export default function CompanyProfile(){
         </div>
 
         {dims.map(({number, data})=>{
-          const dItems = itemsForDimension(number);
-          const [dL, dR] = splitEven(dItems);
-          return (
-            <Section key={number} title={`Dimension ${number}: ${DIM_NAME[number]}`} tone={BRAND.purple}
-                     badge={number===13 ? '5-point' : undefined}>
-              <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-                {dL.map(it=>(
-                  <Row key={it.id}
-                       label={descriptorFor(it)}
-                       selected={selectedFrom(data,it)}
-                       color={BRAND.purple.primary}/>
-                ))}
-              </div>
-              <div className="divide-y" style={{borderColor:BRAND.gray[200]}}>
-                {dR.map(it=>(
-                  <Row key={it.id}
-                       label={descriptorFor(it)}
-                       selected={selectedFrom(data,it)}
-                       color={BRAND.purple.primary}/>
-                ))}
-              </div>
-            </Section>
+          const cols = balanceBySelected(dimItems(number), data);
+          return renderSection(
+            `Dimension ${number}: ${DIM_TITLE[number]}`,
+            BRAND.purple,
+            cols,
+            data,
+            number===13 ? '5-point' : undefined
           );
         })}
 
+        {/* Footer */}
         <div className="mt-10 pt-6 border-t text-center text-xs"
              style={{borderColor:BRAND.gray[200], color:BRAND.gray[700]}}>
           Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers & CEW Foundation •
@@ -487,7 +384,7 @@ export default function CompanyProfile(){
         </div>
       </main>
 
-      {/* print */}
+      {/* Print */}
       <style jsx>{`
         @media print {
           @page { size: letter; margin: 0.5in; }
@@ -499,7 +396,7 @@ export default function CompanyProfile(){
   );
 }
 
-/* =============== stat tile =============== */
+/* ===== stat tile ===== */
 function Stat({ label, value }:{label:string; value:any}){
   return (
     <div className="bg-white border rounded-xl px-3 py-2" style={{borderColor:BRAND.gray[200]}}>
