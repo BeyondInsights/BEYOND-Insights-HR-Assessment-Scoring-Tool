@@ -208,16 +208,15 @@ export default function DashboardPage() {
       })
 
       // Check if everything is 100% complete
-const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
-                    dimProgress.every(p => p === 100) &&
-                    crossDimProg === 100 && empImpactProg === 100;
-
-// Only auto-redirect once, but allow manual access via button
-if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
-  localStorage.setItem('assessment_completion_shown', 'true');
-  router.push('/completion');
-}
-    }
+        const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
+                            dimProgress.every(p => p === 100) &&
+                            crossDimProg === 100 && empImpactProg === 100;
+        
+        // Only auto-redirect once, but allow manual access via button
+        if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
+          localStorage.setItem('assessment_completion_shown', 'true');
+          router.push('/completion');
+        }
     
     calculateProgress();
     
