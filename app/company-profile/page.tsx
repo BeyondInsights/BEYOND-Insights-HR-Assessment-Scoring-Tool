@@ -405,3 +405,4 @@ function Stat({ label, value }:{label:string; value:any}){
     </div>
   );
 }
+const Tile = Stat;
