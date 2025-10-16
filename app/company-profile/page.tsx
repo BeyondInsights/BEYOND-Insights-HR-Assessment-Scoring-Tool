@@ -1,309 +1,441 @@
-import { useEffect, useState } from 'react';
+'use client';
 
-const COLORS = {
-  purple: { primary: '#6B2C91', light: '#8B4DB3', bg: '#F5EDFF', border: '#D4B5E8' },
-  teal: { primary: '#00A896', light: '#33BDAD', bg: '#E6F9F7', border: '#99E6DD' },
-  orange: { primary: '#FF6B35', bg: '#FFF0EC', border: '#FFD4C4' },
-  gray: { dark: '#2D3748', medium: '#4A5568', light: '#CBD5E0', bg: '#F7FAFC' }
+import React, { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { INSTRUMENT_ITEMS, type InstrumentItem } from '@/data/instrument-items'; // <-- master map
+
+/* ===== Brand palette ===== */
+const BRAND = {
+  purple: '#6B2C91',
+  teal:   '#14B8A6',
+  orange: '#F97316',
+  gray900:'#0F172A',
+  gray700:'#334155',
+  gray600:'#475569',
+  gray300:'#CBD5E1',
+  gray200:'#E5E7EB',
+  gray100:'#F1F5F9',
+  bg:     '#F9FAFB',
 };
 
-const Icons = {
-  Building: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg>,
-  Download: () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 3v11m0 0l-4-4m4 4l4-4M3 17h14"/></svg>,
-  Print: () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h8v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h12a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h8v4H6z"/></svg>
+/* ===== Dimension Names (for section titles only) ===== */
+const DIM_NAME: Record<number,string> = {
+  1:'Medical Leave & Flexibility',
+  2:'Insurance & Financial Protection',
+  3:'Manager Preparedness & Capability',
+  4:'Navigation & Expert Resources',
+  5:'Workplace Accommodations',
+  6:'Culture & Psychological Safety',
+  7:'Career Continuity & Advancement',
+  8:'Work Continuation & Resumption',
+  9:'Executive Commitment & Resources',
+  10:'Caregiver & Family Support',
+  11:'Prevention, Wellness & Legal Compliance',
+  12:'Continuous Improvement & Outcomes',
+  13:'Communication & Awareness', // D13 = 5-pt incl. Unsure/NA
 };
 
-// Comprehensive question mapping from instrument-items-FIXED.ts
-const QUESTIONS = {
-  "D1.a2": "Enhance short-term disability (higher % of salary)",
-  "D1.a3": "Enhance long-term disability (higher % of salary)",
-  "D1.a27": "Paid medical leave beyond local / legal requirements",
-  "D1.a28": "Intermittent leave beyond local / legal requirements",
-  "D1.a29": "Flexible work hours during treatment",
-  "D1.a30": "Job protection beyond local / legal requirements",
-  "D1.a31": "Leave donation bank (employees can donate PTO to colleagues)",
-  "D1.a32": "Disability pay top-up (employer adds to disability insurance)",
-  "D1.a36": "Remote work options with full benefits",
-  
-  "D2.a7": "Coverage for advanced, off-label, or clinical trial treatments",
-  "D2.a10": "Health benefits continuation at employee rates during leave",
-  "D2.a13": "No annual or lifetime coverage maximums",
-  "D2.a14": "Out-of-network coverage for specialized care",
-  "D2.a15": "Health savings account (HSA) with employer contribution",
-  "D2.a16": "Medical expense reimbursement account",
-  "D2.a17": "Travel expense reimbursement for specialized care",
-  "D2.a18": "Lodging assistance for treatment away from home",
-  "D2.a19": "Transportation support for treatment appointments",
-  "D2.a20": "Fertility preservation before cancer treatment",
-  "D2.a21": "Mental health services with no session limits",
-  "D2.a22": "Prescription drug coverage with minimal cost-sharing",
-  "D2.a23": "Durable medical equipment coverage",
-  "D2.a24": "Home healthcare coverage",
-  "D2.a25": "Palliative care services",
-  "D2.a26": "Set out-of-pocket maximums (for in-network single coverage)",
-  "D2.a27": "Voluntary supplemental illness insurance (with employer contribution)",
-  "D2.a28": "Short-term disability covering 60%+ of salary",
-  "D2.a29": "Long-term disability covering 60%+ of salary",
-  "D2.a30": "Accelerated life insurance benefits (partial payout for terminal / critical illness)",
-  
-  "D3.a10": "Clear escalation protocol for manager response",
-  "D3.a11": "Senior leader coaching on supporting impacted employees",
-  "D3.a12": "Manager evaluations include how well they support impacted employees",
-  "D3.a13": "Manager peer support / community building",
-  "D3.a14": "Manager training on supporting employees with serious medical conditions",
-  
-  "D4.a5": "Benefits navigator (internal staff)",
-  "D4.a6": "Benefits navigator (external vendor)",
-  "D4.a7": "Case manager for complex medical situations",
-  "D4.a8": "Employee assistance program (EAP) counselors",
-  "D4.a9": "Dedicated HR staff for medical leave administration",
-  "D4.a10": "Legal counsel for ADA/disability accommodations",
-  "D4.a11": "Healthcare advocate service",
-  "D4.a12": "Second opinion medical consultation",
-  "D4.a13": "Clinical trial navigation",
-  "D4.a14": "Financial counseling for medical expenses",
-  "D4.a15": "Caregiver support services",
-  "D4.a16": "Peer support programs",
-  "D4.a17": "Cancer-specific resources (Cancer and Careers, etc.)",
-  "D4.a18": "Disease-specific resources",
-  
-  "D5.a5": "Ergonomic assessment and equipment",
-  "D5.a6": "Modified workspace or private workspace",
-  "D5.a7": "Parking accommodations",
-  "D5.a8": "Flexible location (work from different office)",
-  "D5.a9": "Assistive technology",
-  "D5.a10": "Modified duties or responsibilities",
-  "D5.a11": "Reduced schedule with benefits maintained",
-  "D5.a12": "Modified performance standards during treatment",
-  "D5.a13": "Protected time for medical appointments",
-  "D5.a14": "Temporary reassignment to less demanding role",
-  
-  "D6.a11": "Strong anti-discrimination policies specific to health conditions",
-  "D6.a12": "Clear process for confidential health disclosures",
-  "D6.a13": "Manager training on handling sensitive health information",
-  "D6.a14": "Written anti-retaliation policies for health disclosures",
-  "D6.a15": "Anonymous benefits navigation tool or website",
-  "D6.a17": "Confidential HR channel for health benefits questions",
-  
-  "D7.a4": "Return-to-work coordinator",
-  "D7.a5": "Gradual return-to-work program",
-  "D7.a6": "Modified duties during transition",
-  "D7.a7": "Check-ins during first 90 days back",
-  "D7.a8": "Career development planning post-leave",
-  "D7.a9": "Ongoing accommodation support",
-  "D7.a10": "Performance evaluation flexibility",
-  
-  "D8.a4": "Return-to-work support included in manager training",
-  "D8.a5": "Career pathing preserved during medical leave",
-  "D8.a6": "Promotion eligibility maintained during leave",
-  "D8.a7": "Development opportunities available during treatment",
-  "D8.a8": "Leadership explicitly addresses career continuity",
-  "D8.a9": "Success stories shared (with employee consent)",
-  
-  "D9.a5": "C-suite or board sponsor for health equity initiatives",
-  "D9.a6": "Dedicated budget for workplace support programs",
-  "D9.a7": "Health equity metrics in executive scorecards",
-  "D9.a8": "Regular leadership communications on support programs",
-  "D9.a9": "Executive participation in awareness campaigns",
-  
-  "D10.a5": "Paid caregiver leave",
-  "D10.a6": "Flexible scheduling for caregivers",
-  "D10.a7": "Caregiver support groups",
-  "D10.a8": "Caregiver counseling services",
-  "D10.a9": "Respite care assistance",
-  "D10.a10": "Backup care services",
-  "D10.a11": "Caregiver training programs",
-  
-  "D11.a3": "Cancer screening programs",
-  "D11.a4": "Preventive care incentives",
-  "D11.a5": "Wellness programs addressing cancer risk factors",
-  "D11.a6": "Tobacco cessation programs",
-  "D11.a7": "Healthy lifestyle programs",
-  "D11.a8": "ADA compliance training",
-  "D11.a9": "FMLA/leave law compliance",
-  "D11.a10": "HIPAA privacy compliance",
-  "D11.a11": "Regular compliance audits",
-  
-  "D12.a3": "Employee experience surveys",
-  "D12.a4": "Program utilization tracking",
-  "D12.a5": "Return-to-work success rates",
-  "D12.a6": "Retention rates for employees on medical leave",
-  "D12.a7": "Manager feedback on support programs",
-  "D12.a8": "Benchmarking against industry standards",
-  "D12.a9": "Regular program review and updates",
-  "D12.a10": "Pilot programs for new initiatives",
-  "D12.a11": "Cross-functional improvement teams",
-  "D12.a12": "External expert consultation",
-  "D12.a13": "Best practice research",
-  "D12.a14": "Employee advisory groups",
-  "D12.a15": "Quality improvement metrics",
-  "D12.a16": "Outcome measurement with certifications",
-  "D12.a17": "[ASK QD12.3 & QD12.4 IF QD12.A = OFFER FOR]",
-  
-  "D13.a2": "Manager training on health data privacy",
-  "D13.a3": "Cultural competency in health support programs",
-  "D13.a4": "Access audit logging for health information",
-  "D13.a5": "AI bias auditing for health-related decisions",
-  "D13.a8": "Employee consent controls for data sharing",
-  "D13.a10": "Anonymous feedback channels for privacy concerns",
-  "D13.a11": "Health data stored separately from general HR systems",
-  "D13.a13": "Equity tracking - ensuring equal access across employee groups"
+/* ===== Custom inline SVG (no emojis) ===== */
+const Bar = ({ className='', color=BRAND.purple }) => (
+  <svg className={className} viewBox="0 0 24 4" aria-hidden="true">
+    <rect width="24" height="4" rx="2" fill={color} />
+  </svg>
+);
+
+/* ===== Utilities ===== */
+const titleize = (s:string) =>
+  s.replace(/([A-Z])/g,' $1').replace(/_/g,' ').replace(/\s+/g,' ')
+   .trim().replace(/^./, m => m.toUpperCase());
+
+const looksScale = (v:string) =>
+  /(currently|offer|plan|eligible|not applicable|unsure|reactive)/i.test(v);
+
+/* firmographic items we never show */
+const hideKey = (k:string) => {
+  const l = k.toLowerCase();
+  return l === 's1' || l.includes('birth') || l.includes('age');
 };
 
-function ProfileSection({ title, color, children }) {
-  return (
-    <div className="border-2 rounded-xl p-6 mb-6" style={{backgroundColor: color.bg, borderColor: color.border}}>
-      <h3 className="text-xl font-bold mb-4" style={{color: COLORS.gray.dark}}>{title}</h3>
-      {children}
-    </div>
-  );
+/* ===== Label resolver: prefer instrument text; fallback to titleized key ===== */
+function labelForId(id: string): string {
+  const item = INSTRUMENT_ITEMS[id];
+  return item?.text?.trim() || titleize(id);
 }
 
-function QuestionItem({ qid, question, answer }) {
-  if (!answer || answer === '' || (Array.isArray(answer) && answer.length === 0)) return null;
-  
-  const displayAnswer = Array.isArray(answer) ? answer.join(', ') : answer;
-  
+/* For objects whose keys aren’t item IDs, fallback to titleized key */
+function labelForAnyKey(k: string): string {
+  return labelForId(k) !== titleize(k) ? labelForId(k) : titleize(k);
+}
+
+/* ===== Data sources: how localStorage is organized in your app ===== */
+const LS_KEYS = {
+  firmo: 'firmographics_data',
+  general: 'general-benefits_data',
+  current: 'current-support_data',
+  cross: 'cross-dimensional_data',
+  impact: 'employee-impact_data',
+  dim: (i:number) => `dimension${i}_data`,
+};
+
+/* ===== Section filters (from master map) ===== */
+function itemsBySectionPrefix(prefix: string) {
+  return Object.values(INSTRUMENT_ITEMS).filter(i => i.section?.toUpperCase().startsWith(prefix.toUpperCase()));
+}
+function itemsByRoute(route: string) {
+  return Object.values(INSTRUMENT_ITEMS).filter(i => i.route === route);
+}
+function itemsForDimension(n:number) {
+  return Object.values(INSTRUMENT_ITEMS).filter(i => i.section?.toUpperCase() === `D${n}`);
+}
+
+/* ===== Row (compact, 2-col) ===== */
+function Row({
+  label, value, accent=BRAND.purple,
+}: { label: string; value: any; accent?: string }) {
+  const display = value === undefined || value === null || value === '' ? '—'
+                 : Array.isArray(value) ? value.join(', ')
+                 : typeof value === 'object' ? null
+                 : String(value);
+
   return (
-    <div className="mb-4 pb-4 border-b" style={{borderColor: COLORS.gray.light}}>
-      <div className="flex gap-3">
-        <div className="font-mono text-sm font-bold px-2 py-1 rounded" style={{backgroundColor: COLORS.purple.bg, color: COLORS.purple.primary, minWidth: '80px'}}>
-          {qid}
-        </div>
-        <div className="flex-1">
-          <div className="text-sm mb-1" style={{color: COLORS.gray.medium}}>{question}</div>
-          <div className="font-semibold" style={{color: COLORS.gray.dark}}>{displayAnswer}</div>
-        </div>
+    <div className="grid grid-cols-12 gap-3 py-2">
+      <div className="col-span-5 md:col-span-4 lg:col-span-3 flex items-center">
+        <Bar className="w-6 h-1 mr-2" color={accent} />
+        <span className="text-[13px] font-semibold text-slate-700">{label}</span>
+      </div>
+      <div className="col-span-7 md:col-span-8 lg:col-span-9 text-[13px] text-slate-900">
+        {display !== null ? (
+          looksScale(display) ? (
+            <span className="px-2.5 py-0.5 rounded-full border text-[12px] bg-purple-50 text-purple-800 border-purple-200">
+              {display}
+            </span>
+          ) : (
+            <span>{display}</span>
+          )
+        ) : (
+          <div className="space-y-1">
+            {Object.entries(value as Record<string,any>).map(([kk,vv])=>(
+              <div key={kk} className="flex items-center justify-between gap-3 border-b last:border-b-0 border-slate-100 py-1">
+                <span className="text-[12px] text-slate-600">{kk}</span>
+                <span className="px-2 py-0.5 rounded-full border text-[12px] bg-purple-50 text-purple-800 border-purple-200">
+                  {String(vv)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
+/* ===== Section shell ===== */
+function Section({
+  title, children, accent=BRAND.purple, badge,
+}: { title:string; children:React.ReactNode; accent?:string; badge?:string }) {
+  return (
+    <section className="border rounded-xl bg-white">
+      <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: BRAND.gray200 }}>
+        <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+        {badge && (
+          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white"
+                style={{ borderColor: BRAND.gray300, color: BRAND.gray700 }}>
+            {badge}
+          </span>
+        )}
+      </div>
+      <div className="p-5">{children}</div>
+    </section>
+  );
+}
+
+/* ===== Main Page ===== */
 export default function CompanyProfile() {
-  const [profile, setProfile] = useState(null);
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
 
+  // raw section data as stored by app
+  const [firmo, setFirmo] = useState<Record<string, any>>({});
+  const [general, setGeneral] = useState<Record<string, any>>({});
+  const [current, setCurrent] = useState<Record<string, any>>({});
+  const [cross, setCross] = useState<Record<string, any>>({});
+  const [impact, setImpact] = useState<Record<string, any>>({});
+  const [dims, setDims] = useState<Array<{number:number; data:Record<string,any>}>>([]);
+  const [companyName, setCompanyName] = useState<string>('Your Organization');
+  const [accountEmail, setAccountEmail] = useState<string>('');
+  const [generatedAt, setGeneratedAt] = useState<string>('');
+
   useEffect(() => {
-    // Load all survey data
-    const allData = {};
-    
-    // Get all localStorage keys and load survey data
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.endsWith('_data')) {
-        const data = JSON.parse(localStorage.getItem(key) || '{}');
-        const section = key.replace('_data', '');
-        allData[section] = data;
-      }
+    const f = JSON.parse(localStorage.getItem(LS_KEYS.firmo) || '{}');
+    const g = JSON.parse(localStorage.getItem(LS_KEYS.general) || '{}');
+    const c = JSON.parse(localStorage.getItem(LS_KEYS.current) || '{}');
+    const x = JSON.parse(localStorage.getItem(LS_KEYS.cross) || '{}');
+    const e = JSON.parse(localStorage.getItem(LS_KEYS.impact) || '{}');
+
+    const d: Array<{number:number; data:Record<string,any>}> = [];
+    for (let i=1;i<=13;i++){
+      const raw = JSON.parse(localStorage.getItem(LS_KEYS.dim(i)) || '{}');
+      d.push({ number: i, data: raw || {} }); // include even if empty so all questions appear
     }
 
-    setProfile({
-      companyName: allData.firmographics?.companyName || 'Your Organization',
-      email: localStorage.getItem('auth_email') || '',
-      allData
-    });
+    setFirmo(f);
+    setGeneral(g);
+    setCurrent(c);
+    setCross(x);
+    setImpact(e);
+    setDims(d);
+
+    const email = localStorage.getItem('auth_email') || '';
+    setAccountEmail(email);
+    setCompanyName(f.companyName || f.s8 || 'Your Organization');
+    setGeneratedAt(new Date().toLocaleDateString());
     setLoading(false);
   }, []);
 
-  const handlePrint = () => window.print();
+  /* ===== Helpers to render EVERY question (answered or not) =====
+     We take the master INSTRUMENT_ITEMS and, per section, list all items in order.
+     For each item, we pull the answer from the matching data blob; if missing, show "—".
+  */
+  type SectionSpec = { title: string; accent: string; items: InstrumentItem[]; source: Record<string,any> };
 
-  const handleDownload = () => {
-    let report = `COMPLETE COMPANY PROFILE\n${profile.companyName}\nGenerated: ${new Date().toLocaleString()}\n\n${'='.repeat(100)}\n\n`;
-    
-    Object.entries(profile.allData).forEach(([section, data]) => {
-      report += `\n${section.toUpperCase()}\n${'-'.repeat(100)}\n`;
-      Object.entries(data).forEach(([key, value]) => {
-        report += `${key}: ${JSON.stringify(value)}\n`;
-      });
-    });
-    
-    const blob = new Blob([report], { type: 'text/plain' });
+  // Build Firmographics/Classification list
+  const firmoItems = useMemo(()=>{
+    const sItems = itemsBySectionPrefix('S');
+    const classItems = itemsBySectionPrefix('CLASS');
+    return [...sItems, ...classItems];
+  },[]);
+
+  const generalItems = useMemo(()=> itemsByRoute('/survey/general-benefits'), []);
+  const currentItems = useMemo(()=> {
+    // Accept both CS.* and OR* → route is /survey/current-support
+    const cs = itemsByRoute('/survey/current-support');
+    return cs;
+  },[]);
+  const crossItems = useMemo(()=> itemsByRoute('/survey/cross-dimensional-assessment'),[]);
+  const impactItems = useMemo(()=> itemsByRoute('/survey/employee-impact-assessment'),[]);
+
+  // Resolve value for an item id from a data blob; fallback to key search if needed.
+  function valueFrom(source: Record<string,any>, item: InstrumentItem): any {
+    // primary: keyed by id
+    if (item.id in source) return source[item.id];
+    // fallback: try a direct key (some pages store shorter keys)
+    if (item.section in source) return source[item.section];
+    // try a loose match on label text
+    const text = (item.text || '').toLowerCase();
+    const hit = Object.entries(source).find(([k]) => k.toLowerCase() === text || k.toLowerCase() === item.id.toLowerCase());
+    if (hit) return hit[1];
+    return undefined;
+  }
+
+  // Rows for a whole section (EVERY question appears, answered or not)
+  function renderRows(items: InstrumentItem[], source: Record<string,any>, accent: string) {
+    return (
+      <div className="divide-y divide-slate-100">
+        {items.map((it) => (
+          <Row key={it.id} label={it.text || it.id} value={valueFrom(source, it)} accent={accent} />
+        ))}
+      </div>
+    );
+  }
+
+  // HR POC (from firmographics; exclude age/birth)
+  const hrPOC = useMemo(() => {
+    const name = [firmo?.contactFirst, firmo?.contactLast].filter(Boolean).join(' ')
+      || firmo?.contactName || firmo?.hr_name || '';
+    const title = firmo?.contactTitle || firmo?.hr_title || firmo?.title || '';
+    const department = firmo?.s3 || firmo?.department || '';
+    const email = firmo?.contactEmail || firmo?.hr_email || accountEmail || '';
+    const phone = firmo?.contactPhone || firmo?.hr_phone || firmo?.phone || '';
+    const location = firmo?.hq || firmo?.s9 || '';
+    return { name, title, department, email, phone, location };
+  }, [firmo, accountEmail]);
+
+  const printPDF = () => window.print();
+
+  const downloadJSON = () => {
+    const bundle = {
+      meta: { companyName, accountEmail, generatedAt },
+      firmographics: firmo, general, current, cross, impact, dimensions: dims,
+    };
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type:'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${profile.companyName.replace(/\s+/g, '_')}_COMPLETE_PROFILE.txt`;
-    a.click();
+    const a = Object.assign(document.createElement('a'), {
+      href: url, download: `${companyName.replace(/\s+/g,'_')}_Company_Profile.json`,
+    });
+    a.click(); URL.revokeObjectURL(url);
+  };
+
+  const downloadTXT = () => {
+    let out = `COMPANY PROFILE — ${companyName}\nGenerated: ${new Date().toLocaleString()}\n\n`;
+    const pushRows = (title:string, items:InstrumentItem[], source:Record<string,any>)=>{
+      out += `${title}\n`;
+      items.forEach(it=>{
+        const v = valueFrom(source, it);
+        const disp = v === undefined || v === null || v === '' ? '—'
+                    : Array.isArray(v) ? v.join(', ')
+                    : typeof v === 'object' ? JSON.stringify(v) : String(v);
+        out += `  • ${it.text}: ${disp}\n`;
+      });
+      out += '\n';
+    };
+    pushRows('Company Profile (Firmographics & Classification)', firmoItems, firmo);
+    pushRows('General Benefits', generalItems, general);
+    pushRows('Current Support', currentItems, current);
+    pushRows('Cross-Dimensional Assessment', crossItems, cross);
+    pushRows('Employee Impact Assessment', impactItems, impact);
+    dims.forEach(({number, data})=>{
+      const dItems = itemsForDimension(number);
+      out += `Dimension ${number}: ${DIM_NAME[number]}\n`;
+      dItems.forEach(it=>{
+        const v = valueFrom(data, it);
+        const disp = v === undefined || v === null || v === '' ? '—'
+                    : Array.isArray(v) ? v.join(', ')
+                    : typeof v === 'object' ? JSON.stringify(v) : String(v);
+        out += `  • ${it.text}: ${disp}\n`;
+      });
+      out += '\n';
+    });
+    const blob = new Blob([out], { type:'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), {
+      href: url, download: `${companyName.replace(/\s+/g,'_')}_Company_Profile.txt`,
+    });
+    a.click(); URL.revokeObjectURL(url);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: COLORS.gray.bg}}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{borderColor: COLORS.purple.primary}}></div>
-          <p className="mt-4" style={{color: COLORS.gray.medium}}>Loading complete profile...</p>
-        </div>
+      <div className="min-h-screen grid place-items-center" style={{ background: BRAND.bg }}>
+        <div className="text-slate-600 text-sm">Loading…</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: COLORS.gray.bg}}>
-      <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div style={{color: COLORS.purple.primary}}><Icons.Building /></div>
-            <h1 className="text-2xl font-bold" style={{color: COLORS.gray.dark}}>Complete Company Profile - Every Question</h1>
+    <div className="min-h-screen" style={{ background: BRAND.bg }}>
+      {/* Header w/ your logos */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-6 py-5">
+          <div className="flex items-center justify-between">
+            <div className="w-28" />
+            <div className="flex-1 flex justify-center">
+              <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-14 sm:h-20 lg:h-24 w-auto drop-shadow-md" />
+            </div>
+            <div className="flex justify-end">
+              <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-10 sm:h-14 lg:h-16 w-auto" />
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-white border-2 rounded-lg hover:shadow-md" style={{borderColor: COLORS.gray.light, color: COLORS.gray.dark}}>
-              <Icons.Print /> Print
-            </button>
-            <button onClick={handleDownload} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:shadow-lg" style={{backgroundColor: COLORS.purple.primary}}>
-              <Icons.Download /> Download
-            </button>
+
+          <div className="mt-4 text-center">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: BRAND.purple }}>
+              {companyName}
+            </h1>
+            <p className="text-sm text-slate-600">Company Profile & Survey Summary</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Generated: {generatedAt}{accountEmail ? ` • ${accountEmail}` : ''}
+            </p>
+          </div>
+
+          <div className="mt-4 flex items-center justify-center gap-3 print:hidden">
+            <button onClick={()=>router.push('/dashboard')} className="px-3 py-1.5 text-sm border rounded hover:bg-slate-50 text-slate-800">Back to Dashboard</button>
+            <button onClick={printPDF} className="px-3 py-1.5 text-sm border rounded hover:bg-slate-50 text-slate-800">Download PDF</button>
+            <button onClick={downloadTXT} className="px-3 py-1.5 text-sm border rounded hover:bg-slate-50 text-slate-800">Download .TXT</button>
+            <button onClick={downloadJSON} className="px-3 py-1.5 text-sm border rounded hover:bg-slate-50 text-slate-800">Download .JSON</button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="rounded-xl shadow-lg p-8 mb-8 text-white" style={{background: `linear-gradient(135deg, ${COLORS.purple.primary} 0%, ${COLORS.purple.light} 100%)`}}>
-          <h2 className="text-3xl font-bold mb-2">{profile.companyName}</h2>
-          <p className="text-purple-100 text-lg">Best Companies for Working with Cancer - Complete Assessment</p>
-          {profile.email && <p className="text-purple-100 text-sm mt-2">Contact: {profile.email}</p>}
-          <p className="text-purple-100 text-sm mt-1">Generated: {new Date().toLocaleString()}</p>
+      {/* Top stats + HRPOC */}
+      <section className="max-w-7xl mx-auto px-6 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <Stat label="Headquarters" value={firmo?.s9 || firmo?.hq || '—'} />
+            <Stat label="Industry" value={firmo?.c2 || '—'} />
+            <Stat label="Employee Size" value={firmo?.s8 || '—'} />
+            <Stat label="Global Footprint" value={firmo?.s9a || '—'} />
+          </div>
+          <div className="border rounded-xl bg-white p-4">
+            <div className="text-xs font-semibold text-slate-600 mb-2">HR Point of Contact</div>
+            <div className="space-y-1">
+              <div className="text-sm font-semibold text-slate-900">{([firmo?.contactFirst, firmo?.contactLast].filter(Boolean).join(' ') || firmo?.contactName || firmo?.hr_name || '—')}</div>
+              <div className="text-sm text-slate-800">{firmo?.contactTitle || firmo?.hr_title || firmo?.title || '—'}</div>
+              <div className="text-sm text-slate-800">{firmo?.s3 || firmo?.department || '—'}</div>
+              <div className="text-sm text-slate-800">{firmo?.contactEmail || firmo?.hr_email || accountEmail || '—'}</div>
+              <div className="text-sm text-slate-800">{firmo?.contactPhone || firmo?.hr_phone || firmo?.phone || '—'}</div>
+              <div className="text-sm text-slate-800">{firmo?.hq || firmo?.s9 || '—'}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Two-column: Firmo/Classification + General/Current/Cross/Impact */}
+      <main className="max-w-7xl mx-auto px-6 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Section title="Company Profile (Firmographics & Classification)" accent={BRAND.purple}>
+            {renderRows(firmoItems, firmo, BRAND.purple)}
+          </Section>
+
+          <Section title="General Benefits" accent={BRAND.teal}>
+            {renderRows(generalItems, general, BRAND.teal)}
+          </Section>
+
+          <Section title="Current Support" accent={BRAND.orange}>
+            {renderRows(currentItems, current, BRAND.orange)}
+          </Section>
+
+          <Section title="Cross-Dimensional Assessment" accent={BRAND.teal}>
+            {renderRows(crossItems, cross, BRAND.teal)}
+          </Section>
+
+          <Section title="Employee Impact Assessment" accent={BRAND.orange}>
+            {renderRows(impactItems, impact, BRAND.orange)}
+          </Section>
         </div>
 
-        {Object.entries(profile.allData).map(([sectionKey, sectionData]) => {
-          if (!sectionData || Object.keys(sectionData).length === 0) return null;
-          
-          return (
-            <ProfileSection key={sectionKey} title={sectionKey.toUpperCase().replace(/-/g, ' ')} color={COLORS.purple}>
-              <div className="space-y-2">
-                {Object.entries(sectionData).map(([questionKey, answer]) => {
-                  // Check if we have a mapped question
-                  const mappedQuestion = QUESTIONS[questionKey];
-                  if (mappedQuestion) {
-                    return <QuestionItem key={questionKey} qid={questionKey} question={mappedQuestion} answer={answer} />;
-                  }
-                  
-                  // Show all data regardless
-                  if (!answer || answer === '' || (Array.isArray(answer) && answer.length === 0)) return null;
-                  
-                  const displayAnswer = Array.isArray(answer) ? answer.join(', ') : String(answer);
-                  
-                  return (
-                    <div key={questionKey} className="mb-4 pb-4 border-b" style={{borderColor: COLORS.gray.light}}>
-                      <div className="flex gap-3">
-                        <div className="font-mono text-sm font-bold px-2 py-1 rounded" style={{backgroundColor: COLORS.teal.bg, color: COLORS.teal.primary, minWidth: '120px'}}>
-                          {questionKey}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-semibold" style={{color: COLORS.gray.dark}}>{displayAnswer}</div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </ProfileSection>
-          );
-        })}
+        {/* Dimensions */}
+        <section className="mt-8">
+          <div className="flex items-baseline justify-between mb-2">
+            <h2 className="text-base font-bold text-slate-900">13 Dimensions of Support</h2>
+            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white"
+                  style={{ borderColor: BRAND.gray300, color: BRAND.gray700 }}>
+              D13 uses 5-point scale (includes Unsure/NA)
+            </span>
+          </div>
 
-        <div className="mt-8 text-center text-sm" style={{color: COLORS.gray.medium}}>
-          <p>Complete Survey Data - Every Question & Answer</p>
-          <p className="mt-1">© {new Date().getFullYear()} Cancer and Careers & CEW Foundation</p>
-        </div>
-      </div>
+          <div className="space-y-5">
+            {dims.map(({number, data}) => (
+              <Section key={number} title={`Dimension ${number}: ${DIM_NAME[number] || ''}`} accent={BRAND.purple}>
+                {renderRows(itemsForDimension(number), data, BRAND.purple)}
+              </Section>
+            ))}
+          </div>
+        </section>
+
+        <footer className="text-center text-xs text-slate-600 mt-10 pb-10 border-t pt-4">
+          Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers & CEW Foundation •
+          All responses collected and analyzed by BEYOND Insights, LLC
+        </footer>
+      </main>
+
+      {/* Print */}
+      <style jsx>{`
+        @media print {
+          @page { size: letter; margin: 0.5in; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .print\\:hidden { display: none !important; }
+          section { break-inside: avoid; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ===== Stat tile ===== */
+function Stat({ label, value }: { label: string; value: any }) {
+  return (
+    <div className="bg-white border rounded-xl px-3 py-2">
+      <div className="text-[11px] text-slate-500">{label}</div>
+      <div className="text-sm font-semibold text-slate-900">{(value ?? '—') || '—'}</div>
     </div>
   );
 }
