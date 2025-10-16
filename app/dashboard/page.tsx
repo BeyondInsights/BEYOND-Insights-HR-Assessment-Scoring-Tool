@@ -42,9 +42,16 @@ export default function DashboardPage() {
     };
     window.addEventListener("focus", handleFocus);
     
-    const calculateProgress = () => {
+  const calculateProgress = () => {
   const savedEmail = localStorage.getItem('auth_email') || ''
   setEmail(savedEmail)
+  
+  // Check payment status and method - ADD THIS BLOCK
+  const paymentStatus = localStorage.getItem('payment_completed')
+  const paymentMethod = localStorage.getItem('payment_method')
+  
+  // Allow access if ANY payment method was selected
+  setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card')
   
   const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
   if (firmo?.companyName) setCompanyName(firmo.companyName)
