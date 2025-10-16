@@ -20,9 +20,19 @@ export default function CompanyProfile() {
     const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}');
     const current = JSON.parse(localStorage.getItem('current-support_data') || '{}');
 
+    // Get from authorization page storage
+    const companyName = localStorage.getItem('login_company_name') || firmo.companyName || 'Organization';
+    const email = localStorage.getItem('login_email') || '';
+    const firstName = localStorage.getItem('login_first_name') || '';
+    const lastName = localStorage.getItem('login_last_name') || '';
+    const title = localStorage.getItem('login_title') || '';
+
     setData({
-      companyName: firmo.companyName || firmo.s8 || 'Organization',
-      email: localStorage.getItem('auth_email') || '',
+      companyName,
+      email,
+      firstName,
+      lastName,
+      title,
       generatedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
       firmographics: firmo,
       general,
@@ -50,13 +60,14 @@ export default function CompanyProfile() {
     return String(arr);
   };
 
-  // POC data
+  // POC data - pulled from authorization page
   const poc = {
-    name: [firmo?.contactFirst, firmo?.contactLast].filter(Boolean).join(' ') || firmo?.contactName || firmo?.s2 || null,
-    email: firmo?.contactEmail || data.email || null,
+    name: `${data.firstName} ${data.lastName}`.trim() || null,
+    email: data.email || null,
     department: firmo?.s3 || null,
-    jobFunction: firmo?.s4a || firmo?.s4b || null,
-    title: firmo?.s5 || null,
+    jobFunction: firmo?.s4a || null,
+    title: data.title || firmo?.s5 || null,
+    responsibilities: formatArray(firmo?.s6),
     influence: firmo?.s7 || null,
   };
 
@@ -70,12 +81,13 @@ export default function CompanyProfile() {
     countries: firmo?.s9a || null,
   };
 
-  // General benefits data
+  // General benefits data - SHOW ALL THE FUCKING DETAILS
   const benefits = {
     nationalHealthcare: firmo?.c5 || null,
     eligibility: firmo?.c3 || null,
-    standardBenefits: formatArray(gen?.cb1_standard),
-    leaveFlex: formatArray(gen?.cb1_leave),
+    // Show each category separately with ALL items
+    standard: formatArray(gen?.cb1_standard),
+    leave: formatArray(gen?.cb1_leave),
     wellness: formatArray(gen?.cb1_wellness),
     financial: formatArray(gen?.cb1_financial),
     navigation: formatArray(gen?.cb1_navigation),
@@ -94,14 +106,15 @@ export default function CompanyProfile() {
   };
 
   const Field = ({ label, value }: {label:string; value:any}) => {
-    if (!value || value === 'null') return null;
+    // ALWAYS SHOW THE FIELD - use — for empty
+    const displayValue = value || '—';
     return (
       <div className="flex py-1.5 border-b last:border-0" style={{borderColor:BRAND.gray[200]}}>
         <div className="w-2/5 pr-3">
           <span className="text-xs font-medium" style={{color:BRAND.gray[600]}}>{label}:</span>
         </div>
         <div className="w-3/5">
-          <span className="text-xs" style={{color:BRAND.gray[900]}}>{value}</span>
+          <span className="text-xs" style={{color:BRAND.gray[900]}}>{displayValue}</span>
         </div>
       </div>
     );
@@ -183,6 +196,7 @@ export default function CompanyProfile() {
               <Field label="Department" value={poc.department} />
               <Field label="Primary Job Function" value={poc.jobFunction} />
               <Field label="Title / Level" value={poc.title} />
+              <Field label="Responsibility / Influence" value={poc.responsibilities} />
               <Field label="Level of influence re: workplace support" value={poc.influence} />
             </div>
           </div>
@@ -199,24 +213,17 @@ export default function CompanyProfile() {
             <div className="space-y-0">
               <Field label="% of Emp w/ access to national healthcare" value={benefits.nationalHealthcare} />
               <Field label="% of Emp eligible for Standard Benefits" value={benefits.eligibility} />
-              {benefits.standardBenefits && (
-                <Field label="Standard Benefits offered" value={benefits.standardBenefits} />
-              )}
-              {benefits.leaveFlex && (
-                <Field label="Leave & flexibility programs" value={benefits.leaveFlex} />
-              )}
-              {benefits.wellness && (
-                <Field label="Wellness & support programs" value={benefits.wellness} />
-              )}
-              {benefits.financial && (
-                <Field label="Financial & legal assistance programs" value={benefits.financial} />
-              )}
-              {benefits.navigation && (
-                <Field label="Care navigation & support services" value={benefits.navigation} />
-              )}
-              {benefits.planned && (
-                <Field label="Programs plan to rollout over N2Y" value={benefits.planned} />
-              )}
+              
+              <div className="py-1.5 border-b" style={{borderColor:BRAND.gray[200]}}>
+                <div className="text-xs font-bold mb-1" style={{color:BRAND.gray[900]}}>Types of Benefits offered:</div>
+              </div>
+              <Field label="Standard Benefits offered" value={benefits.standard || '—'} />
+              <Field label="Leave & flexibility programs" value={benefits.leave || '—'} />
+              <Field label="Wellness & support programs" value={benefits.wellness || '—'} />
+              <Field label="Financial & legal assistance programs" value={benefits.financial || '—'} />
+              <Field label="Care navigation & support services" value={benefits.navigation || '—'} />
+              
+              <Field label="Programs plan to rollout over N2Y" value={benefits.planned} />
               <Field label="Approach to remote / hybrid work" value={benefits.remote} />
             </div>
           </div>
@@ -227,20 +234,12 @@ export default function CompanyProfile() {
               Current Support for EMCs
             </h2>
             <div className="space-y-0">
-              <Field label="Status of Support Offerings" value={support.status} />
-              <Field label="Current approach to supporting EMCs" value={support.approach} />
-              {support.excluded && (
-                <Field label="Emp Grps excluded from workplace support benefits" value={support.excluded} />
-              )}
-              {support.triggers && (
-                <Field label="Triggers for developing programs" value={support.triggers} />
-              )}
-              {support.caregiver && (
-                <Field label="Primary caregiver support programs offered" value={support.caregiver} />
-              )}
-              {support.monitoring && (
-                <Field label="How monitor effectiveness" value={support.monitoring} />
-              )}
+              <Field label="Status of Support Offerings" value={support.status || '—'} />
+              <Field label="Current approach to supporting EMCs" value={support.approach || '—'} />
+              <Field label="Emp Grps excluded from workplace support benefits" value={support.excluded || '—'} />
+              <Field label="Triggers for developing programs" value={support.triggers || '—'} />
+              <Field label="Primary caregiver support programs offered" value={support.caregiver || '—'} />
+              <Field label="How monitor effectiveness of workplace support program" value={support.monitoring || '—'} />
             </div>
           </div>
         </div>
