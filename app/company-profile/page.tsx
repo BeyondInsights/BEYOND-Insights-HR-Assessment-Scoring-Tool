@@ -2,11 +2,16 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { INSTRUMENT_ITEMS, type InstrumentItem } from '../../data/instrument-items';
+import {
+  INSTRUMENT_ITEMS,
+  type InstrumentItem,
+  getItemsByRoute,
+} from '../../data/instrument-items';
 
-/* ===== Brand palette ===== */
+/* ===================== CAC Palette ===================== */
 const BRAND = {
   purple: '#6B2C91',
+  purpleDark: '#4F1F6A',
   teal:   '#14B8A6',
   orange: '#F97316',
   gray900:'#0F172A',
@@ -18,8 +23,8 @@ const BRAND = {
   bg:     '#F9FAFB',
 };
 
-/* ===== Dimension Names (for section titles only) ===== */
-const DIM_NAME: Record<number,string> = {
+/* =============== Dimension Names (section titles) =============== */
+const DIM_NAME: Record<number, string> = {
   1:'Medical Leave & Flexibility',
   2:'Insurance & Financial Protection',
   3:'Manager Preparedness & Capability',
@@ -35,19 +40,19 @@ const DIM_NAME: Record<number,string> = {
   13:'Communication & Awareness', // D13 = 5-pt incl. Unsure/NA
 };
 
-/* ===== Custom inline SVG (no emojis) ===== */
+/* ===================== Custom SVG (no emojis) ===================== */
 const Bar = ({ className='', color=BRAND.purple }) => (
   <svg className={className} viewBox="0 0 24 4" aria-hidden="true">
     <rect width="24" height="4" rx="2" fill={color} />
   </svg>
 );
 
-/* ===== Utilities ===== */
-const titleize = (s:string) =>
+/* ===================== Utilities ===================== */
+const titleize = (s: string) =>
   s.replace(/([A-Z])/g,' $1').replace(/_/g,' ').replace(/\s+/g,' ')
    .trim().replace(/^./, m => m.toUpperCase());
 
-const looksScale = (v:string) =>
+const looksScale = (v: string) =>
   /(currently|offer|plan|eligible|not applicable|unsure|reactive)/i.test(v);
 
 /* firmographic items we never show */
@@ -56,72 +61,65 @@ const hideKey = (k:string) => {
   return l === 's1' || l.includes('birth') || l.includes('age');
 };
 
-/* ===== Label resolver: prefer instrument text; fallback to titleized key ===== */
-function labelForId(id: string): string {
-  const item = INSTRUMENT_ITEMS[id];
-  return item?.text?.trim() || titleize(id);
+/* Split items evenly for two-column layout */
+function splitEven<T>(arr: T[]) {
+  const mid = Math.ceil(arr.length / 2);
+  return [arr.slice(0, mid), arr.slice(mid)];
 }
 
-/* For objects whose keys aren’t item IDs, fallback to titleized key */
-function labelForAnyKey(k: string): string {
-  return labelForId(k) !== titleize(k) ? labelForId(k) : titleize(k);
+/* =============== Pull items by logical sections =============== */
+function itemsFirmoAndClass(): InstrumentItem[] {
+  const out: InstrumentItem[] = [];
+  Object.values(INSTRUMENT_ITEMS).forEach(it => {
+    const s = (it.section || '').toUpperCase();
+    if (s.startsWith('S') || s.startsWith('CLASS')) out.push(it);
+  });
+  // stable sort by section+id
+  return out.sort((a,b)=> (a.section+a.id).localeCompare(b.section+b.id));
+}
+function itemsForDimension(n:number): InstrumentItem[] {
+  return Object.values(INSTRUMENT_ITEMS)
+    .filter(i => (i.section || '').toUpperCase() === `D${n}`)
+    .sort((a,b)=> (a.id).localeCompare(b.id));
 }
 
-/* ===== Data sources: how localStorage is organized in your app ===== */
-const LS_KEYS = {
-  firmo: 'firmographics_data',
-  general: 'general-benefits_data',
-  current: 'current-support_data',
-  cross: 'cross-dimensional_data',
-  impact: 'employee-impact_data',
-  dim: (i:number) => `dimension${i}_data`,
-};
-
-/* ===== Section filters (from master map) ===== */
-function itemsBySectionPrefix(prefix: string) {
-  return Object.values(INSTRUMENT_ITEMS).filter(i => i.section?.toUpperCase().startsWith(prefix.toUpperCase()));
-}
-function itemsByRoute(route: string) {
-  return Object.values(INSTRUMENT_ITEMS).filter(i => i.route === route);
-}
-function itemsForDimension(n:number) {
-  return Object.values(INSTRUMENT_ITEMS).filter(i => i.section?.toUpperCase() === `D${n}`);
-}
-
-/* ===== Row (compact, 2-col) ===== */
+/* ===================== Compact Row ===================== */
 function Row({
   label, value, accent=BRAND.purple,
 }: { label: string; value: any; accent?: string }) {
-  const display = value === undefined || value === null || value === '' ? '—'
-                 : Array.isArray(value) ? value.join(', ')
-                 : typeof value === 'object' ? null
-                 : String(value);
+  const display =
+    value === undefined || value === null || value === '' ? '—'
+    : Array.isArray(value) ? value.join(', ')
+    : typeof value === 'object' ? null
+    : String(value);
 
   return (
-    <div className="grid grid-cols-12 gap-3 py-2">
-      <div className="col-span-5 md:col-span-4 lg:col-span-3 flex items-center">
-        <Bar className="w-6 h-1 mr-2" color={accent} />
-        <span className="text-[13px] font-semibold text-slate-700">{label}</span>
+    <div className="grid grid-cols-12 items-start gap-3 py-1.5">
+      <div className="col-span-5 md:col-span-4 lg:col-span-5 flex items-center min-w-0">
+        <Bar className="w-5 h-1 mr-2 shrink-0" color={accent} />
+        <span className="text-[13px] font-semibold text-slate-700 truncate">{label}</span>
       </div>
-      <div className="col-span-7 md:col-span-8 lg:col-span-9 text-[13px] text-slate-900">
+      <div className="col-span-7 md:col-span-8 lg:col-span-7 text-[13px] text-slate-900 min-w-0">
         {display !== null ? (
           looksScale(display) ? (
-            <span className="px-2.5 py-0.5 rounded-full border text-[12px] bg-purple-50 text-purple-800 border-purple-200">
+            <span className="px-2.5 py-0.5 rounded-full border text-[12px] bg-purple-50 text-purple-800 border-purple-200 break-words">
               {display}
             </span>
           ) : (
-            <span>{display}</span>
+            <span className="break-words">{display}</span>
           )
         ) : (
           <div className="space-y-1">
-            {Object.entries(value as Record<string,any>).map(([kk,vv])=>(
-              <div key={kk} className="flex items-center justify-between gap-3 border-b last:border-b-0 border-slate-100 py-1">
-                <span className="text-[12px] text-slate-600">{kk}</span>
-                <span className="px-2 py-0.5 rounded-full border text-[12px] bg-purple-50 text-purple-800 border-purple-200">
-                  {String(vv)}
-                </span>
-              </div>
-            ))}
+            {Object.entries(value as Record<string, any>).map(([k, vv]) =>
+              vv ? (
+                <div key={k} className="flex items-center justify-between gap-3">
+                  <span className="text-[12px] text-slate-600 truncate">{k}</span>
+                  <span className="px-2 py-0.5 rounded-full border text-[12px] bg-purple-50 text-purple-800 border-purple-200">
+                    {String(vv)}
+                  </span>
+                </div>
+              ) : null
+            )}
           </div>
         )}
       </div>
@@ -129,27 +127,31 @@ function Row({
   );
 }
 
-/* ===== Section shell ===== */
+/* ===================== Section Shell ===================== */
 function Section({
-  title, children, accent=BRAND.purple, badge,
-}: { title:string; children:React.ReactNode; accent?:string; badge?:string }) {
+  title, children, badge,
+}: { title: string; children: React.ReactNode; badge?: string }) {
   return (
-    <section className="border rounded-xl bg-white">
-      <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: BRAND.gray200 }}>
+    <section className="rounded-xl border bg-white">
+      <div className="flex items-center justify-between px-5 py-3 border-b">
         <h3 className="text-sm font-bold text-slate-900">{title}</h3>
         {badge && (
-          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white"
-                style={{ borderColor: BRAND.gray300, color: BRAND.gray700 }}>
+          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white text-slate-700">
             {badge}
           </span>
         )}
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-5">
+        {/* two-column on lg, one-column on mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
+          {children}
+        </div>
+      </div>
     </section>
   );
 }
 
-/* ===== Main Page ===== */
+/* ===================== Page ===================== */
 export default function CompanyProfile() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -165,25 +167,22 @@ export default function CompanyProfile() {
   const [accountEmail, setAccountEmail] = useState<string>('');
   const [generatedAt, setGeneratedAt] = useState<string>('');
 
+  /* Load everything */
   useEffect(() => {
-    const f = JSON.parse(localStorage.getItem(LS_KEYS.firmo) || '{}');
-    const g = JSON.parse(localStorage.getItem(LS_KEYS.general) || '{}');
-    const c = JSON.parse(localStorage.getItem(LS_KEYS.current) || '{}');
-    const x = JSON.parse(localStorage.getItem(LS_KEYS.cross) || '{}');
-    const e = JSON.parse(localStorage.getItem(LS_KEYS.impact) || '{}');
+    const f = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
+    const g = JSON.parse(localStorage.getItem('general-benefits_data') || '{}');
+    const c = JSON.parse(localStorage.getItem('current-support_data') || '{}');
+    const x = JSON.parse(localStorage.getItem('cross-dimensional_data') || '{}');
+    const e = JSON.parse(localStorage.getItem('employee-impact_data') || '{}');
 
     const d: Array<{number:number; data:Record<string,any>}> = [];
     for (let i=1;i<=13;i++){
-      const raw = JSON.parse(localStorage.getItem(LS_KEYS.dim(i)) || '{}');
-      d.push({ number: i, data: raw || {} }); // include even if empty so all questions appear
+      const raw = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
+      // include all dims so ALL questions appear, even if unanswered
+      d.push({ number:i, data: raw || {} });
     }
 
-    setFirmo(f);
-    setGeneral(g);
-    setCurrent(c);
-    setCross(x);
-    setImpact(e);
-    setDims(d);
+    setFirmo(f); setGeneral(g); setCurrent(c); setCross(x); setImpact(e); setDims(d);
 
     const email = localStorage.getItem('auth_email') || '';
     setAccountEmail(email);
@@ -192,53 +191,55 @@ export default function CompanyProfile() {
     setLoading(false);
   }, []);
 
-  /* ===== Helpers to render EVERY question (answered or not) =====
-     We take the master INSTRUMENT_ITEMS and, per section, list all items in order.
-     For each item, we pull the answer from the matching data blob; if missing, show "—".
-  */
-  type SectionSpec = { title: string; accent: string; items: InstrumentItem[]; source: Record<string,any> };
+  /* ---------- Master label lookup: always use instrument text ---------- */
+  function labelForItem(it: InstrumentItem) {
+    return it?.text?.trim() || titleize(it?.id || '');
+  }
 
-  // Build Firmographics/Classification list
-  const firmoItems = useMemo(()=>{
-    const sItems = itemsBySectionPrefix('S');
-    const classItems = itemsBySectionPrefix('CLASS');
-    return [...sItems, ...classItems];
-  },[]);
-
-  const generalItems = useMemo(()=> itemsByRoute('/survey/general-benefits'), []);
-  const currentItems = useMemo(()=> {
-    // Accept both CS.* and OR* → route is /survey/current-support
-    const cs = itemsByRoute('/survey/current-support');
-    return cs;
-  },[]);
-  const crossItems = useMemo(()=> itemsByRoute('/survey/cross-dimensional-assessment'),[]);
-  const impactItems = useMemo(()=> itemsByRoute('/survey/employee-impact-assessment'),[]);
-
-  // Resolve value for an item id from a data blob; fallback to key search if needed.
-  function valueFrom(source: Record<string,any>, item: InstrumentItem): any {
-    // primary: keyed by id
+  /* Resolve a value for an item from a given source object */
+  function valueFrom(source: Record<string, any>, item: InstrumentItem): any {
+    // try by id
     if (item.id in source) return source[item.id];
-    // fallback: try a direct key (some pages store shorter keys)
-    if (item.section in source) return source[item.section];
-    // try a loose match on label text
-    const text = (item.text || '').toLowerCase();
-    const hit = Object.entries(source).find(([k]) => k.toLowerCase() === text || k.toLowerCase() === item.id.toLowerCase());
-    if (hit) return hit[1];
-    return undefined;
+    // try exact text key
+    const t = (item.text || '').toLowerCase();
+    const byText = Object.entries(source).find(([k]) => k.toLowerCase() === t);
+    if (byText) return byText[1];
+    // try simple id fallback (some pages store short ids)
+    const alt = Object.entries(source).find(([k]) => k.toLowerCase() === item.id.toLowerCase());
+    if (alt) return alt[1];
+    // not found
+    return '';
   }
 
-  // Rows for a whole section (EVERY question appears, answered or not)
-  function renderRows(items: InstrumentItem[], source: Record<string,any>, accent: string) {
-    return (
-      <div className="divide-y divide-slate-100">
-        {items.map((it) => (
-          <Row key={it.id} label={it.text || it.id} value={valueFrom(source, it)} accent={accent} />
-        ))}
-      </div>
-    );
-  }
+  /* ---------- Build item lists from master map (EVERY question) ---------- */
+  const firmoItems = useMemo(() => itemsFirmoAndClass()
+    .filter(it => !hideKey(it.id)), []);
 
-  // HR POC (from firmographics; exclude age/birth)
+  const generalItems = useMemo(
+    () => getItemsByRoute('/survey/general-benefits').sort((a,b)=>a.id.localeCompare(b.id)),
+    []
+  );
+  const currentItems = useMemo(
+    () => getItemsByRoute('/survey/current-support').sort((a,b)=>a.id.localeCompare(b.id)),
+    []
+  );
+  const crossItems = useMemo(
+    () => getItemsByRoute('/survey/cross-dimensional-assessment').sort((a,b)=>a.id.localeCompare(b.id)),
+    []
+  );
+  const impactItems = useMemo(
+    () => getItemsByRoute('/survey/employee-impact-assessment').sort((a,b)=>a.id.localeCompare(b.id)),
+    []
+  );
+
+  /* ---------- Split lists for two-column render ---------- */
+  const [firmoL, firmoR]     = useMemo(()=>splitEven(firmoItems),       [firmoItems]);
+  const [generalL, generalR] = useMemo(()=>splitEven(generalItems),     [generalItems]);
+  const [currentL, currentR] = useMemo(()=>splitEven(currentItems),     [currentItems]);
+  const [crossL, crossR]     = useMemo(()=>splitEven(crossItems),       [crossItems]);
+  const [impactL, impactR]   = useMemo(()=>splitEven(impactItems),      [impactItems]);
+
+  /* ---------- HR POC (collect everything except age/birth) ---------- */
   const hrPOC = useMemo(() => {
     const name = [firmo?.contactFirst, firmo?.contactLast].filter(Boolean).join(' ')
       || firmo?.contactName || firmo?.hr_name || '';
@@ -250,8 +251,8 @@ export default function CompanyProfile() {
     return { name, title, department, email, phone, location };
   }, [firmo, accountEmail]);
 
+  /* ---------- Actions ---------- */
   const printPDF = () => window.print();
-
   const downloadJSON = () => {
     const bundle = {
       meta: { companyName, accountEmail, generatedAt },
@@ -264,7 +265,6 @@ export default function CompanyProfile() {
     });
     a.click(); URL.revokeObjectURL(url);
   };
-
   const downloadTXT = () => {
     let out = `COMPANY PROFILE — ${companyName}\nGenerated: ${new Date().toLocaleString()}\n\n`;
     const pushRows = (title:string, items:InstrumentItem[], source:Record<string,any>)=>{
@@ -274,7 +274,7 @@ export default function CompanyProfile() {
         const disp = v === undefined || v === null || v === '' ? '—'
                     : Array.isArray(v) ? v.join(', ')
                     : typeof v === 'object' ? JSON.stringify(v) : String(v);
-        out += `  • ${it.text}: ${disp}\n`;
+        out += `  • ${labelForItem(it)}: ${disp}\n`;
       });
       out += '\n';
     };
@@ -291,7 +291,7 @@ export default function CompanyProfile() {
         const disp = v === undefined || v === null || v === '' ? '—'
                     : Array.isArray(v) ? v.join(', ')
                     : typeof v === 'object' ? JSON.stringify(v) : String(v);
-        out += `  • ${it.text}: ${disp}\n`;
+        out += `  • ${labelForItem(it)}: ${disp}\n`;
       });
       out += '\n';
     });
@@ -312,17 +312,25 @@ export default function CompanyProfile() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: BRAND.bg }}>
-      {/* Header w/ your logos */}
+    <div className="min-h-screen bg-[rgb(249,250,251)]">
+      {/* ===== Header with your logos ===== */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="w-28" />
             <div className="flex-1 flex justify-center">
-              <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-14 sm:h-20 lg:h-24 w-auto drop-shadow-md" />
+              <img
+                src="/best-companies-2026-logo.png"
+                alt="Best Companies for Working with Cancer Award Logo"
+                className="h-14 sm:h-20 lg:h-24 w-auto drop-shadow-md"
+              />
             </div>
             <div className="flex justify-end">
-              <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-10 sm:h-14 lg:h-16 w-auto" />
+              <img
+                src="/cancer-careers-logo.png"
+                alt="Cancer and Careers Logo"
+                className="h-10 sm:h-14 lg:h-16 w-auto"
+              />
             </div>
           </div>
 
@@ -345,7 +353,7 @@ export default function CompanyProfile() {
         </div>
       </div>
 
-      {/* Top stats + HRPOC */}
+      {/* ===== Top Stats + HR POC ===== */}
       <section className="max-w-7xl mx-auto px-6 mt-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -357,80 +365,140 @@ export default function CompanyProfile() {
           <div className="border rounded-xl bg-white p-4">
             <div className="text-xs font-semibold text-slate-600 mb-2">HR Point of Contact</div>
             <div className="space-y-1">
-              <div className="text-sm font-semibold text-slate-900">{([firmo?.contactFirst, firmo?.contactLast].filter(Boolean).join(' ') || firmo?.contactName || firmo?.hr_name || '—')}</div>
-              <div className="text-sm text-slate-800">{firmo?.contactTitle || firmo?.hr_title || firmo?.title || '—'}</div>
-              <div className="text-sm text-slate-800">{firmo?.s3 || firmo?.department || '—'}</div>
-              <div className="text-sm text-slate-800">{firmo?.contactEmail || firmo?.hr_email || accountEmail || '—'}</div>
-              <div className="text-sm text-slate-800">{firmo?.contactPhone || firmo?.hr_phone || firmo?.phone || '—'}</div>
-              <div className="text-sm text-slate-800">{firmo?.hq || firmo?.s9 || '—'}</div>
+              <div className="text-sm font-semibold text-slate-900">{hrPOC.name || '—'}</div>
+              <div className="text-sm text-slate-800">{hrPOC.title || '—'}</div>
+              <div className="text-sm text-slate-800">{hrPOC.department || '—'}</div>
+              <div className="text-sm text-slate-800">{hrPOC.email || '—'}</div>
+              <div className="text-sm text-slate-800">{hrPOC.phone || '—'}</div>
+              <div className="text-sm text-slate-800">{hrPOC.location || '—'}</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Two-column: Firmo/Classification + General/Current/Cross/Impact */}
+      {/* ===== Two-column sections (EVERY question + response) ===== */}
       <main className="max-w-7xl mx-auto px-6 mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Section title="Company Profile (Firmographics & Classification)" accent={BRAND.purple}>
-            {renderRows(firmoItems, firmo, BRAND.purple)}
+          <Section title="Company Profile (Firmographics & Classification)">
+            <div className="divide-y divide-slate-100">
+              {firmoL.map(it => (
+                <Row key={it.id} label={labelForItem(it)} value={valueFrom(firmo, it)} accent={BRAND.purple} />
+              ))}
+            </div>
+            <div className="divide-y divide-slate-100">
+              {firmoR.map(it => (
+                <Row key={it.id} label={labelForItem(it)} value={valueFrom(firmo, it)} accent={BRAND.purple} />
+              ))}
+            </div>
           </Section>
 
-          <Section title="General Benefits" accent={BRAND.teal}>
-            {renderRows(generalItems, general, BRAND.teal)}
+          <Section title="General Benefits">
+            <div className="divide-y divide-slate-100">
+              {generalL.map(it => (
+                <Row key={it.id} label={labelForItem(it)} value={valueFrom(general, it)} accent={BRAND.teal} />
+              ))}
+            </div>
+            <div className="divide-y divide-slate-100">
+              {generalR.map(it => (
+                <Row key={it.id} label={labelForItem(it)} value={valueFrom(general, it)} accent={BRAND.teal} />
+              ))}
+            </div>
           </Section>
 
-          <Section title="Current Support" accent={BRAND.orange}>
-            {renderRows(currentItems, current, BRAND.orange)}
+          <Section title="Current Support">
+            <div className="divide-y divide-slate-100">
+              {currentL.map(it => (
+                <Row key={it.id} label={labelForItem(it)} value={valueFrom(current, it)} accent={BRAND.orange} />
+              ))}
+            </div>
+            <div className="divide-y divide-slate-100">
+              {currentR.map(it => (
+                <Row key={it.id} label={labelForItem(it)} value={valueFrom(current, it)} accent={BRAND.orange} />
+              ))}
+            </div>
           </Section>
 
-          <Section title="Cross-Dimensional Assessment" accent={BRAND.teal}>
-            {renderRows(crossItems, cross, BRAND.teal)}
+          <Section title="Cross-Dimensional Assessment">
+            <div className="divide-y divide-slate-100">
+              {crossL.map(it => (
+                <Row key={it.id} label={labelForItem(it)} value={valueFrom(cross, it)} accent={BRAND.teal} />
+              ))}
+            </div>
+            <div className="divide-y divide-slate-100">
+              {crossR.map(it => (
+                <Row key={it.id} label={labelForItem(it)} value={valueFrom(cross, it)} accent={BRAND.teal} />
+              ))}
+            </div>
           </Section>
 
-          <Section title="Employee Impact Assessment" accent={BRAND.orange}>
-            {renderRows(impactItems, impact, BRAND.orange)}
+          <Section title="Employee Impact Assessment">
+            <div className="divide-y divide-slate-100">
+              {impactL.map(it => (
+                <Row key={it.id} label={labelForItem(it)} value={valueFrom(impact, it)} accent={BRAND.orange} />
+              ))}
+            </div>
+            <div className="divide-y divide-slate-100">
+              {impactR.map(it => (
+                <Row key={it.id} label={labelForItem(it)} value={valueFrom(impact, it)} accent={BRAND.orange} />
+              ))}
+            </div>
           </Section>
         </div>
 
-        {/* Dimensions */}
+        {/* ===== 13 Dimensions ===== */}
         <section className="mt-8">
           <div className="flex items-baseline justify-between mb-2">
             <h2 className="text-base font-bold text-slate-900">13 Dimensions of Support</h2>
-            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white"
-                  style={{ borderColor: BRAND.gray300, color: BRAND.gray700 }}>
+            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white">
               D13 uses 5-point scale (includes Unsure/NA)
             </span>
           </div>
 
           <div className="space-y-5">
-            {dims.map(({number, data}) => (
-              <Section key={number} title={`Dimension ${number}: ${DIM_NAME[number] || ''}`} accent={BRAND.purple}>
-                {renderRows(itemsForDimension(number), data, BRAND.purple)}
-              </Section>
-            ))}
+            {dims.map(({number, data}) => {
+              const dItems = itemsForDimension(number);
+              const [dL, dR] = splitEven(dItems);
+              return (
+                <Section
+                  key={number}
+                  title={`Dimension ${number}: ${DIM_NAME[number] || ''}`}
+                >
+                  <div className="divide-y divide-slate-100">
+                    {dL.map(it => (
+                      <Row key={it.id} label={labelForItem(it)} value={valueFrom(data, it)} accent={BRAND.purple} />
+                    ))}
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {dR.map(it => (
+                      <Row key={it.id} label={labelForItem(it)} value={valueFrom(data, it)} accent={BRAND.purple} />
+                    ))}
+                  </div>
+                </Section>
+              );
+            })}
           </div>
         </section>
 
+        {/* ===== Footer ===== */}
         <footer className="text-center text-xs text-slate-600 mt-10 pb-10 border-t pt-4">
           Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers & CEW Foundation •
           All responses collected and analyzed by BEYOND Insights, LLC
         </footer>
       </main>
 
-      {/* Print */}
+      {/* ===== Print CSS ===== */}
       <style jsx>{`
         @media print {
           @page { size: letter; margin: 0.5in; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .print\\:hidden { display: none !important; }
-          section { break-inside: avoid; }
+          header, section { break-inside: avoid; }
         }
       `}</style>
     </div>
   );
 }
 
-/* ===== Stat tile ===== */
+/* ===================== Stat tile ===================== */
 function Stat({ label, value }: { label: string; value: any }) {
   return (
     <div className="bg-white border rounded-xl px-3 py-2">
