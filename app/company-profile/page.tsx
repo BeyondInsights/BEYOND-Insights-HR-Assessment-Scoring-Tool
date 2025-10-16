@@ -21,10 +21,13 @@ export default function CompanyProfile() {
     const general = JSON.parse(localStorage.getItem('general-benefits_data') || localStorage.getItem('general_benefits_data') || '{}');
     const current = JSON.parse(localStorage.getItem('current-support_data') || localStorage.getItem('current_support_data') || '{}');
     
-    // Load dimensions 1-3
+    // Load dimensions 1-6
     const dim1 = JSON.parse(localStorage.getItem('dimension1_data') || '{}');
     const dim2 = JSON.parse(localStorage.getItem('dimension2_data') || '{}');
     const dim3 = JSON.parse(localStorage.getItem('dimension3_data') || '{}');
+    const dim4 = JSON.parse(localStorage.getItem('dimension4_data') || '{}');
+    const dim5 = JSON.parse(localStorage.getItem('dimension5_data') || '{}');
+    const dim6 = JSON.parse(localStorage.getItem('dimension6_data') || '{}');
 
     // Get from authorization page storage
     const companyName = localStorage.getItem('login_company_name') || firmo.companyName || 'Organization';
@@ -47,6 +50,9 @@ export default function CompanyProfile() {
         { number: 1, name: 'Medical Leave & Flexibility', data: dim1 },
         { number: 2, name: 'Insurance & Financial Protection', data: dim2 },
         { number: 3, name: 'Manager Preparedness & Capability', data: dim3 },
+        { number: 4, name: 'Navigation & Expert Resources', data: dim4 },
+        { number: 5, name: 'Workplace Accommodations', data: dim5 },
+        { number: 6, name: 'Culture & Psychological Safety', data: dim6 },
       ]
     });
     setLoading(false);
@@ -92,11 +98,11 @@ export default function CompanyProfile() {
     countries: firmo?.s9a || null,
   };
 
-  // General benefits data - SHOW ALL THE FUCKING DETAILS
+  // General benefits data - ALL THE ACTUAL FIELDS
   const benefits = {
-    nationalHealthcare: gen?.c5 || null,  // This is % access to national healthcare
-    eligibility: firmo?.c3 || null,  // This is % eligible for standard benefits
-    // Show each category separately with ALL items
+    nationalHealthcare: gen?.cb1a || null,  // % access to national healthcare
+    eligibility: gen?.c3 || firmo?.c3 || null,  // % eligible for standard benefits
+    // Show each category with the ACTUAL data stored
     standard: formatArray(gen?.cb1_standard),
     leave: formatArray(gen?.cb1_leave),
     wellness: formatArray(gen?.cb1_wellness),
@@ -106,12 +112,14 @@ export default function CompanyProfile() {
     remote: firmo?.c6 || null,
   };
 
-  // Current support data
+  // Current support data - ALL THE ACTUAL FIELDS
   const support = {
     status: cur?.cb3a || null,
     approach: cur?.or1 || null,
-    excluded: firmo?.c3 ? `${firmo.c3}${firmo?.c4 ? ' - ' + formatArray(firmo.c4) : ''}` : null,
+    excluded: cur?.c3 || firmo?.c3 ? `${cur?.c3 || firmo?.c3}${cur?.c4 || firmo?.c4 ? ' - ' + formatArray(cur.c4 || firmo.c4) : ''}` : null,
     triggers: formatArray(cur?.or2a),
+    impactfulChange: cur?.or2b || null,
+    barriers: formatArray(cur?.or3),
     caregiver: formatArray(cur?.or5a),
     monitoring: formatArray(cur?.or6),
   };
@@ -249,6 +257,12 @@ export default function CompanyProfile() {
               <Field label="Current approach to supporting EMCs" value={support.approach || '—'} />
               <Field label="Emp Grps excluded from workplace support benefits" value={support.excluded || '—'} />
               <Field label="Triggers for developing programs" value={support.triggers || '—'} />
+              {support.impactfulChange && (
+                <Field label="Most impactful change" value={support.impactfulChange} />
+              )}
+              {support.barriers && (
+                <Field label="Barriers to development" value={support.barriers} />
+              )}
               <Field label="Primary caregiver support programs offered" value={support.caregiver || '—'} />
               <Field label="How monitor effectiveness of workplace support program" value={support.monitoring || '—'} />
             </div>
@@ -268,13 +282,23 @@ export default function CompanyProfile() {
               
               if (!hasData) return null;
               
+              // Filter out open-ended text fields (d#b, d#_b, etc.)
+              const filteredData = Object.entries(dimData).filter(([key]) => {
+                // Skip open-ended fields like d2b, d4b, d5b, d1b, d2_b, etc.
+                if (key.match(/^d\d+_?b$/i)) return false;
+                if (key.match(/^d\d+_?b_/i)) return false; // Also skip d2b_none, etc.
+                return true;
+              });
+              
+              if (filteredData.length === 0) return null;
+              
               return (
                 <div key={dim.number} className="bg-white border rounded-md p-4 mb-3" style={{borderColor:BRAND.gray[200]}}>
                   <h3 className="text-sm font-bold mb-2" style={{color:BRAND.primary}}>
                     Dimension {dim.number}: {dim.name}
                   </h3>
                   <div className="space-y-0">
-                    {Object.entries(dimData).map(([key, value]: [string, any]) => {
+                    {filteredData.map(([key, value]: [string, any]) => {
                       if (typeof value === 'object' && value !== null) {
                         // Handle nested objects (like d1a, d2a, d3a grids)
                         return (
