@@ -70,9 +70,9 @@ export default function StripePaymentPage() {
     <div className="min-h-screen bg-gray-50 p-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Secure Payment - {paymentMethod === 'card' ? 'Credit Card' : 'Bank Transfer'}
-          </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        Secure Payment - ACH Bank Transfer
+        </h1>
           <p className="text-gray-600">
             Complete your payment securely through Stripe
           </p>
