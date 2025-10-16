@@ -92,8 +92,8 @@ export default function CompanyProfile() {
   const poc = {
     name: `${data.firstName} ${data.lastName}`.trim() || null,
     email: data.email || null,
-    department: firmo?.s3 || null,
-    jobFunction: firmo?.s4a || firmo?.s4b || null,
+    department: firmo?.s4a || null,
+    jobFunction: firmo?.s4b || null,
     title: data.title || firmo?.s5 || null,
     responsibilities: formatArray(firmo?.s6),
     influence: firmo?.s7 || null,
@@ -123,7 +123,8 @@ export default function CompanyProfile() {
   const support = {
     status: cur?.cb3a || null,
     approach: cur?.or1 || null,
-    excluded: cur?.c3 || firmo?.c3 ? `${cur?.c3 || firmo?.c3}${cur?.c4 || firmo?.c4 ? ' - ' + formatArray(cur.c4 || firmo.c4) : ''}` : null,
+    excluded: (cur?.c4 || firmo?.c4) ? formatArray(cur?.c4 || firmo?.c4) : null,
+    excludedPercent: cur?.c3 || firmo?.c3 || null,
     triggers: formatArray(cur?.or2a),
     impactfulChange: cur?.or2b || null,
     barriers: formatArray(cur?.or3),
@@ -148,7 +149,7 @@ export default function CompanyProfile() {
   const downloadTXT = () => {
     let txtContent = `${data.companyName}\nCompany Profile & Survey Summary\nGenerated: ${data.generatedAt}\n\n`;
     
-    txtContent += `COMPANY PROFILE\n`;
+    txtContent += `===== COMPANY PROFILE =====\n`;
     txtContent += `Co. Name: ${company.name || '—'}\n`;
     txtContent += `Industry: ${company.industry || '—'}\n`;
     txtContent += `Annual Revenue: ${company.revenue || '—'}\n`;
@@ -156,7 +157,7 @@ export default function CompanyProfile() {
     txtContent += `HQ Location: ${company.hq || '—'}\n`;
     txtContent += `# of Countries w. Presence: ${company.countries || '—'}\n\n`;
     
-    txtContent += `POC PROFILE\n`;
+    txtContent += `===== POC PROFILE =====\n`;
     txtContent += `Name: ${poc.name || '—'}\n`;
     txtContent += `Email Address: ${poc.email || '—'}\n`;
     txtContent += `Department: ${poc.department || '—'}\n`;
@@ -164,6 +165,63 @@ export default function CompanyProfile() {
     txtContent += `Title / Level: ${poc.title || '—'}\n`;
     txtContent += `Responsibility / Influence: ${poc.responsibilities || '—'}\n`;
     txtContent += `Level of influence re: workplace support: ${poc.influence || '—'}\n\n`;
+
+    txtContent += `===== GENERAL BENEFITS LANDSCAPE =====\n`;
+    txtContent += `% of Emp w/ access to national healthcare: ${benefits.nationalHealthcare || '—'}\n`;
+    txtContent += `% of Emp eligible for Standard Benefits: ${benefits.eligibility || '—'}\n`;
+    txtContent += `Standard Benefits offered: ${benefits.standard || '—'}\n`;
+    txtContent += `Leave & flexibility programs: ${benefits.leave || '—'}\n`;
+    txtContent += `Wellness & support programs: ${benefits.wellness || '—'}\n`;
+    txtContent += `Financial & legal assistance programs: ${benefits.financial || '—'}\n`;
+    txtContent += `Care navigation & support services: ${benefits.navigation || '—'}\n`;
+    txtContent += `Programs plan to rollout over N2Y: ${benefits.planned || '—'}\n`;
+    txtContent += `Approach to remote / hybrid work: ${benefits.remote || '—'}\n\n`;
+
+    txtContent += `===== CURRENT SUPPORT FOR EMCs =====\n`;
+    txtContent += `Status of Support Offerings: ${support.status || '—'}\n`;
+    txtContent += `Current approach to supporting EMCs: ${support.approach || '—'}\n`;
+    txtContent += `% of Emp excluded from workplace support benefits: ${support.excludedPercent || '—'}\n`;
+    txtContent += `Emp Groups excluded from workplace support benefits: ${support.excluded || '—'}\n`;
+    txtContent += `Triggers for developing programs: ${support.triggers || '—'}\n`;
+    if (support.impactfulChange) txtContent += `Most impactful change: ${support.impactfulChange}\n`;
+    if (support.barriers) txtContent += `Barriers to development: ${support.barriers}\n`;
+    txtContent += `Primary caregiver support programs offered: ${support.caregiver || '—'}\n`;
+    txtContent += `How monitor effectiveness of workplace support program: ${support.monitoring || '—'}\n\n`;
+
+    // Add dimensions
+    if (data.dimensions && data.dimensions.length > 0) {
+      txtContent += `===== 13 DIMENSIONS OF SUPPORT =====\n\n`;
+      data.dimensions.forEach((dim: any) => {
+        const dimData = dim.data || {};
+        if (Object.keys(dimData).length > 0) {
+          txtContent += `--- Dimension ${dim.number}: ${dim.name} ---\n`;
+          Object.entries(dimData).forEach(([key, value]) => {
+            if (!key.match(/^d\d+_?b$/i) && !key.match(/^d\d+_?b_/i)) {
+              const label = getDimensionFieldLabel(key);
+              txtContent += `${label}: ${formatArray(value) || '—'}\n`;
+            }
+          });
+          txtContent += `\n`;
+        }
+      });
+    }
+
+    // Add assessment sections
+    if (Object.keys(data.cross || {}).length > 0) {
+      txtContent += `===== CROSS-DIMENSIONAL ASSESSMENT =====\n`;
+      Object.entries(data.cross).forEach(([key, value]: [string, any]) => {
+        txtContent += `${key.toUpperCase()}: ${formatArray(value) || '—'}\n`;
+      });
+      txtContent += `\n`;
+    }
+
+    if (Object.keys(data.impact || {}).length > 0) {
+      txtContent += `===== EMPLOYEE IMPACT ASSESSMENT =====\n`;
+      Object.entries(data.impact).forEach(([key, value]: [string, any]) => {
+        txtContent += `${key.toUpperCase()}: ${formatArray(value) || '—'}\n`;
+      });
+      txtContent += `\n`;
+    }
 
     const blob = new Blob([txtContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -224,7 +282,7 @@ export default function CompanyProfile() {
                   background: 'linear-gradient(to right, #7c3aed, #a855f7)'
                 }}
               >
-                Review Your Company Profile
+                Download PDF
               </button>
               <button 
                 onClick={downloadTXT}
@@ -307,7 +365,8 @@ export default function CompanyProfile() {
             <div>
               <DataRow label="Status of Support Offerings" value={support.status} />
               <DataRow label="Current approach to supporting EMCs" value={support.approach} />
-              <DataRow label="Emp Grps excluded from workplace support benefits" value={support.excluded} />
+              <DataRow label="% of Emp excluded from workplace support benefits" value={support.excludedPercent} />
+              <DataRow label="Emp Groups excluded from workplace support benefits" value={support.excluded} />
               <DataRow label="Triggers for developing programs" value={support.triggers} />
               {support.impactfulChange && (
                 <DataRow label="Most impactful change" value={support.impactfulChange} />
