@@ -1,5 +1,91 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
-import { Building2, Users, Heart, TrendingUp, Target, Award, FileText, Download, Printer, CheckCircle2, AlertCircle } from 'lucide-react';
+
+// Custom SVG Icons (no external dependencies)
+const IconBuilding = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="2" width="16" height="20" rx="2"/>
+    <path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>
+  </svg>
+);
+
+const IconUsers = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+);
+
+const IconHeart = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </svg>
+);
+
+const IconTrendingUp = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+    <polyline points="17 6 23 6 23 12"/>
+  </svg>
+);
+
+const IconTarget = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <circle cx="12" cy="12" r="6"/>
+    <circle cx="12" cy="12" r="2"/>
+  </svg>
+);
+
+const IconAward = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="8" r="7"/>
+    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+  </svg>
+);
+
+const IconFileText = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/>
+    <line x1="16" y1="17" x2="8" y2="17"/>
+    <polyline points="10 9 9 9 8 9"/>
+  </svg>
+);
+
+const IconDownload = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+);
+
+const IconPrinter = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 6 2 18 2 18 9"/>
+    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+    <rect x="6" y="14" width="12" height="8"/>
+  </svg>
+);
+
+const IconCheckCircle = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+    <polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>
+);
+
+const IconAlertCircle = ({ className = "w-6 h-6", color = "currentColor" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="8" x2="12" y2="12"/>
+    <line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+);
 
 // CAC Brand Colors (Official)
 const COLORS = {
@@ -277,7 +363,7 @@ OVERALL COMPLETION: ${overallProgress}%
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <IconAlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">No Assessment Data Found</h2>
           <p className="text-gray-600">Please complete the assessment surveys to generate your report.</p>
         </div>
@@ -298,14 +384,14 @@ OVERALL COMPLETION: ${overallProgress}%
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-white">
-                <Icon className="w-6 h-6" style={{ color: color.primary || color }} />
+                <Icon className="w-6 h-6" color={color.primary || color} />
               </div>
               <h3 className="text-xl font-bold text-gray-900">{title}</h3>
             </div>
             {hasData ? (
-              <CheckCircle2 className="w-6 h-6" style={{ color: COLORS.teal.primary }} />
+              <IconCheckCircle className="w-6 h-6" color={COLORS.teal.primary} />
             ) : (
-              <AlertCircle className="w-6 h-6 text-orange-400" />
+              <IconAlertCircle className="w-6 h-6 text-orange-400" />
             )}
           </div>
         </div>
@@ -384,7 +470,7 @@ OVERALL COMPLETION: ${overallProgress}%
             </div>
             
             <div className="flex-1 flex items-center justify-center gap-3">
-              <FileText className="w-8 h-8" style={{ color: COLORS.purple.primary }} />
+              <IconFileText className="w-8 h-8" color={COLORS.purple.primary} />
               <div className="text-center">
                 <h1 className="text-2xl font-bold text-gray-900">Complete Assessment Report</h1>
                 <p className="text-sm text-gray-500">All Survey Responses</p>
@@ -406,7 +492,7 @@ OVERALL COMPLETION: ${overallProgress}%
               className="flex items-center gap-2 px-4 py-2 bg-white border-2 rounded-lg hover:bg-gray-50"
               style={{ borderColor: COLORS.gray.light }}
             >
-              <Printer className="w-4 h-4" />
+              <IconPrinter className="w-4 h-4" />
               Print
             </button>
             <button
@@ -414,7 +500,7 @@ OVERALL COMPLETION: ${overallProgress}%
               className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90"
               style={{ backgroundColor: COLORS.purple.primary }}
             >
-              <Download className="w-4 h-4" />
+              <IconDownload className="w-4 h-4" />
               Download
             </button>
           </div>
@@ -457,7 +543,7 @@ OVERALL COMPLETION: ${overallProgress}%
               <h2 className="text-3xl font-bold mb-2">{reportData.companyName}</h2>
               <p className="text-purple-100 text-lg">Workplace Cancer Support Assessment</p>
               <div className="mt-4 flex items-center gap-2">
-                <Award className="w-5 h-5" />
+                <IconAward className="w-5 h-5" />
                 <span className="text-sm font-semibold">Best Companies for Working with Cancer Index</span>
               </div>
             </div>
@@ -467,19 +553,19 @@ OVERALL COMPLETION: ${overallProgress}%
             </div>
           </div>
           <div className="absolute right-8 bottom-4 opacity-10">
-            <Award className="w-32 h-32" />
+            <IconAward className="w-32 h-32" />
           </div>
         </div>
 
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <Target className="w-7 h-7 text-purple-600" />
+            <IconTarget className="w-7 h-7 text-purple-600" />
             Core Assessment Sections
           </h2>
 
           <SectionCard 
             title="Company Profile (Firmographics)" 
-            icon={Building2}
+            icon={IconBuilding}
             data={reportData.sections.firmographics}
             color={COLORS.purple}
           >
@@ -488,7 +574,7 @@ OVERALL COMPLETION: ${overallProgress}%
 
           <SectionCard 
             title="General Employee Benefits" 
-            icon={Heart}
+            icon={IconHeart}
             data={reportData.sections.generalBenefits}
             color={COLORS.teal}
           >
@@ -497,7 +583,7 @@ OVERALL COMPLETION: ${overallProgress}%
 
           <SectionCard 
             title="Current Support Programs" 
-            icon={Users}
+            icon={IconUsers}
             data={reportData.sections.currentSupport}
             color={COLORS.orange}
           >
@@ -507,7 +593,7 @@ OVERALL COMPLETION: ${overallProgress}%
 
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <Award className="w-7 h-7 text-orange-500" />
+            <IconAward className="w-7 h-7 text-orange-500" />
             13 Support Dimensions
           </h2>
 
@@ -515,7 +601,7 @@ OVERALL COMPLETION: ${overallProgress}%
             <SectionCard 
               key={idx}
               title={`D${dim.number}: ${dim.name}`}
-              icon={Target}
+              icon={IconTarget}
               data={dim.data}
               color={COLORS.orange}
             >
@@ -526,13 +612,13 @@ OVERALL COMPLETION: ${overallProgress}%
 
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <TrendingUp className="w-7 h-7 text-purple-600" />
+            <IconTrendingUp className="w-7 h-7 text-purple-600" />
             Advanced Assessments
           </h2>
 
           <SectionCard 
             title="Employee Impact Assessment" 
-            icon={TrendingUp}
+            icon={IconTrendingUp}
             data={reportData.sections.employeeImpact}
             color={COLORS.purple}
           >
@@ -541,7 +627,7 @@ OVERALL COMPLETION: ${overallProgress}%
 
           <SectionCard 
             title="Cross-Dimensional Assessment" 
-            icon={Target}
+            icon={IconTarget}
             data={reportData.sections.crossDimensional}
             color={COLORS.teal}
           >
