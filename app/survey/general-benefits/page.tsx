@@ -235,7 +235,7 @@ export default function GeneralBenefitsPage() {
 }}
  className="text-sm text-orange-600 hover:text-orange-700 font-medium"
  >
- ? Back to Dashboard
+ ←  Back to Dashboard
  </button>
  </div>
  <div className="w-full bg-gray-200 rounded-full h-2">
