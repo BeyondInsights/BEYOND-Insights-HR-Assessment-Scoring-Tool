@@ -269,62 +269,81 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* DIMENSIONS */}
+        {/* DIMENSIONS - 2 per row */}
         {data.dimensions && data.dimensions.length > 0 && (
           <div className="mt-6">
             <h2 className="text-lg font-bold mb-3" style={{color:BRAND.gray[900]}}>
               13 Dimensions of Support
             </h2>
             
-            {data.dimensions.map((dim: any) => {
-              const dimData = dim.data || {};
-              const hasData = Object.keys(dimData).length > 0;
-              
-              if (!hasData) return null;
-              
-              // Filter out open-ended text fields (d#b, d#_b, etc.)
-              const filteredData = Object.entries(dimData).filter(([key]) => {
-                // Skip open-ended fields like d2b, d4b, d5b, d1b, d2_b, etc.
-                if (key.match(/^d\d+_?b$/i)) return false;
-                if (key.match(/^d\d+_?b_/i)) return false; // Also skip d2b_none, etc.
-                return true;
-              });
-              
-              if (filteredData.length === 0) return null;
-              
-              return (
-                <div key={dim.number} className="bg-white border rounded-md p-4 mb-3" style={{borderColor:BRAND.gray[200]}}>
-                  <h3 className="text-sm font-bold mb-2" style={{color:BRAND.primary}}>
-                    Dimension {dim.number}: {dim.name}
-                  </h3>
-                  <div className="space-y-0">
-                    {filteredData.map(([key, value]: [string, any]) => {
-                      if (typeof value === 'object' && value !== null) {
-                        // Handle nested objects (like d1a, d2a, d3a grids)
-                        return (
-                          <div key={key} className="py-1.5 border-b" style={{borderColor:BRAND.gray[200]}}>
-                            <div className="text-xs font-semibold mb-1" style={{color:BRAND.gray[600]}}>
-                              {key.toUpperCase()}:
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {data.dimensions.map((dim: any) => {
+                const dimData = dim.data || {};
+                const hasData = Object.keys(dimData).length > 0;
+                
+                if (!hasData) return null;
+                
+                // Filter out open-ended text fields (d#b, d#_b, etc.)
+                const filteredData = Object.entries(dimData).filter(([key]) => {
+                  // Skip open-ended fields like d2b, d4b, d5b, d1b, d2_b, etc.
+                  if (key.match(/^d\d+_?b$/i)) return false;
+                  if (key.match(/^d\d+_?b_/i)) return false; // Also skip d2b_none, etc.
+                  return true;
+                });
+                
+                if (filteredData.length === 0) return null;
+                
+                return (
+                  <div key={dim.number} className="bg-white border rounded-md p-4" style={{borderColor:BRAND.gray[200]}}>
+                    <h3 className="text-sm font-bold mb-3" style={{color:BRAND.primary}}>
+                      Dimension {dim.number}: {dim.name}
+                    </h3>
+                    <div className="space-y-0">
+                      {filteredData.map(([key, value]: [string, any]) => {
+                        if (typeof value === 'object' && value !== null) {
+                          // Handle nested objects (like d1a, d2a, d3a grids)
+                          const entries = Object.entries(value);
+                          return (
+                            <div key={key} className="mb-2">
+                              <div className="text-xs font-semibold mb-1 pb-1 border-b" style={{color:BRAND.gray[700], borderColor:BRAND.gray[300]}}>
+                                Programs & Offerings
+                              </div>
+                              <div className="space-y-1">
+                                {entries.map(([item, status]: [string, any]) => (
+                                  <div key={item} className="flex items-start gap-2 py-1 text-xs">
+                                    <span className="flex-1" style={{color:BRAND.gray[700]}}>{item}</span>
+                                    <span className="px-2 py-0.5 rounded text-xs whitespace-nowrap" 
+                                          style={{
+                                            color: status === 'Currently offer' ? '#059669' : 
+                                                   status === 'In active planning / development' ? '#0284c7' :
+                                                   status === 'Assessing feasibility' ? '#d97706' : BRAND.gray[600],
+                                            backgroundColor: status === 'Currently offer' ? '#d1fae5' : 
+                                                             status === 'In active planning / development' ? '#e0f2fe' :
+                                                             status === 'Assessing feasibility' ? '#fef3c7' : BRAND.gray[100],
+                                            fontWeight: 500
+                                          }}>
+                                      {status}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                            <div className="pl-3 space-y-0.5">
-                              {Object.entries(value).map(([item, status]: [string, any]) => (
-                                <div key={item} className="flex justify-between text-xs">
-                                  <span style={{color:BRAND.gray[700]}}>{item}</span>
-                                  <span style={{color:BRAND.gray[900]}} className="font-medium">{status}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      } else {
-                        // Handle simple key-value pairs
-                        return <Field key={key} label={key} value={value || '—'} />;
-                      }
-                    })}
+                          );
+                        } else {
+                          // Handle simple key-value pairs with better labels
+                          let label = key;
+                          if (key.includes('aa')) label = 'Multi-country consistency';
+                          else if (key.includes('_1')) label = 'Additional details';
+                          else if (key.includes('_2')) label = 'Measurement approach';
+                          
+                          return <Field key={key} label={label} value={value || '—'} />;
+                        }
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
 
