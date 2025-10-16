@@ -60,7 +60,7 @@ export default function CompanyProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen grid place-items-center bg-gray-50">
+      <div className="min-h-screen grid place-items-center" style={{backgroundColor: '#f8f9fa'}}>
         <div className="text-sm text-gray-600">Loading…</div>
       </div>
     );
@@ -134,13 +134,9 @@ export default function CompanyProfile() {
   const DataRow = ({ label, value }: {label:string; value:any}) => {
     const displayValue = value || '—';
     return (
-      <div className="flex items-start py-2 border-b border-gray-200 last:border-0">
-        <div className="w-72 flex-shrink-0 pr-4">
-          <span className="text-xs font-medium text-gray-600">{label}</span>
-        </div>
-        <div className="flex-1">
-          <span className="text-xs text-gray-900">{displayValue}</span>
-        </div>
+      <div className="py-3 border-b" style={{borderColor: '#e5e7eb'}}>
+        <div className="text-xs font-medium mb-1" style={{color: '#6b7280'}}>{label}</div>
+        <div className="text-sm" style={{color: '#1f2937'}}>{displayValue}</div>
       </div>
     );
   };
@@ -179,41 +175,64 @@ export default function CompanyProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header with Logo */}
-      <div className="bg-white border-b border-gray-200">
+    <div className="min-h-screen" style={{backgroundColor: '#f8f9fa'}}>
+      {/* Header */}
+      <div className="bg-white border-b" style={{borderColor: '#e5e7eb'}}>
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex justify-center mb-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-32"></div>
             <img
               src="/best-companies-2026-logo.png"
               alt="Best Companies Award"
-              className="h-20 w-auto"
+              className="h-16"
+            />
+            <img
+              src="/cancer-careers-logo.png"
+              alt="Cancer and Careers"
+              className="h-12"
             />
           </div>
 
           <div className="text-center">
-            <h1 className="text-4xl font-black text-purple-700 mb-2">
+            <h1 className="text-3xl font-bold mb-1" style={{color: '#1f2937'}}>
               {data.companyName}
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm" style={{color: '#6b7280'}}>
               Company Profile & Survey Summary
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs mt-1" style={{color: '#9ca3af'}}>
               Generated: {data.generatedAt}
               {data.email && <span className="ml-1">• {data.email}</span>}
             </p>
 
             <div className="mt-4 flex items-center justify-center gap-3 print:hidden">
-              <a href="/dashboard" 
-                 className="px-4 py-2 text-sm font-medium border-2 border-gray-300 rounded-lg hover:bg-gray-50">
-                ← Back to Dashboard
+              <a 
+                href="/dashboard" 
+                className="px-4 py-2 text-sm font-semibold rounded-lg border-2 transition-all"
+                style={{
+                  borderColor: '#d1d5db',
+                  color: '#374151',
+                  backgroundColor: 'white'
+                }}
+              >
+                Back to Dashboard
               </a>
-              <button onClick={downloadPDF}
-                      className="px-6 py-2 text-sm font-semibold bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:shadow-lg transition-shadow">
-                Download PDF
+              <button 
+                onClick={downloadPDF}
+                className="px-6 py-2 text-sm font-semibold rounded-lg text-white transition-all"
+                style={{
+                  background: 'linear-gradient(to right, #7c3aed, #a855f7)'
+                }}
+              >
+                Review Your Company Profile
               </button>
-              <button onClick={downloadTXT}
-                      className="px-4 py-2 text-sm font-medium border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50">
+              <button 
+                onClick={downloadTXT}
+                className="px-4 py-2 text-sm font-semibold rounded-lg text-white transition-all"
+                style={{
+                  background: 'linear-gradient(to right, #f97316, #fb923c)'
+                }}
+              >
                 Download TXT
               </button>
             </div>
@@ -226,8 +245,8 @@ export default function CompanyProfile() {
         {/* Company Profile + POC Profile */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
+            <h2 className="text-base font-bold mb-4" style={{color: '#1f2937'}}>
               Company Profile
             </h2>
             <div>
@@ -240,8 +259,8 @@ export default function CompanyProfile() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
+            <h2 className="text-base font-bold mb-4" style={{color: '#1f2937'}}>
               POC Profile
             </h2>
             <div>
@@ -259,16 +278,16 @@ export default function CompanyProfile() {
         {/* General Benefits + Current Support */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
+            <h2 className="text-base font-bold mb-4" style={{color: '#1f2937'}}>
               General Benefits Landscape
             </h2>
             <div>
               <DataRow label="% of Emp w/ access to national healthcare" value={benefits.nationalHealthcare} />
               <DataRow label="% of Emp eligible for Standard Benefits" value={benefits.eligibility} />
               
-              <div className="py-2 border-b border-gray-200">
-                <div className="text-xs font-bold text-gray-900">Types of Benefits offered:</div>
+              <div className="py-3 border-b" style={{borderColor: '#e5e7eb'}}>
+                <div className="text-xs font-bold" style={{color: '#1f2937'}}>Types of Benefits offered:</div>
               </div>
               <DataRow label="Standard Benefits offered" value={benefits.standard} />
               <DataRow label="Leave & flexibility programs" value={benefits.leave} />
@@ -281,8 +300,8 @@ export default function CompanyProfile() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
+            <h2 className="text-base font-bold mb-4" style={{color: '#1f2937'}}>
               Current Support for EMCs
             </h2>
             <div>
@@ -305,7 +324,7 @@ export default function CompanyProfile() {
         {/* 13 Dimensions */}
         {data.dimensions && data.dimensions.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <h2 className="text-lg font-bold mb-4" style={{color: '#1f2937'}}>
               13 Dimensions of Support
             </h2>
             
@@ -316,7 +335,6 @@ export default function CompanyProfile() {
                 
                 if (!hasData) return null;
                 
-                // Filter out open-ended fields but keep track of them for "other specify"
                 const filteredData = Object.entries(dimData).filter(([key]) => {
                   if (key.match(/^d\d+_?b$/i)) return false;
                   if (key.match(/^d\d+_?b_/i)) return false;
@@ -326,32 +344,35 @@ export default function CompanyProfile() {
                 if (filteredData.length === 0) return null;
                 
                 return (
-                  <div key={dim.number} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-                    <h3 className="text-base font-bold text-purple-700 mb-4">
+                  <div key={dim.number} className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
+                    <h3 className="text-base font-bold mb-4" style={{color: '#7c3aed'}}>
                       Dimension {dim.number}: {dim.name}
                     </h3>
                     <div>
                       {filteredData.map(([key, value]: [string, any]) => {
                         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                          // Handle grid objects (like d1a, d2a, etc.)
                           const entries = Object.entries(value);
                           return (
                             <div key={key} className="mb-3">
-                              <div className="text-xs font-semibold text-gray-700 mb-2 pb-1 border-b border-gray-300">
+                              <div className="text-xs font-bold mb-2 pb-2" style={{color: '#1f2937', borderBottom: '1px solid #e5e7eb'}}>
                                 Programs & Offerings
                               </div>
-                              <div className="space-y-1.5">
+                              <div>
                                 {entries.map(([item, status]: [string, any]) => (
-                                  <div key={item} className="flex items-start py-2 border-b border-gray-200 last:border-0">
-                                    <div className="w-72 flex-shrink-0 pr-4">
-                                      <span className="text-xs text-gray-700">{item}</span>
-                                    </div>
-                                    <div className="flex-1">
-                                      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                                        status === 'Currently offer' ? 'bg-green-100 text-green-700' : 
-                                        status === 'In active planning / development' ? 'bg-blue-100 text-blue-700' :
-                                        status === 'Assessing feasibility' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'
-                                      }`}>
+                                  <div key={item} className="py-3 border-b" style={{borderColor: '#e5e7eb'}}>
+                                    <div className="text-xs font-medium mb-1" style={{color: '#6b7280'}}>{item}</div>
+                                    <div>
+                                      <span 
+                                        className="inline-block px-2 py-1 rounded text-xs font-medium"
+                                        style={{
+                                          backgroundColor: status === 'Currently offer' ? '#d1fae5' : 
+                                                          status === 'In active planning / development' ? '#dbeafe' :
+                                                          status === 'Assessing feasibility' ? '#fef3c7' : '#f3f4f6',
+                                          color: status === 'Currently offer' ? '#065f46' : 
+                                                status === 'In active planning / development' ? '#1e40af' :
+                                                status === 'Assessing feasibility' ? '#92400e' : '#4b5563'
+                                        }}
+                                      >
                                         {status}
                                       </span>
                                     </div>
@@ -361,11 +382,9 @@ export default function CompanyProfile() {
                             </div>
                           );
                         } else {
-                          // Handle regular fields
                           const label = getDimensionFieldLabel(key);
                           let displayValue = value;
                           
-                          // Check for "other specify" fields
                           if (Array.isArray(value) && value.some((v: string) => v.includes('Other') || v.includes('specify'))) {
                             const otherKey = key + '_other';
                             const otherText = dimData[otherKey];
@@ -388,14 +407,14 @@ export default function CompanyProfile() {
         {/* Assessment Sections */}
         {(Object.keys(data.cross || {}).length > 0 || Object.keys(data.impact || {}).length > 0) && (
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <h2 className="text-lg font-bold mb-4" style={{color: '#1f2937'}}>
               Assessment Sections
             </h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {Object.keys(data.cross || {}).length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-                  <h3 className="text-base font-bold text-purple-700 mb-4">
+                <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
+                  <h3 className="text-base font-bold mb-4" style={{color: '#7c3aed'}}>
                     Cross-Dimensional Assessment
                   </h3>
                   <div>
@@ -407,8 +426,8 @@ export default function CompanyProfile() {
               )}
 
               {Object.keys(data.impact || {}).length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-                  <h3 className="text-base font-bold text-purple-700 mb-4">
+                <div className="bg-white rounded-lg p-6" style={{border: '1px solid #e5e7eb'}}>
+                  <h3 className="text-base font-bold mb-4" style={{color: '#7c3aed'}}>
                     Employee Impact Assessment
                   </h3>
                   <div>
