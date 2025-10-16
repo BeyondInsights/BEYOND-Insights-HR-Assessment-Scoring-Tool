@@ -123,13 +123,41 @@ export default function Dimension11Page() {
   );
   
   const showD11aa = isMultiCountry && hasAnyOffered;
-
+  const showD11_1 = ans.d11a?.["At least 70% coverage for regionally / locally recommended screenings"] === "Currently offer";
+  const D11_1_OPTIONS = [
+    "Cervical cancer screening (Pap smear/HPV test)",
+    "Colonoscopy (colorectal cancer)",
+    "Dense breast tissue screening (ultrasound/MRI)",
+    "Gastric / stomach cancer screening",
+    "H. pylori testing",
+    "Liver cancer screening (AFP test + ultrasound)",
+    "Lung cancer screening (low-dose CT for high risk)",
+    "Mammograms (breast cancer)",
+    "Prostate cancer screening (PSA test)",
+    "Skin cancer screening",
+    "Other cancer screening (specify):",
+    // GENETIC TESTING
+    "BRCA1/BRCA2 testing (breast/ovarian cancer risk)",
+    "Lynch syndrome testing (colorectal cancer risk)",
+    "Genetic counseling services",
+    "Other genetic testing (specify):",
+    // PREVENTIVE VACCINES
+    "HPV vaccines (cervical cancer prevention)",
+    "Hepatitis B vaccines (liver cancer prevention)",
+    "COVID-19 vaccines",
+    "Influenza vaccines",
+    "Pneumonia vaccines",
+    "Shingles vaccines",
+    "Other preventive vaccines (specify):"
+  ];
+  
   const getTotalSteps = () => {
-    let total = 4; // intro, D11.a, D11.aa (conditional), D11.b
-    total++; // completion
-    return total;
-  };
-
+  let total = 4; // intro, D11.a, D11.aa (conditional), D11.b
+  if (showD11_1) total++; 
+  total++; // completion
+  return total;
+};
+  
   const validateStep = () => {
     switch(step) {
       case 1:
@@ -145,6 +173,12 @@ export default function Dimension11Page() {
         return null;
         
       case 3:
+        if (showD11_1 && (!Array.isArray(ans.d11_1) || ans.d11_1.length === 0)) {
+          return "Please select at least one preventive care service";
+        }
+        return null;
+      
+      case 4:
         return null;
         
       default:
@@ -420,8 +454,59 @@ export default function Dimension11Page() {
           </div>
         )}
 
-        {/* Step 3: D11.b open-end */}
-        {step === 3 && (
+        {/* Step 3: D11.1 - Preventive Care Services (conditional) */}
+{step === 3 && showD11_1 && (
+  <div className="bg-white p-6 rounded-lg shadow-sm">
+    <h3 className="text-xl font-bold text-gray-900 mb-4">Preventive Care Coverage</h3>
+    
+    <p className="font-bold text-gray-900 mb-4">
+      Which <span className="text-blue-600 font-bold">early detection and preventive care services</span> are covered for employees at <span className="text-blue-600 font-bold">100%</span> based on regional / locally recommended screenings?
+    </p>
+    <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+    
+    <div className="space-y-2">
+      {D11_1_OPTIONS.map(opt => {
+        const isOther = opt.includes("(specify)");
+        const isSelected = Array.isArray(ans.d11_1) && ans.d11_1.includes(opt);
+        
+        return (
+          <div key={opt}>
+            <button
+              onClick={() => {
+                const current = ans.d11_1 || [];
+                if (isSelected) {
+                  setField("d11_1", current.filter((item: string) => item !== opt));
+                } else {
+                  setField("d11_1", [...current, opt]);
+                }
+              }}
+              className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                isSelected
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              {opt}
+            </button>
+            
+            {isOther && isSelected && (
+              <input
+                type="text"
+                value={ans[`d11_1_other_${opt}`] || ""}
+                onChange={(e) => setField(`d11_1_other_${opt}`, e.target.value)}
+                placeholder="Please specify..."
+                className="mt-2 w-full px-4 py-2 border-2 border-gray-300 rounded-lg text-sm"
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
+
+        {/* Step 4: D11.b open-end */}
+        {step === 4 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Initiatives</h3>
             
@@ -452,8 +537,8 @@ export default function Dimension11Page() {
           </div>
         )}
 
-        {/* Step 4: Completion */}
-        {step === 4 && (
+        {/* Step 5: Completion */}
+        {step === 5 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
               <svg className="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -479,7 +564,7 @@ export default function Dimension11Page() {
         )}
 
         {/* Universal Navigation */}
-        {step > 1 && step < 4 && (
+        {step > 1 && step < 5 && (
           <div className="flex justify-between mt-8">
             <button 
               onClick={back} 
