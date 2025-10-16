@@ -888,7 +888,7 @@ export const DIMENSIONS_1_5_SUMMARY = {
     completionFlag: 'dimension4_complete',
   },
   dimension5: {
-    name: "Workplace Accommodations",
+    name: "Workplace Accommodations & Modifications",
     totalItems: D5_ITEMS.length,
     gridItems: D5_ITEMS.filter(i => i.gridItem).length,
     route: '/survey/dimensions/5',
