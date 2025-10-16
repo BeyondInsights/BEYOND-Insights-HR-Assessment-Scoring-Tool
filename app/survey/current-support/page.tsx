@@ -273,14 +273,14 @@ export default function CurrentSupportPage() {
  const OR3_BARRIERS = [
  "Budget constraints",
  "Leadership buy-in",
- "Small number of cases doesn't justify investment",
- "Concerns about setting precedent",
+ "Small employee population",
+ "Fear of setting precedent",
  "Limited HR and / or Benefits team bandwidth",
  "Lack of expertise / knowledge",
  "Other priorities take precedence",
- "Concerns about fairness across conditions",
- "Uncertainty about ROI",
- "Data privacy concerns (HIPAA, GDPR, other regulations)",
+ "Equity concerns across conditions",
+ "Unclear ROI / business case",
+ "Privacy / legal concerns",
  "Complex / varying legal requirements across markets",
  "Global consistency challenges",
  "Some other reason (specify)"
@@ -289,9 +289,9 @@ export default function CurrentSupportPage() {
  // FIXED: Added 5 missing items + reordered to match Word doc
  const OR5A_SUPPORT = [
  "Flexible work schedules",
- "Remote work options",
- "Paid caregiver leave",
- "Unpaid leave with job protection",
+ "Flexible work arrangements",
+ "Caregiver leave \(paid\)",
+ "Caregiver leave \(unpaid\)",
  "Employee assistance program (EAP) counseling",
  "Caregiver support groups",
  "Referrals to eldercare / dependent care resources",
@@ -299,7 +299,7 @@ export default function CurrentSupportPage() {
  "Respite care coverage",
  "Modified job duties / reduced workload",
  "Manager training on supporting caregivers",
- "Emergency dependent care when regular arrangements unavailable",
+ "Backup care services",
  "Legal / financial planning resources",
  "Some other support (specify):",
  "Not able to provide caregiver support at this time"
