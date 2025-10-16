@@ -20,13 +20,20 @@ export default function CompanyProfile() {
     const general = JSON.parse(localStorage.getItem('general-benefits_data') || localStorage.getItem('general_benefits_data') || '{}');
     const current = JSON.parse(localStorage.getItem('current-support_data') || localStorage.getItem('current_support_data') || '{}');
     
-    // Load dimensions 1-6
+    // Load ALL 13 dimensions
     const dim1 = JSON.parse(localStorage.getItem('dimension1_data') || '{}');
     const dim2 = JSON.parse(localStorage.getItem('dimension2_data') || '{}');
     const dim3 = JSON.parse(localStorage.getItem('dimension3_data') || '{}');
     const dim4 = JSON.parse(localStorage.getItem('dimension4_data') || '{}');
     const dim5 = JSON.parse(localStorage.getItem('dimension5_data') || '{}');
     const dim6 = JSON.parse(localStorage.getItem('dimension6_data') || '{}');
+    const dim7 = JSON.parse(localStorage.getItem('dimension7_data') || '{}');
+    const dim8 = JSON.parse(localStorage.getItem('dimension8_data') || '{}');
+    const dim9 = JSON.parse(localStorage.getItem('dimension9_data') || '{}');
+    const dim10 = JSON.parse(localStorage.getItem('dimension10_data') || '{}');
+    const dim11 = JSON.parse(localStorage.getItem('dimension11_data') || '{}');
+    const dim12 = JSON.parse(localStorage.getItem('dimension12_data') || '{}');
+    const dim13 = JSON.parse(localStorage.getItem('dimension13_data') || '{}');
 
     // Get from authorization page storage
     const companyName = localStorage.getItem('login_company_name') || firmo.companyName || 'Organization';
@@ -52,6 +59,13 @@ export default function CompanyProfile() {
         { number: 4, name: 'Navigation & Expert Resources', data: dim4 },
         { number: 5, name: 'Workplace Accommodations', data: dim5 },
         { number: 6, name: 'Culture & Psychological Safety', data: dim6 },
+        { number: 7, name: 'Career Continuity & Advancement', data: dim7 },
+        { number: 8, name: 'Work Continuation & Resumption', data: dim8 },
+        { number: 9, name: 'Executive Commitment & Resources', data: dim9 },
+        { number: 10, name: 'Caregiver & Family Support', data: dim10 },
+        { number: 11, name: 'Prevention, Wellness & Legal Compliance', data: dim11 },
+        { number: 12, name: 'Continuous Improvement & Outcomes', data: dim12 },
+        { number: 13, name: 'Communication & Awareness', data: dim13 },
       ]
     });
     setLoading(false);
@@ -278,11 +292,11 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* DIMENSIONS - 2 per row */}
+        {/* ALL 13 DIMENSIONS - 2 per row */}
         {data.dimensions && data.dimensions.length > 0 && (
           <div className="mt-6">
             <h2 className="text-lg font-bold mb-3" style={{color:BRAND.gray[900]}}>
-              Dimensions of Support
+              13 Dimensions of Support
             </h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
