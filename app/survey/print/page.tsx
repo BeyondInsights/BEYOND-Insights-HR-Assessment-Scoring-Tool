@@ -7,6 +7,7 @@ import {
   FIRMOGRAPHICS, GENERAL_BENEFITS, CURRENT_SUPPORT,
   DIMENSIONS, CROSS_DIM, EI
 } from '../schema';
+import { useRouter } from 'next/navigation';
 
 /* Small custom SVGs */
 const Dot = ({ c='#CBD5E1' }: { c?: string }) => (<svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill={c}/></svg>);
@@ -52,6 +53,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 export default function SurveyPrint() {
+  const router = useRouter();
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' });
 
   return (
@@ -63,9 +65,24 @@ export default function SurveyPrint() {
           <div className="h-8 w-px bg-slate-200" />
           <img src="/cancer-careers-logo.png" alt="" className="h-14 w-auto" />
         </div>
-        <button onClick={() => window.print()} className="px-3 py-1.5 rounded text-white text-sm" style={{ backgroundColor: BRAND.primary }}>
-          Print / Save PDF
-        </button>
+        <div className="flex items-center gap-2">
+          {/* NEW: Return to Dashboard */}
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="px-3 py-1.5 rounded border text-sm font-semibold"
+            style={{ backgroundColor:'#fff', borderColor:BRAND.gray[300], color:BRAND.gray[800] }}
+            title="Return to Dashboard"
+          >
+            ← Dashboard
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="px-3 py-1.5 rounded text-white text-sm"
+            style={{ backgroundColor: BRAND.primary }}
+          >
+            Print / Save PDF
+          </button>
+        </div>
       </div>
 
       <h1 className="text-2xl font-black text-slate-900">CAC Employer Index — Full Survey (Read-Only)</h1>
