@@ -334,10 +334,12 @@ const FIELD_LABELS: Record<string, string> = {
   cd2: 'Biggest Implementation Challenges',
   cd2_other: 'Other Implementation Challenges',
   
+  ei1: 'Overall Program Impact',
   ei2: 'ROI Analysis Status',
   ei3: 'ROI Analysis Results',
   ei4: 'Advice to Other HR Leaders',
-  ei5: 'Other Serious Health Conditions Covered Beyond Cancer'
+  ei5: 'Other Serious Health Conditions Covered Beyond Cancer',
+  assignedQuestion: 'Assigned Survey Version'
 };
 
 /* =========================
@@ -507,9 +509,11 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
           
           return (
             <div key={option} className="rounded border-l-4 bg-white p-3" style={{ borderColor, backgroundColor: bgColor }}>
-              <div className="text-[10px] font-bold uppercase tracking-wide mb-2 flex items-center justify-between" style={{ color: BRAND.gray[700] }}>
+              <div className="text-xs font-black uppercase tracking-wide mb-2 flex items-center justify-between" style={{ color: BRAND.gray[900] }}>
                 <span>{option}</span>
-                <span className="text-xs font-black" style={{ color: borderColor }}>({count})</span>
+                <span className="text-sm font-black px-2 py-0.5 rounded" style={{ color: borderColor, backgroundColor: `${borderColor}15` }}>
+                  {count}
+                </span>
               </div>
               {count > 0 ? (
                 <ul className="space-y-1.5">
@@ -542,7 +546,17 @@ export default function CompanyProfileFixed() {
     const gen   = loadMany(['general-benefits_data', 'general_benefits_data', 'generalBenefits']);
     const cur   = loadMany(['current-support_data', 'current_support_data', 'currentSupport']);
     const cross = loadMany(['cross_dimensional_data', 'cross-dimensional_data', 'crossDimensional']);
-    const impact= loadMany(['employee_impact_data', 'ei_assessment_data', 'ei_data', 'employeeImpact']);
+    const impact= loadMany([
+      'employee_impact_data', 
+      'employee-impact_data',
+      'employee-impact-assessment_data',
+      'ei_assessment_data', 
+      'ei_data', 
+      'employeeImpact',
+      'impact_data'
+    ]);
+
+    console.log('Employee Impact Data loaded:', Object.keys(impact).length, 'keys', impact);
 
     const dimensions: Array<{ number: number; data: Record<string, any> }> = [];
     for (let i = 1; i <= 13; i++) {
@@ -551,6 +565,7 @@ export default function CompanyProfileFixed() {
         `dim${i}_data`, `dim_${i}_data`,
         `dimension${i}`, `dim${i}`
       ]);
+      console.log(`Dimension ${i} loaded:`, Object.keys(raw).length, 'keys');
       dimensions.push({ number: i, data: raw });
     }
 
@@ -600,7 +615,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
           <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-20 w-auto" />
           <div className="text-2xl font-black tracking-wide" style={{ color: BRAND.primary }}>
-            BEYOND Insights
+            Summary of Company Assessment
           </div>
           <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-16 w-auto" />
         </div>
