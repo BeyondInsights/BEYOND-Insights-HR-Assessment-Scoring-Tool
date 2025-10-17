@@ -485,59 +485,55 @@ function normalizeStatus(s: string) {
 /* =========================
    DIMENSION PARSER
 ========================= */
-
 function parseDimensionData(
   dimNumber: number,
   data: Record<string, any>
-): { programs: Array<any>; items: Array<{ question: string; response: string }> } {
-  const programs: Array<any> = [];
+): {
+  programs: Array<{ program: string; status: string }>;
+  items: Array<{ question: string; response: string }>;
+} {
+  const prefix = `d${dimNumber}`;
+  const programs: Array<{ program: string; status: string }> = [];
   const items: Array<{ question: string; response: string }> = [];
-  
-  console.log(`\n========== DIM ${dimNumber} ==========`);
-  console.log('Keys:', Object.keys(data));
 
-  Object.entries(data).forEach(([key, value]) => {
-    console.log(`\n"${key}": ${typeof value}`, value);
-    
-    // Handle grid fields (d1a, d2a, d3a, etc.) - these go into PROGRAMS
-    if (key.match(/^d\d+a$/) && typeof value === 'object' && !Array.isArray(value)) {
-      console.log('  → GRID FIELD (programs)');
-      Object.entries(value).forEach(([questionText, response]) => {
-        if (response && typeof response === 'string') {
-          programs.push({ question: questionText, response: response });
+  Object.entries(data || {}).forEach(([key, value]) => {
+    const isThisDim = key === `${prefix}a` || key.startsWith(`${prefix}_`) || key === prefix;
+    if (!isThisDim) return;
+
+    if (key === `${prefix}a` && hasProgramStatusMap(value)) {
+      Object.entries(value).forEach(([program, status]) => {
+        if (status != null && String(status).trim() !== '') {
+          programs.push({ program: String(program), status: String(status) });
         }
       });
       return;
     }
-    
-    // Skip _none fields
-    if (key.endsWith('_none')) {
-      console.log('  → SKIP (_none)');
-      return;
+
+    if (Array.isArray(value) && value.some(v => /other|specify/i.test(String(v)))) {
+      const otherText = (data as any)[`${key}_other`];
+      if (otherText) value = [...value, `Other: ${otherText}`];
     }
-    
-    // Handle ALL other d# fields - d#aa, d#b, d#_1, etc. - these go into ITEMS
-    if (key.match(/^d\d+/)) {
+
+    if (!key.endsWith('_none')) {
       const resp = selectedOnly(value);
-      console.log('  → selectedOnly:', resp);
-      
       if (resp) {
-        const label = getQuestionLabel(dimNumber, key);
-        console.log('  → ADD TO ITEMS:', label);
+        const question = getQuestionLabel(dimNumber, key);
+        console.log(`Dimension ${dimNumber} - Adding item:`, key, '→', question, '=', resp);
         items.push({
-          question: label,
-          response: Array.isArray(resp) ? resp.join(', ') : String(resp)
+          question,
+          response: Array.isArray(resp) ? resp.join(', ') : resp
         });
-      } else {
-        console.log('  → SKIP (no response)');
       }
     }
   });
-  
-  console.log(`Programs: ${programs.length}, Items: ${items.length}\n`);
+
+  console.log(`Dimension ${dimNumber} final:`, programs.length, 'programs,', items.length, 'items');
+  if (dimNumber === 3) {
+    console.log('D3 items:', items);
+  }
+
   return { programs, items };
 }
-
 
 /* =========================
    UI COMPONENTS
@@ -720,7 +716,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
           <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-20 w-auto" />
           <div className="text-2xl font-black tracking-wide" style={{ color: BRAND.primary }}>
-             • Company Profile &amp; Survey Summary • 
+            BEYOND Insights
           </div>
           <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-16 w-auto" />
         </div>
