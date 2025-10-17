@@ -97,9 +97,13 @@ const D1_QUESTIONS: Record<string, string> = {
   "Paid micro-breaks for medical-related side effects": "Paid micro-breaks for medical side effects",
   'd1_1': 'Paid medical leave duration',
   'd1_2': 'Intermittent leave details',
+  'd1_2_usa': 'Intermittent leave duration (USA)',
+  'd1_2_non_usa': 'Intermittent leave duration (Non-USA)',
   'd1_4a': 'Remote work availability details',
   'd1_4b': 'Reduced schedule details',
   'd1_5': 'Job protection duration',
+  'd1_5_usa': 'Job protection duration (USA)',
+  'd1_5_non_usa': 'Job protection duration (Non-USA)',
   'd1_6': 'Additional leave details',
   'd1aa': 'Geographic consistency across locations',
   'd1b': 'Additional medical leave/flexibility benefits not listed'
@@ -289,7 +293,7 @@ const D12_QUESTIONS: Record<string, string> = {
   "Program utilization analytics": "Program utilization analytics",
   'd12_1': 'Data sources used for measuring program effectiveness',
   'd12_2': 'How employee feedback is incorporated into program improvements',
-  'd12aa': 'Geographic consistency across locations',
+  'd12aa': 'Geographic consistency of measurement/tracking across locations',
   'd12b': 'Additional measurement/tracking approaches not listed'
 };
 
@@ -389,6 +393,12 @@ const FIELD_LABELS: Record<string, string> = {
   'moderate': 'Moderate positive impact',
   'significant': 'Significant positive impact',
   'unable': 'Unable to assess',
+  
+  // Geographic consistency response options
+  'Only available in select locations': 'Only available in select locations',
+  'Vary across locations': 'Vary across locations',
+  'Generally consistent across all locations': 'Generally consistent across all locations',
+  'Only measured / tracked in select locations': 'Only measured/tracked in select locations',
   
   // EI1 Grid Items
   'Employee retention / tenure': 'Employee Retention & Tenure',
@@ -561,7 +571,13 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
   });
 
   const totalPrograms = programs.length;
-  const offeredCount = byStatus['Currently offer']?.length || byStatus['Currently use']?.length || 0;
+  // Count as "active" based on dimension-specific criteria
+  const activeStatuses = dimNumber === 3 ? ['Currently provide to managers'] :
+                        dimNumber === 12 ? ['Currently measure / track'] :
+                        dimNumber === 13 ? ['Currently use'] :
+                        ['Currently offer'];
+  
+  const offeredCount = activeStatuses.reduce((sum, status) => sum + (byStatus[status]?.length || 0), 0);
   const coverage = totalPrograms > 0 ? Math.round((offeredCount / totalPrograms) * 100) : 0;
 
   return (
@@ -699,7 +715,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
           <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-            {data.generatedAt}
+             {data.generatedAt}
             {data.email && ` • ${data.email}`}
           </p>
           <div className="mt-3 flex items-center gap-2 print:hidden">
