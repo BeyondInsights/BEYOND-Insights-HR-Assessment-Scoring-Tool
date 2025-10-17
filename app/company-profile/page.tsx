@@ -623,7 +623,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
           <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-            Company Profile &amp; Survey Summary • {data.generatedAt}
+            {data.generatedAt}
             {data.email && ` • ${data.email}`}
           </p>
           <div className="mt-3 flex items-center gap-2 print:hidden">
