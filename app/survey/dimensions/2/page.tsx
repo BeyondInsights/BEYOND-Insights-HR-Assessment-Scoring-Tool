@@ -1,8 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import { useRouter } from "next/navigation";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Footer from "@/components/Footer";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 
 function shuffleArray<T>(array: T[]): T[] {
  const shuffled = [...array];
@@ -200,7 +204,7 @@ useEffect(() => {
  const hasAnyOffered = Object.values(ans.d2a || {}).some(
  (status) => status === "Currently offer"
  );
- const showD2aa = isMultiCountry && hasAnyOffered;
+ const showD2aa = isMultiCountry && hasOffered;
 
  return (
  <div className="min-h-screen bg-gray-50 flex flex-col">

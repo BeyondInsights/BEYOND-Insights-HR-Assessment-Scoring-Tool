@@ -1,8 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import { useRouter } from "next/navigation";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Footer from "@/components/Footer";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -132,7 +136,7 @@ export default function Dimension6Page() {
  (status) => status === "Currently offer"
  );
  
- const showD6aa = isMultiCountry && hasAnyOffered;
+ const showD6aa = isMultiCountry && hasOffered;
  const showD6_2 = hasAnyOffered;
 
  const getTotalSteps = () => {

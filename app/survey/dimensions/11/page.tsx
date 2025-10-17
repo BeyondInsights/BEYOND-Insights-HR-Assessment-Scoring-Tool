@@ -1,8 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import { useRouter } from "next/navigation";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Footer from "@/components/Footer";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -122,7 +126,7 @@ export default function Dimension11Page() {
  (status) => status === "Currently offer"
  );
  
- const showD11aa = isMultiCountry && hasAnyOffered;
+ const showD11aa = isMultiCountry && hasOffered;
  const showD11_1 = ans.d11a?.["At least 70% coverage for regionally / locally recommended screenings"] === "Currently offer";
  const D11_1_OPTIONS = [
  "Cervical cancer screening (Pap smear / HPV test)",

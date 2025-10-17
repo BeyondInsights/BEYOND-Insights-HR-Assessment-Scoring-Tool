@@ -1,8 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import { useRouter } from "next/navigation";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Footer from "@/components/Footer";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 
 function shuffleArray<T>(array: T[]): T[] {
  const shuffled = [...array];
@@ -119,7 +123,7 @@ export default function Dimension4Page() {
  (status) => status === "Currently offer"
  );
  
- const showD4aa = isMultiCountry && hasAnyOffered;
+ const showD4aa = isMultiCountry && hasOffered;
  const showD4_1 = ans.d4a?.["Dedicated navigation support to help employees understand benefits and access medical care"] === "Currently offer";
 
  const getTotalSteps = () => {
