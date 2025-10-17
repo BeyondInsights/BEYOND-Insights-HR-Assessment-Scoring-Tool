@@ -8,7 +8,7 @@
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
   },
