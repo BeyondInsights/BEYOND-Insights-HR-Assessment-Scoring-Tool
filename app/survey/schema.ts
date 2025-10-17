@@ -14,7 +14,7 @@ export const DIM_COLORS: string[] = [
   '#84CC16', '#A855F7', '#EAB308'
 ];
 
-/* ===== Scales (as in the instrument) ===== */
+/* ===== Scales ===== */
 // Generic “status” scale for D1–D12 unless overridden
 export const SCALE_DX = [
   'Not able to offer in foreseeable future',
@@ -22,7 +22,6 @@ export const SCALE_DX = [
   'In active planning / development',
   'Currently offer',
 ];
-
 // D13 has “use” + Unsure
 export const SCALE_D13 = [
   'Not able to utilize in foreseeable future',
@@ -31,16 +30,14 @@ export const SCALE_D13 = [
   'Currently use',
   'Unsure',
 ];
-
-// FIX: Dimension 3 (Manager Preparedness) uses a manager-availability framing
+// D3 (Manager Preparedness) — availability framing
 export const SCALE_D3 = [
   'Not in place',
   'Assessing feasibility',
   'In active planning / development',
   'Implemented (available to managers)',
 ];
-
-// FIX: Dimension 12 (Measurement & Outcomes) uses a measurement maturity framing
+// D12 (Measurement & Outcomes) — measurement maturity
 export const SCALE_D12 = [
   'Not measured',
   'Planning measurement',
@@ -53,7 +50,7 @@ export type Q = {
   id: string;                        // app key (e.g., c2, cb1a, or2b, ei3, d1aa…)
   label: string;                     // on-screen wording
   type: 'single'|'multi'|'scale'|'open';
-  options?: string[];                // for single/multi/scale when applicable
+  options?: string[];                // for single/multi/scale
   required?: boolean;
   conditional?: string;
   note?: string;
@@ -71,14 +68,14 @@ export type DimBlock = {
   followUps: Q[];                // only app follow-ups (incl. D#aa)
 };
 
-/* ===== Company Profile (app keys only; open-ended where app is open) ===== */
+/* ===== Company Profile (app keys only) ===== */
 export const FIRMOGRAPHICS: Section = {
   id: 'firmographics',
   title: 'Company Profile',
   questions: [
     { id:'companyName', label:'Company Name', type:'open', required:true },
 
-    // EXPANDED industries (don’t cut this down – match app coverage breadth)
+    // Expanded industry list (keep breadth—do not shrink)
     { id:'c2', label:'Industry', type:'single', required:true,
       options:[
         'Manufacturing','Technology','Healthcare','Pharmaceuticals','Biotech',
@@ -95,7 +92,7 @@ export const FIRMOGRAPHICS: Section = {
     { id:'s8', label:'Total Employee Size (global)', type:'single', required:true,
       options:['1–99','100–499','500–4,999','5,000–24,999','25,000–49,999','50,000+'] },
 
-    // These are pure open-ended in the app
+    // True open-ended in app
     { id:'s9',  label:'Headquarters Location',           type:'open' },
     { id:'s9a', label:'Countries with Employee Presence',type:'open', note:'List primary countries or count' },
 
@@ -115,7 +112,6 @@ export const GENERAL_BENEFITS: Section = {
     { id:'c4', label:'% of Employees Eligible for Standard Benefits', type:'single',
       options:['< 25%','25–49%','50–74%','75–89%','90%+','Varies by market'] },
 
-    // EXPANDED: Standard package (common app coverage)
     { id:'cb1_standard', label:'Standard Benefits Package', type:'multi',
       options:[
         'Medical','Dental','Vision','Life / AD&D','Short-term disability (STD)','Long-term disability (LTD)',
@@ -124,7 +120,6 @@ export const GENERAL_BENEFITS: Section = {
         'Wellness stipend / allowance','Legal plan','Other (specify)'
       ] },
 
-    // EXPANDED: Leave/flex
     { id:'cb1_leave', label:'Leave & Flexibility Programs', type:'multi',
       options:[
         'Paid medical leave beyond legal minimums','Intermittent leave','Reduced schedule/part-time with benefits',
@@ -132,14 +127,12 @@ export const GENERAL_BENEFITS: Section = {
         'Job protection beyond legal minimums','Emergency leave','Leave donation bank','Other (specify)'
       ] },
 
-    // EXPANDED: Wellness/support
     { id:'cb1_wellness', label:'Wellness & Support Programs', type:'multi',
       options:[
         'Mental health counseling','Peer support groups','Health coaching','On-site / virtual fitness',
         'Nutrition coaching','Substance use support','Financial wellness','Sleep / resilience programs','Other (specify)'
       ] },
 
-    // EXPANDED: Financial & legal
     { id:'cb1_financial', label:'Financial & Legal Assistance', type:'multi',
       options:[
         'Financial counseling','Hardship grants','Legal assistance','Real-time cost estimator tools','Debt management support','Other (specify)'
@@ -154,7 +147,7 @@ export const GENERAL_BENEFITS: Section = {
   ],
 };
 
-/* ===== Current Support for EMCs (app keys only) ===== */
+/* ===== Current Support for EMCs (app keys) ===== */
 export const CURRENT_SUPPORT: Section = {
   id: 'current_support',
   title: 'Current Support for Employees Managing Cancer (EMCs)',
@@ -222,7 +215,7 @@ const PROMPT: Record<number,string> = {
   13:'For each option below, select ONE status.',
 };
 
-/* ===== Dimension support options (from app) ===== */
+/* ===== Dimension support options ===== */
 export const DIM_SUPPORT: Record<number,string[]> = {
   1: [
     'Paid medical leave beyond local / legal requirements',
@@ -388,92 +381,103 @@ export const DIM_SUPPORT: Record<number,string[]> = {
   ],
 };
 
-/* ===== Follow-ups (INCLUDES D#aa for ALL dimensions) ===== */
+/* ===== Standardized “Geographic consistency” response list for all D#aa ===== */
+const GEO_CONSISTENCY: string[] = [
+  'Consistent across all locations',
+  'Mostly consistent with minor market adjustments',
+  'Varies by region / country',
+  'Not applicable (single-country organization)',
+];
+
+/* ===== Follow-ups (INCLUDES D#aa across all dimensions) ===== */
 export const DIM_FOLLOWUPS: Record<number, Q[]> = {
-  // D1
   1: [
-    { id:'d1aa', label:'Geographic consistency across locations', type:'open' },  // <— D#aa
-    { id:'d1_1',  label:'Additional paid medical leave beyond legal minimums (weeks)', type:'open' },
-    { id:'d1_4a', label:'Additional remote work time for on-site roles (beyond policy/legal)', type:'open' },
-    { id:'d1_4b', label:'Duration allowed for reduced schedule with full benefits', type:'open' },
-    { id:'d1_5',  label:'Guaranteed job protection (weeks beyond legal)', type:'open' },
+    { id:'d1aa',  label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
+    { id:'d1_1',  label:'Additional paid medical leave beyond legal minimums (weeks)', type:'single',
+      options:['0','1–2','3–4','5–6','7–8','9–12','12+','Varies by market'] },
+    { id:'d1_4a', label:'Additional remote work time for on-site roles (beyond policy/legal)', type:'single',
+      options:['None','Up to 1 day/week','2–3 days/week','4–5 days/week','Case-by-case','Varies by market'] },
+    { id:'d1_4b', label:'Duration allowed for reduced schedule with full benefits', type:'single',
+      options:['< 1 month','1–3 months','4–6 months','> 6 months','Case-by-case','Varies by market'] },
+    { id:'d1_5',  label:'Guaranteed job protection (weeks beyond legal)', type:'single',
+      options:['0','1–4','5–8','9–12','13–26','> 26','Varies by market'] },
   ],
-
-  // D2
   2: [
-    { id:'d2aa', label:'Geographic consistency across locations', type:'open' },  // <— D#aa
-    { id:'d2_1', label:'Additional insurance coverage details', type:'open' },
-    { id:'d2_2', label:'How financial protection effectiveness is measured', type:'open' },
-    { id:'d2_5', label:'Health insurance premium handling during medical leave', type:'open' },
-    { id:'d2_6', label:'Financial counseling provider', type:'open' },
+    { id:'d2aa',  label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
+    { id:'d2_1',  label:'Additional insurance coverage details', type:'multi',
+      options:[
+        'Critical illness coverage','Supplemental illness coverage','Off-label / experimental therapy coverage',
+        'Advanced therapies (CAR-T / proton / immunotherapy)','Expanded network access','International treatment coverage',
+        'Case management program','Other (specify)'
+      ] },
+    { id:'d2_2',  label:'How financial protection effectiveness is measured', type:'multi',
+      options:[
+        'Claims / cost trend analysis','Employee surveys','Program utilization metrics','Disability duration',
+        'Financial hardship cases','Benchmarking vs. peers','Vendor QBRs / reports','Other (specify)'
+      ] },
+    { id:'d2_5',  label:'Health insurance premium handling during medical leave', type:'single',
+      options:[
+        'Employee rates maintained during leave','Employer covers full premium during leave',
+        'COBRA / local equivalent','Case-by-case','Varies by market'
+      ] },
+    { id:'d2_6',  label:'Financial counseling provider', type:'single',
+      options:[
+        'Internal HR / Benefits','EAP vendor','Financial wellness vendor','Insurance carrier',
+        'Third-party advisor','Multiple providers','Other (specify)'
+      ] },
   ],
-
-  // D3
   3: [
-    { id:'d3aa', label:'Geographic consistency across locations', type:'open' },  // <— D#aa
+    { id:'d3aa',  label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
     { id:'d3_1a', label:'Manager training requirement', type:'single', options:['Mandatory','Recommended','Optional','Varies'] },
     { id:'d3_1',  label:'% of managers who completed training (past 2 years)', type:'single',
       options:['<10%','10–24%','25–49%','50–74%','75–99%','100%','Unsure','Do not track'] },
   ],
-
-  // D4
   4: [
-    { id:'d4aa', label:'Geographic consistency across locations', type:'open' },  // <— D#aa
+    { id:'d4aa',  label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
     { id:'d4_1',  label:'Navigation provider type', type:'single',
       options:['Internal HR/Benefits','Third-party vendor','Hybrid','Carrier','Provider','Other'] },
   ],
-
-  // D5
   5: [
-    { id:'d5aa', label:'Geographic consistency across locations', type:'open' },  // <— D#aa
+    { id:'d5aa',  label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
   ],
-
-  // D6
   6: [
-    { id:'d6aa', label:'Geographic consistency across locations', type:'open' },  // <— D#aa
+    { id:'d6aa',  label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
     { id:'d6_2',  label:'How culture effectiveness is measured', type:'multi',
       options:['Pulse surveys','Focus groups','Exit interviews','Manager feedback','1:1 discussions','Other','Don’t measure'] },
   ],
-
-  // D7
   7: [
-    { id:'d7aa', label:'Geographic consistency across locations', type:'open' },  // <— D#aa
+    { id:'d7aa',  label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
   ],
-
-  // D8
   8: [
-    { id:'d8aa', label:'Geographic consistency across locations', type:'open' },  // <— D#aa
+    { id:'d8aa',  label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
   ],
-
-  // D9
   9: [
-    { id:'d9aa', label:'Geographic consistency across locations', type:'open' },  // <— D#aa
+    { id:'d9aa',  label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
   ],
-
-  // D10
   10: [
-    { id:'d10aa', label:'Geographic consistency across locations', type:'open' }, // <— D#aa
-    { id:'d10_1',  label:'Caregiver program eligibility details', type:'open' },
+    { id:'d10aa', label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
+    { id:'d10_1', label:'Caregiver program eligibility details (paid leave days)', type:'single',
+      options:['None','1–4 days','5–9 days','10–19 days','20+ days','Varies by market'] },
   ],
-
-  // D11
   11: [
-    { id:'d11aa', label:'Geographic consistency across locations', type:'open' }, // <— D#aa
-    { id:'d11_1',  label:'Specific preventive services covered at 100%', type:'open' },
+    { id:'d11aa', label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
+    { id:'d11_1', label:'Specific preventive services covered at 100%', type:'multi',
+      options:[
+        'Annual physical / wellness visit','Breast / cervical / colorectal screenings','Lung cancer screening (as eligible)',
+        'Genetic screening / counseling (as eligible)','Vaccinations (CDC/WHO schedule as applicable)',
+        'Other (specify)'
+      ] },
   ],
-
-  // D12
   12: [
-    { id:'d12aa', label:'Geographic consistency across locations', type:'open' }, // <— D#aa
-    { id:'d12_1',  label:'Data sources used to measure effectiveness', type:'multi',
+    { id:'d12aa', label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
+    { id:'d12_1', label:'Data sources used to measure effectiveness', type:'multi',
       options:['Surveys','Utilization data','Cost/outcomes','Benchmarks','Vendor reports','Other'] },
-    { id:'d12_2',  label:'How employee feedback is incorporated', type:'open' },  // <— open-ended (you flagged)
+    { id:'d12_2', label:'How employee feedback is incorporated', type:'single',
+      options:['Continuous (rolling)','Quarterly reviews','Semi-annual reviews','Annual reviews','Ad-hoc / as needed'] },
   ],
-
-  // D13
   13: [
-    { id:'d13aa', label:'Geographic consistency across locations', type:'open' }, // <— D#aa
-    { id:'d13_1',  label:'Frequency of awareness campaigns', type:'single',
+    { id:'d13aa', label:'Geographic consistency across locations', type:'single', options:GEO_CONSISTENCY },
+    { id:'d13_1', label:'Frequency of awareness campaigns', type:'single',
       options:['Monthly','Quarterly','Bi-annually','Annually','Ad-hoc'] },
   ],
 };
@@ -494,14 +498,14 @@ export const DIMENSIONS: DimBlock[] = Array.from({length:13}, (_,i) => {
     number: n,
     title: titleList[i],
     intro: INTRO[n],
-    questionText: PROMPT[n],
+    questionText: 'For each option below, select ONE status.',
     scale,
     supportOptions: DIM_SUPPORT[n] || [],
     followUps: DIM_FOLLOWUPS[n] || [],
   };
 });
 
-/* ===== Cross-Dim & EI (app keys only; keep open-endeds) ===== */
+/* ===== Cross-Dim & EI ===== */
 export const CROSS_DIM: Section = {
   id: 'cross_dim',
   title: 'Cross-Dimensional Assessment',
@@ -523,8 +527,8 @@ export const EI: Section = {
     { id:'ei1b', label:'Impact on Job Performance',    type:'scale', options:['Worse','Slightly worse','No change','Slightly better','Much better'] },
     { id:'ei1c', label:'Impact on Healthcare Costs',   type:'scale', options:['Increases','Slightly increases','No change','Slightly decreases','Decreases'] },
 
-    // OPEN-ENDED you flagged
     { id:'ei2',  label:'ROI Analysis Status',          type:'single', options:['Completed','In progress','Planned','Not planned'] },
+    // True open-endeds in app:
     { id:'ei3',  label:'ROI Analysis Results (if completed)', type:'open' },
     { id:'ei4',  label:'Advice to Other HR Leaders',   type:'open' },
     { id:'ei5',  label:'Other Serious Health Conditions Covered', type:'open' },
