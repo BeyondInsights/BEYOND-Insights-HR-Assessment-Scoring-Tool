@@ -69,14 +69,22 @@ export default function CompanyProfile() {
     const cross = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}');
     const impact = JSON.parse(localStorage.getItem('employee_impact_data') || '{}');
 
+    // Get ALL 13 dimensions separately
     const dims: any[] = [];
     for (let i = 1; i <= 13; i++) {
       const raw = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
-      dims.push({ number: i, name: DIM_TITLES[i], data: raw || {} });
+      if (Object.keys(raw).length > 0) {
+        dims.push({ number: i, name: DIM_TITLES[i], data: raw });
+      }
     }
 
-    const companyName = firmo.companyName || firmo.company_name || 'Organization';
-    const email = localStorage.getItem('auth_email') || '';
+    // Get ACTUAL company name from multiple sources
+    const companyName = localStorage.getItem('login_company_name') || 
+                       firmo.companyName || 
+                       firmo.company_name || 
+                       firmo.s8 || 
+                       'Organization';
+    const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email') || '';
     const firstName = localStorage.getItem('login_first_name') || '';
     const lastName = localStorage.getItem('login_last_name') || '';
 
@@ -109,9 +117,16 @@ export default function CompanyProfile() {
   const cur = data.current || {};
 
   const formatArray = (val: any) => {
-    if (Array.isArray(val)) return val.filter(Boolean).join(', ');
-    if (val && typeof val === 'object') return Object.keys(val).filter(k => val[k]).join(', ');
-    return val || null;
+    if (!val) return null;
+    if (Array.isArray(val)) {
+      const filtered = val.filter(Boolean);
+      return filtered.length > 0 ? filtered.join(', ') : null;
+    }
+    if (val && typeof val === 'object') {
+      const filtered = Object.keys(val).filter(k => val[k]);
+      return filtered.length > 0 ? filtered.join(', ') : null;
+    }
+    return val;
   };
 
   // POC data
@@ -162,34 +177,31 @@ export default function CompanyProfile() {
   };
 
   const Field = ({ label, value }: { label: string; value: any }) => {
-    const displayValue = value || '—';
+    if (!value) return null; // HIDE EMPTY FIELDS
     return (
       <div className="flex py-2 border-b last:border-0" style={{ borderColor: BRAND.gray[200] }}>
         <div className="w-48 pr-4 flex-shrink-0">
           <span className="text-xs font-semibold" style={{ color: BRAND.gray[600] }}>{label}:</span>
         </div>
         <div className="flex-1">
-          <span className="text-sm" style={{ color: BRAND.gray[900] }}>{displayValue}</span>
+          <span className="text-sm" style={{ color: BRAND.gray[900] }}>{value}</span>
         </div>
       </div>
     );
   };
 
-  // Get READABLE labels for dimension fields
+  // Get PROPER question labels
   const getDimensionFieldLabel = (field: string, dimNumber: number): string => {
-    // Handle multi-country consistency
     if (field === `d${dimNumber}aa`) return 'Multi-country consistency';
-    
-    // Handle open-ended fields
     if (field === `d${dimNumber}b`) return 'Additional practices/comments';
     
-    // Dimension-specific labels
+    // Dimension-specific REAL labels
     if (dimNumber === 1) {
       if (field === 'd1_1') return 'Additional paid medical leave weeks (USA)';
       if (field === 'd1_1b') return 'Additional paid medical leave weeks (Non-USA)';
-      if (field === 'd1_2') return 'How effectiveness is measured';
-      if (field === 'd1_4a') return 'Additional remote work time during treatment';
-      if (field === 'd1_4b') return 'Duration of part-time/reduced schedule';
+      if (field === 'd1_2') return 'How leave effectiveness is measured';
+      if (field === 'd1_4a') return 'Additional remote work time';
+      if (field === 'd1_4b') return 'Part-time/reduced schedule duration';
       if (field === 'd1_5_usa') return 'Job protection guarantee (USA)';
       if (field === 'd1_5_non_usa') return 'Job protection guarantee (Non-USA)';
       if (field === 'd1_6') return 'Disability benefit enhancements';
@@ -197,40 +209,31 @@ export default function CompanyProfile() {
     
     if (dimNumber === 2) {
       if (field === 'd2_1') return 'Additional insurance coverage details';
-      if (field === 'd2_2') return 'How financial protection is measured';
-      if (field === 'd2_5') return 'Health insurance premium handling during leave';
+      if (field === 'd2_2') return 'How financial protection effectiveness is measured';
+      if (field === 'd2_5') return 'Premium handling during leave';
       if (field === 'd2_6') return 'Financial counseling provider';
     }
     
     if (dimNumber === 3) {
-      if (field === 'd3_1') return 'Manager training requirement type';
+      if (field === 'd3_1') return 'Manager training requirement';
       if (field === 'd3_2') return 'Manager training completion rate';
     }
     
-    // Generic cleanup for other fields
-    return field.replace(/_/g, ' ').replace(/^d\d+[a-z]?_?/, '').replace(/\b\w/g, l => l.toUpperCase()) || field;
+    return field.replace(/_/g, ' ').replace(/^d\d+[a-z]?_?/, '');
   };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: BRAND.gray.bg }}>
-      {/* HEADER - WHITE BG, LOGOS UNCHANGED */}
+      {/* HEADER */}
       <div className="bg-white border-b" style={{ borderColor: BRAND.gray[200] }}>
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <div className="w-28" />
             <div className="flex-1 flex justify-center">
-              <img
-                src="/best-companies-2026-logo.png"
-                alt="Best Companies for Working with Cancer Award Logo"
-                className="h-20 w-auto drop-shadow-md"
-              />
+              <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-20 w-auto drop-shadow-md" />
             </div>
             <div className="flex justify-end">
-              <img
-                src="/cancer-careers-logo.png"
-                alt="Cancer and Careers Logo"
-                className="h-16 w-auto"
-              />
+              <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-16 w-auto" />
             </div>
           </div>
 
@@ -238,27 +241,16 @@ export default function CompanyProfile() {
             <h1 className="text-5xl font-black mb-2" style={{ color: BRAND.primary }}>
               {data.companyName}
             </h1>
-            <p className="text-base" style={{ color: BRAND.gray[600] }}>
-              Company Profile & Survey Summary
-            </p>
+            <p className="text-base" style={{ color: BRAND.gray[600] }}>Company Profile & Survey Summary</p>
             <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-              Generated: {data.generatedAt}
-              {data.email && ` • ${data.email}`}
+              Generated: {data.generatedAt}{data.email && ` • ${data.email}`}
             </p>
 
             <div className="mt-4 flex items-center justify-center gap-2 print:hidden">
-              <a
-                href="/dashboard"
-                className="px-4 py-2 text-sm font-semibold border rounded"
-                style={{ borderColor: BRAND.gray[200], color: BRAND.gray[900] }}
-              >
+              <a href="/dashboard" className="px-4 py-2 text-sm font-semibold border rounded" style={{ borderColor: BRAND.gray[200], color: BRAND.gray[900] }}>
                 Back to Dashboard
               </a>
-              <button
-                onClick={() => window.print()}
-                className="px-4 py-2 text-sm font-semibold rounded text-white"
-                style={{ backgroundColor: BRAND.primary }}
-              >
+              <button onClick={() => window.print()} className="px-4 py-2 text-sm font-semibold rounded text-white" style={{ backgroundColor: BRAND.primary }}>
                 Print PDF
               </button>
             </div>
@@ -266,9 +258,8 @@ export default function CompanyProfile() {
         </div>
       </div>
 
-      {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto px-6 py-6">
-        {/* ROW 1: Company + POC */}
+        {/* Company + POC */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           <div className="bg-white border-2 rounded-lg p-5" style={{ borderColor: BRAND.primary, borderLeftWidth: '6px' }}>
             <div className="flex items-center gap-2 mb-3">
@@ -302,7 +293,7 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* ROW 2: Benefits + Support */}
+        {/* Benefits + Support */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           <div className="bg-white border-2 rounded-lg p-5" style={{ borderColor: '#0D9488', borderLeftWidth: '6px' }}>
             <div className="flex items-center gap-2 mb-3">
@@ -341,7 +332,7 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* DIMENSIONS - 2 PER ROW WITH COLOR */}
+        {/* DIMENSIONS - 2 PER ROW */}
         {data.dimensions && data.dimensions.length > 0 && (
           <div className="mb-4">
             <div className="text-center mb-4 p-4 rounded-lg" style={{ background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.orange} 100%)` }}>
@@ -355,7 +346,6 @@ export default function CompanyProfile() {
                 const hasData = Object.keys(dimData).length > 0;
                 if (!hasData) return null;
 
-                // Color rotation
                 const colors = ['#6B2C91', '#F97316', '#0D9488', '#F59E0B', '#10B981', '#3B82F6'];
                 const color = colors[(dim.number - 1) % colors.length];
 
@@ -368,37 +358,44 @@ export default function CompanyProfile() {
                     </div>
                     <div className="p-4">
                       {Object.entries(dimData).map(([field, value]: [string, any]) => {
+                        // Skip empty fields
+                        if (!value || (typeof value === 'object' && Object.keys(value).length === 0)) return null;
+                        
                         // Skip open-ended "_b" fields with no content
                         if (field.match(/^d\d+_?b$/i) && !value) return null;
 
-                        // Handle nested objects (main assessment items)
+                        // Handle nested objects (main assessment)
                         if (value && typeof value === 'object' && !Array.isArray(value)) {
                           return (
                             <div key={field} className="mb-3">
                               <div className="text-xs font-bold mb-2 uppercase" style={{ color: BRAND.gray[700] }}>
-                                Main Assessment:
+                                Assessment Items:
                               </div>
-                              {Object.entries(value).map(([itemKey, itemValue]: [string, any]) => (
-                                <div key={itemKey} className="flex py-1.5 border-b last:border-0" style={{ borderColor: BRAND.gray[200] }}>
-                                  <div className="flex-1 text-xs" style={{ color: BRAND.gray[700] }}>{itemKey}</div>
-                                  <div className="text-xs font-semibold" style={{ color: BRAND.gray[900] }}>{itemValue || '—'}</div>
-                                </div>
-                              ))}
+                              {Object.entries(value).map(([itemKey, itemValue]: [string, any]) => {
+                                if (!itemValue) return null;
+                                return (
+                                  <div key={itemKey} className="flex py-1.5 border-b last:border-0" style={{ borderColor: BRAND.gray[200] }}>
+                                    <div className="w-1/2 pr-2 text-xs" style={{ color: BRAND.gray[700] }}>{itemKey}</div>
+                                    <div className="w-1/2 text-xs text-left" style={{ color: BRAND.gray[900] }}>{itemValue}</div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           );
                         }
 
-                        // Regular fields with READABLE LABELS
+                        // Regular fields
                         const fieldLabel = getDimensionFieldLabel(field, dim.number);
                         const displayValue = formatArray(value);
+                        if (!displayValue) return null;
 
                         return (
                           <div key={field} className="flex py-1.5 border-b last:border-0" style={{ borderColor: BRAND.gray[200] }}>
-                            <div className="w-40 pr-2 flex-shrink-0 text-xs font-semibold" style={{ color: BRAND.gray[600] }}>
+                            <div className="w-1/3 pr-2 flex-shrink-0 text-xs font-semibold" style={{ color: BRAND.gray[600] }}>
                               {fieldLabel}:
                             </div>
-                            <div className="flex-1 text-xs" style={{ color: BRAND.gray[900] }}>
-                              {displayValue || '—'}
+                            <div className="w-2/3 text-xs text-left" style={{ color: BRAND.gray[900] }}>
+                              {displayValue}
                             </div>
                           </div>
                         );
@@ -411,7 +408,7 @@ export default function CompanyProfile() {
           </div>
         )}
 
-        {/* ADDITIONAL ASSESSMENTS - WITH COLOR AND ICONS */}
+        {/* ADDITIONAL ASSESSMENTS */}
         {(Object.keys(data.cross || {}).length > 0 || Object.keys(data.impact || {}).length > 0) && (
           <div className="mb-4">
             <div className="text-center mb-4 p-3 rounded-lg" style={{ background: 'linear-gradient(135deg, #10B981 0%, #3B82F6 100%)' }}>
@@ -426,14 +423,21 @@ export default function CompanyProfile() {
                   </div>
                   <div className="p-4">
                     {Object.entries(data.cross).map(([key, value]: [string, any]) => {
-                      const label = key.toUpperCase().replace(/_/g, ' ').replace(/CD/g, '');
+                      const displayValue = formatArray(value);
+                      if (!displayValue) return null;
+                      
+                      let label = key.toUpperCase().replace(/_/g, ' ').replace(/CD/g, '').trim();
+                      if (key === 'cd1a') label = 'Top 3 Dimensions';
+                      if (key === 'cd1b') label = 'Bottom 3 Dimensions';
+                      if (key === 'cd2') label = 'Implementation Challenges';
+                      
                       return (
                         <div key={key} className="flex py-1.5 border-b last:border-0" style={{ borderColor: BRAND.gray[200] }}>
-                          <div className="w-32 pr-2 flex-shrink-0 text-xs font-semibold" style={{ color: BRAND.gray[600] }}>
+                          <div className="w-1/3 pr-2 flex-shrink-0 text-xs font-semibold" style={{ color: BRAND.gray[600] }}>
                             {label}:
                           </div>
-                          <div className="flex-1 text-xs" style={{ color: BRAND.gray[900] }}>
-                            {formatArray(value) || '—'}
+                          <div className="w-2/3 text-xs text-left" style={{ color: BRAND.gray[900] }}>
+                            {displayValue}
                           </div>
                         </div>
                       );
@@ -449,14 +453,22 @@ export default function CompanyProfile() {
                   </div>
                   <div className="p-4">
                     {Object.entries(data.impact).map(([key, value]: [string, any]) => {
-                      const label = key.toUpperCase().replace(/_/g, ' ').replace(/EI/g, '');
+                      const displayValue = formatArray(value);
+                      if (!displayValue) return null;
+                      
+                      let label = key.toUpperCase().replace(/_/g, ' ').replace(/EI/g, '').trim();
+                      if (key === 'ei1') label = 'Impact Grid';
+                      if (key === 'ei2') label = 'ROI Status';
+                      if (key === 'ei4') label = 'Advice for Others';
+                      if (key === 'ei5') label = 'Other Conditions';
+                      
                       return (
                         <div key={key} className="flex py-1.5 border-b last:border-0" style={{ borderColor: BRAND.gray[200] }}>
-                          <div className="w-32 pr-2 flex-shrink-0 text-xs font-semibold" style={{ color: BRAND.gray[600] }}>
+                          <div className="w-1/3 pr-2 flex-shrink-0 text-xs font-semibold" style={{ color: BRAND.gray[600] }}>
                             {label}:
                           </div>
-                          <div className="flex-1 text-xs" style={{ color: BRAND.gray[900] }}>
-                            {formatArray(value) || '—'}
+                          <div className="w-2/3 text-xs text-left" style={{ color: BRAND.gray[900] }}>
+                            {displayValue}
                           </div>
                         </div>
                       );
@@ -479,7 +491,6 @@ export default function CompanyProfile() {
         @media print {
           @page { size: letter; margin: 0.5in; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          section { break-inside: avoid; }
         }
       `}</style>
     </div>
