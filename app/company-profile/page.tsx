@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 
-/* ===== Dimension Titles (unchanged) ===== */
+/* =========================
+   TITLES
+========================= */
 const DIM_TITLES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
@@ -19,9 +21,11 @@ const DIM_TITLES: Record<number, string> = {
   13: 'Communication & Awareness',
 };
 
-/* ===== Label maps (simple, human-readable labels) =====
-   Add to these maps anytime we learn more keys. Fallback will humanize unknowns. */
-const LABELS_D1: Record<string, string> = {
+/* =========================
+   LABEL MAPS (namespaced)
+   - Add keys as needed. These prevent D2/D3 crossing.
+========================= */
+const D1: Record<string, string> = {
   d1aa: 'Multi-country consistency',
   d1_1: 'Additional paid medical leave (USA) — weeks',
   d1_1b: 'Additional paid medical leave (Non-USA) — weeks',
@@ -33,7 +37,7 @@ const LABELS_D1: Record<string, string> = {
   d1_6: 'Disability benefit enhancements offered',
 };
 
-const LABELS_D2: Record<string, string> = {
+const D2: Record<string, string> = {
   d2aa: 'Multi-country consistency',
   d2_1: 'Additional insurance coverage details',
   d2_1a: 'Supplemental coverage — details',
@@ -45,7 +49,7 @@ const LABELS_D2: Record<string, string> = {
   d2_6: 'Financial counseling provider',
 };
 
-const LABELS_D3: Record<string, string> = {
+const D3: Record<string, string> = {
   d3aa: 'Multi-country consistency',
   d3_1: 'Manager training — required / recommended',
   d3_1a: 'Manager training — frequency / cadence',
@@ -53,323 +57,229 @@ const LABELS_D3: Record<string, string> = {
   d3_3: 'Manager resources — toolkits / job aids',
 };
 
-const DIM_LABEL_MAP: Record<number, Record<string, string>> = {
-  1: LABELS_D1,
-  2: LABELS_D2,
-  3: LABELS_D3,
+const DIM_LABELS: Record<number, Record<string, string>> = {
+  1: D1,
+  2: D2,
+  3: D3,
+  // extend similarly for D4..D13 as your key set grows
 };
 
-/* ===== Utilities ===== */
-const formatArray = (arr: any) => {
-  if (arr == null) return null;
-  if (Array.isArray(arr)) return arr.join(', ');
-  return String(arr);
+/* =========================
+   HELPERS
+========================= */
+const tryJSON = (raw: string | null) => {
+  try { return raw ? JSON.parse(raw) : {}; } catch { return {}; }
 };
 
-const cleanKeyToLabel = (rawKey: string) => {
-  // Remove d#_ prefixes, underscores → spaces, Title Case
-  return rawKey
-    .replace(/^d\d+[a-z]?_?/, '')
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (l) => l.toUpperCase())
-    .trim();
+const getFirst = (...vals: any[]) => vals.find(v => v != null && v !== '') ?? null;
+
+const loadMany = (keys: string[]) => {
+  for (const k of keys) {
+    const v = tryJSON(localStorage.getItem(k));
+    if (v && typeof v === 'object' && Object.keys(v).length) return v;
+  }
+  // allow empty object if key exists but empty
+  for (const k of keys) {
+    const raw = localStorage.getItem(k);
+    if (raw) return tryJSON(raw);
+  }
+  return {};
 };
 
-function getLabelForKey(dimNumber: number, key: string) {
-  const map = DIM_LABEL_MAP[dimNumber] || {};
-  if (map[key]) return map[key];
+// dimension key patterns we’ve seen across versions
+const dimKeyCandidates = (i: number) => ([
+  `dimension${i}_data`,
+  `dimension_${i}_data`,
+  `dim${i}_data`,
+  `dim_${i}_data`,
+  `dimension${i}`,
+  `dim${i}`,
+]);
 
-  // Generic patterns used elsewhere
+const humanize = (key: string) =>
+  key.replace(/^d\d+[a-z]?_?/, '')
+     .replace(/_/g, ' ')
+     .replace(/\b\w/g, (m) => m.toUpperCase())
+     .trim();
+
+const formatVal = (v: any) => {
+  if (v == null || v === '') return '—';
+  if (Array.isArray(v)) return v.join(', ');
+  return String(v);
+};
+
+const labelFor = (dim: number, key: string) => {
+  const map = DIM_LABELS[dim];
+  if (map && map[key]) return map[key];
   if (/aa$/i.test(key)) return 'Multi-country consistency';
   if (/other$/i.test(key)) return 'Other (specify)';
+  return humanize(key);
+};
 
-  return cleanKeyToLabel(key);
-}
+const isProgramStatusMap = (v: any) =>
+  v && typeof v === 'object' && !Array.isArray(v);
 
-/* ===== Simple, consistent section bits ===== */
+/* =========================
+   UI SUBCOMPONENTS
+========================= */
 const SectionHeader = ({ title }: { title: string }) => (
-  <div className="flex items-center gap-3 mb-6">
-    <h2 className="text-2xl font-extrabold text-gray-900">{title}</h2>
-    <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent" />
+  <div className="mb-5">
+    <h2 className="text-xl font-extrabold text-slate-900">{title}</h2>
   </div>
 );
 
-const DataRow = ({ label, value }: { label: string; value: any }) => {
-  const displayValue = value ?? '—';
+const DataRow = ({ label, value }: { label: string; value: any }) => (
+  <div className="px-3 py-2 rounded hover:bg-slate-50">
+    <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-1">{label}</div>
+    <div className="text-sm text-slate-900">{formatVal(value)}</div>
+  </div>
+);
+
+const StatusPill = ({ status }: { status: string }) => {
+  const s = String(status);
+  let bg = '#eef2ff', fg = '#3730a3';
+  if (/Currently offer/i.test(s)) { bg = '#dcfce7'; fg = '#065f46'; }
+  else if (/active planning|development/i.test(s)) { bg = '#dbeafe'; fg = '#1e40af'; }
+  else if (/Assessing feasibility/i.test(s)) { bg = '#fef3c7'; fg = '#92400e'; }
   return (
-    <div className="rounded-lg px-4 py-3 -mx-4 hover:bg-gray-50 transition-colors">
-      <div className="text-xs font-semibold mb-1.5 uppercase tracking-wide text-gray-500">
-        {label}
-      </div>
-      <div className="text-sm font-medium text-gray-900">{displayValue}</div>
-    </div>
+    <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+          style={{ backgroundColor: bg, color: fg }}>
+      {s}
+    </span>
   );
 };
 
-export default function CompanyProfile() {
-  const [data, setData] = useState<any>({});
-  const [loading, setLoading] = useState(true);
+/* =========================
+   MAIN
+========================= */
+export default function CompanyProfilePage() {
+  const [state, setState] = useState<any>(null);
 
-  /* ===== Load all stored pieces and assemble ===== */
   useEffect(() => {
-    const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
-    const general =
-      JSON.parse(localStorage.getItem('general-benefits_data') || '{}') ||
-      JSON.parse(localStorage.getItem('general_benefits_data') || '{}');
-    const current =
-      JSON.parse(localStorage.getItem('current-support_data') || '{}') ||
-      JSON.parse(localStorage.getItem('current_support_data') || '{}');
-    const cross = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}');
-    const impact = JSON.parse(localStorage.getItem('employee_impact_data') || '{}');
+    // core sections (try multiple historical keys to avoid blanks)
+    const firmo = loadMany(['firmographics_data', 'firmographics']);
+    const general = loadMany(['general-benefits_data', 'general_benefits_data', 'generalBenefits']);
+    const current = loadMany(['current-support_data', 'current_support_data', 'currentSupport']);
+    const cross = loadMany(['cross_dimensional_data', 'cross-dimensional_data', 'crossDimensional']);
+    const impact = loadMany(['employee_impact_data', 'ei_assessment_data', 'ei_data', 'employeeImpact']);
 
-    // Collect each dimension as its own card (prevents “grouping together” visually)
-    const dims: any[] = [];
-    for (let i = 1; i <= 13; i++) {
-      const raw = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
-      dims.push({
-        number: i,
-        name: DIM_TITLES[i],
-        data: raw && typeof raw === 'object' ? raw : {},
-      });
-    }
-
-    const companyName =
-      localStorage.getItem('login_company_name') || firmo.companyName || 'Organization';
-    const email = localStorage.getItem('login_email') || '';
-    const firstName = localStorage.getItem('login_first_name') || '';
-    const lastName = localStorage.getItem('login_last_name') || '';
-    const title = localStorage.getItem('login_title') || '';
-
-    setData({
-      companyName,
-      email,
-      firstName,
-      lastName,
-      title,
-      generatedAt: new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-      firmographics: firmo || {},
-      general: general || {},
-      current: current || {},
-      cross: cross || {},
-      impact: impact || {},
-      dimensions: dims,
+    // load dimensions 1..13, tolerant to key naming
+    const dimensions = Array.from({ length: 13 }, (_, idx) => {
+      const n = idx + 1;
+      const raw = loadMany(dimKeyCandidates(n));
+      return { number: n, name: DIM_TITLES[n], data: raw && typeof raw === 'object' ? raw : {} };
     });
-    setLoading(false);
+
+    const companyName = getFirst(
+      localStorage.getItem('login_company_name'),
+      firmo?.companyName,
+      'Organization'
+    );
+
+    setState({
+      generatedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      companyName,
+      email: getFirst(localStorage.getItem('login_email')),
+      firstName: getFirst(localStorage.getItem('login_first_name')),
+      lastName: getFirst(localStorage.getItem('login_last_name')),
+      title: getFirst(localStorage.getItem('login_title'), firmo?.s5),
+      firmo, general, current, cross, impact, dimensions,
+    });
   }, []);
 
-  if (loading) {
+  if (!state) {
     return (
-      <div className="min-h-screen grid place-items-center bg-gray-50">
-        <div className="text-sm text-gray-600">Loading…</div>
+      <div className="min-h-screen grid place-items-center bg-slate-50">
+        <div className="text-sm text-slate-600">Loading…</div>
       </div>
     );
   }
 
-  /* ===== Readables ===== */
-  const firmo = data.firmographics || {};
-  const gen = data.general || {};
-  const cur = data.current || {};
-
+  // Derived summaries (light touch)
   const poc = {
-    name: `${data.firstName} ${data.lastName}`.trim() || null,
-    email: data.email || null,
-    department: firmo?.s4a || null,
-    jobFunction: firmo?.s4b || null,
-    title: data.title || firmo?.s5 || null,
-    responsibilities: formatArray(firmo?.s6),
-    influence: firmo?.s7 || null,
+    name: `${state.firstName ?? ''} ${state.lastName ?? ''}`.trim() || null,
+    email: state.email ?? null,
+    department: state.firmo?.s4a ?? null,
+    jobFunction: state.firmo?.s4b ?? null,
+    title: state.title ?? null,
+    responsibilities: state.firmo?.s6 ?? null,
+    influence: state.firmo?.s7 ?? null,
   };
 
   const company = {
-    name: data.companyName,
-    industry: firmo?.c2 || null,
-    revenue: firmo?.c5 || null,
-    size: firmo?.s8 || null,
-    hq: firmo?.s9 || null,
-    countries: firmo?.s9a || null,
+    name: state.companyName,
+    industry: state.firmo?.c2 ?? null,
+    revenue: state.firmo?.c5 ?? null,
+    size: state.firmo?.s8 ?? null,
+    hq: state.firmo?.s9 ?? null,
+    countries: state.firmo?.s9a ?? null,
   };
 
   const benefits = {
-    nationalHealthcare: gen?.cb1a || null,
-    eligibility: gen?.c3 || firmo?.c3 || null,
-    standard: formatArray(gen?.cb1_standard),
-    leave: formatArray(gen?.cb1_leave),
-    wellness: formatArray(gen?.cb1_wellness),
-    financial: formatArray(gen?.cb1_financial),
-    navigation: formatArray(gen?.cb1_navigation),
-    planned: formatArray(gen?.cb4),
-    remote: firmo?.c6 || null,
+    nationalHealthcare: state.general?.cb1a ?? null,
+    eligibility: state.general?.c3 ?? state.firmo?.c3 ?? null,
+    standard: state.general?.cb1_standard ?? null,
+    leave: state.general?.cb1_leave ?? null,
+    wellness: state.general?.cb1_wellness ?? null,
+    financial: state.general?.cb1_financial ?? null,
+    navigation: state.general?.cb1_navigation ?? null,
+    planned: state.general?.cb4 ?? null,
+    remote: state.firmo?.c6 ?? null,
   };
 
   const support = {
-    status: cur?.cb3a || null,
-    approach: cur?.or1 || null,
-    excluded: (cur?.c4 || firmo?.c4) ? formatArray(cur?.c4 || firmo?.c4) : null,
-    excludedPercent: cur?.c3 || firmo?.c3 || null,
-    triggers: formatArray(cur?.or2a),
-    impactfulChange: cur?.or2b || null,
-    barriers: formatArray(cur?.or3),
-    caregiver: formatArray(cur?.or5a),
-    monitoring: formatArray(cur?.or6),
+    status: state.current?.cb3a ?? null,
+    approach: state.current?.or1 ?? null,
+    excluded: getFirst(state.current?.c4, state.firmo?.c4),
+    excludedPercent: getFirst(state.current?.c3, state.firmo?.c3),
+    triggers: state.current?.or2a ?? null,
+    impactfulChange: state.current?.or2b ?? null,
+    barriers: state.current?.or3 ?? null,
+    caregiver: state.current?.or5a ?? null,
+    monitoring: state.current?.or6 ?? null,
   };
 
-  /* ===== Export helpers ===== */
   const downloadPDF = () => window.print();
 
-  const downloadTXT = () => {
-    let txt = `${data.companyName}\nCompany Profile & Survey Summary\nGenerated: ${data.generatedAt}\n\n`;
-
-    txt += `===== COMPANY PROFILE =====\n`;
-    txt += `Co. Name: ${company.name || '—'}\n`;
-    txt += `Industry: ${company.industry || '—'}\n`;
-    txt += `Annual Revenue: ${company.revenue || '—'}\n`;
-    txt += `Employee Size: ${company.size || '—'}\n`;
-    txt += `HQ Location: ${company.hq || '—'}\n`;
-    txt += `# of Countries w. Presence: ${company.countries || '—'}\n\n`;
-
-    txt += `===== POC PROFILE =====\n`;
-    txt += `Name: ${poc.name || '—'}\n`;
-    txt += `Email Address: ${poc.email || '—'}\n`;
-    txt += `Department: ${poc.department || '—'}\n`;
-    txt += `Primary Job Function: ${poc.jobFunction || '—'}\n`;
-    txt += `Title / Level: ${poc.title || '—'}\n`;
-    txt += `Responsibility / Influence: ${poc.responsibilities || '—'}\n`;
-    txt += `Level of influence re: workplace support: ${poc.influence || '—'}\n\n`;
-
-    txt += `===== GENERAL BENEFITS LANDSCAPE =====\n`;
-    txt += `% of Emp w/ access to national healthcare: ${benefits.nationalHealthcare || '—'}\n`;
-    txt += `% of Emp eligible for Standard Benefits: ${benefits.eligibility || '—'}\n`;
-    txt += `Standard Benefits offered: ${benefits.standard || '—'}\n`;
-    txt += `Leave & flexibility programs: ${benefits.leave || '—'}\n`;
-    txt += `Wellness & support programs: ${benefits.wellness || '—'}\n`;
-    txt += `Financial & legal assistance programs: ${benefits.financial || '—'}\n`;
-    txt += `Care navigation & support services: ${benefits.navigation || '—'}\n`;
-    txt += `Programs plan to rollout over N2Y: ${benefits.planned || '—'}\n`;
-    txt += `Approach to remote / hybrid work: ${benefits.remote || '—'}\n\n`;
-
-    txt += `===== CURRENT SUPPORT FOR EMCs =====\n`;
-    txt += `Status of Support Offerings: ${support.status || '—'}\n`;
-    txt += `Current approach to supporting EMCs: ${support.approach || '—'}\n`;
-    txt += `% of Emp excluded from workplace support benefits: ${support.excludedPercent || '—'}\n`;
-    txt += `Emp Groups excluded from workplace support benefits: ${support.excluded || '—'}\n`;
-    txt += `Triggers for developing programs: ${support.triggers || '—'}\n`;
-    if (support.impactfulChange) txt += `Most impactful change: ${support.impactfulChange}\n`;
-    if (support.barriers) txt += `Barriers to development: ${support.barriers}\n`;
-    txt += `Primary caregiver support programs offered: ${support.caregiver || '—'}\n`;
-    txt += `How monitor effectiveness of workplace support program: ${support.monitoring || '—'}\n\n`;
-
-    txt += `===== 13 DIMENSIONS OF SUPPORT =====\n\n`;
-    (data.dimensions || []).forEach((dim: any) => {
-      const entries = Object.entries(dim.data || {});
-      txt += `--- Dimension ${dim.number}: ${dim.name} ---\n`;
-      if (entries.length === 0) {
-        txt += `No responses recorded.\n\n`;
-        return;
-      }
-
-      // Sort keys for stable order
-      entries
-        .sort(([a], [b]) => a.localeCompare(b))
-        .forEach(([key, value]: [string, any]) => {
-          // Merge "Other" text if present
-          let v = value;
-          if (Array.isArray(v) && v.some((s) => /other|specify/i.test(s))) {
-            const otherText = (dim.data || {})[`${key}_other`];
-            if (otherText) v = [...v, `Other: ${otherText}`];
-          }
-
-          const label = getLabelForKey(dim.number, key);
-          txt += `${label}: ${formatArray(v) || '—'}\n`;
-        });
-      txt += `\n`;
-    });
-
-    if (Object.keys(data.cross || {}).length > 0) {
-      txt += `===== CROSS-DIMENSIONAL ASSESSMENT =====\n`;
-      Object.entries(data.cross).forEach(([key, value]: [string, any]) => {
-        txt += `${key.toUpperCase()}: ${formatArray(value) || '—'}\n`;
-      });
-      txt += `\n`;
-    }
-
-    if (Object.keys(data.impact || {}).length > 0) {
-      txt += `===== EMPLOYEE IMPACT ASSESSMENT =====\n`;
-      Object.entries(data.impact).forEach(([key, value]: [string, any]) => {
-        txt += `${key.toUpperCase()}: ${formatArray(value) || '—'}\n`;
-      });
-      txt += `\n`;
-    }
-
-    const blob = new Blob([txt], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${data.companyName}_profile_${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-slate-50">
 
-      {/* Header */}
-      <div className="border-b border-gray-200 bg-slate-800">
-        <div className="max-w-7xl mx-auto px-6 py-10">
-          <div className="flex items-center justify-between gap-6">
-            <img
-              src="/best-companies-2026-logo.png"
-              alt="Best Companies Award"
-              className="h-24"
-            />
-            <img
-              src="/cancer-careers-logo.png"
-              alt="Cancer and Careers"
-              className="h-16 brightness-0 invert"
-            />
+      {/* Header – lighter, clean, logos intact */}
+      <header className="bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-12 w-auto" />
+            <div className="h-10 w-px bg-slate-200" />
+            <div className="text-slate-900 font-black tracking-wide">BEYOND Insights</div>
           </div>
+          <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-8 w-auto" />
+        </div>
 
-          <div className="mt-6 text-center">
-            <h1 className="text-4xl font-black text-white">{data.companyName}</h1>
-            <p className="text-base text-gray-300 mt-1">Company Profile &amp; Survey Summary</p>
-            <p className="text-xs text-gray-400 mt-1">
-              Generated: {data.generatedAt}
-              {data.email && <span className="ml-2">• {data.email}</span>}
-            </p>
-
-            <div className="mt-6 flex items-center justify-center gap-3 print:hidden">
-              <a
-                href="/dashboard"
-                className="px-5 py-2.5 text-sm font-semibold rounded-lg border border-white/40 text-white bg-white/10 hover:bg-white/20 transition"
-              >
-                ← Back to Dashboard
-              </a>
-              <button
-                onClick={downloadPDF}
-                className="px-6 py-2.5 text-sm font-semibold rounded-lg text-white bg-violet-600 hover:bg-violet-700 transition"
-              >
-                Download PDF
-              </button>
-              <button
-                onClick={downloadTXT}
-                className="px-5 py-2.5 text-sm font-semibold rounded-lg text-white bg-orange-500 hover:bg-orange-600 transition"
-              >
-                Download TXT
-              </button>
-            </div>
+        <div className="max-w-7xl mx-auto px-6 pb-6">
+          <h1 className="text-3xl font-black text-slate-900">{state.companyName}</h1>
+          <p className="text-sm text-slate-600">
+            Company Profile &amp; Survey Summary • Generated {state.generatedAt}
+            {state.email ? <span className="ml-2">• {state.email}</span> : null}
+          </p>
+          <div className="mt-3 flex items-center gap-3 print:hidden">
+            <a href="/dashboard"
+               className="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50">
+              ← Back to Dashboard
+            </a>
+            <button onClick={downloadPDF}
+                    className="px-4 py-2 text-sm font-semibold rounded-lg text-white bg-violet-600 hover:bg-violet-700">
+              Download PDF
+            </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main */}
-      <main className="max-w-7xl mx-auto px-6 py-10">
+      <main className="max-w-7xl mx-auto px-6 py-8">
 
-        {/* Company & POC */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-          <div className="bg-white rounded-xl p-8 shadow border border-gray-100">
+        {/* Company / POC */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
             <SectionHeader title="Company Profile" />
             <div className="space-y-1">
               <DataRow label="Company Name" value={company.name} />
@@ -377,11 +287,11 @@ export default function CompanyProfile() {
               <DataRow label="Annual Revenue" value={company.revenue} />
               <DataRow label="Employee Size" value={company.size} />
               <DataRow label="HQ Location" value={company.hq} />
-              <DataRow label="# of Countries w. Presence" value={company.countries} />
+              <DataRow label="# of Countries with Presence" value={company.countries} />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-8 shadow border border-gray-100">
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
             <SectionHeader title="Point of Contact" />
             <div className="space-y-1">
               <DataRow label="Name" value={poc.name} />
@@ -395,20 +305,16 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* Benefits & Support */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-          <div className="bg-white rounded-xl p-8 shadow border border-gray-100">
+        {/* Benefits & Current Support */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
             <SectionHeader title="General Benefits Landscape" />
             <div className="space-y-1">
-              <DataRow label="% of Employees with National Healthcare" value={benefits.nationalHealthcare} />
-              <DataRow label="% of Employees Eligible for Standard Benefits" value={benefits.eligibility} />
-
-              <div className="pt-4 pb-1">
-                <div className="text-xs font-bold uppercase tracking-wide text-orange-600">
-                  Types of Benefits Offered
-                </div>
+              <DataRow label="% Employees with National Healthcare" value={benefits.nationalHealthcare} />
+              <DataRow label="% Employees Eligible for Standard Benefits" value={benefits.eligibility} />
+              <div className="pt-3 pb-1">
+                <div className="text-[11px] font-bold uppercase tracking-wide text-orange-600">Types of Benefits Offered</div>
               </div>
-
               <DataRow label="Standard Benefits" value={benefits.standard} />
               <DataRow label="Leave & Flexibility Programs" value={benefits.leave} />
               <DataRow label="Wellness & Support Programs" value={benefits.wellness} />
@@ -419,7 +325,7 @@ export default function CompanyProfile() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-8 shadow border border-gray-100">
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
             <SectionHeader title="Current Support for EMCs" />
             <div className="space-y-1">
               <DataRow label="Status of Support Offerings" value={support.status} />
@@ -427,110 +333,88 @@ export default function CompanyProfile() {
               <DataRow label="% of Employees Excluded" value={support.excludedPercent} />
               <DataRow label="Employee Groups Excluded" value={support.excluded} />
               <DataRow label="Triggers for Developing Programs" value={support.triggers} />
-              {support.impactfulChange && (
-                <DataRow label="Most Impactful Change" value={support.impactfulChange} />
-              )}
-              {support.barriers && (
-                <DataRow label="Barriers to Development" value={support.barriers} />
-              )}
+              {support.impactfulChange && <DataRow label="Most Impactful Change" value={support.impactfulChange} />}
+              {support.barriers && <DataRow label="Barriers to Development" value={support.barriers} />}
               <DataRow label="Caregiver Support Programs" value={support.caregiver} />
               <DataRow label="How Effectiveness is Monitored" value={support.monitoring} />
             </div>
           </div>
         </div>
 
-        {/* Dimensions */}
+        {/* 13 Dimensions */}
         <div className="mb-10">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold text-gray-900">13 Dimensions of Support</h2>
-            <p className="text-gray-600">Comprehensive assessment across all dimensions</p>
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-extrabold text-slate-900">13 Dimensions of Support</h2>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {(data.dimensions || []).map((dim: any) => {
-              const dimData = dim.data || {};
-              const entries = Object.entries(dimData);
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {state.dimensions.map((dim: any) => {
+              const raw = dim.data || {};
+              // stable order
+              const entries = Object.entries(raw).sort(([a], [b]) => a.localeCompare(b));
 
-              // Sort keys for stable presentation
-              const sorted = entries.sort(([a], [b]) => a.localeCompare(b));
+              // separate program/status maps from simple fields
+              const programBlocks: Array<[string, any]> = [];
+              const fieldRows: Array<[string, any]> = [];
+
+              entries.forEach(([k, v]) => {
+                if (isProgramStatusMap(v)) programBlocks.push([k, v]);
+                else fieldRows.push([k, v]);
+              });
+
+              // move “Other text” into arrays when relevant
+              const normalize = ([k, v]: [string, any]) => {
+                if (Array.isArray(v) && v.some((s) => /other|specify/i.test(String(s)))) {
+                  const otherText = raw[`${k}_other`];
+                  if (otherText) return [k, [...v, `Other: ${otherText}`]];
+                }
+                return [k, v];
+              };
 
               return (
-                <section
-                  key={dim.number}
-                  className="bg-white rounded-xl p-8 shadow border-2 border-violet-200"
-                >
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg bg-violet-600">
+                <section key={dim.number} className="bg-white border border-violet-200 rounded-xl p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold bg-violet-600">
                       {dim.number}
                     </div>
-                    <h3 className="text-lg font-bold text-violet-800 flex-1">{dim.name}</h3>
+                    <h3 className="text-base font-bold text-violet-800">{dim.name}</h3>
                   </div>
 
-                  {sorted.length === 0 ? (
-                    <div className="text-sm text-gray-500 italic">No responses recorded.</div>
-                  ) : (
-                    <div className="space-y-1">
-                      {sorted.map(([key, value]: [string, any]) => {
-                        // Merge “Other” text if applicable
-                        let displayValue = value;
-                        if (Array.isArray(value) && value.some((v: string) => /other|specify/i.test(v))) {
-                          const otherText = (dimData as any)[`${key}_other`];
-                          if (otherText) displayValue = [...value, `Other: ${otherText}`];
-                        }
-
-                        // If the value is a dictionary of program:status, show as chips
-                        if (
-                          typeof displayValue === 'object' &&
-                          displayValue !== null &&
-                          !Array.isArray(displayValue)
-                        ) {
-                          const items = Object.entries(displayValue);
+                  {/* Support Offering grid FIRST if present */}
+                  {programBlocks.length > 0 && (
+                    <div className="mb-4 pb-4 border-b border-slate-200">
+                      <div className="text-[11px] font-bold uppercase tracking-wide mb-2 text-orange-600">
+                        Support Offerings (Program Status)
+                      </div>
+                      <div className="space-y-2">
+                        {programBlocks.map(([k, v]) => {
+                          const items = Object.entries(v as Record<string, string>);
                           return (
-                            <div key={key} className="mb-4 pb-4 border-b border-gray-200">
-                              <div className="text-xs font-bold uppercase tracking-wide mb-2 text-orange-600">
-                                Programs &amp; Offerings
-                              </div>
-                              <div className="space-y-2">
-                                {items.map(([item, status]) => (
-                                  <div
-                                    key={item}
-                                    className="flex items-center justify-between gap-4 py-2 px-3 rounded-lg hover:bg-gray-50"
-                                  >
-                                    <span className="text-xs font-medium text-gray-600 flex-1">
-                                      {item}
-                                    </span>
-                                    <span
-                                      className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
-                                      style={{
-                                        backgroundColor:
-                                          status === 'Currently offer'
-                                            ? '#d1fae5'
-                                            : status === 'In active planning / development'
-                                            ? '#dbeafe'
-                                            : status === 'Assessing feasibility'
-                                            ? '#fef3c7'
-                                            : '#f3f4f6',
-                                        color:
-                                          status === 'Currently offer'
-                                            ? '#065f46'
-                                            : status === 'In active planning / development'
-                                            ? '#1e40af'
-                                            : status === 'Assessing feasibility'
-                                            ? '#92400e'
-                                            : '#4b5563',
-                                      }}
-                                    >
-                                      {String(status)}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
+                            <div key={k} className="space-y-2">
+                              {items.map(([program, status]) => (
+                                <div key={program} className="flex items-center justify-between gap-4 py-2 px-3 rounded hover:bg-slate-50">
+                                  <span className="text-[13px] text-slate-700">{program}</span>
+                                  <StatusPill status={String(status)} />
+                                </div>
+                              ))}
                             </div>
                           );
-                        }
+                        })}
+                      </div>
+                    </div>
+                  )}
 
-                        const label = getLabelForKey(dim.number, key);
-                        return <DataRow key={key} label={label} value={formatArray(displayValue)} />;
+                  {/* Remaining fields */}
+                  {fieldRows.length === 0 ? (
+                    programBlocks.length === 0 ? (
+                      <div className="text-sm text-slate-500 italic">No responses recorded.</div>
+                    ) : null
+                  ) : (
+                    <div className="space-y-1">
+                      {fieldRows.map((pair) => {
+                        const [k, v] = normalize(pair as [string, any]);
+                        const label = labelFor(dim.number, k);
+                        return <DataRow key={k} label={label} value={v} />;
                       })}
                     </div>
                   )}
@@ -541,31 +425,27 @@ export default function CompanyProfile() {
         </div>
 
         {/* Additional Assessments */}
-        {(Object.keys(data.cross || {}).length > 0 ||
-          Object.keys(data.impact || {}).length > 0) && (
+        {(Object.keys(state.cross || {}).length > 0 ||
+          Object.keys(state.impact || {}).length > 0) && (
           <div className="mb-10">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-extrabold text-gray-900">Additional Assessments</h2>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {Object.keys(data.cross || {}).length > 0 && (
-                <div className="bg-white rounded-xl p-8 shadow border border-gray-100">
-                  <SectionHeader title="Cross-Dimensional" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {Object.keys(state.cross || {}).length > 0 && (
+                <div className="bg-white border border-slate-200 rounded-xl p-6">
+                  <SectionHeader title="Cross-Dimensional Assessment" />
                   <div className="space-y-1">
-                    {Object.entries(data.cross).map(([key, value]: [string, any]) => (
-                      <DataRow key={key} label={key.toUpperCase()} value={formatArray(value)} />
+                    {Object.entries(state.cross).map(([k, v]) => (
+                      <DataRow key={k} label={humanize(k)} value={v} />
                     ))}
                   </div>
                 </div>
               )}
 
-              {Object.keys(data.impact || {}).length > 0 && (
-                <div className="bg-white rounded-xl p-8 shadow border border-gray-100">
-                  <SectionHeader title="Employee Impact" />
+              {Object.keys(state.impact || {}).length > 0 && (
+                <div className="bg-white border border-slate-200 rounded-xl p-6">
+                  <SectionHeader title="Employee Impact (EI) Assessment" />
                   <div className="space-y-1">
-                    {Object.entries(data.impact).map(([key, value]: [string, any]) => (
-                      <DataRow key={key} label={key.toUpperCase()} value={formatArray(value)} />
+                    {Object.entries(state.impact).map(([k, v]) => (
+                      <DataRow key={k} label={humanize(k)} value={v} />
                     ))}
                   </div>
                 </div>
@@ -575,19 +455,12 @@ export default function CompanyProfile() {
         )}
       </main>
 
+      {/* Print */}
       <style jsx>{`
         @media print {
-          @page {
-            size: letter;
-            margin: 0.5in;
-          }
-          body {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          .print\\:hidden {
-            display: none !important;
-          }
+          @page { size: letter; margin: 0.5in; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .print\\:hidden { display: none !important; }
         }
       `}</style>
     </div>
