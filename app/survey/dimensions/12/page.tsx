@@ -1,8 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import { useRouter } from "next/navigation";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Footer from "@/components/Footer";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 
 export default function Dimension12Page() {
   const router = useRouter();

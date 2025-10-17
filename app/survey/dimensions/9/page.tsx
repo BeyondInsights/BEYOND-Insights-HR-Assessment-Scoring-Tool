@@ -1,8 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import { useRouter } from "next/navigation";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Footer from "@/components/Footer";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -120,7 +124,7 @@ export default function Dimension9Page() {
  (status) => status === "Currently offer"
  );
  
- const showD9aa = isMultiCountry && hasAnyOffered;
+ const showD9aa = isMultiCountry && hasOffered;
 
  const getTotalSteps = () => {
  let total = 4; // intro, D9.a, D9.aa (conditional), D9.b
