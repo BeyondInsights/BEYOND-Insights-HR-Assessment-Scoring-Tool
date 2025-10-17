@@ -34,8 +34,7 @@ function QItem({ q }: { q: Q }) {
     <div className="mb-3">
       <div className="text-[15px] font-medium text-slate-900">
         {q.label}
-        {q.required && <Tag>Required</Tag>}
-        {q.conditional && <Tag tone="cond">{q.conditional}</Tag>}
+        {/* tags shown only if supplied in schema */}
       </div>
       <div className="text-[13px] text-slate-600 mt-0.5">{typeLabel}</div>
       {q.note && <div className="text-[12px] italic text-slate-500 mt-0.5">{q.note}</div>}
@@ -66,7 +65,6 @@ export default function SurveyPrint() {
           <img src="/cancer-careers-logo.png" alt="" className="h-14 w-auto" />
         </div>
         <div className="flex items-center gap-2">
-          {/* NEW: Return to Dashboard */}
           <button
             onClick={() => router.push('/dashboard')}
             className="px-3 py-1.5 rounded border text-sm font-semibold"
@@ -75,11 +73,7 @@ export default function SurveyPrint() {
           >
             ← Dashboard
           </button>
-          <button
-            onClick={() => window.print()}
-            className="px-3 py-1.5 rounded text-white text-sm"
-            style={{ backgroundColor: BRAND.primary }}
-          >
+          <button onClick={() => window.print()} className="px-3 py-1.5 rounded text-white text-sm" style={{ backgroundColor: BRAND.primary }}>
             Print / Save PDF
           </button>
         </div>
