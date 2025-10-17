@@ -64,6 +64,13 @@ const RESPONSE_OPTIONS_D3 = [
   'Not able to provide in foreseeable future'
 ];
 
+const RESPONSE_OPTIONS_D12 = [
+  'Currently measure / track',
+  'In active planning / development',
+  'Assessing feasibility',
+  'Not able to measure / track in foreseeable future'
+];
+
 const RESPONSE_OPTIONS_D13 = [
   'Currently use',
   'In active planning / development',
@@ -321,20 +328,33 @@ const FIELD_LABELS: Record<string, string> = {
   c5: 'Annual Revenue',
   c6: 'Remote/Hybrid Work Policy',
   
-  cb1: 'Standard Benefits Offered',
+  // General Benefits - Better Labels
+  cb1: 'Standard Benefits Package Overview',
+  cb1_standard: 'Standard Benefits Offered',
+  cb1_leave: 'Leave & Flexibility Benefits Offered',
+  cb1_wellness: 'Wellness & Support Benefits Offered',
+  cb1_financial: 'Financial & Legal Assistance Benefits Offered',
+  cb1_navigation: 'Care Navigation & Support Services Offered',
   cb1a: '% of Employees with National Healthcare Access',
-  cb2: 'Leave & Flexibility Programs Status',
+  cb2: 'Benefits Package Characterization vs. Industry',
+  cb2a: 'Leave Programs Availability Status',
+  cb2b: 'Wellness & Support Programs Status',
+  cb3: 'Financial & Legal Assistance Programs Status',
   cb3a: 'Cancer Support Program Characterization',
   cb3b: 'Key Cancer Support Program Features',
   cb3c: 'Conditions Covered by Support Programs',
   cb3d: 'Communication Methods for Support Programs',
+  cb4: 'Planned Benefits Enhancements',
   
-  or1: 'Current Support Level',
-  or2a: 'Triggers that Led to Program Development',
-  or2b: 'Most Impactful Change Made',
-  or3: 'Available Support Resources',
-  or5a: 'Key Program Features',
-  or6: 'Monitoring & Evaluation Approach',
+  // Current Support - Better Labels
+  or1: 'Current Approach to Supporting Employees with Serious Medical Conditions',
+  or2a: 'Triggers that Led to Enhanced Support Program Development',
+  or2b: 'Most Impactful Change Made to Support Programs',
+  or3: 'Primary Barriers Preventing More Comprehensive Support',
+  or4: 'Conditions Most Critical for Organization to Support',
+  or5a: 'Types of Caregiver Support Provided',
+  or6: 'How Organization Monitors Program Effectiveness While Maintaining Privacy',
+  or6_other: 'Other Monitoring Approach Details',
   
   cd1a: 'Top 3 Dimensions for Best Outcomes',
   cd1b: 'Bottom 3 Dimensions (Lowest Priority)',
@@ -430,11 +450,23 @@ const hasProgramStatusMap = (v: any) => v && typeof v === 'object' && !Array.isA
 
 function normalizeStatus(s: string) {
   const x = s.toLowerCase();
-  if (x.includes('currently')) return x.includes('use') ? 'Currently use' : 'Currently offer';
+  // D3-specific
+  if (x.includes('provide to managers') || (x.includes('currently provide') && x.includes('manager'))) return 'Currently provide to managers';
+  // D12-specific
+  if (x.includes('measure') || x.includes('track')) {
+    if (x.includes('currently')) return 'Currently measure / track';
+    if (x.includes('not able')) return 'Not able to measure / track in foreseeable future';
+  }
+  // D13-specific  
+  if (x.includes('currently use')) return 'Currently use';
+  // Standard
+  if (x.includes('currently') && !x.includes('provide') && !x.includes('use')) return 'Currently offer';
   if (x.includes('active') || x.includes('development') || x.includes('planning')) return 'In active planning / development';
   if (x.includes('assessing') || x.includes('feasibility')) return 'Assessing feasibility';
   if (x.includes('unsure')) return 'Unsure';
-  if (x.includes('not able')) return x.includes('utilize') ? 'Not able to utilize in foreseeable future' : 'Not able to offer in foreseeable future';
+  if (x.includes('not able to provide')) return 'Not able to provide in foreseeable future';
+  if (x.includes('not able to utilize')) return 'Not able to utilize in foreseeable future';
+  if (x.includes('not able')) return 'Not able to offer in foreseeable future';
   return 'Other';
 }
 
@@ -515,7 +547,10 @@ function DataRow({ label, value }: { label: string; value?: any }) {
 }
 
 function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: string; status: string }>; dimNumber: number }) {
-  const options = dimNumber === 13 ? RESPONSE_OPTIONS_D13 : dimNumber === 3 ? RESPONSE_OPTIONS_D3 : RESPONSE_OPTIONS;
+  const options = dimNumber === 13 ? RESPONSE_OPTIONS_D13 : 
+                  dimNumber === 12 ? RESPONSE_OPTIONS_D12 :
+                  dimNumber === 3 ? RESPONSE_OPTIONS_D3 : 
+                  RESPONSE_OPTIONS;
   const byStatus: Record<string, Array<string>> = {};
   options.forEach(opt => (byStatus[opt] = []));
   
@@ -656,7 +691,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
           <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-20 w-auto" />
           <div className="text-2xl font-black tracking-wide" style={{ color: BRAND.primary }}>
-            BEYOND Insights
+            Company Profile &amp; Survey Summary
           </div>
           <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-16 w-auto" />
         </div>
@@ -664,7 +699,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
           <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-            Company Profile &amp; Survey Summary • {data.generatedAt}
+            {data.generatedAt}
             {data.email && ` • ${data.email}`}
           </p>
           <div className="mt-3 flex items-center gap-2 print:hidden">
