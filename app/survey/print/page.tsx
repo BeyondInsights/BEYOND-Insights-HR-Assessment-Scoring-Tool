@@ -1,12 +1,23 @@
 'use client';
+
 import React from 'react';
-import { BRAND, FIRMOGRAPHICS, GENERAL_BENEFITS, CURRENT_SUPPORT, DIMENSIONS, CROSS_DIM, EI } from '../schema';
-import { BRAND, FIRMOGRAPHICS, GENERAL_BENEFITS, CURRENT_SUPPORT, DIMENSIONS, CROSS_DIM, EI, DIM_COLORS } from '../schema';
+import {
+  BRAND, DIM_COLORS,
+  FIRMOGRAPHICS, GENERAL_BENEFITS, CURRENT_SUPPORT,
+  DIMENSIONS, CROSS_DIM, EI
+} from '../schema';
 
-/* Small custom SVGs (no emojis) */
-const Dot = ({ c='#CBD5E1' }: { c?: string }) => (<svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill={c}/></svg>);
-const Bar = ({ c=BRAND.orange }: { c?: string }) => (<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v3H4zM4 11h16v3H4zM4 16h16v3H4z" fill={c}/></svg>);
+/* ===== Small custom SVGs (no emojis) ===== */
+const Dot = ({ c='#CBD5E1' }: { c?: string }) => (
+  <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill={c}/></svg>
+);
+const Bar = ({ c=BRAND.orange }: { c?: string }) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 6h16v3H4zM4 11h16v3H4zM4 16h16v3H4z" fill={c}/>
+  </svg>
+);
 
+/* ===== Badge + question item ===== */
 type Q = (typeof FIRMOGRAPHICS)['questions'][number];
 
 const Badge = ({ children, tone='req' }: { children: React.ReactNode; tone?: 'req'|'cond' }) => (
@@ -35,6 +46,7 @@ function QItem({ q }: { q: Q }) {
   );
 }
 
+/* ===== Generic section wrapper ===== */
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
     <section id={id} className="mt-8">
@@ -44,6 +56,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
+/* ===== Page ===== */
 export default function SurveyPrint() {
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' });
 
@@ -108,40 +121,43 @@ export default function SurveyPrint() {
         <h2 className="text-xl font-bold text-slate-900 mb-2">13 Dimensions of Support</h2>
         <p className="text-[13px] text-slate-600 mb-3">For each dimension, mark status of each support offering (column buckets), then answer follow-ups.</p>
 
-        {DIMENSIONS.map((d, idx) => (
-          <div key={d.number} className="mb-6 p-4 rounded border bg-white" style={{ borderColor: BRAND.gray[200] }}>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                   style={{ backgroundColor: ['#EF4444','#F59E0B','#10B981','#3B82F6','#6366F1','#8B5CF6','#EC4899','#14B8A6','#F97316','#06B6D4','#84CC16','#A855F7','#EAB308'][idx] }}>
-                {d.number}
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">{d.title}</h3>
-            </div>
-
-            {/* Matrix: buckets as columns, all present even if empty */}
-            <div className="grid gap-3" style={{ gridTemplateColumns:`repeat(${d.buckets.length}, minmax(0,1fr))` }}>
-              {d.buckets.map(bucket => (
-                <div key={bucket} className="rounded border p-3 bg-white" style={{ borderColor: BRAND.gray[200] }}>
-                  <div className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[600] }}>{bucket}</div>
-                  <ul className="text-[12px] text-slate-700 space-y-1">
-                    {d.supportOptions.length ? d.supportOptions.map(p => <li key={p} className="flex items-center gap-2"><Dot/><span>{p}</span></li>)
-                                             : <li className="italic text-slate-400">Support items shown when taking survey</li>}
-                  </ul>
+        {DIMENSIONS.map((d, idx) => {
+          const color = DIM_COLORS[idx % DIM_COLORS.length] ?? '#6B7280';
+          return (
+            <div key={d.number} className="mb-6 p-4 rounded border bg-white" style={{ borderColor: BRAND.gray[200] }}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: color }}>
+                  {d.number}
                 </div>
-              ))}
-            </div>
-
-            {/* Follow-ups */}
-            {d.followUps.length > 0 && (
-              <div className="mt-4">
-                <div className="text-sm font-semibold text-slate-800 mb-1">Follow-up questions</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
-                  {d.followUps.map(f => <QItem key={f.id} q={f} />)}
-                </div>
+                <h3 className="text-lg font-bold text-slate-900">{d.title}</h3>
               </div>
-            )}
-          </div>
-        ))}
+
+              {/* Matrix: buckets as columns */}
+              <div className="grid gap-3" style={{ gridTemplateColumns:`repeat(${d.buckets.length}, minmax(0,1fr))` }}>
+                {d.buckets.map(bucket => (
+                  <div key={bucket} className="rounded border p-3 bg-white" style={{ borderColor: BRAND.gray[200] }}>
+                    <div className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[600] }}>{bucket}</div>
+                    <ul className="text-[12px] text-slate-700 space-y-1">
+                      {d.supportOptions.length
+                        ? d.supportOptions.map(p => <li key={p} className="flex items-center gap-2"><Dot/><span>{p}</span></li>)
+                        : <li className="italic text-slate-400">Support items shown when taking survey</li>}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              {/* Follow-ups */}
+              {d.followUps.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-sm font-semibold text-slate-800 mb-1">Follow-up questions</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
+                    {d.followUps.map(f => <QItem key={f.id} q={f} />)}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </section>
 
       {/* Cross-Dim: three buckets side-by-side */}
@@ -175,7 +191,7 @@ export default function SurveyPrint() {
 
       {/* Print CSS */}
       <style jsx>{`
-        :global(html), :global(body) { font-size: 16px; } /* bump base type */
+        :global(html), :global(body) { font-size: 16px; }
         @media print {
           @page { size: letter; margin: 0.5in; }
           .print\\:hidden, button { display: none !important; }
@@ -190,4 +206,3 @@ export default function SurveyPrint() {
     </main>
   );
 }
-
