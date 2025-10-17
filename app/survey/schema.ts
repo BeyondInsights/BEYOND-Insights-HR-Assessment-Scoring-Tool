@@ -24,6 +24,13 @@ export type Q = { id: string; label: string; required?: boolean; conditional?: s
 export type Section = { id: string; title: string; questions: Q[] };
 export type DimBlock = { number: number; title: string; buckets: string[]; supportOptions: string[]; followUps: Q[] };
 
+// Distinct accent colors for the 13 dimension badges
+export const DIM_COLORS: string[] = [
+  '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1',
+  '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#06B6D4',
+  '#84CC16', '#A855F7', '#EAB308'
+];
+
 export const FIRMOGRAPHICS: Section = {
   id: 'firmographics',
   title: 'Company Profile',
