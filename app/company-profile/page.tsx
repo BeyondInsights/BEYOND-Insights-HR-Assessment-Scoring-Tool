@@ -57,6 +57,14 @@ const RESPONSE_OPTIONS = [
   'Not able to offer in foreseeable future'
 ];
 
+const RESPONSE_OPTIONS_D3 = [
+  'Currently provide to managers',
+  'In active planning / development',
+  'Assessing feasibility',
+  'Not able to utilize in foreseeable future',
+  'Unsure'
+];
+
 const RESPONSE_OPTIONS_D13 = [
   'Currently use',
   'In active planning / development',
