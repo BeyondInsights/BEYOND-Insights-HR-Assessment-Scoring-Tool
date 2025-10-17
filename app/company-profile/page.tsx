@@ -107,7 +107,7 @@ const D1_QUESTIONS: Record<string, string> = {
   'd1_5_usa': 'Job protection duration (USA)',
   'd1_5_non_usa': 'Job protection duration (Non-USA)',
   'd1_6': 'Additional leave details',
-  'd1aa': 'Geographic consistency across locations',
+  'd1aa': 'Are the Medical Leave & Flexibility support options your organization currently offers available across locations?',
   'd1b': 'Additional medical leave/flexibility benefits not listed'
 };
 
@@ -133,7 +133,7 @@ const D2_QUESTIONS: Record<string, string> = {
   'd2_2': 'How financial protection effectiveness is measured',
   'd2_5': 'Health insurance premium handling during medical leave',
   'd2_6': 'Who provides financial counseling services',
-  'd2aa': 'Geographic consistency across locations',
+  'd2aa': 'Are the Insurance & Financial Protection support options your organization currently offers available across locations?',
   'd2b': 'Additional insurance/financial protection benefits not listed'
 };
 
@@ -150,7 +150,7 @@ const D3_QUESTIONS: Record<string, string> = {
   "Privacy protection and confidentiality management": "Privacy protection and confidentiality management",
   'd3_1a': 'Manager training requirement type (mandatory vs. optional)',
   'd3_1': 'Percentage of managers who completed training in past 2 years',
-  'd3aa': 'Geographic consistency across locations',
+  'd3aa': 'Are the Manager Preparedness support options your organization currently provides to managers available across locations?',
   'd3b': 'Additional manager preparedness initiatives not listed'
 };
 
@@ -168,7 +168,7 @@ const D4_QUESTIONS: Record<string, string> = {
   'd4_1': 'Navigation services provider type',
   'd4_1a': 'Internal vs. external navigation support model',
   'd4_1b': 'Additional navigation service details',
-  'd4aa': 'Geographic consistency across locations',
+  'd4aa': 'Are the Navigation & Expert Resources support options your organization currently offers available across locations?',
   'd4b': 'Additional navigation/expert resources not listed'
 };
 
@@ -182,7 +182,7 @@ const D5_QUESTIONS: Record<string, string> = {
   "Modified dress code for medical devices": "Modified dress code for medical devices",
   "Service animal accommodations": "Service animal accommodations",
   "Parking accommodations": "Parking accommodations",
-  'd5aa': 'Geographic consistency across locations',
+  'd5aa': 'Are the Workplace Accommodations support options your organization currently offers available across locations?',
   'd5b': 'Additional workplace accommodations not listed'
 };
 
@@ -201,7 +201,7 @@ const D6_QUESTIONS: Record<string, string> = {
   "Anonymous benefits navigation tool or website (no login required)": "Anonymous benefits navigation tool/website",
   'd6_1': 'Types of peer support networks available',
   'd6_2': 'How effectiveness of culture initiatives is measured',
-  'd6aa': 'Geographic consistency across locations',
+  'd6aa': 'Are the Culture & Psychological Safety support options your organization currently offers available across locations?',
   'd6b': 'Additional culture/psychological safety initiatives not listed'
 };
 
@@ -215,7 +215,7 @@ const D7_QUESTIONS: Record<string, string> = {
   "Performance evaluation adjustments": "Performance evaluation adjustments",
   "Succession planning transparency": "Succession planning transparency",
   "Executive sponsorship programs": "Executive sponsorship programs",
-  'd7aa': 'Geographic consistency across locations',
+  'd7aa': 'Are the Career Continuity & Advancement support options your organization currently offers available across locations?',
   'd7b': 'Additional career continuity/advancement programs not listed'
 };
 
@@ -232,7 +232,7 @@ const D8_QUESTIONS: Record<string, string> = {
   "Job protection during recovery": "Job protection during recovery",
   "Temporary role modifications": "Temporary role modifications",
   "Extended accommodation period post-return": "Extended accommodation period post-return",
-  'd8aa': 'Geographic consistency across locations',
+  'd8aa': 'Are the Return-to-Work Excellence support options your organization currently offers available across locations?',
   'd8b': 'Additional return-to-work programs not listed'
 };
 
@@ -246,7 +246,7 @@ const D9_QUESTIONS: Record<string, string> = {
   "Transparent program evaluation metrics": "Transparent program evaluation metrics",
   'd9_2': 'Budget allocation details',
   'd9_3': 'Executive accountability mechanisms',
-  'd9aa': 'Geographic consistency across locations',
+  'd9aa': 'Are the Executive Commitment support options your organization currently offers available across locations?',
   'd9b': 'Additional executive commitment initiatives not listed'
 };
 
@@ -261,7 +261,7 @@ const D10_QUESTIONS: Record<string, string> = {
   "Bereavement support beyond standard policy": "Bereavement support beyond standard policy",
   "Family communication resources": "Family communication resources",
   'd10_1': 'Caregiver program eligibility details',
-  'd10aa': 'Geographic consistency across locations',
+  'd10aa': 'Are the Caregiver & Family Support options your organization currently offers available across locations?',
   'd10b': 'Additional caregiver/family support programs not listed'
 };
 
@@ -280,7 +280,7 @@ const D11_QUESTIONS: Record<string, string> = {
   "Risk factor tracking / reporting": "Risk factor tracking/reporting",
   "Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)": "Policies to support immuno-compromised colleagues",
   'd11_1': 'Specific preventive care services offered (screenings, genetic testing, vaccines)',
-  'd11aa': 'Geographic consistency across locations',
+  'd11aa': 'Are the Prevention & Wellness support options your organization currently offers available across locations?',
   'd11b': 'Additional prevention/wellness programs not listed'
 };
 
@@ -295,7 +295,7 @@ const D12_QUESTIONS: Record<string, string> = {
   "Program utilization analytics": "Program utilization analytics",
   'd12_1': 'Data sources used for measuring program effectiveness',
   'd12_2': 'How employee feedback is incorporated into program improvements',
-  'd12aa': 'Geographic consistency of measurement/tracking across locations',
+  'd12aa': 'Are the metrics/tracking your organization currently measures consistent across locations?',
   'd12b': 'Additional measurement/tracking approaches not listed'
 };
 
@@ -310,7 +310,7 @@ const D13_QUESTIONS: Record<string, string> = {
   "Family / caregiver communication inclusion": "Family/caregiver communication inclusion",
   "Anonymous information access options": "Anonymous information access options",
   'd13_1': 'Frequency of awareness campaigns about workplace support programs',
-  'd13aa': 'Geographic consistency across locations',
+  'd13aa': 'Are the Communication & Awareness approaches your organization currently uses consistent across locations?',
   'd13b': 'Additional communication/awareness approaches not listed'
 };
 
@@ -716,7 +716,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
           <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-20 w-auto" />
           <div className="text-2xl font-black tracking-wide" style={{ color: BRAND.primary }}>
-            BEYOND Insights
+            • Company Profile &amp; Survey Summary • 
           </div>
           <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-16 w-auto" />
         </div>
@@ -724,7 +724,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
           <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-            Company Profile &amp; Survey Summary • {data.generatedAt}
+            {data.generatedAt}
             {data.email && ` • ${data.email}`}
           </p>
           <div className="mt-3 flex items-center gap-2 print:hidden">
