@@ -485,11 +485,13 @@ function normalizeStatus(s: string) {
 /* =========================
    DIMENSION PARSER
 ========================= */
+
 function parseDimensionData(
   dimNumber: number,
   data: Record<string, any>
-): Array<{ question: string; response: string }> {
-  const result: Array<{ question: string; response: string }> = [];
+): { programs: Array<any>; items: Array<{ question: string; response: string }> } {
+  const programs: Array<any> = [];
+  const items: Array<{ question: string; response: string }> = [];
   
   console.log(`\n========== DIM ${dimNumber} ==========`);
   console.log('Keys:', Object.keys(data));
@@ -497,12 +499,12 @@ function parseDimensionData(
   Object.entries(data).forEach(([key, value]) => {
     console.log(`\n"${key}": ${typeof value}`, value);
     
-    // Handle grid fields (d1a, d2a, d3a, etc.) - these are OBJECTS with program names
+    // Handle grid fields (d1a, d2a, d3a, etc.) - these go into PROGRAMS
     if (key.match(/^d\d+a$/) && typeof value === 'object' && !Array.isArray(value)) {
-      console.log('  → GRID FIELD');
+      console.log('  → GRID FIELD (programs)');
       Object.entries(value).forEach(([questionText, response]) => {
         if (response && typeof response === 'string') {
-          result.push({ question: questionText, response: response });
+          programs.push({ question: questionText, response: response });
         }
       });
       return;
@@ -514,15 +516,15 @@ function parseDimensionData(
       return;
     }
     
-    // Handle ALL other d# fields - d#aa, d#b, d#_1, d#_1a, etc.
+    // Handle ALL other d# fields - d#aa, d#b, d#_1, etc. - these go into ITEMS
     if (key.match(/^d\d+/)) {
       const resp = selectedOnly(value);
       console.log('  → selectedOnly:', resp);
       
       if (resp) {
         const label = getQuestionLabel(dimNumber, key);
-        console.log('  → ADD:', label);
-        result.push({
+        console.log('  → ADD TO ITEMS:', label);
+        items.push({
           question: label,
           response: Array.isArray(resp) ? resp.join(', ') : String(resp)
         });
@@ -532,9 +534,10 @@ function parseDimensionData(
     }
   });
   
-  console.log(`Total: ${result.length} items\n`);
-  return result;
+  console.log(`Programs: ${programs.length}, Items: ${items.length}\n`);
+  return { programs, items };
 }
+
 
 /* =========================
    UI COMPONENTS
