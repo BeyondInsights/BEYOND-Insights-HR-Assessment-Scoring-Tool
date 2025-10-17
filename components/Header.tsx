@@ -1,15 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
 import { useRouter, usePathname } from 'next/navigation'
-import { RotateCcw, FileText } from 'lucide-react'
+import { RotateCcw, FileText, Printer } from 'lucide-react'
 
 export default function Header() {
   const router = useRouter()
   const pathname = usePathname()
-  
+
   // Hide Back to Dashboard on Dashboard, Letter, and Authorization pages
   const showBack = !['/dashboard', '/letter', '/authorization'].includes(pathname)
-  
+  const onPrintPage = pathname === '/survey/print'
+
   const handleReset = () => {
     if (confirm('Clear all data and restart? This will log you out and cannot be undone.')) {
       localStorage.clear()
@@ -18,11 +19,14 @@ export default function Header() {
     }
   }
 
+  const goPrintView = () => router.push('/survey/print')
+  const triggerPrint = () => window.print()
+
   return (
     <header className="shadow-md">
       <div className="bg-white">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
-          {/* Left: Reset button + Profile button + Back button */}
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 gap-3">
+          {/* Left: Reset + Profile + Back */}
           <div className="flex items-center gap-3">
             <button
               onClick={handleReset}
@@ -41,11 +45,12 @@ export default function Header() {
               <FileText className="w-4 h-4" />
               Review Your Company Profile
             </button>
-            
+
             {showBack ? (
               <button
                 onClick={() => router.push('/dashboard')}
-                className="bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-orange-700 transition"
+                className="bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-orange-700 transition text-sm"
+                title="Back to Dashboard"
               >
                 Back to Dashboard
               </button>
@@ -63,8 +68,17 @@ export default function Header() {
             />
           </div>
 
-          {/* Right: CAC logo */}
-          <div className="flex justify-end">
+          {/* Right: CAC logo + Print/Download */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onPrintPage ? triggerPrint : goPrintView}
+              className="flex items-center gap-2 bg-slate-800 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-slate-900 transition text-sm"
+              title={onPrintPage ? 'Print or save as PDF' : 'Open printable full survey'}
+            >
+              <Printer className="w-4 h-4" />
+              {onPrintPage ? 'Print / Save PDF' : 'Download / Print Full Survey'}
+            </button>
+
             <img
               src="/cancer-careers-logo.png"
               alt="Cancer and Careers Logo"
