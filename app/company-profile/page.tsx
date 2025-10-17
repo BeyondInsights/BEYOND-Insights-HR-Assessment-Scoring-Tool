@@ -343,11 +343,32 @@ const FIELD_LABELS: Record<string, string> = {
   
   // EI Assessment
   ei1: 'Program Impact by Outcome Area',
+  // EI Assessment  
   ei2: 'ROI Analysis Status',
   ei3: 'Approximate ROI',
   ei4: 'Advice to Other HR Leaders',
+  ei4_none: 'No Additional Advice Provided',
   ei5: 'Additional Aspects Not Addressed by Survey',
-  assignedQuestion: 'Assigned Survey Version',
+  ei5_none: 'No Additional Aspects',
+  assignedQuestion: 'Survey Version',
+  
+  // EI Response Value Mappings
+  'yes_basic': 'Yes, basic ROI analysis completed',
+  'yes_comprehensive': 'Yes, comprehensive ROI analysis completed',
+  'currently_conducting': 'Currently conducting ROI analysis',
+  'planning': 'Planning to measure ROI',
+  'no_plans': 'No plans to measure ROI',
+  'negative': 'Negative ROI (costs exceed benefits by >100%)',
+  'breakeven': 'Break-even (costs and benefits roughly equal)',
+  '1_1_2_0': '1.1-2.0x ROI (benefits 10-100% more than costs)',
+  '2_1_3_0': '2.1-3.0x ROI (benefits 2-3x the costs)',
+  '3_1_5_0': '3.1-5.0x ROI (benefits 3-5x the costs)',
+  'greater_5': '>5.0x ROI (benefits exceed 5x the costs)',
+  'no_impact': 'No positive impact',
+  'minimal': 'Minimal positive impact',
+  'moderate': 'Moderate positive impact',
+  'significant': 'Significant positive impact',
+  'unable': 'Unable to assess',
   
   // EI1 Grid Items
   'Employee retention / tenure': 'Employee Retention & Tenure',
@@ -897,44 +918,53 @@ export default function CompanyProfileFixed() {
               <h2 className="text-lg font-bold" style={{ color: BRAND.gray[900] }}>Employee Impact Assessment</h2>
             </div>
             
-            {/* EI1 Grid - expanded */}
+            {/* EI1 Grid - expanded and formatted properly */}
             {data.impact.ei1 && typeof data.impact.ei1 === 'object' && (
-              <div className="mb-4 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
-                <div className="text-sm font-bold mb-3" style={{ color: BRAND.gray[700] }}>Program Impact by Outcome Area</div>
-                <div className="space-y-2">
-                  {Object.entries(data.impact.ei1).map(([item, rating]) => (
-                    <div key={item} className="flex justify-between items-center py-2 px-3 rounded" style={{ backgroundColor: BRAND.gray[50] }}>
-                      <span className="text-sm font-medium" style={{ color: BRAND.gray[800] }}>
-                        {FIELD_LABELS[item] || item}
-                      </span>
-                      <span className="text-sm px-3 py-1 rounded" style={{ 
-                        backgroundColor: rating === 'significant' ? '#dcfce7' : 
-                                       rating === 'moderate' ? '#dbeafe' : 
-                                       rating === 'minimal' ? '#fef3c7' : BRAND.gray[100],
-                        color: rating === 'significant' ? '#065f46' : 
-                               rating === 'moderate' ? '#1e40af' : 
-                               rating === 'minimal' ? '#92400e' : BRAND.gray[700]
-                      }}>
-                        {String(rating).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </span>
-                    </div>
-                  ))}
+              <div className="mb-6 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
+                <div className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.primary }}>
+                  Program Impact by Outcome Area
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {Object.entries(data.impact.ei1).map(([item, rating]) => {
+                    const ratingStr = String(rating);
+                    const displayRating = FIELD_LABELS[ratingStr] || ratingStr.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const bgColor = ratingStr === 'significant' ? '#dcfce7' : 
+                                   ratingStr === 'moderate' ? '#dbeafe' : 
+                                   ratingStr === 'minimal' ? '#fef3c7' : 
+                                   ratingStr === 'unable' ? '#f3f4f6' : BRAND.gray[100];
+                    const textColor = ratingStr === 'significant' ? '#065f46' : 
+                                     ratingStr === 'moderate' ? '#1e40af' : 
+                                     ratingStr === 'minimal' ? '#92400e' : 
+                                     ratingStr === 'unable' ? BRAND.gray[600] : BRAND.gray[700];
+                    
+                    return (
+                      <div key={item} className="flex items-center justify-between py-2.5 px-4 rounded border" 
+                           style={{ borderColor: BRAND.gray[200], backgroundColor: BRAND.gray[50] }}>
+                        <span className="text-sm font-medium" style={{ color: BRAND.gray[900] }}>
+                          {FIELD_LABELS[item] || item}
+                        </span>
+                        <span className="text-xs font-semibold px-3 py-1.5 rounded" 
+                              style={{ backgroundColor: bgColor, color: textColor }}>
+                          {displayRating}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
             
             {/* Other EI fields */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
-              <div>
-                {Object.entries(data.impact).filter(([k]) => k !== 'ei1' && k !== 'assignedQuestion').slice(0, 2).map(([k, v]) => (
-                  <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
-                ))}
-              </div>
-              <div>
-                {Object.entries(data.impact).filter(([k]) => k !== 'ei1' && k !== 'assignedQuestion').slice(2).map(([k, v]) => (
-                  <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
-                ))}
-              </div>
+            <div className="space-y-3">
+              {Object.entries(data.impact)
+                .filter(([k]) => k !== 'ei1' && k !== 'assignedQuestion' && !k.endsWith('_none'))
+                .map(([k, v]) => {
+                  const val = selectedOnly(v);
+                  if (!val) return null;
+                  const displayVal = typeof val === 'string' && FIELD_LABELS[val] ? FIELD_LABELS[val] : 
+                                    Array.isArray(val) ? val.join(', ') : String(val);
+                  return <DataRow key={k} label={formatLabel(k)} value={displayVal} />;
+                })}
             </div>
           </div>
         )}
