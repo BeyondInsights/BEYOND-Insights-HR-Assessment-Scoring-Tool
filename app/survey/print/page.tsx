@@ -14,7 +14,7 @@ const Bar = ({ c=BRAND.orange }: { c?: string }) => (<svg width="18" height="18"
 
 type Q = (typeof FIRMOGRAPHICS)['questions'][number];
 
-const Badge = ({ children, tone='req' }: { children: React.ReactNode; tone?: 'req'|'cond' }) => (
+const Tag = ({ children, tone='req' }: { children: React.ReactNode; tone?: 'req'|'cond' }) => (
   <span className="ml-2 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase"
         style={{ color: tone==='req'?'#7F1D1D':'#1E3A8A', backgroundColor: tone==='req'?'#FEE2E2':'#DBEAFE', border:`1px solid ${tone==='req'?'#FCA5A5':'#93C5FD'}` }}>
     {tone==='req' ? 'Required' : 'Conditional'}
@@ -22,20 +22,22 @@ const Badge = ({ children, tone='req' }: { children: React.ReactNode; tone?: 're
 );
 
 function QItem({ q }: { q: Q }) {
+  const typeLabel =
+    q.type==='open'   ? 'Open-ended'
+  : q.type==='single' ? `Select one${q.options?.length ? `: ${q.options.join(' • ')}` : ''}`
+  : q.type==='multi'  ? `Select all that apply${q.options?.length ? `: ${q.options.join(' • ')}` : ''}`
+  : q.type==='scale'  ? `Scale: ${q.options?.join(' → ')}`
+  : '';
+
   return (
     <div className="mb-3">
       <div className="text-[15px] font-medium text-slate-900">
         {q.label}
-        {q.required && <Badge>Required</Badge>}
-        {q.conditional && <Badge tone="cond">{q.conditional}</Badge>}
+        {q.required && <Tag>Required</Tag>}
+        {q.conditional && <Tag tone="cond">{q.conditional}</Tag>}
       </div>
-      <div className="text-[13px] text-slate-600 mt-0.5">
-        {q.type==='text'   && <>Free text</>}
-        {q.type==='single' && <>Select one{q.options?.length ? <>: {q.options.join(' • ')}</> : null}</>}
-        {q.type==='multi'  && <>Select all that apply{q.options?.length ? <>: {q.options.join(' • ')}</> : null}</>}
-        {q.type==='scale'  && <>Scale: {q.options?.join(' → ')}</>}
-        {q.note && <div className="mt-0.5 italic text-slate-500">{q.note}</div>}
-      </div>
+      <div className="text-[13px] text-slate-600 mt-0.5">{typeLabel}</div>
+      {q.note && <div className="text-[12px] italic text-slate-500 mt-0.5">{q.note}</div>}
     </div>
   );
 }
@@ -76,7 +78,7 @@ export default function SurveyPrint() {
           <li className="flex items-center gap-2"><Dot/><span>SPDs / benefits plan summaries</span></li>
           <li className="flex items-center gap-2"><Dot/><span>Leave / RTW details (weeks, eligibility, job protection)</span></li>
           <li className="flex items-center gap-2"><Dot/><span>Disability %, advanced therapy coverage, caregiver benefits</span></li>
-          <li className="flex items-center gap-2"><Dot/><span>Navigation vendor names & program lists</span></li>
+          <li className="flex items-center gap-2"><Dot/><span>Navigation vendor lists</span></li>
           <li className="flex items-center gap-2"><Dot/><span>Global/market differences (if any)</span></li>
           <li className="flex items-center gap-2"><Dot/><span>Contacts for manager training & culture initiatives</span></li>
         </ul>
@@ -95,7 +97,7 @@ export default function SurveyPrint() {
         </div>
       </div>
 
-      {/* Sections */}
+      {/* Sections from app only */}
       <Section id={FIRMOGRAPHICS.id} title={FIRMOGRAPHICS.title}>
         {FIRMOGRAPHICS.questions.map(q => <QItem key={q.id} q={q} />)}
       </Section>
@@ -108,7 +110,7 @@ export default function SurveyPrint() {
         {CURRENT_SUPPORT.questions.map(q => <QItem key={q.id} q={q} />)}
       </Section>
 
-      {/* 13 Dimensions — list options ONCE + scale legend (no per-bucket repetition) */}
+      {/* 13 Dimensions — options listed once + scale legend */}
       <section id="dimensions" className="mt-8">
         <h2 className="text-xl font-bold text-slate-900 mb-2">13 Dimensions of Support</h2>
 
@@ -123,43 +125,24 @@ export default function SurveyPrint() {
                 <h3 className="text-lg font-bold text-slate-900">{d.title}</h3>
               </div>
 
-              {/* Official wording + description */}
               <div className="text-[13px] text-slate-700 mb-2">{d.intro}</div>
               <div className="text-[13px] text-slate-900 font-medium mb-2">{d.questionText}</div>
+              <div className="text-[12px] text-slate-600 mb-3"><span className="font-semibold">Scale:&nbsp;</span>{d.scale.join('  •  ')}</div>
 
-              {/* Scale legend (once) */}
-              <div className="text-[12px] text-slate-600 mb-3">
-                <span className="font-semibold">Scale:&nbsp;</span>{d.scale.join('  •  ')}
-              </div>
-
-              {/* Single list of options (no bucket repetition) */}
               <div className="rounded border p-3 mb-3 bg-white" style={{ borderColor: BRAND.gray[200] }}>
                 <div className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[600] }}>
                   Support options to be rated on the scale above
                 </div>
                 <ul className="text-[13px] text-slate-800 space-y-1">
-                  {d.supportOptions.map(p => (
-                    <li key={p} className="flex items-center gap-2"><Dot/><span>{p}</span></li>
-                  ))}
+                  {d.supportOptions.map(p => <li key={p} className="flex items-center gap-2"><Dot/><span>{p}</span></li>)}
                 </ul>
               </div>
 
-              {/* Follow-ups */}
               {d.followUps.length > 0 && (
                 <div>
                   <div className="text-sm font-semibold text-slate-800 mb-1">Follow-up questions</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
-                    {d.followUps.map(f => (
-                      <div key={f.id} className="mb-3">
-                        <div className="text-[15px] font-medium text-slate-900">{f.label}</div>
-                        <div className="text-[13px] text-slate-600 mt-0.5">
-                          {f.type==='text'   && <>Free text</>}
-                          {f.type==='single' && <>Select one{f.options?.length ? <>: {f.options.join(' • ')}</> : null}</>}
-                          {f.type==='multi'  && <>Select all that apply{f.options?.length ? <>: {f.options.join(' • ')}</> : null}</>}
-                          {f.type==='scale'  && <>Scale: {f.options?.join(' → ')}</>}
-                        </div>
-                      </div>
-                    ))}
+                    {d.followUps.map(f => <QItem key={f.id} q={f} />)}
                   </div>
                 </div>
               )}
