@@ -516,7 +516,7 @@ return (
  onClick={next}
  className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
  >
- Continue ?
+ Continue →
  </button>
  )}
  </div>
@@ -1119,7 +1119,7 @@ return (
  onClick={next} 
  className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
  >
- Continue ?
+ Continue →
  </button>
  </div>
 )}
