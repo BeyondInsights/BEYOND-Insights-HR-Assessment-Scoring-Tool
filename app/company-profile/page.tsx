@@ -877,11 +877,40 @@ export default function CompanyProfileFixed() {
                     ) : (
                       <>
                         {programs.length > 0 && <SupportMatrix programs={programs} dimNumber={dim.number} />}
-                        {items.length > 0 && (
+                        
+                        {/* Geographic consistency question - special highlighting */}
+                        {items.some(it => it.question.toLowerCase().includes('geographic consistency')) && (
+                          <div className="mb-4 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
+                            <div className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.orange }}>
+                              Geographic Availability
+                            </div>
+                            {items.filter(it => it.question.toLowerCase().includes('geographic consistency')).map((it, i) => (
+                              <div key={i} className="p-4 rounded border" style={{ borderColor: BRAND.gray[300], backgroundColor: BRAND.gray[50] }}>
+                                <div className="text-sm font-semibold mb-2" style={{ color: BRAND.gray[700] }}>
+                                  Are the {DIM_TITLE[dim.number]} support options your organization currently {dim.number === 12 ? 'measures/tracks' : 'offers'} available...?
+                                </div>
+                                <div className="text-base font-medium" style={{ color: BRAND.gray[900] }}>
+                                  {it.response}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Other follow-up items */}
+                        {items.filter(it => !it.question.toLowerCase().includes('geographic consistency')).length > 0 && (
                           <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8">
-                            <div>{items.slice(0, third).map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
-                            <div>{items.slice(third, third * 2).map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
-                            <div>{items.slice(third * 2).map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
+                            {(() => {
+                              const nonGeoItems = items.filter(it => !it.question.toLowerCase().includes('geographic consistency'));
+                              const third = Math.ceil(nonGeoItems.length / 3);
+                              return (
+                                <>
+                                  <div>{nonGeoItems.slice(0, third).map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
+                                  <div>{nonGeoItems.slice(third, third * 2).map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
+                                  <div>{nonGeoItems.slice(third * 2).map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
+                                </>
+                              );
+                            })()}
                           </div>
                         )}
                       </>
