@@ -61,8 +61,7 @@ const RESPONSE_OPTIONS_D3 = [
   'Currently provide to managers',
   'In active planning / development',
   'Assessing feasibility',
-  'Not able to utilize in foreseeable future',
-  'Unsure'
+  'Not able to provide in foreseeable future'
 ];
 
 const RESPONSE_OPTIONS_D13 = [
@@ -342,12 +341,25 @@ const FIELD_LABELS: Record<string, string> = {
   cd2: 'Biggest Implementation Challenges',
   cd2_other: 'Other Implementation Challenges',
   
-  ei1: 'Overall Program Impact',
+  // EI Assessment
+  ei1: 'Program Impact by Outcome Area',
   ei2: 'ROI Analysis Status',
-  ei3: 'ROI Analysis Results',
+  ei3: 'Approximate ROI',
   ei4: 'Advice to Other HR Leaders',
-  ei5: 'Other Serious Health Conditions Covered Beyond Cancer',
-  assignedQuestion: 'Assigned Survey Version'
+  ei5: 'Additional Aspects Not Addressed by Survey',
+  assignedQuestion: 'Assigned Survey Version',
+  
+  // EI1 Grid Items
+  'Employee retention / tenure': 'Employee Retention & Tenure',
+  'Employee morale': 'Employee Morale',
+  'Job satisfaction scores': 'Job Satisfaction Scores',
+  'Productivity during treatment': 'Productivity During Treatment',
+  'Time to return to work': 'Time to Return to Work',
+  'Recruitment success': 'Recruitment Success',
+  'Team cohesion': 'Team Cohesion',
+  'Trust in leadership': 'Trust in Leadership',
+  'Willingness to disclose health issues': 'Willingness to Disclose Health Issues',
+  'Overall engagement scores': 'Overall Engagement Scores'
 };
 
 /* =========================
@@ -482,7 +494,7 @@ function DataRow({ label, value }: { label: string; value?: any }) {
 }
 
 function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: string; status: string }>; dimNumber: number }) {
-  const options = dimNumber === 13 ? RESPONSE_OPTIONS_D13 : RESPONSE_OPTIONS;
+  const options = dimNumber === 13 ? RESPONSE_OPTIONS_D13 : dimNumber === 3 ? RESPONSE_OPTIONS_D3 : RESPONSE_OPTIONS;
   const byStatus: Record<string, Array<string>> = {};
   options.forEach(opt => (byStatus[opt] = []));
   
@@ -623,7 +635,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
           <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-20 w-auto" />
           <div className="text-2xl font-black tracking-wide" style={{ color: BRAND.primary }}>
-            Summary of Company Assessment
+            BEYOND Insights
           </div>
           <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-16 w-auto" />
         </div>
@@ -631,7 +643,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
           <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-            {data.generatedAt}
+            Company Profile &amp; Survey Summary • {data.generatedAt}
             {data.email && ` • ${data.email}`}
           </p>
           <div className="mt-3 flex items-center gap-2 print:hidden">
@@ -884,14 +896,42 @@ export default function CompanyProfileFixed() {
               </svg>
               <h2 className="text-lg font-bold" style={{ color: BRAND.gray[900] }}>Employee Impact Assessment</h2>
             </div>
+            
+            {/* EI1 Grid - expanded */}
+            {data.impact.ei1 && typeof data.impact.ei1 === 'object' && (
+              <div className="mb-4 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
+                <div className="text-sm font-bold mb-3" style={{ color: BRAND.gray[700] }}>Program Impact by Outcome Area</div>
+                <div className="space-y-2">
+                  {Object.entries(data.impact.ei1).map(([item, rating]) => (
+                    <div key={item} className="flex justify-between items-center py-2 px-3 rounded" style={{ backgroundColor: BRAND.gray[50] }}>
+                      <span className="text-sm font-medium" style={{ color: BRAND.gray[800] }}>
+                        {FIELD_LABELS[item] || item}
+                      </span>
+                      <span className="text-sm px-3 py-1 rounded" style={{ 
+                        backgroundColor: rating === 'significant' ? '#dcfce7' : 
+                                       rating === 'moderate' ? '#dbeafe' : 
+                                       rating === 'minimal' ? '#fef3c7' : BRAND.gray[100],
+                        color: rating === 'significant' ? '#065f46' : 
+                               rating === 'moderate' ? '#1e40af' : 
+                               rating === 'minimal' ? '#92400e' : BRAND.gray[700]
+                      }}>
+                        {String(rating).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Other EI fields */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
               <div>
-                {Object.entries(data.impact).slice(0, Math.ceil(Object.keys(data.impact).length / 2)).map(([k, v]) => (
+                {Object.entries(data.impact).filter(([k]) => k !== 'ei1' && k !== 'assignedQuestion').slice(0, 2).map(([k, v]) => (
                   <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
                 ))}
               </div>
               <div>
-                {Object.entries(data.impact).slice(Math.ceil(Object.keys(data.impact).length / 2)).map(([k, v]) => (
+                {Object.entries(data.impact).filter(([k]) => k !== 'ei1' && k !== 'assignedQuestion').slice(2).map(([k, v]) => (
                   <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
                 ))}
               </div>
