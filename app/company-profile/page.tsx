@@ -6,20 +6,27 @@ import React, { useEffect, useState } from 'react';
    BRAND
 ========================= */
 const BRAND = {
-  // Slightly brighter than #6B2C91 (optional tweak)
   primary: '#7A34A3',
+  orange: '#EA580C',
   gray: {
     900: '#0F172A',
+    800: '#1E293B',
     700: '#334155',
     600: '#475569',
     500: '#64748B',
     400: '#94A3B8',
     300: '#CBD5E1',
     200: '#E5E7EB',
-    bg:  '#F9FAFB',
-    white: '#FFFFFF',
+    100: '#F3F4F6',
+    50: '#F9FAFB',
   }
 };
+
+const DIM_COLORS = [
+  '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1',
+  '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#06B6D4',
+  '#84CC16', '#A855F7', '#EAB308'
+];
 
 /* =========================
    DIMENSION TITLES
@@ -41,82 +48,96 @@ const DIM_TITLE: Record<number, string> = {
 };
 
 /* =========================
+   ALL RESPONSE OPTIONS (for support matrix)
+========================= */
+const RESPONSE_OPTIONS = [
+  'Currently offer',
+  'In active planning / development',
+  'Assessing feasibility',
+  'Not able to offer in foreseeable future'
+];
+
+const RESPONSE_OPTIONS_D13 = [
+  'Currently use',
+  'In active planning / development',
+  'Assessing feasibility',
+  'Not able to utilize in foreseeable future',
+  'Unsure'
+];
+
+/* =========================
    COMPLETE QUESTION MAPS
-   (your maps, preserved)
 ========================= */
 
-// D1
 const D1_QUESTIONS: Record<string, string> = {
-  "Paid medical leave beyond local / legal requirements": "Paid medical leave beyond local / legal requirements",
-  "Intermittent leave beyond local / legal requirements": "Intermittent leave beyond local / legal requirements",
+  "Paid medical leave beyond local / legal requirements": "Paid medical leave beyond local/legal requirements",
+  "Intermittent leave beyond local / legal requirements": "Intermittent leave beyond local/legal requirements",
+  "Flexible work hours during treatment (e.g., varying start / end times, compressed schedules)": "Flexible work hours during treatment",
   "Remote work options for on-site employees": "Remote work options for on-site employees",
-  "Reduced schedule / part-time with full benefits": "Reduced schedule / part-time with full benefits",
-  "Job protection beyond local / legal requirements": "Job protection beyond local / legal requirements",
-  "Phased return-to-work programs": "Phased return-to-work programs",
-  "Leave donation programs": "Leave donation programs",
-  "Extended leave (12+ months)": "Extended leave (12+ months)",
-  "Temporary reassignment to less demanding role": "Temporary reassignment to less demanding role",
-  "Shift / schedule modifications": "Shift / schedule modifications",
+  "Reduced schedule / part-time with full benefits": "Reduced schedule/part-time with full benefits",
+  "Job protection beyond local / legal requirements": "Job protection beyond local/legal requirements",
+  "Emergency leave within 24 hours": "Emergency leave within 24 hours",
+  "Leave donation bank (employees can donate PTO to colleagues)": "Leave donation bank",
+  "Disability pay top-up (employer adds to disability insurance)": "Disability pay top-up",
+  "PTO accrual during leave": "PTO accrual during leave",
+  "Paid micro-breaks for medical-related side effects": "Paid micro-breaks for medical side effects",
   'd1_1': 'Paid medical leave duration',
   'd1_2': 'Intermittent leave details',
   'd1_4a': 'Remote work availability details',
   'd1_4b': 'Reduced schedule details',
   'd1_5': 'Job protection duration',
   'd1_6': 'Additional leave details',
-  'd1aa': 'Geographic consistency',
-  'd1b': 'Additional medical leave/flexibility benefits'
+  'd1aa': 'Geographic consistency across locations',
+  'd1b': 'Additional medical leave/flexibility benefits not listed'
 };
 
-// D2
 const D2_QUESTIONS: Record<string, string> = {
-  "Set out-of-pocket maximums (for in-network single coverage)": "Set out-of-pocket maximums (for in-network single coverage)",
-  "Travel / lodging reimbursement for specialized care beyond insurance coverage": "Travel / lodging reimbursement for specialized care beyond insurance coverage",
-  "Insurance advocacy / pre-authorization support": "Insurance advocacy / pre-authorization support",
-  "Long-term disability covering 60%+ of salary": "Long-term disability covering 60%+ of salary",
-  "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance": "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance",
-  "Voluntary supplemental illness insurance (with employer contribution)": "Voluntary supplemental illness insurance (with employer contribution)",
+  "Coverage for clinical trials and experimental treatments not covered by standard health insurance": "Coverage for clinical trials/experimental treatments",
+  "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance": "Coverage for advanced therapies (CAR-T, proton, immunotherapy)",
   "Paid time off for clinical trial participation": "Paid time off for clinical trial participation",
-  "Guaranteed job protection": "Guaranteed job protection",
-  "Employer-paid disability insurance supplements": "Employer-paid disability insurance supplements",
-  "Real-time cost estimator tools": "Real-time cost estimator tools",
-  "Accelerated life insurance benefits (partial payout for terminal / critical illness)": "Accelerated life insurance benefits (partial payout for terminal / critical illness)",
-  "Hardship grants program funded by employer": "Hardship grants program funded by employer",
+  "Set out-of-pocket maximums (for in-network single coverage)": "Set out-of-pocket maximums",
+  "Travel / lodging reimbursement for specialized care beyond insurance coverage": "Travel/lodging reimbursement for specialized care",
   "Financial counseling services": "Financial counseling services",
+  "Voluntary supplemental illness insurance (with employer contribution)": "Voluntary supplemental illness insurance (w/ employer contribution)",
+  "Real-time cost estimator tools": "Real-time cost estimator tools",
+  "Insurance advocacy / pre-authorization support": "Insurance advocacy/pre-authorization support",
   "$0 copay for specialty drugs": "$0 copay for specialty drugs",
+  "Hardship grants program funded by employer": "Hardship grants program (employer-funded)",
+  "Tax / estate planning assistance": "Tax/estate planning assistance",
   "Short-term disability covering 60%+ of salary": "Short-term disability covering 60%+ of salary",
-  "Coverage for clinical trials and experimental treatments not covered by standard health insurance": "Coverage for clinical trials and experimental treatments not covered by standard health insurance",
-  "Tax / estate planning assistance": "Tax / estate planning assistance",
+  "Long-term disability covering 60%+ of salary": "Long-term disability covering 60%+ of salary",
+  "Employer-paid disability insurance supplements": "Employer-paid disability insurance supplements",
+  "Guaranteed job protection": "Guaranteed job protection",
+  "Accelerated life insurance benefits (partial payout for terminal / critical illness)": "Accelerated life insurance benefits",
   'd2_1': 'Additional insurance coverage details',
   'd2_2': 'How financial protection effectiveness is measured',
   'd2_5': 'Health insurance premium handling during medical leave',
-  'd2_6': 'Who provides financial counseling',
-  'd2aa': 'Geographic consistency',
-  'd2b': 'Additional insurance/financial protection benefits'
+  'd2_6': 'Who provides financial counseling services',
+  'd2aa': 'Geographic consistency across locations',
+  'd2b': 'Additional insurance/financial protection benefits not listed'
 };
 
-// D3
 const D3_QUESTIONS: Record<string, string> = {
-  "Manager training on supporting employees managing cancer or other serious health conditions / illnesses and their teams": "Manager training on supporting employees managing cancer or other serious health conditions / illnesses and their teams",
+  "Manager training on supporting employees managing cancer or other serious health conditions / illnesses and their teams": "Manager training on supporting employees with serious health conditions",
   "Clear escalation protocol for manager response": "Clear escalation protocol for manager response",
   "Dedicated manager resource hub": "Dedicated manager resource hub",
-  "Empathy / communication skills training": "Empathy / communication skills training",
+  "Empathy / communication skills training": "Empathy/communication skills training",
   "Legal compliance training": "Legal compliance training",
   "Senior leader coaching on supporting impacted employees": "Senior leader coaching on supporting impacted employees",
-  "Manager evaluations include how well they support impacted employees": "Manager evaluations include how well they support impacted employees",
-  "Manager peer support / community building": "Manager peer support / community building",
+  "Manager evaluations include how well they support impacted employees": "Manager evaluations include support of impacted employees",
+  "Manager peer support / community building": "Manager peer support/community building",
   "AI-powered guidance tools": "AI-powered guidance tools",
   "Privacy protection and confidentiality management": "Privacy protection and confidentiality management",
   'd3_1a': 'Manager training requirement type (mandatory vs. optional)',
-  'd3_1': 'Percentage of managers who completed training (past 2 years)',
-  'd3aa': 'Geographic consistency',
-  'd3b': 'Additional manager preparedness initiatives'
+  'd3_1': 'Percentage of managers who completed training in past 2 years',
+  'd3aa': 'Geographic consistency across locations',
+  'd3b': 'Additional manager preparedness initiatives not listed'
 };
 
-// D4
 const D4_QUESTIONS: Record<string, string> = {
-  "Dedicated benefits navigator / care coordinator": "Dedicated benefits navigator / care coordinator",
+  "Dedicated benefits navigator / care coordinator": "Dedicated benefits navigator/care coordinator",
   "Cancer-specific navigation services": "Cancer-specific navigation services",
-  "Legal / regulatory guidance": "Legal / regulatory guidance",
+  "Legal / regulatory guidance": "Legal/regulatory guidance",
   "Second opinion services": "Second opinion services",
   "Clinical trial matching services": "Clinical trial matching services",
   "Fertility preservation guidance": "Fertility preservation guidance",
@@ -125,48 +146,45 @@ const D4_QUESTIONS: Record<string, string> = {
   "End-of-life planning support": "End-of-life planning support",
   "Specialist network access facilitation": "Specialist network access facilitation",
   'd4_1': 'Navigation services provider type',
-  'd4_1a': 'Internal vs. external navigation support',
+  'd4_1a': 'Internal vs. external navigation support model',
   'd4_1b': 'Additional navigation service details',
-  'd4aa': 'Geographic consistency',
-  'd4b': 'Additional navigation/expert resources'
+  'd4aa': 'Geographic consistency across locations',
+  'd4b': 'Additional navigation/expert resources not listed'
 };
 
-// D5
 const D5_QUESTIONS: Record<string, string> = {
   "Ergonomic workspace modifications": "Ergonomic workspace modifications",
-  "Assistive technology / equipment": "Assistive technology / equipment",
+  "Assistive technology / equipment": "Assistive technology/equipment",
   "Modified job duties (temporary or permanent)": "Modified job duties (temporary or permanent)",
   "Transportation accommodations": "Transportation accommodations",
-  "Flexible bathroom / rest break policies": "Flexible bathroom / rest break policies",
+  "Flexible bathroom / rest break policies": "Flexible bathroom/rest break policies",
   "Private space for medical needs": "Private space for medical needs",
   "Modified dress code for medical devices": "Modified dress code for medical devices",
   "Service animal accommodations": "Service animal accommodations",
   "Parking accommodations": "Parking accommodations",
-  'd5aa': 'Geographic consistency',
-  'd5b': 'Additional workplace accommodations'
+  'd5aa': 'Geographic consistency across locations',
+  'd5b': 'Additional workplace accommodations not listed'
 };
 
-// D6
 const D6_QUESTIONS: Record<string, string> = {
-  "Strong anti-discrimination policies specific to health conditions": "Strong anti-discrimination policies specific to health conditions",
+  "Strong anti-discrimination policies specific to health conditions": "Strong anti-discrimination policies (health-specific)",
   "Clear process for confidential health disclosures": "Clear process for confidential health disclosures",
   "Manager training on handling sensitive health information": "Manager training on handling sensitive health information",
   "Written anti-retaliation policies for health disclosures": "Written anti-retaliation policies for health disclosures",
-  "Employee peer support groups (internal employees with shared experience)": "Employee peer support groups (internal employees with shared experience)",
-  "Professional-led support groups (external facilitator / counselor)": "Professional-led support groups (external facilitator / counselor)",
+  "Employee peer support groups (internal employees with shared experience)": "Employee peer support groups (internal)",
+  "Professional-led support groups (external facilitator / counselor)": "Professional-led support groups (external facilitator)",
   "Stigma-reduction initiatives": "Stigma-reduction initiatives",
   "Specialized emotional counseling": "Specialized emotional counseling",
   "Optional open health dialogue forums": "Optional open health dialogue forums",
   "Inclusive communication guidelines": "Inclusive communication guidelines",
-  "Confidential HR channel for health benefits, policies and insurance-related questions": "Confidential HR channel for health benefits, policies and insurance-related questions",
-  "Anonymous benefits navigation tool or website (no login required)": "Anonymous benefits navigation tool or website (no login required)",
+  "Confidential HR channel for health benefits, policies and insurance-related questions": "Confidential HR channel for benefits/policy questions",
+  "Anonymous benefits navigation tool or website (no login required)": "Anonymous benefits navigation tool/website",
   'd6_1': 'Types of peer support networks available',
   'd6_2': 'How effectiveness of culture initiatives is measured',
-  'd6aa': 'Geographic consistency',
-  'd6b': 'Additional culture/psychological safety initiatives'
+  'd6aa': 'Geographic consistency across locations',
+  'd6b': 'Additional culture/psychological safety initiatives not listed'
 };
 
-// D7
 const D7_QUESTIONS: Record<string, string> = {
   "Career development plans maintained during treatment": "Career development plans maintained during treatment",
   "Promotion eligibility protection during leave": "Promotion eligibility protection during leave",
@@ -177,29 +195,27 @@ const D7_QUESTIONS: Record<string, string> = {
   "Performance evaluation adjustments": "Performance evaluation adjustments",
   "Succession planning transparency": "Succession planning transparency",
   "Executive sponsorship programs": "Executive sponsorship programs",
-  'd7aa': 'Geographic consistency',
-  'd7b': 'Additional career continuity/advancement programs'
+  'd7aa': 'Geographic consistency across locations',
+  'd7b': 'Additional career continuity/advancement programs not listed'
 };
 
-// D8
 const D8_QUESTIONS: Record<string, string> = {
   "Work-from-home during treatment (for on-site roles)": "Work-from-home during treatment (for on-site roles)",
   "Reduced schedule with benefits protection": "Reduced schedule with benefits protection",
   "Modified duties during treatment": "Modified duties during treatment",
   "Structured re-onboarding process": "Structured re-onboarding process",
   "Graduated return-to-work schedules": "Graduated return-to-work schedules",
-  "Manager check-ins / stay-in-touch programs": "Manager check-ins / stay-in-touch programs",
+  "Manager check-ins / stay-in-touch programs": "Manager check-ins/stay-in-touch programs",
   "Peer mentoring for returning employees": "Peer mentoring for returning employees",
   "Skills refresher programs": "Skills refresher programs",
   "Modified performance expectations during transition": "Modified performance expectations during transition",
   "Job protection during recovery": "Job protection during recovery",
   "Temporary role modifications": "Temporary role modifications",
   "Extended accommodation period post-return": "Extended accommodation period post-return",
-  'd8aa': 'Geographic consistency',
-  'd8b': 'Additional return-to-work programs'
+  'd8aa': 'Geographic consistency across locations',
+  'd8b': 'Additional return-to-work programs not listed'
 };
 
-// D9
 const D9_QUESTIONS: Record<string, string> = {
   "Visible executive leadership on health equity": "Visible executive leadership on health equity",
   "Dedicated budget for workplace support programs": "Dedicated budget for workplace support programs",
@@ -210,13 +226,12 @@ const D9_QUESTIONS: Record<string, string> = {
   "Transparent program evaluation metrics": "Transparent program evaluation metrics",
   'd9_2': 'Budget allocation details',
   'd9_3': 'Executive accountability mechanisms',
-  'd9aa': 'Geographic consistency',
-  'd9b': 'Additional executive commitment initiatives'
+  'd9aa': 'Geographic consistency across locations',
+  'd9b': 'Additional executive commitment initiatives not listed'
 };
 
-// D10
 const D10_QUESTIONS: Record<string, string> = {
-  "Caregiver leave (beyond FMLA / legal requirements)": "Caregiver leave (beyond FMLA / legal requirements)",
+  "Caregiver leave (beyond FMLA / legal requirements)": "Caregiver leave (beyond FMLA/legal requirements)",
   "Flexible scheduling for caregiving responsibilities": "Flexible scheduling for caregiving responsibilities",
   "Backup care services": "Backup care services",
   "Caregiver support groups": "Caregiver support groups",
@@ -226,31 +241,33 @@ const D10_QUESTIONS: Record<string, string> = {
   "Bereavement support beyond standard policy": "Bereavement support beyond standard policy",
   "Family communication resources": "Family communication resources",
   'd10_1': 'Caregiver program eligibility details',
-  'd10aa': 'Geographic consistency',
-  'd10b': 'Additional caregiver/family support programs'
+  'd10aa': 'Geographic consistency across locations',
+  'd10b': 'Additional caregiver/family support programs not listed'
 };
 
-// D11
 const D11_QUESTIONS: Record<string, string> = {
-  "Cancer screening programs": "Cancer screening programs",
-  "Genetic testing / counseling": "Genetic testing / counseling",
-  "Smoking cessation programs": "Smoking cessation programs",
-  "Wellness incentives": "Wellness incentives",
-  "Health risk assessments": "Health risk assessments",
-  "Nutrition counseling": "Nutrition counseling",
-  "Fitness programs / gym access": "Fitness programs / gym access",
-  "Mental health support": "Mental health support",
-  "Preventive care campaigns": "Preventive care campaigns",
+  "At least 70% coverage for regionally / locally recommended screenings": "At least 70% coverage for recommended screenings",
+  "Full or partial coverage for annual health screenings / checkups": "Coverage for annual health screenings/checkups",
+  "Targeted risk-reduction programs": "Targeted risk-reduction programs",
+  "Paid time off for preventive care appointments": "Paid time off for preventive care appointments",
+  "Legal protections beyond requirements": "Legal protections beyond requirements",
+  "Workplace safety assessments to minimize health risks": "Workplace safety assessments",
+  "Regular health education sessions": "Regular health education sessions",
+  "Individual health assessments (online or in-person)": "Individual health assessments",
+  "Genetic screening / counseling": "Genetic screening/counseling",
+  "On-site vaccinations": "On-site vaccinations",
+  "Lifestyle coaching programs": "Lifestyle coaching programs",
+  "Risk factor tracking / reporting": "Risk factor tracking/reporting",
+  "Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)": "Policies to support immuno-compromised colleagues",
   'd11_1': 'Specific preventive care services offered (screenings, genetic testing, vaccines)',
-  'd11aa': 'Geographic consistency',
-  'd11b': 'Additional prevention/wellness programs'
+  'd11aa': 'Geographic consistency across locations',
+  'd11b': 'Additional prevention/wellness programs not listed'
 };
 
-// D12
 const D12_QUESTIONS: Record<string, string> = {
   "Return-to-work success metrics": "Return-to-work success metrics",
   "Employee satisfaction tracking": "Employee satisfaction tracking",
-  "Business impact/ROI assessment": "Business impact/ROI assessment",
+  "Business impact / ROI assessment": "Business impact/ROI assessment",
   "Regular program enhancements": "Regular program enhancements",
   "External benchmarking": "External benchmarking",
   "Innovation pilots": "Innovation pilots",
@@ -258,24 +275,23 @@ const D12_QUESTIONS: Record<string, string> = {
   "Program utilization analytics": "Program utilization analytics",
   'd12_1': 'Data sources used for measuring program effectiveness',
   'd12_2': 'How employee feedback is incorporated into program improvements',
-  'd12aa': 'Geographic consistency',
-  'd12b': 'Additional measurement/tracking approaches'
+  'd12aa': 'Geographic consistency across locations',
+  'd12b': 'Additional measurement/tracking approaches not listed'
 };
 
-// D13
 const D13_QUESTIONS: Record<string, string> = {
   "Proactive communication at point of diagnosis disclosure": "Proactive communication at point of diagnosis disclosure",
   "Dedicated program website or portal": "Dedicated program website or portal",
-  "Regular company-wide awareness campaigns (at least quarterly)": "Regular company-wide awareness campaigns (at least quarterly)",
+  "Regular company-wide awareness campaigns (at least quarterly)": "Regular company-wide awareness campaigns (≥ quarterly)",
   "New hire orientation coverage": "New hire orientation coverage",
   "Manager toolkit for cascade communications": "Manager toolkit for cascade communications",
-  "Employee testimonials/success stories": "Employee testimonials/success stories",
+  "Employee testimonials / success stories": "Employee testimonials/success stories",
   "Multi-channel communication strategy": "Multi-channel communication strategy",
-  "Family/caregiver communication inclusion": "Family/caregiver communication inclusion",
+  "Family / caregiver communication inclusion": "Family/caregiver communication inclusion",
   "Anonymous information access options": "Anonymous information access options",
   'd13_1': 'Frequency of awareness campaigns about workplace support programs',
-  'd13aa': 'Geographic consistency',
-  'd13b': 'Additional communication/awareness approaches'
+  'd13aa': 'Geographic consistency across locations',
+  'd13b': 'Additional communication/awareness approaches not listed'
 };
 
 const ALL_DIMENSION_QUESTIONS: Record<string, Record<string, string>> = {
@@ -285,10 +301,9 @@ const ALL_DIMENSION_QUESTIONS: Record<string, Record<string, string>> = {
 };
 
 /* =========================
-   FIELD LABELS (your map)
+   FIELD LABELS
 ========================= */
 const FIELD_LABELS: Record<string, string> = {
-  // Firmographics (NO POC s3-s7, NO GENDER s2)
   companyName: 'Company Name',
   s8: 'Total Employee Size',
   s9: 'Headquarters Location',
@@ -298,51 +313,27 @@ const FIELD_LABELS: Record<string, string> = {
   c4: '% of Employees Eligible for Standard Benefits',
   c5: 'Annual Revenue',
   c6: 'Remote/Hybrid Work Policy',
-
-  // General Benefits
+  
   cb1: 'Standard Benefits Offered',
   cb1a: '% of Employees with National Healthcare Access',
-  cb1_standard: 'Standard Benefits Package',
-  cb1_leave: 'Leave & Flexibility Programs',
-  cb1_wellness: 'Wellness & Support Programs',
-  cb1_financial: 'Financial & Legal Assistance Programs',
-  cb1_navigation: 'Care Navigation & Support Services',
-  cb2: 'Leave & Flexibility Programs',
-  cb2a: 'Leave Programs Status',
-  cb2b: 'Wellness & Support Programs Status',
-  cb3: 'Financial & Legal Assistance Programs',
+  cb2: 'Leave & Flexibility Programs Status',
   cb3a: 'Cancer Support Program Characterization',
   cb3b: 'Key Cancer Support Program Features',
   cb3c: 'Conditions Covered by Support Programs',
   cb3d: 'Communication Methods for Support Programs',
-  cb4: 'Planned Benefits Enhancements',
-
-  // Current Support
-  cs1: 'Current Support Approach',
+  
   or1: 'Current Support Level',
   or2a: 'Triggers that Led to Program Development',
   or2b: 'Most Impactful Change Made',
   or3: 'Available Support Resources',
-  or4: 'Barriers to Enhanced Support',
   or5a: 'Key Program Features',
   or6: 'Monitoring & Evaluation Approach',
-
-  // Cross-Dimensional Assessment
+  
   cd1a: 'Top 3 Dimensions for Best Outcomes',
   cd1b: 'Bottom 3 Dimensions (Lowest Priority)',
   cd2: 'Biggest Implementation Challenges',
-
-  // Employee Impact Assessment
-  ei1: 'Impact on Employee Retention',
-  ei1a: 'Impact on Reducing Absenteeism',
-  ei1b: 'Impact on Maintaining Job Performance',
-  ei1c: 'Impact on Healthcare Cost Management',
-  ei1d: 'Impact on Employee Morale',
-  ei1e: 'Impact on Reputation as Employer of Choice',
-  ei1f: 'Impact on Productivity During Treatment',
-  ei1g: 'Impact on Manager Confidence in Supporting Employees',
-  ei1h: 'Impact on Quality of Return-to-Work Experience',
-  ei1i: 'Impact on Reducing Family/Caregiver Stress',
+  cd2_other: 'Other Implementation Challenges',
+  
   ei2: 'ROI Analysis Status',
   ei3: 'ROI Analysis Results',
   ei4: 'Advice to Other HR Leaders',
@@ -352,8 +343,6 @@ const FIELD_LABELS: Record<string, string> = {
 /* =========================
    HELPERS
 ========================= */
-const tryJSON = (raw: string | null) => { try { return raw ? JSON.parse(raw) : {}; } catch { return {}; } };
-
 const loadMany = (keys: string[]) => {
   for (const k of keys) {
     const raw = localStorage.getItem(k);
@@ -365,12 +354,6 @@ const loadMany = (keys: string[]) => {
   }
   return {};
 };
-
-const humanize = (key: string) =>
-  key.replace(/^d\d+[a-z]?_?/, '')
-     .replace(/_/g, ' ')
-     .replace(/\b\w/g, (m) => m.toUpperCase())
-     .trim();
 
 const formatGenericLabel = (key: string) =>
   key.replace(/_/g, ' ')
@@ -391,52 +374,29 @@ function getQuestionLabel(dimNumber: number, fieldKey: string): string {
 
 function selectedOnly(value: any): string[] | string | null {
   if (value == null) return null;
-
   if (Array.isArray(value)) {
     const out = value.map(v => String(v).trim()).filter(v => v !== '');
     return out.length ? out : null;
   }
-  if (typeof value === 'object') return value; // let caller decide (used for grids)
-
-  // keep "No", "0", "N/A"
+  if (typeof value === 'object') return value;
   const s = String(value).trim();
   return s === '' ? null : s;
 }
 
 const hasProgramStatusMap = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
 
-/* =========================
-   SUPPORT MATRIX HELPERS
-========================= */
 function normalizeStatus(s: string) {
   const x = s.toLowerCase();
-  if (x.includes('currently')) return 'Currently offer';
-  if (x.includes('active') || x.includes('development') || x.includes('planning')) return 'In active planning';
+  if (x.includes('currently')) return x.includes('use') ? 'Currently use' : 'Currently offer';
+  if (x.includes('active') || x.includes('development') || x.includes('planning')) return 'In active planning / development';
   if (x.includes('assessing') || x.includes('feasibility')) return 'Assessing feasibility';
-  if (x === 'no' || x.includes('not offered') || x.includes('do not')) return 'Not offered';
+  if (x.includes('unsure')) return 'Unsure';
+  if (x.includes('not able')) return x.includes('utilize') ? 'Not able to utilize in foreseeable future' : 'Not able to offer in foreseeable future';
   return 'Other';
 }
 
-const STATUS_BUCKETS = [
-  'Currently offer',
-  'In active planning',
-  'Assessing feasibility',
-  'Not offered',
-  'Other',
-];
-
-function pillColors(bucket: string) {
-  switch (bucket) {
-    case 'Currently offer':       return { bg: '#dcfce7', fg: '#065f46' };
-    case 'In active planning':    return { bg: '#dbeafe', fg: '#1e40af' };
-    case 'Assessing feasibility': return { bg: '#fef3c7', fg: '#92400e' };
-    case 'Not offered':           return { bg: '#f3f4f6', fg: '#4b5563' };
-    default:                      return { bg: '#eef2ff', fg: '#3730a3' };
-  }
-}
-
 /* =========================
-   DIMENSION PARSER (STRICT)
+   DIMENSION PARSER
 ========================= */
 function parseDimensionData(
   dimNumber: number,
@@ -450,11 +410,9 @@ function parseDimensionData(
   const items: Array<{ question: string; response: string }> = [];
 
   Object.entries(data || {}).forEach(([key, value]) => {
-    // accept only this dimension’s keys
     const isThisDim = key === `${prefix}a` || key.startsWith(`${prefix}_`) || key === prefix;
     if (!isThisDim) return;
 
-    // grid (program -> status)
     if (key === `${prefix}a` && hasProgramStatusMap(value)) {
       Object.entries(value).forEach(([program, status]) => {
         if (status != null && String(status).trim() !== '') {
@@ -464,7 +422,6 @@ function parseDimensionData(
       return;
     }
 
-    // merge "Other (specify)"
     if (Array.isArray(value) && value.some(v => /other|specify/i.test(String(v)))) {
       const otherText = (data as any)[`${key}_other`];
       if (otherText) value = [...value, `Other: ${otherText}`];
@@ -481,8 +438,6 @@ function parseDimensionData(
     }
   });
 
-  programs.sort((a, b) => a.program.localeCompare(b.program));
-  items.sort((a, b) => a.question.localeCompare(b.question));
   return { programs, items };
 }
 
@@ -490,116 +445,83 @@ function parseDimensionData(
    UI COMPONENTS
 ========================= */
 
-function Section({
-  title,
-  badge,
-  placeholderWhenEmpty,
-  children,
-}: {
-  title: string;
-  badge?: string;
-  placeholderWhenEmpty?: string | boolean;
-  children?: React.ReactNode;
-}) {
-  const isEmpty = !children || placeholderWhenEmpty === true;
+function Field({ label, value }: { label: string; value: any }) {
+  if (!value || (Array.isArray(value) && value.length === 0)) return null;
+  const display = Array.isArray(value) ? value.join(', ') : String(value);
+  
   return (
-    <section className="mb-6 bg-white rounded-lg border p-6" style={{ borderColor: BRAND.gray[200] }}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-bold" style={{ color: BRAND.gray[900] }}>{title}</h2>
-        {badge && (
-          <span className="text-xs font-semibold px-2 py-0.5 rounded border bg-white"
-                style={{ borderColor: BRAND.gray[200], color: BRAND.gray[700] }}>
-            {badge}
-          </span>
-        )}
+    <div className="py-2 border-b last:border-b-0" style={{ borderColor: BRAND.gray[200] }}>
+      <div className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: BRAND.gray[600] }}>
+        {label}
       </div>
-      {isEmpty && typeof placeholderWhenEmpty === 'string'
-        ? <div className="text-sm italic" style={{ color: BRAND.gray[400] }}>{placeholderWhenEmpty}</div>
-        : children}
-    </section>
-  );
-}
-
-function TwoColObject({ obj }: { obj: Record<string, any> }) {
-  const entries = Object.entries(obj || {}).sort(([a],[b]) => a.localeCompare(b));
-  const half = Math.ceil(entries.length / 2);
-  const left = entries.slice(0, half);
-  const right = entries.slice(half);
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
-      <div>
-        {left.map(([k,v]) => <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />)}
-      </div>
-      <div>
-        {right.map(([k,v]) => <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />)}
-      </div>
+      <div className="text-sm" style={{ color: BRAND.gray[900] }}>{display}</div>
     </div>
   );
 }
 
 function DataRow({ label, value }: { label: string; value?: any }) {
-  const display =
-    value == null || (Array.isArray(value) && value.length === 0)
-      ? '—'
-      : Array.isArray(value) ? value.join(', ')
-      : String(value);
+  if (!value || (Array.isArray(value) && value.length === 0)) return null;
+  const display = Array.isArray(value) ? value.join(', ') : String(value);
 
   return (
-    <div className="row flex py-2 border-b last:border-b-0" style={{ borderColor: BRAND.gray[200] }}>
-      <div className="w-1/3 pr-4">
-        <span className="text-sm font-medium" style={{ color: BRAND.gray[600] }}>{label}</span>
-      </div>
-      <div className="w-2/3 text-left">
-        <span className="text-sm" style={{ color: BRAND.gray[900] }}>{display}</span>
-      </div>
+    <div className="row py-2.5 border-b last:border-b-0" style={{ borderColor: BRAND.gray[200] }}>
+      <div className="text-xs font-semibold mb-0.5" style={{ color: BRAND.gray[600] }}>{label}</div>
+      <div className="text-sm" style={{ color: BRAND.gray[900] }}>{display}</div>
     </div>
   );
 }
 
-function StatusPill({ status }: { status: string }) {
-  const { bg, fg } = pillColors(normalizeStatus(status));
-  return (
-    <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-          style={{ backgroundColor: bg, color: fg }}>
-      {status}
-    </span>
-  );
-}
-
-function SupportMatrix({ programs }: { programs: Array<{ program: string; status: string }> }) {
-  const byBucket: Record<string, Array<string>> = {};
-  STATUS_BUCKETS.forEach(b => (byBucket[b] = []));
+function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: string; status: string }>; dimNumber: number }) {
+  const options = dimNumber === 13 ? RESPONSE_OPTIONS_D13 : RESPONSE_OPTIONS;
+  const byStatus: Record<string, Array<string>> = {};
+  options.forEach(opt => (byStatus[opt] = []));
+  
   programs.forEach(({ program, status }) => {
-    const bucket = normalizeStatus(String(status));
-    if (!byBucket[bucket]) byBucket[bucket] = [];
-    byBucket[bucket].push(program);
+    const normalized = normalizeStatus(String(status));
+    if (!byStatus[normalized]) byStatus[normalized] = [];
+    byStatus[normalized].push(program);
   });
-  const nonEmpty = STATUS_BUCKETS.filter(b => (byBucket[b] && byBucket[b].length > 0));
 
-  if (nonEmpty.length === 0) return null;
+  const totalPrograms = programs.length;
+  const offeredCount = byStatus['Currently offer']?.length || byStatus['Currently use']?.length || 0;
+  const coverage = totalPrograms > 0 ? Math.round((offeredCount / totalPrograms) * 100) : 0;
 
   return (
-    <div className="mb-4 pb-3 border-b" style={{ borderColor: BRAND.gray[200] }}>
-      <div className="text-[11px] font-bold uppercase tracking-wide mb-2" style={{ color: '#EA580C' }}>
-        Support Offerings (Program Status)
+    <div className="mb-4 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.orange }}>
+          Support Programs Status
+        </div>
+        <div className="text-xs font-semibold px-2 py-1 rounded" style={{ backgroundColor: BRAND.gray[100], color: BRAND.gray[700] }}>
+          {offeredCount} of {totalPrograms} active ({coverage}%)
+        </div>
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(nonEmpty.length, 4)}, minmax(0, 1fr))` }}>
-        {nonEmpty.map((bucket) => {
-          const { bg, fg } = pillColors(bucket);
+      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(options.length, 4)}, minmax(0, 1fr))` }}>
+        {options.map((option) => {
+          const count = byStatus[option]?.length || 0;
+          const bgColor = option.toLowerCase().includes('currently') ? BRAND.gray[50] : BRAND.gray[50];
+          const borderColor = option.toLowerCase().includes('currently') ? '#10B981' : 
+                             option.toLowerCase().includes('planning') ? '#3B82F6' :
+                             option.toLowerCase().includes('assessing') ? '#F59E0B' : BRAND.gray[300];
+          
           return (
-            <div key={bucket} className="bg-white rounded border p-3" style={{ borderColor: BRAND.gray[200] }}>
-              <div className="inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold mb-2"
-                   style={{ backgroundColor: bg, color: fg }}>
-                {bucket}
+            <div key={option} className="rounded border-l-4 bg-white p-3" style={{ borderColor, backgroundColor: bgColor }}>
+              <div className="text-[10px] font-bold uppercase tracking-wide mb-2 flex items-center justify-between" style={{ color: BRAND.gray[700] }}>
+                <span>{option}</span>
+                <span className="text-xs font-black" style={{ color: borderColor }}>({count})</span>
               </div>
-              <ul className="space-y-1">
-                {byBucket[bucket].sort((a, b) => a.localeCompare(b)).map((prog) => (
-                  <li key={prog} className="text-[13px]" style={{ color: BRAND.gray[700] }}>
-                    {prog}
-                  </li>
-                ))}
-              </ul>
+              {count > 0 ? (
+                <ul className="space-y-1.5">
+                  {byStatus[option].sort((a, b) => a.localeCompare(b)).map((prog) => (
+                    <li key={prog} className="text-[12px] leading-snug" style={{ color: BRAND.gray[800] }}>
+                      • {prog}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-[11px] italic" style={{ color: BRAND.gray[400] }}>None</div>
+              )}
             </div>
           );
         })}
@@ -613,9 +535,9 @@ function SupportMatrix({ programs }: { programs: Array<{ program: string; status
 ========================= */
 export default function CompanyProfileFixed() {
   const [data, setData] = useState<any>(null);
+  const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
-    // tolerant loaders (avoid blanks from historical key names)
     const firmo = loadMany(['firmographics_data', 'firmographics']);
     const gen   = loadMany(['general-benefits_data', 'general_benefits_data', 'generalBenefits']);
     const cur   = loadMany(['current-support_data', 'current_support_data', 'currentSupport']);
@@ -650,26 +572,30 @@ export default function CompanyProfileFixed() {
 
   if (!data) {
     return (
-      <div className="min-h-screen grid place-items-center" style={{ backgroundColor: BRAND.gray.bg }}>
+      <div className="min-h-screen grid place-items-center" style={{ backgroundColor: BRAND.gray[50] }}>
         <div className="text-sm" style={{ color: BRAND.gray[600] }}>Loading profile…</div>
       </div>
     );
   }
 
   const firmo = data.firmographics || {};
-  const gen   = data.general || {};
-  const cur   = data.current || {};
-  const cd    = data.cross || {};
-  const ei    = data.impact || {};
-
-  // Filter out POC fields + gender from firmographics
   const firmoFiltered = Object.fromEntries(
     Object.entries(firmo).filter(([k]) => !['s1','s2','s3','s4a','s4b','s5','s6','s7'].includes(k))
   );
 
+  const poc = {
+    name: `${data.firstName} ${data.lastName}`.trim(),
+    email: data.email,
+    dept: firmo?.s4a || firmo?.s3,
+    function: firmo?.s4b,
+    level: firmo?.s5,
+    areas: firmo?.s6,
+    influence: firmo?.s7
+  };
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: BRAND.gray.bg }}>
-      {/* Header — slim + lighter */}
+    <div className="min-h-screen" style={{ backgroundColor: BRAND.gray[50] }}>
+      {/* HEADER */}
       <header className="bg-white border-b" style={{ borderColor: BRAND.gray[200] }}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-12 w-auto" />
@@ -682,8 +608,8 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <h1 className="text-2xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
           <p className="text-xs" style={{ color: BRAND.gray[600] }}>
-            Company Profile &amp; Survey Summary • Generated {data.generatedAt}
-            {data.email ? ` • ${data.email}` : ''}
+            Company Profile &amp; Survey Summary • {data.generatedAt}
+            {data.email && ` • ${data.email}`}
           </p>
           <div className="mt-2 flex items-center gap-2 print:hidden">
             <a href="/dashboard" className="px-3 py-1.5 text-xs font-semibold border rounded"
@@ -698,117 +624,172 @@ export default function CompanyProfileFixed() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 mt-6">
-        {/* POC */}
-        <Section title="Point of Contact">
-          <DataRow label="Name" value={`${data.firstName} ${data.lastName}`.trim() || null} />
-          <DataRow label="Email" value={data.email} />
-          <DataRow label="Department" value={firmo?.s4a || firmo?.s3} />
-          <DataRow label="Primary Job Function" value={firmo?.s4b} />
-          <DataRow label="Current Level" value={firmo?.s5} />
-          <DataRow label="Areas of Responsibility" value={selectedOnly(firmo?.s6)} />
-          <DataRow label="Level of Influence on Benefits" value={firmo?.s7} />
-        </Section>
+      <main className="max-w-7xl mx-auto px-6 py-6">
+        {/* POC + COMPANY PROFILE SIDE BY SIDE */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <div className="bg-white border rounded-lg p-5" style={{ borderColor: BRAND.gray[200] }}>
+            <h2 className="text-base font-bold mb-3" style={{ color: BRAND.gray[900] }}>Point of Contact</h2>
+            <Field label="Name" value={poc.name} />
+            <Field label="Email" value={poc.email} />
+            <Field label="Department" value={poc.dept} />
+            <Field label="Primary Job Function" value={poc.function} />
+            <Field label="Current Level" value={poc.level} />
+            <Field label="Areas of Responsibility" value={poc.areas} />
+            <Field label="Level of Influence on Benefits" value={poc.influence} />
+          </div>
 
-        {/* Firmographics */}
-        <Section
-          title="Company Profile & Firmographics (Full)"
-          placeholderWhenEmpty={Object.keys(firmoFiltered).length === 0 ? '(No data recorded)' : false}
-        >
-          <TwoColObject obj={firmoFiltered} />
-        </Section>
-
-        {/* General Benefits */}
-        <Section
-          title="General Employee Benefits"
-          placeholderWhenEmpty={Object.keys(gen).length === 0 ? '(No data recorded)' : false}
-        >
-          <TwoColObject obj={gen} />
-        </Section>
-
-        {/* Current Support */}
-        <Section
-          title="Current Support for Employees Managing Cancer"
-          placeholderWhenEmpty={Object.keys(cur).length === 0 ? '(No data recorded)' : false}
-        >
-          <TwoColObject obj={cur} />
-        </Section>
-
-        {/* 13 Dimensions */}
-        <div className="flex items-baseline justify-between mb-3 mt-8">
-          <h2 className="text-base font-bold" style={{ color: BRAND.gray[900] }}>
-            13 Dimensions of Support
-          </h2>
-          <span className="text-xs font-semibold px-2 py-0.5 rounded border bg-white"
-                style={{ borderColor: BRAND.gray[200], color: BRAND.gray[700] }}>
-            D13 uses 5-point scale (includes Unsure/NA)
-          </span>
+          <div className="bg-white border rounded-lg p-5" style={{ borderColor: BRAND.gray[200] }}>
+            <h2 className="text-base font-bold mb-3" style={{ color: BRAND.gray[900] }}>Company Profile</h2>
+            <Field label="Company Name" value={firmo.companyName} />
+            <Field label="Industry" value={firmo.c2} />
+            <Field label="Annual Revenue" value={firmo.c5} />
+            <Field label="Total Employee Size" value={firmo.s8} />
+            <Field label="HQ Location" value={firmo.s9} />
+            <Field label="Countries with Presence" value={firmo.s9a} />
+            <Field label="Remote/Hybrid Policy" value={firmo.c6} />
+          </div>
         </div>
 
-        {data.dimensions.map((dim: { number: number; data: Record<string, any> }) => {
-          const { programs, items } = parseDimensionData(dim.number, dim.data);
-          const half = Math.ceil(items.length / 2);
-          const left = items.slice(0, half);
-          const right = items.slice(half);
+        {/* GENERAL BENEFITS */}
+        {Object.keys(data.general || {}).length > 0 && (
+          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+            <h2 className="text-base font-bold mb-3" style={{ color: BRAND.gray[900] }}>General Employee Benefits</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
+              <div>
+                {Object.entries(data.general).slice(0, Math.ceil(Object.keys(data.general).length / 2)).map(([k, v]) => (
+                  <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
+                ))}
+              </div>
+              <div>
+                {Object.entries(data.general).slice(Math.ceil(Object.keys(data.general).length / 2)).map(([k, v]) => (
+                  <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
-          return (
-            <Section
-              key={dim.number}
-              title={`Dimension ${dim.number}: ${DIM_TITLE[dim.number]}`}
-              badge={dim.number === 13 ? '5-point' : undefined}
-              placeholderWhenEmpty={(programs.length + items.length) === 0 ? '(No responses recorded)' : false}
-            >
-              {/* Support offerings FIRST as matrix */}
-              {programs.length > 0 && <SupportMatrix programs={programs} />}
+        {/* CURRENT SUPPORT */}
+        {Object.keys(data.current || {}).length > 0 && (
+          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+            <h2 className="text-base font-bold mb-3" style={{ color: BRAND.gray[900] }}>Current Support for Employees Managing Cancer</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
+              <div>
+                {Object.entries(data.current).slice(0, Math.ceil(Object.keys(data.current).length / 2)).map(([k, v]) => (
+                  <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
+                ))}
+              </div>
+              <div>
+                {Object.entries(data.current).slice(Math.ceil(Object.keys(data.current).length / 2)).map(([k, v]) => (
+                  <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
-              {/* Follow-ups */}
-              {items.length > 0 && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
-                  <div>{left.map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
-                  <div>{right.map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
+        {/* 13 DIMENSIONS */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold" style={{ color: BRAND.gray[900] }}>13 Dimensions of Support</h2>
+            <span className="text-[10px] font-semibold px-2 py-1 rounded border" style={{ borderColor: BRAND.gray[300], color: BRAND.gray[700] }}>
+              D13 uses 5-point scale
+            </span>
+          </div>
+
+          {data.dimensions.map((dim: { number: number; data: Record<string, any> }) => {
+            const { programs, items } = parseDimensionData(dim.number, dim.data);
+            const isEmpty = programs.length === 0 && items.length === 0;
+            const isCollapsed = collapsed[dim.number];
+            const third = Math.ceil(items.length / 3);
+
+            return (
+              <div key={dim.number} className="mb-4 bg-white rounded-lg border-l-4 overflow-hidden" 
+                   style={{ borderColor: DIM_COLORS[dim.number - 1] }}>
+                <div className="px-5 py-4 border-b flex items-center justify-between cursor-pointer hover:bg-gray-50"
+                     style={{ borderColor: BRAND.gray[200] }}
+                     onClick={() => setCollapsed(prev => ({ ...prev, [dim.number]: !prev[dim.number] }))}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                         style={{ backgroundColor: DIM_COLORS[dim.number - 1] }}>
+                      {dim.number}
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>
+                        Dimension {dim.number}
+                      </div>
+                      <h3 className="text-base font-bold" style={{ color: BRAND.gray[900] }}>
+                        {DIM_TITLE[dim.number]}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {!isEmpty && (
+                      <div className="text-xs font-semibold" style={{ color: BRAND.gray[600] }}>
+                        {programs.length} programs • {items.length} details
+                      </div>
+                    )}
+                    <svg className={`w-5 h-5 transition-transform ${isCollapsed ? '' : 'rotate-180'}`} 
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: BRAND.gray[500] }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
-              )}
-            </Section>
-          );
-        })}
 
-        {/* Cross-Dimensional */}
-        <Section
-          title="Cross-Dimensional Assessment"
-          placeholderWhenEmpty={Object.keys(cd).length === 0 ? '(No data recorded)' : false}
-        >
-          <div className="space-y-2">
-            {Object.entries(cd || {}).sort(([a],[b])=>a.localeCompare(b)).map(([k, v]) => (
+                {!isCollapsed && (
+                  <div className="p-5">
+                    {isEmpty ? (
+                      <div className="text-center py-6 text-sm italic" style={{ color: BRAND.gray[400] }}>
+                        No responses recorded for this dimension
+                      </div>
+                    ) : (
+                      <>
+                        {programs.length > 0 && <SupportMatrix programs={programs} dimNumber={dim.number} />}
+                        {items.length > 0 && (
+                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8">
+                            <div>{items.slice(0, third).map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
+                            <div>{items.slice(third, third * 2).map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
+                            <div>{items.slice(third * 2).map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}</div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* CROSS-DIMENSIONAL */}
+        {Object.keys(data.cross || {}).length > 0 && (
+          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+            <h2 className="text-base font-bold mb-3" style={{ color: BRAND.gray[900] }}>Cross-Dimensional Assessment</h2>
+            {Object.entries(data.cross).map(([k, v]) => (
               <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
             ))}
           </div>
-        </Section>
+        )}
 
-        {/* Employee Impact */}
-        <Section
-          title="Employee Impact Assessment"
-          placeholderWhenEmpty={Object.keys(ei).length === 0 ? '(No data recorded)' : false}
-        >
-          <div className="space-y-2">
-            {Object.entries(ei || {}).sort(([a],[b])=>a.localeCompare(b)).map(([k, v]) => (
+        {/* EMPLOYEE IMPACT */}
+        {Object.keys(data.impact || {}).length > 0 && (
+          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+            <h2 className="text-base font-bold mb-3" style={{ color: BRAND.gray[900] }}>Employee Impact Assessment</h2>
+            {Object.entries(data.impact).map(([k, v]) => (
               <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
             ))}
           </div>
-        </Section>
+        )}
 
-        {/* Footer */}
-        <div className="mt-10 pt-6 border-t text-center text-xs"
-             style={{ borderColor: BRAND.gray[200], color: BRAND.gray[700] }}>
-          Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers &amp; CEW Foundation • All responses
-          collected and analyzed by BEYOND Insights, LLC
+        <div className="mt-8 pt-4 border-t text-center text-[10px]" style={{ borderColor: BRAND.gray[200], color: BRAND.gray[500] }}>
+          Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers &amp; CEW Foundation
         </div>
       </main>
 
-      {/* Print */}
       <style jsx>{`
         @media print {
           @page { size: letter; margin: 0.5in; }
-          html, body { font-size: 12px; }
+          html, body { font-size: 11px; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           section, .row { break-inside: avoid; }
         }
