@@ -1,8 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import { useRouter } from "next/navigation";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Footer from "@/components/Footer";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -124,7 +128,7 @@ useEffect(() => {
     (status) => status === "Currently provide to managers"
   );
   
-  const showD3aa = isMultiCountry && hasAnyOffered;
+  const showD3aa = isMultiCountry && hasOffered;
   const showD3_1a = hasAnyProvided;
   const showD3_1 = hasAnyProvided;
 

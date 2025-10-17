@@ -1,8 +1,12 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import { useRouter } from "next/navigation";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Footer from "@/components/Footer";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -344,23 +348,23 @@ return (
                 <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
                 <ul className="space-y-3 text-gray-700">
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">�</span>
                     <span>You'll see different support options associated with this dimension, one at a time</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">�</span>
                     <span>Indicate the current status of each option within your organization</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">�</span>
                     <span>After selecting a response, it will automatically advance to the next option</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">�</span>
                     <span>Use the navigation dots or arrows to review or change any response</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">�</span>
                     <span>Once all support options are evaluated, the Continue button will appear</span>
                   </li>
                 </ul>
@@ -487,7 +491,7 @@ return (
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous option
+                  ? View previous option
                 </button>
 
                 {/* Continue button only shows when ALL items answered */}
@@ -496,7 +500,7 @@ return (
                     onClick={next}
                     className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
                   >
-                    Continue →
+                    Continue ?
                   </button>
                 )}
               </div>
@@ -1032,7 +1036,7 @@ return (
       }}
       className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
     >
-      Save & Return to Dashboard →
+      Save & Return to Dashboard ?
     </button>
   </div>
 )}
@@ -1044,13 +1048,13 @@ return (
       onClick={back} 
       className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
     >
-      ← Back
+      ? Back
     </button>
     <button 
       onClick={next} 
       className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
     >
-      Continue →
+      Continue ?
     </button>
   </div>
 )}
