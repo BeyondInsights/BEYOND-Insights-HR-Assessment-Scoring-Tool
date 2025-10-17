@@ -517,16 +517,19 @@ function parseDimensionData(
     if (!key.endsWith('_none')) {
       const resp = selectedOnly(value);
       if (resp) {
+        const question = getQuestionLabel(dimNumber, key);
+        console.log(`Dimension ${dimNumber} - Adding item:`, key, '→', question, '=', resp);
         items.push({
-          question: getQuestionLabel(dimNumber, key),
+          question,
           response: Array.isArray(resp) ? resp.join(', ') : resp
         });
       }
     }
   });
 
-  if (dimNumber === 3 && items.length === 0 && programs.length === 0) {
-    console.log('D3 WARNING: No programs or items found!', data);
+  console.log(`Dimension ${dimNumber} final:`, programs.length, 'programs,', items.length, 'items');
+  if (dimNumber === 3) {
+    console.log('D3 items:', items);
   }
 
   return { programs, items };
@@ -713,7 +716,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
           <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-20 w-auto" />
           <div className="text-2xl font-black tracking-wide" style={{ color: BRAND.primary }}>
-            • Company Profile &amp; Survey Summary • 
+            BEYOND Insights
           </div>
           <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-16 w-auto" />
         </div>
@@ -721,7 +724,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
           <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-            {data.generatedAt}
+            Company Profile &amp; Survey Summary • {data.generatedAt}
             {data.email && ` • ${data.email}`}
           </p>
           <div className="mt-3 flex items-center gap-2 print:hidden">
