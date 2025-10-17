@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React from 'react';
@@ -7,17 +8,10 @@ import {
   DIMENSIONS, CROSS_DIM, EI
 } from '../schema';
 
-/* ===== Small custom SVGs (no emojis) ===== */
-const Dot = ({ c='#CBD5E1' }: { c?: string }) => (
-  <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill={c}/></svg>
-);
-const Bar = ({ c=BRAND.orange }: { c?: string }) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M4 6h16v3H4zM4 11h16v3H4zM4 16h16v3H4z" fill={c}/>
-  </svg>
-);
+/* Small custom SVGs */
+const Dot = ({ c='#CBD5E1' }: { c?: string }) => (<svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill={c}/></svg>);
+const Bar = ({ c=BRAND.orange }: { c?: string }) => (<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v3H4zM4 11h16v3H4zM4 16h16v3H4z" fill={c}/></svg>);
 
-/* ===== Badge + question item ===== */
 type Q = (typeof FIRMOGRAPHICS)['questions'][number];
 
 const Badge = ({ children, tone='req' }: { children: React.ReactNode; tone?: 'req'|'cond' }) => (
@@ -46,7 +40,6 @@ function QItem({ q }: { q: Q }) {
   );
 }
 
-/* ===== Generic section wrapper ===== */
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
     <section id={id} className="mt-8">
@@ -56,7 +49,6 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
-/* ===== Page ===== */
 export default function SurveyPrint() {
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' });
 
@@ -82,7 +74,7 @@ export default function SurveyPrint() {
         <div className="flex items-center gap-2 mb-2"><Bar /><div className="text-sm font-bold text-slate-800">What you’ll want handy</div></div>
         <ul className="text-[13px] text-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-y-1">
           <li className="flex items-center gap-2"><Dot/><span>SPDs / benefits plan summaries</span></li>
-          <li className="flex items-center gap-2"><Dot/><span>Leave/RTW policy details (weeks, eligibility, job protection)</span></li>
+          <li className="flex items-center gap-2"><Dot/><span>Leave / RTW details (weeks, eligibility, job protection)</span></li>
           <li className="flex items-center gap-2"><Dot/><span>Disability %, advanced therapy coverage, caregiver benefits</span></li>
           <li className="flex items-center gap-2"><Dot/><span>Navigation vendor names & program lists</span></li>
           <li className="flex items-center gap-2"><Dot/><span>Global/market differences (if any)</span></li>
@@ -116,42 +108,58 @@ export default function SurveyPrint() {
         {CURRENT_SUPPORT.questions.map(q => <QItem key={q.id} q={q} />)}
       </Section>
 
-      {/* 13 Dimensions */}
+      {/* 13 Dimensions — list options ONCE + scale legend (no per-bucket repetition) */}
       <section id="dimensions" className="mt-8">
         <h2 className="text-xl font-bold text-slate-900 mb-2">13 Dimensions of Support</h2>
-        <p className="text-[13px] text-slate-600 mb-3">For each dimension, mark status of each support offering (column buckets), then answer follow-ups.</p>
 
         {DIMENSIONS.map((d, idx) => {
           const color = DIM_COLORS[idx % DIM_COLORS.length] ?? '#6B7280';
           return (
             <div key={d.number} className="mb-6 p-4 rounded border bg-white" style={{ borderColor: BRAND.gray[200] }}>
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: color }}>
                   {d.number}
                 </div>
                 <h3 className="text-lg font-bold text-slate-900">{d.title}</h3>
               </div>
 
-              {/* Matrix: buckets as columns */}
-              <div className="grid gap-3" style={{ gridTemplateColumns:`repeat(${d.buckets.length}, minmax(0,1fr))` }}>
-                {d.buckets.map(bucket => (
-                  <div key={bucket} className="rounded border p-3 bg-white" style={{ borderColor: BRAND.gray[200] }}>
-                    <div className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[600] }}>{bucket}</div>
-                    <ul className="text-[12px] text-slate-700 space-y-1">
-                      {d.supportOptions.length
-                        ? d.supportOptions.map(p => <li key={p} className="flex items-center gap-2"><Dot/><span>{p}</span></li>)
-                        : <li className="italic text-slate-400">Support items shown when taking survey</li>}
-                    </ul>
-                  </div>
-                ))}
+              {/* Official wording + description */}
+              <div className="text-[13px] text-slate-700 mb-2">{d.intro}</div>
+              <div className="text-[13px] text-slate-900 font-medium mb-2">{d.questionText}</div>
+
+              {/* Scale legend (once) */}
+              <div className="text-[12px] text-slate-600 mb-3">
+                <span className="font-semibold">Scale:&nbsp;</span>{d.scale.join('  •  ')}
+              </div>
+
+              {/* Single list of options (no bucket repetition) */}
+              <div className="rounded border p-3 mb-3 bg-white" style={{ borderColor: BRAND.gray[200] }}>
+                <div className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[600] }}>
+                  Support options to be rated on the scale above
+                </div>
+                <ul className="text-[13px] text-slate-800 space-y-1">
+                  {d.supportOptions.map(p => (
+                    <li key={p} className="flex items-center gap-2"><Dot/><span>{p}</span></li>
+                  ))}
+                </ul>
               </div>
 
               {/* Follow-ups */}
               {d.followUps.length > 0 && (
-                <div className="mt-4">
+                <div>
                   <div className="text-sm font-semibold text-slate-800 mb-1">Follow-up questions</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
-                    {d.followUps.map(f => <QItem key={f.id} q={f} />)}
+                    {d.followUps.map(f => (
+                      <div key={f.id} className="mb-3">
+                        <div className="text-[15px] font-medium text-slate-900">{f.label}</div>
+                        <div className="text-[13px] text-slate-600 mt-0.5">
+                          {f.type==='text'   && <>Free text</>}
+                          {f.type==='single' && <>Select one{f.options?.length ? <>: {f.options.join(' • ')}</> : null}</>}
+                          {f.type==='multi'  && <>Select all that apply{f.options?.length ? <>: {f.options.join(' • ')}</> : null}</>}
+                          {f.type==='scale'  && <>Scale: {f.options?.join(' → ')}</>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
