@@ -1,8 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import { useRouter } from "next/navigation";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Footer from "@/components/Footer";
+import { hasAnyOffered } from '@/lib/dimensionHelpers';
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -121,7 +125,7 @@ export default function Dimension5Page() {
     (status) => status === "Currently offer"
   );
   
-  const showD5aa = isMultiCountry && hasAnyOffered;
+  const showD5aa = isMultiCountry && hasOffered;
 
   const getTotalSteps = () => {
     let total = 4; // intro, D5.a, D5.aa (conditional), D5.b
