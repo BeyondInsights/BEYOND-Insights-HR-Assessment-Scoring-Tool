@@ -1,17 +1,27 @@
 // app/survey/schema.ts
+
+/* ===== Brand ===== */
 export const BRAND = {
   primary: '#6B2C91',
   orange: '#EA580C',
   gray: { 900:'#0F172A', 700:'#334155', 600:'#475569', 500:'#64748B', 400:'#94A3B8', 300:'#CBD5E1', 200:'#E5E7EB', 100:'#F3F4F6', 50:'#F9FAFB' }
 };
 
-/** Buckets used by the matrix headers */
+/* Distinct accent colors for the 13 dimension badges */
+export const DIM_COLORS: string[] = [
+  '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1',
+  '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#06B6D4',
+  '#84CC16', '#A855F7', '#EAB308'
+];
+
+/* ===== Buckets ===== */
 export const RESPONSE_BUCKETS = [
   'Currently offer',
   'In active planning / development',
   'Assessing feasibility',
   'Not able to offer in foreseeable future',
 ];
+
 export const RESPONSE_BUCKETS_D13 = [
   'Currently use',
   'In active planning / development',
@@ -20,17 +30,20 @@ export const RESPONSE_BUCKETS_D13 = [
   'Unsure',
 ];
 
-export type Q = { id: string; label: string; required?: boolean; conditional?: string; type: 'single'|'multi'|'text'|'scale'; options?: string[]; note?: string };
+/* ===== Types ===== */
+export type Q = {
+  id: string;
+  label: string;
+  required?: boolean;
+  conditional?: string;
+  type: 'single'|'multi'|'text'|'scale';
+  options?: string[];
+  note?: string;
+};
 export type Section = { id: string; title: string; questions: Q[] };
 export type DimBlock = { number: number; title: string; buckets: string[]; supportOptions: string[]; followUps: Q[] };
 
-// Distinct accent colors for the 13 dimension badges
-export const DIM_COLORS: string[] = [
-  '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1',
-  '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#06B6D4',
-  '#84CC16', '#A855F7', '#EAB308'
-];
-
+/* ===== Sections: Firmographics / General / Current ===== */
 export const FIRMOGRAPHICS: Section = {
   id: 'firmographics',
   title: 'Company Profile',
@@ -42,7 +55,7 @@ export const FIRMOGRAPHICS: Section = {
     { id:'hq', label:'Headquarters (City, Country)', type:'text' },
     { id:'countries', label:'Countries with Employee Presence', type:'text', note:'List primary countries or count' },
     { id:'remote_policy', label:'Remote/Hybrid Work Policy', type:'single', options:['On-site','Hybrid','Remote-eligible','Role-dependent'] },
-    // POC (include here so print pack is complete)
+    // POC (kept here so print pack is complete)
     { id:'poc_name', label:'Point of Contact — Name', required:true, type:'text' },
     { id:'poc_email', label:'Point of Contact — Email', required:true, type:'text' },
     { id:'poc_dept', label:'Point of Contact — Department / Function', type:'text' },
@@ -80,7 +93,7 @@ export const CURRENT_SUPPORT: Section = {
   ],
 };
 
-/** Support options per dimension (extracted from your app’s D#A_ITEMS_BASE). */
+/* ===== Dimension Support Lists (keep synced with app) ===== */
 export const DIM_SUPPORT: Record<number,string[]> = {
   1: [
     "Paid medical leave beyond local / legal requirements",
@@ -148,8 +161,6 @@ export const DIM_SUPPORT: Record<number,string[]> = {
     "Modified dress code for medical devices",
     "Service animal accommodations",
     "Parking accommodations",
-    "— Company-provided meal/rest support during treatment —",
-    "— Quiet/low-stimulus workspace —",
   ],
   6: [
     "Strong anti-discrimination policies specific to health conditions",
@@ -198,10 +209,6 @@ export const DIM_SUPPORT: Record<number,string[]> = {
     "Cross-functional workplace support committee",
     "Regular employee listening sessions",
     "Transparent program evaluation metrics",
-    "— Enterprise OKRs include health support outcomes —",
-    "— Leadership communications cadence on health support —",
-    "— Public commitments / external reporting —",
-    "— Vendor governance for outcomes —",
   ],
   10: [
     "Caregiver leave (beyond FMLA / legal requirements)",
@@ -213,16 +220,6 @@ export const DIM_SUPPORT: Record<number,string[]> = {
     "Caregiver resource navigation",
     "Bereavement support beyond standard policy",
     "Family communication resources",
-    "— Dependent support coordination —",
-    "— Travel flexibility for caregiving —",
-    "— Caregiver PTO donation —",
-    "— Emergency caregiver leave —",
-    "— Eldercare resources —",
-    "— Pediatric care navigation —",
-    "— Local caregiver community resources —",
-    "— Caregiver education —",
-    "— Caregiver recognition —",
-    "— Other caregiver benefits —",
   ],
   11: [
     "At least 70% coverage for regionally / locally recommended screenings",
@@ -262,6 +259,7 @@ export const DIM_SUPPORT: Record<number,string[]> = {
   ],
 };
 
+/* ===== Dimension follow-ups ===== */
 export const DIM_FOLLOWUPS: Record<number, Q[]> = {
   1: [
     { id:'d1_1', label:'Paid medical leave duration (beyond legal minimums)', type:'text' },
@@ -292,6 +290,7 @@ export const DIM_FOLLOWUPS: Record<number, Q[]> = {
   13: [{ id:'d13_1', label:'Frequency of awareness campaigns', type:'single', options:['Monthly','Quarterly','Bi-annually','Annually','Ad-hoc'] }],
 };
 
+/* ===== Compose dimension blocks ===== */
 export const DIMENSIONS: DimBlock[] = Array.from({length:13}, (_,i) => {
   const n=i+1;
   return {
@@ -309,6 +308,7 @@ export const DIMENSIONS: DimBlock[] = Array.from({length:13}, (_,i) => {
   };
 });
 
+/* ===== Cross-Dim & EI ===== */
 export const CROSS_DIM: Section = {
   id: 'cross_dim',
   title: 'Cross-Dimensional Assessment',
