@@ -663,7 +663,7 @@ export default function GeneralBenefitsPage() {
 }}
  className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
  >
- Save & Continue to Dashboard ?
+ Save & Continue to Dashboard  →
  </button>
  </div>
  )}
