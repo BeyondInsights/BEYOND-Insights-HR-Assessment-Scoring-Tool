@@ -100,6 +100,8 @@ const D1_QUESTIONS: Record<string, string> = {
   'd1_2_usa': 'Intermittent leave duration (USA)',
   'd1_2_non_usa': 'Intermittent leave duration (Non-USA)',
   'd1_4a': 'Remote work availability details',
+  'd1_4a_type': 'Remote work availability type',
+  'd1_4a_weeks': 'Remote work availability duration (weeks)',
   'd1_4b': 'Reduced schedule details',
   'd1_5': 'Job protection duration',
   'd1_5_usa': 'Job protection duration (USA)',
@@ -707,7 +709,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
           <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-20 w-auto" />
           <div className="text-2xl font-black tracking-wide" style={{ color: BRAND.primary }}>
-            Company Profile &amp; Survey Summary
+             • Company Profile &amp; Survey Summary • 
           </div>
           <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-16 w-auto" />
         </div>
@@ -715,7 +717,7 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
           <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-             {data.generatedAt}
+            {data.generatedAt}
             {data.email && ` • ${data.email}`}
           </p>
           <div className="mt-3 flex items-center gap-2 print:hidden">
