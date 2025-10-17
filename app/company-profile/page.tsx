@@ -488,51 +488,52 @@ function normalizeStatus(s: string) {
 function parseDimensionData(
   dimNumber: number,
   data: Record<string, any>
-): {
-  programs: Array<{ program: string; status: string }>;
-  items: Array<{ question: string; response: string }>;
-} {
-  const prefix = `d${dimNumber}`;
-  const programs: Array<{ program: string; status: string }> = [];
-  const items: Array<{ question: string; response: string }> = [];
+): Array<{ question: string; response: string }> {
+  const result: Array<{ question: string; response: string }> = [];
+  
+  console.log(`\n========== DIM ${dimNumber} ==========`);
+  console.log('Keys:', Object.keys(data));
 
-  Object.entries(data || {}).forEach(([key, value]) => {
-    const isThisDim = key === `${prefix}a` || key.startsWith(`${prefix}_`) || key === prefix;
-    if (!isThisDim) return;
-
-    if (key === `${prefix}a` && hasProgramStatusMap(value)) {
-      Object.entries(value).forEach(([program, status]) => {
-        if (status != null && String(status).trim() !== '') {
-          programs.push({ program: String(program), status: String(status) });
+  Object.entries(data).forEach(([key, value]) => {
+    console.log(`\n"${key}": ${typeof value}`, value);
+    
+    // Handle grid fields (d1a, d2a, d3a, etc.) - these are OBJECTS with program names
+    if (key.match(/^d\d+a$/) && typeof value === 'object' && !Array.isArray(value)) {
+      console.log('  → GRID FIELD');
+      Object.entries(value).forEach(([questionText, response]) => {
+        if (response && typeof response === 'string') {
+          result.push({ question: questionText, response: response });
         }
       });
       return;
     }
-
-    if (Array.isArray(value) && value.some(v => /other|specify/i.test(String(v)))) {
-      const otherText = (data as any)[`${key}_other`];
-      if (otherText) value = [...value, `Other: ${otherText}`];
+    
+    // Skip _none fields
+    if (key.endsWith('_none')) {
+      console.log('  → SKIP (_none)');
+      return;
     }
-
-    if (!key.endsWith('_none')) {
+    
+    // Handle ALL other d# fields - d#aa, d#b, d#_1, d#_1a, etc.
+    if (key.match(/^d\d+/)) {
       const resp = selectedOnly(value);
+      console.log('  → selectedOnly:', resp);
+      
       if (resp) {
-        const question = getQuestionLabel(dimNumber, key);
-        console.log(`Dimension ${dimNumber} - Adding item:`, key, '→', question, '=', resp);
-        items.push({
-          question,
-          response: Array.isArray(resp) ? resp.join(', ') : resp
+        const label = getQuestionLabel(dimNumber, key);
+        console.log('  → ADD:', label);
+        result.push({
+          question: label,
+          response: Array.isArray(resp) ? resp.join(', ') : String(resp)
         });
+      } else {
+        console.log('  → SKIP (no response)');
       }
     }
   });
-
-  console.log(`Dimension ${dimNumber} final:`, programs.length, 'programs,', items.length, 'items');
-  if (dimNumber === 3) {
-    console.log('D3 items:', items);
-  }
-
-  return { programs, items };
+  
+  console.log(`Total: ${result.length} items\n`);
+  return result;
 }
 
 /* =========================
