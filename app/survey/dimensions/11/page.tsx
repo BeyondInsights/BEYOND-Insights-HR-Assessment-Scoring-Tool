@@ -263,23 +263,23 @@ const getTotalSteps = () => {
                 <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
                 <ul className="space-y-3 text-gray-700">
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>You'll see different prevention and wellness elements associated with this dimension, one at a time</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Indicate the current status of each element within your organization</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>After selecting a response, it will automatically advance to the next element</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Use the navigation dots or arrows to review or change any response</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Once all elements are evaluated, the Continue button will appear</span>
                   </li>
                 </ul>
@@ -398,7 +398,7 @@ const getTotalSteps = () => {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  â† View previous element
+                  ← View previous element
                 </button>
 
                 {Object.keys(ans.d11a || {}).length === D11A_ITEMS.length && !isTransitioning && (
@@ -406,7 +406,7 @@ const getTotalSteps = () => {
                     onClick={next}
                     className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
                   >
-                    Continue â†’
+                    Continue ←’
                   </button>
                 )}
               </div>
@@ -668,7 +668,7 @@ const getTotalSteps = () => {
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Save & Return to Dashboard â†’
+              Save & Return to Dashboard ←’
             </button>
           </div>
         )}
@@ -680,13 +680,13 @@ const getTotalSteps = () => {
               onClick={back} 
               className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
             >
-              â† Back
+              ← Back
             </button>
             <button 
               onClick={next} 
               className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Continue â†’
+              Continue ←’
             </button>
           </div>
         )}
