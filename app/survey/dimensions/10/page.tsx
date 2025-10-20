@@ -117,19 +117,18 @@ export default function Dimension10Page() {
   };
 
   const STATUS_OPTIONS = [
-    "Not able to offer in foreseeable future",
-    "Assessing feasibility",
-    "In active planning / development",
-    "Currently offer"
-  ];
+  "Not able to offer in foreseeable future",
+  "Assessing feasibility",
+  "In active planning / development",
+  "Currently offer"
+];
 
-  // ADD THIS - IT WAS MISSING!
-  const hasAnyOffered = Object.values(ans.d10a || {}).some(
-    (status) => status === "Currently offer"
-  );
-  
-  const showD10aa = isMultiCountry && hasAnyOffered;
-  const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (beyond local legal requirements)"] === "Currently offer";
+const hasAnyOffered = Object.values(ans.d10a || {}).some(
+  (status) => status === "Currently offer"
+);
+
+const showD10aa = isMultiCountry && hasAnyOffered;  // Make sure it's hasAnyOffered
+const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (beyond local legal requirements)"] === "Currently offer";
 
   const getTotalSteps = () => {
     let total = 3; // intro, D10.a, D10.b
