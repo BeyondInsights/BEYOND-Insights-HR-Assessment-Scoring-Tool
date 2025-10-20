@@ -658,7 +658,7 @@ export default function GeneralBenefitsPage() {
     </p>
     <button
       onClick={() => { 
-        localStorage.setItem("general-benefits_complete", "true");  // CHANGE THIS LINE - ADD HYPHEN
+        localStorage.setItem("general_benefits_complete", "true");  // CHANGE THIS LINE - ADD HYPHEN
         router.push("/dashboard");
       }}
       className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
