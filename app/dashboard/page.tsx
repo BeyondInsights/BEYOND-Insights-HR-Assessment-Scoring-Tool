@@ -36,12 +36,12 @@ export default function DashboardPage() {
     router.push('/authorization');
     return;
   }
-  
+
   const calculateProgress = () => {
     if (typeof window === 'undefined') return;
     
     try {
-      // Define all required fields arrays
+      // ARRAYS MUST BE DEFINED FIRST BEFORE ANYTHING ELSE
       const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6']
       const genRequired = [
         'cb1',
@@ -65,7 +65,7 @@ export default function DashboardPage() {
         'or6'
       ];
       
-      // Get email and payment status
+      // NOW GET DATA
       const savedEmail = localStorage.getItem('auth_email') || ''
       setEmail(savedEmail)
       
@@ -73,20 +73,16 @@ export default function DashboardPage() {
       const paymentMethod = localStorage.getItem('payment_method')
       setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card')
       
-      // Get firmographics
       const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
       if (firmo?.companyName) setCompanyName(firmo.companyName)
       
-      // Get other data
       const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}')
       const current = JSON.parse(localStorage.getItem('current_support_data') || '{}')
       
-      // Check completion flags
       const firmComplete = localStorage.getItem('firmographics_complete') === 'true'
       const genComplete = localStorage.getItem('general_benefits_complete') === 'true'
       const curComplete = localStorage.getItem('current_support_complete') === 'true'
       
-      // Check dimension completions
       const dimProgress = []
       for (let i = 1; i <= 13; i++) {
         const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}')
@@ -106,12 +102,10 @@ export default function DashboardPage() {
       }
       setDimensionProgress(dimProgress)
       
-      // Calculate section progress
       let firmProg = 0
       let genProg = 0
       let curProg = 0
       
-      // Firmographics progress
       if (firmComplete) {
         firmProg = 100
       } else {
@@ -124,7 +118,6 @@ export default function DashboardPage() {
         firmProg = Math.round((firmCount / firmRequired.length) * 100)
       }
       
-      // General benefits progress
       if (genComplete) {
         genProg = 100
       } else if (general && Object.keys(general).length > 0) {
@@ -135,9 +128,10 @@ export default function DashboardPage() {
           return general[field] && general[field] !== ''
         }).length
         genProg = Math.round((genCount / genRequired.length) * 100)
+      } else {
+        genProg = 0
       }
       
-      // Current support progress
       if (curComplete) {
         curProg = 100
       } else if (current && Object.keys(current).length > 0) {
@@ -148,6 +142,8 @@ export default function DashboardPage() {
           return current[field] && current[field] !== ''
         }).length
         curProg = Math.round((curCount / curRequired.length) * 100)
+      } else {
+        curProg = 0
       }
       
       setSectionProgress({
@@ -156,7 +152,6 @@ export default function DashboardPage() {
         current: curProg,
       })
       
-      // Advanced sections
       const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}')
       const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}')
       
@@ -222,7 +217,6 @@ export default function DashboardPage() {
         employeeImpact: empImpactProg,
       })
       
-      // Check if everything is complete
       const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
                           dimProgress.every(p => p === 100) &&
                           crossDimProg === 100 && empImpactProg === 100;
@@ -237,12 +231,11 @@ export default function DashboardPage() {
       setDimensionProgress(new Array(13).fill(0));
       setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 });
     }
-  }
-  
+  }    
   calculateProgress();
-  
-  const handleFocus = () => {
-    calculateProgress();
+
+
+    
   };
   window.addEventListener("focus", handleFocus);
   
