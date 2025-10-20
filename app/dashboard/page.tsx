@@ -128,34 +128,48 @@ const curRequired = [
     firmProg = Math.round((firmCount / firmRequired.length) * 100)
   }
   
-  // General benefits progress - FIXED LOGIC
+// General benefits progress - FIXED LOGIC
 if (genComplete) {
   genProg = 100
 } else {
-  const genCount = genRequired.filter(field => {
-    // Check if general data exists first
-    if (!general || Object.keys(general).length === 0) return false;  // ADD THIS LINE
-    if (Array.isArray(general[field])) {
-      return general[field].length > 0
+  try {
+    if (general && typeof general === 'object' && Object.keys(general).length > 0) {
+      const genCount = genRequired.filter(field => {
+        if (Array.isArray(general[field])) {
+          return general[field].length > 0
+        }
+        return general[field] && general[field] !== ''
+      }).length
+      genProg = Math.round((genCount / genRequired.length) * 100)
+    } else {
+      genProg = 0
     }
-    return general[field] && general[field] !== ''
-  }).length
-  genProg = Math.round((genCount / genRequired.length) * 100)
+  } catch (e) {
+    console.error('Error calculating general progress:', e)
+    genProg = 0
+  }
 }
   
 // Current support progress
 if (curComplete) {
   curProg = 100
 } else {
-  const curCount = curRequired.filter(field => {
-    // Check if current data exists first
-    if (!current || Object.keys(current).length === 0) return false;  // ADD THIS LINE
-    if (Array.isArray(current[field])) {
-      return current[field].length > 0
+  try {
+    if (current && typeof current === 'object' && Object.keys(current).length > 0) {
+      const curCount = curRequired.filter(field => {
+        if (Array.isArray(current[field])) {
+          return current[field].length > 0
+        }
+        return current[field] && current[field] !== ''
+      }).length
+      curProg = Math.round((curCount / curRequired.length) * 100)
+    } else {
+      curProg = 0
     }
-    return current[field] && current[field] !== ''
-  }).length
-  curProg = Math.round((curCount / curRequired.length) * 100)
+  } catch (e) {
+    console.error('Error calculating current progress:', e)
+    curProg = 0
+  }
 }
   
   setSectionProgress({
