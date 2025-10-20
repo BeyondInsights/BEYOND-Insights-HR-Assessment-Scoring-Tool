@@ -1,11 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-// Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -125,14 +123,18 @@ export default function Dimension10Page() {
     "Currently offer"
   ];
 
+  // ADD THIS - IT WAS MISSING!
   const hasAnyOffered = Object.values(ans.d10a || {}).some(
     (status) => status === "Currently offer"
   );
   
-  const showD10aa = isMultiCountry && hasOffered;
+  const showD10aa = isMultiCountry && hasAnyOffered;
+  const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (beyond local legal requirements)"] === "Currently offer";
 
   const getTotalSteps = () => {
-    let total = 4; // intro, D10.a, D10.aa (conditional), D10.b
+    let total = 3; // intro, D10.a, D10.b
+    if (showD10aa) total++; // D10.aa
+    if (showD10_1) total++; // D10.1
     total++; // completion
     return total;
   };
@@ -149,9 +151,15 @@ export default function Dimension10Page() {
         if (showD10aa && !ans.d10aa) {
           return "Please select one option";
         }
+        if (!showD10aa && showD10_1 && !ans.d10_1) {
+          return "Please select one option";
+        }
         return null;
         
       case 3:
+        if (showD10_1 && !ans.d10_1) {
+          return "Please select one option";
+        }
         return null;
         
       default:
@@ -168,15 +176,23 @@ export default function Dimension10Page() {
 
     if (step === 1) {
       if (showD10aa) {
-        setStep(2);
+        setStep(2); // Go to D10.aa
+      } else if (showD10_1) {
+        setStep(3); // Skip to D10.1
       } else {
-        setStep(3);
+        setStep(4); // Skip to D10.b
       }
     } else if (step === 2) {
-      setStep(3);
+      if (showD10aa && showD10_1) {
+        setStep(3); // Go to D10.1
+      } else {
+        setStep(4); // Go to D10.b
+      }
     } else if (step === 3) {
-      setStep(4); // Go to completion
+      setStep(4); // Go to D10.b
     } else if (step === 4) {
+      setStep(5); // Go to completion
+    } else if (step === 5) {
       localStorage.setItem("dimension10_complete", "true");
       router.push("/dashboard");
       return;
@@ -187,7 +203,13 @@ export default function Dimension10Page() {
 
   const back = () => {
     if (step === 4) {
-      setStep(3);
+      if (showD10_1) {
+        setStep(3);
+      } else if (showD10aa) {
+        setStep(2);
+      } else {
+        setStep(1);
+      }
     } else if (step === 3) {
       setStep(showD10aa ? 2 : 1);
     } else if (step === 2) {
@@ -259,7 +281,7 @@ export default function Dimension10Page() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>Once all benefits are evaluated, the Continue button will appear</span>
+                    <span>Once all support benefits are evaluated, the Continue button will appear</span>
                   </li>
                 </ul>
               </div>
@@ -284,7 +306,7 @@ export default function Dimension10Page() {
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-white mb-2">CAREGIVER & FAMILY SUPPORT</h2>
                   <p className="text-gray-300 text-sm">
-                    Supporting employees caring for family members with serious health conditions
+                    Support for employees who are caregivers for family members with serious health conditions
                   </p>
                 </div>
               </div>
@@ -303,9 +325,9 @@ export default function Dimension10Page() {
                         onClick={() => goToItem(idx)}
                         className={`h-2 transition-all duration-500 rounded-full ${
                           ans.d10a?.[item]
-                            ? "w-8 bg-green-600 hover:bg-green-700 cursor-pointer"
+                            ? "w-6 bg-green-600 hover:bg-green-700 cursor-pointer"
                             : idx === currentItemIndex
-                            ? "w-8 bg-blue-600"
+                            ? "w-6 bg-blue-600"
                             : "w-2 bg-gray-300 hover:bg-gray-400 cursor-pointer"
                         }`}
                         title={item}
@@ -324,13 +346,13 @@ export default function Dimension10Page() {
                       : 'opacity-100 transform scale-100 blur-0'
                   }`}
                 >
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">
                     {D10A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
                     We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
                   </p>
-
+                  
                   <div className="space-y-2">
                     {STATUS_OPTIONS.map((status) => (
                       <button
@@ -377,7 +399,7 @@ export default function Dimension10Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous benefit
+                  ← View previous option
                 </button>
 
                 {Object.keys(ans.d10a || {}).length === D10A_ITEMS.length && !isTransitioning && (
@@ -392,15 +414,15 @@ export default function Dimension10Page() {
             </div>
           </div>
         )}
-        
-        {/* Step 2: D10.aa (conditional for multi-country) */}
+
+        {/* Step 2: D10.aa (conditional) */}
         {step === 2 && showD10aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-              Are the <span className="text-blue-600 font-bold">Caregiver & Family Support options</span> your 
-              organization <span className="text-blue-600 font-bold">currently offers</span>...?
+              Are the <span className="text-blue-600">Caregiver & Family Support benefits</span> your 
+              organization currently offers...?
             </p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
@@ -426,8 +448,44 @@ export default function Dimension10Page() {
           </div>
         )}
 
-        {/* Step 3: D10.b open-end */}
-        {step === 3 && (
+        {/* Step 3: D10.1 (conditional) */}
+        {((step === 3 && showD10_1) || (step === 2 && !showD10aa && showD10_1)) && (
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Paid Caregiver Leave Details</h3>
+            
+            <p className="font-bold text-gray-900 mb-4">
+              How much <span className="text-blue-600">paid caregiver leave</span> beyond local / legal requirements does your organization offer?
+            </p>
+            <p className="text-sm text-gray-600 mb-4">
+              If your organization offers different lengths of leave in different locations, please select the length offered in the location that offers the MOST generous leave to employees.
+            </p>
+            
+            <div className="space-y-2">
+              {[
+                "Under 2 weeks",
+                "2-3 weeks",
+                "4-7 weeks",
+                "8-11 weeks",
+                "12 weeks or more"
+              ].map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setField("d10_1", opt)}
+                  className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                    ans.d10_1 === opt
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: D10.b open-end */}
+        {step === 4 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Benefits</h3>
             
@@ -458,8 +516,8 @@ export default function Dimension10Page() {
           </div>
         )}
 
-        {/* Step 4: Completion */}
-        {step === 4 && (
+        {/* Step 5: Completion */}
+        {step === 5 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
               <svg className="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -485,7 +543,7 @@ export default function Dimension10Page() {
         )}
 
         {/* Universal Navigation */}
-        {step > 1 && step < 4 && (
+        {step > 1 && step < 5 && (
           <div className="flex justify-between mt-8">
             <button 
               onClick={back} 
