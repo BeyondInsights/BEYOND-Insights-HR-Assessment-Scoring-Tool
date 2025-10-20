@@ -27,7 +27,7 @@ export default function DashboardPage() {
     employeeImpact: 0,
   })
 
- useEffect(() => {
+useEffect(() => {
     if (typeof window === 'undefined') return
     
     // Check authentication
@@ -170,9 +170,13 @@ export default function DashboardPage() {
           employeeImpact: empImpactProg
         });
         
-        const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
-                            dimProgress.every(p => p === 100) &&
-                            crossDimProg === 100 && empImpactProg === 100;
+        // SAFER VERSION OF THIS CHECK
+        const allComplete = firmProg === 100 && 
+                            genProg === 100 && 
+                            curProg === 100 && 
+                            Array.isArray(dimProgress) && dimProgress.length === 13 && dimProgress.every(p => p === 100) &&
+                            crossDimProg === 100 && 
+                            empImpactProg === 100;
         
         if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
           localStorage.setItem('assessment_completion_shown', 'true');
@@ -202,6 +206,9 @@ export default function DashboardPage() {
       };
     }
 }, [router])
+  
+
+  
   
   const overallProgress = Math.round(
     (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
