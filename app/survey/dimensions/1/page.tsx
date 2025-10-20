@@ -920,45 +920,40 @@ export default function Dimension1Page() {
           </div>
         )}
 
-        {/* D1.6 - Disability enhancement */}
-        {step === 9 && showD1_6 && (
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Enhanced Disability Benefits</h3>
-            
-            <p className="text-gray-700 mb-6">
-              For <strong>markets where you provide disability insurance</strong>, do you <strong>enhance disability benefits</strong> for <strong>employees managing cancer or other serious health conditions</strong> beyond standard coverage?
-            </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
-            
-            <div className="space-y-2">
-              {[
-                "Enhance short-term disability (higher % of salary)",
-                "Enhance long-term disability (higher % of salary)",
-                "Extend duration of benefits",
-                "Reduce/waive waiting periods",
-                "No enhancement - same as standard",
-                "Not applicable - government disability only"
-              ].map(opt => (
-                <label key={opt} className="flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={ans.d1_6?.includes(opt) || false}
-                    onChange={(e) => {
-                      const current = ans.d1_6 || [];
-                      if (e.target.checked) {
-                        setField("d1_6", [...current, opt]);
-                      } else {
-                        setField("d1_6", current.filter((x: string) => x !== opt));
-                      }
-                    }}
-                    className="mt-1"
-                  />
-                  <span>{opt}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
+       {/* D1.6 - Disability enhancement - SINGLE SELECT */}
+{step === 9 && showD1_6 && (
+  <div className="bg-white p-6 rounded-lg shadow-sm">
+    <h3 className="text-xl font-bold text-gray-900 mb-4">Enhanced Disability Benefits</h3>
+    
+    <p className="text-gray-700 mb-2">
+      For <strong>markets where you provide disability insurance</strong>, do you <strong>enhance disability benefits</strong> for <strong>employees managing cancer or other serious health conditions</strong> beyond standard coverage?
+    </p>
+    <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+    
+    <div className="space-y-2">
+      {[
+        "Enhance short-term disability (higher % of salary)",
+        "Enhance long-term disability (higher % of salary)",
+        "Extend duration of benefits",
+        "Reduce/waive waiting periods",
+        "No enhancement - same as standard",
+        "Not applicable - government disability only"
+      ].map(opt => (
+        <button
+          key={opt}
+          onClick={() => setField("d1_6", opt)}
+          className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
+            ans.d1_6 === opt
+              ? "border-blue-500 bg-blue-50"
+              : "border-gray-200 hover:border-gray-300"
+          }`}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
 
         {/* Step 10: Completion */}
         {step === 10 && (
