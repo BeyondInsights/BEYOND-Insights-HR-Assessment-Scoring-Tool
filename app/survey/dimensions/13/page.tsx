@@ -282,7 +282,7 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-white mb-2">COMMUNICATION & AWARENESS</h2>
                   <p className="text-gray-300 text-sm">
-                    Informing and engaging employees about support programs
+                    Inform, educate, and engage employees about available workplace support programs for those managing cancer or other serious health conditions
                   </p>
                 </div>
               </div>
