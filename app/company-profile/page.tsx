@@ -84,31 +84,49 @@ const RESPONSE_OPTIONS_D13 = [
 ========================= */
 
 const D1_QUESTIONS: Record<string, string> = {
+  // D1.a Grid Items (11 programs)
   "Paid medical leave beyond local / legal requirements": "Paid medical leave beyond local/legal requirements",
   "Intermittent leave beyond local / legal requirements": "Intermittent leave beyond local/legal requirements",
   "Flexible work hours during treatment (e.g., varying start / end times, compressed schedules)": "Flexible work hours during treatment",
   "Remote work options for on-site employees": "Remote work options for on-site employees",
-  "Reduced schedule / part-time with full benefits": "Reduced schedule/part-time with full benefits",
+  "Reduced schedule/part-time with full benefits": "Reduced schedule/part-time with full benefits",
   "Job protection beyond local / legal requirements": "Job protection beyond local/legal requirements",
   "Emergency leave within 24 hours": "Emergency leave within 24 hours",
   "Leave donation bank (employees can donate PTO to colleagues)": "Leave donation bank",
   "Disability pay top-up (employer adds to disability insurance)": "Disability pay top-up",
   "PTO accrual during leave": "PTO accrual during leave",
-  "Paid micro-breaks for medical-related side effects": "Paid micro-breaks for medical side effects",
-  'd1_1': 'Paid medical leave duration',
-  'd1_2': 'Intermittent leave details',
+  "Paid micro-breaks for medical-related side effects": "Paid micro-breaks for side effects",
+  
+  // D1.aa Multi-Country Question
+  'd1aa': 'Geographic consistency of support options',
+  
+  // D1.b Open-Ended
+  'd1b': 'Additional medical leave & flexibility benefits',
+  'd1b_none': 'No additional benefits',
+  
+  // D1.1 - Paid Medical Leave Duration
+  'd1_1_usa': 'Paid medical leave duration (USA)',
+  'd1_1_non_usa': 'Paid medical leave duration (Non-USA)',
+  
+  // D1.2 - Intermittent Leave
   'd1_2_usa': 'Intermittent leave duration (USA)',
   'd1_2_non_usa': 'Intermittent leave duration (Non-USA)',
+  
+  // D1.4a - Remote Work
   'd1_4a': 'Remote work availability details',
+  'd1_4a_weeks': 'Remote work duration (weeks)',
+  'd1_4a_months': 'Remote work duration (months)',
   'd1_4a_type': 'Remote work availability type',
-  'd1_4a_weeks': 'Remote work availability duration (weeks)',
+  
+  // D1.4b - Reduced Schedule
   'd1_4b': 'Reduced schedule details',
-  'd1_5': 'Job protection duration',
+  
+  // D1.5 - Job Protection
   'd1_5_usa': 'Job protection duration (USA)',
   'd1_5_non_usa': 'Job protection duration (Non-USA)',
-  'd1_6': 'Additional leave details',
-  'd1aa': 'Are the Medical Leave & Flexibility support options your organization currently offers available across locations?',
-  'd1b': 'Additional medical leave/flexibility benefits not listed'
+  
+  // D1.6 - Disability Enhancement (THIS WAS THE PROBLEM!)
+  'd1_6': 'Disability benefit enhancements'
 };
 
 const D2_QUESTIONS: Record<string, string> = {
