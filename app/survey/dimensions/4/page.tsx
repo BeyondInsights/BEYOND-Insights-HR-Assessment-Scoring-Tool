@@ -41,6 +41,11 @@ export default function Dimension4Page() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+
+    // Convert d1_6 to array if it was saved as a string
+      if (parsed.d1_6 && !Array.isArray(parsed.d1_6)) {
+        parsed.d1_6 = [parsed.d1_6];
+      }    
         setAns(parsed);
       } catch (e) {
         console.error("Error loading saved data:", e);
@@ -72,16 +77,16 @@ export default function Dimension4Page() {
   };
 
   const toggleMultiSelect = (key: string, value: string) => {
-    setAns((prev: any) => {
-      const current = prev[key] || [];
-      if (current.includes(value)) {
-        return { ...prev, [key]: current.filter((v: string) => v !== value) };
-      } else {
-        return { ...prev, [key]: [...current, value] };
-      }
-    });
-    setErrors("");
-  };
+  setAns((prev: any) => {
+    const current = prev[key] || [];
+    if (current.includes(value)) {
+      return { ...prev, [key]: current.filter((v: string) => v !== value) };
+    } else {
+      return { ...prev, [key]: [...current, value] };
+    }
+  });
+  setErrors("");
+};
 
   const setStatus = (item: string, status: string) => {
     setAns((prev: any) => ({
