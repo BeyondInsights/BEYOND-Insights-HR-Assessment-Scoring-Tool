@@ -458,119 +458,161 @@ const getTotalSteps = () => {
     <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
     
     {/* SCREENINGS */}
-    <div className="mb-6">
+<div className="mb-6">
   <p className="text-sm font-bold uppercase text-blue-600 mb-3">SCREENINGS</p>
-      <div className="space-y-2">
-        {[
-          "Cervical cancer screening (Pap smear/HPV test)",
-          "Colonoscopy (colorectal cancer)",
-          "Dense breast tissue screening (ultrasound/MRI)",
-          "Gastric / stomach cancer screening",
-          "H. pylori testing",
-          "Liver cancer screening (AFP test + ultrasound)",
-          "Lung cancer screening (low-dose CT for high risk)",
-          "Mammograms (breast cancer)",
-          "Oral cancer screening",
-          "Prostate cancer screening (PSA test)",
-          "Skin cancer screening/full body exam",
-          "Tuberculosis screening"
-        ].map(item => {
-          const isSelected = ans.d11_1?.includes(item) || false;
-          return (
-            <button
-              key={item}
-              onClick={() => {
-                const current = ans.d11_1 || [];
-                if (isSelected) {
-                  setField("d11_1", current.filter((i: string) => i !== item));
-                } else {
-                  setField("d11_1", [...current, item]);
+  <div className="space-y-2">
+    {[
+      "Cervical cancer screening (Pap smear/HPV test)",
+      "Colonoscopy (colorectal cancer)",
+      "Dense breast tissue screening (ultrasound/MRI)",
+      "Gastric / stomach cancer screening",
+      "H. pylori testing",
+      "Liver cancer screening (AFP test + ultrasound)",
+      "Lung cancer screening (low-dose CT for high risk)",
+      "Mammograms (breast cancer)",
+      "Oral cancer screening",
+      "Prostate cancer screening (PSA test)",
+      "Skin cancer screening/full body exam",
+      "Tuberculosis screening",
+      "Other screening (specify)"
+    ].map(item => {
+      const isSelected = ans.d11_1?.includes(item) || false;
+      return (
+        <div key={item}>
+          <button
+            onClick={() => {
+              const current = ans.d11_1 || [];
+              if (isSelected) {
+                setField("d11_1", current.filter((i: string) => i !== item));
+                if (item === "Other screening (specify)") {
+                  setField("d11_1_screening_other", "");
                 }
-              }}
-              className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                isSelected
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              {item}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+              } else {
+                setField("d11_1", [...current, item]);
+              }
+            }}
+            className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+              isSelected
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            {item}
+          </button>
+          {item === "Other screening (specify)" && isSelected && (
+            <input
+              type="text"
+              value={ans.d11_1_screening_other || ""}
+              onChange={(e) => setField("d11_1_screening_other", e.target.value)}
+              placeholder="Please specify..."
+              className="mt-2 w-full px-4 py-3 border-2 border-gray-300 rounded-lg"
+            />
+          )}
+        </div>
+      );
+    })}
+  </div>
+</div>
 
-    {/* GENETIC TESTING */}
-    <div className="mb-6">
-    <p className="text-sm font-bold uppercase text-blue-600 mb-3">GENETIC TESTING & COUNSELING</p>
-      <div className="space-y-2">
-        {[
-          "BRCA testing (breast/ovarian cancer risk)",
-          "Lynch syndrome testing (colorectal cancer risk)",
-          "Multi-gene panel testing",
-          "Genetic counseling services"
-        ].map(item => {
-          const isSelected = ans.d11_1?.includes(item) || false;
-          return (
-            <button
-              key={item}
-              onClick={() => {
-                const current = ans.d11_1 || [];
-                if (isSelected) {
-                  setField("d11_1", current.filter((i: string) => i !== item));
-                } else {
-                  setField("d11_1", [...current, item]);
+{/* GENETIC TESTING */}
+<div className="mb-6">
+  <p className="text-sm font-bold uppercase text-blue-600 mb-3">GENETIC TESTING & COUNSELING</p>
+  <div className="space-y-2">
+    {[
+      "BRCA testing (breast/ovarian cancer risk)",
+      "Lynch syndrome testing (colorectal cancer risk)",
+      "Multi-gene panel testing",
+      "Genetic counseling services",
+      "Other genetic testing (specify)"
+    ].map(item => {
+      const isSelected = ans.d11_1?.includes(item) || false;
+      return (
+        <div key={item}>
+          <button
+            onClick={() => {
+              const current = ans.d11_1 || [];
+              if (isSelected) {
+                setField("d11_1", current.filter((i: string) => i !== item));
+                if (item === "Other genetic testing (specify)") {
+                  setField("d11_1_genetic_other", "");
                 }
-              }}
-              className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                isSelected
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              {item}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+              } else {
+                setField("d11_1", [...current, item]);
+              }
+            }}
+            className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+              isSelected
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            {item}
+          </button>
+          {item === "Other genetic testing (specify)" && isSelected && (
+            <input
+              type="text"
+              value={ans.d11_1_genetic_other || ""}
+              onChange={(e) => setField("d11_1_genetic_other", e.target.value)}
+              placeholder="Please specify..."
+              className="mt-2 w-full px-4 py-3 border-2 border-gray-300 rounded-lg"
+            />
+          )}
+        </div>
+      );
+    })}
+  </div>
+</div>
 
-    {/* PREVENTIVE VACCINES */}
-    <div className="mb-6">
+{/* PREVENTIVE VACCINES */}
+<div className="mb-6">
   <p className="text-sm font-bold uppercase text-blue-600 mb-3">PREVENTIVE VACCINES</p>
-      <div className="space-y-2">
-        {[
-          "HPV vaccines (cervical cancer prevention)",
-          "Hepatitis B vaccines (liver cancer prevention)",
-          "COVID-19 vaccines",
-          "Influenza vaccines",
-          "Pneumonia vaccines",
-          "Shingles vaccines"
-        ].map(item => {
-          const isSelected = ans.d11_1?.includes(item) || false;
-          return (
-            <button
-              key={item}
-              onClick={() => {
-                const current = ans.d11_1 || [];
-                if (isSelected) {
-                  setField("d11_1", current.filter((i: string) => i !== item));
-                } else {
-                  setField("d11_1", [...current, item]);
+  <div className="space-y-2">
+    {[
+      "HPV vaccines (cervical cancer prevention)",
+      "Hepatitis B vaccines (liver cancer prevention)",
+      "COVID-19 vaccines",
+      "Influenza vaccines",
+      "Pneumonia vaccines",
+      "Shingles vaccines",
+      "Other preventive vaccines (specify)"
+    ].map(item => {
+      const isSelected = ans.d11_1?.includes(item) || false;
+      return (
+        <div key={item}>
+          <button
+            onClick={() => {
+              const current = ans.d11_1 || [];
+              if (isSelected) {
+                setField("d11_1", current.filter((i: string) => i !== item));
+                if (item === "Other preventive vaccines (specify)") {
+                  setField("d11_1_vaccine_other", "");
                 }
-              }}
-              className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                isSelected
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              {item}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+              } else {
+                setField("d11_1", [...current, item]);
+              }
+            }}
+            className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+              isSelected
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            {item}
+          </button>
+          {item === "Other preventive vaccines (specify)" && isSelected && (
+            <input
+              type="text"
+              value={ans.d11_1_vaccine_other || ""}
+              onChange={(e) => setField("d11_1_vaccine_other", e.target.value)}
+              placeholder="Please specify..."
+              className="mt-2 w-full px-4 py-3 border-2 border-gray-300 rounded-lg"
+            />
+          )}
+        </div>
+      );
+    })}
+  </div>
+</div>
   </div>
 )}   
         {/* Step 4: D11.b open-end */}
