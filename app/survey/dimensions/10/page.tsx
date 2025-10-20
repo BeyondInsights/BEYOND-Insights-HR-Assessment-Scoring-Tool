@@ -117,23 +117,21 @@ export default function Dimension10Page() {
   };
 
   const STATUS_OPTIONS = [
-  "Not able to offer in foreseeable future",
-  "Assessing feasibility",
-  "In active planning / development",
-  "Currently offer"
-];
+    "Not able to offer in foreseeable future",
+    "Assessing feasibility",
+    "In active planning / development",
+    "Currently offer"
+  ];
 
-const hasAnyOffered = Object.values(ans.d10a || {}).some(
-  (status) => status === "Currently offer"
-);
+  const hasAnyOffered = Object.values(ans.d10a || {}).some(
+    (status) => status === "Currently offer"
+  );
 
-const showD10aa = isMultiCountry && hasAnyOffered;  // Make sure it's hasAnyOffered
-const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (beyond local legal requirements)"] === "Currently offer";
+  const showD10aa = isMultiCountry && hasAnyOffered;
 
   const getTotalSteps = () => {
     let total = 3; // intro, D10.a, D10.b
     if (showD10aa) total++; // D10.aa
-    if (showD10_1) total++; // D10.1
     total++; // completion
     return total;
   };
@@ -148,15 +146,6 @@ const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (be
       
       case 2:
         if (showD10aa && !ans.d10aa) {
-          return "Please select one option";
-        }
-        if (!showD10aa && showD10_1 && !ans.d10_1) {
-          return "Please select one option";
-        }
-        return null;
-        
-      case 3:
-        if (showD10_1 && !ans.d10_1) {
           return "Please select one option";
         }
         return null;
@@ -176,22 +165,14 @@ const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (be
     if (step === 1) {
       if (showD10aa) {
         setStep(2); // Go to D10.aa
-      } else if (showD10_1) {
-        setStep(3); // Skip to D10.1
       } else {
-        setStep(4); // Skip to D10.b
+        setStep(3); // Skip to D10.b
       }
     } else if (step === 2) {
-      if (showD10aa && showD10_1) {
-        setStep(3); // Go to D10.1
-      } else {
-        setStep(4); // Go to D10.b
-      }
+      setStep(3); // Go to D10.b
     } else if (step === 3) {
-      setStep(4); // Go to D10.b
+      setStep(4); // Go to completion
     } else if (step === 4) {
-      setStep(5); // Go to completion
-    } else if (step === 5) {
       localStorage.setItem("dimension10_complete", "true");
       router.push("/dashboard");
       return;
@@ -202,13 +183,7 @@ const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (be
 
   const back = () => {
     if (step === 4) {
-      if (showD10_1) {
-        setStep(3);
-      } else if (showD10aa) {
-        setStep(2);
-      } else {
-        setStep(1);
-      }
+      setStep(3);
     } else if (step === 3) {
       setStep(showD10aa ? 2 : 1);
     } else if (step === 2) {
@@ -398,7 +373,7 @@ const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (be
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous option
+                  View previous option
                 </button>
 
                 {Object.keys(ans.d10a || {}).length === D10A_ITEMS.length && !isTransitioning && (
@@ -406,7 +381,7 @@ const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (be
                     onClick={next}
                     className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
                   >
-                    Continue →
+                    Continue
                   </button>
                 )}
               </div>
@@ -446,7 +421,6 @@ const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (be
             </div>
           </div>
         )}
-
 
         {/* Step 3: D10.b open-end */}
         {step === 3 && (
@@ -501,25 +475,25 @@ const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (be
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Save & Return to Dashboard →
+              Save & Return to Dashboard
             </button>
           </div>
         )}
 
         {/* Universal Navigation */}
-        {step > 1 && step < 5 && (
+        {step > 1 && step < 4 && (
           <div className="flex justify-between mt-8">
             <button 
               onClick={back} 
               className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
             >
-              ← Back
+              Back
             </button>
             <button 
               onClick={next} 
               className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Continue →
+              Continue
             </button>
           </div>
         )}
