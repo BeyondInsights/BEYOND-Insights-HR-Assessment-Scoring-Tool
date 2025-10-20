@@ -124,14 +124,14 @@ export default function Dimension3Page() {
   );
 
   // D3.aa should show if multi-country AND at least one "Currently provide to managers"
-  const showD3.aa = isMultiCountry && hasAnyProvided;
+  const showD3aa = isMultiCountry && hasAnyProvided;
   const showD3_1a = hasAnyProvided;
   const showD3_1 = hasAnyProvided;
 
   // Calculate total steps
   const getTotalSteps = () => {
     let total = 3; // intro, D3.a, D3.b
-    if (showD3.aa) total++; // D3.aa
+    if (showD3aa) total++; // D3.aa
     if (showD3_1a) total++; // D3.1a
     if (showD3_1) total++; // D3.1
     total++; // completion screen
@@ -148,7 +148,7 @@ export default function Dimension3Page() {
         return null;
       
       case 2: // Could be D3.aa OR D3.b
-        if (showD3.aa && !ans.D3.aa) return "Please select one option";
+        if (showD3aa && !ans.D3.aa) return "Please select one option";
         return null;
         
       default:
@@ -166,14 +166,14 @@ export default function Dimension3Page() {
 
     if (step === 1) {
       // After D3.a grid
-      if (showD3.aa) {
+      if (showD3aa) {
         setStep(2); // Go to D3.aa
       } else {
         setStep(3); // Skip to D3.b
       }
     } else if (step === 2) {
       // From D3.aa OR D3.b
-      if (showD3.aa && !ans.d3b && ans.D3.aa) {
+      if (showD3aa && !ans.d3b && ans.D3.aa) {
         setStep(3); // Go to D3.b
       } else {
         // From D3.b, check follow-ups
@@ -216,7 +216,7 @@ export default function Dimension3Page() {
     } else if (step === 4) {
       setStep(3);
     } else if (step === 3) {
-      setStep(showD3.aa ? 2 : 1);
+      setStep(showD3aa ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
     } else if (step > 0) {
@@ -427,7 +427,7 @@ export default function Dimension3Page() {
         )}
         
         {/* Step 2: D3.aa (conditional - multi-country with offerings) */}
-        {step === 2 && showD3.aa && (
+        {step === 2 && showD3aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
@@ -460,7 +460,7 @@ export default function Dimension3Page() {
         )}
 
         {/* Step 3: D3.b open-end (OR Step 2 if no D3.aa) */}
-        {(step === 3 || (step === 2 && !showD3.aa)) && (
+        {(step === 3 || (step === 2 && !showD3aa)) && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Initiatives</h3>
             
