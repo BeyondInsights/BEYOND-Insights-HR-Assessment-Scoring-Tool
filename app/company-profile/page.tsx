@@ -423,7 +423,7 @@ const D11_QUESTIONS: Record<string, string> = {
   'd11b': 'Additional prevention/wellness initiatives',
   'd11b_none': 'No additional initiatives',
   
-  // D11.1 - Preventive Services at 100%
+  // D11.1 - Preventive Services at 70%+
   'd11_1': 'Early detection & preventive services covered at 100%'
 };
 
