@@ -81,8 +81,8 @@ const curRequired = [
   const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
   if (firmo?.companyName) setCompanyName(firmo.companyName)
   
-  const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}')
-  const current = JSON.parse(localStorage.getItem('current-support_data') || '{}')
+  const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}')
+  const current = JSON.parse(localStorage.getItem('current_support_data') || '{}')  // UNDERSCORE not hyphen
 
 
   // Check completion flags
