@@ -1,11 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-// Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -119,10 +117,11 @@ export default function Dimension7Page() {
     (status) => status === "Currently offer"
   );
   
-  const showD7aa = isMultiCountry && hasOffered;
+  const showD7aa = isMultiCountry && hasAnyOffered;
 
   const getTotalSteps = () => {
-    let total = 4; // intro, D7.a, D7.aa (conditional), D7.b
+    let total = 3; // intro, D7.a, D7.b
+    if (showD7aa) total++; // D7.aa
     total++; // completion
     return total;
   };
@@ -139,9 +138,6 @@ export default function Dimension7Page() {
         if (showD7aa && !ans.d7aa) {
           return "Please select one option";
         }
-        return null;
-        
-      case 3:
         return null;
         
       default:
@@ -163,9 +159,13 @@ export default function Dimension7Page() {
         setStep(3);
       }
     } else if (step === 2) {
-      setStep(3);
+      if (showD7aa && !ans.d7b && ans.d7aa) {
+        setStep(3);
+      } else {
+        setStep(4);
+      }
     } else if (step === 3) {
-      setStep(4); // Go to completion
+      setStep(4);
     } else if (step === 4) {
       localStorage.setItem("dimension7_complete", "true");
       router.push("/dashboard");
@@ -176,9 +176,7 @@ export default function Dimension7Page() {
   };
 
   const back = () => {
-    if (step === 4) {
-      setStep(3);
-    } else if (step === 3) {
+    if (step === 3) {
       setStep(showD7aa ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
@@ -275,7 +273,7 @@ export default function Dimension7Page() {
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-white mb-2">CAREER CONTINUITY & ADVANCEMENT</h2>
                   <p className="text-gray-300 text-sm">
-                    Career advancement protections during and after treatment
+                    Protections for career advancement opportunities during and after treatment
                   </p>
                 </div>
               </div>
@@ -315,13 +313,13 @@ export default function Dimension7Page() {
                       : 'opacity-100 transform scale-100 blur-0'
                   }`}
                 >
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">
                     {D7A_ITEMS[currentItemIndex]}
                   </h3>
                   <p className="text-xs italic text-gray-600 mb-4">
                     We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
                   </p>
-
+                  
                   <div className="space-y-2">
                     {STATUS_OPTIONS.map((status) => (
                       <button
@@ -383,15 +381,15 @@ export default function Dimension7Page() {
             </div>
           </div>
         )}
-        
-        {/* Step 2: D7.aa (conditional for multi-country) */}
+
+        {/* Step 2: D7.aa (conditional) */}
         {step === 2 && showD7aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-              Are the <span className="text-blue-600 font-bold">Career Continuity & Advancement support options</span> your 
-              organization <span className="text-blue-600 font-bold">currently offers</span>...?
+              Are the <span className="text-blue-600">Career Continuity & Advancement support options</span> your 
+              organization currently offers...?
             </p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
@@ -417,8 +415,8 @@ export default function Dimension7Page() {
           </div>
         )}
 
-        {/* Step 3: D7.b open-end */}
-        {step === 3 && (
+        {/* Step 3: D7.b open-end (or step 2 if no D7.aa) */}
+        {(step === 3 || (step === 2 && !showD7aa)) && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Supports</h3>
             
