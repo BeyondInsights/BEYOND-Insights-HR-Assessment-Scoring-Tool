@@ -112,17 +112,18 @@ export default function Dimension11Page() {
   };
 
   const STATUS_OPTIONS = [
-    "Not able to offer in foreseeable future",
-    "Assessing feasibility",
-    "In active planning / development",
-    "Currently offer"
-  ];
+  "Not able to offer in foreseeable future",
+  "Assessing feasibility",
+  "In active planning / development",
+  "Currently offer"
+];
 
-  const hasAnyOffered = Object.values(ans.d11a || {}).some(
-    (status) => status === "Currently offer"
-  );
-  
-  const showD11aa = isMultiCountry && hasOffered;
+const hasAnyOffered = Object.values(ans.d11a || {}).some(
+  (status) => status === "Currently offer"
+);
+
+const showD11aa = isMultiCountry && hasAnyOffered;  // Make sure it's hasAnyOffered
+const showD11_1 = ans.d11a?.["At least 70% coverage for regionally / locally recommended screenings"] === "Currently offer";
 
   const getTotalSteps = () => {
     let total = 4; // intro, D11.a, D11.aa (conditional), D11.b
