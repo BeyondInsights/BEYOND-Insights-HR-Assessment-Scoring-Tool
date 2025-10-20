@@ -668,7 +668,7 @@ const getTotalSteps = () => {
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Save & Return to Dashboard ←’
+              Save & Return to Dashboard →
             </button>
           </div>
         )}
