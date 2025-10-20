@@ -74,7 +74,7 @@ export default function LetterPage() {
               {/* Time Estimate */}
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
                 <p className="text-orange-900">
-                  <strong>Estimated completion time:</strong> 20 minutes (plus additional time as needed to collect/confirm requested information)
+                  <strong>Estimated completion time:</strong> 20-25 minutes (plus additional time as needed to collect/confirm requested information)
                 </p>
               </div>
 
