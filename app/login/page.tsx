@@ -37,7 +37,7 @@ export default function LoginPage() {
     localStorage.setItem('auth_email', formData.email) // For compatibility
     
     // Route to authorization page
-    router.push('/authorization')
+    router.push('/letter')
   }
 
   const handleRequestApplicationId = () => {
