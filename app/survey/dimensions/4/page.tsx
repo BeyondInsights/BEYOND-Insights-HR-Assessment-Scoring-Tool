@@ -1,5 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
