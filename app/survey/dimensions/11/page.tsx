@@ -459,7 +459,7 @@ const getTotalSteps = () => {
     
     {/* SCREENINGS */}
     <div className="mb-6">
-      <p className="text-sm font-semibold uppercase text-gray-600 mb-3">SCREENINGS</p>
+  <p className="text-sm font-bold uppercase text-blue-600 mb-3">SCREENINGS</p>
       <div className="space-y-2">
         {[
           "Cervical cancer screening (Pap smear/HPV test)",
@@ -502,7 +502,7 @@ const getTotalSteps = () => {
 
     {/* GENETIC TESTING */}
     <div className="mb-6">
-      <p className="text-sm font-semibold uppercase text-gray-600 mb-3">GENETIC TESTING & COUNSELING</p>
+    <p className="text-sm font-bold uppercase text-blue-600 mb-3">GENETIC TESTING & COUNSELING</p>
       <div className="space-y-2">
         {[
           "BRCA testing (breast/ovarian cancer risk)",
@@ -537,7 +537,7 @@ const getTotalSteps = () => {
 
     {/* PREVENTIVE VACCINES */}
     <div className="mb-6">
-      <p className="text-sm font-semibold uppercase text-gray-600 mb-3">PREVENTIVE VACCINES</p>
+  <p className="text-sm font-bold uppercase text-blue-600 mb-3">PREVENTIVE VACCINES</p>
       <div className="space-y-2">
         {[
           "HPV vaccines (cervical cancer prevention)",
