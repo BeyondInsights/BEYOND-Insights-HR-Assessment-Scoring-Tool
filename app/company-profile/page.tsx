@@ -669,7 +669,12 @@ function parseDimensionData(
   const items: Array<{ question: string; response: string }> = [];
 
   Object.entries(data || {}).forEach(([key, value]) => {
-    const isThisDim = key === `${prefix}a` || key.startsWith(`${prefix}_`) || key === prefix;
+    // Check for d#aa format OR d#.aa format (for backwards compatibility)
+    const isThisDim = key === `${prefix}a` || 
+                     key === `${prefix}aa` || 
+                     key === `${prefix}.aa` ||  // Handle old format
+                     key.startsWith(`${prefix}_`) || 
+                     key === prefix;
     if (!isThisDim) return;
 
     if (key === `${prefix}a` && hasProgramStatusMap(value)) {
@@ -677,6 +682,16 @@ function parseDimensionData(
         if (status != null && String(status).trim() !== '') {
           programs.push({ program: String(program), status: String(status) });
         }
+      });
+      return;
+    }
+
+    // Handle both d#aa and d#.aa formats
+    if ((key === `${prefix}aa` || key === `${prefix}.aa`) && value) {
+      const question = getQuestionLabel(dimNumber, `${prefix}aa`);
+      items.push({
+        question,
+        response: String(value)
       });
       return;
     }
@@ -690,7 +705,6 @@ function parseDimensionData(
       const resp = selectedOnly(value);
       if (resp) {
         const question = getQuestionLabel(dimNumber, key);
-        console.log(`Dimension ${dimNumber} - Adding item:`, key, '→', question, '=', resp);
         items.push({
           question,
           response: Array.isArray(resp) ? resp.join(', ') : resp
@@ -698,11 +712,6 @@ function parseDimensionData(
       }
     }
   });
-
-  console.log(`Dimension ${dimNumber} final:`, programs.length, 'programs,', items.length, 'items');
-  if (dimNumber === 3) {
-    console.log('D3 items:', items);
-  }
 
   return { programs, items };
 }
@@ -736,12 +745,23 @@ function DataRow({ label, value }: { label: string; value?: any }) {
     </div>
   );
 }
-
 function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: string; status: string }>; dimNumber: number }) {
-  const options = dimNumber === 13 ? RESPONSE_OPTIONS_D13 : 
-                  dimNumber === 12 ? RESPONSE_OPTIONS_D12 :
-                  dimNumber === 3 ? RESPONSE_OPTIONS_D3 : 
-                  RESPONSE_OPTIONS;
+  // Determine which options to use based on dimension
+  let options;
+  if (dimNumber === 13) {
+    options = RESPONSE_OPTIONS_D13; // Already includes Unsure
+  } else if (dimNumber === 12) {
+    options = RESPONSE_OPTIONS_D12;
+  } else if (dimNumber === 3) {
+    options = RESPONSE_OPTIONS_D3;
+  } else if (dimNumber === 1) {
+    // D1 has Unsure
+    options = [...RESPONSE_OPTIONS, 'Unsure'];
+  } else {
+    // D2, D4-D11 do NOT have Unsure
+    options = RESPONSE_OPTIONS;
+  }
+
   const byStatus: Record<string, Array<string>> = {};
   options.forEach(opt => (byStatus[opt] = []));
   
@@ -778,7 +798,9 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
           const bgColor = option.toLowerCase().includes('currently') ? BRAND.gray[50] : BRAND.gray[50];
           const borderColor = option.toLowerCase().includes('currently') ? '#10B981' : 
                              option.toLowerCase().includes('planning') ? '#3B82F6' :
-                             option.toLowerCase().includes('assessing') ? '#F59E0B' : BRAND.gray[300];
+                             option.toLowerCase().includes('assessing') ? '#F59E0B' : 
+                             option.toLowerCase().includes('unsure') ? '#9CA3AF' :
+                             BRAND.gray[300];
           
           return (
             <div key={option} className="rounded border-l-4 bg-white p-3" style={{ borderColor, backgroundColor: bgColor }}>
@@ -806,6 +828,7 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
     </div>
   );
 }
+
 
 /* =========================
    MAIN
