@@ -39,7 +39,7 @@ const DIM_TITLE: Record<number, string> = {
   5: 'Workplace Accommodations',
   6: 'Culture & Psychological Safety',
   7: 'Career Continuity & Advancement',
-  8: 'Return-to-Work Excellence',
+  8: 'Work Continuation & Resumption',
   9: 'Executive Commitment & Resources',
   10: 'Caregiver & Family Support',
   11: 'Prevention, Wellness & Legal Compliance',
