@@ -146,7 +146,7 @@ export default function CompletionPage() {
               <p className="text-sm text-gray-700 leading-relaxed mb-3">
                 A member of the Cancer and Careers team will carefully review your assessment and supporting documentation, then reach out to you at{' '}
                 <span className="font-semibold text-blue-700">{email}</span>{' '}
-                within the next few business days.
+                within the next 7 to 10 business days.
               </p>
               
               <p className="text-sm text-gray-700 leading-relaxed">
