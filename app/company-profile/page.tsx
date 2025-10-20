@@ -667,16 +667,18 @@ function parseDimensionData(
   const prefix = `d${dimNumber}`;
   const programs: Array<{ program: string; status: string }> = [];
   const items: Array<{ question: string; response: string }> = [];
-
+  
   Object.entries(data || {}).forEach(([key, value]) => {
     // Check for d#aa format OR d#.aa format (for backwards compatibility)
     const isThisDim = key === `${prefix}a` || 
                      key === `${prefix}aa` || 
                      key === `${prefix}.aa` ||  // Handle old format
+                     key === `${prefix}b` ||     // Add this line
+                     key === `${prefix}b_none` || // Add this line
                      key.startsWith(`${prefix}_`) || 
                      key === prefix;
     if (!isThisDim) return;
-
+    
     if (key === `${prefix}a` && hasProgramStatusMap(value)) {
       Object.entries(value).forEach(([program, status]) => {
         if (status != null && String(status).trim() !== '') {
@@ -685,7 +687,7 @@ function parseDimensionData(
       });
       return;
     }
-
+    
     // Handle both d#aa and d#.aa formats
     if ((key === `${prefix}aa` || key === `${prefix}.aa`) && value) {
       const question = getQuestionLabel(dimNumber, `${prefix}aa`);
@@ -695,12 +697,12 @@ function parseDimensionData(
       });
       return;
     }
-
+    
     if (Array.isArray(value) && value.some(v => /other|specify/i.test(String(v)))) {
       const otherText = (data as any)[`${key}_other`];
       if (otherText) value = [...value, `Other: ${otherText}`];
     }
-
+    
     if (!key.endsWith('_none')) {
       const resp = selectedOnly(value);
       if (resp) {
@@ -712,7 +714,7 @@ function parseDimensionData(
       }
     }
   });
-
+  
   return { programs, items };
 }
 
