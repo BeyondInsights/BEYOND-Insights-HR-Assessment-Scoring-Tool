@@ -455,107 +455,105 @@ const getTotalSteps = () => {
     <p className="font-bold text-gray-900 mb-2">
       Which <span className="text-blue-600">early detection</span> and <span className="text-blue-600">preventive care services</span> are covered for employees at 100% based on regional / locally recommended screenings?
     </p>
-    <p className="text-sm text-gray-600 mb-6">(Select ALL that apply)</p>
+    <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
     
-    <div className="space-y-6">
-      {/* SCREENINGS */}
-      <div className="border rounded-lg p-4 border-gray-200">
-        <h4 className="font-bold text-gray-900 mb-3 text-sm uppercase tracking-wide">SCREENINGS</h4>
-        <div className="space-y-2">
-          {[
-            "Cervical cancer screening (Pap smear/HPV test)",
-            "Colonoscopy (colorectal cancer)",
-            "Dense breast tissue screening (ultrasound/MRI)",
-            "Gastric / stomach cancer screening",
-            "H. pylori testing",
-            "Liver cancer screening (AFP test + ultrasound)",
-            "Lung cancer screening (low-dose CT for high risk)",
-            "Mammograms (breast cancer)",
-            "Oral cancer screening",
-            "Prostate cancer screening (PSA test)",
-            "Skin cancer screening/full body exam",
-            "Tuberculosis screening"
-          ].map(item => (
-            <label key={item} className="flex items-center hover:bg-gray-50 p-1 rounded cursor-pointer">
-              <input
-                type="checkbox"
-                checked={ans.d11_1?.includes(item) || false}
-                onChange={(e) => {
-                  const current = ans.d11_1 || [];
-                  if (e.target.checked) {
-                    setField("d11_1", [...current, item]);
-                  } else {
-                    setField("d11_1", current.filter((i: string) => i !== item));
-                  }
-                }}
-                className="w-4 h-4 mr-3"
-              />
-              <span className="text-sm">{item}</span>
-            </label>
-          ))}
-        </div>
+    {/* SCREENINGS */}
+    <div className="mb-6">
+      <p className="font-semibold text-gray-800 mb-3">SCREENINGS</p>
+      <div className="space-y-2">
+        {[
+          "Cervical cancer screening (Pap smear/HPV test)",
+          "Colonoscopy (colorectal cancer)",
+          "Dense breast tissue screening (ultrasound/MRI)",
+          "Gastric / stomach cancer screening",
+          "H. pylori testing",
+          "Liver cancer screening (AFP test + ultrasound)",
+          "Lung cancer screening (low-dose CT for high risk)",
+          "Mammograms (breast cancer)",
+          "Oral cancer screening",
+          "Prostate cancer screening (PSA test)",
+          "Skin cancer screening/full body exam",
+          "Tuberculosis screening"
+        ].map(item => (
+          <label key={item} className="flex items-start">
+            <input
+              type="checkbox"
+              checked={ans.d11_1?.includes(item) || false}
+              onChange={(e) => {
+                const current = ans.d11_1 || [];
+                if (e.target.checked) {
+                  setField("d11_1", [...current, item]);
+                } else {
+                  setField("d11_1", current.filter((i: string) => i !== item));
+                }
+              }}
+              className="w-4 h-4 mr-3 mt-0.5"
+            />
+            <span className="text-sm">{item}</span>
+          </label>
+        ))}
       </div>
+    </div>
 
-      {/* GENETIC TESTING */}
-      <div className="border rounded-lg p-4 border-gray-200">
-        <h4 className="font-bold text-gray-900 mb-3 text-sm uppercase tracking-wide">GENETIC TESTING & COUNSELING</h4>
-        <div className="space-y-2">
-          {[
-            "BRCA testing (breast/ovarian cancer risk)",
-            "Lynch syndrome testing (colorectal cancer risk)",
-            "Multi-gene panel testing",
-            "Genetic counseling services"
-          ].map(item => (
-            <label key={item} className="flex items-center hover:bg-gray-50 p-1 rounded cursor-pointer">
-              <input
-                type="checkbox"
-                checked={ans.d11_1?.includes(item) || false}
-                onChange={(e) => {
-                  const current = ans.d11_1 || [];
-                  if (e.target.checked) {
-                    setField("d11_1", [...current, item]);
-                  } else {
-                    setField("d11_1", current.filter((i: string) => i !== item));
-                  }
-                }}
-                className="w-4 h-4 mr-3"
-              />
-              <span className="text-sm">{item}</span>
-            </label>
-          ))}
-        </div>
+    {/* GENETIC TESTING */}
+    <div className="mb-6">
+      <p className="font-semibold text-gray-800 mb-3">GENETIC TESTING & COUNSELING</p>
+      <div className="space-y-2">
+        {[
+          "BRCA testing (breast/ovarian cancer risk)",
+          "Lynch syndrome testing (colorectal cancer risk)",
+          "Multi-gene panel testing",
+          "Genetic counseling services"
+        ].map(item => (
+          <label key={item} className="flex items-start">
+            <input
+              type="checkbox"
+              checked={ans.d11_1?.includes(item) || false}
+              onChange={(e) => {
+                const current = ans.d11_1 || [];
+                if (e.target.checked) {
+                  setField("d11_1", [...current, item]);
+                } else {
+                  setField("d11_1", current.filter((i: string) => i !== item));
+                }
+              }}
+              className="w-4 h-4 mr-3 mt-0.5"
+            />
+            <span className="text-sm">{item}</span>
+          </label>
+        ))}
       </div>
+    </div>
 
-      {/* VACCINES */}
-      <div className="border rounded-lg p-4 border-gray-200">
-        <h4 className="font-bold text-gray-900 mb-3 text-sm uppercase tracking-wide">PREVENTIVE VACCINES</h4>
-        <div className="space-y-2">
-          {[
-            "HPV vaccines (cervical cancer prevention)",
-            "Hepatitis B vaccines (liver cancer prevention)",
-            "COVID-19 vaccines",
-            "Influenza vaccines",
-            "Pneumonia vaccines",
-            "Shingles vaccines"
-          ].map(item => (
-            <label key={item} className="flex items-center hover:bg-gray-50 p-1 rounded cursor-pointer">
-              <input
-                type="checkbox"
-                checked={ans.d11_1?.includes(item) || false}
-                onChange={(e) => {
-                  const current = ans.d11_1 || [];
-                  if (e.target.checked) {
-                    setField("d11_1", [...current, item]);
-                  } else {
-                    setField("d11_1", current.filter((i: string) => i !== item));
-                  }
-                }}
-                className="w-4 h-4 mr-3"
-              />
-              <span className="text-sm">{item}</span>
-            </label>
-          ))}
-        </div>
+    {/* PREVENTIVE VACCINES */}
+    <div className="mb-6">
+      <p className="font-semibold text-gray-800 mb-3">PREVENTIVE VACCINES</p>
+      <div className="space-y-2">
+        {[
+          "HPV vaccines (cervical cancer prevention)",
+          "Hepatitis B vaccines (liver cancer prevention)",
+          "COVID-19 vaccines",
+          "Influenza vaccines",
+          "Pneumonia vaccines",
+          "Shingles vaccines"
+        ].map(item => (
+          <label key={item} className="flex items-start">
+            <input
+              type="checkbox"
+              checked={ans.d11_1?.includes(item) || false}
+              onChange={(e) => {
+                const current = ans.d11_1 || [];
+                if (e.target.checked) {
+                  setField("d11_1", [...current, item]);
+                } else {
+                  setField("d11_1", current.filter((i: string) => i !== item));
+                }
+              }}
+              className="w-4 h-4 mr-3 mt-0.5"
+            />
+            <span className="text-sm">{item}</span>
+          </label>
+        ))}
       </div>
     </div>
   </div>
