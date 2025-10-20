@@ -670,17 +670,20 @@ function parseDimensionData(
   const items: Array<{ question: string; response: string }> = [];
   
   Object.entries(data || {}).forEach(([key, value]) => {
-    // Check for d#aa format OR d#.aa format (for backwards compatibility)
-    const isThisDim = key === `${prefix}a` || 
-                     key === `${prefix}aa` || 
-                     key === `${prefix}.aa` ||  // Handle old format
-                     key === `${prefix}b` ||     // Add this line
-                     key === `${prefix}b_none` || // Add this line
-                     key.startsWith(`${prefix}_`) || 
-                     key === prefix;
+    // Convert key to lowercase for comparison
+    const lowerKey = key.toLowerCase();
+    
+    // Check for d#aa format OR D#aa format (case-insensitive)
+    const isThisDim = lowerKey === `${prefix}a` || 
+                     lowerKey === `${prefix}aa` || 
+                     lowerKey === `${prefix}.aa` ||
+                     lowerKey === `${prefix}b` ||
+                     lowerKey === `${prefix}b_none` ||
+                     lowerKey.startsWith(`${prefix}_`) || 
+                     lowerKey === prefix;
     if (!isThisDim) return;
     
-    if (key === `${prefix}a` && hasProgramStatusMap(value)) {
+    if (lowerKey === `${prefix}a` && hasProgramStatusMap(value)) {
       Object.entries(value).forEach(([program, status]) => {
         if (status != null && String(status).trim() !== '') {
           programs.push({ program: String(program), status: String(status) });
@@ -689,8 +692,8 @@ function parseDimensionData(
       return;
     }
     
-    // Handle both d#aa and d#.aa formats
-    if ((key === `${prefix}aa` || key === `${prefix}.aa`) && value) {
+    // Handle both d#aa and D#aa formats (case-insensitive)
+    if (lowerKey === `${prefix}aa` && value) {
       const question = getQuestionLabel(dimNumber, `${prefix}aa`);
       items.push({
         question,
@@ -718,7 +721,6 @@ function parseDimensionData(
   
   return { programs, items };
 }
-
 /* =========================
    UI COMPONENTS
 ========================= */
