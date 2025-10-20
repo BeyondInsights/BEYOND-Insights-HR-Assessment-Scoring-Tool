@@ -670,17 +670,18 @@ function parseDimensionData(
   const items: Array<{ question: string; response: string }> = [];
   
   Object.entries(data || {}).forEach(([key, value]) => {
-    // Convert key to lowercase for comparison
     const lowerKey = key.toLowerCase();
     
-    // Check for d#aa format OR D#aa format (case-insensitive)
+    // STRICT CHECK - only accept keys for THIS dimension
+    if (!lowerKey.startsWith(prefix)) return;
+    
+    // Now check for specific patterns within this dimension
     const isThisDim = lowerKey === `${prefix}a` || 
                      lowerKey === `${prefix}aa` || 
-                     lowerKey === `${prefix}.aa` ||
                      lowerKey === `${prefix}b` ||
                      lowerKey === `${prefix}b_none` ||
-                     lowerKey.startsWith(`${prefix}_`) || 
-                     lowerKey === prefix;
+                     lowerKey.startsWith(`${prefix}_`);
+    
     if (!isThisDim) return;
     
     if (lowerKey === `${prefix}a` && hasProgramStatusMap(value)) {
