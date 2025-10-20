@@ -87,8 +87,8 @@ const curRequired = [
 
   // Check completion flags
   const firmComplete = localStorage.getItem('firmographics_complete') === 'true'
-  const genComplete = localStorage.getItem('general-benefits_complete') === 'true'  // WITH HYPHEN
-  const curComplete = localStorage.getItem('current-support_complete') === 'true'   // WITH HYPHEN
+  const genComplete = localStorage.getItem('general_benefits_complete') === 'true'
+  const curComplete = localStorage.getItem('current_support_complete') === 'true'
   
   // Check dimension completions with partial progress - USE CONSISTENT KEY
   const dimProgress = []
