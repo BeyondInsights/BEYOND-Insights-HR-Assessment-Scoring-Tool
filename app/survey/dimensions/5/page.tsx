@@ -119,7 +119,7 @@ export default function Dimension5Page() {
 
   const getTotalSteps = () => {
     let total = 3; // intro, D5.a, D5.b
-    if (showD5aa) total++; // D5.aa
+    if (showD5aa) total++; // D5aa
     total++; // completion
     return total;
   };
@@ -133,7 +133,7 @@ export default function Dimension5Page() {
         return null;
       
       case 2:
-        if (showD5aa && !ans.D5.aa) {
+        if (showD5aa && !ans.D5aa) {
           return "Please select one option";
         }
         return null;
@@ -401,9 +401,9 @@ export default function Dimension5Page() {
               ].map(opt => (
                 <button
                   key={opt}
-                  onClick={() => setField("D5.aa", opt)}
+                  onClick={() => setField("D5aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.D5.aa === opt
+                    ans.D5aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
