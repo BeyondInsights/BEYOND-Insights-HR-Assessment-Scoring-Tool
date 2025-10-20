@@ -97,11 +97,11 @@ export default function LetterPage() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-500 mr-2 mt-1">2.</span>
-                    <span><strong>Application Fee:</strong> $1,250 assessment fee (payment arrangements will be made before beginning the full assessment)</span>
+                    <span><strong>Application Fee:</strong> $1,250 assessment fee (payment options will be provided before beginning the full assessment)</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-500 mr-2 mt-1">3.</span>
-                    <span><strong>Complete Assessment:</strong> Evaluate your programs across 13 dimensions (20-25 minutes)</span>
+                    <span><strong>Complete Assessment:</strong> Evaluate your programs across 13 dimensions (20-25 minutes + time to confer with colleagues)</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-500 mr-2 mt-1">4.</span>
@@ -120,7 +120,6 @@ export default function LetterPage() {
                   <li>• Benefits documentation and policy materials</li>
                   <li>• Leave and accommodation policies</li>
                   <li>• Manager training materials (if applicable)</li>
-                  <li>• Program utilization data (optional but helpful)</li>
                 </ul>
               </div>
 
@@ -137,7 +136,7 @@ export default function LetterPage() {
                   <p className="text-green-900">
                     <strong>Confidentiality:</strong><br/>
                     Individual responses remain private<br/>
-                    <span className="text-sm">Analysis by independent research firm</span>
+                    <span className="text-sm">Analysis by BEYOND Insights, an independent research and insights firm</span>
                   </p>
                 </div>
               </div>
@@ -162,7 +161,7 @@ export default function LetterPage() {
                     className="mt-1 mr-3 h-5 w-5 text-orange-600 rounded focus:ring-orange-500 cursor-pointer"
                   />
                   <span className="text-gray-700 group-hover:text-gray-900 select-none">
-                    I understand the assessment process, including the $1,250 application fee and documentation requirements, and am ready to provide initial information
+                    I understand the assessment process, including the $1,250 application fee and documentation requirements, and am ready to begin
                   </span>
                 </label>
               </div>
