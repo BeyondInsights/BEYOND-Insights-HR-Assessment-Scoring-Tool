@@ -130,12 +130,12 @@ export default function Dimension2Page() {
   const hasAnyOffered = Object.values(ans.d2a || {}).some(
     (status) => status === "Currently offer"
   );
-  const showD2aa = isMultiCountry && hasAnyOffered;
+  const showD2.aa = isMultiCountry && hasAnyOffered;
 
   // Calculate total steps
   const getTotalSteps = () => {
     let total = 3; // intro, D2.a, D2.b
-    if (showD2aa) total++; // D2.aa
+    if (showD2.aa) total++; // D2.aa
     total++; // completion screen
     return total;
   };
@@ -150,7 +150,7 @@ export default function Dimension2Page() {
         return null;
       
       case 2: // Could be D2.aa OR D2.b
-        if (showD2aa && !ans.d2aa) return "Please select one option";
+        if (showD2.aa && !ans.d2.aa) return "Please select one option";
         return null;
         
       default:
@@ -168,14 +168,14 @@ export default function Dimension2Page() {
 
     if (step === 1) {
       // After D2.a grid
-      if (showD2aa) {
+      if (showD2.aa) {
         setStep(2); // Go to D2.aa
       } else {
         setStep(3); // Skip to D2.b
       }
     } else if (step === 2) {
       // From D2.aa OR D2.b
-      if (showD2aa && !ans.d2b && ans.d2aa) {
+      if (showD2.aa && !ans.d2b && ans.d2.aa) {
         setStep(3); // Go to D2.b
       } else {
         setStep(4); // Completion
@@ -193,7 +193,7 @@ export default function Dimension2Page() {
 
   const back = () => {
     if (step === 3) {
-      setStep(showD2aa ? 2 : 1);
+      setStep(showD2.aa ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
     } else if (step > 0) {
@@ -401,7 +401,7 @@ export default function Dimension2Page() {
         )}
         
         {/* Step 2: D2.aa (conditional - multi-country with offerings) */}
-        {step === 2 && showD2aa && (
+        {step === 2 && showD2.aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
@@ -419,9 +419,9 @@ export default function Dimension2Page() {
               ].map(opt => (
                 <button
                   key={opt}
-                  onClick={() => setField("d2aa", opt)}
+                  onClick={() => setField("d2.aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d2aa === opt
+                    ans.d2.aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
@@ -434,7 +434,7 @@ export default function Dimension2Page() {
         )}
 
         {/* Step 3: D2.b open-end (OR Step 2 if no D2.aa) */}
-        {(step === 3 || (step === 2 && !showD2aa)) && (
+        {(step === 3 || (step === 2 && !showD2.aa)) && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Benefits</h3>
             
