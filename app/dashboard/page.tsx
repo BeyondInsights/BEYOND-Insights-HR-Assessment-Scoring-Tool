@@ -225,24 +225,24 @@ export default function DashboardPage() {
         localStorage.setItem('assessment_completion_shown', 'true');
         router.push('/completion');
       }
-    } catch (error) {
+} catch (error) {
       console.error('Error in calculateProgress:', error);
       setSectionProgress({ firmographics: 0, general: 0, current: 0 });
       setDimensionProgress(new Array(13).fill(0));
       setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 });
     }
-  }    
+  }
+  
   calculateProgress();
-
-
-    
+  
+  const handleFocus = () => {
+    calculateProgress();
   };
   window.addEventListener("focus", handleFocus);
   
   return () => window.removeEventListener("focus", handleFocus);
 }, [router])
-
-
+  
   const overallProgress = Math.round(
     (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
   )
