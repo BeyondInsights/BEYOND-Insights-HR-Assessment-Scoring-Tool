@@ -61,8 +61,28 @@ export default function DashboardPage() {
   
   // CORRECT FIELD NAMES - these match what the pages actually save
   const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6']
-  const genRequired = ['cb3a','cb3b','cb3c','cb3d']  // FIXED - these are the ACTUAL keys
-  const curRequired = ['or1','or2a','or3','or5a','or6']  // FIXED - removed cb3a/b/c/d (those are in general)
+  const genRequired = [
+  'cb1',           // Standard Benefits Package Overview
+  'cb1_standard',  // Standard Benefits Offered
+  'cb1_leave',     // Leave & Flexibility Benefits Offered
+  'cb1_wellness',  // Wellness & Support Benefits Offered
+  'cb1_financial', // Financial & Legal Assistance Benefits Offered
+  'cb1_navigation',// Care Navigation & Support Services Offered
+  'cb1a',          // % of Employees with National Healthcare Access
+  'cb2b'           // Plan to Rollout in Next 2 Years
+];
+
+const curRequired = [
+  'cb3a',    // Cancer Support Program Characterization
+  'cb3b',    // Key Cancer Support Program Features
+  'cb3c',    // Conditions Covered by Support Programs
+  'cb3d',    // Communication Methods for Support Programs
+  'or1',     // Current Approach to Supporting Employees
+  'or2a',    // Triggers that Led to Enhanced Support
+  'or3',     // Primary Barriers
+  'or5a',    // Types of Caregiver Support
+  'or6'      // How Organization Monitors Program Effectiveness
+];
 
   // Check completion flags
   const firmComplete = localStorage.getItem('firmographics_complete') === 'true'
