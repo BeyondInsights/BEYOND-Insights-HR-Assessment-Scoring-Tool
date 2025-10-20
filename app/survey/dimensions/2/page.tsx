@@ -64,7 +64,7 @@ export default function Dimension2Page() {
 
 useEffect(() => {
   if (Object.keys(ans).length > 0) {
-    localStorage.setItem("dimension3_data", JSON.stringify(ans));
+    localStorage.setItem("dimension2_data", JSON.stringify(ans));
   }
 }, [ans]);
 
