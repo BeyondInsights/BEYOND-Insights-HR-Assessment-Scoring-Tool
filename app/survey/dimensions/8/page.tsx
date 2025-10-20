@@ -111,17 +111,25 @@ export default function Dimension8Page() {
   };
 
   const STATUS_OPTIONS = [
-    "Not able to offer in foreseeable future",
-    "Assessing feasibility",
-    "In active planning / development",
-    "Currently offer"
-  ];
+  "Not able to offer in foreseeable future",
+  "Assessing feasibility",
+  "In active planning / development",
+  "Currently offer"
+];
 
-  const hasAnyOffered = Object.values(ans.d8a || {}).some(
-    (status) => status === "Currently offer"
-  );
+const hasAnyOffered = Object.values(ans.d8a || {}).some(
+  (status) => status === "Currently offer"
+);
+
+const showD8aa = isMultiCountry && hasAnyOffered;  // Make sure it's hasAnyOffered NOT hasOffered
+
+const getTotalSteps = () => {
+  let total = 3; // intro, D8.a, D8.b
+  if (showD8aa) total++; // D8.aa
+  total++; // completion
+  return total;
+};
   
-  const showD8aa = isMultiCountry && hasOffered;
 
   const getTotalSteps = () => {
     let total = 4; // intro, D8.a, D8.aa (conditional), D8.b
