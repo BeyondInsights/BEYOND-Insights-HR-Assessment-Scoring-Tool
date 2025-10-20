@@ -401,7 +401,7 @@ export default function Dimension5Page() {
               ].map(opt => (
                 <button
                   key={opt}
-                  onClick={() => setField("D5aa", opt)}
+                  onClick={() => setField("d5aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                     ans.D5aa === opt
                       ? "border-blue-500 bg-blue-50"
