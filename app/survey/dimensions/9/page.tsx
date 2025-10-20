@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -111,23 +110,24 @@ export default function Dimension9Page() {
   };
 
   const STATUS_OPTIONS = [
-    "Not able to offer in foreseeable future",
-    "Assessing feasibility",
-    "In active planning / development",
-    "Currently offer"
-  ];
+  "Not able to offer in foreseeable future",
+  "Assessing feasibility",
+  "In active planning / development",
+  "Currently offer"
+];
 
-  const hasAnyOffered = Object.values(ans.d9a || {}).some(
-    (status) => status === "Currently offer"
-  );
-  
-  const showD9aa = isMultiCountry && hasOffered;
+const hasAnyOffered = Object.values(ans.d9a || {}).some(
+  (status) => status === "Currently offer"
+);
 
-  const getTotalSteps = () => {
-    let total = 4; // intro, D9.a, D9.aa (conditional), D9.b
-    total++; // completion
-    return total;
-  };
+const showD9aa = isMultiCountry && hasAnyOffered;  // THIS LINE WAS FIXED
+
+const getTotalSteps = () => {
+  let total = 3; // intro, D9.a, D9.b
+  if (showD9aa) total++; // D9.aa
+  total++; // completion
+  return total;
+};
 
   const validateStep = () => {
     switch(step) {
