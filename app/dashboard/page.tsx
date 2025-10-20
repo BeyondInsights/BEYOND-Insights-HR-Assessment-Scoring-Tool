@@ -27,222 +27,168 @@ export default function DashboardPage() {
     employeeImpact: 0,
   })
 
-  useEffect(() => {
-  if (typeof window === 'undefined') return
-  
-  // Check authentication
-  const authCompleted = localStorage.getItem('auth_completed') === 'true';
-  if (!authCompleted) {
-    router.push('/authorization');
-    return;
-  }
-
-  const calculateProgress = () => {
-    if (typeof window === 'undefined') return;
+useEffect(() => {
+    if (typeof window === 'undefined') return
     
-    try {
-      // ARRAYS MUST BE DEFINED FIRST BEFORE ANYTHING ELSE
-      const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6']
-      const genRequired = [
-        'cb1',
-        'cb1_standard',
-        'cb1_leave',
-        'cb1_wellness',
-        'cb1_financial',
-        'cb1_navigation',
-        'cb1a',
-        'cb2b'
-      ];
-      const curRequired = [
-        'cb3a',
-        'cb3b',
-        'cb3c',
-        'cb3d',
-        'or1',
-        'or2a',
-        'or3',
-        'or5a',
-        'or6'
-      ];
-      
-      // NOW GET DATA
-      const savedEmail = localStorage.getItem('auth_email') || ''
-      setEmail(savedEmail)
-      
-      const paymentStatus = localStorage.getItem('payment_completed')
-      const paymentMethod = localStorage.getItem('payment_method')
-      setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card')
-      
-      const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
-      if (firmo?.companyName) setCompanyName(firmo.companyName)
-      
-      const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}')
-      const current = JSON.parse(localStorage.getItem('current_support_data') || '{}')
-      
-      const firmComplete = localStorage.getItem('firmographics_complete') === 'true'
-      const genComplete = localStorage.getItem('general_benefits_complete') === 'true'
-      const curComplete = localStorage.getItem('current_support_complete') === 'true'
-      
-      const dimProgress = []
-      for (let i = 1; i <= 13; i++) {
-        const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}')
-        const complete = localStorage.getItem(`dimension${i}_complete`) === 'true'
-        if (complete) {
-          dimProgress.push(100)
-        } else {
-          const keys = Object.keys(dimData).length
-          if (keys === 0) {
-            dimProgress.push(0)
-          } else {
-            const estimatedTotal = 25
-            const actualProgress = Math.min(95, Math.round((keys / estimatedTotal) * 100))
-            dimProgress.push(actualProgress)
-          }
-        }
-      }
-      setDimensionProgress(dimProgress)
-      
-      let firmProg = 0
-      let genProg = 0
-      let curProg = 0
-      
-      if (firmComplete) {
-        firmProg = 100
-      } else {
-        const firmCount = firmRequired.filter(field => {
-          if (field === 's6' || field === 'c4') {
-            return Array.isArray(firmo[field]) && firmo[field].length > 0
-          }
-          return firmo[field] && firmo[field] !== ''
-        }).length
-        firmProg = Math.round((firmCount / firmRequired.length) * 100)
-      }
-      
-      if (genComplete) {
-        genProg = 100
-      } else if (general && Object.keys(general).length > 0) {
-        const genCount = genRequired.filter(field => {
-          if (Array.isArray(general[field])) {
-            return general[field].length > 0
-          }
-          return general[field] && general[field] !== ''
-        }).length
-        genProg = Math.round((genCount / genRequired.length) * 100)
-      } else {
-        genProg = 0
-      }
-      
-      if (curComplete) {
-        curProg = 100
-      } else if (current && Object.keys(current).length > 0) {
-        const curCount = curRequired.filter(field => {
-          if (Array.isArray(current[field])) {
-            return current[field].length > 0
-          }
-          return current[field] && current[field] !== ''
-        }).length
-        curProg = Math.round((curCount / curRequired.length) * 100)
-      } else {
-        curProg = 0
-      }
-      
-      setSectionProgress({
-        firmographics: firmProg,
-        general: genProg,
-        current: curProg,
-      })
-      
-      const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}')
-      const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}')
-      
-      const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true'
-      const crossDimComplete = localStorage.getItem('cross_dimensional_complete') === 'true'
-      
-      let empImpactProg = 0
-      let crossDimProg = 0
-      
-      if (empImpactComplete) {
-        empImpactProg = 100
-      } else {
-        let completedSteps = 0
-        let totalSteps = 4
-        
-        if (empImpact.ei1) {
-          const ei1Items = Object.keys(empImpact.ei1).length
-          if (ei1Items === 10) {
-            completedSteps += 1
-          } else if (ei1Items > 0) {
-            completedSteps += (ei1Items / 10)
-          }
-        }
-        
-        if (empImpact.ei2) {
-          completedSteps += 1
-        }
-        
-        const shouldAnswerEI3 = empImpact.ei2 === "yes_comprehensive" || empImpact.ei2 === "yes_basic"
-        if (shouldAnswerEI3) {
-          if (empImpact.ei3) {
-            completedSteps += 1
-          }
-        } else if (empImpact.ei2) {
-          completedSteps += 1
-        }
-        
-        if (empImpact.assignedQuestion === 'ei4') {
-          if (empImpact.ei4 || empImpact.ei4_none) {
-            completedSteps += 1
-          }
-        } else if (empImpact.assignedQuestion === 'ei5') {
-          if (empImpact.ei5 || empImpact.ei5_none) {
-            completedSteps += 1
-          }
-        }
-        
-        empImpactProg = Math.round((completedSteps / totalSteps) * 100)
-      }
-      
-      if (crossDimComplete) {
-        crossDimProg = 100
-      } else {
-        const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0
-        const bottom3Count = Array.isArray(crossDim.cd1b) ? crossDim.cd1b.length : 0
-        const challengesCount = Array.isArray(crossDim.cd2) ? crossDim.cd2.length : 0
-        const totalAnswered = top3Count + bottom3Count + (challengesCount > 0 ? 1 : 0)
-        crossDimProg = Math.round((totalAnswered / 7) * 100)
-      }
-      
-      setAdvancedProgress({
-        crossDimensional: crossDimProg,
-        employeeImpact: empImpactProg,
-      })
-      
-      const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
-                          dimProgress.every(p => p === 100) &&
-                          crossDimProg === 100 && empImpactProg === 100;
-      
-      if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
-        localStorage.setItem('assessment_completion_shown', 'true');
-        router.push('/completion');
-      }
-} catch (error) {
-      console.error('Error in calculateProgress:', error);
-      setSectionProgress({ firmographics: 0, general: 0, current: 0 });
-      setDimensionProgress(new Array(13).fill(0));
-      setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 });
+    // Check authentication
+    const authCompleted = localStorage.getItem('auth_completed') === 'true';
+    if (!authCompleted) {
+      router.push('/authorization');
+      return;
     }
-  }
-  
-  const handleFocus = () => {
+    
+    const calculateProgress = () => {
+      if (typeof window === 'undefined') return;
+      
+      try {
+        const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6'];
+        const genRequired = ['cb1','cb1_standard','cb1_leave','cb1_wellness','cb1_financial','cb1_navigation','cb1a','cb2b'];
+        const curRequired = ['cb3a','cb3b','cb3c','cb3d','or1','or2a','or3','or5a','or6'];
+        
+        const savedEmail = localStorage.getItem('auth_email') || '';
+        setEmail(savedEmail);
+        
+        const paymentStatus = localStorage.getItem('payment_completed');
+        const paymentMethod = localStorage.getItem('payment_method');
+        setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card');
+        
+        const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
+        if (firmo?.companyName) setCompanyName(firmo.companyName);
+        
+        const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}');
+        const current = JSON.parse(localStorage.getItem('current_support_data') || '{}');
+        
+        const firmComplete = localStorage.getItem('firmographics_complete') === 'true';
+        const genComplete = localStorage.getItem('general_benefits_complete') === 'true';
+        const curComplete = localStorage.getItem('current_support_complete') === 'true';
+        
+        const dimProgress = [];
+        for (let i = 1; i <= 13; i++) {
+          const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
+          const complete = localStorage.getItem(`dimension${i}_complete`) === 'true';
+          if (complete) {
+            dimProgress.push(100);
+          } else {
+            const keys = Object.keys(dimData).length;
+            dimProgress.push(keys === 0 ? 0 : Math.min(95, Math.round((keys / 25) * 100)));
+          }
+        }
+        setDimensionProgress(dimProgress);
+        
+        let firmProg = 0;
+        let genProg = 0;
+        let curProg = 0;
+        
+        if (firmComplete) {
+          firmProg = 100;
+        } else {
+          const firmCount = firmRequired.filter(field => {
+            if (field === 's6' || field === 'c4') {
+              return Array.isArray(firmo[field]) && firmo[field].length > 0;
+            }
+            return firmo[field] && firmo[field] !== '';
+          }).length;
+          firmProg = Math.round((firmCount / firmRequired.length) * 100);
+        }
+        
+        if (genComplete) {
+          genProg = 100;
+        } else if (general && Object.keys(general).length > 0) {
+          const genCount = genRequired.filter(field => {
+            if (Array.isArray(general[field])) {
+              return general[field].length > 0;
+            }
+            return general[field] && general[field] !== '';
+          }).length;
+          genProg = Math.round((genCount / genRequired.length) * 100);
+        }
+        
+        if (curComplete) {
+          curProg = 100;
+        } else if (current && Object.keys(current).length > 0) {
+          const curCount = curRequired.filter(field => {
+            if (Array.isArray(current[field])) {
+              return current[field].length > 0;
+            }
+            return current[field] && current[field] !== '';
+          }).length;
+          curProg = Math.round((curCount / curRequired.length) * 100);
+        }
+        
+        setSectionProgress({
+          firmographics: firmProg,
+          general: genProg,
+          current: curProg
+        });
+        
+        const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}');
+        const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}');
+        
+        const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true';
+        const crossDimComplete = localStorage.getItem('cross_dimensional_complete') === 'true';
+        
+        let empImpactProg = 0;
+        let crossDimProg = 0;
+        
+        if (empImpactComplete) {
+          empImpactProg = 100;
+        } else {
+          let completedSteps = 0;
+          if (empImpact.ei1) {
+            const ei1Items = Object.keys(empImpact.ei1).length;
+            completedSteps += ei1Items === 10 ? 1 : ei1Items / 10;
+          }
+          if (empImpact.ei2) completedSteps += 1;
+          const shouldAnswerEI3 = empImpact.ei2 === "yes_comprehensive" || empImpact.ei2 === "yes_basic";
+          if (shouldAnswerEI3 && empImpact.ei3) completedSteps += 1;
+          else if (!shouldAnswerEI3 && empImpact.ei2) completedSteps += 1;
+          if (empImpact.ei4 || empImpact.ei4_none || empImpact.ei5 || empImpact.ei5_none) completedSteps += 1;
+          empImpactProg = Math.round((completedSteps / 4) * 100);
+        }
+        
+        if (crossDimComplete) {
+          crossDimProg = 100;
+        } else {
+          const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0;
+          const bottom3Count = Array.isArray(crossDim.cd1b) ? crossDim.cd1b.length : 0;
+          const challengesCount = Array.isArray(crossDim.cd2) ? crossDim.cd2.length : 0;
+          const totalAnswered = top3Count + bottom3Count + (challengesCount > 0 ? 1 : 0);
+          crossDimProg = Math.round((totalAnswered / 7) * 100);
+        }
+        
+        setAdvancedProgress({
+          crossDimensional: crossDimProg,
+          employeeImpact: empImpactProg
+        });
+        
+        const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
+                            dimProgress.every(p => p === 100) &&
+                            crossDimProg === 100 && empImpactProg === 100;
+        
+        if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
+          localStorage.setItem('assessment_completion_shown', 'true');
+          router.push('/completion');
+        }
+      } catch (error) {
+        console.error('Error in calculateProgress:', error);
+        setSectionProgress({ firmographics: 0, general: 0, current: 0 });
+        setDimensionProgress(new Array(13).fill(0));
+        setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 });
+      }
+    };
+    
     calculateProgress();
-  }
-  
-  calculateProgress();
-  window.addEventListener("focus", handleFocus);
-  
-  return () => window.removeEventListener("focus", handleFocus);
-}, [router])
-  
+    
+    const handleFocus = () => {
+      calculateProgress();
+    };
+    
+    window.addEventListener("focus", handleFocus);
+    
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [router])
+
+ 
   const overallProgress = Math.round(
     (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
   )
