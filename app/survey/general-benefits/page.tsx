@@ -643,30 +643,30 @@ export default function GeneralBenefitsPage() {
  )}
 
  {/* Step 9: Completion */}
- {step === 9 && (
- <div className="bg-white p-8 rounded-lg shadow-sm text-center">
- <div className="mb-6">
- <svg className="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
- </svg>
- </div>
- <h2 className="text-2xl font-bold text-gray-900 mb-3">
- General Employee Benefits Complete!
- </h2>
- <p className="text-gray-600 mb-8">
- You've successfully completed the General Employee Benefits section.
- </p>
- <button
- onClick={() => { 
- localStorage.setItem("general_benefits_complete", "true");
- router.push("/dashboard");
-}}
- className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
- >
- Save & Continue to Dashboard  →
- </button>
- </div>
- )}
+{step === 9 && (
+  <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+    <div className="mb-6">
+      <svg className="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <h2 className="text-2xl font-bold text-gray-900 mb-3">
+      General Employee Benefits Complete!
+    </h2>
+    <p className="text-gray-600 mb-8">
+      You've successfully completed the General Employee Benefits section.
+    </p>
+    <button
+      onClick={() => { 
+        localStorage.setItem("general-benefits_complete", "true");  // CHANGE THIS LINE - ADD HYPHEN
+        router.push("/dashboard");
+      }}
+      className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+    >
+      Save & Continue to Dashboard →
+    </button>
+  </div>
+)}
 
  {/* Navigation */}
  {step < 9 && (
