@@ -88,7 +88,9 @@ export default function InvoicePaymentPage() {
       await generateInvoicePDF(invoiceData)
       
       // Grant access to dashboard
-      localStorage.setItem('payment_completed', 'invoice')
+      localStorage.setItem('payment_method', 'invoice');
+      localStorage.setItem('payment_completed', 'true');
+      localStorage.setItem('payment_date', new Date().toISOString());
       
       setLoading(false)
       
