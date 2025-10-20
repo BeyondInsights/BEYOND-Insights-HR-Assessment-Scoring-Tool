@@ -1,9 +1,4 @@
-"use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { hasAnyOffered } from '@/lib/dimensionHelpers';
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -13,21 +8,21 @@ function shuffleArray<T>(array: T[]): T[] {
   }
   return shuffled;
 }
- const D4A_ITEMS_BASE = [
-    "Dedicated navigation support to help employees understand benefits and access medical care",
-    "Benefits optimization assistance (maximizing coverage, minimizing costs)",
-    "Insurance advocacy/appeals support",
-    "Clinical trial matching service",
-    "Care coordination concierge",
-    "Online tools, apps, or portals for health/benefits support",
-    "Survivorship planning assistance",
-    "Nutrition coaching",
-    "Physical rehabilitation support",
-    "Occupational therapy/vocational rehabilitation"
-  ];
+
+const D4A_ITEMS_BASE = [
+  "Dedicated navigation support to help employees understand benefits and access medical care",
+  "Benefits optimization assistance (maximizing coverage, minimizing costs)",
+  "Insurance advocacy/appeals support",
+  "Clinical trial matching service",
+  "Care coordination concierge",
+  "Online tools, apps, or portals for health/benefits support",
+  "Survivorship planning assistance",
+  "Nutrition coaching",
+  "Physical rehabilitation support",
+  "Occupational therapy/vocational rehabilitation"
+];
 
 export default function Dimension4Page() {
-  const router = useRouter();
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
@@ -60,7 +55,6 @@ export default function Dimension4Page() {
     }
   }, [ans]);
 
-  // Scroll to top when step changes (but not for progressive card navigation)
   useEffect(() => {
     if (step !== 1) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -69,6 +63,18 @@ export default function Dimension4Page() {
 
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
+    setErrors("");
+  };
+
+  const toggleMultiSelect = (key: string, value: string) => {
+    setAns((prev: any) => {
+      const current = prev[key] || [];
+      if (current.includes(value)) {
+        return { ...prev, [key]: current.filter((v: string) => v !== value) };
+      } else {
+        return { ...prev, [key]: [...current, value] };
+      }
+    });
     setErrors("");
   };
 
@@ -107,8 +113,6 @@ export default function Dimension4Page() {
     }, 500);
   };
 
- 
-
   const STATUS_OPTIONS = [
     "Not able to offer in foreseeable future",
     "Assessing feasibility",
@@ -120,26 +124,15 @@ export default function Dimension4Page() {
     (status) => status === "Currently offer"
   );
   
-  const showD4aa = isMultiCountry && hasOffered;
+  const showD4.aa = isMultiCountry && hasAnyOffered;
   const showD4_1 = ans.d4a?.["Dedicated navigation support to help employees understand benefits and access medical care"] === "Currently offer";
 
   const getTotalSteps = () => {
-    let total = 4; // intro, D4.a, D4.aa (conditional), D4.b
-    if (showD4_1) total += 2; // D4.1a and D4.1b
-    total++; // completion
+    let total = 3;
+    if (showD4.aa) total++;
+    if (showD4_1) total += 2;
+    total++;
     return total;
-  };
-
-  const toggleMultiSelect = (key: string, value: string) => {
-    setAns((prev: any) => {
-      const current = prev[key] || [];
-      if (current.includes(value)) {
-        return { ...prev, [key]: current.filter((v: string) => v !== value) };
-      } else {
-        return { ...prev, [key]: [...current, value] };
-      }
-    });
-    setErrors("");
   };
 
   const validateStep = () => {
@@ -151,7 +144,7 @@ export default function Dimension4Page() {
         return null;
       
       case 2:
-        if (showD4aa && !ans.d4aa) {
+        if (showD4.aa && !ans.D4.aa) {
           return "Please select one option";
         }
         return null;
@@ -184,7 +177,7 @@ export default function Dimension4Page() {
     }
 
     if (step === 1) {
-      if (showD4aa) {
+      if (showD4.aa) {
         setStep(2);
       } else {
         setStep(3);
@@ -195,15 +188,15 @@ export default function Dimension4Page() {
       if (showD4_1) {
         setStep(4);
       } else {
-        setStep(6); // Go to completion
+        setStep(6);
       }
     } else if (step === 4) {
       setStep(5);
     } else if (step === 5) {
-      setStep(6); // Go to completion
+      setStep(6);
     } else if (step === 6) {
       localStorage.setItem("dimension4_complete", "true");
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
       return;
     }
     
@@ -218,7 +211,7 @@ export default function Dimension4Page() {
     } else if (step === 4) {
       setStep(3);
     } else if (step === 3) {
-      setStep(showD4aa ? 2 : 1);
+      setStep(showD4.aa ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
     } else if (step > 0) {
@@ -229,7 +222,11 @@ export default function Dimension4Page() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
+      <header className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-xl font-bold text-gray-900">Best Companies Survey</h1>
+        </div>
+      </header>
       
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
         <div className="mb-6">
@@ -252,7 +249,6 @@ export default function Dimension4Page() {
           </div>
         )}
 
-        {/* Step 0: Introduction */}
         {step === 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
             <div className="max-w-3xl mx-auto">
@@ -306,7 +302,6 @@ export default function Dimension4Page() {
           </div>
         )}
 
-        {/* Step 1: D4.a Progressive Cards */}
         {step === 1 && (
           <div className="bg-white rounded-xl shadow-sm">
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 rounded-t-xl">
@@ -423,8 +418,7 @@ export default function Dimension4Page() {
           </div>
         )}
         
-        {/* Step 2: D4.aa (conditional for multi-country) */}
-        {step === 2 && showD4aa && (
+        {step === 2 && showD4.aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
@@ -442,9 +436,9 @@ export default function Dimension4Page() {
               ].map(opt => (
                 <button
                   key={opt}
-                  onClick={() => setField("d4aa", opt)}
+                  onClick={() => setField("D4.aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d4aa === opt
+                    ans.D4.aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
@@ -456,7 +450,6 @@ export default function Dimension4Page() {
           </div>
         )}
 
-        {/* Step 3: D4.b open-end */}
         {step === 3 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Resources</h3>
@@ -488,7 +481,6 @@ export default function Dimension4Page() {
           </div>
         )}
 
-        {/* Step 4: D4.1a (conditional if navigation support offered) */}
         {step === 4 && showD4_1 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Navigation Support Providers</h3>
@@ -533,7 +525,6 @@ export default function Dimension4Page() {
           </div>
         )}
 
-        {/* Step 5: D4.1b (conditional if navigation support offered) */}
         {step === 5 && showD4_1 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Available Services</h3>
@@ -582,7 +573,6 @@ export default function Dimension4Page() {
           </div>
         )}
 
-        {/* Step 6: Completion */}
         {step === 6 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
@@ -599,7 +589,7 @@ export default function Dimension4Page() {
             <button
               onClick={() => { 
                 localStorage.setItem("dimension4_complete", "true"); 
-                router.push("/dashboard"); 
+                window.location.href = "/dashboard";
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
@@ -608,7 +598,6 @@ export default function Dimension4Page() {
           </div>
         )}
 
-        {/* Universal Navigation */}
         {step > 1 && step < 6 && (
           <div className="flex justify-between mt-8">
             <button 
@@ -627,7 +616,11 @@ export default function Dimension4Page() {
         )}
       </main>
       
-  <Footer />
+      <footer className="bg-white border-t border-gray-200 py-4 px-4 mt-auto">
+        <div className="max-w-7xl mx-auto text-center text-sm text-gray-600">
+          © 2025 Best Companies for Working with Cancer Initiative
+        </div>
+      </footer>
     </div>
   );
 }
