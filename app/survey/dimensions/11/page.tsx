@@ -122,14 +122,18 @@ const hasAnyOffered = Object.values(ans.d11a || {}).some(
   (status) => status === "Currently offer"
 );
 
-const showD11aa = isMultiCountry && hasAnyOffered;  // Make sure it's hasAnyOffered
+const showD11aa = isMultiCountry && hasAnyOffered;  // FIXED
+
+// ADD THIS NEW LINE:
 const showD11_1 = ans.d11a?.["At least 70% coverage for regionally / locally recommended screenings"] === "Currently offer";
 
-  const getTotalSteps = () => {
-    let total = 4; // intro, D11.a, D11.aa (conditional), D11.b
-    total++; // completion
-    return total;
-  };
+const getTotalSteps = () => {
+  let total = 3; // intro, D11.a, D11.b
+  if (showD11aa) total++; // D11.aa
+  if (showD11_1) total++; // D11.1  // ADD THIS
+  total++; // completion
+  return total;
+};
 
   const validateStep = () => {
     switch(step) {
@@ -153,44 +157,66 @@ const showD11_1 = ans.d11a?.["At least 70% coverage for regionally / locally rec
     }
   };
 
-  const next = () => {
-    const error = validateStep();
-    if (error) {
-      setErrors(error);
-      return;
-    }
+ const next = () => {
+  const error = validateStep();
+  if (error) {
+    setErrors(error);
+    return;
+  }
 
-    if (step === 1) {
-      if (showD11aa) {
-        setStep(2);
-      } else {
-        setStep(3);
-      }
-    } else if (step === 2) {
-      setStep(3);
-    } else if (step === 3) {
-      setStep(4); // Go to completion
-    } else if (step === 4) {
-      localStorage.setItem("dimension11_complete", "true");
-      router.push("/dashboard");
-      return;
+  if (step === 1) {
+    // After D11.a
+    if (showD11aa) {
+      setStep(2); // Go to D11.aa
+    } else if (showD11_1) {
+      setStep(3); // Skip to D11.1
+    } else {
+      setStep(4); // Skip to D11.b
     }
-    
-    setErrors("");
-  };
-
+  } else if (step === 2) {
+    // After D11.aa
+    if (showD11_1) {
+      setStep(3); // Go to D11.1
+    } else {
+      setStep(4); // Skip to D11.b
+    }
+  } else if (step === 3) {
+    // After D11.1
+    setStep(4); // Go to D11.b
+  } else if (step === 4) {
+    // After D11.b
+    setStep(5); // Go to completion
+  } else if (step === 5) {
+    localStorage.setItem("dimension11_complete", "true");
+    router.push("/dashboard");
+    return;
+  }
+  
+  setErrors("");
+};
+  
   const back = () => {
-    if (step === 4) {
-      setStep(3);
-    } else if (step === 3) {
-      setStep(showD11aa ? 2 : 1);
-    } else if (step === 2) {
-      setStep(1);
-    } else if (step > 0) {
-      setStep(step - 1);
+  if (step === 5) {
+    setStep(4); // Back to D11.b
+  } else if (step === 4) {
+    // From D11.b
+    if (showD11_1) {
+      setStep(3); // Back to D11.1
+    } else if (showD11aa) {
+      setStep(2); // Back to D11.aa
+    } else {
+      setStep(1); // Back to D11.a
     }
-    setErrors("");
-  };
+  } else if (step === 3) {
+    // From D11.1
+    setStep(showD11aa ? 2 : 1);
+  } else if (step === 2) {
+    setStep(1);
+  } else if (step > 0) {
+    setStep(step - 1);
+  }
+  setErrors("");
+};
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -421,8 +447,122 @@ const showD11_1 = ans.d11a?.["At least 70% coverage for regionally / locally rec
           </div>
         )}
 
-        {/* Step 3: D11.b open-end */}
-        {step === 3 && (
+{/* Step 3: D11.1 (conditional - if they offer 70% coverage) */}
+{((step === 3 && showD11_1) || (step === 2 && !showD11aa && showD11_1)) && (
+  <div className="bg-white p-6 rounded-lg shadow-sm">
+    <h3 className="text-xl font-bold text-gray-900 mb-4">Preventive Services Coverage</h3>
+    
+    <p className="font-bold text-gray-900 mb-4">
+      Which <span className="text-blue-600">early detection</span> and <span className="text-blue-600">preventive care services</span> are covered for employees at 100% based on regional / locally recommended screenings?
+    </p>
+    <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
+    
+    <div className="space-y-6">
+      {/* SCREENINGS */}
+      <div>
+        <h4 className="font-semibold text-gray-800 mb-3">SCREENINGS</h4>
+        <div className="space-y-2">
+          {[
+            "Cervical cancer screening (Pap smear/HPV test)",
+            "Colonoscopy (colorectal cancer)",
+            "Dense breast tissue screening (ultrasound/MRI)",
+            "Gastric / stomach cancer screening",
+            "H. pylori testing",
+            "Liver cancer screening (AFP test + ultrasound)",
+            "Lung cancer screening (low-dose CT for high risk)",
+            "Mammograms (breast cancer)",
+            "Oral cancer screening",
+            "Prostate cancer screening (PSA test)",
+            "Skin cancer screening/full body exam",
+            "Tuberculosis screening"
+          ].map(item => (
+            <label key={item} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={ans.d11_1?.includes(item) || false}
+                onChange={(e) => {
+                  const current = ans.d11_1 || [];
+                  if (e.target.checked) {
+                    setField("d11_1", [...current, item]);
+                  } else {
+                    setField("d11_1", current.filter((i: string) => i !== item));
+                  }
+                }}
+                className="w-4 h-4 mr-3"
+              />
+              <span className="text-sm">{item}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* GENETIC TESTING */}
+      <div>
+        <h4 className="font-semibold text-gray-800 mb-3">GENETIC TESTING & COUNSELING</h4>
+        <div className="space-y-2">
+          {[
+            "BRCA testing (breast/ovarian cancer risk)",
+            "Lynch syndrome testing (colorectal cancer risk)",
+            "Multi-gene panel testing",
+            "Genetic counseling services"
+          ].map(item => (
+            <label key={item} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={ans.d11_1?.includes(item) || false}
+                onChange={(e) => {
+                  const current = ans.d11_1 || [];
+                  if (e.target.checked) {
+                    setField("d11_1", [...current, item]);
+                  } else {
+                    setField("d11_1", current.filter((i: string) => i !== item));
+                  }
+                }}
+                className="w-4 h-4 mr-3"
+              />
+              <span className="text-sm">{item}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* VACCINES */}
+      <div>
+        <h4 className="font-semibold text-gray-800 mb-3">PREVENTIVE VACCINES</h4>
+        <div className="space-y-2">
+          {[
+            "HPV vaccines (cervical cancer prevention)",
+            "Hepatitis B vaccines (liver cancer prevention)",
+            "COVID-19 vaccines",
+            "Influenza vaccines",
+            "Pneumonia vaccines",
+            "Shingles vaccines"
+          ].map(item => (
+            <label key={item} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={ans.d11_1?.includes(item) || false}
+                onChange={(e) => {
+                  const current = ans.d11_1 || [];
+                  if (e.target.checked) {
+                    setField("d11_1", [...current, item]);
+                  } else {
+                    setField("d11_1", current.filter((i: string) => i !== item));
+                  }
+                }}
+                className="w-4 h-4 mr-3"
+              />
+              <span className="text-sm">{item}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+        
+        {/* Step 4: D11.b open-end */}
+        {step === 4 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Initiatives</h3>
             
@@ -453,8 +593,8 @@ const showD11_1 = ans.d11a?.["At least 70% coverage for regionally / locally rec
           </div>
         )}
 
-        {/* Step 4: Completion */}
-        {step === 4 && (
+        {/* Step 5: Completion */}
+        {step === 5 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
               <svg className="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
