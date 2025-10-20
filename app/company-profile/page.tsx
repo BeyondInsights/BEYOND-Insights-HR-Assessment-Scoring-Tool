@@ -517,19 +517,17 @@ const FIELD_LABELS: Record<string, string> = {
   cb2: 'Benefits Package Characterization vs. Industry',
   cb2a: 'Leave Programs Availability Status',
   cb2b: 'Plan to Rollout in Next 2 Years',
-  cb3: 'Financial & Legal Assistance Programs Status',
+  
+  
+  // Current Support - Better Labels
   cb3a: 'Cancer Support Program Characterization',
   cb3b: 'Key Cancer Support Program Features',
   cb3c: 'Conditions Covered by Support Programs',
   cb3d: 'Communication Methods for Support Programs',
-  cb4: 'Planned Benefits Enhancements',
-  
-  // Current Support - Better Labels
   or1: 'Current Approach to Supporting Employees with Serious Medical Conditions',
   or2a: 'Triggers that Led to Enhanced Support Program Development',
   or2b: 'Most Impactful Change Made to Support Programs',
   or3: 'Primary Barriers Preventing More Comprehensive Support',
-  or4: 'Conditions Most Critical for Organization to Support',
   or5a: 'Types of Caregiver Support Provided',
   or6: 'How Organization Monitors Program Effectiveness While Maintaining Privacy',
   or6_other: 'Other Monitoring Approach Details',
