@@ -129,14 +129,7 @@ const getTotalSteps = () => {
   total++; // completion
   return total;
 };
-  
-
-  const getTotalSteps = () => {
-    let total = 4; // intro, D8.a, D8.aa (conditional), D8.b
-    total++; // completion
-    return total;
-  };
-
+ 
   const validateStep = () => {
     switch(step) {
       case 1:
