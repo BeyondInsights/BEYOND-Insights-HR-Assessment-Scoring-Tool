@@ -157,7 +157,7 @@ const getTotalSteps = () => {
     }
   };
 
- const next = () => {
+const next = () => {
   const error = validateStep();
   if (error) {
     setErrors(error);
@@ -168,23 +168,21 @@ const getTotalSteps = () => {
     // After D11.a
     if (showD11aa) {
       setStep(2); // Go to D11.aa
-    } else if (showD11_1) {
-      setStep(3); // Skip to D11.1
     } else {
-      setStep(4); // Skip to D11.b
+      setStep(3); // Skip to D11.b
     }
   } else if (step === 2) {
     // After D11.aa
-    if (showD11_1) {
-      setStep(3); // Go to D11.1
-    } else {
-      setStep(4); // Skip to D11.b
-    }
+    setStep(3); // Always go to D11.b
   } else if (step === 3) {
-    // After D11.1
-    setStep(4); // Go to D11.b
-  } else if (step === 4) {
     // After D11.b
+    if (showD11_1) {
+      setStep(4); // Go to D11.1
+    } else {
+      setStep(5); // Skip to completion
+    }
+  } else if (step === 4) {
+    // After D11.1
     setStep(5); // Go to completion
   } else if (step === 5) {
     localStorage.setItem("dimension11_complete", "true");
@@ -197,21 +195,13 @@ const getTotalSteps = () => {
   
   const back = () => {
   if (step === 5) {
-    setStep(4); // Back to D11.b
+    setStep(showD11_1 ? 4 : 3); // Back to D11.1 or D11.b
   } else if (step === 4) {
-    // From D11.b
-    if (showD11_1) {
-      setStep(3); // Back to D11.1
-    } else if (showD11aa) {
-      setStep(2); // Back to D11.aa
-    } else {
-      setStep(1); // Back to D11.a
-    }
+    setStep(3); // Back to D11.b
   } else if (step === 3) {
-    // From D11.1
-    setStep(showD11aa ? 2 : 1);
+    setStep(showD11aa ? 2 : 1); // Back to D11.aa or D11.a
   } else if (step === 2) {
-    setStep(1);
+    setStep(1); // Back to D11.a
   } else if (step > 0) {
     setStep(step - 1);
   }
@@ -447,8 +437,8 @@ const getTotalSteps = () => {
           </div>
         )}
 
-     {/* Step 3: D11.1 (conditional - if they offer 70% coverage) */}
-{((step === 3 && showD11_1) || (step === 2 && !showD11aa && showD11_1)) && (
+     {/* Step 4: D11.1 (conditional - if they offer 70% coverage) */}
+  {step === 4 && showD11_1 && (
   <div className="bg-white p-6 rounded-lg shadow-sm">
     <h3 className="text-xl font-bold text-gray-900 mb-4">Preventive Services Coverage</h3>
     
@@ -615,8 +605,8 @@ const getTotalSteps = () => {
 </div>
   </div>
 )}   
-        {/* Step 4: D11.b open-end */}
-        {step === 4 && (
+        {/* Step 3: D11.b open-end */}
+        {step === 3 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Initiatives</h3>
             
