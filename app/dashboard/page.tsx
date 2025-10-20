@@ -28,198 +28,172 @@ export default function DashboardPage() {
   })
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    
-    // Check authentication
-    const authCompleted = localStorage.getItem('auth_completed') === 'true';
-    if (!authCompleted) {
-      router.push('/authorization');
-      return;
-    }
-    
-    const handleFocus = () => {
-      calculateProgress();
-    };
-    window.addEventListener("focus", handleFocus);
-    
+  if (typeof window === 'undefined') return
+  
+  // Check authentication
+  const authCompleted = localStorage.getItem('auth_completed') === 'true';
+  if (!authCompleted) {
+    router.push('/authorization');
+    return;
+  }
+  
   const calculateProgress = () => {
-  // CORRECT FIELD NAMES - these match what the pages actually save
-  const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6']
-  const genRequired = [
-  'cb1',           // Standard Benefits Package Overview
-  'cb1_standard',  // Standard Benefits Offered
-  'cb1_leave',     // Leave & Flexibility Benefits Offered
-  'cb1_wellness',  // Wellness & Support Benefits Offered
-  'cb1_financial', // Financial & Legal Assistance Benefits Offered
-  'cb1_navigation',// Care Navigation & Support Services Offered
-  'cb1a',          // % of Employees with National Healthcare Access
-  'cb2b'           // Plan to Rollout in Next 2 Years
-];
-
-const curRequired = [
-  'cb3a',    // Cancer Support Program Characterization
-  'cb3b',    // Key Cancer Support Program Features
-  'cb3c',    // Conditions Covered by Support Programs
-  'cb3d',    // Communication Methods for Support Programs
-  'or1',     // Current Approach to Supporting Employees
-  'or2a',    // Triggers that Led to Enhanced Support
-  'or3',     // Primary Barriers
-  'or5a',    // Types of Caregiver Support
-  'or6'      // How Organization Monitors Program Effectiveness
-];
-   
-  const savedEmail = localStorage.getItem('auth_email') || ''
-  setEmail(savedEmail)
-  
-  // Check payment status and method - ADD THIS BLOCK
-  const paymentStatus = localStorage.getItem('payment_completed')
-  const paymentMethod = localStorage.getItem('payment_method')
-  
-  // Allow access if ANY payment method was selected
-  setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card')
-  
-  const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
-  if (firmo?.companyName) setCompanyName(firmo.companyName)
-  
-  const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}')
-  const current = JSON.parse(localStorage.getItem('current_support_data') || '{}')  // UNDERSCORE not hyphen
-
-
-  // Check completion flags
-  const firmComplete = localStorage.getItem('firmographics_complete') === 'true'
-  const genComplete = localStorage.getItem('general_benefits_complete') === 'true'
-  const curComplete = localStorage.getItem('current_support_complete') === 'true'
-  
-  // Check dimension completions with partial progress - USE CONSISTENT KEY
-  const dimProgress = []
-  for (let i = 1; i <= 13; i++) {
-    const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}')  // NO UNDERSCORE
-    const complete = localStorage.getItem(`dimension${i}_complete`) === 'true'  // NO UNDERSCORE
-    if (complete) {
-      dimProgress.push(100)
-    } else {
-      const keys = Object.keys(dimData).length
-      if (keys === 0) {
-        dimProgress.push(0)
+    if (typeof window === 'undefined') return;
+    
+    try {
+      // Define all required fields arrays
+      const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6']
+      const genRequired = [
+        'cb1',
+        'cb1_standard',
+        'cb1_leave',
+        'cb1_wellness',
+        'cb1_financial',
+        'cb1_navigation',
+        'cb1a',
+        'cb2b'
+      ];
+      const curRequired = [
+        'cb3a',
+        'cb3b',
+        'cb3c',
+        'cb3d',
+        'or1',
+        'or2a',
+        'or3',
+        'or5a',
+        'or6'
+      ];
+      
+      // Get email and payment status
+      const savedEmail = localStorage.getItem('auth_email') || ''
+      setEmail(savedEmail)
+      
+      const paymentStatus = localStorage.getItem('payment_completed')
+      const paymentMethod = localStorage.getItem('payment_method')
+      setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card')
+      
+      // Get firmographics
+      const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
+      if (firmo?.companyName) setCompanyName(firmo.companyName)
+      
+      // Get other data
+      const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}')
+      const current = JSON.parse(localStorage.getItem('current_support_data') || '{}')
+      
+      // Check completion flags
+      const firmComplete = localStorage.getItem('firmographics_complete') === 'true'
+      const genComplete = localStorage.getItem('general_benefits_complete') === 'true'
+      const curComplete = localStorage.getItem('current_support_complete') === 'true'
+      
+      // Check dimension completions
+      const dimProgress = []
+      for (let i = 1; i <= 13; i++) {
+        const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}')
+        const complete = localStorage.getItem(`dimension${i}_complete`) === 'true'
+        if (complete) {
+          dimProgress.push(100)
+        } else {
+          const keys = Object.keys(dimData).length
+          if (keys === 0) {
+            dimProgress.push(0)
+          } else {
+            const estimatedTotal = 25
+            const actualProgress = Math.min(95, Math.round((keys / estimatedTotal) * 100))
+            dimProgress.push(actualProgress)
+          }
+        }
+      }
+      setDimensionProgress(dimProgress)
+      
+      // Calculate section progress
+      let firmProg = 0
+      let genProg = 0
+      let curProg = 0
+      
+      // Firmographics progress
+      if (firmComplete) {
+        firmProg = 100
       } else {
-        const estimatedTotal = 25
-        const actualProgress = Math.min(95, Math.round((keys / estimatedTotal) * 100))
-        dimProgress.push(actualProgress)
+        const firmCount = firmRequired.filter(field => {
+          if (field === 's6' || field === 'c4') {
+            return Array.isArray(firmo[field]) && firmo[field].length > 0
+          }
+          return firmo[field] && firmo[field] !== ''
+        }).length
+        firmProg = Math.round((firmCount / firmRequired.length) * 100)
       }
-    }
-  }
-  setDimensionProgress(dimProgress)
-  
-  // Calculate progress for each section
-  let firmProg = 0
-  let genProg = 0
-  let curProg = 0
-  
-  // Firmographics progress
-  if (firmComplete) {
-    firmProg = 100
-  } else {
-    const firmCount = firmRequired.filter(field => {
-      if (field === 's6' || field === 'c4') {
-        return Array.isArray(firmo[field]) && firmo[field].length > 0
+      
+      // General benefits progress
+      if (genComplete) {
+        genProg = 100
+      } else if (general && Object.keys(general).length > 0) {
+        const genCount = genRequired.filter(field => {
+          if (Array.isArray(general[field])) {
+            return general[field].length > 0
+          }
+          return general[field] && general[field] !== ''
+        }).length
+        genProg = Math.round((genCount / genRequired.length) * 100)
       }
-      return firmo[field] && firmo[field] !== ''
-    }).length
-    firmProg = Math.round((firmCount / firmRequired.length) * 100)
-  }
-  
-// General benefits progress - FIXED LOGIC
-if (genComplete) {
-  genProg = 100
-} else {
-  try {
-    if (general && typeof general === 'object' && Object.keys(general).length > 0) {
-      const genCount = genRequired.filter(field => {
-        if (Array.isArray(general[field])) {
-          return general[field].length > 0
-        }
-        return general[field] && general[field] !== ''
-      }).length
-      genProg = Math.round((genCount / genRequired.length) * 100)
-    } else {
-      genProg = 0
-    }
-  } catch (e) {
-    console.error('Error calculating general progress:', e)
-    genProg = 0
-  }
-}
-  
-// Current support progress
-if (curComplete) {
-  curProg = 100
-} else {
-  try {
-    if (current && typeof current === 'object' && Object.keys(current).length > 0) {
-      const curCount = curRequired.filter(field => {
-        if (Array.isArray(current[field])) {
-          return current[field].length > 0
-        }
-        return current[field] && current[field] !== ''
-      }).length
-      curProg = Math.round((curCount / curRequired.length) * 100)
-    } else {
-      curProg = 0
-    }
-  } catch (e) {
-    console.error('Error calculating current progress:', e)
-    curProg = 0
-  }
-}
-  
-  setSectionProgress({
-    firmographics: firmProg,
-    general: genProg,
-    current: curProg,
-  })
-      // Calculate progress for advanced sections
+      
+      // Current support progress
+      if (curComplete) {
+        curProg = 100
+      } else if (current && Object.keys(current).length > 0) {
+        const curCount = curRequired.filter(field => {
+          if (Array.isArray(current[field])) {
+            return current[field].length > 0
+          }
+          return current[field] && current[field] !== ''
+        }).length
+        curProg = Math.round((curCount / curRequired.length) * 100)
+      }
+      
+      setSectionProgress({
+        firmographics: firmProg,
+        general: genProg,
+        current: curProg,
+      })
+      
+      // Advanced sections
       const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}')
       const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}')
-
+      
       const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true'
       const crossDimComplete = localStorage.getItem('cross_dimensional_complete') === 'true'
-
+      
       let empImpactProg = 0
       let crossDimProg = 0
-
+      
       if (empImpactComplete) {
         empImpactProg = 100
       } else {
         let completedSteps = 0
-        let totalSteps = 4 // EI1, EI2, EI3 (conditional), EI4/EI5
+        let totalSteps = 4
         
-        // Check EI1 (all 10 items answered)
         if (empImpact.ei1) {
           const ei1Items = Object.keys(empImpact.ei1).length
           if (ei1Items === 10) {
             completedSteps += 1
           } else if (ei1Items > 0) {
-            completedSteps += (ei1Items / 10) // Partial credit
+            completedSteps += (ei1Items / 10)
           }
         }
         
-        // Check EI2
         if (empImpact.ei2) {
           completedSteps += 1
         }
         
-        // Check EI3 (only counts if they should answer it)
         const shouldAnswerEI3 = empImpact.ei2 === "yes_comprehensive" || empImpact.ei2 === "yes_basic"
         if (shouldAnswerEI3) {
           if (empImpact.ei3) {
             completedSteps += 1
           }
         } else if (empImpact.ei2) {
-          // If they don't need to answer EI3, count it as complete
           completedSteps += 1
         }
         
-        // Check EI4 or EI5 (whichever they were assigned)
         if (empImpact.assignedQuestion === 'ei4') {
           if (empImpact.ei4 || empImpact.ei4_none) {
             completedSteps += 1
@@ -232,40 +206,49 @@ if (curComplete) {
         
         empImpactProg = Math.round((completedSteps / totalSteps) * 100)
       }
-
+      
       if (crossDimComplete) {
         crossDimProg = 100
       } else {
-        // Count cd1a (top 3), cd1b (bottom 3), and cd2 (challenges)
         const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0
         const bottom3Count = Array.isArray(crossDim.cd1b) ? crossDim.cd1b.length : 0
         const challengesCount = Array.isArray(crossDim.cd2) ? crossDim.cd2.length : 0
-        
-        // Total expected: 3 top + 3 bottom + 1-3 challenges = minimum 7, maximum 9
         const totalAnswered = top3Count + bottom3Count + (challengesCount > 0 ? 1 : 0)
         crossDimProg = Math.round((totalAnswered / 7) * 100)
       }
-
+      
       setAdvancedProgress({
         crossDimensional: crossDimProg,
         employeeImpact: empImpactProg,
       })
-
-      // Check if everything is 100% complete
-        const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
-                            dimProgress.every(p => p === 100) &&
-                            crossDimProg === 100 && empImpactProg === 100;
-        
-        // Only auto-redirect once, but allow manual access via button
-        if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
-          localStorage.setItem('assessment_completion_shown', 'true');
-          router.push('/completion');
-        }
-    }    
+      
+      // Check if everything is complete
+      const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
+                          dimProgress.every(p => p === 100) &&
+                          crossDimProg === 100 && empImpactProg === 100;
+      
+      if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
+        localStorage.setItem('assessment_completion_shown', 'true');
+        router.push('/completion');
+      }
+    } catch (error) {
+      console.error('Error in calculateProgress:', error);
+      setSectionProgress({ firmographics: 0, general: 0, current: 0 });
+      setDimensionProgress(new Array(13).fill(0));
+      setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 });
+    }
+  }
+  
+  calculateProgress();
+  
+  const handleFocus = () => {
     calculateProgress();
-    
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [router])
+  };
+  window.addEventListener("focus", handleFocus);
+  
+  return () => window.removeEventListener("focus", handleFocus);
+}, [router])
+
 
   const overallProgress = Math.round(
     (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
