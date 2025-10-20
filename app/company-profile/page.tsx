@@ -664,6 +664,7 @@ function parseDimensionData(
   programs: Array<{ program: string; status: string }>;
   items: Array<{ question: string; response: string }>;
 } {
+  console.log(`Dimension ${dimNumber} data keys:`, Object.keys(data));
   const prefix = `d${dimNumber}`;
   const programs: Array<{ program: string; status: string }> = [];
   const items: Array<{ question: string; response: string }> = [];
