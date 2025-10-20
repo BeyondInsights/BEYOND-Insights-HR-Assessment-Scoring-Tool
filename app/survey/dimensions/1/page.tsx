@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -14,20 +13,20 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-// Data for D1.a
-  const D1A_ITEMS_BASE = [
-    "Paid medical leave beyond local / legal requirements",
-    "Intermittent leave beyond local / legal requirements",
-    "Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)",
-    "Remote work options for on-site employees",
-    "Reduced schedule/part-time with full benefits",
-    "Job protection beyond local / legal requirements",
-    "Emergency leave within 24 hours",
-    "Leave donation bank (employees can donate PTO to colleagues)",
-    "Disability pay top-up (employer adds to disability insurance)",
-    "PTO accrual during leave",
-    "Paid micro-breaks for medical-related side effects"
-  ];
+// Data for D1.a - ALL 11 ITEMS FROM SURVEY
+const D1A_ITEMS_BASE = [
+  "Paid medical leave beyond local / legal requirements",
+  "Intermittent leave beyond local / legal requirements",
+  "Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)",
+  "Remote work options for on-site employees",
+  "Reduced schedule/part-time with full benefits",
+  "Job protection beyond local / legal requirements",
+  "Emergency leave within 24 hours",
+  "Leave donation bank (employees can donate PTO to colleagues)",
+  "Disability pay top-up (employer adds to disability insurance)",
+  "PTO accrual during leave",
+  "Paid micro-breaks for medical-related side effects"
+];
 
 export default function Dimension1Page() {
   const router = useRouter();
@@ -39,84 +38,79 @@ export default function Dimension1Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D1A_ITEMS] = useState(() => shuffleArray(D1A_ITEMS_BASE));
   
-// Load saved answers on mount
-useEffect(() => {
-  const saved = localStorage.getItem("dimension1_data");
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      setAns(parsed);
-    } catch (e) {
-      console.error("Error loading saved data:", e);
+  // Load saved answers on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("dimension1_data");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setAns(parsed);
+      } catch (e) {
+        console.error("Error loading saved data:", e);
+      }
     }
-  }
-  // Check if multi-country from screener
-  const screenerData = localStorage.getItem("screener_data");
-  if (screenerData) {
-    const parsed = JSON.parse(screenerData);
-    setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
-  }
-}, []);
+    
+    // Check if multi-country from firmographics
+    const firmographicsData = localStorage.getItem("firmographics_data");
+    if (firmographicsData) {
+      const parsed = JSON.parse(firmographicsData);
+      setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
+    }
+  }, []);
 
-// Save answers when they change
-useEffect(() => {
-  if (Object.keys(ans).length > 0) {
-    localStorage.setItem("dimension1_data", JSON.stringify(ans));
-  }
-}, [ans]);
+  // Save answers when they change
+  useEffect(() => {
+    if (Object.keys(ans).length > 0) {
+      localStorage.setItem("dimension1_data", JSON.stringify(ans));
+    }
+  }, [ans]);
 
-// Scroll to top when step changes (but not for progressive card navigation)
-useEffect(() => {
-  if (step !== 1) {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-}, [step]);
+  // Scroll to top when step changes (MOBILE FIX)
+  useEffect(() => {
+    if (step !== 1) { // Don't scroll during progressive card navigation
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [step]);
   
-  // Set field helper
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
     setErrors("");
   };
 
-  // Set status for D1.a grid items
-  
-const setStatus = (item: string, status: string) => {
-  setAns((prev: any) => ({
-    ...prev,
-    d1a: { ...(prev.d1a || {}), [item]: status }
-  }));
-  
-  setIsTransitioning(true);
-  
-  setTimeout(() => {
-    const nextUnansweredIndex = D1A_ITEMS.findIndex((itm, idx) => 
-      idx > currentItemIndex && !ans.d1a?.[itm]
-    );
+  const setStatus = (item: string, status: string) => {
+    setAns((prev: any) => ({
+      ...prev,
+      d1a: { ...(prev.d1a || {}), [item]: status }
+    }));
     
-    if (nextUnansweredIndex !== -1) {
-      setCurrentItemIndex(nextUnansweredIndex);
-    } else if (currentItemIndex < D1A_ITEMS.length - 1) {
-      setCurrentItemIndex(currentItemIndex + 1);
-    }
+    setIsTransitioning(true);
     
     setTimeout(() => {
-      setIsTransitioning(false);
-    }, 250);
-  }, 500);
-};
+      const nextUnansweredIndex = D1A_ITEMS.findIndex((itm, idx) => 
+        idx > currentItemIndex && !ans.d1a?.[itm]
+      );
+      
+      if (nextUnansweredIndex !== -1) {
+        setCurrentItemIndex(nextUnansweredIndex);
+      } else if (currentItemIndex < D1A_ITEMS.length - 1) {
+        setCurrentItemIndex(currentItemIndex + 1);
+      }
+      
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 250);
+    }, 500);
+  };
 
-  // Navigate to specific item
-const goToItem = (index: number) => {
-  setIsTransitioning(true);
-  setTimeout(() => {
-    setCurrentItemIndex(index);
+  const goToItem = (index: number) => {
+    setIsTransitioning(true);
     setTimeout(() => {
-      setIsTransitioning(false);
-    }, 400);
-  }, 500);
-};
-
-  
+      setCurrentItemIndex(index);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 400);
+    }, 500);
+  };
 
   const STATUS_OPTIONS = [
     "Not able to offer in foreseeable future",
@@ -134,15 +128,23 @@ const goToItem = (index: number) => {
   const showD1_5 = ans.d1a?.["Job protection beyond local / legal requirements"] === "Currently offer";
   const showD1_6 = ans.d1a?.["Disability pay top-up (employer adds to disability insurance)"] === "Currently offer";
 
-  // Calculate total steps based on conditions
+  // D1.aa should show if multi-country AND at least one "Currently offer" (FIX #2)
+  const hasAnyOffered = Object.values(ans.d1a || {}).some(
+    (status) => status === "Currently offer"
+  );
+  const showD1aa = isMultiCountry && hasAnyOffered;
+
+  // Calculate total steps
   const getTotalSteps = () => {
-    let total = 4; // intro, D1.a, D1.aa (if multi), D1.b
+    let total = 3; // intro, D1.a, D1.b
+    if (showD1aa) total++; // D1.aa
     if (showD1_1) total++;
     if (showD1_2) total++;
     if (showD1_4a) total++;
     if (showD1_4b) total++;
     if (showD1_5) total++;
     if (showD1_6) total++;
+    total++; // completion screen
     return total;
   };
 
@@ -155,12 +157,8 @@ const goToItem = (index: number) => {
           return `Please evaluate all ${D1A_ITEMS.length} items (${answeredCount} completed)`;
         return null;
       
-      case 2: // D1.aa (conditional)
-        if (isMultiCountry && !ans.d1aa) return "Please select one option";
-        return null;
-        
-      case 3: // D1.b
-        // Optional open-end
+      case 2: // Could be D1.aa OR D1.b
+        if (showD1aa && !ans.d1aa) return "Please select one option";
         return null;
         
       default:
@@ -168,131 +166,95 @@ const goToItem = (index: number) => {
     }
   };
 
-// Navigation
-const next = () => {
-  const error = validateStep();
-  if (error) {
-    setErrors(error);
-    return;
-  }
+  // Navigation
+  const next = () => {
+    const error = validateStep();
+    if (error) {
+      setErrors(error);
+      return;
+    }
 
-  // Handle navigation based on conditional logic
-  if (step === 1) {
-    if (isMultiCountry) {
-      setStep(2);
-    } else {
-      setStep(3);
-    }
-  } else if (step === 2) {
-    setStep(3);
-  } else if (step === 3) {
-    if (showD1_1) {
-      setStep(4);
-    } else if (showD1_2) {
-      setStep(5);
-    } else if (showD1_4a) {
-      setStep(6);
-    } else if (showD1_4b) {
-      setStep(7);
-    } else if (showD1_5) {
-      setStep(8);
-    } else if (showD1_6) {
-      setStep(9);
-    } else {
+    if (step === 1) {
+      // After D1.a grid
+      if (showD1aa) {
+        setStep(2); // Go to D1.aa
+      } else {
+        setStep(3); // Skip to D1.b
+      }
+    } else if (step === 2) {
+      // From D1.aa OR D1.b
+      if (showD1aa && !ans.d1b && ans.d1aa) {
+        setStep(3); // Go to D1.b
+      } else {
+        // From D1.b, check follow-ups
+        if (showD1_1) setStep(4);
+        else if (showD1_2) setStep(5);
+        else if (showD1_4a) setStep(6);
+        else if (showD1_4b) setStep(7);
+        else if (showD1_5) setStep(8);
+        else if (showD1_6) setStep(9);
+        else setStep(10); // Completion
+      }
+    } else if (step === 3) {
+      // From D1.b
+      if (showD1_1) setStep(4);
+      else if (showD1_2) setStep(5);
+      else if (showD1_4a) setStep(6);
+      else if (showD1_4b) setStep(7);
+      else if (showD1_5) setStep(8);
+      else if (showD1_6) setStep(9);
+      else setStep(10); // Completion
+    } else if (step === 4) {
+      if (showD1_2) setStep(5);
+      else if (showD1_4a) setStep(6);
+      else if (showD1_4b) setStep(7);
+      else if (showD1_5) setStep(8);
+      else if (showD1_6) setStep(9);
+      else setStep(10);
+    } else if (step === 5) {
+      if (showD1_4a) setStep(6);
+      else if (showD1_4b) setStep(7);
+      else if (showD1_5) setStep(8);
+      else if (showD1_6) setStep(9);
+      else setStep(10);
+    } else if (step === 6) {
+      if (showD1_4b) setStep(7);
+      else if (showD1_5) setStep(8);
+      else if (showD1_6) setStep(9);
+      else setStep(10);
+    } else if (step === 7) {
+      if (showD1_5) setStep(8);
+      else if (showD1_6) setStep(9);
+      else setStep(10);
+    } else if (step === 8) {
+      if (showD1_6) setStep(9);
+      else setStep(10);
+    } else if (step === 9) {
+      setStep(10);
+    } else if (step === 10) {
       localStorage.setItem("dimension1_complete", "true");
       router.push("/dashboard");
       return;
     }
-  } else if (step === 4) {
-    if (showD1_2) {
-      setStep(5);
-    } else if (showD1_4a) {
-      setStep(6);
-    } else if (showD1_4b) {
-      setStep(7);
-    } else if (showD1_5) {
-      setStep(8);
-    } else if (showD1_6) {
-      setStep(9);
-    } else {
-      localStorage.setItem("dimension1_complete", "true");
-      router.push("/dashboard");
-      return;
-    }
-  } else if (step === 5) {
-    if (showD1_4a) {
-      setStep(6);
-    } else if (showD1_4b) {
-      setStep(7);
-    } else if (showD1_5) {
-      setStep(8);
-    } else if (showD1_6) {
-      setStep(9);
-    } else {
-      localStorage.setItem("dimension1_complete", "true");
-      router.push("/dashboard");
-      return;
-    }
-  } else if (step === 6) {
-    if (showD1_4b) {
-      setStep(7);
-    } else if (showD1_5) {
-      setStep(8);
-    } else if (showD1_6) {
-      setStep(9);
-    } else {
-      localStorage.setItem("dimension1_complete", "true");
-      router.push("/dashboard");
-      return;
-    }
-  } else if (step === 7) {
-    if (showD1_5) {
-      setStep(8);
-    } else if (showD1_6) {
-      setStep(9);
-    } else {
-      localStorage.setItem("dimension1_complete", "true");
-      router.push("/dashboard");
-      return;
-    }
-  } else if (step === 8) {
-    if (showD1_6) {
-      setStep(9);
-    } else {
-      localStorage.setItem("dimension1_complete", "true");
-      router.push("/dashboard");
-      return;
-    }
- } else if (step === 9) {
-    setStep(10);  // Go to completion screen
-  } else if (step === 10) {
-    localStorage.setItem("dimension1_complete", "true");
-    router.push("/dashboard");
-    return;
-  }
-  
-  setErrors("");
-};
+    
+    setErrors("");
+  };
 
-const back = () => {
-  if (step > 3) {
-    // From any conditional question, go back to D1.b
-    setStep(3);
-  } else if (step === 3) {
-    // From D1.b, go to D1.aa if multi-country, otherwise D1.a
-    setStep(isMultiCountry ? 2 : 1);
-  } else if (step === 2) {
-    // From D1.aa go to D1.a
-    setStep(1);
-  } else if (step > 0) {
-    setStep(step - 1);
-  }
-  setErrors("");
-};
+  const back = () => {
+    if (step > 3) {
+      setStep(3); // From any follow-up, go back to D1.b
+    } else if (step === 3) {
+      setStep(showD1aa ? 2 : 1); // From D1.b
+    } else if (step === 2) {
+      setStep(1); // From D1.aa to D1.a
+    } else if (step > 0) {
+      setStep(step - 1);
+    }
+    setErrors("");
+  };
 
-return (
-  <div className="min-h-screen bg-gray-50 flex flex-col">
-
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
@@ -302,12 +264,6 @@ return (
             <span className="text-sm text-gray-600">
               Dimension 1: Medical Leave & Flexibility
             </span>
-            <button 
-              onClick={() => { localStorage.setItem("dimension1_complete", "true"); router.push("/dashboard"); }}
-              className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-            >
-              
-            </button>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
@@ -345,23 +301,23 @@ return (
                 <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
                 <ul className="space-y-3 text-gray-700">
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1"></span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>You'll see different support options associated with this dimension, one at a time</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1"></span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Indicate the current status of each option within your organization</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1"></span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>After selecting a response, it will automatically advance to the next option</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1"></span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Use the navigation dots or arrows to review or change any response</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1"></span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Once all support options are evaluated, the Continue button will appear</span>
                   </li>
                 </ul>
@@ -379,10 +335,9 @@ return (
           </div>
         )}
 
-{/* Step 1: D1.a Progressive Cards WITH EXTENDED FADE (CHECK) */}
+        {/* Step 1: D1.a Progressive Cards */}
         {step === 1 && (
           <div className="bg-white rounded-xl shadow-sm">
-            {/* Header with gradient */}
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 rounded-t-xl">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -395,7 +350,6 @@ return (
             </div>
 
             <div className="p-8">
-              {/* Progress dots */}
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
@@ -421,7 +375,6 @@ return (
                 </div>
               </div>
 
-              {/* Current Item Card WITH EXTENDED TRANSITIONS */}
               <div className="mb-6">
                 <div
                   className={`bg-gradient-to-br from-blue-50 via-white to-blue-50 p-8 rounded-xl border-2 border-blue-100 transition-all duration-700 ease-in-out ${
@@ -429,10 +382,6 @@ return (
                       ? 'opacity-0 transform scale-95 blur-sm'
                       : 'opacity-100 transform scale-100 blur-0'
                   }`}
-                  style={{
-                    transitionProperty: 'opacity, transform, filter',
-                    transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
-                  }}
                 >
                   <h3 className="text-lg font-semibold text-gray-900 mb-6">
                     {D1A_ITEMS[currentItemIndex]}
@@ -477,7 +426,6 @@ return (
                 </div>
               </div>
 
-              {/* Previous button and Continue button */}
               <div className="flex justify-between items-center mt-6">
                 <button
                   onClick={() => goToItem(Math.max(0, currentItemIndex - 1))}
@@ -488,16 +436,15 @@ return (
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ? View previous option
+                  ← View previous option
                 </button>
 
-                {/* Continue button only shows when ALL items answered */}
                 {Object.keys(ans.d1a || {}).length === D1A_ITEMS.length && !isTransitioning && (
                   <button
                     onClick={next}
                     className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
                   >
-                    Continue ?
+                    Continue →
                   </button>
                 )}
               </div>
@@ -505,8 +452,8 @@ return (
           </div>
         )}
         
-        {/* Step 2: D1.aa (conditional for multi-country) */}
-        {step === 2 && isMultiCountry && (
+        {/* Step 2: D1.aa (conditional - multi-country with offerings) */}
+        {step === 2 && showD1aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
@@ -538,8 +485,8 @@ return (
           </div>
         )}
 
-        {/* Step 3: D1.b open-end */}
-        {step === 3 && (
+        {/* Step 3: D1.b open-end (OR Step 2 if no D1.aa) */}
+        {(step === 3 || (step === 2 && !showD1aa)) && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Benefits</h3>
             
@@ -570,7 +517,7 @@ return (
           </div>
         )}
 
-{/* D1.1 - Paid medical leave details GRID */}
+        {/* D1.1 - Paid medical leave grid */}
         {step === 4 && showD1_1 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Paid Medical Leave</h3>
@@ -578,9 +525,7 @@ return (
             <p className="text-gray-700 mb-2">
               <span className="font-bold">Beyond legally required leave</span>, what <strong>additional paid medical leave</strong> do you provide for <strong>employees managing cancer or other serious health conditions</strong>?
             </p>
-            <p className="text-sm text-gray-600 mb-4">
-              (Select ONE for each market)
-            </p>
+            <p className="text-sm text-gray-600 mb-4">(Select ONE for each market)</p>
             <p className="text-xs text-gray-500 italic mb-6">
               For markets outside USA, provide the most common scenario OR the average if it varies significantly
             </p>
@@ -676,77 +621,75 @@ return (
             </div>
           </div>
         )}
-{/* D1.2 - Vertical Grid with adjusted widths and fonts */}
-{step === 5 && showD1_2 && (
-  <div className="bg-white p-6 rounded-lg shadow-sm">
-    <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Intermittent Leave</h3>
-    
-    <p className="text-gray-700 mb-2">
-      Beyond legally required intermittent leave, what <strong>additional intermittent leave</strong> do you provide for <strong>employees managing cancer or other serious health conditions</strong>?
-    </p>
-    <p className="text-sm text-gray-600 mb-6">(Select ONE for each market)</p>
-    
-    <div className="overflow-x-auto">
-      <table className="w-full border border-gray-300">
-        <thead>
-          <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-            <th className="text-left p-4 border-r border-b font-medium" style={{ width: '30%' }}>
-              <div className="text-base">Additional Leave Options</div>
-            </th>
-            <th className="p-4 border-r border-b text-center" style={{ width: '35%' }}>
-              <div className="font-semibold text-base">Employees based in the USA</div>
-              <div className="text-sm font-normal text-blue-100 mt-1">(beyond FMLA / state requirements)</div>
-              <div className="text-sm font-semibold text-yellow-200 mt-2">(Select ONE)</div>
-            </th>
-            <th className="p-4 border-b text-center" style={{ width: '35%' }}>
-              <div className="font-semibold text-base">Employees based outside the USA</div>
-              <div className="text-sm font-normal text-blue-100 mt-1">(beyond statutory requirements)</div>
-              <div className="text-sm font-semibold text-yellow-200 mt-2">(Select ONE)</div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {[
-            "No additional leave",
-            "1 to 4 additional weeks",
-            "5 to 11 additional weeks",
-            "12 to 23 additional weeks",
-            "24 or more additional weeks",
-            "Unlimited based on medical need",
-            "Does not apply"
-          ].map((option, idx) => (
-            <tr key={option} className={`hover:bg-orange-50 transition-colors ${idx % 2 === 0 ? "bg-gray-50" : "bg-white"}`}>
-              <td className="p-4 border-r font-medium text-base">
-                {option}
-              </td>
-              <td className="p-4 border-r text-center">
-                <input
-                  type="radio"
-                  name="d1_2_usa"
-                  className="w-5 h-5 cursor-pointer accent-blue-600"
-                  onChange={() => setField("d1_2_usa", option)}
-                  checked={ans.d1_2_usa === option}
-                />
-              </td>
-              <td className="p-4 text-center">
-                <input
-                  type="radio"
-                  name="d1_2_non_usa"
-                  className="w-5 h-5 cursor-pointer accent-blue-600"
-                  onChange={() => setField("d1_2_non_usa", option)}
-                  checked={ans.d1_2_non_usa === option}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-)}
- 
 
-        {/* D1.4a - Remote work options */}
+        {/* D1.2 - Intermittent leave grid */}
+        {step === 5 && showD1_2 && (
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Intermittent Leave</h3>
+            
+            <p className="text-gray-700 mb-2">
+              Beyond legally required intermittent leave, what <strong>additional intermittent leave</strong> do you provide for <strong>employees managing cancer or other serious health conditions</strong>?
+            </p>
+            <p className="text-sm text-gray-600 mb-6">(Select ONE for each market)</p>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full border border-gray-300">
+                <thead>
+                  <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                    <th className="text-left p-4 border-r border-b font-medium" style={{ width: '30%' }}>
+                      <div className="text-base">Additional Leave Options</div>
+                    </th>
+                    <th className="p-4 border-r border-b text-center" style={{ width: '35%' }}>
+                      <div className="font-semibold text-base">Employees based in the USA</div>
+                      <div className="text-sm font-normal text-blue-100 mt-1">(beyond FMLA / state requirements)</div>
+                    </th>
+                    <th className="p-4 border-b text-center" style={{ width: '35%' }}>
+                      <div className="font-semibold text-base">Employees based outside the USA</div>
+                      <div className="text-sm font-normal text-blue-100 mt-1">(beyond statutory requirements)</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    "No additional leave",
+                    "1 to 4 additional weeks",
+                    "5 to 11 additional weeks",
+                    "12 to 23 additional weeks",
+                    "24 or more additional weeks",
+                    "Unlimited based on medical need",
+                    "Does not apply"
+                  ].map((option, idx) => (
+                    <tr key={option} className={`hover:bg-orange-50 transition-colors ${idx % 2 === 0 ? "bg-gray-50" : "bg-white"}`}>
+                      <td className="p-4 border-r font-medium text-base">
+                        {option}
+                      </td>
+                      <td className="p-4 border-r text-center">
+                        <input
+                          type="radio"
+                          name="d1_2_usa"
+                          className="w-5 h-5 cursor-pointer accent-blue-600"
+                          onChange={() => setField("d1_2_usa", option)}
+                          checked={ans.d1_2_usa === option}
+                        />
+                      </td>
+                      <td className="p-4 text-center">
+                        <input
+                          type="radio"
+                          name="d1_2_non_usa"
+                          className="w-5 h-5 cursor-pointer accent-blue-600"
+                          onChange={() => setField("d1_2_non_usa", option)}
+                          checked={ans.d1_2_non_usa === option}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* D1.4a - Remote work */}
         {step === 6 && showD1_4a && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Remote Work Time</h3>
@@ -757,7 +700,6 @@ return (
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
             <div className="space-y-2">
-              {/* Number inputs for weeks/months */}
               <div className="border-2 border-gray-200 rounded-lg p-4">
                 <label className="flex items-center">
                   <input
@@ -810,7 +752,6 @@ return (
                 </label>
               </div>
 
-              {/* Other options */}
               {[
                 "As long as requested by healthcare provider",
                 "As long as medically necessary",
@@ -837,7 +778,7 @@ return (
           </div>
         )}
 
-        {/* D1.4b - Reduced schedule with full benefits */}
+        {/* D1.4b - Reduced schedule */}
         {step === 7 && showD1_4b && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Part-Time/Reduced Schedule with Full Benefits</h3>
@@ -874,7 +815,7 @@ return (
           </div>
         )}
 
-{/* D1.5 - Job protection GRID */}
+        {/* D1.5 - Job protection grid */}
         {step === 8 && showD1_5 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Job Protection Guarantee</h3>
@@ -979,7 +920,7 @@ return (
           </div>
         )}
 
-        {/* D1.6 - Disability pay enhancement */}
+        {/* D1.6 - Disability enhancement */}
         {step === 9 && showD1_6 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Enhanced Disability Benefits</h3>
@@ -987,74 +928,81 @@ return (
             <p className="text-gray-700 mb-6">
               For <strong>markets where you provide disability insurance</strong>, do you <strong>enhance disability benefits</strong> for <strong>employees managing cancer or other serious health conditions</strong> beyond standard coverage?
             </p>
+            <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
             
             <div className="space-y-2">
               {[
-                "Yes - higher percentage of salary replacement",
-                "Yes - extended benefit duration",
-                "Yes - reduced or waived waiting period",
-                "Yes - combination of enhancements",
-                "No - standard disability benefits only",
-                "Not applicable - no disability insurance offered"
+                "Enhance short-term disability (higher % of salary)",
+                "Enhance long-term disability (higher % of salary)",
+                "Extend duration of benefits",
+                "Reduce/waive waiting periods",
+                "No enhancement - same as standard",
+                "Not applicable - government disability only"
               ].map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setField("d1_6", opt)}
-                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                    ans.d1_6 === opt
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {opt}
-                </button>
+                <label key={opt} className="flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={ans.d1_6?.includes(opt) || false}
+                    onChange={(e) => {
+                      const current = ans.d1_6 || [];
+                      if (e.target.checked) {
+                        setField("d1_6", [...current, opt]);
+                      } else {
+                        setField("d1_6", current.filter((x: string) => x !== opt));
+                      }
+                    }}
+                    className="mt-1"
+                  />
+                  <span>{opt}</span>
+                </label>
               ))}
             </div>
           </div>
         )}
-{/* Step 10: Completion */}
-{step === 10 && (
-  <div className="bg-white p-8 rounded-lg shadow-sm text-center">
-    <div className="mb-6">
-      <svg className="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    </div>
-    <h2 className="text-2xl font-bold text-gray-900 mb-3">
-      Dimension 1 Complete!
-    </h2>
-    <p className="text-gray-600 mb-8">
-      You've successfully completed the Medical Leave & Flexibility dimension.
-    </p>
-    <button
-      onClick={() => { 
-        localStorage.setItem("dimension1_complete", "true"); 
-        router.push("/dashboard"); 
-      }}
-      className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
-    >
-      Save & Return to Dashboard ?
-    </button>
-  </div>
-)}
 
-{/* Universal Navigation - shows on steps 2-9 only */}
-{step > 1 && step < 10 && (
-  <div className="flex justify-between mt-8">
-    <button 
-      onClick={back} 
-      className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
-    >
-      ? Back
-    </button>
-    <button 
-      onClick={next} 
-      className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
-    >
-      Continue ?
-    </button>
-  </div>
-)}
+        {/* Step 10: Completion */}
+        {step === 10 && (
+          <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+            <div className="mb-6">
+              <svg className="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Dimension 1 Complete!
+            </h2>
+            <p className="text-gray-600 mb-8">
+              You've successfully completed the Medical Leave & Flexibility dimension.
+            </p>
+            <button
+              onClick={() => { 
+                localStorage.setItem("dimension1_complete", "true"); 
+                router.push("/dashboard"); 
+              }}
+              className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+            >
+              Save & Return to Dashboard →
+            </button>
+          </div>
+        )}
+
+        {/* Navigation Buttons (for steps 2-9) */}
+        {step > 1 && step < 10 && (
+          <div className="flex justify-between mt-8">
+            <button 
+              onClick={back} 
+              className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
+            >
+              ← Back
+            </button>
+            <button 
+              onClick={next} 
+              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+            >
+              Continue →
+            </button>
+          </div>
+        )}
       </main>
       
       <Footer />
