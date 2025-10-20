@@ -128,12 +128,12 @@ export default function Dimension6Page() {
     (status) => status === "Currently offer"
   );
   
-  const showD6.aa = isMultiCountry && hasAnyOffered;
+  const showD6aa = isMultiCountry && hasAnyOffered;
   const showD6_2 = hasAnyOffered;
 
   const getTotalSteps = () => {
     let total = 3; // intro, D6.a, D6.b
-    if (showD6.aa) total++; // D6.aa
+    if (showD6aa) total++; // D6.aa
     if (showD6_2) total++; // D6.2
     total++; // completion
     return total;
@@ -148,7 +148,7 @@ export default function Dimension6Page() {
         return null;
       
       case 2:
-        if (showD6.aa && !ans.D6.aa) {
+        if (showD6aa && !ans.D6.aa) {
           return "Please select one option";
         }
         return null;
@@ -175,7 +175,7 @@ export default function Dimension6Page() {
     }
 
     if (step === 1) {
-      if (showD6.aa) {
+      if (showD6aa) {
         setStep(2);
       } else {
         setStep(3);
@@ -205,7 +205,7 @@ export default function Dimension6Page() {
     } else if (step === 4) {
       setStep(3);
     } else if (step === 3) {
-      setStep(showD6.aa ? 2 : 1);
+      setStep(showD6aa ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
     } else if (step > 0) {
@@ -412,7 +412,7 @@ export default function Dimension6Page() {
           </div>
         )}
         
-        {step === 2 && showD6.aa && (
+        {step === 2 && showD6aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
