@@ -514,8 +514,6 @@ const FIELD_LABELS: Record<string, string> = {
   cb1_financial: 'Financial & Legal Assistance Benefits Offered',
   cb1_navigation: 'Care Navigation & Support Services Offered',
   cb1a: '% of Employees with National Healthcare Access',
-  cb2: 'Benefits Package Characterization vs. Industry',
-  cb2a: 'Leave Programs Availability Status',
   cb2b: 'Plan to Rollout in Next 2 Years',
   
   
