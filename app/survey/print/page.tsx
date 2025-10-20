@@ -4,25 +4,26 @@ import React, { useEffect, useState } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
-// Import all schemas
-import { firmographicsSchema } from '../schemas/firmographics'
-import { generalBenefitsSchema } from '../schemas/general-benefits'
-import { currentSupportSchema } from '../schemas/current-support'
-import { d1Schema } from '../schemas/dimensions/d1-medical-leave'
-import { d2Schema } from '../schemas/dimensions/d2-insurance'
-import { d3Schema } from '../schemas/dimensions/d3-manager'
-import { d4Schema } from '../schemas/dimensions/d4-navigation'
-import { d5Schema } from '../schemas/dimensions/d5-accommodations'
-import { d6Schema } from '../schemas/dimensions/d6-culture'
-import { d7Schema } from '../schemas/dimensions/d7-career'
-import { d8Schema } from '../schemas/dimensions/d8-work-continuation'
-import { d9Schema } from '../schemas/dimensions/d9-executive'
-import { d10Schema } from '../schemas/dimensions/d10-caregiver'
-import { d11Schema } from '../schemas/dimensions/d11-prevention'
-import { d12Schema } from '../schemas/dimensions/d12-continuous'
-import { d13Schema } from '../schemas/dimensions/d13-communication'
-import { crossDimensionalSchema } from '../schemas/cross-dimensional'
-import { employeeImpactSchema } from '../schemas/employee-impact'
+import {
+  firmographicsSchema,
+  generalBenefitsSchema,
+  currentSupportSchema,
+  d1Schema,
+  d2Schema,
+  d3Schema,
+  d4Schema,
+  d5Schema,
+  d6Schema,
+  d7Schema,
+  d8Schema,
+  d9Schema,
+  d10Schema,
+  d11Schema,
+  d12Schema,
+  d13Schema,
+  crossDimensionalSchema,
+  employeeImpactSchema
+} from '../schemas'
 
 const DIMENSION_TITLES = {
   1: 'Medical Leave & Flexibility',
