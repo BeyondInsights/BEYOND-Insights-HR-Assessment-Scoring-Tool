@@ -447,19 +447,19 @@ const getTotalSteps = () => {
           </div>
         )}
 
-{/* Step 3: D11.1 (conditional - if they offer 70% coverage) */}
+     {/* Step 3: D11.1 (conditional - if they offer 70% coverage) */}
 {((step === 3 && showD11_1) || (step === 2 && !showD11aa && showD11_1)) && (
   <div className="bg-white p-6 rounded-lg shadow-sm">
     <h3 className="text-xl font-bold text-gray-900 mb-4">Preventive Services Coverage</h3>
     
-    <p className="font-bold text-gray-900 mb-2">
+    <p className="font-bold text-gray-900 mb-4">
       Which <span className="text-blue-600">early detection</span> and <span className="text-blue-600">preventive care services</span> are covered for employees at 100% based on regional / locally recommended screenings?
     </p>
     <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
     
     {/* SCREENINGS */}
     <div className="mb-6">
-      <p className="font-semibold text-gray-800 mb-3">SCREENINGS</p>
+      <p className="text-sm font-semibold uppercase text-gray-600 mb-3">SCREENINGS</p>
       <div className="space-y-2">
         {[
           "Cervical cancer screening (Pap smear/HPV test)",
@@ -474,60 +474,70 @@ const getTotalSteps = () => {
           "Prostate cancer screening (PSA test)",
           "Skin cancer screening/full body exam",
           "Tuberculosis screening"
-        ].map(item => (
-          <label key={item} className="flex items-start">
-            <input
-              type="checkbox"
-              checked={ans.d11_1?.includes(item) || false}
-              onChange={(e) => {
+        ].map(item => {
+          const isSelected = ans.d11_1?.includes(item) || false;
+          return (
+            <button
+              key={item}
+              onClick={() => {
                 const current = ans.d11_1 || [];
-                if (e.target.checked) {
-                  setField("d11_1", [...current, item]);
-                } else {
+                if (isSelected) {
                   setField("d11_1", current.filter((i: string) => i !== item));
+                } else {
+                  setField("d11_1", [...current, item]);
                 }
               }}
-              className="w-4 h-4 mr-3 mt-0.5"
-            />
-            <span className="text-sm">{item}</span>
-          </label>
-        ))}
+              className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                isSelected
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              {item}
+            </button>
+          );
+        })}
       </div>
     </div>
 
     {/* GENETIC TESTING */}
     <div className="mb-6">
-      <p className="font-semibold text-gray-800 mb-3">GENETIC TESTING & COUNSELING</p>
+      <p className="text-sm font-semibold uppercase text-gray-600 mb-3">GENETIC TESTING & COUNSELING</p>
       <div className="space-y-2">
         {[
           "BRCA testing (breast/ovarian cancer risk)",
           "Lynch syndrome testing (colorectal cancer risk)",
           "Multi-gene panel testing",
           "Genetic counseling services"
-        ].map(item => (
-          <label key={item} className="flex items-start">
-            <input
-              type="checkbox"
-              checked={ans.d11_1?.includes(item) || false}
-              onChange={(e) => {
+        ].map(item => {
+          const isSelected = ans.d11_1?.includes(item) || false;
+          return (
+            <button
+              key={item}
+              onClick={() => {
                 const current = ans.d11_1 || [];
-                if (e.target.checked) {
-                  setField("d11_1", [...current, item]);
-                } else {
+                if (isSelected) {
                   setField("d11_1", current.filter((i: string) => i !== item));
+                } else {
+                  setField("d11_1", [...current, item]);
                 }
               }}
-              className="w-4 h-4 mr-3 mt-0.5"
-            />
-            <span className="text-sm">{item}</span>
-          </label>
-        ))}
+              className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                isSelected
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              {item}
+            </button>
+          );
+        })}
       </div>
     </div>
 
     {/* PREVENTIVE VACCINES */}
     <div className="mb-6">
-      <p className="font-semibold text-gray-800 mb-3">PREVENTIVE VACCINES</p>
+      <p className="text-sm font-semibold uppercase text-gray-600 mb-3">PREVENTIVE VACCINES</p>
       <div className="space-y-2">
         {[
           "HPV vaccines (cervical cancer prevention)",
@@ -536,28 +546,33 @@ const getTotalSteps = () => {
           "Influenza vaccines",
           "Pneumonia vaccines",
           "Shingles vaccines"
-        ].map(item => (
-          <label key={item} className="flex items-start">
-            <input
-              type="checkbox"
-              checked={ans.d11_1?.includes(item) || false}
-              onChange={(e) => {
+        ].map(item => {
+          const isSelected = ans.d11_1?.includes(item) || false;
+          return (
+            <button
+              key={item}
+              onClick={() => {
                 const current = ans.d11_1 || [];
-                if (e.target.checked) {
-                  setField("d11_1", [...current, item]);
-                } else {
+                if (isSelected) {
                   setField("d11_1", current.filter((i: string) => i !== item));
+                } else {
+                  setField("d11_1", [...current, item]);
                 }
               }}
-              className="w-4 h-4 mr-3 mt-0.5"
-            />
-            <span className="text-sm">{item}</span>
-          </label>
-        ))}
+              className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                isSelected
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              {item}
+            </button>
+          );
+        })}
       </div>
     </div>
   </div>
-)}        
+)}   
         {/* Step 4: D11.b open-end */}
         {step === 4 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
