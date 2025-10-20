@@ -23,7 +23,7 @@ const DIMENSIONS_BASE = [
  "Workplace Accommodations & Modifications",
  "Culture & Psychological Safety",
  "Career Continuity & Advancement",
- "Work Continuation and Resumption",
+ "Work Continuation & Resumption",
  "Executive Commitment & Resources",
  "Caregiver & Family Support",
  "Prevention, Wellness & Legal Compliance",
@@ -46,7 +46,7 @@ const DIMENSION_DEFINITIONS: Record<string, string> = {
  
  "Career Continuity & Advancement": "Policies and practices that protect career progression and development opportunities for employees managing serious health conditions. Ensures that taking medical leave or requesting accommodations doesn't derail career growth.",
  
- "Work Continuation and Resumption": "Structured programs and processes that support employees' successful transition back to work after medical leave. Includes phased return options, accommodation planning, and ongoing check-ins to ensure sustainable re-integration.",
+ "Work Continuation & Resumption": "Structured programs and processes that support employees' successful transition back to work after medical leave. Includes phased return options, accommodation planning, and ongoing check-ins to ensure sustainable re-integration.",
  
  "Executive Commitment & Resources": "Visible leadership support, dedicated budget, and organizational resources allocated to supporting employees with serious health conditions. Demonstrates that employee health and wellbeing is a strategic priority.",
  
