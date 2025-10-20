@@ -123,7 +123,7 @@ export default function Dimension3Page() {
     (status) => status === "Currently provide to managers"
   );
 
-  // D3.aa should show if multi-country AND at least one "Currently provide to managers"
+  // D3aa should show if multi-country AND at least one "Currently provide to managers"
   const showD3aa = isMultiCountry && hasAnyProvided;
   const showD3_1a = hasAnyProvided;
   const showD3_1 = hasAnyProvided;
@@ -131,7 +131,7 @@ export default function Dimension3Page() {
   // Calculate total steps
   const getTotalSteps = () => {
     let total = 3; // intro, D3.a, D3.b
-    if (showD3aa) total++; // D3.aa
+    if (showD3aa) total++; // D3aa
     if (showD3_1a) total++; // D3.1a
     if (showD3_1) total++; // D3.1
     total++; // completion screen
@@ -147,8 +147,8 @@ export default function Dimension3Page() {
           return `Please evaluate all ${D3A_ITEMS.length} items (${answeredCount} completed)`;
         return null;
       
-      case 2: // Could be D3.aa OR D3.b
-        if (showD3aa && !ans.D3.aa) return "Please select one option";
+      case 2: // Could be D3aa OR D3.b
+        if (showD3aa && !ans.D3aa) return "Please select one option";
         return null;
         
       default:
@@ -167,13 +167,13 @@ export default function Dimension3Page() {
     if (step === 1) {
       // After D3.a grid
       if (showD3aa) {
-        setStep(2); // Go to D3.aa
+        setStep(2); // Go to D3aa
       } else {
         setStep(3); // Skip to D3.b
       }
     } else if (step === 2) {
-      // From D3.aa OR D3.b
-      if (showD3aa && !ans.d3b && ans.D3.aa) {
+      // From D3aa OR D3.b
+      if (showD3aa && !ans.d3b && ans.D3aa) {
         setStep(3); // Go to D3.b
       } else {
         // From D3.b, check follow-ups
@@ -426,7 +426,7 @@ export default function Dimension3Page() {
           </div>
         )}
         
-        {/* Step 2: D3.aa (conditional - multi-country with offerings) */}
+        {/* Step 2: D3aa (conditional - multi-country with offerings) */}
         {step === 2 && showD3aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
@@ -445,9 +445,9 @@ export default function Dimension3Page() {
               ].map(opt => (
                 <button
                   key={opt}
-                  onClick={() => setField("D3.aa", opt)}
+                  onClick={() => setField("D3aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.D3.aa === opt
+                    ans.D3aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
@@ -459,7 +459,7 @@ export default function Dimension3Page() {
           </div>
         )}
 
-        {/* Step 3: D3.b open-end (OR Step 2 if no D3.aa) */}
+        {/* Step 3: D3.b open-end (OR Step 2 if no D3aa) */}
         {(step === 3 || (step === 2 && !showD3aa)) && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Initiatives</h3>
