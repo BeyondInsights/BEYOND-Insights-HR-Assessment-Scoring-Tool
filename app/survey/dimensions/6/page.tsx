@@ -430,7 +430,7 @@ export default function Dimension6Page() {
               ].map(opt => (
                 <button
                   key={opt}
-                  onClick={() => setField("D6aa", opt)}
+                  onClick={() => setField("d6aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                     ans.D6aa === opt
                       ? "border-blue-500 bg-blue-50"
