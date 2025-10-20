@@ -27,7 +27,7 @@ export default function DashboardPage() {
     employeeImpact: 0,
   })
 
-useEffect(() => {
+ useEffect(() => {
     if (typeof window === 'undefined') return
     
     // Check authentication
@@ -36,12 +36,11 @@ useEffect(() => {
       router.push('/authorization');
       return;
     }
-    
-const calculateProgress = () => {
-  if (typeof window === 'undefined') return;
-  if (!localStorage) return;  // ADD THIS LINE TOO
-  
-  try {
+
+    const calculateProgress = () => {
+      if (typeof window === 'undefined') return;
+      
+      try {
         const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6'];
         const genRequired = ['cb1','cb1_standard','cb1_leave','cb1_wellness','cb1_financial','cb1_navigation','cb1a','cb2b'];
         const curRequired = ['cb3a','cb3b','cb3c','cb3d','or1','or2a','or3','or5a','or6'];
@@ -54,24 +53,32 @@ const calculateProgress = () => {
         setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card');
         
         const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
-        if (firmo?.companyName) setCompanyName(firmo.companyName);
-        
-        const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}');
-        const current = JSON.parse(localStorage.getItem('current_support_data') || '{}');
+        const general = JSON.parse(localStorage.getItem('general_data') || '{}');
+        const current = JSON.parse(localStorage.getItem('current_data') || '{}');
         
         const firmComplete = localStorage.getItem('firmographics_complete') === 'true';
-        const genComplete = localStorage.getItem('general_benefits_complete') === 'true';
-        const curComplete = localStorage.getItem('current_support_complete') === 'true';
+        const genComplete = localStorage.getItem('general_complete') === 'true';
+        const curComplete = localStorage.getItem('current_complete') === 'true';
         
+        // Safe dimension progress calculation
         const dimProgress = [];
         for (let i = 1; i <= 13; i++) {
-          const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
           const complete = localStorage.getItem(`dimension${i}_complete`) === 'true';
           if (complete) {
             dimProgress.push(100);
           } else {
-            const keys = Object.keys(dimData).length;
-            dimProgress.push(keys === 0 ? 0 : Math.min(95, Math.round((keys / 25) * 100)));
+            const data = localStorage.getItem(`dimension${i}_data`);
+            if (!data) {
+              dimProgress.push(0);
+            } else {
+              try {
+                const parsed = JSON.parse(data);
+                const keys = Object.keys(parsed).length;
+                dimProgress.push(keys === 0 ? 0 : Math.min(95, Math.round((keys / 25) * 100)));
+              } catch {
+                dimProgress.push(0);
+              }
+            }
           }
         }
         setDimensionProgress(dimProgress);
@@ -122,6 +129,7 @@ const calculateProgress = () => {
           current: curProg
         });
         
+        // Safe advanced progress calculation
         const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}');
         const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}');
         
@@ -175,20 +183,26 @@ const calculateProgress = () => {
         setSectionProgress({ firmographics: 0, general: 0, current: 0 });
         setDimensionProgress(new Array(13).fill(0));
         setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 });
-    }
-  }
-  
-  const handleFocus = () => {
-    calculateProgress();
-  };
-  
-  calculateProgress();
-  window.addEventListener("focus", handleFocus);
+      }
+    };
     
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [router])
-
- 
+    calculateProgress();
+    
+    const handleFocus = () => {
+      calculateProgress();
+    };
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener("focus", handleFocus);
+      
+      return () => {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener("focus", handleFocus);
+        }
+      };
+    }
+}, [router])
+  
   const overallProgress = Math.round(
     (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
   )
