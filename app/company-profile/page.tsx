@@ -516,7 +516,7 @@ const FIELD_LABELS: Record<string, string> = {
   cb1a: '% of Employees with National Healthcare Access',
   cb2: 'Benefits Package Characterization vs. Industry',
   cb2a: 'Leave Programs Availability Status',
-  cb2b: 'Wellness & Support Programs Status',
+  cb2b: 'Plan to Rollout in Next 2 Years',
   cb3: 'Financial & Legal Assistance Programs Status',
   cb3a: 'Cancer Support Program Characterization',
   cb3b: 'Key Cancer Support Program Features',
