@@ -108,19 +108,20 @@ export default function Dimension13Page() {
   };
 
   const STATUS_OPTIONS = [
-    "Not able to utilize in foreseeable future",
-    "Assessing feasibility",
-    "In active planning / development",
-    "Currently use",
-    "Unsure"
-  ];
+  "Not able to utilize in foreseeable future",  // Special wording for D13
+  "Assessing feasibility",
+  "In active planning / development",
+  "Currently use",  // Special wording for D13
+  "Unsure"  // D13 has 5 options!
+];
 
-  const hasCurrentlyUse = Object.values(ans.d13a || {}).some(
-    (status) => status === "Currently use"
-  );
+const hasAnyOffered = Object.values(ans.d13a || {}).some(
+  (status) => status === "Currently use"  // Special wording for D13
+);
+
+const showD13aa = isMultiCountry && hasAnyOffered;  // Make sure it's hasAnyOffered
+const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disclosure"] === "Currently use";
   
-  const showD13aa = isMultiCountry && hasCurrentlyUse;
-
   const getTotalSteps = () => {
     let total = 5; // intro, D13.a, D13.aa (conditional), D13.b, D13.1, completion
     return total;
