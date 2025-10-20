@@ -1085,7 +1085,7 @@ export default function CompanyProfileFixed() {
       return (
         <div key={i} className="p-4 rounded border" style={{ borderColor: BRAND.gray[300], backgroundColor: BRAND.gray[50] }}>
           <div className="text-sm font-semibold mb-2" style={{ color: BRAND.gray[700] }}>
-            Geographic Availability of {dimTitle} support options your organization currently {verbText} ...?
+            Geo Availability of {dimTitle} support options your organization currently {verbText}:
           </div>
           <div className="text-base font-medium" style={{ color: BRAND.gray[900] }}>
             {it.response}
