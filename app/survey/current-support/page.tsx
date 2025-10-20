@@ -325,7 +325,7 @@ const OR1_OPTIONS = [
  <span className="text-sm text-gray-600">Step {step} of 13</span>
  <button 
  onClick={() => { 
- localStorage.setItem("current-support_complete", "true");
+ localStorage.setItem("current_support_complete", "true");
  router.push("/dashboard");
  }}
  className="text-sm text-orange-600 hover:text-orange-700 font-medium"
