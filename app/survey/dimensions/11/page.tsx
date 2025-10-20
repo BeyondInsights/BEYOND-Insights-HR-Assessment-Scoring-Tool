@@ -453,7 +453,7 @@ const getTotalSteps = () => {
     <h3 className="text-xl font-bold text-gray-900 mb-4">Preventive Services Coverage</h3>
     
     <p className="font-bold text-gray-900 mb-4">
-      Which <span className="text-blue-600">early detection</span> and <span className="text-blue-600">preventive care services</span> are covered for employees at 100% based on regional / locally recommended screenings?
+      Which <span className="text-blue-600">early detection</span> and <span className="text-blue-600">preventive care services</span> are covered for employees at 70% or more based on regional / locally recommended screenings?
     </p>
     <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
     
