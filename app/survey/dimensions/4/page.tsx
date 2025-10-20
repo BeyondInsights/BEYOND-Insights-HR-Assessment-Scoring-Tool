@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -28,6 +28,7 @@ const D4A_ITEMS_BASE = [
 
 export default function Dimension4Page() {
   const [step, setStep] = useState(0);
+  const router = useRouter();
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
@@ -200,7 +201,7 @@ export default function Dimension4Page() {
       setStep(6);
     } else if (step === 6) {
       localStorage.setItem("dimension4_complete", "true");
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
       return;
     }
     
@@ -226,11 +227,7 @@ export default function Dimension4Page() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-xl font-bold text-gray-900">Best Companies Survey</h1>
-        </div>
-      </header>
+      <Header />
       
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
         <div className="mb-6">
@@ -272,23 +269,23 @@ export default function Dimension4Page() {
                 <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
                 <ul className="space-y-3 text-gray-700">
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
                     <span>You'll see different support options associated with this dimension, one at a time</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
                     <span>Indicate the current status of each option within your organization</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
                     <span>After selecting a response, it will automatically advance to the next option</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
                     <span>Use the navigation dots or arrows to review or change any response</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
+                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
                     <span>Once all support options are evaluated, the Continue button will appear</span>
                   </li>
                 </ul>
@@ -406,7 +403,7 @@ export default function Dimension4Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous option
+                  â† View previous option
                 </button>
 
                 {Object.keys(ans.d4a || {}).length === D4A_ITEMS.length && !isTransitioning && (
@@ -414,7 +411,7 @@ export default function Dimension4Page() {
                     onClick={next}
                     className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
                   >
-                    Continue →
+                    Continue â†’
                   </button>
                 )}
               </div>
@@ -593,11 +590,11 @@ export default function Dimension4Page() {
             <button
               onClick={() => { 
                 localStorage.setItem("dimension4_complete", "true"); 
-                window.location.href = "/dashboard";
+                router.push("/dashboard");
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Save & Return to Dashboard →
+              Save & Return to Dashboard â†’
             </button>
           </div>
         )}
@@ -608,23 +605,20 @@ export default function Dimension4Page() {
               onClick={back} 
               className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
             >
-              ← Back
+              â† Back
             </button>
             <button 
               onClick={next} 
               className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Continue →
+              Continue â†’
             </button>
           </div>
         )}
       </main>
       
-      <footer className="bg-white border-t border-gray-200 py-4 px-4 mt-auto">
-        <div className="max-w-7xl mx-auto text-center text-sm text-gray-600">
-          © 2025 Best Companies for Working with Cancer Initiative
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
+
