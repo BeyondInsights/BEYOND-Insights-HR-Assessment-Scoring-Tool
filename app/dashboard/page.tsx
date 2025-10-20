@@ -137,31 +137,34 @@ const curRequired = [
   }
   
   // General benefits progress - FIXED LOGIC
-  if (genComplete) {
-    genProg = 100
-  } else {
-    const genCount = genRequired.filter(field => {
-      // All of these are arrays or text fields
-      if (Array.isArray(general[field])) {
-        return general[field].length > 0
-      }
-      return general[field] && general[field] !== ''
-    }).length
-    genProg = Math.round((genCount / genRequired.length) * 100)
-  }
+if (genComplete) {
+  genProg = 100
+} else {
+  const genCount = genRequired.filter(field => {
+    // Check if general data exists first
+    if (!general || Object.keys(general).length === 0) return false;  // ADD THIS LINE
+    if (Array.isArray(general[field])) {
+      return general[field].length > 0
+    }
+    return general[field] && general[field] !== ''
+  }).length
+  genProg = Math.round((genCount / genRequired.length) * 100)
+}
   
-  // Current support progress
-  if (curComplete) {
-    curProg = 100
-  } else {
-    const curCount = curRequired.filter(field => {
-      if (Array.isArray(current[field])) {
-        return current[field].length > 0
-      }
-      return current[field] && current[field] !== ''
-    }).length
-    curProg = Math.round((curCount / curRequired.length) * 100)
-  }
+// Current support progress
+if (curComplete) {
+  curProg = 100
+} else {
+  const curCount = curRequired.filter(field => {
+    // Check if current data exists first
+    if (!current || Object.keys(current).length === 0) return false;  // ADD THIS LINE
+    if (Array.isArray(current[field])) {
+      return current[field].length > 0
+    }
+    return current[field] && current[field] !== ''
+  }).length
+  curProg = Math.round((curCount / curRequired.length) * 100)
+}
   
   setSectionProgress({
     firmographics: firmProg,
