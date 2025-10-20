@@ -1,11 +1,5 @@
-"use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { hasAnyOffered } from '@/lib/dimensionHelpers';
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
-// Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -14,23 +8,24 @@ function shuffleArray<T>(array: T[]): T[] {
   }
   return shuffled;
 }
- const D6A_ITEMS_BASE = [
-    "Strong anti-discrimination policies specific to health conditions",
-    "Clear process for confidential health disclosures",
-    "Manager training on handling sensitive health information",
-    "Written anti-retaliation policies for health disclosures",
-    "Employee peer support groups (internal employees with shared experience)",
-    "Professional-led support groups (external facilitator/counselor)",
-    "Stigma-reduction initiatives",
-    "Specialized emotional counseling",
-    "Optional open health dialogue forums",
-    "Inclusive communication guidelines",
-    "Confidential HR channel for health benefits, policies and insurance-related questions",
-    "Anonymous benefits navigation tool or website (no login required)"
-  ];
+
+// Data for D6.a - ALL 12 ITEMS FROM SURVEY
+const D6A_ITEMS_BASE = [
+  "Strong anti-discrimination policies specific to health conditions",
+  "Clear process for confidential health disclosures",
+  "Manager training on handling sensitive health information",
+  "Written anti-retaliation policies for health disclosures",
+  "Employee peer support groups (internal employees with shared experience)",
+  "Professional-led support groups (external facilitator/counselor)",
+  "Stigma-reduction initiatives",
+  "Specialized emotional counseling",
+  "Optional open health dialogue forums",
+  "Inclusive communication guidelines",
+  "Confidential HR channel for health benefits, policies and insurance-related questions",
+  "Anonymous benefits navigation tool or website (no login required)"
+];
 
 export default function Dimension6Page() {
-  const router = useRouter();
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
@@ -63,7 +58,6 @@ export default function Dimension6Page() {
     }
   }, [ans]);
 
-  // Scroll to top when step changes (but not for progressive card navigation)
   useEffect(() => {
     if (step !== 1) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -72,6 +66,18 @@ export default function Dimension6Page() {
 
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
+    setErrors("");
+  };
+
+  const toggleMultiSelect = (key: string, value: string) => {
+    setAns((prev: any) => {
+      const current = prev[key] || [];
+      if (current.includes(value)) {
+        return { ...prev, [key]: current.filter((v: string) => v !== value) };
+      } else {
+        return { ...prev, [key]: [...current, value] };
+      }
+    });
     setErrors("");
   };
 
@@ -110,18 +116,6 @@ export default function Dimension6Page() {
     }, 500);
   };
 
-  const toggleMultiSelect = (key: string, value: string) => {
-    setAns((prev: any) => {
-      const current = prev[key] || [];
-      if (current.includes(value)) {
-        return { ...prev, [key]: current.filter((v: string) => v !== value) };
-      } else {
-        return { ...prev, [key]: [...current, value] };
-      }
-    });
-    setErrors("");
-  };
-
   const STATUS_OPTIONS = [
     "Not able to offer in foreseeable future",
     "Assessing feasibility",
@@ -133,11 +127,12 @@ export default function Dimension6Page() {
     (status) => status === "Currently offer"
   );
   
-  const showD6aa = isMultiCountry && hasOffered;
+  const showD6.aa = isMultiCountry && hasAnyOffered;
   const showD6_2 = hasAnyOffered;
 
   const getTotalSteps = () => {
-    let total = 4; // intro, D6.a, D6.aa (conditional), D6.b
+    let total = 3; // intro, D6.a, D6.b
+    if (showD6.aa) total++; // D6.aa
     if (showD6_2) total++; // D6.2
     total++; // completion
     return total;
@@ -152,7 +147,7 @@ export default function Dimension6Page() {
         return null;
       
       case 2:
-        if (showD6aa && !ans.d6aa) {
+        if (showD6.aa && !ans.D6.aa) {
           return "Please select one option";
         }
         return null;
@@ -179,7 +174,7 @@ export default function Dimension6Page() {
     }
 
     if (step === 1) {
-      if (showD6aa) {
+      if (showD6.aa) {
         setStep(2);
       } else {
         setStep(3);
@@ -190,13 +185,13 @@ export default function Dimension6Page() {
       if (showD6_2) {
         setStep(4);
       } else {
-        setStep(5); // Go to completion
+        setStep(5);
       }
     } else if (step === 4) {
-      setStep(5); // Go to completion
+      setStep(5);
     } else if (step === 5) {
       localStorage.setItem("dimension6_complete", "true");
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
       return;
     }
     
@@ -209,7 +204,7 @@ export default function Dimension6Page() {
     } else if (step === 4) {
       setStep(3);
     } else if (step === 3) {
-      setStep(showD6aa ? 2 : 1);
+      setStep(showD6.aa ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
     } else if (step > 0) {
@@ -220,7 +215,11 @@ export default function Dimension6Page() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
+      <header className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-xl font-bold text-gray-900">Best Companies Survey</h1>
+        </div>
+      </header>
       
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
         <div className="mb-6">
@@ -243,7 +242,6 @@ export default function Dimension6Page() {
           </div>
         )}
 
-        {/* Step 0: Introduction */}
         {step === 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
             <div className="max-w-3xl mx-auto">
@@ -297,7 +295,6 @@ export default function Dimension6Page() {
           </div>
         )}
 
-        {/* Step 1: D6.a Progressive Cards */}
         {step === 1 && (
           <div className="bg-white rounded-xl shadow-sm">
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 rounded-t-xl">
@@ -414,8 +411,7 @@ export default function Dimension6Page() {
           </div>
         )}
         
-        {/* Step 2: D6.aa (conditional for multi-country) */}
-        {step === 2 && showD6aa && (
+        {step === 2 && showD6.aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
@@ -433,9 +429,9 @@ export default function Dimension6Page() {
               ].map(opt => (
                 <button
                   key={opt}
-                  onClick={() => setField("d6aa", opt)}
+                  onClick={() => setField("D6.aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d6aa === opt
+                    ans.D6.aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
@@ -447,7 +443,6 @@ export default function Dimension6Page() {
           </div>
         )}
 
-        {/* Step 3: D6.b open-end */}
         {step === 3 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Supports</h3>
@@ -479,7 +474,6 @@ export default function Dimension6Page() {
           </div>
         )}
 
-        {/* Step 4: D6.2 (conditional if any offered) */}
         {step === 4 && showD6_2 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Measuring Psychological Safety</h3>
@@ -525,7 +519,6 @@ export default function Dimension6Page() {
           </div>
         )}
 
-        {/* Step 5: Completion */}
         {step === 5 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
@@ -542,7 +535,7 @@ export default function Dimension6Page() {
             <button
               onClick={() => { 
                 localStorage.setItem("dimension6_complete", "true"); 
-                router.push("/dashboard"); 
+                window.location.href = "/dashboard";
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
@@ -551,7 +544,6 @@ export default function Dimension6Page() {
           </div>
         )}
 
-        {/* Universal Navigation */}
         {step > 1 && step < 5 && (
           <div className="flex justify-between mt-8">
             <button 
@@ -570,7 +562,11 @@ export default function Dimension6Page() {
         )}
       </main>
       
-      <Footer />
+      <footer className="bg-white border-t border-gray-200 py-4 px-4 mt-auto">
+        <div className="max-w-7xl mx-auto text-center text-sm text-gray-600">
+          © 2025 Best Companies for Working with Cancer Initiative
+        </div>
+      </footer>
     </div>
   );
 }
