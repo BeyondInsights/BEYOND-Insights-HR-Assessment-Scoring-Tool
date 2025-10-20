@@ -125,12 +125,12 @@ export default function Dimension4Page() {
     (status) => status === "Currently offer"
   );
   
-  const showD4.aa = isMultiCountry && hasAnyOffered;
+  const showD4aa = isMultiCountry && hasAnyOffered;
   const showD4_1 = ans.d4a?.["Dedicated navigation support to help employees understand benefits and access medical care"] === "Currently offer";
 
   const getTotalSteps = () => {
     let total = 3;
-    if (showD4.aa) total++;
+    if (showD4aa) total++;
     if (showD4_1) total += 2;
     total++;
     return total;
@@ -145,7 +145,7 @@ export default function Dimension4Page() {
         return null;
       
       case 2:
-        if (showD4.aa && !ans.D4.aa) {
+        if (showD4aa && !ans.D4.aa) {
           return "Please select one option";
         }
         return null;
@@ -178,7 +178,7 @@ export default function Dimension4Page() {
     }
 
     if (step === 1) {
-      if (showD4.aa) {
+      if (showD4aa) {
         setStep(2);
       } else {
         setStep(3);
@@ -212,7 +212,7 @@ export default function Dimension4Page() {
     } else if (step === 4) {
       setStep(3);
     } else if (step === 3) {
-      setStep(showD4.aa ? 2 : 1);
+      setStep(showD4aa ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
     } else if (step > 0) {
@@ -419,7 +419,7 @@ export default function Dimension4Page() {
           </div>
         )}
         
-        {step === 2 && showD4.aa && (
+        {step === 2 && showD4aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
