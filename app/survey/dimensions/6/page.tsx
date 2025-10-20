@@ -432,7 +432,7 @@ export default function Dimension6Page() {
                   key={opt}
                   onClick={() => setField("d6aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.D6aa === opt
+                    ans.d6aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
@@ -567,4 +567,5 @@ export default function Dimension6Page() {
     </div>
   );
 }
+
 

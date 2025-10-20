@@ -439,7 +439,7 @@ export default function Dimension4Page() {
                   key={opt}
                   onClick={() => setField("d4aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.D4aa === opt
+                    ans.d4aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
@@ -621,4 +621,5 @@ export default function Dimension4Page() {
     </div>
   );
 }
+
 
