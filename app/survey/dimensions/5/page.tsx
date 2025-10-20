@@ -1,9 +1,4 @@
-"use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { hasAnyOffered } from '@/lib/dimensionHelpers';
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -14,23 +9,22 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
+// Data for D5.a - ALL 11 ITEMS FROM SURVEY
 const D5A_ITEMS_BASE = [
-    "Physical workspace modifications",
-    "Cognitive / fatigue support tools",
-    "Ergonomic equipment funding",
-    "Flexible scheduling options",
-    "Remote work capability",
-    "Rest areas / quiet spaces",
-    "Priority parking",
-    "Temporary role redesigns",
-    "Assistive technology catalog",
-    "Transportation reimbursement",
-    "Policy accommodations (e.g., dress code flexibility, headphone use)"
-  ];
-
+  "Physical workspace modifications",
+  "Cognitive / fatigue support tools",
+  "Ergonomic equipment funding",
+  "Flexible scheduling options",
+  "Remote work capability",
+  "Rest areas / quiet spaces",
+  "Priority parking",
+  "Temporary role redesigns",
+  "Assistive technology catalog",
+  "Transportation reimbursement",
+  "Policy accommodations (e.g., dress code flexibility, headphone use)"
+];
 
 export default function Dimension5Page() {
-  const router = useRouter();
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
@@ -63,7 +57,6 @@ export default function Dimension5Page() {
     }
   }, [ans]);
 
-  // Scroll to top when step changes (but not for progressive card navigation)
   useEffect(() => {
     if (step !== 1) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -110,7 +103,6 @@ export default function Dimension5Page() {
     }, 500);
   };
 
-
   const STATUS_OPTIONS = [
     "Not able to offer in foreseeable future",
     "Assessing feasibility",
@@ -122,10 +114,11 @@ export default function Dimension5Page() {
     (status) => status === "Currently offer"
   );
   
-  const showD5aa = isMultiCountry && hasOffered;
+  const showD5aa = isMultiCountry && hasAnyOffered;
 
   const getTotalSteps = () => {
-    let total = 4; // intro, D5.a, D5.aa (conditional), D5.b
+    let total = 3; // intro, D5.a, D5.b
+    if (showD5aa) total++; // D5.aa
     total++; // completion
     return total;
   };
@@ -168,10 +161,10 @@ export default function Dimension5Page() {
     } else if (step === 2) {
       setStep(3);
     } else if (step === 3) {
-      setStep(4); // Go to completion
+      setStep(4);
     } else if (step === 4) {
       localStorage.setItem("dimension5_complete", "true");
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
       return;
     }
     
@@ -193,13 +186,17 @@ export default function Dimension5Page() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
+      <header className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-xl font-bold text-gray-900">Best Companies Survey</h1>
+        </div>
+      </header>
       
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
-              Dimension 5: Workplace Accommodations
+              Dimension 5: Workplace Accommodations & Modifications
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -216,7 +213,6 @@ export default function Dimension5Page() {
           </div>
         )}
 
-        {/* Step 0: Introduction */}
         {step === 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
             <div className="max-w-3xl mx-auto">
@@ -270,7 +266,6 @@ export default function Dimension5Page() {
           </div>
         )}
 
-        {/* Step 1: D5.a Progressive Cards */}
         {step === 1 && (
           <div className="bg-white rounded-xl shadow-sm">
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 rounded-t-xl">
@@ -387,7 +382,6 @@ export default function Dimension5Page() {
           </div>
         )}
         
-        {/* Step 2: D5.aa (conditional for multi-country) */}
         {step === 2 && showD5aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
@@ -420,7 +414,6 @@ export default function Dimension5Page() {
           </div>
         )}
 
-        {/* Step 3: D5.b open-end */}
         {step === 3 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Accommodations</h3>
@@ -452,7 +445,6 @@ export default function Dimension5Page() {
           </div>
         )}
 
-        {/* Step 4: Completion */}
         {step === 4 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
@@ -464,12 +456,12 @@ export default function Dimension5Page() {
               Dimension 5 Complete!
             </h2>
             <p className="text-gray-600 mb-8">
-              You've successfully completed the Workplace Accommodations dimension.
+              You've successfully completed the Workplace Accommodations & Modifications dimension.
             </p>
             <button
               onClick={() => { 
                 localStorage.setItem("dimension5_complete", "true"); 
-                router.push("/dashboard"); 
+                window.location.href = "/dashboard";
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
@@ -478,7 +470,6 @@ export default function Dimension5Page() {
           </div>
         )}
 
-        {/* Universal Navigation */}
         {step > 1 && step < 4 && (
           <div className="flex justify-between mt-8">
             <button 
@@ -497,7 +488,11 @@ export default function Dimension5Page() {
         )}
       </main>
       
-      <Footer />
+      <footer className="bg-white border-t border-gray-200 py-4 px-4 mt-auto">
+        <div className="max-w-7xl mx-auto text-center text-sm text-gray-600">
+          © 2025 Best Companies for Working with Cancer Initiative
+        </div>
+      </footer>
     </div>
   );
 }
