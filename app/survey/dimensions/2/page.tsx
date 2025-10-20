@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -14,25 +13,26 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
+// Data for D2.a - ALL 17 ITEMS FROM SURVEY
 const D2A_ITEMS_BASE = [
-    "Coverage for clinical trials and experimental treatments not covered by standard health insurance",
-    "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance",
-    "Paid time off for clinical trial participation",
-    "Set out-of-pocket maximums (for in-network single coverage)",
-    "Travel/lodging reimbursement for specialized care beyond insurance coverage",
-    "Financial counseling services",
-    "Voluntary supplemental illness insurance (with employer contribution)",
-    "Real-time cost estimator tools",
-    "Insurance advocacy/pre-authorization support",
-    "$0 copay for specialty drugs",
-    "Hardship grants program funded by employer",
-    "Tax/estate planning assistance",
-    "Short-term disability covering 60%+ of salary",
-    "Long-term disability covering 60%+ of salary",
-    "Employer-paid disability insurance supplements",
-    "Guaranteed job protection",
-    "Accelerated life insurance benefits (partial payout for terminal / critical illness)"
-  ];
+  "Coverage for clinical trials and experimental treatments not covered by standard health insurance",
+  "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance",
+  "Paid time off for clinical trial participation",
+  "Set out-of-pocket maximums (for in-network single coverage)",
+  "Travel/lodging reimbursement for specialized care beyond insurance coverage",
+  "Financial counseling services",
+  "Voluntary supplemental illness insurance (with employer contribution)",
+  "Real-time cost estimator tools",
+  "Insurance advocacy/pre-authorization support",
+  "$0 copay for specialty drugs",
+  "Hardship grants program funded by employer",
+  "Tax/estate planning assistance",
+  "Short-term disability covering 60%+ of salary",
+  "Long-term disability covering 60%+ of salary",
+  "Employer-paid disability insurance supplements",
+  "Guaranteed job protection",
+  "Accelerated life insurance benefits (partial payout for terminal / critical illness)"
+];
 
 export default function Dimension2Page() {
   const router = useRouter();
@@ -44,36 +44,39 @@ export default function Dimension2Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D2A_ITEMS] = useState(() => shuffleArray(D2A_ITEMS_BASE));
   
+  // Load saved answers on mount
   useEffect(() => {
-  const saved = localStorage.getItem("dimension2_data");
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      setAns(parsed);
-    } catch (e) {
-      console.error("Error loading saved data:", e);
+    const saved = localStorage.getItem("dimension2_data");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setAns(parsed);
+      } catch (e) {
+        console.error("Error loading saved data:", e);
+      }
     }
-  }
 
-  const firmographicsData = localStorage.getItem("firmographics_data");
-  if (firmographicsData) {
-    const parsed = JSON.parse(firmographicsData);
-    setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
-  }
-}, []);
+    // Check if multi-country from firmographics
+    const firmographicsData = localStorage.getItem("firmographics_data");
+    if (firmographicsData) {
+      const parsed = JSON.parse(firmographicsData);
+      setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
+    }
+  }, []);
 
-useEffect(() => {
-  if (Object.keys(ans).length > 0) {
-    localStorage.setItem("dimension2_data", JSON.stringify(ans));
-  }
-}, [ans]);
+  // Save answers when they change
+  useEffect(() => {
+    if (Object.keys(ans).length > 0) {
+      localStorage.setItem("dimension2_data", JSON.stringify(ans));
+    }
+  }, [ans]);
 
-// Scroll to top when step changes (but not for progressive card navigation)
-useEffect(() => {
-  if (step !== 1) { // Don't scroll for step 1 (progressive cards)
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-}, [step]);
+  // Scroll to top when step changes (MOBILE FIX)
+  useEffect(() => {
+    if (step !== 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [step]);
   
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
@@ -115,7 +118,6 @@ useEffect(() => {
     }, 500);
   };
 
-  
   const STATUS_OPTIONS = [
     "Not able to offer in foreseeable future",
     "Assessing feasibility",
@@ -124,29 +126,31 @@ useEffect(() => {
     "Unsure"
   ];
 
+  // D2.aa should show if multi-country AND at least one "Currently offer"
+  const hasAnyOffered = Object.values(ans.d2a || {}).some(
+    (status) => status === "Currently offer"
+  );
+  const showD2aa = isMultiCountry && hasAnyOffered;
+
+  // Calculate total steps
   const getTotalSteps = () => {
-    let total = 4;
+    let total = 3; // intro, D2.a, D2.b
+    if (showD2aa) total++; // D2.aa
+    total++; // completion screen
     return total;
   };
 
+  // Validation
   const validateStep = () => {
     switch(step) {
-      case 1:
+      case 1: // D2.a
         const answeredCount = Object.keys(ans.d2a || {}).length;
         if (answeredCount < D2A_ITEMS.length) 
           return `Please evaluate all ${D2A_ITEMS.length} items (${answeredCount} completed)`;
         return null;
       
-      case 2:
-        const hasAnyOffered = Object.values(ans.d2a || {}).some(
-          (status) => status === "Currently offer"
-        );
-        if (isMultiCountry && hasAnyOffered && !ans.d2aa) {
-          return "Please select one option";
-        }
-        return null;
-        
-      case 3:
+      case 2: // Could be D2.aa OR D2.b
+        if (showD2aa && !ans.d2aa) return "Please select one option";
         return null;
         
       default:
@@ -154,6 +158,7 @@ useEffect(() => {
     }
   };
 
+  // Navigation
   const next = () => {
     const error = validateStep();
     if (error) {
@@ -162,19 +167,21 @@ useEffect(() => {
     }
 
     if (step === 1) {
-      const hasAnyOffered = Object.values(ans.d2a || {}).some(
-        (status) => status === "Currently offer"
-      );
-      
-      if (isMultiCountry && hasAnyOffered) {
-        setStep(2);
+      // After D2.a grid
+      if (showD2aa) {
+        setStep(2); // Go to D2.aa
       } else {
-        setStep(3);
+        setStep(3); // Skip to D2.b
       }
     } else if (step === 2) {
-      setStep(3);
+      // From D2.aa OR D2.b
+      if (showD2aa && !ans.d2b && ans.d2aa) {
+        setStep(3); // Go to D2.b
+      } else {
+        setStep(4); // Completion
+      }
     } else if (step === 3) {
-      setStep(4);
+      setStep(4); // Completion
     } else if (step === 4) {
       localStorage.setItem("dimension2_complete", "true");
       router.push("/dashboard");
@@ -186,10 +193,7 @@ useEffect(() => {
 
   const back = () => {
     if (step === 3) {
-      const hasAnyOffered = Object.values(ans.d2a || {}).some(
-        (status) => status === "Currently offer"
-      );
-      setStep(isMultiCountry && hasAnyOffered ? 2 : 1);
+      setStep(showD2aa ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
     } else if (step > 0) {
@@ -198,16 +202,12 @@ useEffect(() => {
     setErrors("");
   };
 
-  const hasAnyOffered = Object.values(ans.d2a || {}).some(
-    (status) => status === "Currently offer"
-  );
-  const showD2aa = isMultiCountry && hasOffered;
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
+        {/* Progress indicator */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
@@ -222,12 +222,14 @@ useEffect(() => {
           </div>
         </div>
 
+        {/* Error display */}
         {errors && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
             {errors}
           </div>
         )}
 
+        {/* Step 0: Introduction */}
         {step === 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
             <div className="max-w-3xl mx-auto">
@@ -281,6 +283,7 @@ useEffect(() => {
           </div>
         )}
 
+        {/* Step 1: D2.a Progressive Cards */}
         {step === 1 && (
           <div className="bg-white rounded-xl shadow-sm">
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 rounded-t-xl">
@@ -334,6 +337,7 @@ useEffect(() => {
                   <p className="text-xs italic text-gray-600 mb-4">
                     We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
                   </p>
+                  
                   <div className="space-y-2">
                     {STATUS_OPTIONS.map((status) => (
                       <button
@@ -396,14 +400,15 @@ useEffect(() => {
           </div>
         )}
         
+        {/* Step 2: D2.aa (conditional - multi-country with offerings) */}
         {step === 2 && showD2aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-  Are the <span className="text-blue-600 font-bold">Insurance & Financial Protection support options</span> your 
-  organization <span className="text-blue-600 font-bold">currently offers</span>...?
-</p>
+              Are the <span className="text-blue-600">Insurance & Financial Protection support options</span> your 
+              organization currently offers...?
+            </p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
             <div className="space-y-2">
@@ -428,13 +433,14 @@ useEffect(() => {
           </div>
         )}
 
-        {step === 3 && (
+        {/* Step 3: D2.b open-end (OR Step 2 if no D2.aa) */}
+        {(step === 3 || (step === 2 && !showD2aa)) && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Benefits</h3>
             
-           <p className="font-bold text-gray-900 mb-4">
-  What other <span className="text-blue-600 font-bold">insurance or financial protection benefits</span> does your organization offer that weren't listed?
-</p>
+            <p className="font-bold text-gray-900 mb-4">
+              What other insurance or financial protection benefits, if any, does your organization offer that weren't listed?
+            </p>
             <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
             
             <textarea
@@ -459,6 +465,7 @@ useEffect(() => {
           </div>
         )}
 
+        {/* Step 4: Completion */}
         {step === 4 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
@@ -484,6 +491,7 @@ useEffect(() => {
           </div>
         )}
 
+        {/* Navigation Buttons (for steps 2-3) */}
         {step > 1 && step < 4 && (
           <div className="flex justify-between mt-8">
             <button 
