@@ -262,23 +262,23 @@ export default function Dimension6Page() {
                 <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
                 <ul className="space-y-3 text-gray-700">
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>You'll see different support options associated with this dimension, one at a time</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Indicate the current status of each option within your organization</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>After selecting a response, it will automatically advance to the next option</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Use the navigation dots or arrows to review or change any response</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Once all support options are evaluated, the Continue button will appear</span>
                   </li>
                 </ul>
