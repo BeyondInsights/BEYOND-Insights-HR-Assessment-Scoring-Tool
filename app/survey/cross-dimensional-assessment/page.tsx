@@ -160,7 +160,8 @@ export default function CrossDimensionalPage() {
  "Integration with existing HR systems",
  "Competing organizational priorities",
  "Limited expertise in workplace support programs",
- "Global consistency challenges"
+ "Global consistency challenges",
+ "Other (please specify)"
  ];
 
  const validateStep = () => {
