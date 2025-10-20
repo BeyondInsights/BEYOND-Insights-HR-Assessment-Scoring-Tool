@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -14,18 +13,19 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
+// Data for D3.a - ALL 10 ITEMS FROM SURVEY
 const D3A_ITEMS_BASE = [
-    "Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams",
-    "Clear escalation protocol for manager response",
-    "Dedicated manager resource hub",
-    "Empathy/communication skills training",
-    "Legal compliance training",
-    "Senior leader coaching on supporting impacted employees",
-    "Manager evaluations include how well they support impacted employees",
-    "Manager peer support / community building",
-    "AI-powered guidance tools",
-    "Privacy protection and confidentiality management"
-  ];
+  "Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams",
+  "Clear escalation protocol for manager response",
+  "Dedicated manager resource hub",
+  "Empathy/communication skills training",
+  "Legal compliance training",
+  "Senior leader coaching on supporting impacted employees",
+  "Manager evaluations include how well they support impacted employees",
+  "Manager peer support / community building",
+  "AI-powered guidance tools",
+  "Privacy protection and confidentiality management"
+];
 
 export default function Dimension3Page() {
   const router = useRouter();
@@ -37,66 +37,69 @@ export default function Dimension3Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D3A_ITEMS] = useState(() => shuffleArray(D3A_ITEMS_BASE));
   
- useEffect(() => {
-  const saved = localStorage.getItem("dimension3_data");
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      setAns(parsed);
-    } catch (e) {
-      console.error("Error loading saved data:", e);
+  // Load saved answers on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("dimension3_data");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setAns(parsed);
+      } catch (e) {
+        console.error("Error loading saved data:", e);
+      }
     }
-  }
 
-  const firmographicsData = localStorage.getItem("firmographics_data");
-  if (firmographicsData) {
-    const parsed = JSON.parse(firmographicsData);
-    setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
-  }
-}, []);
+    // Check if multi-country from firmographics
+    const firmographicsData = localStorage.getItem("firmographics_data");
+    if (firmographicsData) {
+      const parsed = JSON.parse(firmographicsData);
+      setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
+    }
+  }, []);
 
-useEffect(() => {
-  if (Object.keys(ans).length > 0) {
-    localStorage.setItem("dimension3_data", JSON.stringify(ans));
-  }
-}, [ans]);
+  // Save answers when they change
+  useEffect(() => {
+    if (Object.keys(ans).length > 0) {
+      localStorage.setItem("dimension3_data", JSON.stringify(ans));
+    }
+  }, [ans]);
 
-// Scroll to top when step changes (but not for progressive card navigation)
-useEffect(() => {
-  if (step !== 1) { // Don't scroll for step 1 (progressive cards)
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-}, [step]);
-
+  // Scroll to top when step changes (MOBILE FIX)
+  useEffect(() => {
+    if (step !== 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [step]);
+  
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
     setErrors("");
   };
 
   const setStatus = (item: string, status: string) => {
-  setAns((prev: any) => ({
-    ...prev,
-    d3a: { ...(prev.d3a || {}), [item]: status }
-  }));
-  
-  setIsTransitioning(true);
-  
-  setTimeout(() => {
-    const nextUnansweredIndex = D3A_ITEMS.findIndex((itm, idx) =>  // Changed from D1A_ITEMS
-      idx > currentItemIndex && !ans.d3a?.[itm]
-    );
+    setAns((prev: any) => ({
+      ...prev,
+      d3a: { ...(prev.d3a || {}), [item]: status }
+    }));
     
-    if (nextUnansweredIndex !== -1) {
-      setCurrentItemIndex(nextUnansweredIndex);
-    } else if (currentItemIndex < D3A_ITEMS.length - 1) {  // Changed from D1A_ITEMS
-      setCurrentItemIndex(currentItemIndex + 1);
-    }
+    setIsTransitioning(true);
     
     setTimeout(() => {
-      setIsTransitioning(false);
-    }, 250);
-  }, 500);
-};
+      const nextUnansweredIndex = D3A_ITEMS.findIndex((itm, idx) => 
+        idx > currentItemIndex && !ans.d3a?.[itm]
+      );
+      
+      if (nextUnansweredIndex !== -1) {
+        setCurrentItemIndex(nextUnansweredIndex);
+      } else if (currentItemIndex < D3A_ITEMS.length - 1) {
+        setCurrentItemIndex(currentItemIndex + 1);
+      }
+      
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 250);
+    }, 500);
+  };
 
   const goToItem = (index: number) => {
     setIsTransitioning(true);
@@ -108,8 +111,6 @@ useEffect(() => {
     }, 500);
   };
 
-
-
   const STATUS_OPTIONS = [
     "Not able to provide in foreseeable future",
     "Assessing feasibility",
@@ -117,53 +118,37 @@ useEffect(() => {
     "Currently provide to managers"
   ];
 
+  // Check if any training is provided (for follow-up questions)
   const hasAnyProvided = Object.values(ans.d3a || {}).some(
     (status) => status === "Currently provide to managers"
   );
-  
-  const hasAnyOffered = Object.values(ans.d3a || {}).some(
-    (status) => status === "Currently provide to managers"
-  );
-  
-  const showD3aa = isMultiCountry && hasOffered;
+
+  // D3.aa should show if multi-country AND at least one "Currently provide to managers"
+  const showD3aa = isMultiCountry && hasAnyProvided;
   const showD3_1a = hasAnyProvided;
   const showD3_1 = hasAnyProvided;
 
+  // Calculate total steps
   const getTotalSteps = () => {
-    let total = 4; // intro, D3.a, D3.aa (conditional), D3.b
+    let total = 3; // intro, D3.a, D3.b
+    if (showD3aa) total++; // D3.aa
     if (showD3_1a) total++; // D3.1a
     if (showD3_1) total++; // D3.1
-    total++; // completion
+    total++; // completion screen
     return total;
   };
 
+  // Validation
   const validateStep = () => {
     switch(step) {
-      case 1:
+      case 1: // D3.a
         const answeredCount = Object.keys(ans.d3a || {}).length;
         if (answeredCount < D3A_ITEMS.length) 
           return `Please evaluate all ${D3A_ITEMS.length} items (${answeredCount} completed)`;
         return null;
       
-      case 2:
-        if (showD3aa && !ans.d3aa) {
-          return "Please select one option";
-        }
-        return null;
-        
-      case 3:
-        return null;
-        
-      case 4:
-        if (showD3_1a && !ans.d3_1a) {
-          return "Please select one option";
-        }
-        return null;
-        
-      case 5:
-        if (showD3_1 && !ans.d3_1) {
-          return "Please select one option";
-        }
+      case 2: // Could be D3.aa OR D3.b
+        if (showD3aa && !ans.d3aa) return "Please select one option";
         return null;
         
       default:
@@ -171,6 +156,7 @@ useEffect(() => {
     }
   };
 
+  // Navigation
   const next = () => {
     const error = validateStep();
     if (error) {
@@ -179,27 +165,40 @@ useEffect(() => {
     }
 
     if (step === 1) {
+      // After D3.a grid
       if (showD3aa) {
-        setStep(2);
+        setStep(2); // Go to D3.aa
       } else {
-        setStep(3);
+        setStep(3); // Skip to D3.b
       }
     } else if (step === 2) {
-      setStep(3);
+      // From D3.aa OR D3.b
+      if (showD3aa && !ans.d3b && ans.d3aa) {
+        setStep(3); // Go to D3.b
+      } else {
+        // From D3.b, check follow-ups
+        if (showD3_1a) {
+          setStep(4);
+        } else {
+          setStep(6); // Completion
+        }
+      }
     } else if (step === 3) {
+      // From D3.b
       if (showD3_1a) {
         setStep(4);
       } else {
-        setStep(6); // Go to completion
+        setStep(6); // Completion
       }
     } else if (step === 4) {
+      // From D3.1a
       if (showD3_1) {
         setStep(5);
       } else {
-        setStep(6); // Go to completion
+        setStep(6); // Completion
       }
     } else if (step === 5) {
-      setStep(6); // Go to completion
+      setStep(6); // Completion
     } else if (step === 6) {
       localStorage.setItem("dimension3_complete", "true");
       router.push("/dashboard");
@@ -231,6 +230,7 @@ useEffect(() => {
       <Header />
       
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
+        {/* Progress indicator */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
@@ -245,6 +245,7 @@ useEffect(() => {
           </div>
         </div>
 
+        {/* Error display */}
         {errors && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
             {errors}
@@ -261,14 +262,14 @@ useEffect(() => {
               </p>
 
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl mb-8">
-  <h2 className="text-3xl font-bold text-white mb-3">MANAGER PREPAREDNESS & CAPABILITY</h2>
-  <p className="text-blue-100 text-lg">
-    Training and resources that equip managers to support employees managing cancer or other serious health conditions.
-  </p>
-  <p className="text-blue-100 text-sm mt-3 italic">
-    Training programs can be in-person, virtual, or hybrid
-  </p>
-</div>
+                <h2 className="text-3xl font-bold text-white mb-3">MANAGER PREPAREDNESS & CAPABILITY</h2>
+                <p className="text-blue-100 text-lg">
+                  Training and resources that equip managers to support employees managing cancer or other serious health conditions.
+                </p>
+                <p className="text-blue-100 text-sm mt-3 italic">
+                  Training programs can be in-person, virtual, or hybrid
+                </p>
+              </div>
 
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                 <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
@@ -356,15 +357,15 @@ useEffect(() => {
                       : 'opacity-100 transform scale-100 blur-0'
                   }`}
                 >
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-  {D3A_ITEMS[currentItemIndex]}
-</h3>
-<p className="text-xs italic text-gray-600 mb-4">
-  We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
-</p>
-
-<div className="space-y-2">
-  {STATUS_OPTIONS.map((status) => (
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                    {D3A_ITEMS[currentItemIndex]}
+                  </h3>
+                  <p className="text-xs italic text-gray-600 mb-4">
+                    We recognize that implementation may vary based on country/jurisdiction-specific laws and regulations.
+                  </p>
+                  
+                  <div className="space-y-2">
+                    {STATUS_OPTIONS.map((status) => (
                       <button
                         key={status}
                         onClick={() => setStatus(D3A_ITEMS[currentItemIndex], status)}
@@ -425,15 +426,15 @@ useEffect(() => {
           </div>
         )}
         
-        {/* Step 2: D3.aa (conditional for multi-country) */}
+        {/* Step 2: D3.aa (conditional - multi-country with offerings) */}
         {step === 2 && showD3aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-  Are the <span className="text-blue-600 font-bold">Manager Preparedness & Capability support options</span> your 
-  organization <span className="text-blue-600 font-bold">currently offers</span>...?
-</p>
+              Are the <span className="text-blue-600">Manager Preparedness & Capability support options</span> your 
+              organization currently provides to managers...?
+            </p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
             <div className="space-y-2">
@@ -458,14 +459,14 @@ useEffect(() => {
           </div>
         )}
 
-        {/* Step 3: D3.b open-end */}
-        {step === 3 && (
+        {/* Step 3: D3.b open-end (OR Step 2 if no D3.aa) */}
+        {(step === 3 || (step === 2 && !showD3aa)) && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Initiatives</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-  What other <span className="text-blue-600 font-bold">manager preparedness initiatives</span> does your organization offer that weren't listed?
-</p>
+              What other manager preparedness initiatives does your organization offer that weren't listed?
+            </p>
             <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
             
             <textarea
@@ -495,9 +496,9 @@ useEffect(() => {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Training Requirements</h3>
             
-           <p className="font-bold text-gray-900 mb-4">
-  Is <span className="text-blue-600 font-bold">manager training</span> on supporting <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>...?
-</p>
+            <p className="font-bold text-gray-900 mb-4">
+              Is <strong>manager training</strong> on supporting <strong>employees managing cancer or other serious health conditions</strong>...?
+            </p>
             <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
             
             <div className="space-y-2">
@@ -529,9 +530,10 @@ useEffect(() => {
             <h3 className="text-xl font-bold text-gray-900 mb-4">Training Completion</h3>
             
             <p className="font-bold text-gray-900 mb-4">
-  Within the past 2 years, what percentage of <span className="text-blue-600 font-bold">managers completed training</span> on supporting <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>?
-</p>
-            <p className="text-sm text-gray-600 mb-4">(Select ONE) - Your best estimate is fine. If varies, report overall average</p>
+              Within the past 2 years, what percentage of <strong>managers completed training</strong> on supporting <strong>employees managing cancer or other serious health conditions</strong>?
+            </p>
+            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+            <p className="text-xs text-gray-500 italic mb-4">Your best estimate is fine. If varies, report overall average</p>
             
             <div className="space-y-2">
               {[
@@ -587,7 +589,7 @@ useEffect(() => {
           </div>
         )}
 
-        {/* Universal Navigation */}
+        {/* Navigation Buttons (for steps 2-5) */}
         {step > 1 && step < 6 && (
           <div className="flex justify-between mt-8">
             <button 
