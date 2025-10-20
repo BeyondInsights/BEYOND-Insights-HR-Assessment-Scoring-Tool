@@ -32,13 +32,30 @@ export default function LetterPage() {
                 Thank you for taking this important step to evaluate your organization's support for <strong>employees managing cancer and other serious health conditions</strong>.
               </p>
 
-              {/* Why This Matters */}
-              <div className="bg-purple-50 border-l-4 border-purple-600 p-6 my-6">
-                <p className="text-purple-900 font-semibold mb-2">Why This Program Matters</p>
-                <p className="text-purple-800">
-                  With 1 in 2 people diagnosed with cancer in their lifetime and millions more managing chronic conditions, workplace support has never been more critical. This assessment helps organizations understand their current capabilities and identify opportunities to better support their workforce through health challenges, ultimately improving retention, productivity, and workplace culture.
-                </p>
-              </div>
+  {/* Why This Matters */}
+<div className="bg-purple-50 border-l-4 border-purple-600 p-6 my-6">
+  <p className="text-purple-900 font-semibold mb-2">Why This Program Matters</p>
+  <p className="text-purple-800 mb-3">
+    The need for workplace support has never been more critical:
+  </p>
+  <ul className="text-purple-800 space-y-2 mb-3">
+    <li className="flex items-start">
+      <span className="text-purple-600 mr-2">•</span>
+      <span><strong>40%</strong> of adults will be diagnosed with cancer in their lifetime</span>
+    </li>
+    <li className="flex items-start">
+      <span className="text-purple-600 mr-2">•</span>
+      <span><strong>42%</strong> of those diagnosed are in their prime working years (ages 20-64)</span>
+    </li>
+    <li className="flex items-start">
+      <span className="text-purple-600 mr-2">•</span>
+      <span>Of the 163 million adults currently employed, <strong>16-17%</strong> will receive a diagnosis during their career</span>
+    </li>
+  </ul>
+  <p className="text-purple-800">
+    This assessment helps organizations understand their current capabilities and identify opportunities to better support this significant portion of their workforce, ultimately improving retention, productivity, and workplace culture.
+  </p>
+</div>
 
               <div className="bg-blue-50 border-l-4 border-blue-600 p-6 my-6">
                 <p className="text-blue-900 font-semibold mb-2">What This Assessment Provides</p>
