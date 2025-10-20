@@ -107,20 +107,22 @@ export default function Dimension12Page() {
   };
 
   const STATUS_OPTIONS = [
-    "Not able to measure / track in foreseeable future",
-    "Assessing feasibility",
-    "In active planning / development",
-    "Currently measure / track"
-  ];
+  "Not able to measure / track in foreseeable future",  // Special wording for D12
+  "Assessing feasibility",
+  "In active planning / development",
+  "Currently measure / track"  // Special wording for D12
+];
 
-  const hasMeasureTrack = Object.values(ans.d12a || {}).some(
-    (status) => status === "Currently measure / track"
-  );
+const hasAnyOffered = Object.values(ans.d12a || {}).some(
+  (status) => status === "Currently measure / track"  // Special wording for D12
+);
+
+const showD12aa = isMultiCountry && hasAnyOffered;  // Make sure it's hasAnyOffered
+const showD12_1 = Object.values(ans.d12a || {}).some(
+  (status) => status === "Currently measure / track"
+);
+const showD12_2 = showD12_1;
   
-  const showD12aa = isMultiCountry && hasMeasureTrack;
-  const showD12_1 = hasMeasureTrack;
-  const showD12_2 = hasMeasureTrack;
-
   const getTotalSteps = () => {
     let total = 2; // intro, D12.a
     if (showD12aa) total++; // D12.aa
