@@ -1076,24 +1076,30 @@ export default function CompanyProfileFixed() {
                       <>
                         {programs.length > 0 && <SupportMatrix programs={programs} dimNumber={dim.number} />}
                         
-                        {/* Geographic consistency question - special highlighting */}
-                        {items.some(it => it.question.toLowerCase().includes('geographic consistency')) && (
-                          <div className="mb-4 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
-                            <div className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.orange }}>
-                              Geographic Availability
-                            </div>
-                            {items.filter(it => it.question.toLowerCase().includes('geographic consistency')).map((it, i) => (
-                              <div key={i} className="p-4 rounded border" style={{ borderColor: BRAND.gray[300], backgroundColor: BRAND.gray[50] }}>
-                                <div className="text-sm font-semibold mb-2" style={{ color: BRAND.gray[700] }}>
-                                  Are the {DIM_TITLE[dim.number]} support options your organization currently {dim.number === 12 ? 'measures/tracks' : 'offers'} available...?
-                                </div>
-                                <div className="text-base font-medium" style={{ color: BRAND.gray[900] }}>
-                                  {it.response}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                       {/* Geographic consistency question - special highlighting */}
+{items.some(it => it.question.toLowerCase().includes('geographic consistency')) && (
+  <div className="mb-4 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
+    <div className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.orange }}>
+      Geographic Availability
+    </div>
+    {items.filter(it => it.question.toLowerCase().includes('geographic consistency')).map((it, i) => {
+      const dimTitle = DIM_TITLE[dim.number];
+      const verbText = dim.number === 12 ? 'measures/tracks' : 
+                      dim.number === 3 ? 'provides' : 
+                      'offers';
+      return (
+        <div key={i} className="p-4 rounded border" style={{ borderColor: BRAND.gray[300], backgroundColor: BRAND.gray[50] }}>
+          <div className="text-sm font-semibold mb-2" style={{ color: BRAND.gray[700] }}>
+            Are the {dimTitle} support options your organization currently {verbText} available...?
+          </div>
+          <div className="text-base font-medium" style={{ color: BRAND.gray[900] }}>
+            {it.response}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
                         
                         {/* Other follow-up items */}
                         {items.filter(it => !it.question.toLowerCase().includes('geographic consistency')).length > 0 && (
