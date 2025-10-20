@@ -58,6 +58,15 @@ export default function DashboardPage() {
   
   const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}')
   const current = JSON.parse(localStorage.getItem('current-support_data') || '{}')
+
+// Add safety checks
+const genCount = genRequired.filter(field => {
+  if (!general) return false;  // Add this safety check
+  if (Array.isArray(general[field])) {
+    return general[field].length > 0
+  }
+  return general[field] && general[field] !== ''
+}).length
   
   // CORRECT FIELD NAMES - these match what the pages actually save
   const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6']
