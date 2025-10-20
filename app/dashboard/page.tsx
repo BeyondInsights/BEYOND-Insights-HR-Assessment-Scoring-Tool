@@ -175,7 +175,7 @@ useEffect(() => {
         setDimensionProgress(new Array(13).fill(0));
         setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 });
       }
-    };
+    }
     
     calculateProgress();
     
