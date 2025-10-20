@@ -174,16 +174,15 @@ useEffect(() => {
         setSectionProgress({ firmographics: 0, general: 0, current: 0 });
         setDimensionProgress(new Array(13).fill(0));
         setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 });
-      }
     }
-    
+  }
+  
+  const handleFocus = () => {
     calculateProgress();
-    
-    const handleFocus = () => {
-      calculateProgress();
-    };
-    
-    window.addEventListener("focus", handleFocus);
+  };
+  
+  calculateProgress();
+  window.addEventListener("focus", handleFocus);
     
     return () => window.removeEventListener("focus", handleFocus);
   }, [router])
