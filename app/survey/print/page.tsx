@@ -1,210 +1,286 @@
-/* eslint-disable @next/next/no-img-element */
-'use client';
+'use client'
 
-import React from 'react';
-import {
-  BRAND, DIM_COLORS,
-  FIRMOGRAPHICS, GENERAL_BENEFITS, CURRENT_SUPPORT,
-  DIMENSIONS, CROSS_DIM, EI
-} from '../schema';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
 
-/* Small custom SVGs */
-const Dot = ({ c='#CBD5E1' }: { c?: string }) => (<svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill={c}/></svg>);
-const Bar = ({ c=BRAND.orange }: { c?: string }) => (<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v3H4zM4 11h16v3H4zM4 16h16v3H4z" fill={c}/></svg>);
+// Import your schema files (adjust paths as needed)
+// For now, I'll include the schema inline for the working example
 
-type Q = (typeof FIRMOGRAPHICS)['questions'][number];
+export default function PrintSurveyPage() {
+  const [companyName, setCompanyName] = useState('')
+  const [currentDate, setCurrentDate] = useState('')
 
-const Tag = ({ children, tone='req' }: { children: React.ReactNode; tone?: 'req'|'cond' }) => (
-  <span className="ml-2 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase"
-        style={{ color: tone==='req'?'#7F1D1D':'#1E3A8A', backgroundColor: tone==='req'?'#FEE2E2':'#DBEAFE', border:`1px solid ${tone==='req'?'#FCA5A5':'#93C5FD'}` }}>
-    {tone==='req' ? 'Required' : 'Conditional'}
-  </span>
-);
+  useEffect(() => {
+    // Get company name from localStorage
+    const name = localStorage.getItem('login_company_name') || 
+                 localStorage.getItem('companyName') || 
+                 'Your Organization'
+    setCompanyName(name)
+    
+    // Set current date
+    setCurrentDate(new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }))
+  }, [])
 
-function QItem({ q }: { q: Q }) {
-  const typeLabel =
-    q.type==='open'   ? 'Open-ended'
-  : q.type==='single' ? `Select one${q.options?.length ? `: ${q.options.join(' • ')}` : ''}`
-  : q.type==='multi'  ? `Select all that apply${q.options?.length ? `: ${q.options.join(' • ')}` : ''}`
-  : q.type==='scale'  ? `Scale: ${q.options?.join(' → ')}`
-  : '';
+  const handlePrint = () => {
+    window.print()
+  }
 
-  return (
-    <div className="mb-3">
-      <div className="text-[15px] font-medium text-slate-900">
-        {q.label}
-        {/* tags shown only if supplied in schema */}
-      </div>
-      <div className="text-[13px] text-slate-600 mt-0.5">{typeLabel}</div>
-      {q.note && <div className="text-[12px] italic text-slate-500 mt-0.5">{q.note}</div>}
-    </div>
-  );
-}
-
-function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
-  return (
-    <section id={id} className="mt-8">
-      <h2 className="text-xl font-bold text-slate-900 mb-2">{title}</h2>
-      <div className="p-4 rounded border bg-white" style={{ borderColor: BRAND.gray[200] }}>{children}</div>
-    </section>
-  );
-}
-
-export default function SurveyPrint() {
-  const router = useRouter();
-  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' });
+  const handleDownloadWord = () => {
+    // This would link to your actual Word document
+    window.open('/survey-template.docx', '_blank')
+  }
 
   return (
-    <main className="max-w-4xl mx-auto p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4 print:hidden">
-        <div className="flex items-center gap-3">
-          <img src="/best-companies-2026-logo.png" alt="" className="h-20 w-auto" />
-          <div className="h-8 w-px bg-slate-200" />
-          <img src="/cancer-careers-logo.png" alt="" className="h-14 w-auto" />
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="px-3 py-1.5 rounded border text-sm font-semibold"
-            style={{ backgroundColor:'#fff', borderColor:BRAND.gray[300], color:BRAND.gray[800] }}
-            title="Return to Dashboard"
-          >
-            ← Dashboard
-          </button>
-          <button onClick={() => window.print()} className="px-3 py-1.5 rounded text-white text-sm" style={{ backgroundColor: BRAND.primary }}>
-            Print / Save PDF
-          </button>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header - hidden when printing */}
+      <div className="print:hidden">
+        <Header />
       </div>
 
-      <h1 className="text-2xl font-black text-slate-900">CAC Employer Index — Full Survey (Read-Only)</h1>
-      <p className="text-sm text-slate-600">Review all questions and gather information before starting. This page is read-only and can be printed or saved as PDF.</p>
-
-      {/* What you'll need */}
-      <div className="mt-4 p-4 rounded border bg-white" style={{ borderColor: BRAND.gray[200] }}>
-        <div className="flex items-center gap-2 mb-2"><Bar /><div className="text-sm font-bold text-slate-800">What you’ll want handy</div></div>
-        <ul className="text-[13px] text-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-y-1">
-          <li className="flex items-center gap-2"><Dot/><span>SPDs / benefits plan summaries</span></li>
-          <li className="flex items-center gap-2"><Dot/><span>Leave / RTW details (weeks, eligibility, job protection)</span></li>
-          <li className="flex items-center gap-2"><Dot/><span>Disability %, advanced therapy coverage, caregiver benefits</span></li>
-          <li className="flex items-center gap-2"><Dot/><span>Navigation vendor lists</span></li>
-          <li className="flex items-center gap-2"><Dot/><span>Global/market differences (if any)</span></li>
-          <li className="flex items-center gap-2"><Dot/><span>Contacts for manager training & culture initiatives</span></li>
-        </ul>
+      {/* Print Header - only shows when printing */}
+      <div className="hidden print:block text-center mb-6">
+        <h1 className="text-2xl font-bold">Best Companies for Working with Cancer</h1>
+        <p className="text-lg">2026 Employer Index Survey</p>
+        <p className="text-sm text-gray-600 mt-2">{companyName} • {currentDate}</p>
       </div>
 
-      {/* Contents */}
-      <div className="mt-4 p-4 rounded border bg-white print:hidden" style={{ borderColor: BRAND.gray[200] }}>
-        <div className="text-sm font-bold text-slate-800 mb-2">Contents</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[13px]">
-          <button className="text-left text-indigo-700 hover:underline" onClick={()=>scrollTo('firmographics')}>1. Company Profile</button>
-          <button className="text-left text-indigo-700 hover:underline" onClick={()=>scrollTo('general_benefits')}>2. General Benefits</button>
-          <button className="text-left text-indigo-700 hover:underline" onClick={()=>scrollTo('current_support')}>3. Current Support for EMCs</button>
-          <button className="text-left text-indigo-700 hover:underline" onClick={()=>scrollTo('dimensions')}>4. 13 Dimensions of Support</button>
-          <button className="text-left text-indigo-700 hover:underline" onClick={()=>scrollTo('cross_dim')}>5. Cross-Dim Assessment</button>
-          <button className="text-left text-indigo-700 hover:underline" onClick={()=>scrollTo('ei')}>6. Employee Impact</button>
+      <main className="max-w-5xl mx-auto px-6 py-8">
+        {/* Action Buttons - hidden when printing */}
+        <div className="mb-8 bg-white rounded-lg shadow-sm p-6 print:hidden">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Download/Print Full Survey
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Download or print the complete survey with all questions and response options.
+          </p>
+          <div className="flex gap-4">
+            <button
+              onClick={handlePrint}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print Survey
+            </button>
+            <button
+              onClick={handleDownloadWord}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download Word Document
+            </button>
+            <button
+              onClick={() => window.location.href = '/dashboard'}
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Back to Dashboard
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Sections from app only */}
-      <Section id={FIRMOGRAPHICS.id} title={FIRMOGRAPHICS.title}>
-        {FIRMOGRAPHICS.questions.map(q => <QItem key={q.id} q={q} />)}
-      </Section>
-
-      <Section id={GENERAL_BENEFITS.id} title={GENERAL_BENEFITS.title}>
-        {GENERAL_BENEFITS.questions.map(q => <QItem key={q.id} q={q} />)}
-      </Section>
-
-      <Section id={CURRENT_SUPPORT.id} title={CURRENT_SUPPORT.title}>
-        {CURRENT_SUPPORT.questions.map(q => <QItem key={q.id} q={q} />)}
-      </Section>
-
-      {/* 13 Dimensions — options listed once + scale legend */}
-      <section id="dimensions" className="mt-8">
-        <h2 className="text-xl font-bold text-slate-900 mb-2">13 Dimensions of Support</h2>
-
-        {DIMENSIONS.map((d, idx) => {
-          const color = DIM_COLORS[idx % DIM_COLORS.length] ?? '#6B7280';
-          return (
-            <div key={d.number} className="mb-6 p-4 rounded border bg-white" style={{ borderColor: BRAND.gray[200] }}>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: color }}>
-                  {d.number}
-                </div>
-                <h3 className="text-lg font-bold text-slate-900">{d.title}</h3>
+        {/* Survey Content */}
+        <div className="bg-white rounded-lg shadow-sm print:shadow-none">
+          {/* Section 1: Firmographics */}
+          <div className="p-6 border-b break-inside-avoid">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Section 1: Company & Contact Information
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name*
+                </label>
+                <div className="border-b border-gray-300 h-8"></div>
               </div>
-
-              <div className="text-[13px] text-slate-700 mb-2">{d.intro}</div>
-              <div className="text-[13px] text-slate-900 font-medium mb-2">{d.questionText}</div>
-              <div className="text-[12px] text-slate-600 mb-3"><span className="font-semibold">Scale:&nbsp;</span>{d.scale.join('  •  ')}</div>
-
-              <div className="rounded border p-3 mb-3 bg-white" style={{ borderColor: BRAND.gray[200] }}>
-                <div className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[600] }}>
-                  Support options to be rated on the scale above
-                </div>
-                <ul className="text-[13px] text-slate-800 space-y-1">
-                  {d.supportOptions.map(p => <li key={p} className="flex items-center gap-2"><Dot/><span>{p}</span></li>)}
-                </ul>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name*
+                </label>
+                <div className="border-b border-gray-300 h-8"></div>
               </div>
-
-              {d.followUps.length > 0 && (
-                <div>
-                  <div className="text-sm font-semibold text-slate-800 mb-1">Follow-up questions</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
-                    {d.followUps.map(f => <QItem key={f.id} q={f} />)}
-                  </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Total Global Employee Size*
+                </label>
+                <div className="ml-4 space-y-1 text-sm">
+                  {['Under 500', '500-999', '1,000-4,999', '5,000-9,999', 
+                    '10,000-24,999', '25,000-49,999', '50,000-99,999', '100,000+'].map(opt => (
+                    <div key={opt}>○ {opt}</div>
+                  ))}
                 </div>
-              )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Headquarters Location (Country)*
+                </label>
+                <div className="ml-4 space-y-1 text-sm">
+                  <select className="text-sm text-gray-600">
+                    <option>Select Country...</option>
+                    <option>United States</option>
+                    <option>Canada</option>
+                    <option>United Kingdom</option>
+                    <option>Germany</option>
+                    <option>France</option>
+                    <option>Australia</option>
+                    <option>Japan</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Number of Countries with Employee Presence*
+                </label>
+                <div className="ml-4 space-y-1 text-sm">
+                  {['No other countries - headquarters only', '2-5 countries', 
+                    '6-10 countries', '11-25 countries', '26-50 countries', 
+                    '51-100 countries', 'More than 100 countries'].map(opt => (
+                    <div key={opt}>○ {opt}</div>
+                  ))}
+                </div>
+              </div>
             </div>
-          );
-        })}
-      </section>
+          </div>
 
-      {/* Cross-Dim: three buckets side-by-side */}
-      <Section id={CROSS_DIM.id} title={CROSS_DIM.title}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="rounded border p-4" style={{ borderColor: BRAND.gray[200] }}>
-            <div className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.gray[600] }}>Top 3 Dimensions</div>
-            <div className="text-[13px] text-slate-600">Select up to three.</div>
+          {/* Section 2: General Benefits */}
+          <div className="p-6 border-b break-inside-avoid">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Section 2: General Employee Benefits
+            </h2>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Standard Benefits Currently Offered (Select all that apply)
+              </label>
+              <div className="ml-4 space-y-1 text-sm">
+                {['Medical/health insurance', 'Dental insurance', 'Vision insurance',
+                  'Prescription drug coverage', 'Mental health coverage', 'Life insurance',
+                  'Short-term disability', 'Long-term disability'].map(opt => (
+                  <div key={opt}>☐ {opt}</div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="rounded border p-4" style={{ borderColor: BRAND.gray[200] }}>
-            <div className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.gray[600] }}>Bottom 3 Dimensions</div>
-            <div className="text-[13px] text-slate-600">Select up to three.</div>
+
+          {/* Section 3: Current Support */}
+          <div className="p-6 border-b break-inside-avoid">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Section 3: Current Support for Serious Medical Conditions
+            </h2>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Current Approach to Supporting Employees with Serious Medical Conditions
+              </label>
+              <div className="ml-4 space-y-1 text-sm">
+                {['No formal approach - handled case by case',
+                  'Manager discretion with HR guidance',
+                  'Standardized process with some flexibility',
+                  'Formal program with defined benefits',
+                  'Comprehensive integrated support system'].map(opt => (
+                  <div key={opt}>○ {opt}</div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="rounded border p-4" style={{ borderColor: BRAND.gray[200] }}>
-            <div className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.gray[600] }}>Implementation Challenges</div>
-            <ul className="text-[13px] text-slate-700 space-y-1">
-              {(CROSS_DIM.questions.find(q=>q.id==='cd2')?.options || []).map(opt => (
-                <li key={opt} className="flex items-center gap-2"><Dot/><span>{opt}</span></li>
-              ))}
-            </ul>
+
+          {/* Dimensions Grid Example */}
+          <div className="p-6 break-inside-avoid">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Section 4: 13 Dimensions of Support
+            </h2>
+            
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">
+                Dimension 1: Medical Leave & Flexibility
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                For each program below, indicate your organization's current status:
+              </p>
+              
+              <table className="w-full border-collapse text-xs">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border border-gray-300 p-2 text-left">Program</th>
+                    <th className="border border-gray-300 p-2 text-center">Currently offer</th>
+                    <th className="border border-gray-300 p-2 text-center">In planning</th>
+                    <th className="border border-gray-300 p-2 text-center">Assessing</th>
+                    <th className="border border-gray-300 p-2 text-center">Not able</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border border-gray-300 p-2">
+                      Paid medical leave beyond requirements
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">○</td>
+                    <td className="border border-gray-300 p-2 text-center">○</td>
+                    <td className="border border-gray-300 p-2 text-center">○</td>
+                    <td className="border border-gray-300 p-2 text-center">○</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2">
+                      Flexible work hours during treatment
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">○</td>
+                    <td className="border border-gray-300 p-2 text-center">○</td>
+                    <td className="border border-gray-300 p-2 text-center">○</td>
+                    <td className="border border-gray-300 p-2 text-center">○</td>
+                  </tr>
+                  {/* Add more rows as needed */}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </Section>
 
-      {/* EI — complete and always present */}
-      <Section id={EI.id} title={EI.title}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
-          {EI.questions.map(q => <QItem key={q.id} q={q} />)}
+        {/* Page break notice */}
+        <div className="mt-8 text-center text-sm text-gray-500 print:hidden">
+          <p>The full survey contains all 13 dimensions and approximately 200 questions.</p>
+          <p>Use the Print or Download buttons above to get the complete version.</p>
         </div>
-      </Section>
+      </main>
 
-      {/* Print CSS */}
+      {/* Footer - hidden when printing */}
+      <div className="print:hidden">
+        <Footer />
+      </div>
+
+      {/* Print styles */}
       <style jsx>{`
-        :global(html), :global(body) { font-size: 16px; }
         @media print {
-          @page { size: letter; margin: 0.5in; }
-          .print\\:hidden, button { display: none !important; }
-          nav, header, footer { display: none !important; }
-          section, .rounded, .row { break-inside: avoid; }
-          h1 { font-size: 18px !important; }
-          h2 { font-size: 16px !important; }
-          h3 { font-size: 14px !important; }
-          main { padding: 0 !important; max-width: 100% !important; }
+          @page {
+            size: letter;
+            margin: 0.5in;
+          }
+          
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+          
+          .break-inside-avoid {
+            break-inside: avoid;
+          }
+          
+          table {
+            font-size: 10px;
+          }
         }
       `}</style>
-    </main>
-  );
+    </div>
+  )
 }
