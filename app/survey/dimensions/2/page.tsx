@@ -122,8 +122,7 @@ export default function Dimension2Page() {
     "Not able to offer in foreseeable future",
     "Assessing feasibility",
     "In active planning / development",
-    "Currently offer",
-    "Unsure"
+    "Currently offer"
   ];
 
   // D2aa should show if multi-country AND at least one "Currently offer"
