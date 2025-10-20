@@ -834,8 +834,8 @@ export default function CompanyProfileFixed() {
 
   useEffect(() => {
     const firmo = loadMany(['firmographics_data', 'firmographics']);
-    const gen   = loadMany(['general-benefits_data', 'general_benefits_data', 'generalBenefits']);
-    const cur   = loadMany(['current-support_data', 'current_support_data', 'currentSupport']);
+    const gen   = loadMany(['general_benefits_data', 'general_benefits_data', 'generalBenefits']);
+    const cur   = loadMany(['current_support_data', 'current_support_data', 'currentSupport']);
     const cross = loadMany(['cross_dimensional_data', 'cross-dimensional_data', 'crossDimensional']);
     const impact= loadMany([
       'employee_impact_data', 
