@@ -672,18 +672,11 @@ function parseDimensionData(
   Object.entries(data || {}).forEach(([key, value]) => {
     const lowerKey = key.toLowerCase();
     
-    // STRICT CHECK - only accept keys for THIS dimension
-    if (!lowerKey.startsWith(prefix)) return;
+    // STRICT CHECK - only process keys that belong to this dimension
+    const keyPrefix = lowerKey.match(/^d(\d+)/);
+    if (!keyPrefix || parseInt(keyPrefix[1]) !== dimNumber) return;
     
-    // Now check for specific patterns within this dimension
-    const isThisDim = lowerKey === `${prefix}a` || 
-                     lowerKey === `${prefix}aa` || 
-                     lowerKey === `${prefix}b` ||
-                     lowerKey === `${prefix}b_none` ||
-                     lowerKey.startsWith(`${prefix}_`);
-    
-    if (!isThisDim) return;
-    
+    // Rest of the function continues as before...
     if (lowerKey === `${prefix}a` && hasProgramStatusMap(value)) {
       Object.entries(value).forEach(([program, status]) => {
         if (status != null && String(status).trim() !== '') {
@@ -693,7 +686,7 @@ function parseDimensionData(
       return;
     }
     
-    // Handle both d#aa and D#aa formats (case-insensitive)
+    // Handle d#aa formats
     if (lowerKey === `${prefix}aa` && value) {
       const question = getQuestionLabel(dimNumber, `${prefix}aa`);
       items.push({
