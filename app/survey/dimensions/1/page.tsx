@@ -128,7 +128,7 @@ export default function Dimension1Page() {
   const showD1_5 = ans.d1a?.["Job protection beyond local / legal requirements"] === "Currently offer";
   const showD1_6 = ans.d1a?.["Disability pay top-up (employer adds to disability insurance)"] === "Currently offer";
 
-  // D1.aa should show if multi-country AND at least one "Currently offer" (FIX #2)
+  // D1aa should show if multi-country AND at least one "Currently offer" (FIX #2)
   const hasAnyOffered = Object.values(ans.d1a || {}).some(
     (status) => status === "Currently offer"
   );
@@ -137,7 +137,7 @@ export default function Dimension1Page() {
   // Calculate total steps
   const getTotalSteps = () => {
     let total = 3; // intro, D1.a, D1.b
-    if (showD1aa) total++; // D1.aa
+    if (showD1aa) total++; // D1aa
     if (showD1_1) total++;
     if (showD1_2) total++;
     if (showD1_4a) total++;
@@ -157,7 +157,7 @@ export default function Dimension1Page() {
           return `Please evaluate all ${D1A_ITEMS.length} items (${answeredCount} completed)`;
         return null;
       
-      case 2: // Could be D1.aa OR D1.b
+      case 2: // Could be D1aa OR D1.b
         if (showD1aa && !ans.d1aa) return "Please select one option";
         return null;
         
@@ -177,12 +177,12 @@ export default function Dimension1Page() {
     if (step === 1) {
       // After D1.a grid
       if (showD1aa) {
-        setStep(2); // Go to D1.aa
+        setStep(2); // Go to D1aa
       } else {
         setStep(3); // Skip to D1.b
       }
     } else if (step === 2) {
-      // From D1.aa OR D1.b
+      // From D1aa OR D1.b
       if (showD1aa && !ans.d1b && ans.d1aa) {
         setStep(3); // Go to D1.b
       } else {
@@ -246,7 +246,7 @@ export default function Dimension1Page() {
     } else if (step === 3) {
       setStep(showD1aa ? 2 : 1); // From D1.b
     } else if (step === 2) {
-      setStep(1); // From D1.aa to D1.a
+      setStep(1); // From D1aa to D1.a
     } else if (step > 0) {
       setStep(step - 1);
     }
@@ -452,7 +452,7 @@ export default function Dimension1Page() {
           </div>
         )}
         
-        {/* Step 2: D1.aa (conditional - multi-country with offerings) */}
+        {/* Step 2: D1aa (conditional - multi-country with offerings) */}
         {step === 2 && showD1aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
@@ -485,7 +485,7 @@ export default function Dimension1Page() {
           </div>
         )}
 
-        {/* Step 3: D1.b open-end (OR Step 2 if no D1.aa) */}
+        {/* Step 3: D1.b open-end (OR Step 2 if no D1aa) */}
         {(step === 3 || (step === 2 && !showD1aa)) && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Benefits</h3>
