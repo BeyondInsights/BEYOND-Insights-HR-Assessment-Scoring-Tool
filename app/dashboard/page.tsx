@@ -43,22 +43,6 @@ export default function DashboardPage() {
     window.addEventListener("focus", handleFocus);
     
   const calculateProgress = () => {
-  const savedEmail = localStorage.getItem('auth_email') || ''
-  setEmail(savedEmail)
-  
-  // Check payment status and method - ADD THIS BLOCK
-  const paymentStatus = localStorage.getItem('payment_completed')
-  const paymentMethod = localStorage.getItem('payment_method')
-  
-  // Allow access if ANY payment method was selected
-  setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card')
-  
-  const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
-  if (firmo?.companyName) setCompanyName(firmo.companyName)
-  
-  const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}')
-  const current = JSON.parse(localStorage.getItem('current-support_data') || '{}')
-
   // CORRECT FIELD NAMES - these match what the pages actually save
   const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6']
   const genRequired = [
@@ -83,6 +67,23 @@ const curRequired = [
   'or5a',    // Types of Caregiver Support
   'or6'      // How Organization Monitors Program Effectiveness
 ];
+   
+  const savedEmail = localStorage.getItem('auth_email') || ''
+  setEmail(savedEmail)
+  
+  // Check payment status and method - ADD THIS BLOCK
+  const paymentStatus = localStorage.getItem('payment_completed')
+  const paymentMethod = localStorage.getItem('payment_method')
+  
+  // Allow access if ANY payment method was selected
+  setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card')
+  
+  const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
+  if (firmo?.companyName) setCompanyName(firmo.companyName)
+  
+  const general = JSON.parse(localStorage.getItem('general-benefits_data') || '{}')
+  const current = JSON.parse(localStorage.getItem('current-support_data') || '{}')
+
 
   // Check completion flags
   const firmComplete = localStorage.getItem('firmographics_complete') === 'true'
