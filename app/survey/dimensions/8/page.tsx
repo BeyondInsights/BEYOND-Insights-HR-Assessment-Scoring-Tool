@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { hasAnyOffered } from '@/lib/dimensionHelpers';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
