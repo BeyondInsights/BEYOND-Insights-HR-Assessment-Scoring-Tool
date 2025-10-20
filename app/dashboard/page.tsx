@@ -54,7 +54,7 @@ useEffect(() => {
         
         const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
         const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}');
-        const current = JSON.parse(localStorage.getItem('current_support_data') ||
+        const current = JSON.parse(localStorage.getItem('current_support_data') || '{}');
         
         const firmComplete = localStorage.getItem('firmographics_complete') === 'true';
         const genComplete = localStorage.getItem('general_benefits_complete') === 'true';
