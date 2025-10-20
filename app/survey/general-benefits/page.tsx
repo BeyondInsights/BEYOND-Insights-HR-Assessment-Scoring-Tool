@@ -340,7 +340,7 @@ export default function GeneralBenefitsPage() {
  Which of the following <span className="text-blue-600">standard benefits</span> does 
  your organization currently provide?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-[80px] auto-rows-fr">
  {CB1_STANDARD.map(opt => {
@@ -384,7 +384,7 @@ export default function GeneralBenefitsPage() {
  Which of the following <span className="text-blue-600">leave & flexibility programs</span> does 
  your organization currently provide?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-[80px] auto-rows-fr">
  {CB1_LEAVE.map(opt => {
@@ -428,7 +428,7 @@ export default function GeneralBenefitsPage() {
  Which of the following <span className="text-blue-600">wellness & support programs</span> does 
  your organization currently provide?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-[80px] auto-rows-fr">
  {CB1_WELLNESS.map(opt => {
@@ -472,7 +472,7 @@ export default function GeneralBenefitsPage() {
  Which of the following <span className="text-blue-600">financial & legal assistance</span> programs does 
  your organization currently provide?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-[80px] auto-rows-fr">
  {CB1_FINANCIAL.map(opt => {
@@ -516,7 +516,7 @@ export default function GeneralBenefitsPage() {
  Which of the following <span className="text-blue-600">care navigation & support services</span> does 
  your organization currently provide?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-[80px] auto-rows-fr">
  {CB1_NAVIGATION.map(opt => {
@@ -594,7 +594,7 @@ export default function GeneralBenefitsPage() {
  <span className="text-blue-600">Over the next 2 years</span>, which, if any of the following 
  programs does your organization <span className="text-blue-600">plan to roll out</span>?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-[80px] auto-rows-fr">
  {getAllUnselectedOptions().length > 0 ? (
