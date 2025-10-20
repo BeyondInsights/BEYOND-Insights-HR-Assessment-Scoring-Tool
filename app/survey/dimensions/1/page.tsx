@@ -76,7 +76,19 @@ export default function Dimension1Page() {
     setAns((prev: any) => ({ ...prev, [key]: value }));
     setErrors("");
   };
-
+  // ADD THIS FUNCTION
+  const toggleMultiSelect = (key: string, value: string) => {
+    setAns((prev: any) => {
+      const current = prev[key] || [];
+      if (current.includes(value)) {
+        return { ...prev, [key]: current.filter((v: string) => v !== value) };
+      } else {
+        return { ...prev, [key]: [...current, value] };
+      }
+    });
+    setErrors("");
+  };
+  
   const setStatus = (item: string, status: string) => {
     setAns((prev: any) => ({
       ...prev,
