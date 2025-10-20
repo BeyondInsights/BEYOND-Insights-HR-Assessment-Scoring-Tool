@@ -161,7 +161,7 @@ const D2_QUESTIONS: Record<string, string> = {
   "Accelerated life insurance benefits (partial payout for terminal / critical illness)": "Accelerated life insurance benefits",
   
   // D2.aa Multi-Country Question
-  'd2aa': 'Geographic consistency of support options',
+  'd2.aa': 'Geographic consistency of support options',
   
   // D2.b Open-Ended
   'd2b': 'Additional insurance & financial protection benefits',
