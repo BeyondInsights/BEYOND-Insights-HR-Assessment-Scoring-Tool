@@ -674,7 +674,7 @@ const getTotalSteps = () => {
         )}
 
         {/* Universal Navigation */}
-        {step > 1 && step < 4 && (
+       {step > 1 && step < 5 && (
           <div className="flex justify-between mt-8">
             <button 
               onClick={back} 
