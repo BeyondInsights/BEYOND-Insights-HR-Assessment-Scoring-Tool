@@ -920,7 +920,7 @@ export default function Dimension1Page() {
           </div>
         )}
 
-       {/* D1.6 - Disability enhancement - SINGLE SELECT */}
+{/* D1.6 - Disability enhancement - MULTI SELECT */}
 {step === 9 && showD1_6 && (
   <div className="bg-white p-6 rounded-lg shadow-sm">
     <h3 className="text-xl font-bold text-gray-900 mb-4">Enhanced Disability Benefits</h3>
@@ -941,9 +941,9 @@ export default function Dimension1Page() {
       ].map(opt => (
         <button
           key={opt}
-          onClick={() => setField("d1_6", opt)}
+          onClick={() => toggleMultiSelect("d1_6", opt)}
           className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
-            ans.d1_6 === opt
+            ans.d1_6?.includes(opt)
               ? "border-blue-500 bg-blue-50"
               : "border-gray-200 hover:border-gray-300"
           }`}
