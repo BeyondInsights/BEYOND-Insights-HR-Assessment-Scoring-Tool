@@ -60,101 +60,81 @@ useEffect(() => {
         const genComplete = localStorage.getItem('general_benefits_complete') === 'true';
         const curComplete = localStorage.getItem('current_support_complete') === 'true';
         
-        // Safe dimension progress calculation
-        const dimProgress = [];
-        for (let i = 1; i <= 13; i++) {
-          const complete = localStorage.getItem(`dimension${i}_complete`) === 'true';
-          if (complete) {
-            dimProgress.push(100);
-          } else {
-            const data = localStorage.getItem(`dimension${i}_data`);
-            if (!data) {
-              dimProgress.push(0);
-            } else {
-              try {
-                const parsed = JSON.parse(data);
-                const keys = Object.keys(parsed).length;
-            // Safe dimension progress calculation
-            const dimProgress = [];
-            for (let i = 1; i <= 13; i++) {
-              const complete = localStorage.getItem(`dimension${i}_complete`) === 'true';
-              if (complete) {
-                dimProgress.push(100);
-              } else {
-                const data = localStorage.getItem(`dimension${i}_data`);
-                if (!data) {
-                  dimProgress.push(0);
-                } else {
-                  try {
-                    const parsed = JSON.parse(data);
-                    const keys = Object.keys(parsed).length;
-                    // Just show 50% if there's any data, 95% if there's substantial data
-                    if (keys === 0) {
-                      dimProgress.push(0);
-                    } else if (keys < 3) {
-                      dimProgress.push(50);
-                    } else {
-                      dimProgress.push(95);
-                    }
-                  } catch {
-                    dimProgress.push(0);
-                  }
-                }
-              }
-            }
-              } catch {
-                dimProgress.push(0);
-              }
-            }
-          }
-        }
-        setDimensionProgress(dimProgress);
-        
-        let firmProg = 0;
-        let genProg = 0;
-        let curProg = 0;
-        
-        if (firmComplete) {
-          firmProg = 100;
+// Safe dimension progress calculation
+const dimProgress = [];
+for (let i = 1; i <= 13; i++) {
+  const complete = localStorage.getItem(`dimension${i}_complete`) === 'true';
+  if (complete) {
+    dimProgress.push(100);
+  } else {
+    const data = localStorage.getItem(`dimension${i}_data`);
+    if (!data) {
+      dimProgress.push(0);
+    } else {
+      try {
+        const parsed = JSON.parse(data);
+        const keys = Object.keys(parsed).length;
+        // Just show 50% if there's any data, 95% if there's substantial data
+        if (keys === 0) {
+          dimProgress.push(0);
+        } else if (keys < 3) {
+          dimProgress.push(50);
         } else {
-          const firmCount = firmRequired.filter(field => {
-            if (field === 's6' || field === 'c4') {
-              return Array.isArray(firmo[field]) && firmo[field].length > 0;
-            }
-            return firmo[field] && firmo[field] !== '';
-          }).length;
-          firmProg = Math.round((firmCount / firmRequired.length) * 100);
+          dimProgress.push(95);
         }
-        
-        if (genComplete) {
-          genProg = 100;
-        } else if (general && Object.keys(general).length > 0) {
-          const genCount = genRequired.filter(field => {
-            if (Array.isArray(general[field])) {
-              return general[field].length > 0;
-            }
-            return general[field] && general[field] !== '';
-          }).length;
-          genProg = Math.round((genCount / genRequired.length) * 100);
-        }
-        
-        if (curComplete) {
-          curProg = 100;
-        } else if (current && Object.keys(current).length > 0) {
-          const curCount = curRequired.filter(field => {
-            if (Array.isArray(current[field])) {
-              return current[field].length > 0;
-            }
-            return current[field] && current[field] !== '';
-          }).length;
-          curProg = Math.round((curCount / curRequired.length) * 100);
-        }
-        
-        setSectionProgress({
-          firmographics: firmProg,
-          general: genProg,
-          current: curProg
-        });
+      } catch {
+        dimProgress.push(0);
+      }
+    }
+  }
+}
+setDimensionProgress(dimProgress);
+
+let firmProg = 0;
+let genProg = 0;
+let curProg = 0;
+
+if (firmComplete) {
+  firmProg = 100;
+} else {
+  const firmCount = firmRequired.filter(field => {
+    if (field === 's6' || field === 'c4') {
+      return Array.isArray(firmo[field]) && firmo[field].length > 0;
+    }
+    return firmo[field] && firmo[field] !== '';
+  }).length;
+  firmProg = Math.round((firmCount / firmRequired.length) * 100);
+}
+
+if (genComplete) {
+  genProg = 100;
+} else if (general && Object.keys(general).length > 0) {
+  const genCount = genRequired.filter(field => {
+    if (Array.isArray(general[field])) {
+      return general[field].length > 0;
+    }
+    return general[field] && general[field] !== '';
+  }).length;
+  genProg = Math.round((genCount / genRequired.length) * 100);
+}
+
+if (curComplete) {
+  curProg = 100;
+} else if (current && Object.keys(current).length > 0) {
+  const curCount = curRequired.filter(field => {
+    if (Array.isArray(current[field])) {
+      return current[field].length > 0;
+    }
+    return current[field] && current[field] !== '';
+  }).length;
+  curProg = Math.round((curCount / curRequired.length) * 100);
+}
+
+setSectionProgress({
+  firmographics: firmProg,
+  general: genProg,
+  current: curProg
+});
         
         // Safe advanced progress calculation
         const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}');
