@@ -74,7 +74,34 @@ useEffect(() => {
               try {
                 const parsed = JSON.parse(data);
                 const keys = Object.keys(parsed).length;
-                dimProgress.push(keys === 0 ? 0 : Math.min(95, Math.round((keys / 25) * 100)));
+            // Safe dimension progress calculation
+            const dimProgress = [];
+            for (let i = 1; i <= 13; i++) {
+              const complete = localStorage.getItem(`dimension${i}_complete`) === 'true';
+              if (complete) {
+                dimProgress.push(100);
+              } else {
+                const data = localStorage.getItem(`dimension${i}_data`);
+                if (!data) {
+                  dimProgress.push(0);
+                } else {
+                  try {
+                    const parsed = JSON.parse(data);
+                    const keys = Object.keys(parsed).length;
+                    // Just show 50% if there's any data, 95% if there's substantial data
+                    if (keys === 0) {
+                      dimProgress.push(0);
+                    } else if (keys < 3) {
+                      dimProgress.push(50);
+                    } else {
+                      dimProgress.push(95);
+                    }
+                  } catch {
+                    dimProgress.push(0);
+                  }
+                }
+              }
+            }
               } catch {
                 dimProgress.push(0);
               }
