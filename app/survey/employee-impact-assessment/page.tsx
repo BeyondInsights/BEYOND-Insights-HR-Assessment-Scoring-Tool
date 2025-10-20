@@ -333,7 +333,7 @@ export default function EmployeeImpactPage() {
  <h2 className="text-2xl font-bold text-gray-900 mb-6">ROI Measurement</h2>
  
  <p className="font-bold text-gray-900 mb-6">
- Have you <span className="text-purple-600">measured the ROI</span> of your workplace support programs for <span className="text-purple-600">employees managing cancer or other serious health conditions</span>?
+  Has your organization <span className="text-purple-600">conducted a return on investment (ROI) analysis</span> for its workplace support programs for <span className="text-purple-600">employees managing cancer or other serious health conditions</span>?
  </p>
  
  <div className="space-y-3">
