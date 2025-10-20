@@ -233,11 +233,11 @@ export default function DashboardPage() {
     }
   }
   
-  calculateProgress();
-  
   const handleFocus = () => {
     calculateProgress();
-  };
+  }
+  
+  calculateProgress();
   window.addEventListener("focus", handleFocus);
   
   return () => window.removeEventListener("focus", handleFocus);
