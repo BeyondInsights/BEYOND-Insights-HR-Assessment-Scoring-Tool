@@ -255,62 +255,157 @@ export default function PrintSurveyPage() {
           </div>
         </div>
 
-        {/* Survey Sections */}
-        <div className="space-y-6">
-          {/* Firmographics */}
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden print:shadow-none print:border print:border-gray-300">
-            <button
-              onClick={() => toggleSection('firmographics')}
-              className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white flex justify-between items-center print:hidden"
-            >
-              <span className="text-lg font-semibold">Section 1: Company & Contact Information</span>
-              <svg className={`w-5 h-5 transform transition-transform ${expandedSections['firmographics'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white">
-              <span className="text-lg font-semibold">Section 1: Company & Contact Information</span>
-            </div>
-            {(expandedSections['firmographics'] || false) && (
-              <div className="p-6 print:block">
-                {Object.entries(firmographicsSchema).map(([key, field]) => (
-                  <div key={key}>{renderField(key, field)}</div>
-                ))}
-              </div>
-            )}
-          </div>
+{/* Survey Sections */}
+<div className="space-y-6">
+  {/* Firmographics */}
+  <div className="bg-white rounded-xl shadow-sm overflow-hidden print:shadow-none print:border print:border-gray-300">
+    <button
+      onClick={() => toggleSection('firmographics')}
+      className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white flex justify-between items-center print:hidden"
+    >
+      <span className="text-lg font-semibold">Section 1: Company & Contact Information</span>
+      <svg className={`w-5 h-5 transform transition-transform ${expandedSections['firmographics'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white">
+      <span className="text-lg font-semibold">Section 1: Company & Contact Information</span>
+    </div>
+    {(expandedSections['firmographics'] || false) && (
+      <div className="p-6 print:block">
+        {Object.entries(firmographicsSchema).map(([key, field]) => (
+          <div key={key}>{renderField(key, field)}</div>
+        ))}
+      </div>
+    )}
+  </div>
 
-          {/* 13 Dimensions */}
-          {ALL_DIMENSION_SCHEMAS.map((schema, idx) => (
-            <div key={idx} className="bg-white rounded-xl shadow-sm overflow-hidden print:shadow-none print:border print:border-gray-300 print:break-inside-avoid">
-              <button
-                onClick={() => toggleSection(`dim-${idx}`)}
-                className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex justify-between items-center print:hidden"
-              >
-                <span className="text-lg font-semibold">
-                  Dimension {idx + 1}: {DIMENSION_TITLES[idx + 1]}
-                </span>
-                <svg className={`w-5 h-5 transform transition-transform ${expandedSections[`dim-${idx}`] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-                <span className="text-lg font-semibold">
-                  Dimension {idx + 1}: {DIMENSION_TITLES[idx + 1]}
-                </span>
-              </div>
-              {(expandedSections[`dim-${idx}`] || false) && (
-                <div className="p-6 print:block">
-                  {Object.entries(schema).map(([key, field]) => (
-                    <div key={key}>{renderField(key, field)}</div>
-                  ))}
-                </div>
-              )}
-            </div>
+  {/* General Benefits */}
+  <div className="bg-white rounded-xl shadow-sm overflow-hidden print:shadow-none print:border print:border-gray-300">
+    <button
+      onClick={() => toggleSection('general')}
+      className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white flex justify-between items-center print:hidden"
+    >
+      <span className="text-lg font-semibold">Section 2: General Employee Benefits</span>
+      <svg className={`w-5 h-5 transform transition-transform ${expandedSections['general'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white">
+      <span className="text-lg font-semibold">Section 2: General Employee Benefits</span>
+    </div>
+    {(expandedSections['general'] || false) && (
+      <div className="p-6 print:block">
+        {Object.entries(generalBenefitsSchema).map(([key, field]) => (
+          <div key={key}>{renderField(key, field)}</div>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {/* Current Support */}
+  <div className="bg-white rounded-xl shadow-sm overflow-hidden print:shadow-none print:border print:border-gray-300">
+    <button
+      onClick={() => toggleSection('current')}
+      className="w-full px-6 py-4 bg-gradient-to-r from-pink-600 to-pink-700 text-white flex justify-between items-center print:hidden"
+    >
+      <span className="text-lg font-semibold">Section 3: Current Support for Serious Medical Conditions</span>
+      <svg className={`w-5 h-5 transform transition-transform ${expandedSections['current'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-pink-600 to-pink-700 text-white">
+      <span className="text-lg font-semibold">Section 3: Current Support for Serious Medical Conditions</span>
+    </div>
+    {(expandedSections['current'] || false) && (
+      <div className="p-6 print:block">
+        {Object.entries(currentSupportSchema).map(([key, field]) => (
+          <div key={key}>{renderField(key, field)}</div>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {/* 13 Dimensions */}
+  <div className="mb-2">
+    <h2 className="text-xl font-bold text-gray-900 px-6 py-3">Section 4: 13 Dimensions of Support</h2>
+  </div>
+  {ALL_DIMENSION_SCHEMAS.map((schema, idx) => (
+    <div key={idx} className="bg-white rounded-xl shadow-sm overflow-hidden print:shadow-none print:border print:border-gray-300 print:break-inside-avoid">
+      <button
+        onClick={() => toggleSection(`dim-${idx}`)}
+        className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex justify-between items-center print:hidden"
+      >
+        <span className="text-lg font-semibold">
+          Dimension {idx + 1}: {DIMENSION_TITLES[idx + 1]}
+        </span>
+        <svg className={`w-5 h-5 transform transition-transform ${expandedSections[`dim-${idx}`] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+        <span className="text-lg font-semibold">
+          Dimension {idx + 1}: {DIMENSION_TITLES[idx + 1]}
+        </span>
+      </div>
+      {(expandedSections[`dim-${idx}`] || false) && (
+        <div className="p-6 print:block">
+          {Object.entries(schema).map(([key, field]) => (
+            <div key={key}>{renderField(key, field)}</div>
           ))}
         </div>
-      </main>
+      )}
+    </div>
+  ))}
 
+  {/* Cross-Dimensional Assessment */}
+  <div className="bg-white rounded-xl shadow-sm overflow-hidden print:shadow-none print:border print:border-gray-300">
+    <button
+      onClick={() => toggleSection('cross')}
+      className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white flex justify-between items-center print:hidden"
+    >
+      <span className="text-lg font-semibold">Section 5: Cross-Dimensional Assessment</span>
+      <svg className={`w-5 h-5 transform transition-transform ${expandedSections['cross'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white">
+      <span className="text-lg font-semibold">Section 5: Cross-Dimensional Assessment</span>
+    </div>
+    {(expandedSections['cross'] || false) && (
+      <div className="p-6 print:block">
+        {Object.entries(crossDimensionalSchema).map(([key, field]) => (
+          <div key={key}>{renderField(key, field)}</div>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {/* Employee Impact Assessment */}
+  <div className="bg-white rounded-xl shadow-sm overflow-hidden print:shadow-none print:border print:border-gray-300">
+    <button
+      onClick={() => toggleSection('impact')}
+      className="w-full px-6 py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white flex justify-between items-center print:hidden"
+    >
+      <span className="text-lg font-semibold">Section 6: Employee Impact & ROI Assessment</span>
+      <svg className={`w-5 h-5 transform transition-transform ${expandedSections['impact'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
+      <span className="text-lg font-semibold">Section 6: Employee Impact & ROI Assessment</span>
+    </div>
+    {(expandedSections['impact'] || false) && (
+      <div className="p-6 print:block">
+        {Object.entries(employeeImpactSchema).map(([key, field]) => (
+          <div key={key}>{renderField(key, field)}</div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>      
+
+</main>
       <div className="print:hidden">
         <Footer />
       </div>
