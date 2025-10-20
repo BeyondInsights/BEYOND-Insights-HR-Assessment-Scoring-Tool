@@ -447,44 +447,9 @@ const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (be
           </div>
         )}
 
-        {/* Step 3: D10.1 (conditional) */}
-        {((step === 3 && showD10_1) || (step === 2 && !showD10aa && showD10_1)) && (
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Paid Caregiver Leave Details</h3>
-            
-            <p className="font-bold text-gray-900 mb-4">
-              How much <span className="text-blue-600">paid caregiver leave</span> beyond local / legal requirements does your organization offer?
-            </p>
-            <p className="text-sm text-gray-600 mb-4">
-              If your organization offers different lengths of leave in different locations, please select the length offered in the location that offers the MOST generous leave to employees.
-            </p>
-            
-            <div className="space-y-2">
-              {[
-                "Under 2 weeks",
-                "2-3 weeks",
-                "4-7 weeks",
-                "8-11 weeks",
-                "12 weeks or more"
-              ].map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setField("d10_1", opt)}
-                  className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d10_1 === opt
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Step 4: D10.b open-end */}
-        {step === 4 && (
+        {/* Step 3: D10.b open-end */}
+        {step === 3 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Benefits</h3>
             
@@ -515,8 +480,8 @@ const showD10_1 = ans.d10a?.["Paid caregiver leave with expanded eligibility (be
           </div>
         )}
 
-        {/* Step 5: Completion */}
-        {step === 5 && (
+        {/* Step 4: Completion */}
+        {step === 4 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
               <svg className="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
