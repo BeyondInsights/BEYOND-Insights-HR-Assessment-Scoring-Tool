@@ -114,11 +114,11 @@ export default function Dimension5Page() {
     (status) => status === "Currently offer"
   );
   
-  const showD5aa = isMultiCountry && hasAnyOffered;
+  const showD5.aa = isMultiCountry && hasAnyOffered;
 
   const getTotalSteps = () => {
     let total = 3; // intro, D5.a, D5.b
-    if (showD5aa) total++; // D5.aa
+    if (showD5.aa) total++; // D5.aa
     total++; // completion
     return total;
   };
@@ -132,7 +132,7 @@ export default function Dimension5Page() {
         return null;
       
       case 2:
-        if (showD5aa && !ans.d5aa) {
+        if (showD5.aa && !ans.D5.aa) {
           return "Please select one option";
         }
         return null;
@@ -153,7 +153,7 @@ export default function Dimension5Page() {
     }
 
     if (step === 1) {
-      if (showD5aa) {
+      if (showD5.aa) {
         setStep(2);
       } else {
         setStep(3);
@@ -175,7 +175,7 @@ export default function Dimension5Page() {
     if (step === 4) {
       setStep(3);
     } else if (step === 3) {
-      setStep(showD5aa ? 2 : 1);
+      setStep(showD5.aa ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
     } else if (step > 0) {
@@ -382,7 +382,7 @@ export default function Dimension5Page() {
           </div>
         )}
         
-        {step === 2 && showD5aa && (
+        {step === 2 && showD5.aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
@@ -400,9 +400,9 @@ export default function Dimension5Page() {
               ].map(opt => (
                 <button
                   key={opt}
-                  onClick={() => setField("d5aa", opt)}
+                  onClick={() => setField("D5.aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d5aa === opt
+                    ans.D5.aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
