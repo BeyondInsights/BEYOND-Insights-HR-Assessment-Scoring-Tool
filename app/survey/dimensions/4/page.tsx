@@ -145,7 +145,7 @@ export default function Dimension4Page() {
         return null;
       
       case 2:
-        if (showD4aa && !ans.D4.aa) {
+        if (showD4aa && !ans.D4aa) {
           return "Please select one option";
         }
         return null;
@@ -437,9 +437,9 @@ export default function Dimension4Page() {
               ].map(opt => (
                 <button
                   key={opt}
-                  onClick={() => setField("D4.aa", opt)}
+                  onClick={() => setField("D4aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.D4.aa === opt
+                    ans.D4aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
