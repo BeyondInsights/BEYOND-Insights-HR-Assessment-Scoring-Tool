@@ -277,7 +277,7 @@ const getTotalSteps = () => {
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-white mb-2">EXECUTIVE COMMITMENT & RESOURCES</h2>
                   <p className="text-gray-300 text-sm">
-                    Leadership engagement and resource allocation
+                    Visible executive engagement and resource allocation for employee workplace support programs
                   </p>
                 </div>
               </div>
