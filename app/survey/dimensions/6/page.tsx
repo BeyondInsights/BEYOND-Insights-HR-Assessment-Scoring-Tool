@@ -133,7 +133,7 @@ export default function Dimension6Page() {
 
   const getTotalSteps = () => {
     let total = 3; // intro, D6.a, D6.b
-    if (showD6aa) total++; // D6.aa
+    if (showD6aa) total++; // D6aa
     if (showD6_2) total++; // D6.2
     total++; // completion
     return total;
@@ -148,7 +148,7 @@ export default function Dimension6Page() {
         return null;
       
       case 2:
-        if (showD6aa && !ans.D6.aa) {
+        if (showD6aa && !ans.D6aa) {
           return "Please select one option";
         }
         return null;
@@ -430,9 +430,9 @@ export default function Dimension6Page() {
               ].map(opt => (
                 <button
                   key={opt}
-                  onClick={() => setField("D6.aa", opt)}
+                  onClick={() => setField("D6aa", opt)}
                   className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.D6.aa === opt
+                    ans.D6aa === opt
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
