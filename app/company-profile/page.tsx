@@ -392,8 +392,6 @@ const D10_QUESTIONS: Record<string, string> = {
   'd10b': 'Additional caregiver & family support',
   'd10b_none': 'No additional support',
   
-  // D10.1 - Paid Caregiver Leave Duration
-  'd10_1': 'Paid caregiver leave duration (beyond legal requirements)'
 };
 
 // ============================================
