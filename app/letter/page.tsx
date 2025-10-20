@@ -15,12 +15,12 @@ export default function LetterPage() {
       
       <main className="max-w-4xl mx-auto px-6 py-8 flex-1">
         <div className="bg-white rounded-xl shadow-lg">
-          {/* Header Banner */}
-          <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-t-xl px-8 py-6">
+          {/* Header Banner - Changed to orange */}
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-xl px-8 py-6">
             <h1 className="text-2xl md:text-3xl font-bold text-white text-center">
               Best Companies for Working with Cancer
             </h1>
-            <p className="text-purple-100 text-center mt-2">
+            <p className="text-orange-100 text-center mt-2">
               2026 Employer Index Assessment
             </p>
           </div>
@@ -54,6 +54,10 @@ export default function LetterPage() {
                     <span className="text-blue-600 mr-2 mt-1">✓</span>
                     <span>Eligibility consideration for the Best Companies recognition</span>
                   </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-600 mr-2 mt-1">✓</span>
+                    <span><strong>Recognition badge for use in marketing, recruitment, and communications</strong></span>
+                  </li>
                 </ul>
               </div>
 
@@ -76,23 +80,23 @@ export default function LetterPage() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-500 mr-2 mt-1">•</span>
-                    <span>The assessment covers programs across HR, Benefits, Leave Management, and DEI</span>
+                    <span>The assessment covers programs across HR, Benefits, Leave Management, and Wellness</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-orange-500 mr-2 mt-1">•</span>
+                    <span>You may need to confer with colleagues who can provide details on specific programs</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-500 mr-2 mt-1">•</span>
                     <span>You may pause and return at any time - all progress is automatically saved</span>
                   </li>
-                  <li className="flex items-start">
-                    <span className="text-orange-500 mr-2 mt-1">•</span>
-                    <span>Consider involving colleagues who can provide details on specific programs</span>
-                  </li>
                 </ul>
               </div>
 
               {/* Assessment Scope */}
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-                <p className="text-purple-900 font-semibold mb-2">Assessment Scope</p>
-                <p className="text-purple-800 text-sm">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                <p className="text-orange-900 font-semibold mb-2">Assessment Scope</p>
+                <p className="text-orange-800 text-sm">
                   You'll be evaluating support across 13 dimensions including medical leave, insurance coverage, manager preparedness, workplace accommodations, caregiver support, and more. The assessment focuses on programs available to employees with cancer, serious illnesses, and chronic conditions requiring ongoing care.
                 </p>
               </div>
@@ -124,13 +128,13 @@ export default function LetterPage() {
               </div>
 
               {/* Ready to Begin */}
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
+              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-6 border border-orange-200">
                 <label className="flex items-start cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={ready}
                     onChange={(e) => setReady(e.target.checked)}
-                    className="mt-1 mr-3 h-5 w-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
+                    className="mt-1 mr-3 h-5 w-5 text-orange-600 rounded focus:ring-orange-500 cursor-pointer"
                   />
                   <span className="text-gray-700 group-hover:text-gray-900 select-none">
                     I understand this assessment will evaluate our current support programs and am ready to proceed
@@ -145,7 +149,7 @@ export default function LetterPage() {
                   disabled={!ready}
                   className={`px-12 py-4 rounded-lg font-bold text-lg transition-all transform ${
                     ready
-                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 hover:shadow-lg hover:-translate-y-0.5'
+                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-lg hover:-translate-y-0.5'
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
