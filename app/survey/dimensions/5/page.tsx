@@ -119,11 +119,11 @@ export default function Dimension5Page() {
     (status) => status === "Currently offer"
   );
   
-  const showD5aa = isMultiCountry && hasAnyOffered;
+  const showd5aa = isMultiCountry && hasAnyOffered;
 
   const getTotalSteps = () => {
     let total = 3; // intro, D5.a, D5.b
-    if (showD5aa) total++; // D5aa
+    if (showd5aa) total++; // d5aa
     total++; // completion
     return total;
   };
@@ -137,7 +137,7 @@ export default function Dimension5Page() {
         return null;
       
       case 2:
-        if (showD5aa && !ans.D5aa) {
+        if (showd5aa && !ans.d5aa) {
           return "Please select one option";
         }
         return null;
@@ -158,7 +158,7 @@ export default function Dimension5Page() {
     }
 
     if (step === 1) {
-      if (showD5aa) {
+      if (showd5aa) {
         setStep(2);
       } else {
         setStep(3);
@@ -180,7 +180,7 @@ export default function Dimension5Page() {
     if (step === 4) {
       setStep(3);
     } else if (step === 3) {
-      setStep(showD5aa ? 2 : 1);
+      setStep(showd5aa ? 2 : 1);
     } else if (step === 2) {
       setStep(1);
     } else if (step > 0) {
@@ -233,23 +233,23 @@ export default function Dimension5Page() {
                 <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
                 <ul className="space-y-3 text-gray-700">
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>You'll see different support options associated with this dimension, one at a time</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Indicate the current status of each option within your organization</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>After selecting a response, it will automatically advance to the next option</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Use the navigation dots or arrows to review or change any response</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">â€¢</span>
+                    <span className="text-blue-600 mr-2 mt-1">•</span>
                     <span>Once all support options are evaluated, the Continue button will appear</span>
                   </li>
                 </ul>
@@ -367,7 +367,7 @@ export default function Dimension5Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  â† View previous option
+                  ← View previous option
                 </button>
 
                 {Object.keys(ans.d5a || {}).length === D5A_ITEMS.length && !isTransitioning && (
@@ -375,7 +375,7 @@ export default function Dimension5Page() {
                     onClick={next}
                     className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
                   >
-                    Continue â†’
+                    Continue ←’
                   </button>
                 )}
               </div>
@@ -383,7 +383,7 @@ export default function Dimension5Page() {
           </div>
         )}
         
-        {step === 2 && showD5aa && (
+        {step === 2 && showd5aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
@@ -466,7 +466,7 @@ export default function Dimension5Page() {
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Save & Return to Dashboard â†’
+              Save & Return to Dashboard ←’
             </button>
           </div>
         )}
@@ -477,13 +477,13 @@ export default function Dimension5Page() {
               onClick={back} 
               className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
             >
-              â† Back
+              ← Back
             </button>
             <button 
               onClick={next} 
               className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
-              Continue â†’
+              Continue ←’
             </button>
           </div>
         )}
