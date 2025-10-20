@@ -18,7 +18,7 @@ export default function LetterPage() {
           {/* Header Banner */}
           <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-t-xl px-8 py-6">
             <h1 className="text-2xl md:text-3xl font-bold text-white text-center">
-              Welcome to the Best Companies for Working with Cancer Initiative
+              Best Companies for Working with Cancer
             </h1>
             <p className="text-purple-100 text-center mt-2">
               2026 Employer Index Assessment
@@ -29,78 +29,101 @@ export default function LetterPage() {
             {/* Letter Content */}
             <div className="prose max-w-none">
               <p className="text-lg leading-relaxed mb-6">
-                On behalf of Cancer and Careers, I want to personally thank you for participating in this comprehensive study examining workplace benefits and programs for <strong>employees managing cancer and other serious health conditions</strong>.
+                Thank you for taking this important step to evaluate your organization's support for <strong>employees managing cancer and other serious health conditions</strong>.
               </p>
 
               <div className="bg-blue-50 border-l-4 border-blue-600 p-6 my-6">
-                <p className="text-blue-900 font-semibold mb-2">Your Role in Shaping the Future</p>
+                <p className="text-blue-900 font-semibold mb-2">What This Assessment Provides</p>
                 <p className="text-blue-800">
-                  As a participating organization, you are playing a vital role in shaping the future of workplace support for employees. Your input will help establish our <strong>Best Companies for Working with Cancer Index</strong>—a groundbreaking annual recognition that identifies employers who demonstrate excellence in supporting team members through critical health challenges.
+                  This comprehensive assessment will evaluate your current programs across 13 key dimensions of workplace support. Upon completion, you'll receive:
                 </p>
-              </div>
-
-              <p className="mb-6">
-                We know your time is valuable, and we've designed this assessment to be as efficient as possible while capturing the depth of information needed to create meaningful standards.
-              </p>
-
-              {/* Helpful Tips */}
-              <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                <h3 className="font-bold text-gray-900 mb-4 flex items-center">
-                  <svg className="w-5 h-5 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Helpful Tips Before You Begin
-                </h3>
-                <ul className="space-y-3 text-gray-700">
+                <ul className="mt-3 space-y-2 text-blue-800">
                   <li className="flex items-start">
-                    <span className="text-orange-500 mr-2 mt-1">•</span>
-                    <span>Please have your organization's current benefits documentation readily available for reference</span>
+                    <span className="text-blue-600 mr-2 mt-1">✓</span>
+                    <span>A detailed analysis of your organization's current support offerings</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-orange-500 mr-2 mt-1">•</span>
-                    <span>This assessment should be completed by someone directly involved in your organization's benefits policies and programs, or someone authorized to provide this information</span>
+                    <span className="text-blue-600 mr-2 mt-1">✓</span>
+                    <span>Insights into how your programs align with best practices</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-orange-500 mr-2 mt-1">•</span>
-                    <span>You may need to consult with colleagues from Benefits, Compensation, or other HR functions to provide complete responses</span>
+                    <span className="text-blue-600 mr-2 mt-1">✓</span>
+                    <span>Opportunities to enhance your support for employees facing health challenges</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-orange-500 mr-2 mt-1">•</span>
-                    <span>Your progress will be saved automatically, and you can return to complete unfinished sections before submitting</span>
+                    <span className="text-blue-600 mr-2 mt-1">✓</span>
+                    <span>Eligibility consideration for the Best Companies recognition</span>
                   </li>
                 </ul>
               </div>
 
-              {/* Time Estimate */}
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-                <p className="text-orange-900">
-                  <strong>Estimated completion time:</strong> 20-25 minutes (plus additional time as needed to collect/confirm requested information)
-                </p>
-              </div>
-
-              {/* Privacy Notice */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8">
-                <p className="text-green-900 text-sm">
-                  <strong>Privacy & Confidentiality:</strong> All responses are collected and analyzed exclusively by BEYOND Insights, an independent research company. No individual responses will be shared publicly or with any Working with Cancer Initiative members.
-                </p>
-              </div>
-
               <p className="mb-6">
-                Thank you again for your leadership in creating better workplaces for employees managing cancer and other serious health conditions.
+                Organizations that meet the criteria will be recognized in the inaugural Best Companies for Working with Cancer Index and will have the opportunity to work with Cancer and Careers to further strengthen their support programs.
               </p>
+
+              {/* Before You Begin */}
+              <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                <h3 className="font-bold text-gray-900 mb-4 flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Before You Begin
+                </h3>
+                <ul className="space-y-3 text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-orange-500 mr-2 mt-1">•</span>
+                    <span>Have your benefits documentation and policy materials readily available</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-orange-500 mr-2 mt-1">•</span>
+                    <span>The assessment covers programs across HR, Benefits, Leave Management, and DEI</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-orange-500 mr-2 mt-1">•</span>
+                    <span>You may pause and return at any time - all progress is automatically saved</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-orange-500 mr-2 mt-1">•</span>
+                    <span>Consider involving colleagues who can provide details on specific programs</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Assessment Scope */}
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+                <p className="text-purple-900 font-semibold mb-2">Assessment Scope</p>
+                <p className="text-purple-800 text-sm">
+                  You'll be evaluating support across 13 dimensions including medical leave, insurance coverage, manager preparedness, workplace accommodations, caregiver support, and more. The assessment focuses on programs available to employees with cancer, serious illnesses, and chronic conditions requiring ongoing care.
+                </p>
+              </div>
+
+              {/* Time & Privacy */}
+              <div className="grid md:grid-cols-2 gap-4 mb-8">
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <p className="text-orange-900">
+                    <strong>Time Required:</strong><br/>
+                    20-25 minutes to complete
+                  </p>
+                </div>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-green-900">
+                    <strong>Confidentiality:</strong><br/>
+                    Individual responses remain private
+                  </p>
+                </div>
+              </div>
 
               {/* Signature */}
               <div className="mb-8">
-                <p className="mb-2">With gratitude,</p>
+                <p className="mb-2">Best regards,</p>
                 <div className="ml-4">
                   <p className="font-bold text-lg">Rebecca V. Nellis</p>
                   <p className="text-gray-600">Chief Mission Officer</p>
                   <p className="text-gray-600">Cancer and Careers</p>
-                  <p className="text-sm text-gray-500 mt-2">CAC • CEW Foundation</p>
                 </div>
               </div>
 
-              {/* Agreement Checkbox */}
+              {/* Ready to Begin */}
               <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
                 <label className="flex items-start cursor-pointer group">
                   <input
@@ -110,7 +133,7 @@ export default function LetterPage() {
                     className="mt-1 mr-3 h-5 w-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
                   />
                   <span className="text-gray-700 group-hover:text-gray-900 select-none">
-                    I have read this welcome message, understand the assessment requirements, and am ready to begin
+                    I understand this assessment will evaluate our current support programs and am ready to proceed
                   </span>
                 </label>
               </div>
@@ -126,16 +149,11 @@ export default function LetterPage() {
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  {ready ? 'Begin Assessment →' : 'Please acknowledge above to continue'}
+                  {ready ? 'Begin Assessment →' : 'Please acknowledge to continue'}
                 </button>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Footer Note */}
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} Cancer and Careers • Best Companies for Working with Cancer Initiative</p>
         </div>
       </main>
       
