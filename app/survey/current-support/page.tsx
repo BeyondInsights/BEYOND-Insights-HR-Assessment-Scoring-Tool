@@ -537,7 +537,7 @@ const OR1_OPTIONS = [
  <p className="text-base font-bold text-gray-900 mb-1">
  And, how {ans.cb3a === "Yes, we offer additional support beyond legal requirements" ? "were" : "will"} the workplace support programs for <span className="text-blue-600">employees managing cancer or other serious health conditions</span> (be) primarily <span className="underline">developed</span>?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-fr">
  {CB3D_OPTIONS.map(opt => {
