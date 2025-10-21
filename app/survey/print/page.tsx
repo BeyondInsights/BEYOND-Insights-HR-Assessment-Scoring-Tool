@@ -365,48 +365,27 @@ export default function PrintPage() {
 
       <main className="max-w-5xl mx-auto px-4 py-6">
         {/* Action Bar - Screen Only */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5 mb-5 print:hidden">
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 print:hidden">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Survey Print Preview</h1>
               <p className="text-sm text-gray-600">Review and download the complete survey questionnaire</p>
             </div>
-            <div className="flex gap-2">
-              <button onClick={expandAll} className="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
-                Expand All
-              </button>
-              <button onClick={collapseAll} className="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
-                Collapse All
-              </button>
-            </div>
-          </div>
-          
-          <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-4">
-            <div className="flex gap-3">
-              <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div className="text-sm text-blue-800">
-                Click "Download" to save as HTML file.
-                All sections will be automatically expanded.
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex gap-3">
-            <button onClick={handleDownload} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 flex items-center justify-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-              </svg>
-              Download Survey
-            </button>
-            
-            <button onClick={() => window.location.href = '/dashboard'} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded font-medium hover:bg-gray-50">
-              ← Back to Dashboard
-            </button>
-          </div>
-        </div>
-
+      <div className="flex gap-2">
+        <button onClick={expandAll} className="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+          Expand All
+        </button>
+        <button onClick={collapseAll} className="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+          Collapse All
+        </button>
+        <button onClick={handleDownload} className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+          </svg>
+          Download Survey
+        </button>
+      </div>
+      
         {/* Survey Sections */}
         <div className="space-y-3">
           {/* Section 1: Firmographics */}
