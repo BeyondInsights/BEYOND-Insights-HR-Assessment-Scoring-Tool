@@ -66,22 +66,24 @@ export default function Header() {
             />
           </div>
 
-          {/* Right: CAC logo + Print/Download */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onPrintPage ? triggerPrint : goPrintView}
-              className="flex items-center gap-2 bg-slate-800 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-slate-900 transition text-sm"
-              title={onPrintPage ? 'Print or save as PDF' : 'Open printable full survey'}
-            >
-              <Download className="w-4 h-4" />
-              {onPrintPage ? 'Print / Save PDF' : 'Review / Download Survey'}
-            </button>
-            <img
-              src="/cancer-careers-logo.png"
-              alt="Cancer and Careers Logo"
-              className="h-10 sm:h-14 lg:h-16 w-auto"
-            />
-          </div>
+   {/* Right: CAC logo + Print/Download */}
+<div className="flex items-center gap-3">
+  {!onPrintPage && (
+    <button
+      onClick={goPrintView}
+      className="flex items-center gap-2 bg-slate-800 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-slate-900 transition text-sm"
+      title="Open printable full survey"
+    >
+      <Download className="w-4 h-4" />
+      Review / Download Survey
+    </button>
+  )}
+  <img
+    src="/cancer-careers-logo.png"
+    alt="Cancer and Careers Logo"
+    className="h-10 sm:h-14 lg:h-16 w-auto"
+  />
+</div>
         </div>
       </div>
       <div className="h-2 bg-orange-600" />
