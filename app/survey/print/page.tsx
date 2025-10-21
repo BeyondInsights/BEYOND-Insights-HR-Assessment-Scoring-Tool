@@ -248,66 +248,38 @@ export default function PrintSurveyPage() {
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         {/* Action Bar */}
-        <div className="mb-8 bg-white rounded-xl shadow-sm p-6 print:hidden">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Survey Print Preview</h1>
-            <div className="flex gap-2">
-              <button onClick={expandAll} className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
-                Expand All
-              </button>
-              <button onClick={collapseAll} className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
-                Collapse All
-              </button>
-            </div>
-          </div>
-          
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-blue-900 font-medium mb-2">📄 Download Options:</p>
-            <p className="text-xs text-blue-800">
-              Click any button below to open the print dialog, then select "Save as PDF" to download.
-              Your browser's print preview shows exactly how the PDF will look.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-4">
-            <button 
-              onClick={handleDownloadCompanyProfile} 
-              className="px-6 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 shadow-sm transition-all"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-              </svg>
-              <div className="text-left">
-                <div className="font-semibold">Download Company Profile PDF</div>
-                <div className="text-xs text-purple-100">Sections 1-3 only</div>
-              </div>
-            </button>
-            
-            <button 
-              onClick={handleDownloadFullSurvey} 
-              className="px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 shadow-sm transition-all"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-              </svg>
-              <div className="text-left">
-                <div className="font-semibold">Download Full Survey PDF</div>
-                <div className="text-xs text-blue-100">All sections included</div>
-              </div>
-            </button>
-          </div>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+  <p className="text-sm text-blue-900 font-medium mb-2">📄 Download or Print Options:</p>
+  <p className="text-xs text-blue-800">
+    Click any button to open print dialog, then select "Save as PDF" to download.
+  </p>
+</div>
 
-          <div className="flex gap-4 mt-4">
-            <button onClick={handlePrint} className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 shadow-sm">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Print to Printer
-            </button>
-            <button onClick={() => window.location.href = '/dashboard'} className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-              Back to Dashboard
-            </button>
-          </div>
+<div className="flex gap-4">
+  <button 
+    onClick={handlePrint} 
+    className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 shadow-sm"
+  >
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+    </svg>
+    Download Full Survey PDF
+  </button>
+  
+  <button 
+    onClick={handlePrint} 
+    className="px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+  >
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+    </svg>
+    Print to Printer
+  </button>
+  
+  <button onClick={() => window.location.href = '/dashboard'} className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+    Back to Dashboard
+  </button>
+</div>
         </div>
 
         {/* Survey Sections */}
