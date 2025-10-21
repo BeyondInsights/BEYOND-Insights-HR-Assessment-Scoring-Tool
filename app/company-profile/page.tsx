@@ -894,7 +894,7 @@ function downloadHTML(data: any) {
     <div class="header">
       <div style="text-align: center; margin-bottom: 1.5rem;">
         <div style="color: #7a34a3; font-weight: 800; font-size: 1.5rem;">
-          BEST COMPANIES 2026 • Company Profile & Survey Summary • CANCER AND CAREERS
+          • Company Profile & Assessment Survey Summary •
         </div>
       </div>
       <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">${data.companyName}</h1>
