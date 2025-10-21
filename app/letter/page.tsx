@@ -169,7 +169,7 @@ export default function LetterPage() {
               {/* Begin Button */}
               <div className="mt-8 text-center">
                 <button
-                  onClick={() => ready && router.push('/survey/authorization')}
+                  onClick={() => ready && router.push('/authorization')}
                   disabled={!ready}
                   className={`px-12 py-4 rounded-lg font-bold text-lg transition-all transform ${
                     ready
