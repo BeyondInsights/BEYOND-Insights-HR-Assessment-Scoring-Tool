@@ -801,7 +801,7 @@ export default function FirmographicsPage() {
  Which employee groups are typically{" "}
  <span className="text-blue-600">EXCLUDED</span> from workplace support benefits?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
  {C4_EXCLUDED.map(opt => {
