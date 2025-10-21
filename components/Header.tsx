@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
 import { useRouter, usePathname } from 'next/navigation'
-import { RotateCcw, FileText, Printer } from 'lucide-react'
+import { RotateCcw, FileText, Download } from 'lucide-react'
 
 export default function Header() {
   const router = useRouter()
@@ -36,7 +36,6 @@ export default function Header() {
               <RotateCcw className="w-4 h-4" />
               Reset
             </button>
-
             <button
               onClick={() => router.push('/company-profile')}
               className="flex items-center gap-2 bg-purple-700 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-purple-800 transition text-sm"
@@ -45,7 +44,6 @@ export default function Header() {
               <FileText className="w-4 h-4" />
               Review Your Company Profile
             </button>
-
             {showBack ? (
               <button
                 onClick={() => router.push('/dashboard')}
@@ -75,10 +73,9 @@ export default function Header() {
               className="flex items-center gap-2 bg-slate-800 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-slate-900 transition text-sm"
               title={onPrintPage ? 'Print or save as PDF' : 'Open printable full survey'}
             >
-              <Printer className="w-4 h-4" />
+              <Download className="w-4 h-4" />
               {onPrintPage ? 'Print / Save PDF' : 'Review / Download Full Survey'}
             </button>
-
             <img
               src="/cancer-careers-logo.png"
               alt="Cancer and Careers Logo"
