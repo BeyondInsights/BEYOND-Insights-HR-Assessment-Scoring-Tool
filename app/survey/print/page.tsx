@@ -99,8 +99,44 @@ export default function PrintPage() {
   const handleDownload = () => {
     expandAll()
     setTimeout(() => {
-      const htmlContent = document.documentElement.outerHTML
-      const blob = new Blob([htmlContent], { type: 'text/html' })
+      // Clone the document and clean it up
+      const printContent = document.querySelector('main')?.cloneNode(true) as HTMLElement
+      if (!printContent) return
+      
+      // Remove all print:hidden elements
+      printContent.querySelectorAll('.print\\:hidden').forEach(el => el.remove())
+      printContent.querySelectorAll('button').forEach(el => el.remove())
+      
+      // Create clean HTML document
+      const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survey - ${companyName}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @page { size: letter; margin: 0.5in; }
+    @media print {
+      .no-print { display: none !important; }
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
+  </style>
+</head>
+<body class="bg-white">
+  <div class="max-w-5xl mx-auto p-8">
+    <div class="text-center mb-6 pb-4 border-b border-gray-300">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Best Companies for Working with Cancer</h1>
+      <p class="text-base text-gray-600">2026 Employer Index Survey</p>
+      <p class="text-sm text-gray-500 mt-2">${companyName} • ${currentDate}</p>
+    </div>
+    ${printContent.innerHTML}
+  </div>
+</body>
+</html>`
+      
+      // Trigger download
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -444,44 +480,43 @@ export default function PrintPage() {
             )}
           </div>
 
-          {/* Section 4 Header */}
+          {/* Section 4 Header - NO NUMBER */}
           <div className="bg-gray-50 rounded-lg p-3 border-l-4 border-blue-500">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-white rounded flex items-center justify-center font-bold text-blue-600 text-sm border border-blue-200">4</div>
-              <h2 className="text-lg font-bold text-gray-900">13 Dimensions of Support</h2>
-            </div>
+            <h2 className="text-lg font-bold text-gray-900">13 Dimensions of Support</h2>
           </div>
 
-          {/* 13 Dimensions */}
-          {ALL_DIMENSION_SCHEMAS.map((schema, idx) => (
-            <div key={idx} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <button
-                onClick={() => toggleSection(`dim-${idx}`)}
-                className="w-full p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer print:hidden border-l-4 border-blue-500"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center font-semibold text-blue-600 text-sm">{idx + 1}</div>
-                  <span className="text-base font-semibold text-gray-800">{DIMENSION_TITLES[idx + 1]}</span>
+          {/* 13 Dimensions - INDENTED */}
+          <div className="ml-4">
+            {ALL_DIMENSION_SCHEMAS.map((schema, idx) => (
+              <div key={idx} className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-2">
+                <button
+                  onClick={() => toggleSection(`dim-${idx}`)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer print:hidden border-l-4 border-blue-500"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center font-semibold text-blue-600 text-sm">{idx + 1}</div>
+                    <span className="text-base font-semibold text-gray-800">{DIMENSION_TITLES[idx + 1]}</span>
+                  </div>
+                  <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections[`dim-${idx}`] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className="hidden print:block p-4 border-l-4 border-blue-500 bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center font-semibold text-blue-600 text-sm">{idx + 1}</div>
+                    <span className="text-base font-semibold text-gray-800">{DIMENSION_TITLES[idx + 1]}</span>
+                  </div>
                 </div>
-                <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections[`dim-${idx}`] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div className="hidden print:block p-4 border-l-4 border-blue-500 bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center font-semibold text-blue-600 text-sm">{idx + 1}</div>
-                  <span className="text-base font-semibold text-gray-800">{DIMENSION_TITLES[idx + 1]}</span>
-                </div>
+                {(expandedSections[`dim-${idx}`] || false) && (
+                  <div className="p-5 bg-white border-t border-gray-200">
+                    {Object.entries(schema).map(([key, field]) => (
+                      <div key={key}>{renderField(key, field)}</div>
+                    ))}
+                  </div>
+                )}
               </div>
-              {(expandedSections[`dim-${idx}`] || false) && (
-                <div className="p-5 bg-white border-t border-gray-200">
-                  {Object.entries(schema).map(([key, field]) => (
-                    <div key={key}>{renderField(key, field)}</div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
 
           {/* Section 5: Cross-Dimensional */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
