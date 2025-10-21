@@ -290,14 +290,19 @@ export default function PrintPage() {
         )
 
       case 'grid':
-        // Use exact options from schema - dimension grids need order reversed
+        // Use exact options from schema
         let gridOptions = field.statusOptions || field.responseOptions || field.scale || []
         const gridItems = field.programs || field.items || field.elements || []
         
-        // For dimension grids, the scale should start with "Not able to offer" on the LEFT
-        // The schemas have them backwards, so reverse them for dimensions
-        if (field.scale && field.scale[0] && field.scale[0].includes('Currently')) {
-          // This is a dimension grid, reverse the order
+        // Check if this is a dimension grid by looking for typical dimension scale options
+        const isDimensionGrid = gridOptions.some(opt => 
+          opt.includes('Not able to offer') || 
+          opt.includes('Currently offer') ||
+          opt.includes('Assessing feasibility')
+        )
+        
+        // If it's a dimension grid and the order is wrong (Currently offer is first), reverse it
+        if (isDimensionGrid && gridOptions[0] && gridOptions[0].includes('Currently')) {
           gridOptions = [...gridOptions].reverse()
         }
         
@@ -396,15 +401,8 @@ export default function PrintPage() {
               Download Survey
             </button>
             
-            <button onClick={handlePrint} className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded font-medium hover:bg-gray-50 flex items-center justify-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Print to Printer
-            </button>
-            
             <button onClick={() => window.location.href = '/dashboard'} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded font-medium hover:bg-gray-50">
-              ← Back
+              ← Back to Dashboard
             </button>
           </div>
         </div>
