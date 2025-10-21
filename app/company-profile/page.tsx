@@ -49,44 +49,40 @@ const DIM_TITLE: Record<number, string> = {
 
 /* =========================
    ALL RESPONSE OPTIONS (for support matrix)
+   CORRECTED ORDER: Not able -> Currently
 ========================= */
 const RESPONSE_OPTIONS = [
-  'Currently offer',
-  'In active planning / development',
+  'Not able to offer in foreseeable future',
   'Assessing feasibility',
-  'Not able to offer in foreseeable future'
+  'In active planning / development',
+  'Currently offer'
 ];
 
 const RESPONSE_OPTIONS_D3 = [
-  'Currently provide to managers',
-  'In active planning / development',
+  'Not able to provide in foreseeable future',
   'Assessing feasibility',
-  'Not able to provide in foreseeable future'
+  'In active planning / development',
+  'Currently provide to managers'
 ];
 
 const RESPONSE_OPTIONS_D12 = [
-  'Currently measure / track',
-  'In active planning / development',
+  'Not able to measure / track in foreseeable future',
   'Assessing feasibility',
-  'Not able to measure / track in foreseeable future'
+  'In active planning / development',
+  'Currently measure / track'
 ];
 
 const RESPONSE_OPTIONS_D13 = [
-  'Currently use',
-  'In active planning / development',
-  'Assessing feasibility',
   'Not able to utilize in foreseeable future',
+  'Assessing feasibility',
+  'In active planning / development',
+  'Currently use',
   'Unsure'
 ];
 
 /* =========================
    COMPLETE QUESTION MAPS
 ========================= */
-
-// ============================================
-// COMPLETE DIMENSION LABEL MAPPINGS - D1 THROUGH D13
-// Replace the entire section from D1_QUESTIONS through D13_QUESTIONS
-// ============================================
 
 // ============================================
 // DIMENSION 1: MEDICAL LEAVE & FLEXIBILITY
@@ -528,8 +524,8 @@ const FIELD_LABELS: Record<string, string> = {
   or6: 'How Organization Monitors Program Effectiveness While Maintaining Privacy',
   or6_other: 'Other Monitoring Approach Details',
   
-  cd1a: 'Top 3 Dimensions for Best Outcomes',
-  cd1b: 'Bottom 3 Dimensions (Lowest Priority)',
+  cd1a: 'Top 3 Priority Dimensions',
+  cd1b: 'Bottom 3 Priority Dimensions',
   cd2: 'Biggest Implementation Challenges',
   cd2_other: 'Other Implementation Challenges',
   
@@ -709,10 +705,389 @@ function parseDimensionData(
   
   return { programs, items };
 }
+
+/* =========================
+   DOWNLOAD HTML FUNCTION
+========================= */
+function downloadHTML(data: any) {
+  // Generate all the HTML content
+  let dimensionsHTML = '';
+  
+  data.dimensions.forEach((dim: any) => {
+    const { programs, items } = parseDimensionData(dim.number, dim.data);
+    if (programs.length === 0 && items.length === 0) return;
+    
+    // Determine which options to use based on dimension
+    let options;
+    if (dim.number === 13) {
+      options = RESPONSE_OPTIONS_D13;
+    } else if (dim.number === 12) {
+      options = RESPONSE_OPTIONS_D12;
+    } else if (dim.number === 3) {
+      options = RESPONSE_OPTIONS_D3;
+    } else if (dim.number === 1) {
+      options = [...RESPONSE_OPTIONS, 'Unsure'];
+    } else {
+      options = RESPONSE_OPTIONS;
+    }
+    
+    // Group programs by status
+    const byStatus: Record<string, Array<string>> = {};
+    options.forEach(opt => (byStatus[opt] = []));
+    
+    programs.forEach(({ program, status }) => {
+      const normalized = normalizeStatus(String(status));
+      if (!byStatus[normalized]) byStatus[normalized] = [];
+      byStatus[normalized].push(program);
+    });
+    
+    const totalPrograms = programs.length;
+    const activeStatuses = dim.number === 3 ? ['Currently provide to managers'] :
+                          dim.number === 12 ? ['Currently measure / track'] :
+                          dim.number === 13 ? ['Currently use'] :
+                          ['Currently offer'];
+    
+    const offeredCount = activeStatuses.reduce((sum, status) => sum + (byStatus[status]?.length || 0), 0);
+    const coverage = totalPrograms > 0 ? Math.round((offeredCount / totalPrograms) * 100) : 0;
+    
+    dimensionsHTML += `
+      <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid ${DIM_COLORS[dim.number - 1]};">
+        <div style="padding: 1rem; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 1rem;">
+          <div style="width: 2rem; height: 2rem; border-radius: 50%; background: ${DIM_COLORS[dim.number - 1]}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem;">
+            ${dim.number}
+          </div>
+          <div>
+            <div style="font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">
+              Dimension ${dim.number}
+            </div>
+            <div style="font-weight: 700; color: #0f172a;">
+              ${DIM_TITLE[dim.number]}
+            </div>
+          </div>
+        </div>
+        <div style="padding: 1.25rem;">
+          ${programs.length > 0 ? `
+            <div style="margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #ea580c;">
+                  Support Programs Status
+                </div>
+                <div style="font-size: 0.75rem; font-weight: 600; background: #f3f4f6; color: #475569; padding: 0.25rem 0.5rem; border-radius: 4px;">
+                  ${offeredCount} of ${totalPrograms} active (${coverage}%)
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(${Math.min(options.length, 4)}, 1fr); gap: 0.5rem;">
+                ${options.map(option => {
+                  const count = byStatus[option]?.length || 0;
+                  const borderColor = option.toLowerCase().includes('currently') ? '#10B981' : 
+                                     option.toLowerCase().includes('planning') ? '#3B82F6' :
+                                     option.toLowerCase().includes('assessing') ? '#F59E0B' : 
+                                     option.toLowerCase().includes('unsure') ? '#9CA3AF' :
+                                     '#cbd5e1';
+                  return `
+                    <div style="background: #f9fafb; border-left: 4px solid ${borderColor}; padding: 0.5rem; border-radius: 4px;">
+                      <div style="font-size: 0.625rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">
+                        ${option} (${count})
+                      </div>
+                      ${count > 0 ? 
+                        byStatus[option].map(prog => `<div style="font-size: 0.75rem; padding: 0.125rem 0;">• ${prog}</div>`).join('') :
+                        '<div style="font-size: 0.75rem; font-style: italic; color: #94a3b8;">None</div>'
+                      }
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          ` : ''}
+          ${items.length > 0 ? `
+            <div style="margin-top: 1rem;">
+              ${items.map(item => `
+                <div style="padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6;">
+                  <div style="font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.25rem;">
+                    ${item.question}
+                  </div>
+                  <div style="font-size: 0.875rem; color: #0f172a;">
+                    ${item.response}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  });
+  
+  const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Profile - ${data.companyName}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      line-height: 1.6;
+      color: #1a1a1a;
+      background: white;
+      padding: 2rem;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    /* Header */
+    .header { 
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    /* Sections */
+    .section {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 1rem;
+    }
+    
+    /* Grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    
+    /* Fields */
+    .field {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .field:last-child { border-bottom: none; }
+    .field-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 0.25rem;
+    }
+    .field-value {
+      font-size: 1rem;
+      color: #0f172a;
+    }
+    
+    @media print {
+      body { padding: 0; }
+      .section { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <div style="color: #7a34a3; font-weight: 800; font-size: 1.5rem;">
+          BEST COMPANIES 2026 • Company Profile & Survey Summary • CANCER AND CAREERS
+        </div>
+      </div>
+      <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">${data.companyName}</h1>
+      <div style="color: #64748b; font-size: 0.875rem;">
+        ${data.generatedAt}${data.email ? ` • ${data.email}` : ''}
+      </div>
+    </div>
+    
+    <div class="grid-2">
+      <div class="section">
+        <h2 class="section-title">Point of Contact</h2>
+        ${Object.entries({
+          'Name': `${data.firstName} ${data.lastName}`.trim(),
+          'Email': data.email,
+          'Department': data.firmographics?.s4a || data.firmographics?.s3,
+          'Function': data.firmographics?.s4b,
+          'Level': data.firmographics?.s5,
+          'Areas': data.firmographics?.s6,
+          'Influence': data.firmographics?.s7
+        }).filter(([k,v]) => v).map(([label, value]) => `
+          <div class="field">
+            <div class="field-label">${label}</div>
+            <div class="field-value">${Array.isArray(value) ? value.join(', ') : value}</div>
+          </div>
+        `).join('')}
+      </div>
+      
+      <div class="section">
+        <h2 class="section-title">Company Profile</h2>
+        ${Object.entries({
+          'Industry': data.firmographics?.c2,
+          'Annual Revenue': data.firmographics?.c5,
+          'Total Employee Size': data.firmographics?.s8,
+          'HQ Location': data.firmographics?.s9,
+          'Countries with Presence': data.firmographics?.s9a,
+          'Remote/Hybrid Policy': data.firmographics?.c6
+        }).filter(([k,v]) => v).map(([label, value]) => `
+          <div class="field">
+            <div class="field-label">${label}</div>
+            <div class="field-value">${Array.isArray(value) ? value.join(', ') : value}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    
+    ${Object.keys(data.general || {}).length > 0 ? `
+      <div class="section">
+        <h2 class="section-title">General Employee Benefits</h2>
+        <div class="grid-2">
+          ${Object.entries(data.general).map(([k, v]) => {
+            const value = selectedOnly(v);
+            if (!value) return '';
+            return `
+              <div class="field">
+                <div class="field-label">${formatLabel(k)}</div>
+                <div class="field-value">${Array.isArray(value) ? value.join(', ') : value}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    ` : ''}
+    
+    ${Object.keys(data.current || {}).length > 0 ? `
+      <div class="section">
+        <h2 class="section-title">Current Support for Employees Managing Cancer</h2>
+        <div class="grid-2">
+          ${Object.entries(data.current).map(([k, v]) => {
+            const value = selectedOnly(v);
+            if (!value) return '';
+            return `
+              <div class="field">
+                <div class="field-label">${formatLabel(k)}</div>
+                <div class="field-value">${Array.isArray(value) ? value.join(', ') : value}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    ` : ''}
+    
+    <h2 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 1.5rem 0 1rem;">13 Dimensions of Support</h2>
+    ${dimensionsHTML}
+    
+    ${Object.keys(data.cross || {}).length > 0 ? `
+      <div class="section">
+        <h2 class="section-title">Cross-Dimensional Assessment</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+          <div style="border: 1px solid #10B981; background: #F0FDF4; border-radius: 8px; padding: 1rem;">
+            <div style="font-size: 0.875rem; font-weight: 700; color: #065F46; margin-bottom: 0.5rem;">Top 3 Priority Dimensions</div>
+            ${data.cross.cd1a ? 
+              (Array.isArray(data.cross.cd1a) ? 
+                data.cross.cd1a.map(d => `<div style="font-size: 0.875rem; color: #1e293b;">• ${d}</div>`).join('') :
+                `<div style="font-size: 0.875rem; color: #1e293b;">${data.cross.cd1a}</div>`) :
+              '<div style="font-size: 0.75rem; font-style: italic; color: #94a3b8;">Not provided</div>'
+            }
+          </div>
+          <div style="border: 1px solid #F59E0B; background: #FFFBEB; border-radius: 8px; padding: 1rem;">
+            <div style="font-size: 0.875rem; font-weight: 700; color: #92400E; margin-bottom: 0.5rem;">Bottom 3 Priority Dimensions</div>
+            ${data.cross.cd1b ? 
+              (Array.isArray(data.cross.cd1b) ? 
+                data.cross.cd1b.map(d => `<div style="font-size: 0.875rem; color: #1e293b;">• ${d}</div>`).join('') :
+                `<div style="font-size: 0.875rem; color: #1e293b;">${data.cross.cd1b}</div>`) :
+              '<div style="font-size: 0.75rem; font-style: italic; color: #94a3b8;">Not provided</div>'
+            }
+          </div>
+          <div style="border: 1px solid #EF4444; background: #FEF2F2; border-radius: 8px; padding: 1rem;">
+            <div style="font-size: 0.875rem; font-weight: 700; color: #991B1B; margin-bottom: 0.5rem;">Implementation Challenges</div>
+            ${data.cross.cd2 ? 
+              (Array.isArray(data.cross.cd2) ? 
+                data.cross.cd2.map(d => `<div style="font-size: 0.875rem; color: #1e293b;">• ${d}</div>`).join('') :
+                `<div style="font-size: 0.875rem; color: #1e293b;">${data.cross.cd2}</div>`) :
+              '<div style="font-size: 0.75rem; font-style: italic; color: #94a3b8;">Not provided</div>'
+            }
+            ${data.cross.cd2_other ? `
+              <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #FCA5A5;">
+                <div style="font-size: 0.75rem; font-weight: 600; color: #7F1D1D;">Other:</div>
+                <div style="font-size: 0.875rem; color: #1e293b;">${data.cross.cd2_other}</div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    ` : ''}
+    
+    ${Object.keys(data.impact || {}).length > 0 ? `
+      <div class="section">
+        <h2 class="section-title">Employee Impact Assessment</h2>
+        ${data.impact.ei1 && typeof data.impact.ei1 === 'object' ? `
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #7a34a3; margin-bottom: 0.75rem;">
+              Program Impact by Outcome Area
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+              ${Object.entries(data.impact.ei1).map(([item, rating]) => {
+                const displayRating = FIELD_LABELS[String(rating)] || String(rating).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const bgColor = String(rating) === 'significant' ? '#dcfce7' : 
+                               String(rating) === 'moderate' ? '#dbeafe' : 
+                               String(rating) === 'minimal' ? '#fef3c7' : 
+                               String(rating) === 'unable' ? '#f3f4f6' : '#f3f4f6';
+                return `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.625rem 1rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+                    <span style="font-size: 0.875rem; font-weight: 500; color: #0f172a;">
+                      ${FIELD_LABELS[item] || item}
+                    </span>
+                    <span style="font-size: 0.75rem; font-weight: 600; padding: 0.375rem 0.75rem; background: ${bgColor}; border-radius: 4px;">
+                      ${displayRating}
+                    </span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
+        ${Object.entries(data.impact)
+          .filter(([k]) => k !== 'ei1' && k !== 'assignedQuestion' && !k.endsWith('_none'))
+          .map(([k, v]) => {
+            const value = selectedOnly(v);
+            if (!value) return '';
+            const displayValue = typeof value === 'string' && FIELD_LABELS[value] ? FIELD_LABELS[value] : 
+                               Array.isArray(value) ? value.join(', ') : String(value);
+            return `
+              <div class="field">
+                <div class="field-label">${formatLabel(k)}</div>
+                <div class="field-value">${displayValue}</div>
+              </div>
+            `;
+          }).join('')}
+      </div>
+    ` : ''}
+    
+    <div style="text-align: center; padding-top: 2rem; margin-top: 3rem; border-top: 1px solid #e5e7eb; color: #64748b; font-size: 0.75rem;">
+      Best Companies for Working with Cancer: Employer Index • © ${new Date().getFullYear()} Cancer and Careers & CEW Foundation
+    </div>
+  </div>
+</body>
+</html>`;
+
+  // Download the file
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `company-profile-${data.companyName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 /* =========================
    UI COMPONENTS
 ========================= */
-
 function Field({ label, value }: { label: string; value: any }) {
   if (!value || (Array.isArray(value) && value.length === 0)) return null;
   const display = Array.isArray(value) ? value.join(', ') : String(value);
@@ -738,20 +1113,19 @@ function DataRow({ label, value }: { label: string; value?: any }) {
     </div>
   );
 }
+
 function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: string; status: string }>; dimNumber: number }) {
-  // Determine which options to use based on dimension
+  // Determine which options to use based on dimension - ORDER CORRECTED
   let options;
   if (dimNumber === 13) {
-    options = RESPONSE_OPTIONS_D13; // Already includes Unsure
+    options = RESPONSE_OPTIONS_D13;
   } else if (dimNumber === 12) {
     options = RESPONSE_OPTIONS_D12;
   } else if (dimNumber === 3) {
     options = RESPONSE_OPTIONS_D3;
   } else if (dimNumber === 1) {
-    // D1 has Unsure
     options = [...RESPONSE_OPTIONS, 'Unsure'];
   } else {
-    // D2, D4-D11 do NOT have Unsure
     options = RESPONSE_OPTIONS;
   }
 
@@ -765,7 +1139,6 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
   });
 
   const totalPrograms = programs.length;
-  // Count as "active" based on dimension-specific criteria
   const activeStatuses = dimNumber === 3 ? ['Currently provide to managers'] :
                         dimNumber === 12 ? ['Currently measure / track'] :
                         dimNumber === 13 ? ['Currently use'] :
@@ -822,9 +1195,8 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
   );
 }
 
-
 /* =========================
-   MAIN
+   MAIN COMPONENT
 ========================= */
 export default function CompanyProfileFixed() {
   const [data, setData] = useState<any>(null);
@@ -916,11 +1288,11 @@ export default function CompanyProfileFixed() {
             {data.email && ` • ${data.email}`}
           </p>
    
-<div className="mt-4 print:hidden">
+          <div className="mt-4 print:hidden">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-              <p className="text-xs text-blue-900 font-medium mb-1">📄 Download or Print:</p>
+              <p className="text-xs text-blue-900 font-medium mb-1">📄 Download Option:</p>
               <p className="text-xs text-blue-800">
-                Click "Download PDF" to save as PDF, or "Print" to print directly.
+                Click "Download HTML" to save a clean version of this profile that can be opened in any browser.
               </p>
             </div>
             
@@ -931,25 +1303,14 @@ export default function CompanyProfileFixed() {
               </a>
               
               <button 
-                onClick={() => window.print()} 
+                onClick={() => downloadHTML(data)} 
                 className="px-5 py-2 text-sm font-semibold rounded text-white hover:opacity-90 flex items-center gap-2"
                 style={{ backgroundColor: '#2563eb' }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                 </svg>
-                Download PDF
-              </button>
-              
-              <button 
-                onClick={() => window.print()} 
-                className="px-5 py-2 text-sm font-semibold rounded border-2 hover:bg-gray-50 flex items-center gap-2"
-                style={{ borderColor: BRAND.gray[300], color: BRAND.gray[700] }}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                Print to Printer
+                Download HTML
               </button>
             </div>
           </div>
@@ -1099,30 +1460,30 @@ export default function CompanyProfileFixed() {
                       <>
                         {programs.length > 0 && <SupportMatrix programs={programs} dimNumber={dim.number} />}
                         
-                       {/* Geographic consistency question - special highlighting */}
-{items.some(it => it.question.toLowerCase().includes('geographic consistency')) && (
-  <div className="mb-4 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
-    <div className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.orange }}>
-      Geographic Availability
-    </div>
-    {items.filter(it => it.question.toLowerCase().includes('geographic consistency')).map((it, i) => {
-      const dimTitle = DIM_TITLE[dim.number];
-      const verbText = dim.number === 12 ? 'measures/tracks' : 
-                      dim.number === 3 ? 'provides' : 
-                      'offers';
-      return (
-        <div key={i} className="p-4 rounded border" style={{ borderColor: BRAND.gray[300], backgroundColor: BRAND.gray[50] }}>
-          <div className="text-sm font-semibold mb-2" style={{ color: BRAND.gray[700] }}>
-            Geo Availability of {dimTitle} support options your organization currently {verbText}:
-          </div>
-          <div className="text-base font-medium" style={{ color: BRAND.gray[900] }}>
-            {it.response}
-          </div>
-        </div>
-      );
-    })}
-  </div>
-)}
+                        {/* Geographic consistency question - special highlighting */}
+                        {items.some(it => it.question.toLowerCase().includes('geographic consistency')) && (
+                          <div className="mb-4 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
+                            <div className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.orange }}>
+                              Geographic Availability
+                            </div>
+                            {items.filter(it => it.question.toLowerCase().includes('geographic consistency')).map((it, i) => {
+                              const dimTitle = DIM_TITLE[dim.number];
+                              const verbText = dim.number === 12 ? 'measures/tracks' : 
+                                              dim.number === 3 ? 'provides' : 
+                                              'offers';
+                              return (
+                                <div key={i} className="p-4 rounded border" style={{ borderColor: BRAND.gray[300], backgroundColor: BRAND.gray[50] }}>
+                                  <div className="text-sm font-semibold mb-2" style={{ color: BRAND.gray[700] }}>
+                                    Geo Availability of {dimTitle} support options your organization currently {verbText}:
+                                  </div>
+                                  <div className="text-base font-medium" style={{ color: BRAND.gray[900] }}>
+                                    {it.response}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                         
                         {/* Other follow-up items */}
                         {items.filter(it => !it.question.toLowerCase().includes('geographic consistency')).length > 0 && (
