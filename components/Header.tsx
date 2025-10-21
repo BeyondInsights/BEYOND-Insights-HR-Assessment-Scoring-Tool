@@ -76,7 +76,7 @@ export default function Header() {
               title={onPrintPage ? 'Print or save as PDF' : 'Open printable full survey'}
             >
               <Printer className="w-4 h-4" />
-              {onPrintPage ? 'Print / Save PDF' : 'Download / Print Full Survey'}
+              {onPrintPage ? 'Print / Save PDF' : 'Review / Download Full Survey'}
             </button>
 
             <img
