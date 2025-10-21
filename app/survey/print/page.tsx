@@ -4,31 +4,37 @@ import React, { useEffect, useState } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
-// Import schemas with their actual export names
-import { FIRMOGRAPHICS } from '../schemas/firmographics'
-import { GENERAL_BENEFITS } from '../schemas/general-benefits'
-import { CURRENT_SUPPORT } from '../schemas/current-support'
-import { DIMENSIONS as d1Schema } from '../schemas/d1-medical-leave'
-import { DIMENSIONS as d2Schema } from '../schemas/d2-insurance'
-import { DIMENSIONS as d3Schema } from '../schemas/d3-manager'
-import { DIMENSIONS as d4Schema } from '../schemas/d4-navigation'
-import { DIMENSIONS as d5Schema } from '../schemas/d5-accommodations'
-import { DIMENSIONS as d6Schema } from '../schemas/d6-culture'
-import { DIMENSIONS as d7Schema } from '../schemas/d7-career'
-import { DIMENSIONS as d8Schema } from '../schemas/d8-work-continuation'
-import { DIMENSIONS as d9Schema } from '../schemas/d9-executive'
-import { DIMENSIONS as d10Schema } from '../schemas/d10-caregiver'
-import { DIMENSIONS as d11Schema } from '../schemas/d11-prevention'
-import { DIMENSIONS as d12Schema } from '../schemas/d12-continuous'
-import { DIMENSIONS as d13Schema } from '../schemas/d13-communication'
-import { CROSS_DIM } from '../schemas/cross-dimensional'
-import { EI } from '../schemas/employee-impact'
+// Import from the main schema file
+import { 
+  FIRMOGRAPHICS,
+  GENERAL_BENEFITS,
+  CURRENT_SUPPORT,
+  DIMENSIONS,
+  CROSS_DIM,
+  EI
+} from '../schemas/schema'
 
+// Assign to variables for consistency
 const firmographicsSchema = FIRMOGRAPHICS
 const generalBenefitsSchema = GENERAL_BENEFITS
 const currentSupportSchema = CURRENT_SUPPORT
 const crossDimensionalSchema = CROSS_DIM
 const employeeImpactSchema = EI
+
+// Extract individual dimension schemas from DIMENSIONS array
+const d1Schema = DIMENSIONS[0]
+const d2Schema = DIMENSIONS[1]
+const d3Schema = DIMENSIONS[2]
+const d4Schema = DIMENSIONS[3]
+const d5Schema = DIMENSIONS[4]
+const d6Schema = DIMENSIONS[5]
+const d7Schema = DIMENSIONS[6]
+const d8Schema = DIMENSIONS[7]
+const d9Schema = DIMENSIONS[8]
+const d10Schema = DIMENSIONS[9]
+const d11Schema = DIMENSIONS[10]
+const d12Schema = DIMENSIONS[11]
+const d13Schema = DIMENSIONS[12]
 
 const DIMENSION_TITLES = {
   1: 'Medical Leave & Flexibility',
