@@ -105,6 +105,21 @@ export default function PrintPage() {
     }, 100)
   }
 
+  const handleDownload = () => {
+    expandAll()
+    setTimeout(() => {
+      const printWindow = window.open('', '', 'width=800,height=600')
+      if (printWindow) {
+        const content = document.documentElement.outerHTML
+        printWindow.document.write(content)
+        printWindow.document.close()
+        printWindow.focus()
+        printWindow.print()
+        printWindow.close()
+      }
+    }, 100)
+  }
+
   const renderField = (fieldKey: string, field: any) => {
     if (!field) return null
 
@@ -246,6 +261,18 @@ export default function PrintPage() {
         )
 
       case 'grid':
+        // For dimension grids, reverse the order to go negative to positive
+        // For other grids, keep the original order
+        let orderedOptions = field.statusOptions || field.responseOptions || []
+        
+        // Check if this is a dimension impact scale (contains "Impact" in options)
+        const isImpactScale = orderedOptions.some((opt: string) => opt.includes('Impact'))
+        
+        if (isImpactScale) {
+          // Reverse to go from negative to positive
+          orderedOptions = orderedOptions.slice().reverse()
+        }
+        
         return (
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
@@ -261,7 +288,7 @@ export default function PrintPage() {
                     <th className="text-left text-white font-semibold p-3 border-r border-blue-500">
                       {field.programs ? 'Program' : 'Item'}
                     </th>
-                    {(field.statusOptions || field.responseOptions)?.map((opt: string) => (
+                    {orderedOptions.map((opt: string) => (
                       <th key={opt} className="text-center text-white font-semibold p-3 min-w-[120px]">{opt}</th>
                     ))}
                   </tr>
@@ -270,7 +297,7 @@ export default function PrintPage() {
                   {(field.programs || field.items)?.map((item: string, idx: number) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                       <td className="p-3 font-medium text-gray-700 border-r border-gray-200">{item}</td>
-                      {(field.statusOptions || field.responseOptions)?.map((opt: string) => (
+                      {orderedOptions.map((opt: string) => (
                         <td key={opt} className="text-center p-3">
                           <input type="radio" name={`grid-${fieldKey}-${idx}`} />
                         </td>
@@ -338,7 +365,7 @@ export default function PrintPage() {
           </div>
           
           <div className="flex gap-3 flex-wrap">
-            <button onClick={handlePrint} className="flex-1 min-w-[200px] px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2">
+            <button onClick={handleDownload} className="flex-1 min-w-[200px] px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
               </svg>
