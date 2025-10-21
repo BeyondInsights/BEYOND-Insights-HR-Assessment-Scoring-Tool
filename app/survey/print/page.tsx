@@ -4,61 +4,29 @@ import React, { useEffect, useState } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
-// For now, just define the schemas locally until we know the exact export structure
-const firmographicsSchema = { questions: [] }
-const generalBenefitsSchema = { questions: [] }
-const currentSupportSchema = { questions: [] }
-const d1Schema = { supportOptions: [], scale: [], followUps: [] }
-const d2Schema = { supportOptions: [], scale: [], followUps: [] }
-const d3Schema = { supportOptions: [], scale: [], followUps: [] }
-const d4Schema = { supportOptions: [], scale: [], followUps: [] }
-const d5Schema = { supportOptions: [], scale: [], followUps: [] }
-const d6Schema = { supportOptions: [], scale: [], followUps: [] }
-const d7Schema = { supportOptions: [], scale: [], followUps: [] }
-const d8Schema = { supportOptions: [], scale: [], followUps: [] }
-const d9Schema = { supportOptions: [], scale: [], followUps: [] }
-const d10Schema = { supportOptions: [], scale: [], followUps: [] }
-const d11Schema = { supportOptions: [], scale: [], followUps: [] }
-const d12Schema = { supportOptions: [], scale: [], followUps: [] }
-const d13Schema = { supportOptions: [], scale: [], followUps: [] }
-const crossDimensionalSchema = { questions: [] }
-const employeeImpactSchema = { questions: [] } from 'react'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+// Import all schemas from the index file
+import {
+  firmographicsSchema,
+  generalBenefitsSchema,
+  currentSupportSchema,
+  d1Schema,
+  d2Schema,
+  d3Schema,
+  d4Schema,
+  d5Schema,
+  d6Schema,
+  d7Schema,
+  d8Schema,
+  d9Schema,
+  d10Schema,
+  d11Schema,
+  d12Schema,
+  d13Schema,
+  crossDimensionalSchema,
+  employeeImpactSchema
+} from '../schemas'
 
-// Import from the main schema file
-import { 
-  FIRMOGRAPHICS,
-  GENERAL_BENEFITS,
-  CURRENT_SUPPORT,
-  DIMENSIONS,
-  CROSS_DIM,
-  EI
-} from '../schemas/schema'
-
-// Assign to variables for consistency
-const firmographicsSchema = FIRMOGRAPHICS
-const generalBenefitsSchema = GENERAL_BENEFITS
-const currentSupportSchema = CURRENT_SUPPORT
-const crossDimensionalSchema = CROSS_DIM
-const employeeImpactSchema = EI
-
-// Extract individual dimension schemas from DIMENSIONS array
-const d1Schema = DIMENSIONS[0]
-const d2Schema = DIMENSIONS[1]
-const d3Schema = DIMENSIONS[2]
-const d4Schema = DIMENSIONS[3]
-const d5Schema = DIMENSIONS[4]
-const d6Schema = DIMENSIONS[5]
-const d7Schema = DIMENSIONS[6]
-const d8Schema = DIMENSIONS[7]
-const d9Schema = DIMENSIONS[8]
-const d10Schema = DIMENSIONS[9]
-const d11Schema = DIMENSIONS[10]
-const d12Schema = DIMENSIONS[11]
-const d13Schema = DIMENSIONS[12]
-
-const DIMENSION_TITLES = {
+const DIMENSION_TITLES: { [key: number]: string } = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
   3: 'Manager Preparedness & Capability',
@@ -74,15 +42,24 @@ const DIMENSION_TITLES = {
   13: 'Communication & Awareness'
 }
 
+const SECTION_COLORS = {
+  firmographics: { from: '#9333ea', to: '#7e22ce' },
+  general: { from: '#4f46e5', to: '#4338ca' },
+  current: { from: '#ec4899', to: '#db2777' },
+  dimensions: { from: '#2563eb', to: '#1d4ed8' },
+  cross: { from: '#059669', to: '#047857' },
+  impact: { from: '#ea580c', to: '#c2410c' }
+}
+
 const ALL_DIMENSION_SCHEMAS = [
   d1Schema, d2Schema, d3Schema, d4Schema, d5Schema, d6Schema,
   d7Schema, d8Schema, d9Schema, d10Schema, d11Schema, d12Schema, d13Schema
 ]
 
-export default function PrintSurveyPage() {
-  const [companyName, setCompanyName] = useState('')
-  const [currentDate, setCurrentDate] = useState('')
+export default function PrintPage() {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
+  const [companyName, setCompanyName] = useState('Your Company')
+  const [currentDate, setCurrentDate] = useState('')
 
   useEffect(() => {
     const name = localStorage.getItem('login_company_name') || 
@@ -95,18 +72,6 @@ export default function PrintSurveyPage() {
       month: 'long', 
       day: 'numeric' 
     }))
-
-    // Expand all by default
-    const allExpanded: Record<string, boolean> = {}
-    ALL_DIMENSION_SCHEMAS.forEach((_, idx) => {
-      allExpanded[`dim-${idx}`] = true
-    })
-    allExpanded['firmographics'] = true
-    allExpanded['general'] = true
-    allExpanded['current'] = true
-    allExpanded['cross'] = true
-    allExpanded['impact'] = true
-    setExpandedSections(allExpanded)
   }, [])
 
   const toggleSection = (sectionId: string) => {
@@ -140,91 +105,179 @@ export default function PrintSurveyPage() {
     }, 100)
   }
 
-  const handleDownloadPDF = () => {
-    expandAll()
-    setTimeout(() => {
-      const printContent = document.getElementById('print-content')
-      if (printContent) {
-        window.print()
-      }
-    }, 100)
-  }
+  const renderField = (fieldKey: string, field: any) => {
+    if (!field) return null
 
-  // Render individual questions based on schema structure
-  const renderQuestion = (question: any) => {
-    if (!question) return null
-
-    const { id, label, type, options, note, instruction } = question
-
-    switch (type) {
-      case 'open':
+    switch (field.type) {
       case 'text':
+      case 'email':
+      case 'tel':
+      case 'date':
         return (
-          <div key={id} className="mb-6">
+          <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
-              {label}
+              {field.label}
             </label>
-            {note && <p className="text-xs text-gray-500 italic mb-2">{note}</p>}
-            <div className="w-full p-3 border-2 border-gray-200 rounded-lg bg-white min-h-[44px]">
-              <div className="h-5 border-b border-gray-300"></div>
+            {field.required && <span className="text-red-500 ml-1">*</span>}
+            {field.instruction && (
+              <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
+            )}
+            <div className="bg-white border-2 border-gray-300 rounded-lg p-3">
+              <div className="h-6 border-b border-gray-200"></div>
             </div>
           </div>
         )
 
-      case 'single':
+      case 'textarea':
+        return (
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              {field.label}
+            </label>
+            {field.instruction && (
+              <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
+            )}
+            <div className="bg-white border-2 border-gray-300 rounded-lg p-3">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="h-6 border-b border-gray-200 mb-2 last:mb-0"></div>
+              ))}
+            </div>
+          </div>
+        )
+
       case 'select':
         return (
-          <div key={id} className="mb-6">
+          <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
-              {label}
+              {field.label}
             </label>
-            <p className="text-xs text-gray-500 italic mb-2">(Select ONE)</p>
-            {note && <p className="text-xs text-gray-500 mb-2">{note}</p>}
+            {field.instruction && (
+              <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
+            )}
             <div className="space-y-2">
-              {options?.map((option: string, idx: number) => (
-                <label key={idx} className="flex items-start p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
-                  <input type="radio" name={id} className="mt-0.5 mr-3" />
-                  <span className="text-sm text-gray-700">{option}</span>
+              {field.options?.map((opt: string) => (
+                <label key={opt} className="flex items-center p-3 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 cursor-pointer">
+                  <input type="radio" name={fieldKey} className="mr-3" />
+                  <span className="text-sm">{opt}</span>
                 </label>
               ))}
             </div>
           </div>
         )
 
-      case 'multi':
+      case 'checkbox':
+        const isTwoColumn = field.options?.length > 6
+        return (
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              {field.label}
+            </label>
+            {field.instruction && (
+              <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
+            )}
+            <div className={isTwoColumn ? "grid grid-cols-2 gap-2" : "space-y-2"}>
+              {field.options?.map((opt: string) => (
+                <label key={opt} className="flex items-start p-3 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 cursor-pointer">
+                  <input type="checkbox" className="mt-0.5 mr-3" />
+                  <span className="text-sm">{opt === 'Other' ? 'Other: _____________' : opt}</span>
+                </label>
+              ))}
+            </div>
+            {field.hasNone && (
+              <label className="flex items-center mt-3 text-sm text-gray-700 cursor-pointer">
+                <input type="checkbox" className="mr-2" />
+                <span>None of the above</span>
+              </label>
+            )}
+          </div>
+        )
+
       case 'multiselect':
         return (
-          <div key={id} className="mb-6">
+          <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
-              {label}
+              {field.label}
             </label>
-            <p className="text-xs text-gray-500 italic mb-2">(Select ALL that apply)</p>
-            {note && <p className="text-xs text-gray-500 mb-2">{note}</p>}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {options?.map((option: string, idx: number) => (
-                <label key={idx} className="flex items-start p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+            {field.instruction && (
+              <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
+            )}
+            {field.helperText && (
+              <p className="text-xs text-gray-500 mb-2">{field.helperText}</p>
+            )}
+            <div className="space-y-2">
+              {field.options?.map((opt: string) => (
+                <label key={opt} className="flex items-start p-3 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 cursor-pointer">
                   <input type="checkbox" className="mt-0.5 mr-3" />
-                  <span className="text-sm text-gray-700">{option}</span>
+                  <span className="text-sm">{opt}</span>
                 </label>
               ))}
             </div>
           </div>
         )
 
-      case 'scale':
+      case 'categorized':
         return (
-          <div key={id} className="mb-6">
+          <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
-              {label}
+              {field.label}
             </label>
-            <p className="text-xs text-gray-500 italic mb-2">(Select ONE)</p>
-            <div className="space-y-2">
-              {options?.map((option: string, idx: number) => (
-                <label key={idx} className="flex items-start p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
-                  <input type="radio" name={id} className="mt-0.5 mr-3" />
-                  <span className="text-sm text-gray-700">{option}</span>
-                </label>
+            {field.instruction && (
+              <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
+            )}
+            <div className="space-y-4">
+              {field.categories?.map((cat: any) => (
+                <div key={cat.name} className="bg-white border border-gray-300 rounded-lg p-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-md inline-block mb-3">
+                    {cat.name}
+                  </h4>
+                  <div className="space-y-2">
+                    {cat.options.map((opt: string) => (
+                      <label key={opt} className="flex items-start">
+                        <input type="checkbox" className="mt-0.5 mr-3" />
+                        <span className="text-sm">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               ))}
+            </div>
+          </div>
+        )
+
+      case 'grid':
+        return (
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              {field.label}
+            </label>
+            {field.instruction && (
+              <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
+            )}
+            <div className="overflow-x-auto mt-3 border border-gray-300 rounded-lg">
+              <table className="w-full border-collapse text-sm bg-white">
+                <thead className="bg-gradient-to-r from-blue-600 to-blue-700">
+                  <tr>
+                    <th className="text-left text-white font-semibold p-3 border-r border-blue-500">
+                      {field.programs ? 'Program' : 'Item'}
+                    </th>
+                    {(field.statusOptions || field.responseOptions)?.map((opt: string) => (
+                      <th key={opt} className="text-center text-white font-semibold p-3 min-w-[120px]">{opt}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(field.programs || field.items)?.map((item: string, idx: number) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                      <td className="p-3 font-medium text-gray-700 border-r border-gray-200">{item}</td>
+                      {(field.statusOptions || field.responseOptions)?.map((opt: string) => (
+                        <td key={opt} className="text-center p-3">
+                          <input type="radio" name={`grid-${fieldKey}-${idx}`} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )
@@ -234,137 +287,72 @@ export default function PrintSurveyPage() {
     }
   }
 
-  // Render dimension grid (main question for dimensions)
-  const renderDimensionGrid = (schema: any) => {
-    if (!schema || !schema.supportOptions || !schema.scale) return null
-
-    return (
-      <div className="mb-6">
-        <p className="text-sm font-semibold text-gray-800 mb-2">
-          {schema.intro}
-        </p>
-        <p className="text-sm text-gray-600 mb-4">
-          {schema.questionText || 'For each option below, select ONE status.'}
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse bg-white rounded-lg overflow-hidden">
-            <thead>
-              <tr className="bg-gradient-to-r from-blue-600 to-blue-700">
-                <th className="text-left p-3 text-white font-semibold text-sm min-w-[300px]">
-                  Support Option
-                </th>
-                {schema.scale.map((status: string, idx: number) => (
-                  <th key={idx} className="text-center p-3 text-white font-semibold text-sm min-w-[140px]">
-                    {status}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {schema.supportOptions.map((option: string, idx: number) => (
-                <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                  <td className="p-3 text-sm font-medium text-gray-700 border-b border-gray-200">
-                    {option}
-                  </td>
-                  {schema.scale.map((status: string, statusIdx: number) => (
-                    <td key={statusIdx} className="p-3 text-center border-b border-gray-200">
-                      <input type="radio" name={`d${schema.number}-${idx}`} className="w-4 h-4" />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    )
-  }
-
-  // Render section questions
-  const renderSectionQuestions = (schema: any) => {
-    if (!schema) return null
-
-    // Check if it's a regular section with questions array
-    if (schema.questions && Array.isArray(schema.questions)) {
-      return schema.questions.map((q: any) => renderQuestion(q))
-    }
-    
-    // Check if it's a dimension schema with grid + followUps
-    if (schema.supportOptions && schema.scale) {
-      return (
-        <>
-          {renderDimensionGrid(schema)}
-          {schema.followUps && schema.followUps.map((q: any) => renderQuestion(q))}
-        </>
-      )
-    }
-
-    return null
-  }
-
   return (
-    <div id="print-content" className="min-h-screen bg-gray-50 print:bg-white">
-      {/* Screen Header */}
+    <div className="min-h-screen bg-gray-50 print:bg-white">
       <div className="print:hidden">
         <Header />
       </div>
 
       {/* Print Header */}
-      <div className="hidden print:block text-center mb-8 pb-6 border-b-2 border-gray-300">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Best Companies for Working with Cancer</h1>
-        <p className="text-lg text-gray-600">2026 Employer Index Survey</p>
-        <p className="text-sm text-gray-500 mt-2">{companyName} • {currentDate}</p>
+      <div className="hidden print:block text-center mb-6 pb-4 border-b-2 border-gray-300">
+        <div className="mb-3">
+          <img src="/best-companies-2026-logo.png" alt="Best Companies" className="h-12 mx-auto" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">Best Companies for Working with Cancer</h1>
+        <p className="text-base text-gray-600 mb-2">2026 Employer Index Survey</p>
+        <p className="text-sm text-gray-500">{companyName} • {currentDate}</p>
       </div>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
-        {/* Action Bar */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200 print:hidden">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+        {/* Action Bar - Screen Only */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6 print:hidden">
+          <div className="flex justify-between items-start mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Survey Print Preview</h1>
-              <p className="text-gray-600 mt-1">Complete survey questionnaire with all questions</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">Survey Print Preview</h1>
+              <p className="text-gray-600">Review and download the complete survey questionnaire</p>
             </div>
             <div className="flex gap-2">
-              <button onClick={expandAll} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+              <button onClick={expandAll} className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-sm">
                 Expand All
               </button>
-              <button onClick={collapseAll} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+              <button onClick={collapseAll} className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-sm">
                 Collapse All
               </button>
             </div>
           </div>
           
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex gap-3">
-              <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-300 rounded-lg p-4 mb-6 flex gap-4">
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <div>
-                <p className="text-sm font-semibold text-blue-900">Download Instructions</p>
-                <p className="text-sm text-blue-800">
-                  Click "Download PDF" to open print dialog. Select "Save as PDF" as destination.
-                </p>
-              </div>
+            </div>
+            <div>
+              <div className="font-semibold text-blue-900 mb-1">How to Download as PDF</div>
+              <p className="text-blue-800 text-sm">
+                Click "Download PDF" to open your browser's print dialog. Select "Save as PDF" as the destination 
+                to save the complete survey. All sections will be automatically expanded for printing.
+              </p>
             </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button onClick={handleDownloadPDF} className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-md flex items-center justify-center gap-2">
+          <div className="flex gap-3 flex-wrap">
+            <button onClick={handlePrint} className="flex-1 min-w-[200px] px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
               </svg>
-              Download PDF
+              <span>Download Full Survey PDF</span>
             </button>
             
-            <button onClick={handlePrint} className="px-6 py-3 bg-white text-gray-700 font-semibold border-2 border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2">
+            <button onClick={handlePrint} className="flex-1 min-w-[200px] px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 flex items-center justify-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              Print
+              <span>Print to Printer</span>
             </button>
             
-            <button onClick={() => window.location.href = '/dashboard'} className="px-6 py-3 text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50">
-              ← Dashboard
+            <button onClick={() => window.location.href = '/dashboard'} className="flex-1 min-w-[200px] px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50">
+              <span>← Back to Dashboard</span>
             </button>
           </div>
         </div>
@@ -372,180 +360,197 @@ export default function PrintSurveyPage() {
         {/* Survey Sections */}
         <div className="space-y-4">
           {/* Section 1: Firmographics */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <button
               onClick={() => toggleSection('firmographics')}
-              className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 print:hidden flex items-center justify-between"
+              className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
+              style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.firmographics.from} 0%, ${SECTION_COLORS.firmographics.to} 100%)` }}
             >
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">1</span>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">1</div>
                 <span className="text-lg font-semibold">Company & Contact Information</span>
               </div>
               <svg className={`w-5 h-5 transition-transform ${expandedSections['firmographics'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white">
+            <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.firmographics.from} 0%, ${SECTION_COLORS.firmographics.to} 100%)` }}>
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">1</span>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">1</div>
                 <span className="text-lg font-semibold">Company & Contact Information</span>
               </div>
             </div>
-            {expandedSections['firmographics'] && (
+            {(expandedSections['firmographics'] || false) && (
               <div className="p-6 bg-gray-50">
-                {renderSectionQuestions(firmographicsSchema)}
+                {Object.entries(firmographicsSchema).map(([key, field]) => (
+                  <div key={key}>{renderField(key, field)}</div>
+                ))}
               </div>
             )}
           </div>
 
           {/* Section 2: General Benefits */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <button
               onClick={() => toggleSection('general')}
-              className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 print:hidden flex items-center justify-between"
+              className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
+              style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.general.from} 0%, ${SECTION_COLORS.general.to} 100%)` }}
             >
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">2</span>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">2</div>
                 <span className="text-lg font-semibold">General Employee Benefits</span>
               </div>
               <svg className={`w-5 h-5 transition-transform ${expandedSections['general'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white">
+            <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.general.from} 0%, ${SECTION_COLORS.general.to} 100%)` }}>
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">2</span>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">2</div>
                 <span className="text-lg font-semibold">General Employee Benefits</span>
               </div>
             </div>
-            {expandedSections['general'] && (
+            {(expandedSections['general'] || false) && (
               <div className="p-6 bg-gray-50">
-                {renderSectionQuestions(generalBenefitsSchema)}
+                {Object.entries(generalBenefitsSchema).map(([key, field]) => (
+                  <div key={key}>{renderField(key, field)}</div>
+                ))}
               </div>
             )}
           </div>
 
           {/* Section 3: Current Support */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <button
               onClick={() => toggleSection('current')}
-              className="w-full px-6 py-4 bg-gradient-to-r from-pink-600 to-pink-700 text-white hover:from-pink-700 hover:to-pink-800 print:hidden flex items-center justify-between"
+              className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
+              style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.current.from} 0%, ${SECTION_COLORS.current.to} 100%)` }}
             >
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">3</span>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">3</div>
                 <span className="text-lg font-semibold">Current Support for Serious Medical Conditions</span>
               </div>
               <svg className={`w-5 h-5 transition-transform ${expandedSections['current'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-pink-600 to-pink-700 text-white">
+            <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.current.from} 0%, ${SECTION_COLORS.current.to} 100%)` }}>
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">3</span>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">3</div>
                 <span className="text-lg font-semibold">Current Support for Serious Medical Conditions</span>
               </div>
             </div>
-            {expandedSections['current'] && (
+            {(expandedSections['current'] || false) && (
               <div className="p-6 bg-gray-50">
-                {renderSectionQuestions(currentSupportSchema)}
+                {Object.entries(currentSupportSchema).map(([key, field]) => (
+                  <div key={key}>{renderField(key, field)}</div>
+                ))}
               </div>
             )}
           </div>
 
-          {/* Section 4: 13 Dimensions */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border-l-4 border-blue-600">
+          {/* Section 4 Header */}
+          <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg p-4 border-l-4 border-blue-600">
             <div className="flex items-center gap-3">
-              <span className="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-lg">4</span>
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center font-bold text-blue-600">4</div>
               <h2 className="text-xl font-bold text-gray-900">13 Dimensions of Support</h2>
             </div>
           </div>
 
-          {/* All 13 Dimensions */}
+          {/* 13 Dimensions */}
           {ALL_DIMENSION_SCHEMAS.map((schema, idx) => (
-            <div key={idx} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div key={idx} className="bg-white rounded-lg shadow-lg overflow-hidden">
               <button
                 onClick={() => toggleSection(`dim-${idx}`)}
-                className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 print:hidden flex items-center justify-between"
+                className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
+                style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.dimensions.from} 0%, ${SECTION_COLORS.dimensions.to} 100%)` }}
               >
                 <div className="flex items-center gap-3">
-                  <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">{idx + 1}</span>
+                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">{idx + 1}</div>
                   <span className="text-lg font-semibold">{DIMENSION_TITLES[idx + 1]}</span>
                 </div>
                 <svg className={`w-5 h-5 transition-transform ${expandedSections[`dim-${idx}`] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+              <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.dimensions.from} 0%, ${SECTION_COLORS.dimensions.to} 100%)` }}>
                 <div className="flex items-center gap-3">
-                  <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">{idx + 1}</span>
+                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">{idx + 1}</div>
                   <span className="text-lg font-semibold">{DIMENSION_TITLES[idx + 1]}</span>
                 </div>
               </div>
-              {expandedSections[`dim-${idx}`] && (
+              {(expandedSections[`dim-${idx}`] || false) && (
                 <div className="p-6 bg-gray-50">
-                  {renderSectionQuestions(schema)}
+                  {Object.entries(schema).map(([key, field]) => (
+                    <div key={key}>{renderField(key, field)}</div>
+                  ))}
                 </div>
               )}
             </div>
           ))}
 
           {/* Section 5: Cross-Dimensional */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <button
               onClick={() => toggleSection('cross')}
-              className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 print:hidden flex items-center justify-between"
+              className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
+              style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.cross.from} 0%, ${SECTION_COLORS.cross.to} 100%)` }}
             >
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">5</span>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">5</div>
                 <span className="text-lg font-semibold">Cross-Dimensional Assessment</span>
               </div>
               <svg className={`w-5 h-5 transition-transform ${expandedSections['cross'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white">
+            <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.cross.from} 0%, ${SECTION_COLORS.cross.to} 100%)` }}>
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">5</span>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">5</div>
                 <span className="text-lg font-semibold">Cross-Dimensional Assessment</span>
               </div>
             </div>
-            {expandedSections['cross'] && (
+            {(expandedSections['cross'] || false) && (
               <div className="p-6 bg-gray-50">
-                {renderSectionQuestions(crossDimensionalSchema)}
+                {Object.entries(crossDimensionalSchema).map(([key, field]) => (
+                  <div key={key}>{renderField(key, field)}</div>
+                ))}
               </div>
             )}
           </div>
 
           {/* Section 6: Employee Impact */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <button
               onClick={() => toggleSection('impact')}
-              className="w-full px-6 py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 print:hidden flex items-center justify-between"
+              className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
+              style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.impact.from} 0%, ${SECTION_COLORS.impact.to} 100%)` }}
             >
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">6</span>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">6</div>
                 <span className="text-lg font-semibold">Employee Impact & ROI Assessment</span>
               </div>
               <svg className={`w-5 h-5 transition-transform ${expandedSections['impact'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="hidden print:block px-6 py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
+            <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.impact.from} 0%, ${SECTION_COLORS.impact.to} 100%)` }}>
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">6</span>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">6</div>
                 <span className="text-lg font-semibold">Employee Impact & ROI Assessment</span>
               </div>
             </div>
-            {expandedSections['impact'] && (
+            {(expandedSections['impact'] || false) && (
               <div className="p-6 bg-gray-50">
-                {renderSectionQuestions(employeeImpactSchema)}
+                {Object.entries(employeeImpactSchema).map(([key, field]) => (
+                  <div key={key}>{renderField(key, field)}</div>
+                ))}
               </div>
             )}
           </div>
         </div>
       </main>
 
-      {/* Screen Footer */}
       <div className="print:hidden">
         <Footer />
       </div>
