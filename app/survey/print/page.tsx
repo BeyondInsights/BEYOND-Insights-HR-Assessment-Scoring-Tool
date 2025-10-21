@@ -42,15 +42,6 @@ const DIMENSION_TITLES: { [key: number]: string } = {
   13: 'Communication & Awareness'
 }
 
-const SECTION_COLORS = {
-  firmographics: { from: '#9333ea', to: '#7e22ce' },
-  general: { from: '#4f46e5', to: '#4338ca' },
-  current: { from: '#ec4899', to: '#db2777' },
-  dimensions: { from: '#2563eb', to: '#1d4ed8' },
-  cross: { from: '#059669', to: '#047857' },
-  impact: { from: '#ea580c', to: '#c2410c' }
-}
-
 const ALL_DIMENSION_SCHEMAS = [
   d1Schema, d2Schema, d3Schema, d4Schema, d5Schema, d6Schema,
   d7Schema, d8Schema, d9Schema, d10Schema, d11Schema, d12Schema, d13Schema
@@ -108,15 +99,16 @@ export default function PrintPage() {
   const handleDownload = () => {
     expandAll()
     setTimeout(() => {
-      const printWindow = window.open('', '', 'width=800,height=600')
-      if (printWindow) {
-        const content = document.documentElement.outerHTML
-        printWindow.document.write(content)
-        printWindow.document.close()
-        printWindow.focus()
-        printWindow.print()
-        printWindow.close()
-      }
+      const htmlContent = document.documentElement.outerHTML
+      const blob = new Blob([htmlContent], { type: 'text/html' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `survey-${companyName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.html`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
     }, 100)
   }
 
@@ -132,13 +124,13 @@ export default function PrintPage() {
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
               {field.label}
+              {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            {field.required && <span className="text-red-500 ml-1">*</span>}
             {field.instruction && (
               <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
             )}
-            <div className="bg-white border-2 border-gray-300 rounded-lg p-3">
-              <div className="h-6 border-b border-gray-200"></div>
+            <div className="bg-white border border-gray-300 rounded p-3">
+              <div className="h-5 border-b border-gray-200"></div>
             </div>
           </div>
         )
@@ -152,16 +144,16 @@ export default function PrintPage() {
             {field.instruction && (
               <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
             )}
-            <div className="bg-white border-2 border-gray-300 rounded-lg p-3">
+            <div className="bg-white border border-gray-300 rounded p-3">
               {[1,2,3,4].map(i => (
-                <div key={i} className="h-6 border-b border-gray-200 mb-2 last:mb-0"></div>
+                <div key={i} className="h-5 border-b border-gray-200 mb-2 last:mb-0"></div>
               ))}
             </div>
           </div>
         )
 
       case 'select':
-        const selectTwoColumn = field.options?.length > 6
+        const selectTwoColumn = field.options?.length > 8
         return (
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
@@ -172,8 +164,8 @@ export default function PrintPage() {
             )}
             <div className={selectTwoColumn ? "grid grid-cols-2 gap-2" : "space-y-2"}>
               {field.options?.map((opt: string) => (
-                <label key={opt} className="flex items-center p-3 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 cursor-pointer">
-                  <input type="radio" name={fieldKey} className="mr-3" />
+                <label key={opt} className="flex items-center p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                  <input type="radio" name={fieldKey} className="mr-2" />
                   <span className="text-sm">{opt}</span>
                 </label>
               ))}
@@ -182,7 +174,7 @@ export default function PrintPage() {
         )
 
       case 'checkbox':
-        const isTwoColumn = field.options?.length > 6
+        const isTwoColumn = field.options?.length > 8
         return (
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
@@ -193,8 +185,8 @@ export default function PrintPage() {
             )}
             <div className={isTwoColumn ? "grid grid-cols-2 gap-2" : "space-y-2"}>
               {field.options?.map((opt: string) => (
-                <label key={opt} className="flex items-start p-3 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 cursor-pointer">
-                  <input type="checkbox" className="mt-0.5 mr-3" />
+                <label key={opt} className="flex items-start p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                  <input type="checkbox" className="mt-0.5 mr-2" />
                   <span className="text-sm">{opt === 'Other' ? 'Other: _____________' : opt}</span>
                 </label>
               ))}
@@ -209,6 +201,7 @@ export default function PrintPage() {
         )
 
       case 'multiselect':
+        const multiTwoColumn = field.options?.length > 8
         return (
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
@@ -220,10 +213,10 @@ export default function PrintPage() {
             {field.helperText && (
               <p className="text-xs text-gray-500 mb-2">{field.helperText}</p>
             )}
-            <div className="space-y-2">
+            <div className={multiTwoColumn ? "grid grid-cols-2 gap-2" : "space-y-2"}>
               {field.options?.map((opt: string) => (
-                <label key={opt} className="flex items-start p-3 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 cursor-pointer">
-                  <input type="checkbox" className="mt-0.5 mr-3" />
+                <label key={opt} className="flex items-start p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                  <input type="checkbox" className="mt-0.5 mr-2" />
                   <span className="text-sm">{opt}</span>
                 </label>
               ))}
@@ -240,16 +233,16 @@ export default function PrintPage() {
             {field.instruction && (
               <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
             )}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {field.categories?.map((cat: any) => (
-                <div key={cat.name} className="bg-white border border-gray-300 rounded-lg p-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-md inline-block mb-3">
+                <div key={cat.name} className="bg-white border border-gray-200 rounded-lg p-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">
                     {cat.name}
                   </h4>
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {cat.options.map((opt: string) => (
-                      <label key={opt} className="flex items-start">
-                        <input type="checkbox" className="mt-0.5 mr-3" />
+                      <label key={opt} className="flex items-start pl-2">
+                        <input type="checkbox" className="mt-0.5 mr-2" />
                         <span className="text-sm">{opt}</span>
                       </label>
                     ))}
@@ -261,17 +254,9 @@ export default function PrintPage() {
         )
 
       case 'grid':
-        // For dimension grids, reverse the order to go negative to positive
-        // For other grids, keep the original order
-        let orderedOptions = field.statusOptions || field.responseOptions || []
-        
-        // Check if this is a dimension impact scale (contains "Impact" in options)
-        const isImpactScale = orderedOptions.some((opt: string) => opt.includes('Impact'))
-        
-        if (isImpactScale) {
-          // Reverse to go from negative to positive
-          orderedOptions = orderedOptions.slice().reverse()
-        }
+        // Use exact options from schema - DO NOT MODIFY ORDER
+        const gridOptions = field.statusOptions || field.responseOptions || field.scale || []
+        const gridItems = field.programs || field.items || field.elements || []
         
         return (
           <div className="mb-6">
@@ -281,25 +266,27 @@ export default function PrintPage() {
             {field.instruction && (
               <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
             )}
-            <div className="overflow-x-auto mt-3 border border-gray-300 rounded-lg">
+            <div className="overflow-x-auto mt-3 border border-gray-200 rounded">
               <table className="w-full border-collapse text-sm bg-white">
-                <thead className="bg-gradient-to-r from-blue-600 to-blue-700">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left text-white font-semibold p-3 border-r border-blue-500">
-                      {field.programs ? 'Program' : 'Item'}
+                    <th className="text-left text-gray-700 font-medium p-2 border-r border-gray-200 text-xs">
+                      {field.programs ? 'Program' : field.items ? 'Item' : 'Element'}
                     </th>
-                    {orderedOptions.map((opt: string) => (
-                      <th key={opt} className="text-center text-white font-semibold p-3 min-w-[120px]">{opt}</th>
+                    {gridOptions.map((opt: string) => (
+                      <th key={opt} className="text-center text-gray-600 font-normal p-1 text-xs min-w-[80px]">
+                        {opt}
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {(field.programs || field.items)?.map((item: string, idx: number) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                      <td className="p-3 font-medium text-gray-700 border-r border-gray-200">{item}</td>
-                      {orderedOptions.map((opt: string) => (
-                        <td key={opt} className="text-center p-3">
-                          <input type="radio" name={`grid-${fieldKey}-${idx}`} />
+                  {gridItems.map((item: string, idx: number) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="p-2 text-gray-700 text-xs border-r border-gray-200">{item}</td>
+                      {gridOptions.map((opt: string) => (
+                        <td key={opt} className="text-center p-1">
+                          <input type="radio" name={`grid-${fieldKey}-${idx}`} className="w-3 h-3" />
                         </td>
                       ))}
                     </tr>
@@ -316,98 +303,87 @@ export default function PrintPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 print:bg-white">
+    <div className="min-h-screen bg-white print:bg-white">
       <div className="print:hidden">
         <Header />
       </div>
 
       {/* Print Header */}
-      <div className="hidden print:block text-center mb-6 pb-4 border-b-2 border-gray-300">
-        <div className="mb-3">
-          <img src="/best-companies-2026-logo.png" alt="Best Companies" className="h-12 mx-auto" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Best Companies for Working with Cancer</h1>
-        <p className="text-base text-gray-600 mb-2">2026 Employer Index Survey</p>
-        <p className="text-sm text-gray-500">{companyName} • {currentDate}</p>
+      <div className="hidden print:block text-center mb-4 pb-3 border-b border-gray-300">
+        <h1 className="text-xl font-bold text-gray-900 mb-1">Best Companies for Working with Cancer</h1>
+        <p className="text-sm text-gray-600">2026 Employer Index Survey</p>
+        <p className="text-xs text-gray-500 mt-1">{companyName} • {currentDate}</p>
       </div>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-5xl mx-auto px-4 py-6">
         {/* Action Bar - Screen Only */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6 print:hidden">
-          <div className="flex justify-between items-start mb-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-5 mb-5 print:hidden">
+          <div className="flex justify-between items-start mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">Survey Print Preview</h1>
-              <p className="text-gray-600">Review and download the complete survey questionnaire</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Survey Print Preview</h1>
+              <p className="text-sm text-gray-600">Review and download the complete survey questionnaire</p>
             </div>
             <div className="flex gap-2">
-              <button onClick={expandAll} className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-sm">
+              <button onClick={expandAll} className="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
                 Expand All
               </button>
-              <button onClick={collapseAll} className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-sm">
+              <button onClick={collapseAll} className="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
                 Collapse All
               </button>
             </div>
           </div>
           
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-300 rounded-lg p-4 mb-6 flex gap-4">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-4">
+            <div className="flex gap-3">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-            </div>
-            <div>
-              <div className="font-semibold text-blue-900 mb-1">How to Download as PDF</div>
-              <p className="text-blue-800 text-sm">
-                Click "Download PDF" to open your browser's print dialog. Select "Save as PDF" as the destination 
-                to save the complete survey. All sections will be automatically expanded for printing.
-              </p>
+              <div className="text-sm text-blue-800">
+                Click "Download" to save as HTML file or "Print" to use your browser's print dialog.
+                All sections will be automatically expanded for printing.
+              </div>
             </div>
           </div>
           
-          <div className="flex gap-3 flex-wrap">
-            <button onClick={handleDownload} className="flex-1 min-w-[200px] px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex gap-3">
+            <button onClick={handleDownload} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 flex items-center justify-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
               </svg>
-              <span>Download Full Survey PDF</span>
+              Download Survey
             </button>
             
-            <button onClick={handlePrint} className="flex-1 min-w-[200px] px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 flex items-center justify-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onClick={handlePrint} className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded font-medium hover:bg-gray-50 flex items-center justify-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              <span>Print to Printer</span>
+              Print to Printer
             </button>
             
-            <button onClick={() => window.location.href = '/dashboard'} className="flex-1 min-w-[200px] px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50">
-              <span>← Back to Dashboard</span>
+            <button onClick={() => window.location.href = '/dashboard'} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded font-medium hover:bg-gray-50">
+              ← Back
             </button>
           </div>
         </div>
 
         {/* Survey Sections */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Section 1: Firmographics */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection('firmographics')}
-              className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
-              style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.firmographics.from} 0%, ${SECTION_COLORS.firmographics.to} 100%)` }}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer print:hidden border-l-4 border-purple-500"
             >
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">Company & Contact Information</span>
-              </div>
-              <svg className={`w-5 h-5 transition-transform ${expandedSections['firmographics'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="text-base font-semibold text-gray-800">Company & Contact Information</span>
+              <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections['firmographics'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.firmographics.from} 0%, ${SECTION_COLORS.firmographics.to} 100%)` }}>
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">Company & Contact Information</span>
-              </div>
+            <div className="hidden print:block p-4 border-l-4 border-purple-500 bg-gray-50">
+              <span className="text-base font-semibold text-gray-800">Company & Contact Information</span>
             </div>
             {(expandedSections['firmographics'] || false) && (
-              <div className="p-6 bg-gray-50">
+              <div className="p-5 bg-white border-t border-gray-200">
                 {Object.entries(firmographicsSchema).map(([key, field]) => (
                   <div key={key}>{renderField(key, field)}</div>
                 ))}
@@ -416,26 +392,21 @@ export default function PrintPage() {
           </div>
 
           {/* Section 2: General Benefits */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection('general')}
-              className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
-              style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.general.from} 0%, ${SECTION_COLORS.general.to} 100%)` }}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer print:hidden border-l-4 border-indigo-500"
             >
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">General Employee Benefits</span>
-              </div>
-              <svg className={`w-5 h-5 transition-transform ${expandedSections['general'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="text-base font-semibold text-gray-800">General Employee Benefits</span>
+              <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections['general'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.general.from} 0%, ${SECTION_COLORS.general.to} 100%)` }}>
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">General Employee Benefits</span>
-              </div>
+            <div className="hidden print:block p-4 border-l-4 border-indigo-500 bg-gray-50">
+              <span className="text-base font-semibold text-gray-800">General Employee Benefits</span>
             </div>
             {(expandedSections['general'] || false) && (
-              <div className="p-6 bg-gray-50">
+              <div className="p-5 bg-white border-t border-gray-200">
                 {Object.entries(generalBenefitsSchema).map(([key, field]) => (
                   <div key={key}>{renderField(key, field)}</div>
                 ))}
@@ -444,26 +415,21 @@ export default function PrintPage() {
           </div>
 
           {/* Section 3: Current Support */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection('current')}
-              className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
-              style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.current.from} 0%, ${SECTION_COLORS.current.to} 100%)` }}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer print:hidden border-l-4 border-pink-500"
             >
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">Current Support for Serious Medical Conditions</span>
-              </div>
-              <svg className={`w-5 h-5 transition-transform ${expandedSections['current'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="text-base font-semibold text-gray-800">Current Support for Serious Medical Conditions</span>
+              <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections['current'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.current.from} 0%, ${SECTION_COLORS.current.to} 100%)` }}>
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">Current Support for Serious Medical Conditions</span>
-              </div>
+            <div className="hidden print:block p-4 border-l-4 border-pink-500 bg-gray-50">
+              <span className="text-base font-semibold text-gray-800">Current Support for Serious Medical Conditions</span>
             </div>
             {(expandedSections['current'] || false) && (
-              <div className="p-6 bg-gray-50">
+              <div className="p-5 bg-white border-t border-gray-200">
                 {Object.entries(currentSupportSchema).map(([key, field]) => (
                   <div key={key}>{renderField(key, field)}</div>
                 ))}
@@ -471,38 +437,37 @@ export default function PrintPage() {
             )}
           </div>
 
-          {/* Section 4 Header - KEEP THE NUMBER HERE */}
-          <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg p-4 border-l-4 border-blue-600">
+          {/* Section 4 Header */}
+          <div className="bg-gray-50 rounded-lg p-3 border-l-4 border-blue-500">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center font-bold text-blue-600">4</div>
-              <h2 className="text-xl font-bold text-gray-900">13 Dimensions of Support</h2>
+              <div className="w-8 h-8 bg-white rounded flex items-center justify-center font-bold text-blue-600 text-sm border border-blue-200">4</div>
+              <h2 className="text-lg font-bold text-gray-900">13 Dimensions of Support</h2>
             </div>
           </div>
 
-          {/* 13 Dimensions - KEEP NUMBERS HERE */}
+          {/* 13 Dimensions */}
           {ALL_DIMENSION_SCHEMAS.map((schema, idx) => (
-            <div key={idx} className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div key={idx} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => toggleSection(`dim-${idx}`)}
-                className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
-                style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.dimensions.from} 0%, ${SECTION_COLORS.dimensions.to} 100%)` }}
+                className="w-full p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer print:hidden border-l-4 border-blue-500"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">{idx + 1}</div>
-                  <span className="text-lg font-semibold">{DIMENSION_TITLES[idx + 1]}</span>
+                  <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center font-semibold text-blue-600 text-sm">{idx + 1}</div>
+                  <span className="text-base font-semibold text-gray-800">{DIMENSION_TITLES[idx + 1]}</span>
                 </div>
-                <svg className={`w-5 h-5 transition-transform ${expandedSections[`dim-${idx}`] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections[`dim-${idx}`] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.dimensions.from} 0%, ${SECTION_COLORS.dimensions.to} 100%)` }}>
+              <div className="hidden print:block p-4 border-l-4 border-blue-500 bg-gray-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">{idx + 1}</div>
-                  <span className="text-lg font-semibold">{DIMENSION_TITLES[idx + 1]}</span>
+                  <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center font-semibold text-blue-600 text-sm">{idx + 1}</div>
+                  <span className="text-base font-semibold text-gray-800">{DIMENSION_TITLES[idx + 1]}</span>
                 </div>
               </div>
               {(expandedSections[`dim-${idx}`] || false) && (
-                <div className="p-6 bg-gray-50">
+                <div className="p-5 bg-white border-t border-gray-200">
                   {Object.entries(schema).map(([key, field]) => (
                     <div key={key}>{renderField(key, field)}</div>
                   ))}
@@ -512,26 +477,21 @@ export default function PrintPage() {
           ))}
 
           {/* Section 5: Cross-Dimensional */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection('cross')}
-              className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
-              style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.cross.from} 0%, ${SECTION_COLORS.cross.to} 100%)` }}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer print:hidden border-l-4 border-green-500"
             >
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">Cross-Dimensional Assessment</span>
-              </div>
-              <svg className={`w-5 h-5 transition-transform ${expandedSections['cross'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="text-base font-semibold text-gray-800">Cross-Dimensional Assessment</span>
+              <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections['cross'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.cross.from} 0%, ${SECTION_COLORS.cross.to} 100%)` }}>
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">Cross-Dimensional Assessment</span>
-              </div>
+            <div className="hidden print:block p-4 border-l-4 border-green-500 bg-gray-50">
+              <span className="text-base font-semibold text-gray-800">Cross-Dimensional Assessment</span>
             </div>
             {(expandedSections['cross'] || false) && (
-              <div className="p-6 bg-gray-50">
+              <div className="p-5 bg-white border-t border-gray-200">
                 {Object.entries(crossDimensionalSchema).map(([key, field]) => (
                   <div key={key}>{renderField(key, field)}</div>
                 ))}
@@ -540,26 +500,21 @@ export default function PrintPage() {
           </div>
 
           {/* Section 6: Employee Impact */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection('impact')}
-              className="w-full p-5 text-white flex items-center justify-between hover:opacity-90 cursor-pointer print:hidden"
-              style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.impact.from} 0%, ${SECTION_COLORS.impact.to} 100%)` }}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer print:hidden border-l-4 border-orange-500"
             >
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">Employee Impact & ROI Assessment</span>
-              </div>
-              <svg className={`w-5 h-5 transition-transform ${expandedSections['impact'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="text-base font-semibold text-gray-800">Employee Impact & ROI Assessment</span>
+              <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections['impact'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.impact.from} 0%, ${SECTION_COLORS.impact.to} 100%)` }}>
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">Employee Impact & ROI Assessment</span>
-              </div>
+            <div className="hidden print:block p-4 border-l-4 border-orange-500 bg-gray-50">
+              <span className="text-base font-semibold text-gray-800">Employee Impact & ROI Assessment</span>
             </div>
             {(expandedSections['impact'] || false) && (
-              <div className="p-6 bg-gray-50">
+              <div className="p-5 bg-white border-t border-gray-200">
                 {Object.entries(employeeImpactSchema).map(([key, field]) => (
                   <div key={key}>{renderField(key, field)}</div>
                 ))}
