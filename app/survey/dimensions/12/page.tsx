@@ -253,7 +253,7 @@ const showD12_2 = showD12_1;
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>Indicate the current status of each measurement within your organization</span>
+                    <span><strong>Indicate the current status of each measurement within your organization</strong></span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
