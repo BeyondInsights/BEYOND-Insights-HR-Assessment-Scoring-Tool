@@ -146,6 +146,7 @@ export default function PrintPage() {
         )
 
       case 'select':
+        const selectTwoColumn = field.options?.length > 6
         return (
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
@@ -154,7 +155,7 @@ export default function PrintPage() {
             {field.instruction && (
               <p className="text-xs text-gray-600 italic mb-3">{field.instruction}</p>
             )}
-            <div className="space-y-2">
+            <div className={selectTwoColumn ? "grid grid-cols-2 gap-2" : "space-y-2"}>
               {field.options?.map((opt: string) => (
                 <label key={opt} className="flex items-center p-3 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 cursor-pointer">
                   <input type="radio" name={fieldKey} className="mr-3" />
@@ -367,7 +368,6 @@ export default function PrintPage() {
               style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.firmographics.from} 0%, ${SECTION_COLORS.firmographics.to} 100%)` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">1</div>
                 <span className="text-lg font-semibold">Company & Contact Information</span>
               </div>
               <svg className={`w-5 h-5 transition-transform ${expandedSections['firmographics'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -376,7 +376,6 @@ export default function PrintPage() {
             </button>
             <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.firmographics.from} 0%, ${SECTION_COLORS.firmographics.to} 100%)` }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">1</div>
                 <span className="text-lg font-semibold">Company & Contact Information</span>
               </div>
             </div>
@@ -397,7 +396,6 @@ export default function PrintPage() {
               style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.general.from} 0%, ${SECTION_COLORS.general.to} 100%)` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">2</div>
                 <span className="text-lg font-semibold">General Employee Benefits</span>
               </div>
               <svg className={`w-5 h-5 transition-transform ${expandedSections['general'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -406,7 +404,6 @@ export default function PrintPage() {
             </button>
             <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.general.from} 0%, ${SECTION_COLORS.general.to} 100%)` }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">2</div>
                 <span className="text-lg font-semibold">General Employee Benefits</span>
               </div>
             </div>
@@ -427,7 +424,6 @@ export default function PrintPage() {
               style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.current.from} 0%, ${SECTION_COLORS.current.to} 100%)` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">3</div>
                 <span className="text-lg font-semibold">Current Support for Serious Medical Conditions</span>
               </div>
               <svg className={`w-5 h-5 transition-transform ${expandedSections['current'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -436,7 +432,6 @@ export default function PrintPage() {
             </button>
             <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.current.from} 0%, ${SECTION_COLORS.current.to} 100%)` }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">3</div>
                 <span className="text-lg font-semibold">Current Support for Serious Medical Conditions</span>
               </div>
             </div>
@@ -449,7 +444,7 @@ export default function PrintPage() {
             )}
           </div>
 
-          {/* Section 4 Header */}
+          {/* Section 4 Header - KEEP THE NUMBER HERE */}
           <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg p-4 border-l-4 border-blue-600">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center font-bold text-blue-600">4</div>
@@ -457,7 +452,7 @@ export default function PrintPage() {
             </div>
           </div>
 
-          {/* 13 Dimensions */}
+          {/* 13 Dimensions - KEEP NUMBERS HERE */}
           {ALL_DIMENSION_SCHEMAS.map((schema, idx) => (
             <div key={idx} className="bg-white rounded-lg shadow-lg overflow-hidden">
               <button
@@ -497,7 +492,6 @@ export default function PrintPage() {
               style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.cross.from} 0%, ${SECTION_COLORS.cross.to} 100%)` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">5</div>
                 <span className="text-lg font-semibold">Cross-Dimensional Assessment</span>
               </div>
               <svg className={`w-5 h-5 transition-transform ${expandedSections['cross'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -506,7 +500,6 @@ export default function PrintPage() {
             </button>
             <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.cross.from} 0%, ${SECTION_COLORS.cross.to} 100%)` }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">5</div>
                 <span className="text-lg font-semibold">Cross-Dimensional Assessment</span>
               </div>
             </div>
@@ -527,7 +520,6 @@ export default function PrintPage() {
               style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.impact.from} 0%, ${SECTION_COLORS.impact.to} 100%)` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">6</div>
                 <span className="text-lg font-semibold">Employee Impact & ROI Assessment</span>
               </div>
               <svg className={`w-5 h-5 transition-transform ${expandedSections['impact'] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -536,7 +528,6 @@ export default function PrintPage() {
             </button>
             <div className="hidden print:block p-5 text-white" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.impact.from} 0%, ${SECTION_COLORS.impact.to} 100%)` }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">6</div>
                 <span className="text-lg font-semibold">Employee Impact & ROI Assessment</span>
               </div>
             </div>
