@@ -742,7 +742,7 @@ const OR1_OPTIONS = [
  <p className="text-base font-bold text-gray-900 mb-1">
  What types of <span className="text-blue-600">caregiver support</span> does your organization provide to employees who have taken on primary caregiver responsibilities for someone <span className="text-blue-600">managing cancer or another serious health condition</span>?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  <p className="text-sm text-gray-500 italic mb-4">Select if offered in at least one location</p>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-fr">
