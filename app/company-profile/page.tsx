@@ -947,12 +947,12 @@ export default function CompanyProfileFixed() {
                 style={{ borderColor: BRAND.gray[300], color: BRAND.gray[700] }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                Print to Printer
-              </button>
-            </div>
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print to Printer
+            </button>
           </div>
+        </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-6">
@@ -966,6 +966,7 @@ export default function CompanyProfileFixed() {
               </svg>
               <h2 className="text-lg font-bold" style={{ color: BRAND.gray[900] }}>Point of Contact</h2>
             </div>
+             
             <Field label="Name" value={poc.name} />
             <Field label="Email" value={poc.email} />
             <Field label="Department" value={poc.dept} />
