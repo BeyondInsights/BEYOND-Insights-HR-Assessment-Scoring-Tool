@@ -254,9 +254,16 @@ export default function PrintPage() {
         )
 
       case 'grid':
-        // Use exact options from schema - DO NOT MODIFY ORDER
-        const gridOptions = field.statusOptions || field.responseOptions || field.scale || []
+        // Use exact options from schema - dimension grids need order reversed
+        let gridOptions = field.statusOptions || field.responseOptions || field.scale || []
         const gridItems = field.programs || field.items || field.elements || []
+        
+        // For dimension grids, the scale should start with "Not able to offer" on the LEFT
+        // The schemas have them backwards, so reverse them for dimensions
+        if (field.scale && field.scale[0] && field.scale[0].includes('Currently')) {
+          // This is a dimension grid, reverse the order
+          gridOptions = [...gridOptions].reverse()
+        }
         
         return (
           <div className="mb-6">
