@@ -794,7 +794,7 @@ const OR1_OPTIONS = [
  <p className="text-base font-bold text-gray-900 mb-1">
  How does your organization <span className="text-blue-600">monitor effectiveness</span> of workplace support programs while maintaining employee privacy?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-fr">
  {OR6_MONITORING.map(opt => {
