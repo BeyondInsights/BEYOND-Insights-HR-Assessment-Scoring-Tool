@@ -112,22 +112,20 @@ export default function PrintSurveyPage() {
         return (
           <div className="question-block">
             <label className="question-label">{field.label}</label>
+            {field.required && <span className="required-marker">*</span>}
             {field.maxLength && (
               <div className="helper-text">Maximum {field.maxLength} characters</div>
             )}
-            <div className="response-box">
-              <div className="response-line"></div>
-              <div className="response-line"></div>
-              {field.type === 'textarea' && (
-                <>
-                  <div className="response-line"></div>
-                  <div className="response-line"></div>
-                </>
+            <div className="input-container">
+              {field.type === 'textarea' ? (
+                <textarea className="form-textarea" rows={4} placeholder="Enter your response..." />
+              ) : (
+                <input type="text" className="form-input" placeholder="Enter your response..." />
               )}
             </div>
             {field.hasNone && (
-              <label className="checkbox-inline">
-                <input type="checkbox" />
+              <label className="checkbox-option">
+                <input type="checkbox" className="form-checkbox" />
                 <span>No additional information</span>
               </label>
             )}
@@ -138,18 +136,19 @@ export default function PrintSurveyPage() {
         return (
           <div className="question-block">
             <label className="question-label">{field.label}</label>
+            {field.required && <span className="required-marker">*</span>}
             <div className="instruction">(Select ONE)</div>
             <div className={shouldUseTwoColumns ? 'options-grid two-col' : 'options-list'}>
               {field.options?.map((opt: string, i: number) => (
-                <label key={i} className="option-item">
-                  <input type="radio" name={fieldKey} />
-                  <span>{opt}</span>
+                <label key={i} className="option-card">
+                  <input type="radio" name={fieldKey} className="form-radio" />
+                  <span className="option-text">{opt}</span>
                 </label>
               ))}
               {field.hasOther && (
-                <label className="option-item">
-                  <input type="radio" name={fieldKey} />
-                  <span>Other: <span className="write-in">_________________</span></span>
+                <label className="option-card">
+                  <input type="radio" name={fieldKey} className="form-radio" />
+                  <span className="option-text">Other (please specify)</span>
                 </label>
               )}
             </div>
@@ -168,9 +167,9 @@ export default function PrintSurveyPage() {
                     <div className="category-header">{category}</div>
                     <div className="options-grid two-col">
                       {items.map((item: string, i: number) => (
-                        <label key={i} className="option-item">
-                          <input type="checkbox" />
-                          <span>{item}</span>
+                        <label key={i} className="option-card">
+                          <input type="checkbox" className="form-checkbox" />
+                          <span className="option-text">{item}</span>
                         </label>
                       ))}
                     </div>
@@ -180,15 +179,15 @@ export default function PrintSurveyPage() {
             ) : (
               <div className={shouldUseTwoColumns ? 'options-grid two-col' : 'options-list'}>
                 {field.options?.map((opt: string, i: number) => (
-                  <label key={i} className="option-item">
-                    <input type="checkbox" />
-                    <span>{opt}</span>
+                  <label key={i} className="option-card">
+                    <input type="checkbox" className="form-checkbox" />
+                    <span className="option-text">{opt}</span>
                   </label>
                 ))}
                 {field.hasOther && (
-                  <label className="option-item">
-                    <input type="checkbox" />
-                    <span>Other: <span className="write-in">_________________</span></span>
+                  <label className="option-card">
+                    <input type="checkbox" className="form-checkbox" />
+                    <span className="option-text">Other (please specify)</span>
                   </label>
                 )}
               </div>
@@ -198,26 +197,26 @@ export default function PrintSurveyPage() {
 
       case 'grid':
         return (
-          <div className="question-block grid-block">
+          <div className="question-block grid-question">
             <label className="question-label">{field.label}</label>
             <div className="instruction">(Select ONE for each row)</div>
-            <div className="table-container">
-              <table className="grid-table">
+            <div className="professional-table-container">
+              <table className="professional-table">
                 <thead>
                   <tr>
-                    <th className="row-header-cell">{field.programs ? 'Program' : 'Item'}</th>
+                    <th className="header-first">{field.programs ? 'Program' : 'Item'}</th>
                     {(field.statusOptions || field.responseOptions)?.map((opt: string) => (
-                      <th key={opt} className="col-header-cell">{opt}</th>
+                      <th key={opt} className="header-option">{opt}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {(field.programs || field.items)?.map((item: string, idx: number) => (
                     <tr key={idx}>
-                      <td className="row-label-cell">{item}</td>
+                      <td className="row-label">{item}</td>
                       {(field.statusOptions || field.responseOptions)?.map((opt: string) => (
                         <td key={opt} className="radio-cell">
-                          <input type="radio" name={`grid-${fieldKey}-${idx}`} />
+                          <input type="radio" name={`grid-${fieldKey}-${idx}`} className="form-radio" />
                         </td>
                       ))}
                     </tr>
@@ -240,67 +239,60 @@ export default function PrintSurveyPage() {
       </div>
 
       {/* Print Header */}
-      <div className="print-only print-header">
-        <div className="print-logo-container">
-          <img src="/best-companies-2026-logo.png" alt="Best Companies" className="print-logo" />
-        </div>
+      <div className="print-header print-only">
+        <img src="/best-companies-2026-logo.png" alt="Best Companies" className="print-logo" />
         <h1 className="print-title">Best Companies for Working with Cancer</h1>
         <p className="print-subtitle">2026 Employer Index Survey</p>
         <p className="print-meta">{companyName} • {currentDate}</p>
       </div>
 
       <main className="main-container">
-        {/* Action Bar - Screen Only */}
+        {/* Professional Action Bar */}
         <div className="action-bar screen-only">
-          <div className="action-header">
-            <div>
-              <h1 className="page-title">Survey Print Preview</h1>
-              <p className="page-subtitle">Review and download the complete survey questionnaire</p>
+          <div className="action-bar-inner">
+            <div className="action-header">
+              <div className="action-title-group">
+                <h1 className="page-title">Survey Print Preview</h1>
+                <p className="page-subtitle">Complete 2026 employer assessment questionnaire</p>
+              </div>
+              <div className="action-buttons">
+                <button onClick={expandAll} className="btn btn-secondary">
+                  <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  </svg>
+                  Expand All
+                </button>
+                <button onClick={collapseAll} className="btn btn-secondary">
+                  <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  Collapse All
+                </button>
+                <button onClick={handlePrint} className="btn btn-primary">
+                  <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                  </svg>
+                  Download PDF
+                </button>
+              </div>
             </div>
-            <div className="action-buttons-top">
-              <button onClick={expandAll} className="btn-outline-sm">Expand All</button>
-              <button onClick={collapseAll} className="btn-outline-sm">Collapse All</button>
-            </div>
-          </div>
-          
-          <div className="download-info-box">
-            <div className="info-icon">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <div className="info-title">How to Download as PDF</div>
-              <p className="info-text">
-                Click "Download PDF" to open your browser's print dialog. Select "Save as PDF" as the destination 
-                to save the complete survey. All sections will be automatically expanded for printing.
-              </p>
-            </div>
-          </div>
-          
-          <div className="primary-action-buttons">
-            <button onClick={handlePrint} className="btn-primary">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-              </svg>
-              <span>Download Full Survey PDF</span>
-            </button>
             
-            <button onClick={handlePrint} className="btn-secondary">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              <span>Print to Printer</span>
-            </button>
-            
-            <button onClick={() => window.location.href = '/dashboard'} className="btn-outline">
-              <span>← Back to Dashboard</span>
-            </button>
+            <div className="info-panel">
+              <div className="info-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="info-content">
+                <h3 className="info-title">Download Instructions</h3>
+                <p className="info-text">Click "Download PDF" to open the print dialog. Select "Save as PDF" as the destination to save the complete survey with all sections expanded.</p>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Survey Sections */}
-        <div className="sections-wrapper">
+        <div className="sections-container">
           {/* Section 1: Firmographics */}
           <div className="survey-section">
             <button
@@ -309,16 +301,16 @@ export default function PrintSurveyPage() {
               style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.firmographics.from} 0%, ${SECTION_COLORS.firmographics.to} 100%)` }}
             >
               <div className="section-header-content">
-                <div className="section-number">1</div>
+                <div className="section-badge">1</div>
                 <span className="section-title">Company & Contact Information</span>
               </div>
-              <svg className={`chevron ${expandedSections['firmographics'] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`section-chevron ${expandedSections['firmographics'] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="section-header print-only" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.firmographics.from} 0%, ${SECTION_COLORS.firmographics.to} 100%)` }}>
+            <div className="section-header print-only gradient-purple">
               <div className="section-header-content">
-                <div className="section-number">1</div>
+                <div className="section-badge">1</div>
                 <span className="section-title">Company & Contact Information</span>
               </div>
             </div>
@@ -339,16 +331,16 @@ export default function PrintSurveyPage() {
               style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.general.from} 0%, ${SECTION_COLORS.general.to} 100%)` }}
             >
               <div className="section-header-content">
-                <div className="section-number">2</div>
+                <div className="section-badge">2</div>
                 <span className="section-title">General Employee Benefits</span>
               </div>
-              <svg className={`chevron ${expandedSections['general'] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`section-chevron ${expandedSections['general'] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="section-header print-only" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.general.from} 0%, ${SECTION_COLORS.general.to} 100%)` }}>
+            <div className="section-header print-only gradient-indigo">
               <div className="section-header-content">
-                <div className="section-number">2</div>
+                <div className="section-badge">2</div>
                 <span className="section-title">General Employee Benefits</span>
               </div>
             </div>
@@ -369,16 +361,16 @@ export default function PrintSurveyPage() {
               style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.current.from} 0%, ${SECTION_COLORS.current.to} 100%)` }}
             >
               <div className="section-header-content">
-                <div className="section-number">3</div>
+                <div className="section-badge">3</div>
                 <span className="section-title">Current Support for Serious Medical Conditions</span>
               </div>
-              <svg className={`chevron ${expandedSections['current'] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`section-chevron ${expandedSections['current'] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="section-header print-only" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.current.from} 0%, ${SECTION_COLORS.current.to} 100%)` }}>
+            <div className="section-header print-only gradient-pink">
               <div className="section-header-content">
-                <div className="section-number">3</div>
+                <div className="section-badge">3</div>
                 <span className="section-title">Current Support for Serious Medical Conditions</span>
               </div>
             </div>
@@ -394,30 +386,30 @@ export default function PrintSurveyPage() {
           {/* Section 4 Header */}
           <div className="section-divider">
             <div className="divider-content">
-              <div className="divider-number">4</div>
+              <div className="divider-badge">4</div>
               <h2 className="divider-title">13 Dimensions of Support</h2>
             </div>
           </div>
 
           {/* 13 Dimensions */}
           {ALL_DIMENSION_SCHEMAS.map((schema, idx) => (
-            <div key={idx} className="survey-section dimension-section">
+            <div key={idx} className="survey-section">
               <button
                 onClick={() => toggleSection(`dim-${idx}`)}
                 className="section-header screen-only"
                 style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.dimensions.from} 0%, ${SECTION_COLORS.dimensions.to} 100%)` }}
               >
                 <div className="section-header-content">
-                  <div className="section-number">{idx + 1}</div>
+                  <div className="section-badge">{idx + 1}</div>
                   <span className="section-title">{DIMENSION_TITLES[idx + 1]}</span>
                 </div>
-                <svg className={`chevron ${expandedSections[`dim-${idx}`] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`section-chevron ${expandedSections[`dim-${idx}`] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="section-header print-only" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.dimensions.from} 0%, ${SECTION_COLORS.dimensions.to} 100%)` }}>
+              <div className="section-header print-only gradient-blue">
                 <div className="section-header-content">
-                  <div className="section-number">{idx + 1}</div>
+                  <div className="section-badge">{idx + 1}</div>
                   <span className="section-title">{DIMENSION_TITLES[idx + 1]}</span>
                 </div>
               </div>
@@ -439,16 +431,16 @@ export default function PrintSurveyPage() {
               style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.cross.from} 0%, ${SECTION_COLORS.cross.to} 100%)` }}
             >
               <div className="section-header-content">
-                <div className="section-number">5</div>
+                <div className="section-badge">5</div>
                 <span className="section-title">Cross-Dimensional Assessment</span>
               </div>
-              <svg className={`chevron ${expandedSections['cross'] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`section-chevron ${expandedSections['cross'] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="section-header print-only" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.cross.from} 0%, ${SECTION_COLORS.cross.to} 100%)` }}>
+            <div className="section-header print-only gradient-green">
               <div className="section-header-content">
-                <div className="section-number">5</div>
+                <div className="section-badge">5</div>
                 <span className="section-title">Cross-Dimensional Assessment</span>
               </div>
             </div>
@@ -469,16 +461,16 @@ export default function PrintSurveyPage() {
               style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.impact.from} 0%, ${SECTION_COLORS.impact.to} 100%)` }}
             >
               <div className="section-header-content">
-                <div className="section-number">6</div>
+                <div className="section-badge">6</div>
                 <span className="section-title">Employee Impact & ROI Assessment</span>
               </div>
-              <svg className={`chevron ${expandedSections['impact'] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`section-chevron ${expandedSections['impact'] ? 'expanded' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="section-header print-only" style={{ background: `linear-gradient(135deg, ${SECTION_COLORS.impact.from} 0%, ${SECTION_COLORS.impact.to} 100%)` }}>
+            <div className="section-header print-only gradient-orange">
               <div className="section-header-content">
-                <div className="section-number">6</div>
+                <div className="section-badge">6</div>
                 <span className="section-title">Employee Impact & ROI Assessment</span>
               </div>
             </div>
@@ -498,198 +490,156 @@ export default function PrintSurveyPage() {
       </div>
 
       <style jsx>{`
-        /* ==================== BASE & LAYOUT ==================== */
+        /* ==================== BASE STYLES ==================== */
         .survey-preview-wrapper {
           min-height: 100vh;
-          background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
         }
 
         .screen-only { display: block; }
         .print-only { display: none; }
 
         .main-container {
-          max-width: 1200px;
+          max-width: 1280px;
           margin: 0 auto;
-          padding: 0 1.5rem 3rem;
+          padding: 2rem;
         }
 
         /* ==================== ACTION BAR ==================== */
         .action-bar {
           background: white;
-          border-radius: 16px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-          padding: 2rem;
-          margin: 2rem 0;
-          border: 1px solid #e5e7eb;
+          border-radius: 20px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+          margin-bottom: 3rem;
+          overflow: hidden;
+        }
+
+        .action-bar-inner {
+          padding: 2.5rem;
         }
 
         .action-header {
           display: flex;
           justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 1.5rem;
-          gap: 2rem;
+          align-items: center;
+          margin-bottom: 2rem;
         }
 
         .page-title {
-          font-size: 1.875rem;
-          font-weight: 700;
-          color: #111827;
-          margin: 0 0 0.25rem 0;
-          letter-spacing: -0.025em;
+          font-size: 2.25rem;
+          font-weight: 800;
+          color: #1a202c;
+          margin: 0 0 0.5rem 0;
+          letter-spacing: -0.03em;
         }
 
         .page-subtitle {
-          color: #6b7280;
-          font-size: 0.938rem;
+          font-size: 1.125rem;
+          color: #64748b;
           margin: 0;
         }
 
-        .action-buttons-top {
+        .action-buttons {
           display: flex;
-          gap: 0.5rem;
+          gap: 1rem;
         }
 
-        .btn-outline-sm {
-          padding: 0.5rem 1rem;
-          background: white;
-          color: #374151;
-          border: 1.5px solid #d1d5db;
-          border-radius: 8px;
-          font-weight: 500;
-          font-size: 0.875rem;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-
-        .btn-outline-sm:hover {
-          background: #f9fafb;
-          border-color: #9ca3af;
-        }
-
-        .download-info-box {
-          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-          border: 1px solid #bfdbfe;
+        .btn {
+          padding: 0.875rem 1.5rem;
           border-radius: 12px;
-          padding: 1.25rem;
-          margin-bottom: 1.5rem;
+          font-weight: 600;
+          font-size: 0.938rem;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          border: none;
+          display: flex;
+          align-items: center;
+          gap: 0.625rem;
+        }
+
+        .btn .icon {
+          width: 20px;
+          height: 20px;
+        }
+
+        .btn-primary {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+          background: white;
+          color: #475569;
+          border: 2px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+          background: #f8fafc;
+          border-color: #cbd5e1;
+        }
+
+        .info-panel {
+          background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+          border-left: 4px solid #667eea;
+          border-radius: 12px;
+          padding: 1.5rem;
           display: flex;
           gap: 1rem;
         }
 
         .info-icon {
           flex-shrink: 0;
-          width: 2.5rem;
-          height: 2.5rem;
-          background: white;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #2563eb;
+        }
+
+        .info-icon svg {
+          width: 24px;
+          height: 24px;
+          color: #667eea;
         }
 
         .info-title {
-          font-weight: 600;
-          color: #1e40af;
+          font-weight: 700;
+          color: #1e293b;
+          margin: 0 0 0.25rem 0;
           font-size: 0.938rem;
-          margin-bottom: 0.375rem;
         }
 
         .info-text {
-          color: #1e40af;
-          font-size: 0.813rem;
-          line-height: 1.5;
+          color: #64748b;
           margin: 0;
-        }
-
-        .primary-action-buttons {
-          display: flex;
-          gap: 0.75rem;
-          flex-wrap: wrap;
-        }
-
-        .btn-primary {
-          flex: 1;
-          min-width: 200px;
-          padding: 0.875rem 1.5rem;
-          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-          color: white;
-          border: none;
-          border-radius: 10px;
-          font-weight: 600;
-          font-size: 0.938rem;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.625rem;
-          box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
-          transition: all 0.2s ease;
-        }
-
-        .btn-primary:hover {
-          background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-          box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -2px rgba(37, 99, 235, 0.15);
-          transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-          padding: 0.875rem 1.5rem;
-          background: white;
-          color: #374151;
-          border: 2px solid #d1d5db;
-          border-radius: 10px;
-          font-weight: 600;
-          font-size: 0.938rem;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 0.625rem;
-          transition: all 0.2s ease;
-        }
-
-        .btn-secondary:hover {
-          background: #f9fafb;
-          border-color: #9ca3af;
-        }
-
-        .btn-outline {
-          padding: 0.875rem 1.5rem;
-          background: white;
-          color: #374151;
-          border: 1.5px solid #d1d5db;
-          border-radius: 10px;
-          font-weight: 500;
-          font-size: 0.938rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .btn-outline:hover {
-          background: #f9fafb;
-          border-color: #9ca3af;
+          font-size: 0.875rem;
+          line-height: 1.5;
         }
 
         /* ==================== SECTIONS ==================== */
-        .sections-wrapper {
+        .sections-container {
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
+          gap: 1.5rem;
         }
 
         .survey-section {
           background: white;
-          border-radius: 12px;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+          border-radius: 16px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
           overflow: hidden;
-          border: 1px solid #e5e7eb;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .survey-section:hover {
+          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
         }
 
         .section-header {
           width: 100%;
-          padding: 1.25rem 1.5rem;
+          padding: 1.75rem 2rem;
           color: white;
           border: none;
           cursor: pointer;
@@ -697,344 +647,367 @@ export default function PrintSurveyPage() {
           justify-content: space-between;
           align-items: center;
           text-align: left;
-          transition: opacity 0.15s ease;
+          transition: all 0.2s ease;
         }
 
-        .screen-only.section-header:hover {
-          opacity: 0.95;
+        .section-header:hover {
+          filter: brightness(1.05);
         }
 
         .section-header-content {
           display: flex;
           align-items: center;
-          gap: 1rem;
+          gap: 1.25rem;
         }
 
-        .section-number {
-          width: 2rem;
-          height: 2rem;
+        .section-badge {
+          width: 40px;
+          height: 40px;
           background: rgba(255, 255, 255, 0.25);
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: 0.938rem;
-          flex-shrink: 0;
-        }
-
-        .section-title {
-          font-size: 1.063rem;
-          font-weight: 600;
-          letter-spacing: -0.01em;
-        }
-
-        .chevron {
-          width: 1.25rem;
-          height: 1.25rem;
-          transition: transform 0.2s ease;
-          flex-shrink: 0;
-        }
-
-        .chevron.expanded {
-          transform: rotate(180deg);
-        }
-
-        .section-content {
-          padding: 2rem;
-          background: #fafafa;
-        }
-
-        .section-divider {
-          margin: 2rem 0 1rem;
-        }
-
-        .divider-content {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: 1rem 1.5rem;
-          background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-          border-radius: 10px;
-          border-left: 4px solid #2563eb;
-        }
-
-        .divider-number {
-          width: 2.5rem;
-          height: 2.5rem;
-          background: white;
-          border-radius: 10px;
+          backdrop-filter: blur(10px);
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: 700;
           font-size: 1.125rem;
-          color: #2563eb;
-          flex-shrink: 0;
+        }
+
+        .section-title {
+          font-size: 1.125rem;
+          font-weight: 600;
+          letter-spacing: -0.01em;
+        }
+
+        .section-chevron {
+          width: 24px;
+          height: 24px;
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section-chevron.expanded {
+          transform: rotate(180deg);
+        }
+
+        .section-content {
+          padding: 2.5rem;
+          background: #fafbfc;
+        }
+
+        /* ==================== SECTION DIVIDER ==================== */
+        .section-divider {
+          margin: 2rem 0;
+        }
+
+        .divider-content {
+          display: flex;
+          align-items: center;
+          gap: 1.25rem;
+          padding: 1.5rem 2rem;
+          background: white;
+          border-radius: 16px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        .divider-badge {
+          width: 48px;
+          height: 48px;
+          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 1.25rem;
+          color: white;
         }
 
         .divider-title {
-          font-size: 1.25rem;
+          font-size: 1.5rem;
           font-weight: 700;
-          color: #111827;
+          color: #1e293b;
           margin: 0;
-          letter-spacing: -0.025em;
+          letter-spacing: -0.02em;
         }
 
         /* ==================== QUESTIONS ==================== */
         .question-block {
-          margin-bottom: 2rem;
-          padding-bottom: 2rem;
-          border-bottom: 1px solid #e5e7eb;
+          background: white;
+          border-radius: 12px;
+          padding: 2rem;
+          margin-bottom: 1.5rem;
+          border: 1px solid #e5e7eb;
         }
 
         .question-block:last-child {
-          border-bottom: none;
           margin-bottom: 0;
-          padding-bottom: 0;
         }
 
         .question-label {
           display: block;
           font-weight: 600;
-          color: #111827;
-          margin-bottom: 0.625rem;
+          color: #1e293b;
+          margin-bottom: 0.5rem;
           font-size: 0.938rem;
           line-height: 1.5;
         }
 
+        .required-marker {
+          color: #ef4444;
+          margin-left: 0.25rem;
+        }
+
         .instruction {
           font-size: 0.813rem;
-          color: #6b7280;
+          color: #64748b;
           font-style: italic;
-          margin-bottom: 0.875rem;
+          margin-bottom: 1rem;
         }
 
         .helper-text {
           font-size: 0.75rem;
-          color: #9ca3af;
-          margin-bottom: 0.625rem;
+          color: #94a3b8;
+          margin-bottom: 0.5rem;
         }
 
-        /* ==================== RESPONSE BOXES ==================== */
-        .response-box {
+        /* ==================== FORM ELEMENTS ==================== */
+        .input-container {
+          margin-top: 0.75rem;
+        }
+
+        .form-input, .form-textarea {
+          width: 100%;
+          padding: 0.875rem 1rem;
+          border: 2px solid #e2e8f0;
+          border-radius: 10px;
+          font-size: 0.938rem;
+          transition: all 0.2s ease;
+          background: #f8fafc;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+          outline: none;
+          border-color: #667eea;
           background: white;
-          border: 1.5px solid #d1d5db;
-          border-radius: 8px;
-          padding: 1rem;
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .response-line {
-          height: 1.5rem;
-          border-bottom: 1px solid #e5e7eb;
-          margin-bottom: 0.75rem;
-        }
-
-        .response-line:last-child {
-          margin-bottom: 0;
+        .form-textarea {
+          resize: vertical;
+          min-height: 120px;
         }
 
         /* ==================== OPTIONS ==================== */
         .options-list {
           display: flex;
           flex-direction: column;
-          gap: 0.625rem;
+          gap: 0.75rem;
         }
 
         .options-grid {
           display: grid;
-          gap: 0.625rem;
+          gap: 0.75rem;
         }
 
         .options-grid.two-col {
           grid-template-columns: repeat(2, 1fr);
         }
 
-        .option-item {
+        .option-card {
           display: flex;
-          align-items: flex-start;
-          gap: 0.75rem;
-          padding: 0.75rem;
+          align-items: center;
+          gap: 0.875rem;
+          padding: 1rem 1.25rem;
           background: white;
-          border: 1.5px solid #e5e7eb;
-          border-radius: 8px;
+          border: 2px solid #e5e7eb;
+          border-radius: 10px;
           cursor: pointer;
-          transition: all 0.15s ease;
-          font-size: 0.875rem;
-          line-height: 1.5;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .option-item:hover {
-          background: #f9fafb;
-          border-color: #d1d5db;
+        .option-card:hover {
+          background: linear-gradient(135deg, #667eea08 0%, #764ba208 100%);
+          border-color: #667eea;
+          transform: translateX(4px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
         }
 
-        .option-item input {
-          margin-top: 0.125rem;
+        .form-radio, .form-checkbox {
+          width: 20px;
+          height: 20px;
+          cursor: pointer;
           flex-shrink: 0;
         }
 
-        .option-item span {
-          flex: 1;
-          color: #374151;
+        .option-text {
+          font-size: 0.875rem;
+          color: #334155;
+          line-height: 1.5;
         }
 
-        .write-in {
-          display: inline-block;
-          min-width: 150px;
-          border-bottom: 1px solid #d1d5db;
-        }
-
-        .checkbox-inline {
+        .checkbox-option {
           display: flex;
           align-items: center;
-          gap: 0.625rem;
-          margin-top: 0.875rem;
+          gap: 0.75rem;
+          margin-top: 1rem;
           font-size: 0.875rem;
-          color: #6b7280;
+          color: #64748b;
           cursor: pointer;
         }
 
-        /* ==================== CATEGORIZED OPTIONS ==================== */
+        /* ==================== CATEGORIES ==================== */
         .categorized-options {
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 2rem;
         }
 
         .category-group {
-          background: white;
-          border: 1.5px solid #e5e7eb;
-          border-radius: 10px;
-          padding: 1.25rem;
+          background: #f8fafc;
+          border-radius: 12px;
+          padding: 1.5rem;
+          border: 1px solid #e2e8f0;
         }
 
         .category-header {
           font-weight: 700;
           font-size: 0.813rem;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          color: #2563eb;
-          background: #eff6ff;
-          padding: 0.5rem 0.875rem;
-          border-radius: 6px;
+          letter-spacing: 0.1em;
+          color: #667eea;
+          background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+          padding: 0.625rem 1rem;
+          border-radius: 8px;
           margin-bottom: 1rem;
+          border-left: 4px solid #667eea;
         }
 
-        /* ==================== GRID TABLES ==================== */
-        .grid-block {
+        /* ==================== TABLES ==================== */
+        .professional-table-container {
           overflow-x: auto;
-        }
-
-        .table-container {
-          overflow-x: auto;
-          margin-top: 0.875rem;
-          border-radius: 10px;
-          border: 1.5px solid #e5e7eb;
-        }
-
-        .grid-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 0.875rem;
+          margin-top: 1rem;
+          border-radius: 14px;
+          border: 2px solid #e5e7eb;
           background: white;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         }
 
-        .grid-table thead {
-          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        .professional-table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
         }
 
-        .grid-table th {
+        .professional-table thead {
+          background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        .professional-table th {
+          padding: 1.25rem 1rem;
           color: white;
           font-weight: 600;
-          padding: 0.875rem;
+          font-size: 0.875rem;
           text-align: left;
-          border: none;
-          font-size: 0.813rem;
+          position: relative;
         }
 
-        .row-header-cell {
-          text-align: left !important;
-          min-width: 200px;
+        .header-first {
+          min-width: 250px;
+          font-weight: 700;
         }
 
-        .col-header-cell {
+        .header-option {
           text-align: center !important;
-          min-width: 120px;
+          min-width: 140px;
+          border-left: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .grid-table td {
-          padding: 0.875rem;
-          border-bottom: 1px solid #e5e7eb;
+        .professional-table tbody tr {
+          transition: background 0.2s ease;
         }
 
-        .grid-table tbody tr:last-child td {
+        .professional-table tbody tr:nth-child(even) {
+          background: #fafbfc;
+        }
+
+        .professional-table tbody tr:hover {
+          background: linear-gradient(135deg, #667eea05 0%, #764ba205 100%);
+        }
+
+        .professional-table td {
+          padding: 1rem;
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .professional-table tbody tr:last-child td {
           border-bottom: none;
         }
 
-        .grid-table tbody tr:nth-child(even) {
-          background: #fafafa;
-        }
-
-        .row-label-cell {
+        .row-label {
           font-weight: 500;
-          color: #374151;
+          color: #1e293b;
+          background: #f8fafc;
+          font-size: 0.875rem;
         }
 
         .radio-cell {
           text-align: center;
         }
 
+        /* ==================== GRADIENT UTILITIES ==================== */
+        .gradient-purple { background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%); }
+        .gradient-indigo { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); }
+        .gradient-pink { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
+        .gradient-blue { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
+        .gradient-green { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+        .gradient-orange { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); }
+
         /* ==================== PRINT STYLES ==================== */
+        .print-header {
+          text-align: center;
+          padding: 2rem 0 3rem;
+          border-bottom: 2px solid #e5e7eb;
+        }
+
+        .print-logo {
+          height: 60px;
+          margin-bottom: 1rem;
+        }
+
+        .print-title {
+          font-size: 2rem;
+          font-weight: 800;
+          color: #1a202c;
+          margin: 0 0 0.5rem 0;
+        }
+
+        .print-subtitle {
+          font-size: 1.25rem;
+          color: #64748b;
+          margin: 0 0 0.5rem 0;
+        }
+
+        .print-meta {
+          font-size: 0.938rem;
+          color: #94a3b8;
+          margin: 0;
+        }
+
         @media print {
           .screen-only { display: none !important; }
           .print-only { display: block !important; }
 
           .survey-preview-wrapper {
-            background: white;
-          }
-
-          .print-header {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #e5e7eb;
-          }
-
-          .print-logo-container {
-            margin-bottom: 0.75rem;
-          }
-
-          .print-logo {
-            height: 3rem;
-          }
-
-          .print-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #111827;
-            margin: 0 0 0.25rem 0;
-          }
-
-          .print-subtitle {
-            font-size: 1rem;
-            color: #6b7280;
-            margin: 0 0 0.5rem 0;
-          }
-
-          .print-meta {
-            font-size: 0.813rem;
-            color: #9ca3af;
-            margin: 0;
+            background: white !important;
           }
 
           .main-container {
-            padding: 0;
             max-width: 100%;
+            padding: 0;
           }
 
-          .sections-wrapper {
-            gap: 0.75rem;
+          .sections-container {
+            gap: 0.5rem;
           }
 
           .survey-section {
@@ -1045,39 +1018,19 @@ export default function PrintSurveyPage() {
           }
 
           .section-content {
-            padding: 1.25rem;
+            display: block !important;
+            padding: 1.5rem;
             background: white;
           }
 
           .question-block {
-            margin-bottom: 1.25rem;
-            padding-bottom: 1.25rem;
+            page-break-inside: avoid;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
           }
 
-          .question-label {
-            font-size: 0.875rem;
-          }
-
-          .instruction {
-            font-size: 0.75rem;
-          }
-
-          .options-grid.two-col {
-            gap: 0.375rem;
-          }
-
-          .option-item {
-            padding: 0.5rem;
-            font-size: 0.813rem;
-          }
-
-          .grid-table {
-            font-size: 0.75rem;
-          }
-
-          .grid-table th,
-          .grid-table td {
-            padding: 0.5rem;
+          .professional-table-container {
+            page-break-inside: avoid;
           }
 
           * {
@@ -1095,30 +1048,30 @@ export default function PrintSurveyPage() {
         @media (max-width: 768px) {
           .action-header {
             flex-direction: column;
-            gap: 1rem;
+            align-items: flex-start;
+            gap: 1.5rem;
           }
 
-          .action-buttons-top {
+          .action-buttons {
             width: 100%;
-            justify-content: flex-end;
-          }
-
-          .primary-action-buttons {
             flex-direction: column;
           }
 
-          .btn-primary,
-          .btn-secondary,
-          .btn-outline {
+          .btn {
             width: 100%;
+            justify-content: center;
           }
 
           .options-grid.two-col {
             grid-template-columns: 1fr;
           }
 
-          .section-title {
-            font-size: 0.938rem;
+          .professional-table {
+            font-size: 0.75rem;
+          }
+
+          .header-option {
+            min-width: 100px;
           }
         }
       `}</style>
