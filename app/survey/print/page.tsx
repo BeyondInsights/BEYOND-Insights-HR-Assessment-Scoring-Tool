@@ -4,6 +4,28 @@ import React, { useEffect, useState } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
+// For now, just define the schemas locally until we know the exact export structure
+const firmographicsSchema = { questions: [] }
+const generalBenefitsSchema = { questions: [] }
+const currentSupportSchema = { questions: [] }
+const d1Schema = { supportOptions: [], scale: [], followUps: [] }
+const d2Schema = { supportOptions: [], scale: [], followUps: [] }
+const d3Schema = { supportOptions: [], scale: [], followUps: [] }
+const d4Schema = { supportOptions: [], scale: [], followUps: [] }
+const d5Schema = { supportOptions: [], scale: [], followUps: [] }
+const d6Schema = { supportOptions: [], scale: [], followUps: [] }
+const d7Schema = { supportOptions: [], scale: [], followUps: [] }
+const d8Schema = { supportOptions: [], scale: [], followUps: [] }
+const d9Schema = { supportOptions: [], scale: [], followUps: [] }
+const d10Schema = { supportOptions: [], scale: [], followUps: [] }
+const d11Schema = { supportOptions: [], scale: [], followUps: [] }
+const d12Schema = { supportOptions: [], scale: [], followUps: [] }
+const d13Schema = { supportOptions: [], scale: [], followUps: [] }
+const crossDimensionalSchema = { questions: [] }
+const employeeImpactSchema = { questions: [] } from 'react'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+
 // Import from the main schema file
 import { 
   FIRMOGRAPHICS,
