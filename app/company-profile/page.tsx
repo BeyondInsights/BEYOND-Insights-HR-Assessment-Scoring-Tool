@@ -942,6 +942,17 @@ export default function CompanyProfileFixed() {
               
               <button 
                 onClick={() => window.print()} 
+                className="px-5 py-2 text-sm font-semibold rounded text-white hover:opacity-90 flex items-center gap-2"
+                style={{ backgroundColor: '#2563eb' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+                Download PDF
+              </button>
+              
+              <button 
+                onClick={() => window.print()} 
                 className="px-5 py-2 text-sm font-semibold rounded border-2 hover:bg-gray-50 flex items-center gap-2"
                 style={{ borderColor: BRAND.gray[300], color: BRAND.gray[700] }}
               >
@@ -953,6 +964,8 @@ export default function CompanyProfileFixed() {
             </div>
           </div>
       </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-6">
 
       <main className="max-w-7xl mx-auto px-6 py-6">
         {/* POC + COMPANY PROFILE SIDE BY SIDE */}
