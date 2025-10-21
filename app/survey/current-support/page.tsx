@@ -439,7 +439,7 @@ const OR1_OPTIONS = [
  Which of the following best describes how these support programs {ans.cb3a === "Yes, we offer additional support beyond legal requirements" ? "are" : "will be"} structured
  for <span className="text-blue-600">employees managing cancer or other serious health conditions</span>?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  <div className="grid grid-cols-1 gap-2 auto-rows-fr">
  {CB3B_OPTIONS.map(opt => {
@@ -485,7 +485,7 @@ const OR1_OPTIONS = [
  <p className="text-base font-bold text-gray-900 mb-1">
  Which <span className="text-blue-600">serious health conditions</span> {ans.cb3a === "Yes, we offer additional support beyond legal requirements" ? "does" : "will"} your program address?
  </p>
- <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+ <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
  {ans.s9a !== "No other countries - headquarters only" && (
  <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4 text-sm">
