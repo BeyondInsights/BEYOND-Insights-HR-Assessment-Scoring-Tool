@@ -264,7 +264,7 @@ export default function LoginPage() {
                     disabled={loading}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono disabled:bg-gray-50 disabled:cursor-not-allowed"
                     placeholder="CAC-251022-001AB"
-                    maxLength={15}
+                    maxLength={20}
                   />
                   <p className="text-xs text-gray-500 mt-2">
                     Enter your Application ID (with or without dashes)
