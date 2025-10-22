@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { isAuthenticated, getUserAssessment } from '@/lib/supabase/auth'
+import { supabase } from '@/lib/supabase/client'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 
@@ -32,6 +34,7 @@ function Card({
 
 export default function AuthorizationPage() {
   const router = useRouter()
+  const [loading, setLoading] = useState(true)
   const [companyInfo, setCompanyInfo] = useState({
     companyName: '',
     firstName: '',
@@ -45,11 +48,41 @@ export default function AuthorizationPage() {
   const [errors, setErrors] = useState('')
 
   useEffect(() => {
-    const email = localStorage.getItem('login_email')
-    if (!email) {
-      router.push('/')
-      return
+    const checkAuth = async () => {
+      // Check if user is authenticated with Supabase
+      const authenticated = await isAuthenticated()
+      
+      if (!authenticated) {
+        // Not logged in - redirect to login page
+        router.push('/')
+        return
+      }
+
+      // Load existing data if any
+      try {
+        const assessment = await getUserAssessment()
+        if (assessment) {
+          // Load authorization data if it exists
+          const authData = assessment.firmographics_data as any
+          if (authData) {
+            if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
+            if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
+            if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
+            if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
+            if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
+            if (authData.au1) setAu1(authData.au1)
+            if (authData.au2) setAu2(authData.au2)
+            if (authData.other) setOther(authData.other)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error)
+      }
+
+      setLoading(false)
     }
+
+    checkAuth()
   }, [router])
 
   const toggleAu2 = (option: string) => {
@@ -68,7 +101,7 @@ export default function AuthorizationPage() {
     au1 === 'Yes' && 
     au2.length > 0
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!companyInfo.companyName.trim()) {
       setErrors('Please enter your company name')
       return
@@ -99,18 +132,71 @@ export default function AuthorizationPage() {
     }
 
     if (canContinue) {
-      localStorage.setItem('login_company_name', companyInfo.companyName)
-      localStorage.setItem('login_first_name', companyInfo.firstName)
-      localStorage.setItem('login_last_name', companyInfo.lastName)
-      
-      const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
-      localStorage.setItem('login_title', titleToStore || '')
-      
-      localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
-      localStorage.setItem('auth_completed', 'true')
-      
-      router.push('/payment')
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.push('/')
+          return
+        }
+
+        const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
+
+        // Save to Supabase
+        const authorizationData = {
+          companyName: companyInfo.companyName,
+          firstName: companyInfo.firstName,
+          lastName: companyInfo.lastName,
+          title: titleToStore,
+          au1,
+          au2,
+          other
+        }
+
+        const { error } = await supabase
+          .from('assessments')
+          .update({
+            company_name: companyInfo.companyName,
+            firmographics_data: authorizationData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+
+        if (error) {
+          console.error('Error saving:', error)
+          setErrors('Failed to save. Please try again.')
+          return
+        }
+
+        // Also save to localStorage for backward compatibility
+        localStorage.setItem('login_company_name', companyInfo.companyName)
+        localStorage.setItem('login_first_name', companyInfo.firstName)
+        localStorage.setItem('login_last_name', companyInfo.lastName)
+        localStorage.setItem('login_title', titleToStore || '')
+        localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
+        localStorage.setItem('auth_completed', 'true')
+        
+        // Continue to payment
+        router.push('/payment')
+      } catch (error) {
+        console.error('Error:', error)
+        setErrors('An error occurred. Please try again.')
+      }
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <svg className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -218,20 +304,20 @@ export default function AuthorizationPage() {
         </div>
 
         <h2 className="text-xl font-bold text-gray-900 mb-2">
-  Are you <span className="text-blue-700 font-bold">authorized</span> to provide information on behalf of your organization?
-</h2>
-<p className="text-base text-gray-600 mb-4">(Select ONE)</p>
-<div className="grid md:grid-cols-2 gap-x-8 gap-y-4 mt-6 mb-8">
-  <Card selected={au1 === 'Yes'} onClick={() => setAu1('Yes')}>
-    Yes, I am authorized
-  </Card>
-  <Card selected={au1 === 'No'} onClick={() => {
-    setAu1('No')
-    router.push('/not-authorized')
-  }}>
-    No, I am not authorized
-  </Card>
-</div>
+          Are you <span className="text-blue-700 font-bold">authorized</span> to provide information on behalf of your organization?
+        </h2>
+        <p className="text-base text-gray-600 mb-4">(Select ONE)</p>
+        <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 mt-6 mb-8">
+          <Card selected={au1 === 'Yes'} onClick={() => setAu1('Yes')}>
+            Yes, I am authorized
+          </Card>
+          <Card selected={au1 === 'No'} onClick={() => {
+            setAu1('No')
+            router.push('/not-authorized')
+          }}>
+            No, I am not authorized
+          </Card>
+        </div>
 
         {au1 === 'Yes' && (
           <div className="mt-12">
