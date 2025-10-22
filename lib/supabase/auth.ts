@@ -119,16 +119,16 @@ async function handleExistingUser(
  * Handle new user registration
  */
 async function handleNewUser(email: string): Promise<AuthResult> {
-  console.log('handleNewUser called for:', email)
+ console.log('handleNewUser called for:', email)
   
   // Generate unique app_id
   const newAppId = await generateUniqueAppId()
   console.log('Generated unique App ID:', newAppId)
 
-  // Create auth user with magic link
+  // Create auth user - USE APP ID AS PASSWORD!
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email,
-    password: Math.random().toString(36).slice(-12) + 'Aa1!', // Random secure password
+    password: newAppId, // <-- App ID is the password!
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
       data: {
