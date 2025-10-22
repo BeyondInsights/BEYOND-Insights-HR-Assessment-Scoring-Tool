@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const EI1_ITEMS = [
   "Employee retention / tenure",
@@ -24,6 +27,7 @@ const EI1_OPTIONS = [
 ];
 
 export default function EmployeeImpactPage() {
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState({});
   const [errors, setErrors] = useState("");
@@ -36,6 +40,26 @@ export default function EmployeeImpactPage() {
     }
     return shuffled;
   });
+
+  // Load saved data on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("employee-impact-assessment_data");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setAns(parsed);
+      } catch (e) {
+        console.error("Error loading saved data:", e);
+      }
+    }
+  }, []);
+
+  // Save data whenever answers change
+  useEffect(() => {
+    if (Object.keys(ans).length > 0) {
+      localStorage.setItem("employee-impact-assessment_data", JSON.stringify(ans));
+    }
+  }, [ans]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -111,7 +135,10 @@ export default function EmployeeImpactPage() {
       setStep(step + 1);
       setErrors("");
     } else {
-      alert("Assessment Complete!");
+      // Mark as complete and navigate to dashboard
+      localStorage.setItem("employee-impact-assessment_complete", "true");
+      localStorage.setItem("employee-impact-assessment_data", JSON.stringify(ans));
+      router.push("/dashboard");
     }
   };
 
@@ -127,12 +154,10 @@ export default function EmployeeImpactPage() {
   const shouldShowEI3 = step === 3 && (ans.ei2 === "yes_comprehensive" || ans.ei2 === "yes_basic");
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col p-4">
-      <header className="bg-white shadow-sm mb-6 p-4 rounded-lg">
-        <h1 className="text-xl font-bold text-gray-900">Employee Impact Assessment Demo</h1>
-      </header>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+      <Header />
       
-      <main className="flex-1 max-w-6xl mx-auto w-full">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-10">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
@@ -471,9 +496,7 @@ export default function EmployeeImpactPage() {
         )}
       </main>
       
-      <footer className="bg-white shadow-sm mt-6 p-4 rounded-lg text-center text-sm text-gray-600">
-        Employee Impact Assessment Demo
-      </footer>
+      <Footer />
     </div>
   );
 }
