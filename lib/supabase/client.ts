@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://lfyctufmiqytyfvrwhnf.supabase.co'
-const supabaseAnonKey = 'sb_publishable_pJqw4HWgNXXMq7GYboI7g0_9tUocjyb'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -11,13 +15,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
+// Only create admin client if service role key exists (server-side only)
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+export const supabaseAdmin = serviceRoleKey 
+  ? createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  : supabase // Fallback to regular client if no service key
