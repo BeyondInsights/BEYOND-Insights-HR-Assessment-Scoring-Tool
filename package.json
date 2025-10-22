@@ -12,20 +12,21 @@
     "start": "next start",
     "lint": "eslint"
   },
- "dependencies": {
-  "@supabase/supabase-js": "^2.57.4",
-  "lucide-react": "^0.544.0",
-  "next": "15.5.3",
-  "react": "19.1.0",
-  "react-dom": "19.1.0",
-  "react-hot-toast": "^2.6.0",
-  "react-is": "^18.3.1",
-  "survey-core": "^2.3.7",
-  "survey-react-ui": "^2.3.7"
-},
+  "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/supabase-js": "^2.76.1",
+    "lucide-react": "^0.544.0",
+    "next": "15.5.3",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-hot-toast": "^2.6.0",
+    "react-is": "^18.3.1",
+    "survey-core": "^2.3.7",
+    "survey-react-ui": "^2.3.7"
+  },
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.40.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
