@@ -502,11 +502,8 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Dimension 13 Complete!
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-8">
               You've successfully completed the Communication & Awareness dimension.
-            </p>
-            <p className="text-lg font-semibold text-green-600 mb-8">
-              Thank You! You completed all 13 dimensions!
             </p>
             <button
               onClick={() => { 
