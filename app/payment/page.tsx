@@ -4,15 +4,57 @@ import { useRouter } from 'next/navigation'
 import { CreditCard, FileText, Award, Building2, Landmark } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { getUserAssessment } from '@/lib/supabase/auth'
 
 export default function PaymentPage() {
   const router = useRouter()
   const [companyName, setCompanyName] = useState('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const name = localStorage.getItem('login_company_name') || 'Your Organization'
-    setCompanyName(name)
-  }, [])
+    const checkPaymentStatus = async () => {
+      try {
+        // Check if payment already completed
+        const assessment = await getUserAssessment()
+        
+        if (assessment?.payment_completed) {
+          // Already paid - redirect to dashboard
+          console.log('Payment already completed, redirecting to dashboard...')
+          router.push('/dashboard')
+          return
+        }
+        
+        // Not paid yet - load company name and show payment options
+        const name = localStorage.getItem('login_company_name') || 'Your Organization'
+        setCompanyName(name)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error checking payment status:', error)
+        // On error, still show payment page
+        const name = localStorage.getItem('login_company_name') || 'Your Organization'
+        setCompanyName(name)
+        setLoading(false)
+      }
+    }
+    
+    checkPaymentStatus()
+  }, [router])
+
+  // Show loading state while checking payment status
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+        <Header />
+        <main className="max-w-5xl mx-auto px-6 py-10 flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
