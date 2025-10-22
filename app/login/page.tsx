@@ -204,7 +204,7 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Tabs */}
-              <div className="inline-flex gap-1 p-1 bg-gray-100 rounded-lg mb-2">
+              <div className="flex gap-2 mb-6">
                 <button
                   type="button"
                   onClick={() => {
@@ -212,10 +212,10 @@ export default function LoginPage() {
                     setApplicationId('')
                     setErrors('')
                   }}
-                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                  className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-all ${
                     isNewUser 
-                      ? 'bg-white text-teal-700 shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   New Users
@@ -226,10 +226,10 @@ export default function LoginPage() {
                     setIsNewUser(false)
                     setErrors('')
                   }}
-                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                  className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-all ${
                     !isNewUser 
-                      ? 'bg-white text-teal-700 shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   Returning Users
@@ -276,7 +276,8 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-teal-600 to-teal-700 text-white py-3.5 rounded-lg font-semibold hover:from-teal-700 hover:to-teal-800 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                style={{ backgroundColor: '#007B9E' }}
+                className="w-full text-white py-3.5 rounded-lg font-semibold hover:opacity-90 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -296,7 +297,12 @@ export default function LoginPage() {
             <div className="mt-6 space-y-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
               {isNewUser ? (
                 <div>
-                  <p className="font-semibold text-gray-900 mb-2">📝 For New Users:</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p className="font-semibold text-gray-900">For New Users:</p>
+                  </div>
                   <p className="mb-2">
                     Enter your email address and click "Start Assessment". We will:
                   </p>
@@ -305,13 +311,21 @@ export default function LoginPage() {
                     <li>Send you a secure verification link to your email</li>
                     <li>Once verified, you can begin your assessment</li>
                   </ul>
-                  <p className="mt-3 text-xs text-orange-600 font-medium">
-                    💡 Save your Application ID! You'll need it to access your assessment from other devices.
-                  </p>
+                  <div className="mt-3 flex items-start gap-2 text-xs text-orange-700 bg-orange-50 p-2 rounded border border-orange-200">
+                    <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium">Important: Save your Application ID! You'll need it to access your assessment from other devices.</span>
+                  </div>
                 </div>
               ) : (
                 <div>
-                  <p className="font-semibold text-gray-900 mb-2">🔐 For Returning Users:</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <p className="font-semibold text-gray-900">For Returning Users:</p>
+                  </div>
                   <p className="mb-2">
                     Enter both your email address and Application ID (shown below), then click "Continue to Assessment".
                   </p>
