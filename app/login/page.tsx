@@ -6,18 +6,14 @@ import { authenticateUser } from '@/lib/supabase/auth'
 import { sendAppIdReminder } from '@/lib/supabase/appIdReminder'
 import { formatAppId } from '@/lib/supabase/utils'
 import Footer from '@/components/Footer'
-import { ExternalLink, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    email: '',
-    applicationId: ''
-  })
-  const [isNewUser, setIsNewUser] = useState(false)
+  const [email, setEmail] = useState('')
+  const [applicationId, setApplicationId] = useState('')
+  const [isNewUser, setIsNewUser] = useState(true)
   const [errors, setErrors] = useState('')
   const [loading, setLoading] = useState(false)
-  const [showRequestIdMessage, setShowRequestIdMessage] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [generatedAppId, setGeneratedAppId] = useState('')
   
@@ -35,38 +31,38 @@ export default function LoginPage() {
     setGeneratedAppId('')
     
     // Validation
-    if (!formData.email.trim()) {
+    if (!email.trim()) {
       setErrors('Please enter your email address')
       setLoading(false)
       return
     }
-    if (!formData.email.includes('@')) {
+    if (!email.includes('@')) {
       setErrors('Please enter a valid email address')
       setLoading(false)
       return
     }
-    if (!isNewUser && !formData.applicationId.trim()) {
-      setErrors('Please enter your Application ID from CAC')
+    if (!isNewUser && !applicationId.trim()) {
+      setErrors('Please enter your Application ID')
       setLoading(false)
       return
     }
 
     try {
-      // Authenticate with Supabase
       const result = await authenticateUser(
-        formData.email.trim(),
-        isNewUser ? undefined : formData.applicationId.trim().replace(/-/g, '')
+        email.trim(),
+        isNewUser ? undefined : applicationId.trim().replace(/-/g, '')
       )
 
       if (result.mode === 'error') {
         setErrors(result.message)
       } else {
         // Store email in localStorage
-        localStorage.setItem('login_email', formData.email)
+        localStorage.setItem('login_email', email)
+        localStorage.setItem('auth_email', email)
+        
         if (!isNewUser) {
-          localStorage.setItem('login_application_id', formData.applicationId)
+          localStorage.setItem('login_application_id', applicationId)
         }
-        localStorage.setItem('auth_email', formData.email)
         
         // If existing user and no verification needed, redirect immediately!
         if (result.mode === 'existing' && !result.needsVerification) {
@@ -76,7 +72,7 @@ export default function LoginPage() {
             router.push('/authorization')
           }, 1000)
         } else {
-          // New user or needs verification
+          // New user - needs verification
           setSuccessMessage(result.message)
           
           // Show generated App ID for new users
@@ -109,19 +105,12 @@ export default function LoginPage() {
     setReminderLoading(false)
 
     if (result.success) {
-      // Clear form after 5 seconds
       setTimeout(() => {
         setShowReminderForm(false)
         setReminderEmail('')
         setReminderMessage('')
       }, 5000)
     }
-  }
-
-  const handleRequestApplicationId = () => {
-    setIsNewUser(true)
-    setShowRequestIdMessage(true)
-    setFormData(prev => ({ ...prev, applicationId: '' }))
   }
 
   return (
@@ -162,7 +151,7 @@ export default function LoginPage() {
                   </svg>
                   <div className="flex-1">
                     <p className="font-semibold text-green-900 mb-2">
-                      Application ID Created!
+                      Account Created Successfully!
                     </p>
                     <p className="text-sm text-green-800 mb-3">
                       Your Application ID is:
@@ -186,7 +175,9 @@ export default function LoginPage() {
             {successMessage && !generatedAppId && (
               <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                   <div>
                     <p className="text-sm font-semibold text-blue-900 mb-1">
                       {successMessage.includes('Redirecting') ? 'Success!' : 'Check Your Email'}
@@ -202,27 +193,49 @@ export default function LoginPage() {
             {/* Error Message */}
             {errors && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 text-sm">{errors}</p>
-              </div>
-            )}
-
-            {showRequestIdMessage && !generatedAppId && (
-              <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-semibold text-orange-900 mb-1">
-                      New Assessment
-                    </p>
-                    <p className="text-sm text-orange-800">
-                      Just enter your email below and we'll create your Application ID automatically!
-                    </p>
-                  </div>
+                  <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-red-700 text-sm">{errors}</p>
                 </div>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Tabs */}
+              <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNewUser(true)
+                    setApplicationId('')
+                    setErrors('')
+                  }}
+                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${
+                    isNewUser 
+                      ? 'bg-white text-blue-600 shadow' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  New Assessment
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNewUser(false)
+                    setErrors('')
+                  }}
+                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${
+                    !isNewUser 
+                      ? 'bg-white text-blue-600 shadow' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Continue Assessment
+                </button>
+              </div>
+
               {/* Email Address */}
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -230,72 +243,32 @@ export default function LoginPage() {
                 </label>
                 <input
                   type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
                   placeholder="your.email@company.com"
                 />
               </div>
 
-              {/* Application ID - Only show if not new user */}
+              {/* Application ID - Only show if returning user */}
               {!isNewUser && (
-                <div className="pt-2 border-t border-gray-200">
+                <div>
                   <label className="block text-sm font-medium mb-2">
                     Application ID from CAC <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    value={formData.applicationId}
-                    onChange={(e) => setFormData(prev => ({ ...prev, applicationId: e.target.value.toUpperCase() }))}
+                    value={applicationId}
+                    onChange={(e) => setApplicationId(e.target.value.toUpperCase())}
                     disabled={loading}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono disabled:bg-gray-50 disabled:cursor-not-allowed"
-                    placeholder="e.g., CAC-251022-001AB"
+                    placeholder="CAC-251022-001AB"
+                    maxLength={15}
                   />
                   <p className="text-xs text-gray-500 mt-2">
-                    Enter your existing Application ID (with or without dashes)
+                    Enter your Application ID (with or without dashes)
                   </p>
-                </div>
-              )}
-
-              {/* Don't have Application ID? */}
-              {!isNewUser && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <p className="text-sm font-semibold text-gray-900 mb-2">
-                    Don't have an Application ID yet?
-                  </p>
-                  <p className="text-xs text-gray-600 mb-3">
-                    We'll create one for you automatically!
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleRequestApplicationId}
-                    disabled={loading}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-orange-300 text-gray-700 rounded-lg font-semibold hover:bg-orange-50 hover:border-orange-400 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Start New Assessment
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-              {/* Switch back to existing user */}
-              {isNewUser && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm font-semibold text-gray-900 mb-2">
-                    Already have an Application ID?
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsNewUser(false)
-                      setShowRequestIdMessage(false)
-                    }}
-                    disabled={loading}
-                    className="text-sm text-blue-600 hover:text-blue-800 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Continue existing assessment →
-                  </button>
                 </div>
               )}
 
@@ -303,7 +276,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -314,10 +287,26 @@ export default function LoginPage() {
                     Processing...
                   </span>
                 ) : (
-                  isNewUser ? 'Create Application ID & Start' : 'Continue to Assessment'
+                  isNewUser ? 'Start Assessment' : 'Continue to Assessment'
                 )}
               </button>
             </form>
+
+            {/* Help Text */}
+            <div className="mt-6 space-y-2 text-xs text-gray-600">
+              <p>
+                <strong>New Users:</strong> Enter your email to start. We'll send you a verification link and create your Application ID.
+              </p>
+              <p>
+                <strong>Returning Users:</strong> Enter your email and Application ID to continue where you left off.
+              </p>
+              <p className="flex items-center gap-1">
+                <svg className="w-3 h-3 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                Your data is secure and private. We use magic links for authentication - no passwords needed!
+              </p>
+            </div>
 
             {/* Forgot App ID Section */}
             <div className="mt-8 pt-6 border-t border-gray-200">
