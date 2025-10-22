@@ -204,7 +204,7 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Tabs */}
-              <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+              <div className="inline-flex gap-1 p-1 bg-gray-100 rounded-lg mb-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -212,13 +212,13 @@ export default function LoginPage() {
                     setApplicationId('')
                     setErrors('')
                   }}
-                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${
+                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                     isNewUser 
-                      ? 'bg-white text-blue-600 shadow' 
+                      ? 'bg-white text-teal-700 shadow-sm' 
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  New Assessment
+                  New Users
                 </button>
                 <button
                   type="button"
@@ -226,13 +226,13 @@ export default function LoginPage() {
                     setIsNewUser(false)
                     setErrors('')
                   }}
-                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${
+                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                     !isNewUser 
-                      ? 'bg-white text-blue-600 shadow' 
+                      ? 'bg-white text-teal-700 shadow-sm' 
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Continue Assessment
+                  Returning Users
                 </button>
               </div>
 
@@ -276,7 +276,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                className="w-full bg-gradient-to-r from-teal-600 to-teal-700 text-white py-3.5 rounded-lg font-semibold hover:from-teal-700 hover:to-teal-800 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -293,19 +293,41 @@ export default function LoginPage() {
             </form>
 
             {/* Help Text */}
-            <div className="mt-6 space-y-2 text-xs text-gray-600">
-              <p>
-                <strong>New Users:</strong> Enter your email to start. We'll send you a verification link and create your Application ID.
-              </p>
-              <p>
-                <strong>Returning Users:</strong> Enter your email and Application ID to continue where you left off.
-              </p>
-              <p className="flex items-center gap-1">
-                <svg className="w-3 h-3 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                </svg>
-                Your data is secure and private. We use magic links for authentication - no passwords needed!
-              </p>
+            <div className="mt-6 space-y-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
+              {isNewUser ? (
+                <div>
+                  <p className="font-semibold text-gray-900 mb-2">📝 For New Users:</p>
+                  <p className="mb-2">
+                    Enter your email address and click "Start Assessment". We will:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>Create a unique Application ID for you</li>
+                    <li>Send you a secure verification link to your email</li>
+                    <li>Once verified, you can begin your assessment</li>
+                  </ul>
+                  <p className="mt-3 text-xs text-orange-600 font-medium">
+                    💡 Save your Application ID! You'll need it to access your assessment from other devices.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p className="font-semibold text-gray-900 mb-2">🔐 For Returning Users:</p>
+                  <p className="mb-2">
+                    Enter both your email address and Application ID (shown below), then click "Continue to Assessment".
+                  </p>
+                  <p className="text-xs text-gray-600 mt-2">
+                    You'll be logged in instantly - no need to wait for an email!
+                  </p>
+                </div>
+              )}
+              <div className="pt-3 border-t border-gray-300">
+                <p className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <svg className="w-4 h-4 text-teal-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-medium">Security:</span> Your data is encrypted and private. We use secure magic links for authentication - no passwords needed!
+                </p>
+              </div>
             </div>
 
             {/* Forgot App ID Section */}
