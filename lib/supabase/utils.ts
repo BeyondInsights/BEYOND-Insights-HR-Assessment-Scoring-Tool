@@ -14,13 +14,23 @@ export function generateAppId(): string {
 }
 
 export function formatAppId(appId: string): string {
-  if (appId.length !== 13) return appId
-  return `${appId.slice(0, 3)}-${appId.slice(3, 9)}-${appId.slice(9)}`
+  // Remove any existing dashes first
+  const cleanId = appId.replace(/-/g, '')
+  
+  // Should be 16 characters: CAC (3) + YYMMDD (6) + sequence (5) + letters (2)
+  if (cleanId.length !== 16) return appId
+  
+  // Format as: CAC-251022-81410SA
+  return `${cleanId.slice(0, 3)}-${cleanId.slice(3, 9)}-${cleanId.slice(9)}`
 }
 
 export function isValidAppId(appId: string): boolean {
-  const regex = /^CAC\d{6}[A-Z0-9]{5}$/
-  return regex.test(appId)
+  // Remove dashes for validation
+  const cleanId = appId.replace(/-/g, '')
+  
+  // CAC + 6 digits (date) + 5 digits (sequence) + 2 letters = 16 chars
+  const regex = /^CAC\d{11}[A-Z]{2}$/
+  return regex.test(cleanId)
 }
 
 export function isValidEmail(email: string): boolean {
