@@ -52,12 +52,16 @@ async function handleExistingUser(
   email: string,
   appId: string
 ): Promise<AuthResult> {
+  console.log('handleExistingUser called with:', { email, appId })
+  
   // Check if assessment exists with this app_id
   const { data: assessment, error: fetchError } = await supabase
     .from('assessments')
     .select('user_id, email')
     .eq('app_id', appId)
     .single()
+
+  console.log('Assessment lookup result:', { assessment, fetchError })
 
   if (fetchError || !assessment) {
     return {
@@ -78,27 +82,35 @@ async function handleExistingUser(
     }
   }
 
-  // Send magic link
-  const { error: authError } = await supabase.auth.signInWithOtp({
+  // Use App ID as password to sign in
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
     email: email,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
-    }
+    password: appId
   })
 
+  console.log('Sign in result:', { authData, authError })
+
   if (authError) {
+    console.error('Sign in error:', authError)
     return {
       mode: 'error',
       needsVerification: false,
-      message: 'Failed to send verification email. Please try again.',
-      error: 'SEND_EMAIL_FAILED'
+      message: 'Authentication failed. Please check your credentials.',
+      error: 'AUTH_FAILED'
     }
+  }
+
+  // Success! User is now logged in
+  // Store in localStorage for compatibility
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('login_email', email)
+    localStorage.setItem('login_application_id', appId)
   }
 
   return {
     mode: 'existing',
-    needsVerification: true,
-    message: 'Check your email! We sent you a link to continue your assessment.',
+    needsVerification: false, // No email verification needed!
+    message: 'Login successful! Redirecting to your assessment...',
     appId: appId
   }
 }
