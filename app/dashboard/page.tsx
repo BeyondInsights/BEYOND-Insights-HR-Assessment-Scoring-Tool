@@ -53,6 +53,8 @@ useEffect(() => {
         setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card');
         
         const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
+        if (firmo?.companyName) setCompanyName(firmo.companyName);
+        
         const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}');
         const current = JSON.parse(localStorage.getItem('current_support_data') || '{}');
         
@@ -526,6 +528,30 @@ setSectionProgress({
   );
 })}
         </div>
+
+        {/* Congratulations Banner - Shows when all 13 dimensions are complete */}
+        {paymentCompleted && all13DimensionsDone && (
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 md:p-8 mb-8 shadow-xl animate-fade-in">
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+              <div className="flex-shrink-0">
+                <svg className="w-16 h-16 md:w-20 md:h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                  Thank You!
+                </h3>
+                <p className="text-lg md:text-xl text-white/95 font-semibold mb-1">
+                  You've completed all 13 Dimensions of Support!
+                </p>
+                <p className="text-white/90">
+                  Great progress! Continue with the two additional assessment modules below to complete your full evaluation.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Additional Assessment Sections - Locked until all 13 dimensions complete */}
         {paymentCompleted && (
