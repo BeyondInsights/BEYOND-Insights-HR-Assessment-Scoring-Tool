@@ -107,19 +107,28 @@ async function handleExistingUser(
  * Handle new user registration
  */
 async function handleNewUser(email: string): Promise<AuthResult> {
+  console.log('handleNewUser called for:', email)
+  
   // Generate unique app_id
   const newAppId = await generateUniqueAppId()
+  console.log('Generated unique App ID:', newAppId)
 
   // Create auth user with magic link
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email,
-    password: crypto.randomUUID(), // Random password (we use magic links)
+    password: Math.random().toString(36).slice(-12) + 'Aa1!', // Random secure password
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      data: {
+        app_id: newAppId
+      }
     }
   })
 
+  console.log('Signup result:', { authData, authError })
+
   if (authError || !authData.user) {
+    console.error('Signup error:', authError)
     return {
       mode: 'error',
       needsVerification: false,
@@ -137,6 +146,8 @@ async function handleNewUser(email: string): Promise<AuthResult> {
       app_id: newAppId,
       status: 'in_progress'
     })
+
+  console.log('Assessment insert result:', assessmentError)
 
   if (assessmentError) {
     console.error('Assessment creation error:', assessmentError)
