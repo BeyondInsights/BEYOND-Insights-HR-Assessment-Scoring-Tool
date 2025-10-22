@@ -176,8 +176,16 @@ export default function AuthorizationPage() {
         localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
         localStorage.setItem('auth_completed', 'true')
         
-        // Continue to payment
-        router.push('/payment')
+        // CHECK PAYMENT STATUS BEFORE REDIRECTING
+        const assessment = await getUserAssessment()
+        if (assessment?.payment_completed) {
+          // Already paid - skip payment page and go straight to dashboard
+          console.log('Payment already completed, redirecting to dashboard...')
+          router.push('/dashboard')
+        } else {
+          // Not paid yet - continue to payment page
+          router.push('/payment')
+        }
       } catch (error) {
         console.error('Error:', error)
         setErrors('An error occurred. Please try again.')
