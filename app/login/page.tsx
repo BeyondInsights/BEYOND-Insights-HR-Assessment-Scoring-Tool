@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { authenticateUser } from '@/lib/supabase/auth'
-import { sendAppIdReminder } from '@/lib/supabase/appIdReminder'
 import { formatAppId } from '@/lib/supabase/utils'
+import { supabase } from '@/lib/supabase/client'
 import Footer from '@/components/Footer'
 
 export default function LoginPage() {
@@ -106,20 +106,28 @@ export default function LoginPage() {
     setReminderLoading(true)
     setReminderMessage('')
 
-    const result = await sendAppIdReminder(reminderEmail)
-    
-    setReminderMessage(result.message)
-    setReminderLoading(false)
+    try {
+      const { data, error } = await supabase
+        .from('assessments')
+        .select('app_id')
+        .eq('email', reminderEmail.toLowerCase().trim())
+        .single()
 
-    if (result.success) {
-      setTimeout(() => {
-        setShowReminderForm(false)
-        setReminderEmail('')
-        setReminderMessage('')
-      }, 5000)
+      if (error || !data) {
+        setReminderMessage('No account found with that email address')
+        setReminderLoading(false)
+        return
+      }
+
+      const formattedId = formatAppId(data.app_id)
+      setReminderMessage(`Your Application ID is: ${formattedId}`)
+      setReminderLoading(false)
+    } catch (err) {
+      setReminderMessage('Error retrieving Application ID. Please try again.')
+      setReminderLoading(false)
     }
   }
-
+    
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-gray-50 flex flex-col">
       <main className="flex flex-1 items-center justify-center px-4 py-12">
