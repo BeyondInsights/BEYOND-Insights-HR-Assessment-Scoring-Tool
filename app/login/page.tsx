@@ -21,13 +21,14 @@ export default function LoginPage() {
 
       // Check if user already exists
       const { data: existingUser, error: checkError } = await supabase
-        .from('survey_responses')
+        .from('assessments')
         .select('*')
         .eq('email', email.toLowerCase())
         .single()
 
       if (checkError && checkError.code !== 'PGRST116') {
         // PGRST116 = no rows returned, which is fine for new users
+        console.error('Database check error:', checkError)
         throw new Error(`Database check failed: ${checkError.message}`)
       }
 
@@ -36,25 +37,34 @@ export default function LoginPage() {
         localStorage.setItem('login_email', email.toLowerCase())
         localStorage.setItem('login_company_name', existingUser.company_name || companyName)
         localStorage.setItem('user_id', existingUser.id)
+        localStorage.setItem('app_id', existingUser.app_id)
         
-        // Load their survey data if it exists
-        if (existingUser.survey_data) {
-          // Restore all their saved data to localStorage
-          const surveyData = existingUser.survey_data
-          Object.keys(surveyData).forEach(key => {
-            localStorage.setItem(key, JSON.stringify(surveyData[key]))
-          })
+        // Load their survey data from the JSONB columns
+        if (existingUser.firmographics_data) {
+          localStorage.setItem('firmographics_data', JSON.stringify(existingUser.firmographics_data))
+          localStorage.setItem('firmographics_complete', existingUser.firmographics_complete ? 'true' : 'false')
         }
+        // ... repeat for other sections as needed
         
         router.push('/dashboard')
       } else {
-        // New user - create record
+        // New user - generate app_id using Supabase function
+        const { data: appIdData, error: appIdError } = await supabase
+          .rpc('generate_app_id')
+
+        if (appIdError || !appIdData) {
+          console.error('App ID generation error:', appIdError)
+          throw new Error('Failed to generate Application ID')
+        }
+
+        // Create new assessment record
         const { data: newUser, error: insertError } = await supabase
-          .from('survey_responses')
+          .from('assessments')
           .insert({
             email: email.toLowerCase(),
             company_name: companyName,
-            survey_data: {},
+            app_id: appIdData,
+            status: 'in_progress',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -62,6 +72,7 @@ export default function LoginPage() {
           .single()
 
         if (insertError) {
+          console.error('Insert error:', insertError)
           throw new Error(`Failed to create account: ${insertError.message}`)
         }
 
@@ -73,6 +84,7 @@ export default function LoginPage() {
         localStorage.setItem('login_email', email.toLowerCase())
         localStorage.setItem('login_company_name', companyName)
         localStorage.setItem('user_id', newUser.id)
+        localStorage.setItem('app_id', newUser.app_id)
         
         router.push('/dashboard')
       }
@@ -138,6 +150,7 @@ export default function LoginPage() {
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <p className="text-sm text-red-800">{error}</p>
+                <p className="text-xs text-gray-600 mt-2">Check the browser console for more details.</p>
               </div>
             )}
 
