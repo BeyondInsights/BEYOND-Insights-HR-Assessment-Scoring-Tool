@@ -27,28 +27,20 @@ export default function LoginPage() {
         .single()
 
       if (checkError && checkError.code !== 'PGRST116') {
-        // PGRST116 = no rows returned, which is fine for new users
         console.error('Database check error:', checkError)
         throw new Error(`Database check failed: ${checkError.message}`)
       }
 
       if (existingUser) {
-        // Returning user - load their data
+        // Returning user
         localStorage.setItem('login_email', email.toLowerCase())
         localStorage.setItem('login_company_name', existingUser.company_name || companyName)
         localStorage.setItem('user_id', existingUser.id)
         localStorage.setItem('app_id', existingUser.app_id)
         
-        // Load their survey data from the JSONB columns
-        if (existingUser.firmographics_data) {
-          localStorage.setItem('firmographics_data', JSON.stringify(existingUser.firmographics_data))
-          localStorage.setItem('firmographics_complete', existingUser.firmographics_complete ? 'true' : 'false')
-        }
-        // ... repeat for other sections as needed
-        
         router.push('/dashboard')
       } else {
-        // New user - generate app_id using Supabase function
+        // New user - generate app_id
         const { data: appIdData, error: appIdError } = await supabase
           .rpc('generate_app_id')
 
@@ -57,7 +49,7 @@ export default function LoginPage() {
           throw new Error('Failed to generate Application ID')
         }
 
-        // Create new assessment record
+        // Create new assessment
         const { data: newUser, error: insertError } = await supabase
           .from('assessments')
           .insert({
@@ -80,7 +72,6 @@ export default function LoginPage() {
           throw new Error('Failed to create account: No data returned')
         }
 
-        // Save to localStorage
         localStorage.setItem('login_email', email.toLowerCase())
         localStorage.setItem('login_company_name', companyName)
         localStorage.setItem('user_id', newUser.id)
@@ -97,21 +88,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-6">
-              <img 
-                src="/cancer-careers-logo.png" 
-                alt="Cancer and Careers" 
-                className="h-16"
-              />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom, #f3e8ff, #ffffff)' }}>
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
+          <div className="flex flex-col items-center mb-8">
+            <img 
+              src="/cancer-careers-logo.png" 
+              alt="Cancer and Careers"
+              className="h-16 mb-6"
+            />
+            <h1 className="text-3xl font-bold text-gray-900 text-center mb-2">
               Best Companies Assessment
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-center">
               Enter your information to begin or continue your assessment
             </p>
           </div>
@@ -124,11 +113,11 @@ export default function LoginPage() {
               <input
                 type="email"
                 id="email"
-                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                 placeholder="your.email@company.com"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
               />
             </div>
 
@@ -139,25 +128,25 @@ export default function LoginPage() {
               <input
                 type="text"
                 id="companyName"
-                required
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                 placeholder="Your Company Name"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
               />
             </div>
 
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <p className="text-sm text-red-800">{error}</p>
-                <p className="text-xs text-gray-600 mt-2">Check the browser console for more details.</p>
+                <p className="text-xs text-gray-600 mt-1">Check the browser console for more details.</p>
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 px-6 rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-6 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
             >
               {loading ? 'Processing...' : 'Continue to Assessment'}
             </button>
@@ -170,8 +159,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="mt-8 text-center text-sm text-gray-600">
-          <p>© 2025 Cancer and Careers</p>
+        <div className="mt-8 text-center">
+          <p className="text-sm text-gray-600">© 2025 Cancer and Careers</p>
         </div>
       </div>
     </div>
