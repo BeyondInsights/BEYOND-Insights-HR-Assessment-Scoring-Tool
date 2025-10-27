@@ -1664,12 +1664,12 @@ setData({
           Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers
         </div>
       </main>
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{__html: `
         @media print {
           @page { size: letter; margin: 0.5in; }
           html, body { font-size: 11px; }
         }
-      `}</style>
+      `}} />
     </div>
   );
 }
