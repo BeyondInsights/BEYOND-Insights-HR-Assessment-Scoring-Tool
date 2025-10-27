@@ -61,7 +61,7 @@ export default function LoginPage() {
         // Store email in localStorage
         localStorage.setItem('login_email', email)
         localStorage.setItem('auth_email', email)
-        localStorage.setItem('user_authenticated', 'true') // Add this flag
+        localStorage.setItem('user_authenticated', 'true')
         
         if (!isNewUser) {
           localStorage.setItem('login_application_id', applicationId)
@@ -92,7 +92,6 @@ export default function LoginPage() {
   }
 
   const handleProceedToAssessment = () => {
-    // Ensure authentication is set before redirect
     localStorage.setItem('user_authenticated', 'true')
     localStorage.setItem('auth_completed', 'true')
     router.push('/dashboard')
@@ -147,7 +146,7 @@ export default function LoginPage() {
               Assessment
             </h2>
             <p className="text-center text-gray-600 mb-8">
-              Enter your information to access the assessment
+              Enter your information to begin or continue your assessment
             </p>
 
             {/* Generated App ID Display - Only show AFTER account creation */}
@@ -159,26 +158,37 @@ export default function LoginPage() {
                   </svg>
                   <div className="flex-1">
                     <p className="font-semibold text-green-900 text-lg mb-2">
-                      ✅ Account Created Successfully!
+                      ✅ You're All Set!
                     </p>
-                    <p className="text-sm text-green-800 mb-3">
-                      Your Application ID is:
+                    <p className="text-sm text-green-800 mb-3 font-semibold">
+                      Your unique Application ID:
                     </p>
-                    <div className="bg-white p-4 rounded-lg border border-green-300 mb-4">
+                    <div className="bg-white p-4 rounded-lg border-2 border-green-400 mb-4">
                       <p className="text-2xl font-bold text-center text-green-900 font-mono tracking-wider">
                         {formatAppId(generatedAppId)}
                       </p>
                     </div>
-                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                      <p className="text-xs text-yellow-800">
-                        <strong>⚠️ IMPORTANT: Save this Application ID!</strong> You'll need it to access your assessment from other devices or if you return later.
+                    
+                    <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                      <p className="text-sm text-blue-900 font-semibold mb-2">
+                        📝 Important - Save This ID!
+                      </p>
+                      <p className="text-sm text-blue-800">
+                        You can start your assessment right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Application ID to pick up exactly where you left off.
                       </p>
                     </div>
+
+                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded">
+                      <p className="text-xs text-yellow-900">
+                        <strong>💡 Pro Tip:</strong> Write down your Application ID or take a screenshot. You'll need it to access your assessment from any device.
+                      </p>
+                    </div>
+                    
                     <button
                       onClick={handleProceedToAssessment}
-                      className="w-full py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg"
+                      className="w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg transform hover:scale-105"
                     >
-                      Continue to Assessment →
+                      Begin Assessment Now →
                     </button>
                   </div>
                 </div>
@@ -275,7 +285,7 @@ export default function LoginPage() {
                         value={applicationId}
                         onChange={(e) => setApplicationId(e.target.value.toUpperCase())}
                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg font-mono text-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
-                        placeholder="CAC-251022-001AB"
+                        placeholder="CAC-251027-001AB"
                         maxLength={20}
                       />
                       <p className="text-xs text-gray-500 mt-2">
@@ -309,43 +319,57 @@ export default function LoginPage() {
                 <div className="mt-6 space-y-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
                   {isNewUser ? (
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p className="font-semibold text-gray-900">For New Users:</p>
+                        <p className="font-bold text-gray-900">New Users - Here's How It Works:</p>
                       </div>
-                      <p className="mb-2">
-                        Enter your email address and click "Start Assessment". We will:
-                      </p>
-                      <ul className="list-disc list-inside space-y-1 ml-2">
-                        <li>Create a unique Application ID for you instantly</li>
-                        <li>Allow you to begin your assessment immediately</li>
-                        <li>Save your progress so you can return anytime</li>
-                      </ul>
+                      <ol className="space-y-2 ml-2">
+                        <li className="flex items-start">
+                          <span className="font-bold text-orange-600 mr-2">1.</span>
+                          <span>Enter your email and click "Start Assessment"</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="font-bold text-orange-600 mr-2">2.</span>
+                          <span>You'll receive a unique Application ID - save it!</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="font-bold text-orange-600 mr-2">3.</span>
+                          <span>Begin your assessment right away</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="font-bold text-orange-600 mr-2">4.</span>
+                          <span>Your progress saves automatically - stop anytime and come back later</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="font-bold text-orange-600 mr-2">5.</span>
+                          <span>To return: Use the "Returning User" option with your email and Application ID</span>
+                        </li>
+                      </ol>
                     </div>
                   ) : (
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <p className="font-semibold text-gray-900">For Returning Users:</p>
+                        <p className="font-bold text-gray-900">Welcome Back!</p>
                       </div>
-                      <p className="mb-2">
-                        Enter both your email address and Application ID, then click "Continue Assessment".
+                      <p className="mb-3">
+                        To continue your assessment, enter the email address you used when you started, along with your Application ID.
                       </p>
-                      <p className="text-xs text-gray-600 mt-2">
-                        You'll be logged in instantly and can continue where you left off!
+                      <p className="text-sm bg-blue-50 border border-blue-200 rounded p-3">
+                        <strong>💾 Don't worry -</strong> All your progress has been saved. You'll pick up exactly where you left off!
                       </p>
                     </div>
                   )}
                   <div className="pt-3 border-t border-gray-300">
-                    <p className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <svg className="w-4 h-4 text-teal-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <p className="flex items-start gap-2 text-xs text-gray-600">
+                      <svg className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
-                      <span className="font-medium">Security:</span> Your data is encrypted and private. Your Application ID serves as your secure access credential.
+                      <span><strong>Secure & Private:</strong> Your data is encrypted and protected. Only you can access your assessment using your email and Application ID combination.</span>
                     </p>
                   </div>
                 </div>
@@ -355,7 +379,7 @@ export default function LoginPage() {
                   {!showReminderForm ? (
                     <div className="text-center">
                       <p className="text-sm text-gray-600 mb-3">
-                        Can't find your Application ID?
+                        Lost your Application ID?
                       </p>
                       <button
                         type="button"
@@ -365,7 +389,7 @@ export default function LoginPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        Email me my Application ID
+                        Send my Application ID to my email
                       </button>
                     </div>
                   ) : (
@@ -374,7 +398,7 @@ export default function LoginPage() {
                         Retrieve Your Application ID
                       </h3>
                       <p className="text-xs text-gray-600 mb-4">
-                        Enter your email and we'll send you your Application ID.
+                        Enter the email address you used when you started, and we'll send you your Application ID.
                       </p>
                       
                       <div className="space-y-3">
@@ -404,7 +428,7 @@ export default function LoginPage() {
                             disabled={reminderLoading}
                             className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {reminderLoading ? 'Sending...' : 'Send Reminder'}
+                            {reminderLoading ? 'Sending...' : 'Send My ID'}
                           </button>
                           <button
                             type="button"
