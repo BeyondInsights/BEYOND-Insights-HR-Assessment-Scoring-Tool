@@ -31,15 +31,12 @@ export default function DashboardPage() {
 useEffect(() => {
     if (typeof window === 'undefined') return
     
-    // Check Supabase authentication
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        router.push('/')
-        return
-      }
+    // Check if authorization is complete
+    const authCompleted = localStorage.getItem('auth_completed') === 'true';
+    if (!authCompleted) {
+      router.push('/authorization');
+      return;
     }
-    checkAuth()
     
     const calculateProgress = () => {
       if (typeof window === 'undefined') return;
