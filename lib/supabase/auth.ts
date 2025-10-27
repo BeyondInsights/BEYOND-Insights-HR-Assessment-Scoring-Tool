@@ -1,4 +1,4 @@
-import { supabase } from './client'
+import { supabase } from '../supabase'  // Changed from './client' to '../supabase'
 import { generateAppId, isValidEmail } from './utils'
 
 export interface AuthResult {
@@ -119,7 +119,7 @@ async function handleExistingUser(
  * Handle new user registration
  */
 async function handleNewUser(email: string): Promise<AuthResult> {
- console.log('handleNewUser called for:', email)
+  console.log('handleNewUser called for:', email)
   
   // Generate unique app_id
   const newAppId = await generateUniqueAppId()
