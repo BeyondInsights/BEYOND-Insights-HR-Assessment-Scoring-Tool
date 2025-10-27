@@ -897,23 +897,9 @@ function downloadHTML(data: any) {
           • Company Profile & Assessment Survey Summary •
         </div>
       </div>
-      
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-          <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">${data.companyName}</h1>
-          <div style="color: #64748b; font-size: 0.875rem;">
-            ${data.generatedAt}${data.email ? ` • ${data.email}` : ''}
-          </div>
-        </div>
-        
-        <div style="text-align: right;">
-          <div style="color: #64748b; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">
-            Application ID
-          </div>
-          <div style="color: #0f172a; font-size: 1.125rem; font-family: monospace; font-weight: 700;">
-            ${data.applicationId || 'N/A'}
-          </div>
-        </div>
+      <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">${data.companyName}</h1>
+      <div style="color: #64748b; font-size: 0.875rem;">
+        ${data.generatedAt}${data.email ? ` • ${data.email}` : ''}
       </div>
     </div>
     
@@ -1244,21 +1230,20 @@ export default function CompanyProfileFixed() {
       dimensions.push({ number: i, data: raw });
     }
 
-const companyName =
-  localStorage.getItem('login_company_name') ||
-  firmo.companyName || firmo.company_name || 'Organization';
-const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email') || '';
-const firstName = localStorage.getItem('login_first_name') || '';
-const lastName  = localStorage.getItem('login_last_name')  || '';
-const applicationId = localStorage.getItem('login_application_id') || 'N/A'; // ADD THIS LINE
-console.log('Application ID from localStorage:', applicationId);
-     
-setData({
-  companyName, email, firstName, lastName, applicationId, // ADD applicationId HERE
-  generatedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-  firmographics: firmo, general: gen, current: cur, cross, impact,
-  dimensions
-});
+    const companyName =
+      localStorage.getItem('login_company_name') ||
+      firmo.companyName || firmo.company_name || 'Organization';
+
+    const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email') || '';
+    const firstName = localStorage.getItem('login_first_name') || '';
+    const lastName  = localStorage.getItem('login_last_name')  || '';
+
+    setData({
+      companyName, email, firstName, lastName,
+      generatedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      firmographics: firmo, general: gen, current: cur, cross, impact,
+      dimensions
+    });
   }, []);
 
   if (!data) {
@@ -1301,11 +1286,8 @@ setData({
           <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
             {data.generatedAt}
             {data.email && ` • ${data.email}`}
-            {data.applicationId && (
-              <span className="font-mono font-semibold"> • App ID: {data.applicationId}</span>
-            )}
           </p>
-
+   
           <div className="mt-4 print:hidden">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
               <p className="text-xs text-blue-900 font-medium mb-1">📄 Download Option:</p>
@@ -1318,7 +1300,8 @@ setData({
               <a href="/dashboard" className="px-4 py-2 text-sm font-semibold border rounded hover:bg-gray-50"
                  style={{ borderColor: BRAND.gray[300], color: BRAND.gray[900] }}>
                 ← Back to Dashboard
-              </a>              
+              </a>
+              
               <button 
                 onClick={() => downloadHTML(data)} 
                 className="px-5 py-2 text-sm font-semibold rounded text-white hover:opacity-90 flex items-center gap-2"
@@ -1368,7 +1351,6 @@ setData({
             <Field label="HQ Location" value={firmo.s9} />
             <Field label="Countries with Presence" value={firmo.s9a} />
             <Field label="Remote/Hybrid Policy" value={firmo.c6} />
-            <Field label="Application ID" value={data.applicationId} /> {/* ADD THIS LINE
           </div>
         </div>
 
@@ -1660,10 +1642,20 @@ setData({
             </div>
           </div>
         )}
-        <div className="mt-8 pt-4 border-t text-center text-[10px]" style={{ borderColor: BRAND.gray[200], color: BRAND.gray[700] }}>
-          Best Companies for Working with Cancer: Employer Index - Copyright {new Date().getFullYear()} Cancer and Careers
+
+        <div className="mt-8 pt-4 border-t text-center text-[10px]" style={{ borderColor: BRAND.gray[200], color: BRAND.gray[500] }}>
+          Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers &amp; CEW Foundation
         </div>
       </main>
+
+      <style jsx>{`
+        @media print {
+          @page { size: letter; margin: 0.5in; }
+          html, body { font-size: 11px; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          section, .row { break-inside: avoid; }
+        }
+      `}</style>
     </div>
   );
 }
