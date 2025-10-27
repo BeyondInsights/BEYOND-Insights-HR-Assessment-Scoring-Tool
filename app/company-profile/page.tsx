@@ -1660,10 +1660,11 @@ setData({
             </div>
           </div>
         )}
-<div className="mt-8 pt-4 border-t text-center text-[10px]" style={{ borderColor: BRAND.gray[200], color: BRAND.gray[700] }}>
+             <div className="mt-8 pt-4 border-t text-center text-[10px]" style={{ borderColor: BRAND.gray[200], color: BRAND.gray[700] }}>
           Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers
         </div>
       </main>
+
       <style jsx>{`
         @media print {
           @page { size: letter; margin: 0.5in; }
