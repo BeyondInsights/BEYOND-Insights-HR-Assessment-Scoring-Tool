@@ -1,7 +1,7 @@
 'use client'
 import { useRouter, usePathname } from 'next/navigation'
 import { RotateCcw, FileText, Download } from 'lucide-react'
-import { createClient } from '@/lib/supabase/supabase'
+import { createClient } from '@/lib/supabase'
 
 export default function Header() {
   const router = useRouter()
