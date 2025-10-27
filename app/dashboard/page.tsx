@@ -1,630 +1,344 @@
-// app/dashboard/page.tsx - Updated with payment gating and advanced sections
 'use client'
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Footer from '@/components/Footer'
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar'
+import 'react-circular-progressbar/dist/styles.css'
 import Header from '@/components/Header'
-import dynamic from 'next/dynamic'
-import { Lock, CheckCircle, CreditCard } from 'lucide-react'
+import Footer from '@/components/Footer'
+import { supabase } from '@/lib/supabase'
 
-const ProgressCircle = dynamic(() => import('@/components/ProgressCircle'), {
-  ssr: false
-})
+const sectionData = [
+  { name: 'Company & Contact Information', route: '/survey/firmographics', key: 'firmographics' },
+  { name: 'General Employee Benefits', route: '/survey/general-benefits', key: 'general' },
+  { name: 'Current Support for Serious Medical Conditions', route: '/survey/current-support', key: 'current' }
+]
 
-export default function DashboardPage() {
+const dimensionData = [
+  { num: 1, name: 'Medical Leave & Flexibility', route: '/survey/dimensions/1' },
+  { num: 2, name: 'Insurance & Financial Protection', route: '/survey/dimensions/2' },
+  { num: 3, name: 'Manager Preparedness & Capability', route: '/survey/dimensions/3' },
+  { num: 4, name: 'Navigation & Expert Resources', route: '/survey/dimensions/4' },
+  { num: 5, name: 'Workplace Accommodations', route: '/survey/dimensions/5' },
+  { num: 6, name: 'Culture & Psychological Safety', route: '/survey/dimensions/6' },
+  { num: 7, name: 'Career Continuity & Advancement', route: '/survey/dimensions/7' },
+  { num: 8, name: 'Work Continuation & Resumption', route: '/survey/dimensions/8' },
+  { num: 9, name: 'Executive Commitment & Resources', route: '/survey/dimensions/9' },
+  { num: 10, name: 'Caregiver & Family Support', route: '/survey/dimensions/10' },
+  { num: 11, name: 'Prevention, Wellness & Legal Compliance', route: '/survey/dimensions/11' },
+  { num: 12, name: 'Continuous Improvement & Outcomes', route: '/survey/dimensions/12' },
+  { num: 13, name: 'Communication & Awareness', route: '/survey/dimensions/13' }
+]
+
+const additionalSections = [
+  { name: 'Cross-Dimensional Assessment', route: '/survey/cross-dimensional-assessment', key: 'cross' },
+  { name: 'Employee Impact Assessment', route: '/survey/employee-impact-assessment', key: 'impact' }
+]
+
+export default function Dashboard() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [companyName, setCompanyName] = useState('')
-  const [paymentCompleted, setPaymentCompleted] = useState(false)
-  const [dimensionProgress, setDimensionProgress] = useState(new Array(13).fill(0))
+  const [appId, setAppId] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
   const [sectionProgress, setSectionProgress] = useState({
     firmographics: 0,
     general: 0,
-    current: 0,
+    current: 0
   })
-  const [advancedProgress, setAdvancedProgress] = useState({
-    crossDimensional: 0,
-    employeeImpact: 0,
-  })
+  const [dimensionProgress, setDimensionProgress] = useState<number[]>(Array(13).fill(0))
+  const [crossProgress, setCrossProgress] = useState(0)
+  const [impactProgress, setImpactProgress] = useState(0)
+  const [paymentCompleted, setPaymentCompleted] = useState(false)
 
-useEffect(() => {
-    if (typeof window === 'undefined') return
-    
-    // Check authentication
-    const authCompleted = localStorage.getItem('auth_completed') === 'true';
-    if (!authCompleted) {
-      router.push('/authorization');
-      return;
-    }
-
-    const calculateProgress = () => {
-      if (typeof window === 'undefined') return;
-      
+  useEffect(() => {
+    const checkAuth = async () => {
       try {
-        const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6'];
-        const genRequired = ['cb1','cb1_standard','cb1_leave','cb1_wellness','cb1_financial','cb1_navigation','cb1a','cb2b'];
-        const curRequired = ['cb3a','cb3b','cb3c','cb3d','or1','or2a','or3','or5a','or6'];
+        // Check Supabase session
+        const { data: { session }, error } = await supabase.auth.getSession()
         
-        const savedEmail = localStorage.getItem('auth_email') || '';
-        setEmail(savedEmail);
-        
-        const paymentStatus = localStorage.getItem('payment_completed');
-        const paymentMethod = localStorage.getItem('payment_method');
-        setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card');
-        
-        const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
-        if (firmo?.companyName) setCompanyName(firmo.companyName);
-        
-        const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}');
-        const current = JSON.parse(localStorage.getItem('current_support_data') || '{}');
-        
-        const firmComplete = localStorage.getItem('firmographics_complete') === 'true';
-        const genComplete = localStorage.getItem('general_benefits_complete') === 'true';
-        const curComplete = localStorage.getItem('current_support_complete') === 'true';
-        
-// Safe dimension progress calculation
-const dimProgress = [];
-for (let i = 1; i <= 13; i++) {
-  const complete = localStorage.getItem(`dimension${i}_complete`) === 'true';
-  if (complete) {
-    dimProgress.push(100);
-  } else {
-    const data = localStorage.getItem(`dimension${i}_data`);
-    if (!data) {
-      dimProgress.push(0);
-    } else {
-      try {
-        const parsed = JSON.parse(data);
-        const keys = Object.keys(parsed).length;
-        // Just show 50% if there's any data, 95% if there's substantial data
-        if (keys === 0) {
-          dimProgress.push(0);
-        } else if (keys < 3) {
-          dimProgress.push(50);
-        } else {
-          dimProgress.push(95);
+        if (error || !session) {
+          console.log('No session found, redirecting to login')
+          router.push('/')
+          return
         }
-      } catch {
-        dimProgress.push(0);
-      }
-    }
-  }
-}
-setDimensionProgress(dimProgress);
 
-let firmProg = 0;
-let genProg = 0;
-let curProg = 0;
+        // Session exists - get user data
+        const userEmail = session.user.email || localStorage.getItem('login_email') || ''
+        setEmail(userEmail)
 
-if (firmComplete) {
-  firmProg = 100;
-} else {
-  const firmCount = firmRequired.filter(field => {
-    if (field === 's6' || field === 'c4') {
-      return Array.isArray(firmo[field]) && firmo[field].length > 0;
-    }
-    return firmo[field] && firmo[field] !== '';
-  }).length;
-  firmProg = Math.round((firmCount / firmRequired.length) * 100);
-}
+        // Get assessment data from Supabase
+        const { data: assessment, error: assessmentError } = await supabase
+          .from('assessments')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single()
 
-if (genComplete) {
-  genProg = 100;
-} else if (general && Object.keys(general).length > 0) {
-  const genCount = genRequired.filter(field => {
-    if (Array.isArray(general[field])) {
-      return general[field].length > 0;
-    }
-    return general[field] && general[field] !== '';
-  }).length;
-  genProg = Math.round((genCount / genRequired.length) * 100);
-}
+        if (assessmentError) {
+          console.error('Error fetching assessment:', assessmentError)
+          // If no assessment found, might be new user - stay on dashboard
+          setIsLoading(false)
+          return
+        }
 
-if (curComplete) {
-  curProg = 100;
-} else if (current && Object.keys(current).length > 0) {
-  const curCount = curRequired.filter(field => {
-    if (Array.isArray(current[field])) {
-      return current[field].length > 0;
-    }
-    return current[field] && current[field] !== '';
-  }).length;
-  curProg = Math.round((curCount / curRequired.length) * 100);
-}
+        if (assessment) {
+          setCompanyName(assessment.company_name || '')
+          setAppId(assessment.app_id || '')
+          setPaymentCompleted(assessment.payment_completed || false)
 
-setSectionProgress({
-  firmographics: firmProg,
-  general: genProg,
-  current: curProg
-});
-        
-        // Safe advanced progress calculation
-        const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}');
-        const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}');
-        
-        const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true';
-        const crossDimComplete = localStorage.getItem('cross_dimensional_complete') === 'true';
-        
-        let empImpactProg = 0;
-        let crossDimProg = 0;
-        
-        if (empImpactComplete) {
-          empImpactProg = 100;
-        } else {
-          let completedSteps = 0;
-          if (empImpact.ei1) {
-            const ei1Items = Object.keys(empImpact.ei1).length;
-            completedSteps += ei1Items === 10 ? 1 : ei1Items / 10;
+          // Calculate progress from database data
+          // Firmographics
+          const firmProg = assessment.firmographics_complete ? 100 : 
+            (assessment.firmographics_data ? calculateProgress(assessment.firmographics_data) : 0)
+          
+          // General benefits
+          const genProg = assessment.general_benefits_complete ? 100 :
+            (assessment.general_benefits_data ? calculateProgress(assessment.general_benefits_data) : 0)
+          
+          // Current support
+          const curProg = assessment.current_support_complete ? 100 :
+            (assessment.current_support_data ? calculateProgress(assessment.current_support_data) : 0)
+
+          setSectionProgress({
+            firmographics: firmProg,
+            general: genProg,
+            current: curProg
+          })
+
+          // Dimensions
+          const dimProgress = []
+          for (let i = 1; i <= 13; i++) {
+            const complete = assessment[`dimension${i}_complete`]
+            const data = assessment[`dimension${i}_data`]
+            dimProgress.push(complete ? 100 : (data ? calculateProgress(data) : 0))
           }
-          if (empImpact.ei2) completedSteps += 1;
-          const shouldAnswerEI3 = empImpact.ei2 === "yes_comprehensive" || empImpact.ei2 === "yes_basic";
-          if (shouldAnswerEI3 && empImpact.ei3) completedSteps += 1;
-          else if (!shouldAnswerEI3 && empImpact.ei2) completedSteps += 1;
-          if (empImpact.ei4 || empImpact.ei4_none || empImpact.ei5 || empImpact.ei5_none) completedSteps += 1;
-          empImpactProg = Math.round((completedSteps / 4) * 100);
+          setDimensionProgress(dimProgress)
+
+          // Cross-dimensional
+          const crossProg = assessment.cross_dimensional_complete ? 100 :
+            (assessment.cross_dimensional_data ? calculateProgress(assessment.cross_dimensional_data) : 0)
+          setCrossProgress(crossProg)
+
+          // Employee impact
+          const impactProg = assessment.employee_impact_complete ? 100 :
+            (assessment.employee_impact_data ? calculateProgress(assessment.employee_impact_data) : 0)
+          setImpactProgress(impactProg)
         }
-        
-        if (crossDimComplete) {
-          crossDimProg = 100;
-        } else {
-          const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0;
-          const bottom3Count = Array.isArray(crossDim.cd1b) ? crossDim.cd1b.length : 0;
-          const challengesCount = Array.isArray(crossDim.cd2) ? crossDim.cd2.length : 0;
-          const totalAnswered = top3Count + bottom3Count + (challengesCount > 0 ? 1 : 0);
-          crossDimProg = Math.round((totalAnswered / 7) * 100);
-        }
-        
-        setAdvancedProgress({
-          crossDimensional: crossDimProg,
-          employeeImpact: empImpactProg
-        });
-        
-        // SAFER VERSION OF THIS CHECK
-        const allComplete = firmProg === 100 && 
-                            genProg === 100 && 
-                            curProg === 100 && 
-                            Array.isArray(dimProgress) && dimProgress.length === 13 && dimProgress.every(p => p === 100) &&
-                            crossDimProg === 100 && 
-                            empImpactProg === 100;
-        
-        if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
-          localStorage.setItem('assessment_completion_shown', 'true');
-          router.push('/completion');
-        }
+
+        setIsLoading(false)
       } catch (error) {
-        console.error('Error in calculateProgress:', error);
-        setSectionProgress({ firmographics: 0, general: 0, current: 0 });
-        setDimensionProgress(new Array(13).fill(0));
-        setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 });
+        console.error('Auth check error:', error)
+        router.push('/')
       }
-    };
-    
-    calculateProgress();
-    
-    const handleFocus = () => {
-      calculateProgress();
-    };
-    
-    if (typeof window !== 'undefined') {
-      window.addEventListener("focus", handleFocus);
-      
-      return () => {
-        if (typeof window !== 'undefined') {
-          window.removeEventListener("focus", handleFocus);
-        }
-      };
     }
-}, [router])
-  
 
-  
-  
-  const overallProgress = Math.round(
-    (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
-  )
+    checkAuth()
+  }, [router])
 
-  const sections = [
-    { id: 'firmographics', title: 'Company Profile', questions: 15, completion: sectionProgress.firmographics },
-    { id: 'general-benefits', title: 'General Employee Benefits', questions: 25, completion: sectionProgress.general },
-    { id: 'current-support', title: 'Current Support for Employees Managing Cancer', questions: 20, completion: sectionProgress.current },
-  ]
-
-  const dimensions = [
-    'Medical Leave & Flexibility','Insurance & Financial Protection','Manager Preparedness & Capability','Navigation & Expert Resources',
-    'Workplace Accommodations & Modifications','Culture & Psychological Safety','Career Continuity & Advancement','Work Continuation and Resumption',
-    'Executive Commitment & Resources','Caregiver & Family Support','Prevention, Wellness & Legal Compliance','Continuous Improvement & Outcomes','Communication & Awareness',
-  ]
-
-  const allCoreDone =
-    sectionProgress.firmographics === 100 &&
-    sectionProgress.general === 100 &&
-    sectionProgress.current === 100
-
-  const all13DimensionsDone = dimensionProgress.every(p => p === 100)
-
-  const handleSectionClick = (sectionId: string) => {
-    if (!paymentCompleted) {
-      return;
-    }
-    router.push(`/survey/${sectionId}`)
+  const calculateProgress = (data: any): number => {
+    if (!data || typeof data !== 'object') return 0
+    const keys = Object.keys(data)
+    if (keys.length === 0) return 0
+    const filled = keys.filter(k => {
+      const val = data[k]
+      return val !== null && val !== undefined && val !== ''
+    }).length
+    return Math.round((filled / keys.length) * 100)
   }
 
-  const handleDimensionClick = (idx: number) => {
-  if (!paymentCompleted) {
-    return;
+  const overallProgress = () => {
+    const stage1 = (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
+    const stage2 = dimensionProgress.reduce((a, b) => a + b, 0) / 13
+    const stage3 = (crossProgress + impactProgress) / 2
+    return Math.round((stage1 + stage2 + stage3) / 3)
   }
-  if (allCoreDone) {
-    router.push(`/survey/dimensions/${idx+1}`)
+
+  const handleSectionClick = (route: string) => {
+    router.push(route)
   }
-}
-  
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white">
       <Header />
-
-      <main className="max-w-7xl mx-auto px-6 py-10 flex-1">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Assessment Dashboard</h1>
-
-          {email && (
-            <div className="mt-4 bg-orange-50 border border-orange-200 rounded-lg px-5 py-3">
-              <p className="text-lg sm:text-xl font-semibold text-gray-900">
-                Welcome back, <span className="text-orange-600">{email}</span>
-              </p>
-            </div>
-          )}
-
-          {companyName && (
-            <p className="mt-2 text-lg font-medium text-gray-800">{companyName}</p>
-          )}
+      
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        {/* Welcome Section */}
+        <div className="bg-white rounded-xl shadow-md p-6 mb-8 border-l-4 border-purple-600">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Assessment Dashboard</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-600">
+            <span className="font-medium">{email}</span>
+            {companyName && (
+              <>
+                <span className="hidden sm:inline">•</span>
+                <span>{companyName}</span>
+              </>
+            )}
+            {appId && (
+              <>
+                <span className="hidden sm:inline">•</span>
+                <span className="font-mono bg-gray-100 px-2 py-1 rounded">
+                  App ID: {appId}
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Payment Status Banner */}
-        {!paymentCompleted && (
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8 rounded-lg">
-            <div className="flex items-start">
-              <Lock className="w-6 h-6 text-yellow-600 mr-3 mt-1" />
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-yellow-900 mb-2">
-                  Payment Required to Begin Assessment
-                </h3>
-                <p className="text-yellow-800 mb-4">
-                  Complete your application payment to unlock all assessment sections. You can review the dashboard structure, but assessment sections will remain locked until payment is received.
-                </p>
-                <button
-                  onClick={() => router.push('/payment')}
-                  className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors"
-                >
-                  <CreditCard className="w-5 h-5 mr-2" />
-                  Complete Payment ($1,250)
+        {/* Overall Progress */}
+        <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-lg p-8 mb-8 text-white">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold mb-2">Overall Progress</h2>
+              <p className="text-purple-100 text-sm">Complete all sections to finish your assessment</p>
+            </div>
+            <div className="w-32 h-32">
+              <CircularProgressbar
+                value={overallProgress()}
+                text={`${overallProgress()}%`}
+                styles={buildStyles({
+                  textSize: '24px',
+                  pathColor: '#fff',
+                  textColor: '#fff',
+                  trailColor: 'rgba(255,255,255,0.2)'
+                })}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Stage 1: Core Assessment Sections */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">
+              Stage 1
+            </span>
+            Core Assessment Sections
+          </h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            {sectionData.map((section) => (
+              <div
+                key={section.key}
+                onClick={() => handleSectionClick(section.route)}
+                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-purple-500 p-6"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900 flex-1">{section.name}</h3>
+                  <div className="w-16 h-16 ml-4">
+                    <CircularProgressbar
+                      value={sectionProgress[section.key as keyof typeof sectionProgress]}
+                      text={`${sectionProgress[section.key as keyof typeof sectionProgress]}%`}
+                      styles={buildStyles({
+                        textSize: '20px',
+                        pathColor: '#9333ea',
+                        textColor: '#9333ea',
+                        trailColor: '#e9d5ff'
+                      })}
+                    />
+                  </div>
+                </div>
+                <button className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition font-medium text-sm">
+                  {sectionProgress[section.key as keyof typeof sectionProgress] === 100 ? 'Review' : 'Continue'}
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {paymentCompleted && (() => {
-          const paymentMethod = localStorage.getItem('payment_method')
-          const isInvoice = paymentMethod === 'invoice'
-          
-          return (
-            <div className={`border-l-4 p-6 mb-8 rounded-lg ${
-              isInvoice ? 'bg-blue-50 border-blue-400' : 'bg-green-50 border-green-400'
-            }`}>
-              <div className="flex items-start">
-                {isInvoice ? (
-                  <CreditCard className="w-6 h-6 text-blue-600 mr-3 mt-1" />
-                ) : (
-                  <CheckCircle className="w-6 h-6 text-green-600 mr-3 mt-1" />
-                )}
-                <div className="flex-1">
-                  <h3 className={`text-lg font-bold mb-2 ${
-                    isInvoice ? 'text-blue-900' : 'text-green-900'
-                  }`}>
-                    Payment Method: {isInvoice ? 'Invoice (Payment Pending)' : 
-                      paymentMethod === 'card' ? 'Credit Card' : 
-                      paymentMethod === 'ach' ? 'ACH Transfer' : 'Processed'}
-                  </h3>
-                  <p className={isInvoice ? 'text-blue-800' : 'text-green-800'}>
-                    {isInvoice 
-                      ? 'Your invoice has been generated. You can continue working on your assessment while we process your payment. Payment is due within 14 days.'
-                      : 'Transaction completed successfully. Your payment has been processed and you have full access to complete your assessment.'
-                    }
-                  </p>
-                  {!isInvoice && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      Payment Date: {new Date(localStorage.getItem('payment_date') || Date.now()).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )
-        })()}
-{/* Completion Banner - Shows when everything is 100% complete */}
-{paymentCompleted && (() => {
-  const allSectionsComplete = 
-    sectionProgress.firmographics === 100 &&
-    sectionProgress.general === 100 &&
-    sectionProgress.current === 100 &&
-    dimensionProgress.every(p => p === 100) &&
-    advancedProgress.crossDimensional === 100 &&
-    advancedProgress.employeeImpact === 100;
-
-  if (!allSectionsComplete) return null;
-
-  return (
-    <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-orange-600 rounded-xl p-8 mb-8 shadow-xl">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-start gap-4 text-white flex-1">
-          <svg width="60" height="60" viewBox="0 0 60 60" fill="none" className="flex-shrink-0">
-            <circle cx="30" cy="30" r="28" fill="white" opacity="0.2"/>
-            <path d="M30 10 L35 23 L48 27 L38 37 L40 50 L30 43 L20 50 L22 37 L12 27 L25 23 Z" fill="white"/>
-          </svg>
-          <div>
-            <h3 className="text-2xl font-bold mb-2">Thank You!</h3>
-            <p className="text-lg mb-1">
-              You completed all sections of the assessment!
-            </p>
-            <p className="text-white/90">
-              Learn about next steps, upload supporting documentation, and discover how to use the certification badge if your organization qualifies.
-            </p>
+            ))}
           </div>
         </div>
-        <button
-          onClick={() => router.push('/completion')}
-          className="px-8 py-4 bg-white text-purple-600 rounded-lg font-bold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 whitespace-nowrap"
-        >
-          View What's Next →
-        </button>
-      </div>
-    </div>
-  );
-})()}
-<div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-10">
-  <h2 className="text-lg font-semibold text-gray-900 mb-2">How this works</h2>
-  <p className="text-sm text-gray-700 mb-4">
-    Complete this assessment in three stages. Your work saves automatically on every change, and you can stop anytime to return later.
-  </p>
-  
-  <div className="space-y-4">
-    <div className="flex gap-3">
-      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-        1
-      </div>
-      <div>
-        <h3 className="font-semibold text-gray-900 text-sm">Complete Core Sections</h3>
-        <p className="text-sm text-gray-600">
-          Complete Company Profile, General Employee Benefits, and Current Support (in any order)
-        </p>
-      </div>
-    </div>
-    
-    <div className="flex gap-3">
-      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-        2
-      </div>
-      <div>
-        <h3 className="font-semibold text-gray-900 text-sm">Rate 13 Dimensions of Support</h3>
-        <p className="text-sm text-gray-600">
-          Once Stage 1 is complete, assess all 13 dimensions (in any order)
-        </p>
-      </div>
-    </div>
-    
-    <div className="flex gap-3">
-      <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-        3
-      </div>
-      <div>
-        <h3 className="font-semibold text-gray-900 text-sm">Complete 2 Additional Assessments</h3>
-        <p className="text-sm text-gray-600">
-          After finishing all 13 dimensions, complete the Cross-Dimensional and Employee-Impact assessments
-        </p>
-      </div>
-    </div>
-  </div>
-  
-  <p className="text-xs text-gray-500 mt-4 italic">
-    Progress meters reflect partial completion - you can re-enter any section to review or edit your responses.
-  </p>
-</div>
-        
-        {/* Core Sections */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {sections.map((s) => {
-            const isLocked = false // Always allow access if they've completed payment (any method)
-            
-            return (
+
+        {/* Stage 2: 13 Dimensions */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+              Stage 2
+            </span>
+            13 Dimensions of Support
+          </h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {dimensionData.map((dim, idx) => (
               <div
-                key={s.id}
-                role="button"
-                tabIndex={isLocked ? -1 : 0}
-                onClick={() => handleSectionClick(s.id)}
-                onKeyDown={(e) => !isLocked && e.key === 'Enter' && handleSectionClick(s.id)}
-                className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300 
-                  ${isLocked 
-                    ? 'cursor-not-allowed opacity-60 bg-gray-100 border-gray-300' 
-                    : `cursor-pointer transform hover:scale-105 bg-gradient-to-br from-white to-gray-50 hover:bg-blue-50 hover:shadow-md ${
-                        s.completion === 100 ? "border-green-400" : s.completion > 0 ? "border-orange-400" : "border-gray-200"
-                      }`
-                  }`}
+                key={dim.num}
+                onClick={() => handleSectionClick(dim.route)}
+                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-blue-500 p-6"
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-md font-semibold text-gray-900">{s.title}</h3>
-                    {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="text-blue-600 font-bold text-sm mb-1">Dimension {dim.num}</div>
+                    <h3 className="font-semibold text-gray-900 text-sm">{dim.name}</h3>
                   </div>
-                  <p className="text-xs text-gray-600">
-                    {isLocked ? (
-                      'Payment required'
-                    ) : s.completion === 100 ? (
-                      "Completed"
-                    ) : (
-                      `${s.questions} questions | ${s.completion}%`
-                    )}
-                  </p>
+                  <div className="w-14 h-14 ml-4">
+                    <CircularProgressbar
+                      value={dimensionProgress[idx]}
+                      text={`${dimensionProgress[idx]}%`}
+                      styles={buildStyles({
+                        textSize: '22px',
+                        pathColor: '#2563eb',
+                        textColor: '#2563eb',
+                        trailColor: '#dbeafe'
+                      })}
+                    />
+                  </div>
                 </div>
-                <ProgressCircle completion={isLocked ? 0 : s.completion} />
+                <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium text-sm">
+                  {dimensionProgress[idx] === 100 ? 'Review' : 'Continue'}
+                </button>
               </div>
-            );
-          })}
-        </div>
-
-        {/* Dimensions */}
-        <div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-6 rounded-lg">
-          <h3 className="text-lg font-bold text-blue-900 mb-3">13 Dimensions of Support</h3>
-          <p className="text-gray-700 mb-3">The following explores <strong>13 dimensions of support for employees managing cancer or other serious health conditions</strong>. We'd like to understand where your organization currently focuses its efforts.</p>
-          <p className="text-gray-700 mb-3"><strong>Each organization's journey is unique</strong> - some dimensions may be well-developed while others are emerging or not yet a priority.</p>
-          <div className="bg-white p-4 rounded mt-3">
-            <p className="text-sm font-semibold mb-2">As you review each dimension, keep in mind:</p>
-            <ul className="list-disc ml-5 space-y-1 text-sm text-gray-600">
-              <li>No organization excels in all areas</li>
-              <li>Resource constraints mean making strategic choices</li>
-              <li>"Not able to offer" is a common response</li>
-              <li>Some items represent aspirational best practices few have achieved</li>
-            </ul>
+            ))}
           </div>
         </div>
-        
-        <h2 className="text-xl font-bold text-gray-900 mb-4">13 Dimensions of Support</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {dimensions.map((dim, idx) => {
-  const isLocked = !paymentCompleted || !allCoreDone;
-  const isClickable = !isLocked;
-  
-  return (
-    <div
-      key={dim}
-      role="button"
-      tabIndex={isClickable ? 0 : -1}
-      onClick={() => handleDimensionClick(idx)}
-      onKeyDown={(e) => isClickable && e.key === 'Enter' && handleDimensionClick(idx)}
-      className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300
-        ${isLocked
-          ? 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-60'
-          : 'cursor-pointer bg-white hover:bg-blue-50 hover:shadow-md border-gray-200 transform hover:scale-105'
-        }`}
-    >
-      <div className="flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          <h3 className="text-base font-semibold text-gray-800">{dim}</h3>
-          {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
-        </div>
-        <p className="text-xs text-gray-500">
-          {!paymentCompleted ? (
-            'Payment required'
-          ) : !allCoreDone ? (
-            'Complete all 3 core sections first'
-          ) : dimensionProgress[idx] === 100 ? (
-            'Completed'
-          ) : (
-            'Click to begin'
-          )}
-        </p>
-      </div>
-      <ProgressCircle completion={isLocked ? 0 : (dimensionProgress[idx] || 0)} />
-    </div>
-  );
-})}
-        </div>
 
-        {/* Congratulations Banner - Shows when all 13 dimensions are complete */}
-        {paymentCompleted && all13DimensionsDone && (
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 md:p-8 mb-8 shadow-xl animate-fade-in">
-            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
-              <div className="flex-shrink-0">
-                <svg className="w-16 h-16 md:w-20 md:h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="flex-1 text-center md:text-left">
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                  Thank You!
-                </h3>
-                <p className="text-lg md:text-xl text-white/95 font-semibold mb-1">
-                  You've completed all 13 Dimensions of Support!
-                </p>
-                <p className="text-white/90">
-                  Great progress! Continue with the two additional assessment modules below to complete your full evaluation.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Additional Assessment Sections - Locked until all 13 dimensions complete */}
-        {paymentCompleted && (
-          <>
-            <div className="bg-purple-50 border-l-4 border-purple-600 p-6 mb-6 rounded-lg">
-              <h3 className="text-lg font-bold text-purple-900 mb-2">Two Additional Assessment Modules</h3>
-              <p className="text-gray-700">
-                {all13DimensionsDone ? (
-                  <>These sections are now available. They provide deeper insights into dimension and employee impact within your organization.</>
-                ) : (
-                  <>These assessments will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
-                )}
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6 mb-12">
-              {[
-                { 
-                  id: 'cross-dimensional-assessment', 
-                  title: 'Cross-Dimensional Assessment', 
-                  description: 'Evaluate cross-cutting themes',
-                  completion: advancedProgress.crossDimensional 
-                },
-                { 
-                  id: 'employee-impact-assessment', 
-                  title: 'Employee-Impact Assessment', 
-                  description: 'Assess the impact on employees',
-                  completion: advancedProgress.employeeImpact 
-                },
-              ].map((section) => {
-                const isLocked = !all13DimensionsDone
-                
-                return (
-                  <div
-                    key={section.id}
-                    role="button"
-                    tabIndex={isLocked ? -1 : 0}
-                    onClick={() => !isLocked && router.push(`/survey/${section.id}`)}
-                    onKeyDown={(e) => !isLocked && e.key === 'Enter' && router.push(`/survey/${section.id}`)}
-                    className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300 
-                      ${isLocked 
-                        ? 'cursor-not-allowed opacity-60 bg-gray-100 border-gray-300' 
-                        : `cursor-pointer transform hover:scale-105 bg-gradient-to-br from-white to-purple-50 hover:bg-purple-100 hover:shadow-md ${
-                            section.completion === 100 ? "border-green-400" : section.completion > 0 ? "border-purple-400" : "border-gray-200"
-                          }`
-                      }`}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-md font-semibold text-gray-900">{section.title}</h3>
-                        {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
-                      </div>
-                      <p className="text-xs text-gray-600">
-                        {isLocked ? (
-                          'Complete all 13 dimensions first'
-                        ) : section.completion === 100 ? (
-                          'Completed'
-                        ) : (
-                          `${section.completion}% complete`
-                        )}
-                      </p>
+        {/* Stage 3: Additional Assessments */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold">
+              Stage 3
+            </span>
+            Additional Assessments
+          </h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {additionalSections.map((section) => {
+              const progress = section.key === 'cross' ? crossProgress : impactProgress
+              return (
+                <div
+                  key={section.key}
+                  onClick={() => handleSectionClick(section.route)}
+                  className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-orange-500 p-6"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <h3 className="font-semibold text-gray-900 flex-1">{section.name}</h3>
+                    <div className="w-16 h-16 ml-4">
+                      <CircularProgressbar
+                        value={progress}
+                        text={`${progress}%`}
+                        styles={buildStyles({
+                          textSize: '20px',
+                          pathColor: '#ea580c',
+                          textColor: '#ea580c',
+                          trailColor: '#fed7aa'
+                        })}
+                      />
                     </div>
-                    <ProgressCircle completion={isLocked ? 0 : section.completion} />
                   </div>
-                )
-              })}
-            </div>
-          </>
-        )}
-
+                  <button className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition font-medium text-sm">
+                    {progress === 100 ? 'Review' : 'Continue'}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </main>
-   
-      <Footer overallProgress={paymentCompleted ? overallProgress : 0} />
+
+      <Footer />
     </div>
   )
 }
