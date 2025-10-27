@@ -9,16 +9,11 @@ export interface AuthResult {
   error?: string
 }
 
-/**
- * Main authentication function
- * Handles both new users and returning users
- */
 export async function authenticateUser(
   email: string,
   appId?: string
 ): Promise<AuthResult> {
   try {
-    // Validate email format
     if (!isValidEmail(email)) {
       return {
         mode: 'error',
@@ -28,7 +23,6 @@ export async function authenticateUser(
       }
     }
 
-    // If app_id provided, handle existing user
     if (appId) {
       return await handleExistingUser(email, appId)
     } else {
@@ -45,34 +39,22 @@ export async function authenticateUser(
   }
 }
 
-/**
- * Handle existing user authentication
- */
-async function handleExistingUser(
-  email: string,
-  appId: string
-): Promise<AuthResult> {
-  console.log('handleExistingUser called with:', { email, appId })
-  
-  // Check if assessment exists with this app_id
+async function handleExistingUser(email: string, appId: string): Promise<AuthResult> {
   const { data: assessment, error: fetchError } = await supabase
     .from('assessments')
     .select('user_id, email')
     .eq('app_id', appId)
     .single()
 
-  console.log('Assessment lookup result:', { assessment, fetchError })
-
   if (fetchError || !assessment) {
     return {
       mode: 'error',
       needsVerification: false,
-      message: 'Application ID not found. Please check and try again.',
+      message: 'Application ID not found.',
       error: 'APP_ID_NOT_FOUND'
     }
   }
 
-  // Verify email matches
   if (assessment.email.toLowerCase() !== email.toLowerCase()) {
     return {
       mode: 'error',
@@ -82,20 +64,16 @@ async function handleExistingUser(
     }
   }
 
-  // Use App ID as password to sign in
-  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+  const { error: authError } = await supabase.auth.signInWithPassword({
     email: email,
     password: appId
   })
 
-  console.log('Sign in result:', { authData, authError })
-
   if (authError) {
-    console.error('Sign in error:', authError)
     return {
       mode: 'error',
       needsVerification: false,
-      message: 'Authentication failed. Please check your credentials.',
+      message: 'Authentication failed.',
       error: 'AUTH_FAILED'
     }
   }
@@ -103,60 +81,32 @@ async function handleExistingUser(
   return {
     mode: 'existing',
     needsVerification: false,
-    message: 'Login successful! Redirecting to your assessment...',
+    message: 'Login successful!',
     appId: appId
   }
 }
 
-/**
- * Handle new user registration - SIMPLIFIED VERSION
- */
 async function handleNewUser(email: string): Promise<AuthResult> {
-  console.log('handleNewUser called for:', email)
-  
-  // Generate unique app_id
   const newAppId = await generateUniqueAppId()
-  console.log('Generated unique App ID:', newAppId)
 
-  // Create auth user with App ID as password - with autoConfirm
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email,
     password: newAppId,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://effervescent-concha-95d2df.netlify.app'}/auth/callback`,
-      data: {
-        app_id: newAppId
-      }
+      data: { app_id: newAppId }
     }
   })
 
-  console.log('Signup result:', { authData, authError })
-
   if (authError || !authData.user) {
-    console.error('Signup error:', authError)
     return {
       mode: 'error',
       needsVerification: false,
-      message: 'Failed to create account. Please try again.',
+      message: 'Failed to create account.',
       error: 'CREATE_ACCOUNT_FAILED'
     }
   }
 
-  // NOW IMMEDIATELY SIGN THEM IN (don't wait for email verification)
-  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-    email: email,
-    password: newAppId
-  })
-
-  console.log('Immediate sign in result:', { signInData, signInError })
-
-  if (signInError) {
-    console.error('Immediate sign in error:', signInError)
-    // Account created but couldn't sign in - that's okay, return the App ID
-  }
-
-  // Create assessment record
-  const { error: assessmentError } = await supabase
+  await supabase
     .from('assessments')
     .insert({
       user_id: authData.user.id,
@@ -165,85 +115,50 @@ async function handleNewUser(email: string): Promise<AuthResult> {
       status: 'in_progress'
     })
 
-  console.log('Assessment insert result:', assessmentError)
-
-  if (assessmentError) {
-    console.error('Assessment creation error:', assessmentError)
-    // Don't fail here - the auth user was created, they can still use the app
-  }
-
   return {
     mode: 'new',
-    needsVerification: false, // Changed to false since we sign them in immediately
+    needsVerification: false,
     message: 'Account created successfully!',
     appId: newAppId
   }
 }
 
-/**
- * Generate unique app_id
- */
 async function generateUniqueAppId(): Promise<string> {
   let attempts = 0
-  const maxAttempts = 10
-
-  while (attempts < maxAttempts) {
+  while (attempts < 10) {
     const appId = generateAppId()
-
-    // Check if app_id already exists
     const { data } = await supabase
       .from('assessments')
       .select('app_id')
       .eq('app_id', appId)
       .single()
-
-    if (!data) {
-      return appId // Unique app_id found
-    }
-
+    if (!data) return appId
     attempts++
   }
-
   throw new Error('Failed to generate unique app_id')
 }
 
-/**
- * Check if user is authenticated
- */
 export async function isAuthenticated(): Promise<boolean> {
   const { data: { session } } = await supabase.auth.getSession()
   return !!session
 }
 
-/**
- * Get current user
- */
 export async function getCurrentUser() {
   const { data: { user } } = await supabase.auth.getUser()
   return user
 }
 
-/**
- * Sign out user
- */
 export async function signOut() {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
+  await supabase.auth.signOut()
 }
 
-/**
- * Get user's assessment data
- */
 export async function getUserAssessment() {
   const user = await getCurrentUser()
   if (!user) return null
-
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('assessments')
     .select('*')
     .eq('user_id', user.id)
     .single()
-
-  if (error) throw error
   return data
 }
