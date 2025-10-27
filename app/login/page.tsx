@@ -15,6 +15,8 @@ export default function LoginPage() {
   const [errors, setErrors] = useState('')
   const [loading, setLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [generatedAppId, setGeneratedAppId] = useState('')
+  const [showAppId, setShowAppId] = useState(false)
   
   // Forgot App ID states
   const [showReminderForm, setShowReminderForm] = useState(false)
@@ -27,6 +29,8 @@ export default function LoginPage() {
     setLoading(true)
     setErrors('')
     setSuccessMessage('')
+    setGeneratedAppId('')
+    setShowAppId(false)
     
     // Validation
     if (!email.trim()) {
@@ -62,19 +66,19 @@ export default function LoginPage() {
           localStorage.setItem('login_application_id', applicationId)
         }
         
-        // If existing user and no verification needed, redirect immediately!
+        // If existing user - redirect immediately
         if (result.mode === 'existing' && !result.needsVerification) {
           setSuccessMessage(result.message)
-          // Wait 1 second to show success message, then redirect
           setTimeout(() => {
             router.push('/dashboard')
           }, 1000)
         } else if (result.mode === 'new') {
-          // New user - show message to check email (DON'T show App ID yet)
-          setSuccessMessage('✅ Account created! Please check your email for a verification link to continue.')
-          // Store App ID in localStorage for later (after verification)
+          // New user - show App ID and let them proceed
+          setSuccessMessage('Account created successfully!')
           if (result.appId) {
-            localStorage.setItem('pending_app_id', result.appId)
+            setGeneratedAppId(result.appId)
+            setShowAppId(true)
+            localStorage.setItem('login_application_id', result.appId)
           }
         }
       }
@@ -84,6 +88,10 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleProceedToAssessment = () => {
+    router.push('/dashboard')
   }
 
   const handleSendReminder = async () => {
@@ -138,28 +146,49 @@ export default function LoginPage() {
               Enter your information to access the assessment
             </p>
 
-            {/* Success Message */}
-            {successMessage && (
-              <div className="mb-6 p-6 bg-green-50 border-2 border-green-200 rounded-lg">
+            {/* Generated App ID Display - Only show AFTER account creation */}
+            {showAppId && generatedAppId && (
+              <div className="mb-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
                 <div className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="flex-1">
-                    <p className="text-green-900 font-semibold text-lg">{successMessage}</p>
-                    {successMessage.includes('verification link') && (
-                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-                        <p className="text-sm text-blue-900">
-                          📧 <strong>Next Steps:</strong>
-                        </p>
-                        <ol className="mt-2 text-sm text-blue-800 space-y-1 ml-4">
-                          <li>1. Check your inbox for an email from us</li>
-                          <li>2. Click the verification link in the email</li>
-                          <li>3. You'll receive your Application ID and can start the assessment</li>
-                        </ol>
-                      </div>
-                    )}
+                    <p className="font-semibold text-green-900 text-lg mb-2">
+                      ✅ Account Created Successfully!
+                    </p>
+                    <p className="text-sm text-green-800 mb-3">
+                      Your Application ID is:
+                    </p>
+                    <div className="bg-white p-4 rounded-lg border border-green-300 mb-4">
+                      <p className="text-2xl font-bold text-center text-green-900 font-mono tracking-wider">
+                        {formatAppId(generatedAppId)}
+                      </p>
+                    </div>
+                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                      <p className="text-xs text-yellow-800">
+                        <strong>⚠️ IMPORTANT: Save this Application ID!</strong> You'll need it to access your assessment from other devices or if you return later.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleProceedToAssessment}
+                      className="w-full py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg"
+                    >
+                      Continue to Assessment →
+                    </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Success Message for returning users */}
+            {successMessage && !showAppId && (
+              <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <p className="text-sm text-green-800">{successMessage}</p>
                 </div>
               </div>
             )}
@@ -176,217 +205,222 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Toggle: New vs Returning */}
-            <div className="flex gap-2 mb-8 bg-gray-100 p-1 rounded-lg">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsNewUser(true)
-                  setErrors('')
-                  setSuccessMessage('')
-                }}
-                className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
-                  isNewUser 
-                    ? 'bg-white text-orange-600 shadow-md' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                New Assessment
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsNewUser(false)
-                  setErrors('')
-                  setSuccessMessage('')
-                }}
-                className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
-                  !isNewUser 
-                    ? 'bg-white text-orange-600 shadow-md' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Continue Assessment
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Input */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your.email@company.com"
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
-                />
-              </div>
-
-              {/* App ID Input (for returning users) */}
-              {!isNewUser && (
-                <div>
-                  <label htmlFor="applicationId" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Application ID *
-                  </label>
-                  <input
-                    type="text"
-                    id="applicationId"
-                    value={applicationId}
-                    onChange={(e) => setApplicationId(e.target.value.toUpperCase())}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg font-mono text-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
-                    placeholder="CAC-251022-001AB"
-                    maxLength={20}
-                  />
-                  <p className="text-xs text-gray-500 mt-2">
-                    Enter your Application ID (with or without dashes)
-                  </p>
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                style={{ backgroundColor: '#007B9E' }}
-                className="w-full text-white py-3.5 rounded-lg font-semibold hover:opacity-90 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Processing...
-                  </span>
-                ) : (
-                  isNewUser ? 'Start Assessment' : 'Continue to Assessment'
-                )}
-              </button>
-            </form>
-
-            {/* Help Text */}
-            <div className="mt-6 space-y-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
-              {isNewUser ? (
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p className="font-semibold text-gray-900">For New Users:</p>
-                  </div>
-                  <p className="mb-2">
-                    Enter your email address and click "Start Assessment". We will:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 ml-2">
-                    <li>Send you a secure verification link to your email</li>
-                    <li>Once you click the link, you'll receive your unique Application ID</li>
-                    <li>You can then begin your assessment immediately</li>
-                  </ul>
-                </div>
-              ) : (
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <p className="font-semibold text-gray-900">For Returning Users:</p>
-                  </div>
-                  <p className="mb-2">
-                    Enter both your email address and Application ID, then click "Continue to Assessment".
-                  </p>
-                  <p className="text-xs text-gray-600 mt-2">
-                    You'll be logged in instantly and can continue where you left off!
-                  </p>
-                </div>
-              )}
-              <div className="pt-3 border-t border-gray-300">
-                <p className="flex items-center gap-1.5 text-xs text-gray-600">
-                  <svg className="w-4 h-4 text-teal-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                  </svg>
-                  <span className="font-medium">Security:</span> Your data is encrypted and private. We use secure email verification for authentication.
-                </p>
-              </div>
-            </div>
-
-            {/* Forgot App ID Section */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              {!showReminderForm ? (
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-3">
-                    Can't find your Application ID?
-                  </p>
+            {/* Only show form if App ID hasn't been generated */}
+            {!showAppId && (
+              <>
+                {/* Toggle: New vs Returning */}
+                <div className="flex gap-2 mb-8 bg-gray-100 p-1 rounded-lg">
                   <button
                     type="button"
-                    onClick={() => setShowReminderForm(true)}
-                    className="text-sm text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center gap-2"
+                    onClick={() => {
+                      setIsNewUser(true)
+                      setErrors('')
+                      setSuccessMessage('')
+                    }}
+                    className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
+                      isNewUser 
+                        ? 'bg-white text-orange-600 shadow-md' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    Email me my Application ID
+                    New Assessment
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsNewUser(false)
+                      setErrors('')
+                      setSuccessMessage('')
+                    }}
+                    className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
+                      !isNewUser 
+                        ? 'bg-white text-orange-600 shadow-md' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Continue Assessment
                   </button>
                 </div>
-              ) : (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                    Retrieve Your Application ID
-                  </h3>
-                  <p className="text-xs text-gray-600 mb-4">
-                    Enter your email and we'll send you your Application ID along with a link to continue your assessment.
-                  </p>
-                  
-                  <div className="space-y-3">
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Email Input */}
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email Address *
+                    </label>
                     <input
                       type="email"
-                      value={reminderEmail}
-                      onChange={(e) => setReminderEmail(e.target.value)}
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="your.email@company.com"
-                      disabled={reminderLoading}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed"
+                      required
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
                     />
-                    
-                    {reminderMessage && (
-                      <div className={`p-3 rounded-lg text-sm ${
-                        reminderMessage.includes('sent') 
-                          ? 'bg-green-50 border border-green-200 text-green-800'
-                          : 'bg-red-50 border border-red-200 text-red-800'
-                      }`}>
-                        {reminderMessage}
-                      </div>
-                    )}
-                    
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={handleSendReminder}
-                        disabled={reminderLoading}
-                        className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {reminderLoading ? 'Sending...' : 'Send Reminder'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowReminderForm(false)
-                          setReminderEmail('')
-                          setReminderMessage('')
-                        }}
-                        disabled={reminderLoading}
-                        className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Cancel
-                      </button>
+                  </div>
+
+                  {/* App ID Input (for returning users) */}
+                  {!isNewUser && (
+                    <div>
+                      <label htmlFor="applicationId" className="block text-sm font-semibold text-gray-700 mb-2">
+                        Application ID *
+                      </label>
+                      <input
+                        type="text"
+                        id="applicationId"
+                        value={applicationId}
+                        onChange={(e) => setApplicationId(e.target.value.toUpperCase())}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg font-mono text-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+                        placeholder="CAC-251022-001AB"
+                        maxLength={20}
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        Enter your Application ID (with or without dashes)
+                      </p>
                     </div>
+                  )}
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    style={{ backgroundColor: '#007B9E' }}
+                    className="w-full text-white py-3.5 rounded-lg font-semibold hover:opacity-90 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Processing...
+                      </span>
+                    ) : (
+                      isNewUser ? 'Start Assessment' : 'Continue to Assessment'
+                    )}
+                  </button>
+                </form>
+
+                {/* Help Text */}
+                <div className="mt-6 space-y-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  {isNewUser ? (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p className="font-semibold text-gray-900">For New Users:</p>
+                      </div>
+                      <p className="mb-2">
+                        Enter your email address and click "Start Assessment". We will:
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>Create a unique Application ID for you instantly</li>
+                        <li>Allow you to begin your assessment immediately</li>
+                        <li>Save your progress so you can return anytime</li>
+                      </ul>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <p className="font-semibold text-gray-900">For Returning Users:</p>
+                      </div>
+                      <p className="mb-2">
+                        Enter both your email address and Application ID, then click "Continue to Assessment".
+                      </p>
+                      <p className="text-xs text-gray-600 mt-2">
+                        You'll be logged in instantly and can continue where you left off!
+                      </p>
+                    </div>
+                  )}
+                  <div className="pt-3 border-t border-gray-300">
+                    <p className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <svg className="w-4 h-4 text-teal-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                      </svg>
+                      <span className="font-medium">Security:</span> Your data is encrypted and private. Your Application ID serves as your secure access credential.
+                    </p>
                   </div>
                 </div>
-              )}
-            </div>
+
+                {/* Forgot App ID Section */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  {!showReminderForm ? (
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600 mb-3">
+                        Can't find your Application ID?
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowReminderForm(true)}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Email me my Application ID
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                        Retrieve Your Application ID
+                      </h3>
+                      <p className="text-xs text-gray-600 mb-4">
+                        Enter your email and we'll send you your Application ID.
+                      </p>
+                      
+                      <div className="space-y-3">
+                        <input
+                          type="email"
+                          value={reminderEmail}
+                          onChange={(e) => setReminderEmail(e.target.value)}
+                          placeholder="your.email@company.com"
+                          disabled={reminderLoading}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed"
+                        />
+                        
+                        {reminderMessage && (
+                          <div className={`p-3 rounded-lg text-sm ${
+                            reminderMessage.includes('sent') 
+                              ? 'bg-green-50 border border-green-200 text-green-800'
+                              : 'bg-red-50 border border-red-200 text-red-800'
+                          }`}>
+                            {reminderMessage}
+                          </div>
+                        )}
+                        
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={handleSendReminder}
+                            disabled={reminderLoading}
+                            className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {reminderLoading ? 'Sending...' : 'Send Reminder'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowReminderForm(false)
+                              setReminderEmail('')
+                              setReminderMessage('')
+                            }}
+                            disabled={reminderLoading}
+                            className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* CAC logo */}
             <div className="flex justify-center mt-12">
