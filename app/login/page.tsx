@@ -15,7 +15,6 @@ export default function LoginPage() {
   const [errors, setErrors] = useState('')
   const [loading, setLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
-  const [generatedAppId, setGeneratedAppId] = useState('')
   
   // Forgot App ID states
   const [showReminderForm, setShowReminderForm] = useState(false)
@@ -28,7 +27,6 @@ export default function LoginPage() {
     setLoading(true)
     setErrors('')
     setSuccessMessage('')
-    setGeneratedAppId('')
     
     // Validation
     if (!email.trim()) {
@@ -71,14 +69,12 @@ export default function LoginPage() {
           setTimeout(() => {
             router.push('/dashboard')
           }, 1000)
-        } else {
-          // New user - needs verification
-          setSuccessMessage(result.message)
-          
-          // Show generated App ID for new users
-          if (result.mode === 'new' && result.appId) {
-            setGeneratedAppId(result.appId)
-            localStorage.setItem('login_application_id', result.appId)
+        } else if (result.mode === 'new') {
+          // New user - show message to check email (DON'T show App ID yet)
+          setSuccessMessage('✅ Account created! Please check your email for a verification link to continue.')
+          // Store App ID in localStorage for later (after verification)
+          if (result.appId) {
+            localStorage.setItem('pending_app_id', result.appId)
           }
         }
       }
@@ -142,43 +138,28 @@ export default function LoginPage() {
               Enter your information to access the assessment
             </p>
 
-            {/* Generated App ID Display */}
-            {generatedAppId && (
-              <div className="mb-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
+            {/* Success Message */}
+            {successMessage && (
+              <div className="mb-6 p-6 bg-green-50 border-2 border-green-200 rounded-lg">
                 <div className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="flex-1">
-                    <p className="font-semibold text-green-900 mb-2">
-                      Account Created Successfully!
-                    </p>
-                    <p className="text-sm text-green-800 mb-3">
-                      Your Application ID is:
-                    </p>
-                    <div className="bg-white p-4 rounded-lg border border-green-300">
-                      <p className="text-2xl font-bold text-center text-green-900 font-mono tracking-wider">
-                        {formatAppId(generatedAppId)}
-                      </p>
-                    </div>
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                      <p className="text-xs text-yellow-800">
-                        <strong>⚠️ Save this ID!</strong> You'll need it to access your assessment from other devices. Check your email for a verification link.
-                      </p>
-                    </div>
+                    <p className="text-green-900 font-semibold text-lg">{successMessage}</p>
+                    {successMessage.includes('verification link') && (
+                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                        <p className="text-sm text-blue-900">
+                          📧 <strong>Next Steps:</strong>
+                        </p>
+                        <ol className="mt-2 text-sm text-blue-800 space-y-1 ml-4">
+                          <li>1. Check your inbox for an email from us</li>
+                          <li>2. Click the verification link in the email</li>
+                          <li>3. You'll receive your Application ID and can start the assessment</li>
+                        </ol>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {successMessage && (
-              <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <p className="text-sm text-green-800">{successMessage}</p>
                 </div>
               </div>
             )}
@@ -302,16 +283,10 @@ export default function LoginPage() {
                     Enter your email address and click "Start Assessment". We will:
                   </p>
                   <ul className="list-disc list-inside space-y-1 ml-2">
-                    <li>Create a unique Application ID for you</li>
                     <li>Send you a secure verification link to your email</li>
-                    <li>Once verified, you can begin your assessment</li>
+                    <li>Once you click the link, you'll receive your unique Application ID</li>
+                    <li>You can then begin your assessment immediately</li>
                   </ul>
-                  <div className="mt-3 flex items-start gap-2 text-xs text-orange-700 bg-orange-50 p-2 rounded border border-orange-200">
-                    <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                    <span className="font-medium">Important: Save your Application ID! You'll need it to access your assessment from other devices.</span>
-                  </div>
                 </div>
               ) : (
                 <div>
@@ -322,10 +297,10 @@ export default function LoginPage() {
                     <p className="font-semibold text-gray-900">For Returning Users:</p>
                   </div>
                   <p className="mb-2">
-                    Enter both your email address and Application ID (shown below), then click "Continue to Assessment".
+                    Enter both your email address and Application ID, then click "Continue to Assessment".
                   </p>
                   <p className="text-xs text-gray-600 mt-2">
-                    You'll be logged in instantly - no need to wait for an email!
+                    You'll be logged in instantly and can continue where you left off!
                   </p>
                 </div>
               )}
@@ -334,7 +309,7 @@ export default function LoginPage() {
                   <svg className="w-4 h-4 text-teal-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                   </svg>
-                  <span className="font-medium">Security:</span> Your data is encrypted and private. We use secure magic links for authentication - no passwords needed!
+                  <span className="font-medium">Security:</span> Your data is encrypted and private. We use secure email verification for authentication.
                 </p>
               </div>
             </div>
