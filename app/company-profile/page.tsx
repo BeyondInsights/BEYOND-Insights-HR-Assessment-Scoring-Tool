@@ -1661,7 +1661,7 @@ setData({
           </div>
         )}
         <div className="mt-8 pt-4 border-t text-center text-[10px]" style={{ borderColor: BRAND.gray[200], color: BRAND.gray[700] }}>
-          Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers
+          Best Companies for Working with Cancer: Employer Index - Copyright {new Date().getFullYear()} Cancer and Careers
         </div>
       </main>
     </div>
