@@ -1251,7 +1251,8 @@ const email = localStorage.getItem('auth_email') || localStorage.getItem('login_
 const firstName = localStorage.getItem('login_first_name') || '';
 const lastName  = localStorage.getItem('login_last_name')  || '';
 const applicationId = localStorage.getItem('login_application_id') || 'N/A'; // ADD THIS LINE
-
+console.log('Application ID from localStorage:', applicationId);
+     
 setData({
   companyName, email, firstName, lastName, applicationId, // ADD applicationId HERE
   generatedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
