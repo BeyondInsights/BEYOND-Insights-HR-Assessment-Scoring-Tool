@@ -94,7 +94,7 @@ export default function LoginPage() {
   const handleProceedToAssessment = () => {
     localStorage.setItem('user_authenticated', 'true')
     localStorage.setItem('auth_completed', 'true')
-    router.push('/dashboard')
+    router.push('/authorization')
   }
 
   const handleSendReminder = async () => {
