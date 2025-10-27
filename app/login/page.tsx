@@ -71,7 +71,7 @@ export default function LoginPage() {
         if (result.mode === 'existing' && !result.needsVerification) {
           setSuccessMessage(result.message)
           setTimeout(() => {
-            router.push('/dashboard')
+            router.push('/authorization')
           }, 1000)
         } else if (result.mode === 'new') {
           // New user - show App ID and let them proceed
