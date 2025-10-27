@@ -1241,7 +1241,7 @@ export default function CompanyProfileFixed() {
     setData({
   companyName,
   email,
-  applicationId: localStorage.getItem('auth_application_id') || '',
+  applicationId: localStorage.getItem('login_application_id') || '',
   firstName,
   lastName,
   generatedAt: new Date().toLocaleDateString(),
