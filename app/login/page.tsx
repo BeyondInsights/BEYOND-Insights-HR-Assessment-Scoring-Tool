@@ -61,6 +61,7 @@ export default function LoginPage() {
         // Store email in localStorage
         localStorage.setItem('login_email', email)
         localStorage.setItem('auth_email', email)
+        localStorage.setItem('user_authenticated', 'true') // Add this flag
         
         if (!isNewUser) {
           localStorage.setItem('login_application_id', applicationId)
@@ -91,6 +92,9 @@ export default function LoginPage() {
   }
 
   const handleProceedToAssessment = () => {
+    // Ensure authentication is set before redirect
+    localStorage.setItem('user_authenticated', 'true')
+    localStorage.setItem('auth_completed', 'true')
     router.push('/dashboard')
   }
 
@@ -208,7 +212,7 @@ export default function LoginPage() {
             {/* Only show form if App ID hasn't been generated */}
             {!showAppId && (
               <>
-                {/* Toggle: New vs Returning */}
+                {/* Toggle: New User vs Returning User */}
                 <div className="flex gap-2 mb-8 bg-gray-100 p-1 rounded-lg">
                   <button
                     type="button"
@@ -223,7 +227,7 @@ export default function LoginPage() {
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
-                    New Assessment
+                    New User
                   </button>
                   <button
                     type="button"
@@ -238,7 +242,7 @@ export default function LoginPage() {
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
-                    Continue Assessment
+                    Returning User
                   </button>
                 </div>
 
@@ -296,7 +300,7 @@ export default function LoginPage() {
                         Processing...
                       </span>
                     ) : (
-                      isNewUser ? 'Start Assessment' : 'Continue to Assessment'
+                      isNewUser ? 'Start Assessment' : 'Continue Assessment'
                     )}
                   </button>
                 </form>
@@ -329,7 +333,7 @@ export default function LoginPage() {
                         <p className="font-semibold text-gray-900">For Returning Users:</p>
                       </div>
                       <p className="mb-2">
-                        Enter both your email address and Application ID, then click "Continue to Assessment".
+                        Enter both your email address and Application ID, then click "Continue Assessment".
                       </p>
                       <p className="text-xs text-gray-600 mt-2">
                         You'll be logged in instantly and can continue where you left off!
