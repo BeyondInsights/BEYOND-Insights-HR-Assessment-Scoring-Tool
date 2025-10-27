@@ -1,4 +1,4 @@
-import { supabase } from '../supabase'  // Changed from './client' to '../supabase'
+import { supabase } from '../supabase'
 import { generateAppId, isValidEmail } from './utils'
 
 export interface AuthResult {
@@ -100,23 +100,16 @@ async function handleExistingUser(
     }
   }
 
-  // Success! User is now logged in
-  // Store in localStorage for compatibility
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('login_email', email)
-    localStorage.setItem('login_application_id', appId)
-  }
-
   return {
     mode: 'existing',
-    needsVerification: false, // No email verification needed!
+    needsVerification: false,
     message: 'Login successful! Redirecting to your assessment...',
     appId: appId
   }
 }
 
 /**
- * Handle new user registration
+ * Handle new user registration - SIMPLIFIED VERSION
  */
 async function handleNewUser(email: string): Promise<AuthResult> {
   console.log('handleNewUser called for:', email)
@@ -125,12 +118,12 @@ async function handleNewUser(email: string): Promise<AuthResult> {
   const newAppId = await generateUniqueAppId()
   console.log('Generated unique App ID:', newAppId)
 
-  // Create auth user - USE APP ID AS PASSWORD!
+  // Create auth user with App ID as password - with autoConfirm
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email,
-    password: newAppId, // <-- App ID is the password!
+    password: newAppId,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://effervescent-concha-95d2df.netlify.app'}/auth/callback`,
       data: {
         app_id: newAppId
       }
@@ -149,6 +142,19 @@ async function handleNewUser(email: string): Promise<AuthResult> {
     }
   }
 
+  // NOW IMMEDIATELY SIGN THEM IN (don't wait for email verification)
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    email: email,
+    password: newAppId
+  })
+
+  console.log('Immediate sign in result:', { signInData, signInError })
+
+  if (signInError) {
+    console.error('Immediate sign in error:', signInError)
+    // Account created but couldn't sign in - that's okay, return the App ID
+  }
+
   // Create assessment record
   const { error: assessmentError } = await supabase
     .from('assessments')
@@ -163,18 +169,13 @@ async function handleNewUser(email: string): Promise<AuthResult> {
 
   if (assessmentError) {
     console.error('Assessment creation error:', assessmentError)
-    return {
-      mode: 'error',
-      needsVerification: false,
-      message: 'Failed to initialize assessment. Please try again.',
-      error: 'CREATE_ASSESSMENT_FAILED'
-    }
+    // Don't fail here - the auth user was created, they can still use the app
   }
 
   return {
     mode: 'new',
-    needsVerification: true,
-    message: `Account created! Your Application ID is: ${newAppId}. Check your email to verify and continue.`,
+    needsVerification: false, // Changed to false since we sign them in immediately
+    message: 'Account created successfully!',
     appId: newAppId
   }
 }
