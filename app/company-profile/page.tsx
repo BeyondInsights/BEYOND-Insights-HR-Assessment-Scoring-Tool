@@ -897,9 +897,23 @@ function downloadHTML(data: any) {
           • Company Profile & Assessment Survey Summary •
         </div>
       </div>
-      <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">${data.companyName}</h1>
-      <div style="color: #64748b; font-size: 0.875rem;">
-        ${data.generatedAt}${data.email ? ` • ${data.email}` : ''}
+      
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">${data.companyName}</h1>
+          <div style="color: #64748b; font-size: 0.875rem;">
+            ${data.generatedAt}${data.email ? ` • ${data.email}` : ''}
+          </div>
+        </div>
+        
+        <div style="text-align: right;">
+          <div style="color: #64748b; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">
+            Application ID
+          </div>
+          <div style="color: #0f172a; font-size: 1.125rem; font-family: monospace; font-weight: 700;">
+            ${data.applicationId || 'N/A'}
+          </div>
+        </div>
       </div>
     </div>
     
@@ -1230,20 +1244,20 @@ export default function CompanyProfileFixed() {
       dimensions.push({ number: i, data: raw });
     }
 
-    const companyName =
-      localStorage.getItem('login_company_name') ||
-      firmo.companyName || firmo.company_name || 'Organization';
+const companyName =
+  localStorage.getItem('login_company_name') ||
+  firmo.companyName || firmo.company_name || 'Organization';
+const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email') || '';
+const firstName = localStorage.getItem('login_first_name') || '';
+const lastName  = localStorage.getItem('login_last_name')  || '';
+const applicationId = localStorage.getItem('login_application_id') || 'N/A'; // ADD THIS LINE
 
-    const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email') || '';
-    const firstName = localStorage.getItem('login_first_name') || '';
-    const lastName  = localStorage.getItem('login_last_name')  || '';
-
-    setData({
-      companyName, email, firstName, lastName,
-      generatedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-      firmographics: firmo, general: gen, current: cur, cross, impact,
-      dimensions
-    });
+setData({
+  companyName, email, firstName, lastName, applicationId, // ADD applicationId HERE
+  generatedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+  firmographics: firmo, general: gen, current: cur, cross, impact,
+  dimensions
+});
   }, []);
 
   if (!data) {
