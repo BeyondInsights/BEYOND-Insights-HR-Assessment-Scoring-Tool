@@ -1,77 +1,57 @@
+// FILE: /lib/supabase/appIdReminder.ts
+
 import { supabase } from './client'
 
-export interface AppIdReminderResult {
-  success: boolean
-  message: string
-}
-
-/**
- * Send App ID reminder email to user
- */
-export async function sendAppIdReminder(email: string): Promise<AppIdReminderResult> {
+export async function sendAppIdReminder(email: string) {
   try {
-    // Look up all assessments for this email
-    const { data: assessments, error: fetchError } = await supabase
+    // 1. Look up the user's App ID
+    const { data, error } = await supabase
       .from('assessments')
-      .select('app_id, created_at, status')
-      .eq('email', email.toLowerCase())
-      .order('created_at', { ascending: false })
+      .select('app_id, company_name')
+      .eq('email', email.toLowerCase().trim())
+      .single()
 
-    if (fetchError) {
-      console.error('Error fetching assessments:', fetchError)
+    if (error || !data) {
       return {
         success: false,
-        message: 'Failed to look up Application ID. Please try again.'
+        message: 'No account found with that email address'
       }
     }
 
-    if (!assessments || assessments.length === 0) {
-      return {
-        success: false,
-        message: 'No assessment found with this email address. Please check your email or start a new assessment.'
-      }
-    }
-
-    // Get the most recent assessment
-    const latestAssessment = assessments[0]
-
-    // Send magic link (which will also serve as reminder)
-    const { error: emailError } = await supabase.auth.signInWithOtp({
-      email: email,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
-        data: {
-          app_id: latestAssessment.app_id,
-          is_reminder: true
-        }
+    // 2. Send email with App ID via Supabase Edge Function
+    const { error: emailError } = await supabase.functions.invoke('send-app-id-reminder', {
+      body: {
+        email: email.toLowerCase().trim(),
+        appId: data.app_id,
+        companyName: data.company_name || ''
       }
     })
 
     if (emailError) {
-      console.error('Error sending email:', emailError)
+      console.error('Email error:', emailError)
       return {
         success: false,
-        message: 'Failed to send reminder email. Please try again.'
+        message: 'Error sending email. Please try again or contact support.'
       }
     }
 
     return {
       success: true,
-      message: `We've sent an email to ${email} with your Application ID and a link to continue your assessment.`
+      message: 'Your Application ID has been sent to your email address'
     }
-  } catch (error) {
-    console.error('App ID reminder error:', error)
+  } catch (err) {
+    console.error('Error:', err)
     return {
       success: false,
-      message: 'An unexpected error occurred. Please try again.'
+      message: 'An error occurred. Please try again.'
     }
   }
 }
 
-/**
- * Format App ID with dashes for display
- */
-export function formatAppIdForDisplay(appId: string): string {
-  if (appId.length !== 13) return appId
-  return `${appId.slice(0, 3)}-${appId.slice(3, 9)}-${appId.slice(9)}`
-}
+
+
+
+
+
+
+
