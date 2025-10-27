@@ -1239,9 +1239,13 @@ export default function CompanyProfileFixed() {
     const lastName  = localStorage.getItem('login_last_name')  || '';
 
     setData({
-      companyName, email, firstName, lastName,
-      generatedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-      firmographics: firmo, general: gen, current: cur, cross, impact,
+  companyName,
+  email,
+  applicationId: localStorage.getItem('auth_application_id') || '',
+  firstName,
+  lastName,
+  generatedAt: new Date().toLocaleDateString(),
+  firmographics: firmo, general: gen, current: cur, cross, impact,
       dimensions
     });
   }, []);
@@ -1284,9 +1288,12 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
           <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-            {data.generatedAt}
-            {data.email && ` • ${data.email}`}
-          </p>
+  {data.generatedAt}
+  {data.email && ` • ${data.email}`}
+  {data.applicationId && (
+    <span className="font-mono font-semibold"> • App ID: {data.applicationId}</span>
+  )}
+</p>
    
           <div className="mt-4 print:hidden">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
