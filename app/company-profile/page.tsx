@@ -1067,7 +1067,7 @@ function downloadHTML(data: any) {
     ` : ''}
     
     <div style="text-align: center; padding-top: 2rem; margin-top: 3rem; border-top: 1px solid #e5e7eb; color: #64748b; font-size: 0.75rem;">
-      Best Companies for Working with Cancer: Employer Index • © ${new Date().getFullYear()} Cancer and Careers & CEW Foundation
+      Best Companies for Working with Cancer: Employer Index - Copyright ${new Date().getFullYear()} Cancer and Careers & CEW Foundation
     </div>
   </div>
 </body>
@@ -1651,7 +1651,7 @@ export default function CompanyProfileFixed() {
         )}
 
         <div className="mt-8 pt-4 border-t text-center text-[10px]" style={{ borderColor: BRAND.gray[200], color: BRAND.gray[500] }}>
-          Best Companies for Working with Cancer: Employer Index • © {new Date().getFullYear()} Cancer and Careers &amp; CEW Foundation
+          Best Companies for Working with Cancer: Employer Index - Copyright {new Date().getFullYear()} Cancer and Careers &amp; CEW Foundation
         </div>
       </main>
 
