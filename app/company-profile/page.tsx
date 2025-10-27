@@ -1296,29 +1296,29 @@ setData({
           <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-16 w-auto" />
         </div>
 
-<div className="max-w-7xl mx-auto px-6 pb-4">
-  <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
-  <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-    {data.generatedAt}
-    {data.email && ` • ${data.email}`}
-    {data.applicationId && (
-      <span className="font-mono font-semibold"> • App ID: {data.applicationId}</span>
-    )}
-  </p>
+        <div className="max-w-7xl mx-auto px-6 pb-4">
+          <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
+          <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
+            {data.generatedAt}
+            {data.email && ` • ${data.email}`}
+            {data.applicationId && (
+              <span className="font-mono font-semibold"> • App ID: {data.applicationId}</span>
+            )}
+          </p>
 
-  <div className="mt-4 print:hidden">
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-      <p className="text-xs text-blue-900 font-medium mb-1">📄 Download Option:</p>
-      <p className="text-xs text-blue-800">
-        Click "Download HTML" to save a clean version of this profile that can be opened in any browser.
-      </p>
-    </div>
-    
-    <div className="flex items-center gap-2 flex-wrap">
-      <a href="/dashboard" className="px-4 py-2 text-sm font-semibold border rounded hover:bg-gray-50"
-         style={{ borderColor: BRAND.gray[300], color: BRAND.gray[900] }}>
-        ← Back to Dashboard
-      </a>              
+          <div className="mt-4 print:hidden">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+              <p className="text-xs text-blue-900 font-medium mb-1">📄 Download Option:</p>
+              <p className="text-xs text-blue-800">
+                Click "Download HTML" to save a clean version of this profile that can be opened in any browser.
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2 flex-wrap">
+              <a href="/dashboard" className="px-4 py-2 text-sm font-semibold border rounded hover:bg-gray-50"
+                 style={{ borderColor: BRAND.gray[300], color: BRAND.gray[900] }}>
+                ← Back to Dashboard
+              </a>              
               <button 
                 onClick={() => downloadHTML(data)} 
                 className="px-5 py-2 text-sm font-semibold rounded text-white hover:opacity-90 flex items-center gap-2"
@@ -1665,12 +1665,5 @@ setData({
         </div>
       </main>
     </div>
-    <style jsx global>{`
-      @media print {
-        @page { size: letter; margin: 0.5in; }
-        html, body { font-size: 11px; }
-      }
-    `}</style>
-  </>
-);
+  );
 }
