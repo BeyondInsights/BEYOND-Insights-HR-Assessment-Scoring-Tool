@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
 import { useRouter, usePathname } from 'next/navigation'
 import { RotateCcw, FileText, Download } from 'lucide-react'
+import { createClient } from '@/utils/supabase/client'
 
 export default function Header() {
   const router = useRouter()
@@ -11,16 +11,45 @@ export default function Header() {
   const showBack = !['/dashboard', '/letter', '/authorization'].includes(pathname)
   const onPrintPage = pathname === '/survey/print'
 
-  const handleReset = () => {
-    if (confirm('Clear all data and restart? This will log you out and cannot be undone.')) {
-      localStorage.clear()
-      sessionStorage.clear()
-      window.location.href = '/'
+  const handleReset = async () => {
+    if (confirm('Clear all data and restart? This will delete your local data AND your database record, and log you out. This cannot be undone.')) {
+      try {
+        // Get email before clearing localStorage
+        const email = localStorage.getItem('login_email')
+        
+        // Delete from Supabase if we have an email
+        if (email) {
+          const supabase = createClient()
+          const { error } = await supabase
+            .from('survey_responses')
+            .delete()
+            .eq('email', email)
+          
+          if (error) {
+            console.error('Error deleting from database:', error)
+            // Continue with local clear even if DB delete fails
+          } else {
+            console.log('Successfully deleted database record for:', email)
+          }
+        }
+        
+        // Clear all local storage
+        localStorage.clear()
+        sessionStorage.clear()
+        
+        // Redirect to home
+        window.location.href = '/'
+      } catch (error) {
+        console.error('Error during reset:', error)
+        // Still clear local storage even if there's an error
+        localStorage.clear()
+        sessionStorage.clear()
+        window.location.href = '/'
+      }
     }
   }
 
   const goPrintView = () => router.push('/survey/print')
-  const triggerPrint = () => window.print()
 
   return (
     <header className="shadow-md">
@@ -31,7 +60,7 @@ export default function Header() {
             <button
               onClick={handleReset}
               className="flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-red-700 transition text-sm"
-              title="Reset all data"
+              title="Reset all data (including database)"
             >
               <RotateCcw className="w-4 h-4" />
               Reset
@@ -66,24 +95,24 @@ export default function Header() {
             />
           </div>
 
-   {/* Right: CAC logo + Print/Download */}
-<div className="flex items-center gap-3">
-  {!onPrintPage && (
-    <button
-      onClick={goPrintView}
-      className="flex items-center gap-2 bg-slate-800 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-slate-900 transition text-sm"
-      title="Open printable full survey"
-    >
-      <Download className="w-4 h-4" />
-      Review / Download Survey
-    </button>
-  )}
-  <img
-    src="/cancer-careers-logo.png"
-    alt="Cancer and Careers Logo"
-    className="h-10 sm:h-14 lg:h-16 w-auto"
-  />
-</div>
+          {/* Right: CAC logo + Print/Download */}
+          <div className="flex items-center gap-3">
+            {!onPrintPage && (
+              <button
+                onClick={goPrintView}
+                className="flex items-center gap-2 bg-slate-800 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-slate-900 transition text-sm"
+                title="Open printable full survey"
+              >
+                <Download className="w-4 h-4" />
+                Review / Download Survey
+              </button>
+            )}
+            <img
+              src="/cancer-careers-logo.png"
+              alt="Cancer and Careers Logo"
+              className="h-10 sm:h-14 lg:h-16 w-auto"
+            />
+          </div>
         </div>
       </div>
       <div className="h-2 bg-orange-600" />
