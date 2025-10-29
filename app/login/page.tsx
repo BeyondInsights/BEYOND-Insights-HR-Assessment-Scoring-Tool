@@ -56,33 +56,44 @@ export default function LoginPage() {
       )
 
       if (result.mode === 'error') {
-        setErrors(result.message)
-      } else {
-        // Store email in localStorage
-        localStorage.setItem('login_email', email)
-        localStorage.setItem('auth_email', email)
-        localStorage.setItem('user_authenticated', 'true')
-        
-        if (!isNewUser) {
-          localStorage.setItem('login_application_id', applicationId)
-        }
-        
-        // If existing user - redirect immediately
-        if (result.mode === 'existing' && !result.needsVerification) {
-          setSuccessMessage(result.message)
-          setTimeout(() => {
-            router.push('/authorization')
-          }, 1000)
-        } else if (result.mode === 'new') {
-          // New user - show App ID and let them proceed
-          setSuccessMessage('Account created successfully!')
-          if (result.appId) {
-            setGeneratedAppId(result.appId)
-            setShowAppId(true)
-            localStorage.setItem('login_application_id', result.appId)
-          }
-        }
-      }
+  setErrors(result.message)
+} else {
+  // Store email in localStorage
+  localStorage.setItem('login_email', email)
+  localStorage.setItem('auth_email', email)
+  localStorage.setItem('user_authenticated', 'true')
+  
+  if (!isNewUser) {
+    localStorage.setItem('login_application_id', applicationId)
+  }
+  
+  // For existing/returning users - check letter status before redirecting
+  if (result.mode === 'existing' && !result.needsVerification) {
+    // Check if they've seen the letter
+    const user = await getCurrentUser()
+    if (user) {
+      const { data: assessment } = await supabase
+        .from('assessments')
+        .select('letter_viewed')
+        .eq('user_id', user.id)
+        .single()
+      
+      setSuccessMessage(result.message)
+      setTimeout(() => {
+        // Send to letter if not viewed, otherwise skip to authorization
+        router.push(!assessment?.letter_viewed ? '/letter' : '/authorization')
+      }, 1000)
+    }
+  } else if (result.mode === 'new') {
+    // New user - show App ID and let them proceed to letter
+    setSuccessMessage('Account created successfully!')
+    if (result.appId) {
+      setGeneratedAppId(result.appId)
+      setShowAppId(true)
+      localStorage.setItem('login_application_id', result.appId)
+    }
+  }
+}
     } catch (err) {
       setErrors('An unexpected error occurred. Please try again.')
       console.error('Auth error:', err)
@@ -92,10 +103,10 @@ export default function LoginPage() {
   }
 
   const handleProceedToAssessment = () => {
-    localStorage.setItem('user_authenticated', 'true')
-    localStorage.setItem('auth_completed', 'true')
-    router.push('/authorization')
-  }
+  localStorage.setItem('user_authenticated', 'true')
+  localStorage.setItem('auth_completed', 'true')
+  router.push('/letter')  // Changed from /authorization
+}
 
   const handleSendReminder = async () => {
     if (!reminderEmail.trim() || !reminderEmail.includes('@')) {
