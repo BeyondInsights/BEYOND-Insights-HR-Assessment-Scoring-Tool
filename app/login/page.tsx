@@ -55,7 +55,7 @@ export default function LoginPage() {
         isNewUser ? undefined : applicationId.trim().replace(/-/g, '')
       )
 
-      if (result.mode === 'error') {
+     if (result.mode === 'error') {
   setErrors(result.message)
 } else {
   // Store email in localStorage
@@ -67,33 +67,32 @@ export default function LoginPage() {
     localStorage.setItem('login_application_id', applicationId)
   }
   
- // For existing/returning users - check letter status before redirecting
-if (result.mode === 'existing' && !result.needsVerification) {
-  const user = await getCurrentUser()
-  if (user) {
-    const { data: assessment } = await supabase
-      .from('assessments')
-      .select('letter_viewed, payment_completed')
-      .eq('user_id', user.id)
-      .single()
-    
-    setSuccessMessage(result.message)
-    setTimeout(() => {
-      // First time user - send to letter
-      if (!assessment?.letter_viewed) {
-        router.push('/letter')
-      }
-      // Paid user - send to dashboard
-      else if (assessment?.payment_completed) {
-        router.push('/dashboard')
-      }
-      // Unpaid user - send to authorization/payment flow
-      else {
-        router.push('/authorization')
-      }
-    }, 1000)
-  }
-}
+  // For existing/returning users - check letter status before redirecting
+  if (result.mode === 'existing' && !result.needsVerification) {
+    const user = await getCurrentUser()
+    if (user) {
+      const { data: assessment } = await supabase
+        .from('assessments')
+        .select('letter_viewed, payment_completed')
+        .eq('user_id', user.id)
+        .single()
+      
+      setSuccessMessage(result.message)
+      setTimeout(() => {
+        // First time user - send to letter
+        if (!assessment?.letter_viewed) {
+          router.push('/letter')
+        }
+        // Paid user - send to dashboard
+        else if (assessment?.payment_completed) {
+          router.push('/dashboard')
+        }
+        // Unpaid user - send to authorization/payment flow
+        else {
+          router.push('/authorization')
+        }
+      }, 1000)
+    }
   } else if (result.mode === 'new') {
     // New user - show App ID and let them proceed to letter
     setSuccessMessage('Account created successfully!')
