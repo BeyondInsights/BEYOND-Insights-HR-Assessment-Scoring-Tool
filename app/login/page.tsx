@@ -142,31 +142,36 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-gray-50 flex flex-col">
       <main className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="w-full max-w-3xl relative">
-          {/* Award badge */}
-          <div className="flex justify-center -mt-16 mb-[-1rem]">
-            <div className="bg-white rounded-full p-3 shadow-lg">
-              <img
-                src="/best-companies-2026-logo.png"
-                alt="Best Companies Award Logo"
-                className="h-28 sm:h-36 lg:h-40 w-auto"
-              />
-            </div>
-          </div>
-
-          {/* Login Card */}
-          <div className="bg-white rounded-2xl shadow-2xl p-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-center text-gray-900 leading-snug mb-3">
-              Welcome to the<br />
-              <span className="text-orange-600">
-                Best Companies for<br />
-                Working with Cancer Index
-              </span><br />
-              Assessment
-            </h2>
-            <p className="text-center text-gray-600 mb-8">
-              Enter your information to begin or continue your assessment
-            </p>
+  <div className="w-full max-w-3xl">
+    {/* Login Card */}
+    <div className="bg-white rounded-2xl shadow-2xl p-10">
+      {/* Header with badge and title side by side */}
+      <div className="flex items-center justify-center gap-6 mb-8">
+        {/* Award badge on the left */}
+        <div className="flex-shrink-0">
+          <img
+            src="/best-companies-2026-logo.png"
+            alt="Best Companies Award Logo"
+            className="h-24 sm:h-28 lg:h-32 w-auto"
+          />
+        </div>
+        
+        {/* Title on the right */}
+        <div className="flex-1">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 leading-snug">
+            Welcome to the<br />
+            <span className="text-orange-600">
+              Best Companies for<br />
+              Working with Cancer Index
+            </span><br />
+            Assessment
+          </h2>
+        </div>
+      </div>
+      
+      <p className="text-center text-gray-600 mb-8">
+        Enter your information to begin or continue your assessment
+      </p>
 
             {/* Generated App ID Display - Only show AFTER account creation */}
             {showAppId && generatedAppId && (
