@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { FileText, Building2, MapPin, Download, Loader2 } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { getCurrentUser } from '@/lib/supabase/auth'
+import { supabase } from '@/lib/supabase/client'
 
 export default function InvoicePaymentPage() {
   const router = useRouter()
@@ -91,6 +93,23 @@ export default function InvoicePaymentPage() {
       localStorage.setItem('payment_method', 'invoice');
       localStorage.setItem('payment_completed', 'true');
       localStorage.setItem('payment_date', new Date().toISOString());
+
+      // ALSO save to database
+try {
+  const user = await getCurrentUser()
+  if (user) {
+    await supabase
+      .from('assessments')
+      .update({
+        payment_completed: true,
+        payment_method: 'invoice',
+        payment_date: new Date().toISOString()
+      })
+      .eq('user_id', user.id)
+  }
+} catch (error) {
+  console.error('Error saving payment to database:', error)
+}
       
       setLoading(false)
       
