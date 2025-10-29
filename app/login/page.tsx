@@ -152,7 +152,7 @@ export default function LoginPage() {
           <img
             src="/best-companies-2026-logo.png"
             alt="Best Companies Award Logo"
-            className="h-24 sm:h-28 lg:h-32 w-auto"
+            className="h-32 sm:h-36 lg:h-40 w-auto"
           />
         </div>
         
