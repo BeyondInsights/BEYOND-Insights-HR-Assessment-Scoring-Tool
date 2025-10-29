@@ -1278,7 +1278,7 @@ export default function CompanyProfileFixed() {
       {/* HEADER */}
       <header className="bg-white border-b" style={{ borderColor: BRAND.gray[200] }}>
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
-          <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-22 w-auto" />
+          <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-24 w-auto" />
           <div className="text-2xl font-black tracking-wide" style={{ color: BRAND.primary }}>
            • Company Profile &amp; Assessment Survey Summary • 
           </div>
