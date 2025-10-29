@@ -37,8 +37,8 @@ export default function LetterPage() {
           .update({ letter_viewed: true })
           .eq('user_id', user.id)
         
-        // Redirect to authorization/terms page
-        router.push('/terms')
+        // Redirect to authorization/firmographics page
+        router.push('/authorization')
       }
     } catch (error) {
       console.error('Error updating letter status:', error)
@@ -215,7 +215,7 @@ export default function LetterPage() {
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  {loading ? 'Processing...' : ready ? 'Continue to Terms & Conditions →' : 'Please acknowledge to continue'}
+                  {loading ? 'Processing...' : ready ? 'Continue to Initial Information →' : 'Please acknowledge to continue'}
                 </button>
               </div>
             </div>
