@@ -44,45 +44,38 @@ export default function CreditCardPaymentPage() {
   }
 
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent) => {
       if (event.origin === 'https://fundraise.givesmart.com') {
         if (event.data.type === 'payment_complete') {
-  setPaymentStatus('success')
-  
-  // Set payment status in localStorage
-  localStorage.setItem('payment_completed', 'true')
-  localStorage.setItem('payment_method', 'card')
-  localStorage.setItem('payment_date', new Date().toISOString())
-/ ALSO save to database
-try {
-  const user = await getCurrentUser()
-  if (user) {
-    await supabase
-      .from('assessments')
-      .update({
-        payment_completed: true,
-        payment_method: 'invoice',
-        payment_date: new Date().toISOString()
-      })
-      .eq('user_id', user.id)
-  }
-} catch (error) {
-  console.error('Error saving payment to database:', error)
-}
-
-setLoading(false)
-
-// Redirect to dashboard after short delay
-setTimeout(() => {
-  router.push('/dashboard')
-}, 1500)
-  
-  
-  setTimeout(() => {
-    handleCloseModal()
-    router.push('/payment/success')
-  }, 2000)
-}
+          setPaymentStatus('success')
+          
+          // Set payment status in localStorage
+          localStorage.setItem('payment_completed', 'true')
+          localStorage.setItem('payment_method', 'card')
+          localStorage.setItem('payment_date', new Date().toISOString())
+          
+          // ALSO save to database
+          try {
+            const user = await getCurrentUser()
+            if (user) {
+              await supabase
+                .from('assessments')
+                .update({
+                  payment_completed: true,
+                  payment_method: 'card',
+                  payment_date: new Date().toISOString()
+                })
+                .eq('user_id', user.id)
+            }
+          } catch (error) {
+            console.error('Error saving payment to database:', error)
+          }
+          
+          setTimeout(() => {
+            handleCloseModal()
+            router.push('/payment/success')
+          }, 2000)
+        }
       }
     }
 
