@@ -40,12 +40,19 @@ export async function authenticateUser(
 }
 
 async function handleExistingUser(email: string, appId: string): Promise<AuthResult> {
-  // Verify the assessment exists and email matches
+  console.log('=== handleExistingUser START ===')
+  console.log('Email:', email)
+  console.log('App ID:', appId)
+  
+  // Check if assessment exists with this app_id
   const { data: assessment, error: fetchError } = await supabase
     .from('assessments')
     .select('user_id, email')
     .eq('app_id', appId)
     .single()
+
+  console.log('Assessment data:', assessment)
+  console.log('Fetch error:', fetchError)
 
   if (fetchError || !assessment) {
     return {
@@ -65,17 +72,20 @@ async function handleExistingUser(email: string, appId: string): Promise<AuthRes
     }
   }
 
-  // Since we've verified they own this assessment, sign them in with the password (appId)
-  const { error: authError } = await supabase.auth.signInWithPassword({
+  console.log('Attempting signInWithPassword...')
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
     email: email,
     password: appId
   })
+
+  console.log('Auth data:', authData)
+  console.log('Auth error:', authError)
 
   if (authError) {
     return {
       mode: 'error',
       needsVerification: false,
-      message: 'Authentication failed. Your Application ID may be from an older account. Please contact support.',
+      message: `Authentication failed: ${authError.message}`,
       error: 'AUTH_FAILED'
     }
   }
@@ -87,6 +97,7 @@ async function handleExistingUser(email: string, appId: string): Promise<AuthRes
     appId: appId
   }
 }
+
 async function handleNewUser(email: string): Promise<AuthResult> {
   const newAppId = await generateUniqueAppId()
 
