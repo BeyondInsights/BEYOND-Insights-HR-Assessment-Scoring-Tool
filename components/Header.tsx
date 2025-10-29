@@ -86,14 +86,14 @@ export default function Header() {
             )}
           </div>
 
-          {/* Center: Award logo */}
-          <div className="flex-1 flex justify-center">
-            <img
-              src="/best-companies-2026-logo.png"
-              alt="Best Companies for Working with Cancer Award Logo"
-              className="h-14 sm:h-20 lg:h-24 w-auto drop-shadow-md"
-            />
-          </div>
+{/* Center: Award logo */}
+<div className="flex-1 flex justify-center">
+  <img
+    src="/best-companies-2026-logo.png"
+    alt="Best Companies for Working with Cancer Award Logo"
+    className="h-16 sm:h-24 lg:h-28 w-auto drop-shadow-md"
+  />
+</div>
 
           {/* Right: CAC logo + Print/Download */}
           <div className="flex items-center gap-3">
