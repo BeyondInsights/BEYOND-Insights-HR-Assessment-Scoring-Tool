@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CreditCard, Building, Lock, CheckCircle } from 'lucide-react';
+import { getCurrentUser } from '@/lib/supabase/auth'
+import { supabase } from '@/lib/supabase/client'
 
 export default function StripePaymentPage() {
   const router = useRouter();
@@ -33,6 +35,30 @@ export default function StripePaymentPage() {
     localStorage.setItem('payment_completed', 'true');
     localStorage.setItem('payment_date', new Date().toISOString());
     localStorage.setItem('payment_method', 'ach')
+
+    // ALSO save to database
+try {
+  const user = await getCurrentUser()
+  if (user) {
+    await supabase
+      .from('assessments')
+      .update({
+        payment_completed: true,
+        payment_method: 'invoice',
+        payment_date: new Date().toISOString()
+      })
+      .eq('user_id', user.id)
+  }
+} catch (error) {
+  console.error('Error saving payment to database:', error)
+}
+
+setLoading(false)
+
+// Redirect to dashboard after short delay
+setTimeout(() => {
+  router.push('/dashboard')
+}, 1500)
     
     router.push('/payment/success');
   }, 2000);
