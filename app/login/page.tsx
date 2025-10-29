@@ -2,7 +2,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { authenticateUser } from '@/lib/supabase/auth'
+import { authenticateUser, getCurrentUser } from '@/lib/supabase/auth'
 import { formatAppId } from '@/lib/supabase/utils'
 import { supabase } from '@/lib/supabase/client'
 import Footer from '@/components/Footer'
