@@ -20,13 +20,17 @@ export async function GET(request: Request) {
         .eq('user_id', user.id)
         .single()
       
+      console.log('Assessment data:', assessment) // Debug log
+      
       // First-time user - send to letter
       if (!assessment?.letter_viewed) {
+        console.log('Redirecting to /letter') // Debug log
         return NextResponse.redirect(`${requestUrl.origin}/letter`)
       }
     }
   }
 
   // Returning user - go straight to dashboard
+  console.log('Redirecting to /dashboard') // Debug log
   return NextResponse.redirect(`${requestUrl.origin}/dashboard`)
 }
