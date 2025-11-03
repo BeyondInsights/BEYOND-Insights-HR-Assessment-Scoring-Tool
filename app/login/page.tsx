@@ -173,7 +173,6 @@ export default function LoginPage() {
               Best Companies for<br />
               Working with Cancer Index
             </span><br />
-            Assessment
           </h2>
         </div>
       </div>
