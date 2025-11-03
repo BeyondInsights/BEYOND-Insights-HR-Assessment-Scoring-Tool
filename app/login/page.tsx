@@ -167,7 +167,7 @@ export default function LoginPage() {
         
         {/* Title on the right */}
         <div className="flex-1">
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-extrabold text-slate-900 leading-snug">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 leading-snug">
             Welcome to the<br />
             <span className="text-orange-600">
               Best Companies for<br />
@@ -349,11 +349,11 @@ export default function LoginPage() {
                 </form>
 
                 {/* Help Text */}
-                <div className="mt-6 space-y-3 text-sm text-slate-800 bg-teal-50 p-4 rounded-lg border border-teal-200">
+                <div className="mt-6 space-y-3 text-sm text-slate-800 bg-orange-50 p-4 rounded-lg border border-orange-200">
                   {isNewUser ? (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <p className="font-bold text-slate-900">New Users - Here's How It Works:</p>
@@ -417,7 +417,7 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setShowReminderForm(true)}
-                        className="text-sm text-teal-600 hover:text-teal-800 font-semibold inline-flex items-center gap-2"
+                        className="text-sm text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
