@@ -154,20 +154,20 @@ export default function LoginPage() {
   <div className="w-full max-w-3xl">
     {/* Login Card */}
     <div className="bg-white rounded-2xl shadow-2xl p-10">
-      {/* Header with badge and title side by side */}
+      {/* Header with badge and title side by side - UPDATED SIZES */}
       <div className="flex items-center justify-center gap-6 mb-8">
-        {/* Award badge on the left */}
+        {/* Award badge on the left - INCREASED FROM h-32/36/40 to h-40/48/56 */}
         <div className="flex-shrink-0">
           <img
             src="/best-companies-2026-logo.png"
             alt="Best Companies Award Logo"
-            className="h-32 sm:h-36 lg:h-40 w-auto"
+            className="h-40 sm:h-48 lg:h-56 w-auto"
           />
         </div>
         
-        {/* Title on the right */}
+        {/* Title on the right - REDUCED FROM text-xl/2xl/3xl to text-lg/xl/2xl */}
         <div className="flex-1">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 leading-snug">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-extrabold text-gray-900 leading-snug">
             Welcome to the<br />
             <span className="text-orange-600">
               Best Companies for<br />
