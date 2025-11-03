@@ -149,14 +149,14 @@ export default function LoginPage() {
   }
     
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
       <main className="flex flex-1 items-center justify-center px-4 py-12">
   <div className="w-full max-w-3xl">
     {/* Login Card */}
     <div className="bg-white rounded-2xl shadow-2xl p-10">
-      {/* Header with badge and title side by side - UPDATED SIZES */}
+      {/* Header with badge and title side by side */}
       <div className="flex items-center justify-center gap-6 mb-8">
-        {/* Award badge on the left - INCREASED FROM h-32/36/40 to h-40/48/56 */}
+        {/* Award badge on the left */}
         <div className="flex-shrink-0">
           <img
             src="/best-companies-2026-logo.png"
@@ -165,9 +165,9 @@ export default function LoginPage() {
           />
         </div>
         
-        {/* Title on the right - REDUCED FROM text-xl/2xl/3xl to text-lg/xl/2xl */}
+        {/* Title on the right */}
         <div className="flex-1">
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-extrabold text-gray-900 leading-snug">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-extrabold text-slate-900 leading-snug">
             Welcome to the<br />
             <span className="text-orange-600">
               Best Companies for<br />
@@ -178,7 +178,7 @@ export default function LoginPage() {
         </div>
       </div>
       
-      <p className="text-center text-gray-600 mb-8">
+      <p className="text-center text-slate-700 mb-8">
         Enter your information to begin or continue your assessment
       </p>
 
@@ -202,17 +202,17 @@ export default function LoginPage() {
                       </p>
                     </div>
                     
-                    <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
-                      <p className="text-sm text-blue-900 font-semibold mb-2">
+                    <div className="mb-4 p-4 bg-teal-50 border-2 border-teal-300 rounded-lg">
+                      <p className="text-sm text-teal-900 font-semibold mb-2">
                         📝 Important - Save This ID!
                       </p>
-                      <p className="text-sm text-blue-800">
+                      <p className="text-sm text-teal-800">
                         You can start your assessment right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Application ID to pick up exactly where you left off.
                       </p>
                     </div>
 
-                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded">
-                      <p className="text-xs text-yellow-900">
+                    <div className="mb-4 p-3 bg-amber-50 border border-amber-300 rounded">
+                      <p className="text-xs text-amber-900">
                         <strong>💡 Pro Tip:</strong> Write down your Application ID or take a screenshot. You'll need it to access your assessment from any device.
                       </p>
                     </div>
@@ -256,7 +256,7 @@ export default function LoginPage() {
             {!showAppId && (
               <>
                 {/* Toggle: New User vs Returning User */}
-                <div className="flex gap-2 mb-8 bg-gray-100 p-1 rounded-lg">
+                <div className="flex gap-2 mb-8 bg-orange-100 p-1 rounded-lg">
                   <button
                     type="button"
                     onClick={() => {
@@ -267,7 +267,7 @@ export default function LoginPage() {
                     className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
                       isNewUser 
                         ? 'bg-white text-orange-600 shadow-md' 
-                        : 'text-gray-600 hover:text-gray-900'
+                        : 'text-orange-800 hover:text-orange-900'
                     }`}
                   >
                     New User
@@ -282,7 +282,7 @@ export default function LoginPage() {
                     className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
                       !isNewUser 
                         ? 'bg-white text-orange-600 shadow-md' 
-                        : 'text-gray-600 hover:text-gray-900'
+                        : 'text-orange-800 hover:text-orange-900'
                     }`}
                   >
                     Returning User
@@ -292,7 +292,7 @@ export default function LoginPage() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Email Input */}
                   <div>
-                    <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label htmlFor="email" className="block text-sm font-semibold text-slate-800 mb-2">
                       Email Address *
                     </label>
                     <input
@@ -302,14 +302,14 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="your.email@company.com"
                       required
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+                      className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
                     />
                   </div>
 
                   {/* App ID Input (for returning users) */}
                   {!isNewUser && (
                     <div>
-                      <label htmlFor="applicationId" className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label htmlFor="applicationId" className="block text-sm font-semibold text-slate-800 mb-2">
                         Application ID *
                       </label>
                       <input
@@ -317,11 +317,11 @@ export default function LoginPage() {
                         id="applicationId"
                         value={applicationId}
                         onChange={(e) => setApplicationId(e.target.value.toUpperCase())}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg font-mono text-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+                        className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg font-mono text-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
                         placeholder="CAC-251027-001AB"
                         maxLength={20}
                       />
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-slate-600 mt-2">
                         Enter your Application ID (with or without dashes)
                       </p>
                     </div>
@@ -349,14 +349,14 @@ export default function LoginPage() {
                 </form>
 
                 {/* Help Text */}
-                <div className="mt-6 space-y-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="mt-6 space-y-3 text-sm text-slate-800 bg-teal-50 p-4 rounded-lg border border-teal-200">
                   {isNewUser ? (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p className="font-bold text-gray-900">New Users - Here's How It Works:</p>
+                        <p className="font-bold text-slate-900">New Users - Here's How It Works:</p>
                       </div>
                       <ol className="space-y-2 ml-2">
                         <li className="flex items-start">
@@ -384,21 +384,21 @@ export default function LoginPage() {
                   ) : (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <p className="font-bold text-gray-900">Welcome Back!</p>
+                        <p className="font-bold text-slate-900">Welcome Back!</p>
                       </div>
                       <p className="mb-3">
                         To continue your assessment, enter the email address you used when you started, along with your Application ID.
                       </p>
-                      <p className="text-sm bg-blue-50 border border-blue-200 rounded p-3">
+                      <p className="text-sm bg-cyan-50 border border-cyan-200 rounded p-3">
                         <strong>💾 Don't worry -</strong> All your progress has been saved. You'll pick up exactly where you left off!
                       </p>
                     </div>
                   )}
-                  <div className="pt-3 border-t border-gray-300">
-                    <p className="flex items-start gap-2 text-xs text-gray-600">
+                  <div className="pt-3 border-t border-teal-300">
+                    <p className="flex items-start gap-2 text-xs text-slate-700">
                       <svg className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
@@ -408,16 +408,16 @@ export default function LoginPage() {
                 </div>
 
                 {/* Forgot App ID Section */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="mt-8 pt-6 border-t border-amber-200">
                   {!showReminderForm ? (
                     <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-3">
+                      <p className="text-sm text-slate-700 mb-3">
                         Lost your Application ID?
                       </p>
                       <button
                         type="button"
                         onClick={() => setShowReminderForm(true)}
-                        className="text-sm text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center gap-2"
+                        className="text-sm text-teal-600 hover:text-teal-800 font-semibold inline-flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -427,10 +427,10 @@ export default function LoginPage() {
                     </div>
                   ) : (
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                      <h3 className="text-sm font-semibold text-slate-900 mb-3">
                         Retrieve Your Application ID
                       </h3>
-                      <p className="text-xs text-gray-600 mb-4">
+                      <p className="text-xs text-slate-700 mb-4">
                         Enter the email address you used when you started, and we'll send you your Application ID.
                       </p>
                       
@@ -441,7 +441,7 @@ export default function LoginPage() {
                           onChange={(e) => setReminderEmail(e.target.value)}
                           placeholder="your.email@company.com"
                           disabled={reminderLoading}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-2.5 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:bg-orange-50 disabled:cursor-not-allowed"
                         />
                         
                         {reminderMessage && (
@@ -459,7 +459,7 @@ export default function LoginPage() {
                             type="button"
                             onClick={handleSendReminder}
                             disabled={reminderLoading}
-                            className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 py-2.5 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {reminderLoading ? 'Sending...' : 'Send My ID'}
                           </button>
@@ -471,7 +471,7 @@ export default function LoginPage() {
                               setReminderMessage('')
                             }}
                             disabled={reminderLoading}
-                            className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 py-2.5 border border-amber-300 text-slate-800 rounded-lg text-sm font-medium hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Cancel
                           </button>
