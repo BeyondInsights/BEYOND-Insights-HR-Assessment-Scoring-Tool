@@ -178,7 +178,7 @@ export default function LoginPage() {
       </div>
       
       <p className="text-center text-slate-700 mb-8">
-        Enter your information to begin or continue your application
+        <strong> Enter your information to begin or continue your application </strong>
       </p>
 
             {/* Generated App ID Display - Only show AFTER account creation */}
