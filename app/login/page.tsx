@@ -330,8 +330,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    style={{ backgroundColor: '#007B9E' }}
-                    className="w-full text-white py-3.5 rounded-lg font-semibold hover:opacity-90 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    className="w-full text-white py-3.5 rounded-lg font-semibold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
