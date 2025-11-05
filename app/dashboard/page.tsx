@@ -346,7 +346,7 @@ useEffect(() => {
           onClick={() => router.push('/completion')}
           className="px-8 py-4 bg-white text-purple-600 rounded-lg font-bold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 whitespace-nowrap"
         >
-          View What's Next â†’
+          View What's Next
         </button>
       </div>
     </div>
