@@ -179,7 +179,7 @@ export default function LoginPage() {
       </div>
       
       <p className="text-center text-slate-700 mb-8">
-        <strong> Enter your information to begin or continue your application </strong>
+        <strong> Enter your information to begin or continue survey</strong>
       </p>
 
             {/* Generated App ID Display - Only show AFTER account creation */}
@@ -207,7 +207,7 @@ export default function LoginPage() {
                         📝 Important - Save This ID!
                       </p>
                       <p className="text-sm text-slate-800">
-                        You can start your assessment right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
+                        You can begin the survey right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
                       </p>
                     </div>
 
@@ -221,7 +221,7 @@ export default function LoginPage() {
                       onClick={handleProceedToAssessment}
                       className="w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg transform hover:scale-105"
                     >
-                      Begin Application Now →
+                      Begin Survey Now →
                     </button>
                   </div>
                 </div>
@@ -342,7 +342,7 @@ export default function LoginPage() {
                         Processing...
                       </span>
                     ) : (
-                      isNewUser ? 'Start Application' : 'Continue Application'
+                      isNewUser ? 'Start Survey' : 'Continue Survey'
                     )}
                   </button>
                 </form>
@@ -363,7 +363,7 @@ export default function LoginPage() {
                       <ol className="space-y-2 ml-2">
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">1.</span>
-                          <span>Enter your email and click "Start Assessment"</span>
+                          <span>Enter your email and click "Start Survey"</span>
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">2.</span>
@@ -371,11 +371,11 @@ export default function LoginPage() {
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">3.</span>
-                          <span>Begin your application right away</span>
+                          <span>Begin survey right away</span>
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">4.</span>
-                          <span>Your application progress saves automatically - stop anytime and come back later</span>
+                          <span>Your survey progress saves automatically - stop anytime and come back later</span>
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">5.</span>
@@ -392,7 +392,7 @@ export default function LoginPage() {
                         <p className="font-bold text-slate-900">Welcome Back!</p>
                       </div>
                       <p className="mb-3">
-                        To continue your application, enter the email address you used when you started, along with your Survey ID.
+                        To continue, enter the email address you used when you started, along with your Survey ID.
                       </p>
                       <p className="text-sm bg-white/60 border border-blue-300 rounded p-3">
                         <strong>💾 Don't worry -</strong> All your progress has been saved. You'll pick up exactly where you left off!
@@ -404,7 +404,7 @@ export default function LoginPage() {
                       <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
-                      <span><strong>Secure & Private:</strong> Your data is encrypted and protected. Only you can access your application using your email and Survey ID combination.</span>
+                      <span><strong>Secure & Private:</strong> Your data is encrypted and protected. Only you can access your survey using your email and Survey ID combination.</span>
                     </p>
                   </div>
                 </div>
