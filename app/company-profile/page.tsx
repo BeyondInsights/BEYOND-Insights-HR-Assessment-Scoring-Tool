@@ -363,7 +363,7 @@ const D9_QUESTIONS: Record<string, string> = {
 // DIMENSION 10: CAREGIVER & FAMILY SUPPORT
 // ============================================
 const D10_QUESTIONS: Record<string, string> = {
-  // D10.a Grid Items (19 programs)
+  // D10.a Grid Items (20 programs)
   "Paid caregiver leave with expanded eligibility (beyond local legal requirements)": "Paid caregiver leave (expanded)",
   "Flexible work arrangements for caregivers": "Flexible work for caregivers",
   "Dependent care subsidies": "Dependent care subsidies",
@@ -383,6 +383,7 @@ const D10_QUESTIONS: Record<string, string> = {
   "Eldercare consultation and referral services": "Eldercare consultation",
   "Paid time off for care coordination appointments": "PTO for care coordination",
   "Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)": "Expanded caregiver leave eligibility",
+  "Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)": "Concierge caregiving logistics services"
   
   // D10.aa Multi-Country Question
   'd10aa': 'Geographic consistency of support options',
