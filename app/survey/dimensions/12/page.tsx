@@ -22,7 +22,8 @@ const D12A_ITEMS_BASE = [
   "External benchmarking",
   "Innovation pilots",
   "Employee confidence in employer support",
-  "Program utilization analytics"
+  "Program utilization analytics",
+  "Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)"
 ];
 
 export default function Dimension12Page() {
