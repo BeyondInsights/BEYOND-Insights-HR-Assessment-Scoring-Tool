@@ -10,7 +10,7 @@ import Footer from '@/components/Footer'
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
-  const [applicationId, setApplicationId] = useState('')
+  const [surveyId, setSurveyId] = useState('')
   const [isNewUser, setIsNewUser] = useState(true)
   const [errors, setErrors] = useState('')
   const [loading, setLoading] = useState(false)
@@ -43,8 +43,8 @@ export default function LoginPage() {
       setLoading(false)
       return
     }
-    if (!isNewUser && !applicationId.trim()) {
-      setErrors('Please enter your Application ID')
+    if (!isNewUser && !surveyId.trim()) {
+      setErrors('Please enter your Survey ID')
       setLoading(false)
       return
     }
@@ -52,7 +52,7 @@ export default function LoginPage() {
     try {
       const result = await authenticateUser(
         email.trim(),
-        isNewUser ? undefined : applicationId.trim().replace(/-/g, '')
+        isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
       )
 
      if (result.mode === 'error') {
@@ -64,7 +64,7 @@ export default function LoginPage() {
   localStorage.setItem('user_authenticated', 'true')
   
   if (!isNewUser) {
-    localStorage.setItem('login_application_id', applicationId)
+    localStorage.setItem('login_application_id', surveyId)
   }
   
   // For existing/returning users - check letter status before redirecting
@@ -140,10 +140,10 @@ export default function LoginPage() {
       }
 
       const formattedId = formatAppId(data.app_id)
-      setReminderMessage(`Your Application ID is: ${formattedId}`)
+      setReminderMessage(`Your Survey ID is: ${formattedId}`)
       setReminderLoading(false)
     } catch (err) {
-      setReminderMessage('Error retrieving Application ID. Please try again.')
+      setReminderMessage('Error retrieving Survey ID. Please try again.')
       setReminderLoading(false)
     }
   }
@@ -165,15 +165,16 @@ export default function LoginPage() {
           />
         </div>
         
-        {/* Title on the right */}
+        {/* Title on the right - UPDATED LAYOUT */}
         <div className="flex-1">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 leading-snug">
-            Welcome to the<br />
-            <span className="text-orange-600">
-              Best Companies for<br />
-              Working with Cancer Index
-            </span><br />
-          </h2>
+          <p className="text-base sm:text-lg text-slate-700 mb-2">
+            Welcome to the
+          </p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold leading-tight">
+            <span className="text-[#F37021]">
+              Best Companies for Working with Cancer Index
+            </span>
+          </h1>
         </div>
       </div>
       
@@ -193,7 +194,7 @@ export default function LoginPage() {
                       ✅ You're All Set!
                     </p>
                     <p className="text-sm text-green-800 mb-3 font-semibold">
-                      Your unique Application ID:
+                      Your unique Survey ID:
                     </p>
                     <div className="bg-white p-4 rounded-lg border-2 border-green-400 mb-4">
                       <p className="text-2xl font-bold text-center text-green-900 font-mono tracking-wider">
@@ -201,18 +202,18 @@ export default function LoginPage() {
                       </p>
                     </div>
                     
-                    <div className="mb-4 p-4 bg-teal-50 border-2 border-teal-300 rounded-lg">
-                      <p className="text-sm text-teal-900 font-semibold mb-2">
+                    <div className="mb-4 p-4 border-2 rounded-lg" style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}>
+                      <p className="text-sm text-slate-900 font-semibold mb-2">
                         📝 Important - Save This ID!
                       </p>
-                      <p className="text-sm text-teal-800">
-                        You can start your assessment right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Application ID to pick up exactly where you left off.
+                      <p className="text-sm text-slate-800">
+                        You can start your assessment right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
                       </p>
                     </div>
 
                     <div className="mb-4 p-3 bg-amber-50 border border-amber-300 rounded">
                       <p className="text-xs text-amber-900">
-                        <strong>💡 Pro Tip:</strong> Write down your Application ID or take a screenshot. You'll need it to access your assessment from any device.
+                        <strong>💡 Pro Tip:</strong> Write down your Survey ID or take a screenshot. You'll need it to access your assessment from any device.
                       </p>
                     </div>
                     
@@ -305,23 +306,23 @@ export default function LoginPage() {
                     />
                   </div>
 
-                  {/* App ID Input (for returning users) */}
+                  {/* Survey ID Input (for returning users) - UPDATED */}
                   {!isNewUser && (
                     <div>
-                      <label htmlFor="applicationId" className="block text-sm font-semibold text-slate-800 mb-2">
-                        Application ID *
+                      <label htmlFor="surveyId" className="block text-sm font-semibold text-slate-800 mb-2">
+                        Survey ID *
                       </label>
                       <input
                         type="text"
-                        id="applicationId"
-                        value={applicationId}
-                        onChange={(e) => setApplicationId(e.target.value.toUpperCase())}
+                        id="surveyId"
+                        value={surveyId}
+                        onChange={(e) => setSurveyId(e.target.value.toUpperCase())}
                         className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg font-mono text-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
                         placeholder="CAC-251027-001AB"
                         maxLength={20}
                       />
                       <p className="text-xs text-slate-600 mt-2">
-                        Enter your Application ID (with or without dashes)
+                        Enter your Survey ID (with or without dashes)
                       </p>
                     </div>
                   )}
@@ -346,71 +347,74 @@ export default function LoginPage() {
                   </button>
                 </form>
 
-                {/* Help Text */}
-                <div className="mt-6 space-y-3 text-sm text-slate-800 bg-orange-50 p-4 rounded-lg border border-orange-200">
+                {/* Help Text - UPDATED WITH CAC LIGHT BLUE */}
+                <div 
+                  className="mt-6 space-y-3 text-sm text-slate-800 p-4 rounded-lg border-2"
+                  style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}
+                >
                   {isNewUser ? (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-[#F37021]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <p className="font-bold text-slate-900">New Users - Here's How It Works:</p>
                       </div>
                       <ol className="space-y-2 ml-2">
                         <li className="flex items-start">
-                          <span className="font-bold text-orange-600 mr-2">1.</span>
+                          <span className="font-bold text-[#F37021] mr-2">1.</span>
                           <span>Enter your email and click "Start Assessment"</span>
                         </li>
                         <li className="flex items-start">
-                          <span className="font-bold text-orange-600 mr-2">2.</span>
-                          <span>You'll receive a unique Application ID - save it!</span>
+                          <span className="font-bold text-[#F37021] mr-2">2.</span>
+                          <span>You'll receive a unique Survey ID - save it!</span>
                         </li>
                         <li className="flex items-start">
-                          <span className="font-bold text-orange-600 mr-2">3.</span>
+                          <span className="font-bold text-[#F37021] mr-2">3.</span>
                           <span>Begin your application right away</span>
                         </li>
                         <li className="flex items-start">
-                          <span className="font-bold text-orange-600 mr-2">4.</span>
+                          <span className="font-bold text-[#F37021] mr-2">4.</span>
                           <span>Your application progress saves automatically - stop anytime and come back later</span>
                         </li>
                         <li className="flex items-start">
-                          <span className="font-bold text-orange-600 mr-2">5.</span>
-                          <span>To return: Use the "Returning User" option with your email and Application ID</span>
+                          <span className="font-bold text-[#F37021] mr-2">5.</span>
+                          <span>To return: Use the "Returning User" option with your email and Survey ID</span>
                         </li>
                       </ol>
                     </div>
                   ) : (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-[#F37021]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         <p className="font-bold text-slate-900">Welcome Back!</p>
                       </div>
                       <p className="mb-3">
-                        To continue your application, enter the email address you used when you started, along with your Application ID.
+                        To continue your application, enter the email address you used when you started, along with your Survey ID.
                       </p>
-                      <p className="text-sm bg-cyan-50 border border-cyan-200 rounded p-3">
+                      <p className="text-sm bg-white/60 border border-blue-300 rounded p-3">
                         <strong>💾 Don't worry -</strong> All your progress has been saved. You'll pick up exactly where you left off!
                       </p>
                     </div>
                   )}
-                  <div className="pt-3 border-t border-teal-300">
+                  <div className="pt-3 border-t-2" style={{ borderColor: '#a8d7f0' }}>
                     <p className="flex items-start gap-2 text-xs text-slate-700">
-                      <svg className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
-                      <span><strong>Secure & Private:</strong> Your data is encrypted and protected. Only you can access your application using your email and Application ID combination.</span>
+                      <span><strong>Secure & Private:</strong> Your data is encrypted and protected. Only you can access your application using your email and Survey ID combination.</span>
                     </p>
                   </div>
                 </div>
 
-                {/* Forgot App ID Section */}
+                {/* Forgot App ID Section - UPDATED TERMINOLOGY */}
                 <div className="mt-8 pt-6 border-t border-amber-200">
                   {!showReminderForm ? (
                     <div className="text-center">
                       <p className="text-sm text-slate-700 mb-3">
-                        Lost your Application ID?
+                        Lost your Survey ID?
                       </p>
                       <button
                         type="button"
@@ -420,16 +424,16 @@ export default function LoginPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        Send my Application ID to my email
+                        Send my Survey ID to my email
                       </button>
                     </div>
                   ) : (
                     <div>
                       <h3 className="text-sm font-semibold text-slate-900 mb-3">
-                        Retrieve Your Application ID
+                        Retrieve Your Survey ID
                       </h3>
                       <p className="text-xs text-slate-700 mb-4">
-                        Enter the email address you used when you started, and we'll send you your Application ID.
+                        Enter the email address you used when you started, and we'll send you your Survey ID.
                       </p>
                       
                       <div className="space-y-3">
@@ -439,12 +443,12 @@ export default function LoginPage() {
                           onChange={(e) => setReminderEmail(e.target.value)}
                           placeholder="your.email@company.com"
                           disabled={reminderLoading}
-                          className="w-full px-4 py-2.5 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:bg-orange-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-2.5 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-[#F37021] focus:border-transparent disabled:bg-orange-50 disabled:cursor-not-allowed"
                         />
                         
                         {reminderMessage && (
                           <div className={`p-3 rounded-lg text-sm ${
-                            reminderMessage.includes('sent') 
+                            reminderMessage.includes('Survey ID is') 
                               ? 'bg-green-50 border border-green-200 text-green-800'
                               : 'bg-red-50 border border-red-200 text-red-800'
                           }`}>
@@ -457,9 +461,9 @@ export default function LoginPage() {
                             type="button"
                             onClick={handleSendReminder}
                             disabled={reminderLoading}
-                            className="flex-1 py-2.5 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 py-2.5 bg-[#F37021] text-white rounded-lg text-sm font-semibold hover:bg-[#d66319] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {reminderLoading ? 'Sending...' : 'Send My ID'}
+                            {reminderLoading ? 'Retrieving...' : 'Send My ID'}
                           </button>
                           <button
                             type="button"
