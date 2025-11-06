@@ -118,13 +118,14 @@ export default function Dimension2Page() {
     }, 500);
   };
 
-  const STATUS_OPTIONS = [
+   const STATUS_OPTIONS = [
     "Not able to offer in foreseeable future",
     "Assessing feasibility",
     "In active planning / development",
-    "Currently offer"
+    "Currently offer",
+    "Unsure"
   ];
-
+  
   // D2aa should show if multi-country AND at least one "Currently offer"
   const hasAnyOffered = Object.values(ans.d2a || {}).some(
     (status) => status === "Currently offer"
