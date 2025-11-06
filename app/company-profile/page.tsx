@@ -728,8 +728,8 @@ function downloadHTML(data: any) {
       options = RESPONSE_OPTIONS_D12;
     } else if (dim.number === 3) {
       options = RESPONSE_OPTIONS_D3;
-    } else if (dim.number === 1) {
-      options = [...RESPONSE_OPTIONS, 'Unsure'];
+   } else if (dim.number === 1) {
+  options = RESPONSE_OPTIONS;
     } else {
       options = RESPONSE_OPTIONS;
     }
