@@ -120,7 +120,8 @@ export default function Dimension10Page() {
     "Not able to offer in foreseeable future",
     "Assessing feasibility",
     "In active planning / development",
-    "Currently offer"
+    "Currently offer",
+    "Unsure"
   ];
 
   const hasAnyOffered = Object.values(ans.d10a || {}).some(
