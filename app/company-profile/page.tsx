@@ -1127,7 +1127,7 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
   } else if (dimNumber === 3) {
     options = RESPONSE_OPTIONS_D3;
   } else if (dimNumber === 1) {
-    options = [...RESPONSE_OPTIONS, 'Unsure'];
+    options = RESPONSE_OPTIONS;
   } else {
     options = RESPONSE_OPTIONS;
   }
