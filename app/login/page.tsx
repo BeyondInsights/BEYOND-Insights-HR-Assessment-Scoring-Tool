@@ -167,12 +167,12 @@ export default function LoginPage() {
         
          {/* Title on the right - UPDATED LAYOUT */}
         <div className="flex-1">
-          <p className="text-base sm:text-lg font-bold text-slate-900 mb-2">
+          <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#F37021] leading-snug">
             Welcome to the
           </p>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#F37021] leading-snug">
             Best Companies for<br />
-            Working with Cancer Index
+            Working with Cancer Survey
           </h1>
         </div>
       </div>
