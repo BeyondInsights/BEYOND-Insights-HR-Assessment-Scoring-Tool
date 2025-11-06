@@ -115,9 +115,11 @@ export default function Dimension3Page() {
     "Not able to provide in foreseeable future",
     "Assessing feasibility",
     "In active planning / development",
-    "Currently provide to managers"
+    "Currently provide to managers",
+    "Unsure"
   ];
 
+  
   // Check if any training is provided (for follow-up questions)
   const hasAnyProvided = Object.values(ans.d3a || {}).some(
     (status) => status === "Currently provide to managers"
