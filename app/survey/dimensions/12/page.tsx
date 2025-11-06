@@ -110,9 +110,10 @@ export default function Dimension12Page() {
   "Not able to measure / track in foreseeable future",  // Special wording for D12
   "Assessing feasibility",
   "In active planning / development",
-  "Currently measure / track"  // Special wording for D12
+  "Currently measure / track",  // Special wording for D12
+  "Unsure"
 ];
-
+ 
 const hasAnyOffered = Object.values(ans.d12a || {}).some(
   (status) => status === "Currently measure / track"  // Special wording for D12
 );
