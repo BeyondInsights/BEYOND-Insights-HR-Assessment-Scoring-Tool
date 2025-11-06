@@ -1,11 +1,18 @@
 // app/survey/schema.ts
 
-/* ===== Brand ===== */
 export const BRAND = {
-  primary: '#6B2C91',
-  orange: '#EA580C',
-  gray: { 900:'#0F172A', 700:'#334155', 600:'#475569', 500:'#64748B', 400:'#94A3B8', 300:'#CBD5E1', 200:'#E5E7EB', 100:'#F3F4F6', 50:'#F9FAFB' }
-};
+  // CAC Official Brand Colors
+  orange: '#F37021',      // Changed from #EA580C
+  gray: '#757E84',        // Official CAC gray  
+  lightBlue: '#C7EAFB',   // Added for backgrounds
+  white: '#FFFFFF',
+  
+  // BI/Analytics Context
+  purple: '#6B2C91',      // Kept for internal use
+  
+  // UI Gray Scale (existing)
+  grayScale: { 900:'#0F172A', ... }
+}
 
 /* Distinct accent colors for the 13 dimension badges */
 export const DIM_COLORS: string[] = [
