@@ -32,7 +32,8 @@ const D10A_ITEMS_BASE = [
   "Unpaid leave job protection beyond local / legal requirements",
   "Eldercare consultation and referral services",
   "Paid time off for care coordination appointments",
-  "Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)"
+  "Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)", 
+  "Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)"
 ];
 
 export default function Dimension10Page() {
