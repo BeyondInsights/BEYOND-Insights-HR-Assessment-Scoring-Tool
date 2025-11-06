@@ -44,7 +44,7 @@ const DIM_TITLE: Record<number, string> = {
   10: 'Caregiver & Family Support',
   11: 'Prevention, Wellness & Legal Compliance',
   12: 'Continuous Improvement & Outcomes',
-  13: 'Communication & Awareness',
+  13: 'Communication & Awareness'
 };
 
 /* =========================
@@ -383,7 +383,7 @@ const D10_QUESTIONS: Record<string, string> = {
   "Eldercare consultation and referral services": "Eldercare consultation",
   "Paid time off for care coordination appointments": "PTO for care coordination",
   "Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)": "Expanded caregiver leave eligibility",
-  "Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)": "Concierge caregiving logistics services"
+  "Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)": "Concierge caregiving logistics services",
   
   // D10.aa Multi-Country Question
   'd10aa': 'Geographic consistency of support options',
