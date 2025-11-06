@@ -431,7 +431,7 @@ const D11_QUESTIONS: Record<string, string> = {
 // DIMENSION 12: CONTINUOUS IMPROVEMENT
 // ============================================
 const D12_QUESTIONS: Record<string, string> = {
-  // D12.a Grid Items (8 programs)
+  // D12.a Grid Items (9 programs)
   "Return-to-work success metrics": "Return-to-work success metrics",
   "Employee satisfaction tracking": "Employee satisfaction tracking",
   "Business impact/ROI assessment": "Business impact/ROI assessment",
@@ -441,6 +441,7 @@ const D12_QUESTIONS: Record<string, string> = {
   "Innovation pilots": "Innovation pilots",
   "Employee confidence in employer support": "Employee confidence tracking",
   "Program utilization analytics": "Program utilization analytics",
+  "Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)": "Measure screening campaign ROI",
   
   // D12.aa Multi-Country Question
   'd12aa': 'Geographic consistency of measurement',
