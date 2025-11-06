@@ -115,7 +115,8 @@ export default function Dimension11Page() {
   "Not able to offer in foreseeable future",
   "Assessing feasibility",
   "In active planning / development",
-  "Currently offer"
+  "Currently offer",
+  "Unsure"
 ];
 
 const hasAnyOffered = Object.values(ans.d11a || {}).some(
