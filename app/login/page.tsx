@@ -167,19 +167,17 @@ export default function LoginPage() {
         
         {/* Title on the right - UPDATED LAYOUT */}
         <div className="flex-1">
-          <p className="text-base sm:text-lg text-slate-700 mb-2">
+          <p className="text-base sm:text-lg font-bold text-slate-900 mb-2">
             Welcome to the
           </p>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold leading-tight">
-            <span className="text-[#F37021]">
-              Best Companies for Working with Cancer Index
-            </span>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#F37021] leading-snug">
+            Best Companies for Working with Cancer Index
           </h1>
         </div>
       </div>
       
       <p className="text-center text-slate-700 mb-8">
-        <strong> Enter your information to begin or continue survey</strong>
+        <strong>Enter your information to begin or continue survey</strong>
       </p>
 
             {/* Generated App ID Display - Only show AFTER account creation */}
@@ -207,7 +205,7 @@ export default function LoginPage() {
                         📝 Important - Save This ID!
                       </p>
                       <p className="text-sm text-slate-800">
-                        You can begin the survey right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
+                        You can start your assessment right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
                       </p>
                     </div>
 
@@ -221,7 +219,7 @@ export default function LoginPage() {
                       onClick={handleProceedToAssessment}
                       className="w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg transform hover:scale-105"
                     >
-                      Begin Survey Now →
+                      Begin Application Now →
                     </button>
                   </div>
                 </div>
@@ -264,10 +262,10 @@ export default function LoginPage() {
                       setErrors('')
                       setSuccessMessage('')
                     }}
-                    className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
+                    className={`flex-1 py-3 rounded-lg font-bold transition-all ${
                       isNewUser 
-                        ? 'bg-white text-orange-600 shadow-md' 
-                        : 'text-orange-800 hover:text-orange-900'
+                        ? 'bg-white text-slate-900 shadow-md' 
+                        : 'text-slate-700 hover:text-slate-900'
                     }`}
                   >
                     New User
@@ -279,10 +277,10 @@ export default function LoginPage() {
                       setErrors('')
                       setSuccessMessage('')
                     }}
-                    className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
+                    className={`flex-1 py-3 rounded-lg font-bold transition-all ${
                       !isNewUser 
-                        ? 'bg-white text-orange-600 shadow-md' 
-                        : 'text-orange-800 hover:text-orange-900'
+                        ? 'bg-white text-slate-900 shadow-md' 
+                        : 'text-slate-700 hover:text-slate-900'
                     }`}
                   >
                     Returning User
@@ -302,7 +300,7 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="your.email@company.com"
                       required
-                      className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+                      className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg focus:border-[#F37021] focus:ring-2 focus:ring-orange-100 outline-none transition-all"
                     />
                   </div>
 
@@ -317,7 +315,7 @@ export default function LoginPage() {
                         id="surveyId"
                         value={surveyId}
                         onChange={(e) => setSurveyId(e.target.value.toUpperCase())}
-                        className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg font-mono text-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+                        className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg font-mono text-lg focus:border-[#F37021] focus:ring-2 focus:ring-orange-100 outline-none transition-all"
                         placeholder="CAC-251027-001AB"
                         maxLength={20}
                       />
@@ -342,7 +340,7 @@ export default function LoginPage() {
                         Processing...
                       </span>
                     ) : (
-                      isNewUser ? 'Start Survey' : 'Continue Survey'
+                      isNewUser ? 'Start Application' : 'Continue Application'
                     )}
                   </button>
                 </form>
@@ -363,7 +361,7 @@ export default function LoginPage() {
                       <ol className="space-y-2 ml-2">
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">1.</span>
-                          <span>Enter your email and click "Start Survey"</span>
+                          <span>Enter your email and click "Start Assessment"</span>
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">2.</span>
@@ -371,11 +369,11 @@ export default function LoginPage() {
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">3.</span>
-                          <span>Begin survey right away</span>
+                          <span>Begin your application right away</span>
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">4.</span>
-                          <span>Your survey progress saves automatically - stop anytime and come back later</span>
+                          <span>Your application progress saves automatically - stop anytime and come back later</span>
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">5.</span>
@@ -392,7 +390,7 @@ export default function LoginPage() {
                         <p className="font-bold text-slate-900">Welcome Back!</p>
                       </div>
                       <p className="mb-3">
-                        To continue, enter the email address you used when you started, along with your Survey ID.
+                        To continue your application, enter the email address you used when you started, along with your Survey ID.
                       </p>
                       <p className="text-sm bg-white/60 border border-blue-300 rounded p-3">
                         <strong>💾 Don't worry -</strong> All your progress has been saved. You'll pick up exactly where you left off!
@@ -404,7 +402,7 @@ export default function LoginPage() {
                       <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
-                      <span><strong>Secure & Private:</strong> Your data is encrypted and protected. Only you can access your survey using your email and Survey ID combination.</span>
+                      <span><strong>Secure & Private:</strong> Your data is encrypted and protected. Only you can access your application using your email and Survey ID combination.</span>
                     </p>
                   </div>
                 </div>
