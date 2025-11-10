@@ -22,33 +22,51 @@ export default function ForgotSurveyIdPage() {
     setLoading(true)
 
     try {
-      const { data: assessment } = await supabase
-  .from('assessments')
-  .select('app_id, company_name, email')
+      console.log('Looking up email:', email)
+      
+      const { data: assessment, error: dbError } = await supabase
+        .from('assessments')
+        .select('app_id, company_name, email')
         .eq('email', email.toLowerCase().trim())
         .single()
 
-      if (assessment) {
-        // Log the lookup (optional - for analytics)
+      console.log('Database response:', { assessment, dbError })
+
+      if (dbError) {
+        console.error('Database error:', dbError)
+        setError(`Database error: ${dbError.message}`)
+        setLoading(false)
+        return
+      }
+
+      if (!assessment) {
+        setError('No assessment found for this email address.')
+        setLoading(false)
+        return
+      }
+
+      // Log the lookup for analytics
+      try {
         await supabase
           .from('survey_id_requests')
           .insert({
             email: email.toLowerCase().trim(),
-            ssurvey_id: assessment.app_id,
+            survey_id: assessment.app_id,
             company_name: assessment.company_name,
             requested_at: new Date().toISOString(),
             status: 'displayed'
           })
-        
-        setSurveyId(assessment.survey_id)
-        setCompanyName(assessment.company_name)
-      } else {
-        setError('No assessment found for this email address. Please check your email or contact support.')
+      } catch (logError) {
+        console.log('Logging error (non-critical):', logError)
       }
+      
+      setSurveyId(assessment.app_id)
+      setCompanyName(assessment.company_name)
+      setLoading(false)
+
     } catch (err) {
-      console.error('Error:', err)
-      setError('An error occurred. Please try again or contact support at info@cancerandcareers.org')
-    } finally {
+      console.error('Unexpected error:', err)
+      setError(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
       setLoading(false)
     }
   }
@@ -79,7 +97,6 @@ export default function ForgotSurveyIdPage() {
               </p>
             </div>
 
-            {/* Survey ID Display */}
             <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-500 rounded-xl p-8 mb-6">
               <p className="text-sm text-gray-600 text-center mb-2">Your Survey ID:</p>
               <div className="flex items-center justify-center gap-3">
@@ -101,7 +118,6 @@ export default function ForgotSurveyIdPage() {
               )}
             </div>
 
-            {/* Instructions */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
               <h3 className="font-semibold text-blue-900 mb-3">How to Use Your Survey ID:</h3>
               <ol className="space-y-2 text-sm text-blue-800">
@@ -120,7 +136,6 @@ export default function ForgotSurveyIdPage() {
               </ol>
             </div>
 
-            {/* Actions */}
             <div className="space-y-3">
               <button
                 onClick={() => router.push('/login')}
@@ -141,7 +156,6 @@ export default function ForgotSurveyIdPage() {
               </button>
             </div>
 
-            {/* Help */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 text-center">
                 <strong>Tip:</strong> Save this Survey ID in a safe place so you don't lose it again!
@@ -171,7 +185,7 @@ export default function ForgotSurveyIdPage() {
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800">
-              Enter the email address you used to register for the assessment. We'll show you your Survey ID immediately.
+              Enter the email address you used to register. We'll show you your Survey ID immediately.
             </p>
           </div>
 
