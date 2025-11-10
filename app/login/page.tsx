@@ -96,7 +96,6 @@ export default function LoginPage() {
         router.push('/dashboard')
       }, 1000)
     }
-  }
   } else if (result.mode === 'new') {
     // New user - show App ID and let them proceed to letter
     setSuccessMessage('Account created successfully!')
