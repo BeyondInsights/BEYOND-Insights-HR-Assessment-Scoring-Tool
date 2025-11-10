@@ -128,7 +128,7 @@ function AuthorizationContent() {
       return
     }
     if (au1 !== 'Yes') {
-      setErrors('You must be authorized to complete this assessment')
+      setErrors('You must be authorized to complete this survey')
       return
     }
     if (au2.length === 0) {
@@ -219,7 +219,7 @@ function AuthorizationContent() {
       <main className="max-w-4xl mx-auto px-6 py-10 flex-1">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Organization & Authorization</h1>
         <p className="text-base text-gray-600 mb-6">
-          Please provide your organization details and confirm your authorization to complete this assessment.
+          Please provide your organization details and confirm your authorization to complete this survey.
         </p>
 
         {errors && (
@@ -343,7 +343,7 @@ function AuthorizationContent() {
               {[
                 'I have direct responsibility for benefits design and administration',
                 'I have access to all necessary benefits documentation and policies',
-                'I have been designated by leadership to complete this assessment',
+                'I have been designated by leadership to complete this survey',
                 'I work closely with benefits policies and have comprehensive knowledge',
                 'I have decision-making authority for employee benefits',
                 'Other (please specify)',
