@@ -22,14 +22,14 @@ export default function NotAuthorizedPage() {
 
   const emailMessage = `Hello,
 
-I received an invitation to complete the Best Companies for Working with Cancer Index Assessment, but I am not authorized to provide this information on behalf of our organization.
+I received an invitation to complete the Best Companies for Working with Cancer Index Survey, but I am not authorized to provide this information on behalf of our organization.
 
-Could you please complete this assessment as you have the appropriate authorization and access to our benefits information?
+Could you please complete this survey as you have the appropriate authorization and access to our benefits information?
 
-Assessment Link: ${assessmentLink}
+Survey Link: ${assessmentLink}
 Application ID: ${applicationId}
 
-The assessment requires someone with:
+The survey requires someone with:
 - Direct responsibility for benefits design and administration
 - Access to all necessary benefits documentation and policies
 - Decision-making authority for employee benefits
@@ -39,7 +39,7 @@ Thank you for your assistance.
 Best regards`
 
   const handleSendEmail = (recipientEmail: string) => {
-    const subject = encodeURIComponent('Request: Complete Cancer & Careers Assessment')
+    const subject = encodeURIComponent('Request: Complete Cancer & Careers Survey')
     const body = encodeURIComponent(emailMessage)
     window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`
   }
@@ -68,12 +68,12 @@ Best regards`
             Authorization Required
           </h1>
           <p className="text-lg text-gray-700 text-center mb-8">
-            This assessment requires someone who is authorized to provide information about your organization's benefits and policies.
+            This survey requires someone who is authorized to provide information about your organization's benefits and policies.
           </p>
 
           {/* What's Needed Box */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-            <h3 className="font-bold text-gray-900 mb-3">Who Should Complete This Assessment?</h3>
+            <h3 className="font-bold text-gray-900 mb-3">Who Should Complete This Survey?</h3>
             <p className="text-sm text-gray-700 mb-3">
               Someone in your organization with:
             </p>
@@ -98,7 +98,7 @@ Best regards`
 
           {/* Share Options */}
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-900">Share Assessment Information</h2>
+            <h2 className="text-xl font-bold text-gray-900">Share Survey Information</h2>
             
             {/* Email Option */}
             <div className="border-2 border-gray-200 rounded-lg p-6">
@@ -182,10 +182,10 @@ Best regards`
     ✓ You're All Set!
   </h3>
   <p className="text-base text-gray-800 font-semibold mb-2">
-    Once you've shared the assessment information, you can close this tab.
+    Once you've shared the survey information, you can close this tab.
   </p>
   <p className="text-sm text-gray-600">
-    The authorized person will use the link and Application ID you shared to complete the assessment.
+    The authorized person will use the link and Application ID you shared to complete the survey.
   </p>
 </div>
         </div>
