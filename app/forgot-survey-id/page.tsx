@@ -34,7 +34,7 @@ export default function ForgotSurveyIdPage() {
           .from('survey_id_requests')
           .insert({
             email: email.toLowerCase().trim(),
-            survey_id: assessment.survey_id,
+            ssurvey_id: assessment.app_id,
             company_name: assessment.company_name,
             requested_at: new Date().toISOString(),
             status: 'displayed'
