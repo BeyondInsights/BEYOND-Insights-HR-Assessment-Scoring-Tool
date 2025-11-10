@@ -23,8 +23,8 @@ export default function ForgotSurveyIdPage() {
 
     try {
       const { data: assessment } = await supabase
-        .from('assessments')
-        .select('survey_id, company_name, email')
+  .from('assessments')
+  .select('app_id, company_name, email')
         .eq('email', email.toLowerCase().trim())
         .single()
 
