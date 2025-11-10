@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { CreditCard, FileText, Award, Building2, Landmark } from 'lucide-react'
+import { CreditCard, FileText, Award, Building2, AlertTriangle } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { getUserAssessment } from '@/lib/supabase/auth'
@@ -60,14 +60,14 @@ export default function PaymentPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
 
-      <main className="max-w-5xl mx-auto px-6 py-10 flex-1">
+      <main className="max-w-4xl mx-auto px-6 py-10 flex-1">
         <div className="text-center mb-8">
           <Award className="w-16 h-16 text-orange-600 mx-auto mb-4" />
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Payment for Application / Certification
+            Assessment Payment
           </h1>
           <p className="text-lg text-gray-600">
-            Begin your certification / application by selecting a payment method
+            Complete payment to begin your assessment
           </p>
         </div>
 
@@ -82,7 +82,7 @@ export default function PaymentPage() {
           </div>
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex justify-between">
-              <span className="text-gray-600">Certification Fee</span>
+              <span className="text-gray-600">Assessment Fee</span>
               <span className="text-2xl font-bold text-gray-900">$1,250</span>
             </div>
           </div>
@@ -94,69 +94,45 @@ export default function PaymentPage() {
         <p className="text-gray-600 mb-6">Choose how you'd like to complete your payment</p>
 
         {/* Payment Options */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Credit Card - RECOMMENDED */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {/* Zeffy Payment - RECOMMENDED */}
           <button
-            onClick={() => router.push('/payment/credit-card')}
+            onClick={() => router.push('/payment/zeffy')}
             className="relative p-6 rounded-xl border-2 border-orange-500 bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-lg transition-all text-left group"
           >
             <div className="absolute top-4 right-4 bg-orange-600 text-white text-xs font-bold px-3 py-1 rounded-full">
               RECOMMENDED
             </div>
             <CreditCard className="w-12 h-12 text-orange-600 mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Credit Card</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Pay Online</h3>
             <p className="text-gray-700 mb-4">
-              Pay now and get instant access to your certification
+              Credit Card or Bank Transfer (ACH)
             </p>
             <ul className="space-y-2 mb-4">
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
-                Immediate processing
+                Immediate assessment access with credit card
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
-                Secure payment via GiveSmart
+                ACH available (3-5 day processing)
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
-                Instant certification access
+                Secure payment processing
               </li>
             </ul>
+            <div className="bg-orange-100 border border-orange-300 rounded-lg p-3 mb-4">
+              <p className="text-xs text-orange-900">
+                <strong>Note:</strong> Credit card payment is strongly preferred for immediate access. ACH transfers take 3-5 business days to clear.
+              </p>
+            </div>
             <div className="text-orange-600 font-semibold group-hover:underline">
-              Continue with Credit Card →
+              Continue with Online Payment →
             </div>
           </button>
 
-          {/* ACH / Bank Transfer */}
-          <button
-            onClick={() => router.push('/payment/stripe')}
-            className="p-6 rounded-xl border-2 border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg transition-all text-left group"
-          >
-            <Landmark className="w-12 h-12 text-gray-600 mb-4 group-hover:text-blue-600" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">ACH / Bank Transfer</h3>
-            <p className="text-gray-700 mb-4">
-              Pay directly from your bank account
-            </p>
-            <ul className="space-y-2 mb-4">
-              <li className="text-sm text-gray-600 flex items-center">
-                <span className="text-blue-600 mr-2">✓</span>
-                Lower processing fees
-              </li>
-              <li className="text-sm text-gray-600 flex items-center">
-                <span className="text-blue-600 mr-2">✓</span>
-                Secure via Stripe
-              </li>
-              <li className="text-sm text-gray-600 flex items-center">
-                <span className="text-blue-600 mr-2">✓</span>
-                2-3 business days processing
-              </li>
-            </ul>
-            <div className="text-gray-600 font-semibold group-hover:text-blue-600 group-hover:underline">
-              Continue with ACH →
-            </div>
-          </button>
-
-          {/* Invoice */}
+          {/* Invoice - USE ONLY IF NEEDED */}
           <button
             onClick={() => router.push('/payment/invoice')}
             className="p-6 rounded-xl border-2 border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg transition-all text-left group"
@@ -164,26 +140,57 @@ export default function PaymentPage() {
             <FileText className="w-12 h-12 text-gray-600 mb-4 group-hover:text-blue-600" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">Request Invoice</h3>
             <p className="text-gray-700 mb-4">
-              Get an invoice to process through your accounting department
+              For organizations requiring internal payment processing
             </p>
             <ul className="space-y-2 mb-4">
-              <li className="text-sm text-gray-600 flex items-center">
-                <span className="text-blue-600 mr-2">✓</span>
-                Download or email invoice
-              </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-blue-600 mr-2">✓</span>
                 Net 14 days payment terms
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-blue-600 mr-2">✓</span>
-                Certification / Score available after payment received
+                Check or ACH bank transfer
               </li>
             </ul>
+            
+            {/* Warning Box */}
+            <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-4">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-yellow-900 font-semibold mb-1">
+                    Use only if credit card/ACH not available
+                  </p>
+                  <p className="text-xs text-yellow-800">
+                    Score, feedback, and certification will not be available until payment is received and processed (typically 14-21 days).
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <div className="text-gray-600 font-semibold group-hover:text-blue-600 group-hover:underline">
               Request Invoice →
             </div>
           </button>
+        </div>
+
+        {/* Additional Info */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+          <h3 className="font-semibold text-blue-900 mb-3">Payment Processing Timeline</h3>
+          <div className="space-y-2 text-sm text-blue-800">
+            <div className="flex items-start gap-2">
+              <span className="font-bold">Credit Card:</span>
+              <span>Immediate processing and instant assessment access</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="font-bold">ACH Transfer:</span>
+              <span>3-5 business days to clear, then assessment access granted</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="font-bold">Invoice:</span>
+              <span>14-21 days typical processing time (payment + processing)</span>
+            </div>
+          </div>
         </div>
 
         {/* Back Button */}
