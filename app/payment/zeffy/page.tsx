@@ -188,7 +188,7 @@ export default function ZeffyPaymentPage() {
               <li className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5" />
                 <span className="text-gray-700">
-                  Certification badge and marketing materials (if qualified)
+                  If certified, option to license the <strong>Best Companies for Working with Cancer</strong> seal
                 </span>
               </li>
             </ul>
