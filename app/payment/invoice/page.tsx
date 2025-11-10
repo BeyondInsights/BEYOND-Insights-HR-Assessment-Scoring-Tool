@@ -381,7 +381,7 @@ export default function InvoicePaymentPage() {
                   <li>• <strong>Typical timeline:</strong> 14-21 days (payment processing + verification)</li>
                 </ul>
                 <p className="text-sm text-yellow-900 mt-3 font-semibold">
-                  For immediate access, please return to payment options and select online payment (credit card preferred).
+                  For quicker access, please return to payment options and select online payment (credit card preferred).
                 </p>
               </div>
             </div>
