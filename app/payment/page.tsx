@@ -184,7 +184,7 @@ export default function PaymentPage() {
             </div>
             <div className="flex items-start gap-2">
               <span className="font-bold">ACH Transfer:</span>
-              <span>3-5 business days to clear, though you will still have immediate access to survey</span>
+              <span>1-2 business days to clear, though you will still have immediate access to survey</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="font-bold">Invoice:</span>
