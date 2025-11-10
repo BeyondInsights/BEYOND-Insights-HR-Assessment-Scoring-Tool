@@ -18,11 +18,6 @@ export default function LoginPage() {
   const [generatedAppId, setGeneratedAppId] = useState('')
   const [showAppId, setShowAppId] = useState(false)
   
-  // Forgot App ID states
-  const [showReminderForm, setShowReminderForm] = useState(false)
-  const [reminderEmail, setReminderEmail] = useState('')
-  const [reminderMessage, setReminderMessage] = useState('')
-  const [reminderLoading, setReminderLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -117,35 +112,6 @@ export default function LoginPage() {
   router.push('/letter')  // Changed from /authorization
 }
 
-  const handleSendReminder = async () => {
-    if (!reminderEmail.trim() || !reminderEmail.includes('@')) {
-      setReminderMessage('Please enter a valid email address')
-      return
-    }
-
-    setReminderLoading(true)
-    setReminderMessage('')
-
-    try {
-      const { data, error } = await supabase
-        .from('Surveys')
-        .select('app_id')
-        .eq('email', reminderEmail.toLowerCase().trim())
-        .single()
-
-      if (error || !data) {
-        setReminderMessage('No account found with that email address')
-        setReminderLoading(false)
-        return
-      }
-
-      const formattedId = formatAppId(data.app_id)
-      setReminderMessage(`Your Survey ID is: ${formattedId}`)
-      setReminderLoading(false)
-    } catch (err) {
-      setReminderMessage('Error retrieving Survey ID. Please try again.')
-      setReminderLoading(false)
-    }
   }
     
   return (
@@ -408,79 +374,25 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Forgot App ID Section - UPDATED TERMINOLOGY */}
-                <div className="mt-8 pt-6 border-t border-amber-200">
-                  {!showReminderForm ? (
-                    <div className="text-center">
-                      <p className="text-sm text-slate-700 mb-3">
-                        Lost your Survey ID?
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setShowReminderForm(true)}
-                        className="text-sm text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        Send my Survey ID to my email
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-900 mb-3">
-                        Retrieve Your Survey ID
-                      </h3>
-                      <p className="text-xs text-slate-700 mb-4">
-                        Enter the email address you used when you started, and we'll send you your Survey ID.
-                      </p>
-                      
-                      <div className="space-y-3">
-                        <input
-                          type="email"
-                          value={reminderEmail}
-                          onChange={(e) => setReminderEmail(e.target.value)}
-                          placeholder="your.email@company.com"
-                          disabled={reminderLoading}
-                          className="w-full px-4 py-2.5 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-[#F37021] focus:border-transparent disabled:bg-orange-50 disabled:cursor-not-allowed"
-                        />
-                        
-                        {reminderMessage && (
-                          <div className={`p-3 rounded-lg text-sm ${
-                            reminderMessage.includes('Survey ID is') 
-                              ? 'bg-green-50 border border-green-200 text-green-800'
-                              : 'bg-red-50 border border-red-200 text-red-800'
-                          }`}>
-                            {reminderMessage}
-                          </div>
-                        )}
-                        
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={handleSendReminder}
-                            disabled={reminderLoading}
-                            className="flex-1 py-2.5 bg-[#F37021] text-white rounded-lg text-sm font-semibold hover:bg-[#d66319] disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {reminderLoading ? 'Retrieving...' : 'Send My ID'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowReminderForm(false)
-                              setReminderEmail('')
-                              setReminderMessage('')
-                            }}
-                            disabled={reminderLoading}
-                            className="px-4 py-2.5 border border-amber-300 text-slate-800 rounded-lg text-sm font-medium hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+{/* Forgot Survey ID Section */}
+<div className="mt-8 pt-6 border-t border-amber-200 text-center">
+  <p className="text-sm text-slate-700 mb-3">
+    Lost your Survey ID?
+  </p>
+  <button
+    type="button"
+    onClick={() => router.push('/forgot-survey-id')}
+    className="text-sm text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-2"
+  >
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+    Find My Survey ID →
+  </button>
+</div>
+
+
+                
               </>
             )}
 
