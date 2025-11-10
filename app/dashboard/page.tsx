@@ -235,7 +235,7 @@ useEffect(() => {
 
       <main className="max-w-7xl mx-auto px-6 py-10 flex-1">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Assessment Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Survey Dashboard</h1>
 
           {email && (
             <div className="mt-4 bg-orange-50 border border-orange-200 rounded-lg px-5 py-3">
@@ -257,10 +257,10 @@ useEffect(() => {
               <Lock className="w-6 h-6 text-yellow-600 mr-3 mt-1" />
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-yellow-900 mb-2">
-                  Payment Required to Begin Assessment
+                  Payment Required to Begin Survey
                 </h3>
                 <p className="text-yellow-800 mb-4">
-                  Complete your application payment to unlock all assessment sections. You can review the dashboard structure, but assessment sections will remain locked until payment is received.
+                  Complete your application payment to unlock all survey sections. You can review the dashboard structure, but survey sections will remain locked until payment is received.
                 </p>
                 <button
                   onClick={() => router.push('/payment')}
@@ -298,8 +298,8 @@ useEffect(() => {
                   </h3>
                   <p className={isInvoice ? 'text-blue-800' : 'text-green-800'}>
                     {isInvoice 
-                      ? 'Your invoice has been generated. You can continue working on your assessment while we process your payment. Payment is due within 14 days.'
-                      : 'Transaction completed successfully. Your payment has been processed and you have full access to complete your assessment.'
+                      ? 'Your invoice has been generated. You can continue working on your survey while we process your payment. Payment is due within 14 days.'
+                      : 'Transaction completed successfully. Your payment has been processed and you have full access to complete your survey.'
                     }
                   </p>
                   {!isInvoice && (
@@ -335,7 +335,7 @@ useEffect(() => {
           <div>
             <h3 className="text-2xl font-bold mb-2">Thank You!</h3>
             <p className="text-lg mb-1">
-              You completed all sections of the assessment!
+              You completed all sections of the survey!
             </p>
             <p className="text-white/90">
               Learn about next steps, upload supporting documentation, and discover how to use the certification badge if your organization qualifies.
@@ -355,7 +355,7 @@ useEffect(() => {
 <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-10">
   <h2 className="text-lg font-semibold text-gray-900 mb-2">How this works</h2>
   <p className="text-sm text-gray-700 mb-4">
-    Complete this assessment in three stages. Your work saves automatically on every change, and you can stop anytime to return later.
+    Complete this survey in three stages. Your work saves automatically on every change, and you can stop anytime to return later.
   </p>
   
   <div className="space-y-4">
@@ -388,9 +388,9 @@ useEffect(() => {
         3
       </div>
       <div>
-        <h3 className="font-semibold text-gray-900 text-sm">Complete 2 Additional Assessments</h3>
+        <h3 className="font-semibold text-gray-900 text-sm">Complete 2 Additional Sections</h3>
         <p className="text-sm text-gray-600">
-          After finishing all 13 dimensions, complete the Cross-Dimensional and Employee-Impact assessments
+          After finishing all 13 dimensions, complete the Cross-Dimensional and Employee-Impact sections
         </p>
       </div>
     </div>
@@ -500,16 +500,16 @@ useEffect(() => {
 })}
         </div>
 
-        {/* Additional Assessment Sections - Locked until all 13 dimensions complete */}
+        {/* Additional Survey Sections - Locked until all 13 dimensions complete */}
         {paymentCompleted && (
           <>
             <div className="bg-purple-50 border-l-4 border-purple-600 p-6 mb-6 rounded-lg">
-              <h3 className="text-lg font-bold text-purple-900 mb-2">Two Additional Assessment Modules</h3>
+              <h3 className="text-lg font-bold text-purple-900 mb-2">Two Additional Survey Modules</h3>
               <p className="text-gray-700">
                 {all13DimensionsDone ? (
                   <>These sections are now available. They provide deeper insights into dimension and employee impact within your organization.</>
                 ) : (
-                  <>These assessments will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
+                  <>These sections will unlock once you've completed all 13 dimensions of support. They offer comprehensive analysis of employee impact and cross-dimensional patterns.</>
                 )}
               </p>
             </div>
@@ -518,13 +518,13 @@ useEffect(() => {
               {[
                 { 
                   id: 'cross-dimensional-assessment', 
-                  title: 'Cross-Dimensional Assessment', 
+                  title: 'Cross-Dimensional Module', 
                   description: 'Evaluate cross-cutting themes',
                   completion: advancedProgress.crossDimensional 
                 },
                 { 
                   id: 'employee-impact-assessment', 
-                  title: 'Employee-Impact Assessment', 
+                  title: 'Employee-Impact Module', 
                   description: 'Assess the impact on employees',
                   completion: advancedProgress.employeeImpact 
                 },
