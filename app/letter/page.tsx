@@ -59,7 +59,7 @@ export default function LetterPage() {
               Best Companies for Working with Cancer
             </h1>
             <p className="text-orange-100 text-center mt-2">
-              2026 Employer Index Assessment
+              2026 Employer Index Survey
             </p>
           </div>
 
@@ -70,52 +70,29 @@ export default function LetterPage() {
                 On behalf of Cancer and Careers, I want to personally thank you for participating in this comprehensive survey examining workplace benefits and programs for employees managing cancer and other serious health conditions.
               </p>
 
-              {/* What You'll Gain */}
-              <div className="bg-blue-50 border-l-4 border-blue-600 p-6 my-6">
-                <p className="text-blue-800 leading-relaxed mb-4">
-                  By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Index</strong> — a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
-                </p>
-                <p className="text-blue-800 leading-relaxed">
-                  The Index will also highlight organizations that exemplify excellence in workplace support.
-                </p>
-              </div>
+              <p className="text-lg leading-relaxed mb-6">
+                By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Index</strong> — a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
+              </p>
+              
+              <p className="text-lg leading-relaxed mb-6">
+                The Index will also highlight organizations that exemplify excellence in workplace support.
+              </p>
 
-              {/* Survey Details */}
-              <div className="bg-purple-50 border-l-4 border-purple-600 p-6 my-6">
-                <p className="text-purple-800 leading-relaxed">
-                  This <strong>20-minute survey</strong> is designed to be as efficient as possible while capturing the depth of information needed to understand the landscape and identify meaningful standards.
-                </p>
-              </div>
+              <p className="text-lg leading-relaxed mb-6">
+                This <strong>20-minute survey</strong> is designed to be as efficient as possible while capturing the depth of information needed to understand the landscape and identify meaningful standards.
+              </p>
 
-              {/* Helpful Tips */}
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
-                <p className="text-orange-900 font-bold mb-4">Helpful Tips Before You Begin:</p>
-                <ul className="text-orange-800 space-y-3">
-                  <li className="flex items-start">
-                    <span className="text-orange-600 mr-2 mt-1">•</span>
-                    <span>Please have your organization's current benefits documentation readily available for reference</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-orange-600 mr-2 mt-1">•</span>
-                    <span>This survey should be completed by someone directly involved in your organization's benefits policies and programs, or someone authorized to provide this information</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-orange-600 mr-2 mt-1">•</span>
-                    <span>You may need to consult with colleagues from Benefits, Compensation, or other HR functions to provide complete responses</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-orange-600 mr-2 mt-1">•</span>
-                    <span>Your progress will be saved automatically, and you can return to complete or review any section before submitting</span>
-                  </li>
-                </ul>
-              </div>
+              <p className="text-lg font-semibold mb-4">Helpful Tips Before You Begin:</p>
+              <ul className="text-lg leading-relaxed space-y-3 mb-6 ml-6">
+                <li>Please have your organization's current benefits documentation readily available for reference</li>
+                <li>This survey should be completed by someone directly involved in your organization's benefits policies and programs, or someone authorized to provide this information</li>
+                <li>You may need to consult with colleagues from Benefits, Compensation, or other HR functions to provide complete responses</li>
+                <li>Your progress will be saved automatically, and you can return to complete or review any section before submitting</li>
+              </ul>
 
-              {/* Confidentiality */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8">
-                <p className="text-green-900 leading-relaxed">
-                  All responses will be collected and analyzed by <strong>BEYOND Insights</strong>, an independent research firm. Individual responses will only be accessible to BEYOND Insights and Cancer and Careers for analysis purposes and will not be shared publicly.
-                </p>
-              </div>
+              <p className="text-lg leading-relaxed mb-8">
+                All responses will be collected and analyzed by <strong>BEYOND Insights</strong>, an independent research firm. Individual responses will only be accessible to BEYOND Insights and Cancer and Careers for analysis purposes and will not be shared publicly.
+              </p>
 
               <p className="text-lg leading-relaxed mb-6">
                 Thank you again for your leadership in creating better workplaces for employees managing cancer and other serious health conditions.
@@ -154,10 +131,16 @@ export default function LetterPage() {
                   className={`px-12 py-4 rounded-lg font-bold text-lg transition-all transform ${
                     ready && !loading
                       ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-lg hover:-translate-y-0.5'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-200 cursor-not-allowed'
                   }`}
                 >
-                  {loading ? 'Processing...' : ready ? 'Continue to Survey →' : 'Please acknowledge to continue'}
+                  {loading ? (
+                    'Processing...'
+                  ) : ready ? (
+                    'Continue to Survey →'
+                  ) : (
+                    <span className="text-orange-600">Please acknowledge to continue</span>
+                  )}
                 </button>
               </div>
             </div>
