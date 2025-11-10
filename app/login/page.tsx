@@ -66,28 +66,37 @@ export default function LoginPage() {
   if (result.mode === 'existing' && !result.needsVerification) {
     const user = await getCurrentUser()
     if (user) {
-      const { data: Survey } = await supabase
-        .from('Surveys')
-        .select('letter_viewed, payment_completed')
+      const { data: assessment } = await supabase
+        .from('assessments')
+        .select('letter_viewed, auth_completed, payment_method, payment_completed')
         .eq('user_id', user.id)
         .single()
       
       setSuccessMessage(result.message)
       setTimeout(() => {
-        // First time user - send to letter
-        if (!Survey?.letter_viewed) {
+        // Step 1: Check if letter viewed
+        if (!assessment?.letter_viewed) {
           router.push('/letter')
+          return
         }
-        // Paid user - send to dashboard
-        else if (Survey?.payment_completed) {
-          router.push('/dashboard')
-        }
-        // Unpaid user - send to authorization/payment flow
-        else {
+        
+        // Step 2: Check if authorization completed
+        if (!assessment?.auth_completed) {
           router.push('/authorization')
+          return
         }
+        
+        // Step 3: Check if payment method selected
+        if (!assessment?.payment_method) {
+          router.push('/payment')
+          return
+        }
+        
+        // Step 4: Send to dashboard (handles both paid and invoice pending)
+        router.push('/dashboard')
       }, 1000)
     }
+  }
   } else if (result.mode === 'new') {
     // New user - show App ID and let them proceed to letter
     setSuccessMessage('Account created successfully!')
