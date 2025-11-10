@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Mail, CheckCircle, ArrowLeft } from 'lucide-react'
+import { Search, Mail, CheckCircle, ArrowLeft, Copy } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { supabase } from '@/lib/supabase/client'
@@ -11,8 +11,10 @@ export default function ForgotSurveyIdPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [surveyId, setSurveyId] = useState('')
+  const [companyName, setCompanyName] = useState('')
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,6 +29,7 @@ export default function ForgotSurveyIdPage() {
         .single()
 
       if (assessment) {
+        // Log the lookup (optional - for analytics)
         await supabase
           .from('survey_id_requests')
           .insert({
@@ -34,47 +37,119 @@ export default function ForgotSurveyIdPage() {
             survey_id: assessment.survey_id,
             company_name: assessment.company_name,
             requested_at: new Date().toISOString(),
-            status: 'pending'
+            status: 'displayed'
           })
         
-        setSubmitted(true)
+        setSurveyId(assessment.survey_id)
+        setCompanyName(assessment.company_name)
       } else {
-        setError('No assessment found for this email address.')
+        setError('No assessment found for this email address. Please check your email or contact support.')
       }
     } catch (err) {
-      setError('An error occurred. Please contact support.')
+      console.error('Error:', err)
+      setError('An error occurred. Please try again or contact support at info@cancerandcareers.org')
     } finally {
       setLoading(false)
     }
   }
 
-  if (submitted) {
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(surveyId)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (surveyId) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
         <Header />
+        
         <main className="max-w-2xl mx-auto px-6 py-16 flex-1">
-          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-12 h-12 text-green-600" />
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-12 h-12 text-green-600" />
+              </div>
+              
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Survey ID Found!
+              </h1>
+              <p className="text-gray-600">
+                Here's your Survey ID for {companyName}
+              </p>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Request Received</h1>
-            <p className="text-lg text-gray-700 mb-6">
-              Our team will email your Survey ID to:
-            </p>
-            <div className="bg-blue-50 rounded-lg p-4 mb-6">
-              <p className="font-mono text-lg text-blue-900">{email}</p>
+
+            {/* Survey ID Display */}
+            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-500 rounded-xl p-8 mb-6">
+              <p className="text-sm text-gray-600 text-center mb-2">Your Survey ID:</p>
+              <div className="flex items-center justify-center gap-3">
+                <p className="text-3xl font-bold text-orange-600 font-mono tracking-wider">
+                  {surveyId}
+                </p>
+                <button
+                  onClick={copyToClipboard}
+                  className="p-2 hover:bg-orange-100 rounded-lg transition-colors"
+                  title="Copy to clipboard"
+                >
+                  <Copy className={`w-6 h-6 ${copied ? 'text-green-600' : 'text-orange-600'}`} />
+                </button>
+              </div>
+              {copied && (
+                <p className="text-sm text-green-600 text-center mt-2">
+                  ✓ Copied to clipboard!
+                </p>
+              )}
             </div>
-            <p className="text-gray-600 mb-8">
-              You should receive it within 1 business day.
-            </p>
-            <button
-              onClick={() => router.push('/login')}
-              className="px-8 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700"
-            >
-              Return to Login
-            </button>
+
+            {/* Instructions */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+              <h3 className="font-semibold text-blue-900 mb-3">How to Use Your Survey ID:</h3>
+              <ol className="space-y-2 text-sm text-blue-800">
+                <li className="flex items-start">
+                  <span className="font-bold mr-2">1.</span>
+                  <span>Click the button below to go to the login page</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-bold mr-2">2.</span>
+                  <span>Enter your Survey ID and email address</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-bold mr-2">3.</span>
+                  <span>Access your assessment dashboard</span>
+                </li>
+              </ol>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/login')}
+                className="w-full px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transform hover:-translate-y-0.5 transition-all"
+              >
+                Go to Login →
+              </button>
+              
+              <button
+                onClick={() => {
+                  setSurveyId('')
+                  setCompanyName('')
+                  setEmail('')
+                }}
+                className="w-full px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Look Up Another Survey ID
+              </button>
+            </div>
+
+            {/* Help */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-600 text-center">
+                <strong>Tip:</strong> Save this Survey ID in a safe place so you don't lose it again!
+              </p>
+            </div>
           </div>
         </main>
+        
         <Footer />
       </div>
     )
@@ -83,19 +158,20 @@ export default function ForgotSurveyIdPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
+      
       <main className="max-w-2xl mx-auto px-6 py-16 flex-1">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="flex items-center mb-6">
             <Search className="w-10 h-10 text-orange-600 mr-3" />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Forgot Survey ID?</h1>
-              <p className="text-gray-600">We'll help you retrieve it</p>
+              <p className="text-gray-600">We'll look it up for you instantly</p>
             </div>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800">
-              Enter your email and we'll send your Survey ID within 1 business day.
+              Enter the email address you used to register for the assessment. We'll show you your Survey ID immediately.
             </p>
           </div>
 
@@ -126,39 +202,37 @@ export default function ForgotSurveyIdPage() {
             <button
               type="submit"
               disabled={loading || !email.trim()}
-              className="w-full px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50"
+              className="w-full px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {loading ? 'Submitting...' : 'Request Survey ID'}
+              {loading ? 'Looking up...' : 'Find My Survey ID'}
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t">
+          <div className="mt-6 pt-6 border-t border-gray-200">
             <button
               onClick={() => router.push('/login')}
-              className="flex items-center text-gray-600 hover:text-gray-900"
+              className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Login
             </button>
           </div>
+
+          <div className="mt-8 bg-gray-50 rounded-lg p-4">
+            <p className="text-sm text-gray-700 mb-2">
+              <strong>Need help?</strong>
+            </p>
+            <p className="text-sm text-gray-600">
+              Contact us at{' '}
+              <a href="mailto:info@cancerandcareers.org" className="text-orange-600 hover:underline">
+                info@cancerandcareers.org
+              </a>
+            </p>
+          </div>
         </div>
       </main>
+      
       <Footer />
     </div>
   )
 }
-```
-
-### **STEP 6: Scroll down and click "Commit changes"**
-
-### **STEP 7: Wait for Netlify to deploy (2-3 minutes)**
-
----
-
-## **DONE!**
-
-Your folder structure will be:
-```
-app/
-└── forgot-survey-id/
-    └── page.tsx
