@@ -115,7 +115,7 @@ export default function ZeffyPaymentPage() {
             <Award className="w-12 h-12 text-indigo-600 mr-4" />
             <div>
               <h2 className="text-3xl font-bold text-gray-900">
-                Complete Your Assessment Payment
+                Complete Your Survey Payment
               </h2>
             </div>
           </div>
@@ -136,11 +136,11 @@ export default function ZeffyPaymentPage() {
                 <p className="font-medium">{companyData.contactName}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Assessment Type</p>
+                <p className="text-sm text-gray-500">Survey Type</p>
                 <p className="font-medium">Best Companies Index</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Assessment Fee</p>
+                <p className="text-sm text-gray-500">Survey Fee</p>
                 <p className="font-medium text-2xl text-gray-900">$1,250</p>
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function ZeffyPaymentPage() {
               <div>
                 <p className="font-semibold text-orange-900 mb-1">Important: Credit Card Strongly Recommended</p>
                 <p className="text-sm text-orange-800 mb-2">
-                  While both credit card and ACH (bank transfer) options are available, <strong>credit card payment is strongly preferred</strong> for immediate assessment access.
+                  While both credit card and ACH (bank transfer) options are available, <strong>credit card payment is strongly preferred</strong> for immediate survey access.
                 </p>
                 <ul className="text-sm text-orange-800 space-y-1 ml-4">
                   <li>• <strong>Credit Card:</strong> Immediate processing and instant access</li>
@@ -165,7 +165,7 @@ export default function ZeffyPaymentPage() {
 
           {/* Benefits List */}
           <div className="bg-white/50 rounded-lg p-6 mb-6">
-            <h3 className="font-semibold text-gray-900 mb-3">Your Assessment Includes:</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Your Survey Includes:</h3>
             <ul className="space-y-2">
               <li className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5" />
@@ -249,7 +249,7 @@ export default function ZeffyPaymentPage() {
                           bg-gradient-to-r from-indigo-50 to-blue-50">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Assessment Payment
+                  Survey Payment
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
                   {companyData.name}
@@ -282,7 +282,7 @@ export default function ZeffyPaymentPage() {
               <div className="flex items-start gap-2 text-sm">
                 <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
                 <p className="text-orange-900">
-                  <strong>Reminder:</strong> Select <strong>credit card</strong> for immediate assessment access. ACH transfers require 3-5 business days processing.
+                  <strong>Reminder:</strong> Select <strong>credit card</strong> for immediate survey access. ACH transfers require 3-5 business days processing.
                 </p>
               </div>
             </div>
