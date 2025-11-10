@@ -159,13 +159,14 @@ function AuthorizationContent() {
         }
 
         const { error } = await supabase
-          .from('assessments')
-          .update({
-            company_name: companyInfo.companyName,
-            firmographics_data: authorizationData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id)
+  .from('assessments')
+  .update({
+    company_name: companyInfo.companyName,
+    firmographics_data: authorizationData,
+    auth_completed: true,
+    updated_at: new Date().toISOString()
+  })
+  .eq('user_id', user.id)
 
         if (error) {
           console.error('Error saving:', error)
