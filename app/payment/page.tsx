@@ -124,7 +124,7 @@ export default function PaymentPage() {
             </ul>
             <div className="bg-orange-100 border border-orange-300 rounded-lg p-3 mb-4">
               <p className="text-xs text-orange-900">
-                <strong>Note:</strong> Credit card payment is strongly preferred.
+                <strong>Note:</strong> Surveys are analyzed after payment.  Credit card payment is strongly preferred.
               </p>
             </div>
             <div className="text-orange-600 font-semibold group-hover:underline">
