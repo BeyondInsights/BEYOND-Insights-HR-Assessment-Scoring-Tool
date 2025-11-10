@@ -151,7 +151,7 @@ export default function ZeffyPaymentPage() {
             <div className="flex items-start">
               <AlertCircle className="w-5 h-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-orange-900 mb-1">Important: Credit Card Strongly Recommended</p>
+                <p className="font-semibold text-orange-900 mb-1">Important: Surveys are analyzed after payment.  Credit Card Strongly Recommended</p>
                 <p className="text-sm text-orange-800 mb-2">
                   While both credit card and ACH (bank transfer) options are available, <strong>credit card payment is strongly preferred</strong>.
                 </p>
