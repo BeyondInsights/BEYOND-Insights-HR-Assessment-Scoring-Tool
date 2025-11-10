@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { isAuthenticated, getUserAssessment } from '@/lib/supabase/auth'
 import { supabase } from '@/lib/supabase/client'
 import Footer from '@/components/Footer'
@@ -34,6 +34,9 @@ function Card({
 
 export default function AuthorizationPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/dashboard'
+  
   const [loading, setLoading] = useState(true)
   const [companyInfo, setCompanyInfo] = useState({
     companyName: '',
@@ -53,8 +56,9 @@ export default function AuthorizationPage() {
       const authenticated = await isAuthenticated()
       
       if (!authenticated) {
-        // Not logged in - redirect to login page
-        router.push('/')
+        // Not logged in - redirect to login page with redirect parameter
+        const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
+        router.push(`/${redirectParam}`)
         return
       }
 
@@ -83,7 +87,7 @@ export default function AuthorizationPage() {
     }
 
     checkAuth()
-  }, [router])
+  }, [router, redirect])
 
   const toggleAu2 = (option: string) => {
     setAu2((prev) =>
@@ -179,9 +183,9 @@ export default function AuthorizationPage() {
         // CHECK PAYMENT STATUS BEFORE REDIRECTING
         const assessment = await getUserAssessment()
         if (assessment?.payment_completed) {
-          // Already paid - skip payment page and go straight to dashboard
-          console.log('Payment already completed, redirecting to dashboard...')
-          router.push('/dashboard')
+          // Already paid - use redirect parameter or go to dashboard
+          console.log('Payment already completed, redirecting...')
+          router.push(redirect)
         } else {
           // Not paid yet - continue to payment page
           router.push('/payment')
