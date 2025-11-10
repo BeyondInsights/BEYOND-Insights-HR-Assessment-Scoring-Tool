@@ -137,10 +137,10 @@ export default function ZeffyPaymentPage() {
               <div>
                 <p className="font-semibold text-orange-900 mb-1">Important: Credit Card Strongly Recommended</p>
                 <p className="text-sm text-orange-800 mb-2">
-                  While both credit card and ACH (bank transfer) options are available, <strong>credit card payment is strongly preferred</strong> for immediate assessment access.
+                  While both credit card and ACH (bank transfer) options are available, <strong>credit card payment is strongly preferred</strong> for quicker assessment access.
                 </p>
                 <ul className="text-sm text-orange-800 space-y-1 ml-4">
-                  <li>• <strong>Credit Card:</strong> Immediate processing and instant access</li>
+                  <li>• <strong>Credit Card:</strong> Immediate processing and quicker access</li>
                   <li>• <strong>ACH Transfer:</strong> 3-5 business day processing delay before access is granted</li>
                 </ul>
               </div>
@@ -261,7 +261,7 @@ export default function ZeffyPaymentPage() {
               <div className="flex items-start gap-2 text-sm">
                 <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
                 <p className="text-orange-900">
-                  <strong>Reminder:</strong> Select <strong>credit card</strong> for immediate assessment access. ACH transfers require 3-5 business days processing.
+                  <strong>Reminder:</strong> Select <strong>credit card</strong> for quicker assessment access. ACH transfers require 3-5 business days processing.
                 </p>
               </div>
             </div>
