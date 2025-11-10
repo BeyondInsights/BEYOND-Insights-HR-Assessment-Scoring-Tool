@@ -153,7 +153,7 @@ export default function ZeffyPaymentPage() {
               <div>
                 <p className="font-semibold text-orange-900 mb-1">Important: Credit Card Strongly Recommended</p>
                 <p className="text-sm text-orange-800 mb-2">
-                  While both credit card and ACH (bank transfer) options are available, <strong>credit card payment is strongly preferred</strong> for immediate survey access.
+                  While both credit card and ACH (bank transfer) options are available, <strong>credit card payment is strongly preferred</strong>.
                 </p>
                 <ul className="text-sm text-orange-800 space-y-1 ml-4">
                   <li>• <strong>Credit Card:</strong> Immediate processing and instant access</li>
