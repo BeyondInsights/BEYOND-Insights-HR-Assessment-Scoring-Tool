@@ -99,13 +99,13 @@ export default function InvoicePaymentPage() {
         const user = await getCurrentUser()
         if (user) {
           await supabase
-            .from('assessments')
-            .update({
-              payment_completed: true,
-              payment_method: 'invoice',
-              payment_date: new Date().toISOString()
-            })
-            .eq('user_id', user.id)
+  .from('assessments')
+  .update({
+    payment_completed: false,  // ✅ CORRECT!
+    payment_method: 'invoice',
+    payment_date: new Date().toISOString()
+  })
+  .eq('user_id', user.id)
         }
       } catch (error) {
         console.error('Error saving payment to database:', error)
