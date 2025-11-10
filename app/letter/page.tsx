@@ -59,7 +59,7 @@ export default function LetterPage() {
               Best Companies for Working with Cancer
             </h1>
             <p className="text-orange-100 text-center mt-2">
-              2026 Employer Index Assessment
+              2026 Employer Index Survey
             </p>
           </div>
 
