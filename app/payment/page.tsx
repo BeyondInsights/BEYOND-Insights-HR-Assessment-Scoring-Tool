@@ -111,7 +111,7 @@ export default function PaymentPage() {
             <ul className="space-y-2 mb-4">
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
-                Immediate assessment access with credit card
+                Quicker assessment access with credit card
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
@@ -124,7 +124,7 @@ export default function PaymentPage() {
             </ul>
             <div className="bg-orange-100 border border-orange-300 rounded-lg p-3 mb-4">
               <p className="text-xs text-orange-900">
-                <strong>Note:</strong> Credit card payment is strongly preferred for immediate access. ACH transfers take 3-5 business days to clear.
+                <strong>Note:</strong> Credit card payment is strongly preferred for quicker access. ACH transfers take 3-5 business days to clear.
               </p>
             </div>
             <div className="text-orange-600 font-semibold group-hover:underline">
@@ -180,7 +180,7 @@ export default function PaymentPage() {
           <div className="space-y-2 text-sm text-blue-800">
             <div className="flex items-start gap-2">
               <span className="font-bold">Credit Card:</span>
-              <span>Immediate processing and instant assessment access</span>
+              <span>Immediate processing and quicker assessment access</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="font-bold">ACH Transfer:</span>
