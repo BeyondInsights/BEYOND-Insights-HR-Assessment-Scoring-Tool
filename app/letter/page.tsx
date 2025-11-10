@@ -66,35 +66,35 @@ export default function LetterPage() {
           <div className="p-8 md:p-12">
             {/* Letter Content */}
             <div className="prose max-w-none">
-              <p className="text-lg leading-relaxed mb-6">
+              <p className="text-base leading-relaxed mb-6">
                 On behalf of Cancer and Careers, I want to personally thank you for participating in this comprehensive survey examining workplace benefits and programs for employees managing cancer and other serious health conditions.
               </p>
 
-              <p className="text-lg leading-relaxed mb-6">
+              <p className="text-base leading-relaxed mb-6">
                 By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Index</strong> — a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
               </p>
               
-              <p className="text-lg leading-relaxed mb-6">
+              <p className="text-base leading-relaxed mb-6">
                 The Index will also highlight organizations that exemplify excellence in workplace support.
               </p>
 
-              <p className="text-lg leading-relaxed mb-6">
+              <p className="text-base leading-relaxed mb-6">
                 This <strong>20-minute survey</strong> is designed to be as efficient as possible while capturing the depth of information needed to understand the landscape and identify meaningful standards.
               </p>
 
-              <p className="text-lg font-semibold mb-4">Helpful Tips Before You Begin:</p>
-              <ul className="text-lg leading-relaxed space-y-3 mb-6 ml-6 list-disc">
+              <p className="text-base font-semibold mb-3">Helpful Tips Before You Begin:</p>
+              <ul className="text-base leading-relaxed space-y-2 mb-6 ml-6 list-disc">
                 <li>Please have your organization's current benefits documentation readily available for reference</li>
                 <li>This survey should be completed by someone directly involved in your organization's benefits policies and programs, or someone authorized to provide this information</li>
                 <li>You may need to consult with colleagues from Benefits, Compensation, or other HR functions to provide complete responses</li>
                 <li>Your progress will be saved automatically, and you can return to complete or review any section before submitting</li>
               </ul>
 
-              <p className="text-lg leading-relaxed mb-8">
+              <p className="text-base leading-relaxed mb-8">
                 All responses will be collected and analyzed by <strong>BEYOND Insights</strong>, an independent research firm. Individual responses will only be accessible to BEYOND Insights and Cancer and Careers for analysis purposes and will not be shared publicly.
               </p>
 
-              <p className="text-lg leading-relaxed mb-6">
+              <p className="text-base leading-relaxed mb-6">
                 Thank you again for your leadership in creating better workplaces for employees managing cancer and other serious health conditions.
               </p>
 
@@ -102,9 +102,9 @@ export default function LetterPage() {
               <div className="mb-8">
                 <p className="mb-2">With gratitude,</p>
                 <div className="ml-4">
-                  <p className="font-bold text-lg">Rebecca V. Nellis</p>
-                  <p className="text-gray-600">Chief Mission Officer</p>
-                  <p className="text-gray-600">Cancer and Careers</p>
+                  <p className="font-bold text-base">Rebecca V. Nellis</p>
+                  <p className="text-gray-600 text-sm">Chief Mission Officer</p>
+                  <p className="text-gray-600 text-sm">Cancer and Careers</p>
                 </div>
               </div>
 
