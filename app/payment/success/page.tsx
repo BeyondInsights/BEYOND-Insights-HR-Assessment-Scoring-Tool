@@ -115,7 +115,7 @@ export default function PaymentSuccessPage() {
   <div class="header">
     <div class="checkmark">✓</div>
     <h1>Payment Receipt</h1>
-    <p>Best Companies for Working with Cancer Index Assessment</p>
+    <p>Best Companies for Working with Cancer Index Survey</p>
   </div>
 
   <div class="details">
@@ -139,8 +139,8 @@ export default function PaymentSuccessPage() {
 
   <div class="next-steps">
     <h3>What's Next?</h3>
-    <p><strong>1. Complete Your Assessment</strong><br>
-    All assessment sections are now unlocked and ready for completion.</p>
+    <p><strong>1. Complete Your Survey</strong><br>
+    All survey sections are now unlocked and ready for completion.</p>
     
     <p><strong>2. Review & Submit</strong><br>
     Your progress saves automatically - complete sections at your own pace.</p>
@@ -188,7 +188,7 @@ export default function PaymentSuccessPage() {
           
           <div className="inline-flex items-center gap-2 bg-green-100 px-4 py-2 rounded-full">
             <Award className="w-5 h-5 text-green-600" />
-            <span className="font-semibold text-green-700">You can now begin your assessment</span>
+            <span className="font-semibold text-green-700">You can now begin your survey</span>
           </div>
         </div>
 
@@ -216,7 +216,7 @@ export default function PaymentSuccessPage() {
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800">
-              <strong>Payment Confirmation:</strong> Your payment has been processed. You can now access the full assessment from your dashboard.
+              <strong>Payment Confirmation:</strong> Your payment has been processed. You can now access the full survey from your dashboard.
             </p>
           </div>
 
@@ -236,8 +236,8 @@ export default function PaymentSuccessPage() {
                   <span className="text-blue-600 font-bold text-sm">1</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">Complete Your Assessment</p>
-                  <p className="text-sm text-gray-600">All assessment sections are now unlocked and ready for you to complete</p>
+                  <p className="font-semibold text-gray-900">Complete Your Survey</p>
+                  <p className="text-sm text-gray-600">All survey sections are now unlocked and ready for you to complete</p>
                 </div>
               </div>
               
@@ -268,7 +268,7 @@ export default function PaymentSuccessPage() {
           onClick={() => router.push('/dashboard')}
           className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-3"
         >
-          Go to Dashboard & Start Assessment
+          Go to Dashboard & Start Survey
           <ArrowRight className="w-5 h-5" />
         </button>
 
