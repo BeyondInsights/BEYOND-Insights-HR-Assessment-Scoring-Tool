@@ -17,17 +17,33 @@ export default function ZeffyPaymentPage() {
     contactName: ''
   })
   
-  const ZEFFY_FORM_URL = "https://www.zeffy.com/en-US/ticketing/best-companies-for-working-with-cancer"
+  // UPDATED: Dynamic URL with parameters instead of constant
+  const [zeffyUrl, setZeffyUrl] = useState('')
 
   useEffect(() => {
     const name = localStorage.getItem('login_company_name') || 'Your Organization'
     const firstName = localStorage.getItem('login_first_name') || ''
     const lastName = localStorage.getItem('login_last_name') || ''
+    const email = localStorage.getItem('auth_email') || ''
+    const surveyId = localStorage.getItem('survey_id') || 
+                     localStorage.getItem('application_id') || 
+                     `TEMP-${Date.now()}`
     
     setCompanyData({
       name,
       contactName: `${firstName} ${lastName}`
     })
+    
+    // UPDATED: Build Zeffy URL with parameters for tracking
+    const baseUrl = 'https://www.zeffy.com/en-US/ticketing/best-companies-for-working-with-cancer'
+    const params = new URLSearchParams({
+      survey_id: surveyId,
+      source: 'assessment_app',
+      company: name,
+      email: email
+    })
+    
+    setZeffyUrl(`${baseUrl}?${params.toString()}`)
   }, [])
 
   const handleOpenPayment = () => {
@@ -137,10 +153,10 @@ export default function ZeffyPaymentPage() {
               <div>
                 <p className="font-semibold text-orange-900 mb-1">Important: Credit Card Strongly Recommended</p>
                 <p className="text-sm text-orange-800 mb-2">
-                  While both credit card and ACH (bank transfer) options are available, <strong>credit card payment is strongly preferred</strong> for quicker assessment access.
+                  While both credit card and ACH (bank transfer) options are available, <strong>credit card payment is strongly preferred</strong> for immediate assessment access.
                 </p>
                 <ul className="text-sm text-orange-800 space-y-1 ml-4">
-                  <li>• <strong>Credit Card:</strong> Immediate processing and quicker access</li>
+                  <li>• <strong>Credit Card:</strong> Immediate processing and instant access</li>
                   <li>• <strong>ACH Transfer:</strong> 3-5 business day processing delay before access is granted</li>
                 </ul>
               </div>
@@ -183,7 +199,7 @@ export default function ZeffyPaymentPage() {
             <button
               type="button"
               onClick={handleOpenPayment}
-              disabled={isLoading}
+              disabled={isLoading || !zeffyUrl}
               className="flex-1 bg-indigo-600 text-white px-8 py-4 rounded-lg font-semibold 
                        hover:bg-indigo-700 transition-colors disabled:opacity-50 
                        disabled:cursor-not-allowed flex items-center justify-center"
@@ -192,6 +208,11 @@ export default function ZeffyPaymentPage() {
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Loading Payment Form...
+                </>
+              ) : !zeffyUrl ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Preparing...
                 </>
               ) : (
                 <>
@@ -261,20 +282,26 @@ export default function ZeffyPaymentPage() {
               <div className="flex items-start gap-2 text-sm">
                 <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
                 <p className="text-orange-900">
-                  <strong>Reminder:</strong> Select <strong>credit card</strong> for quicker assessment access. ACH transfers require 3-5 business days processing.
+                  <strong>Reminder:</strong> Select <strong>credit card</strong> for immediate assessment access. ACH transfers require 3-5 business days processing.
                 </p>
               </div>
             </div>
 
-            {/* Iframe */}
+            {/* Iframe - UPDATED to use dynamic URL */}
             <div className="flex-1 overflow-hidden relative bg-gray-50">
-              <iframe
-                src={ZEFFY_FORM_URL}
-                className="absolute inset-0 w-full h-full border-0"
-                title="Payment Form"
-                allow="payment"
-                sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              />
+              {zeffyUrl ? (
+                <iframe
+                  src={zeffyUrl}
+                  className="absolute inset-0 w-full h-full border-0"
+                  title="Payment Form"
+                  allow="payment"
+                  sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                </div>
+              )}
             </div>
 
             {/* Modal Footer */}
