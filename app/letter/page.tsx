@@ -59,7 +59,7 @@ export default function LetterPage() {
               Best Companies for Working with Cancer
             </h1>
             <p className="text-orange-100 text-center mt-2">
-              2026 Employer Index Survey
+              2026 Employer Index Assessment
             </p>
           </div>
 
@@ -83,7 +83,7 @@ export default function LetterPage() {
               </p>
 
               <p className="text-lg font-semibold mb-4">Helpful Tips Before You Begin:</p>
-              <ul className="text-lg leading-relaxed space-y-3 mb-6 ml-6">
+              <ul className="text-lg leading-relaxed space-y-3 mb-6 ml-6 list-disc">
                 <li>Please have your organization's current benefits documentation readily available for reference</li>
                 <li>This survey should be completed by someone directly involved in your organization's benefits policies and programs, or someone authorized to provide this information</li>
                 <li>You may need to consult with colleagues from Benefits, Compensation, or other HR functions to provide complete responses</li>
@@ -131,7 +131,7 @@ export default function LetterPage() {
                   className={`px-12 py-4 rounded-lg font-bold text-lg transition-all transform ${
                     ready && !loading
                       ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-lg hover:-translate-y-0.5'
-                      : 'bg-gray-200 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white opacity-50 cursor-not-allowed'
                   }`}
                 >
                   {loading ? (
@@ -139,7 +139,7 @@ export default function LetterPage() {
                   ) : ready ? (
                     'Continue to Survey →'
                   ) : (
-                    <span className="text-orange-600">Please acknowledge to continue</span>
+                    'Please acknowledge to continue'
                   )}
                 </button>
               </div>
