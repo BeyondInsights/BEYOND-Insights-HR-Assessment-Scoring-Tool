@@ -91,7 +91,7 @@ export default function InvoicePaymentPage() {
       
       // Grant access to dashboard
       localStorage.setItem('payment_method', 'invoice');
-      localStorage.setItem('payment_completed', 'true');
+      localStorage.setItem('payment_completed', 'false');
       localStorage.setItem('payment_date', new Date().toISOString());
 
       // ALSO save to database
