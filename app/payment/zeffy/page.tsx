@@ -301,7 +301,7 @@ export default function ZeffyPaymentPage() {
               <div className="flex items-start gap-2 text-sm">
                 <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
                 <p className="text-orange-900">
-                  <strong>Reminder:</strong> Select <strong>credit card</strong> for immediate survey access. ACH transfers require 1-2 business days processing.
+                  <strong>Reminder:</strong> Surveys are analyzed after payment is received; <strong>Credit card payment</strong> is recommended. ACH transfers require 1-2 business days processing.
                 </p>
               </div>
             </div>
