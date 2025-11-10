@@ -157,7 +157,7 @@ export default function ZeffyPaymentPage() {
                 </p>
                 <ul className="text-sm text-orange-800 space-y-1 ml-4">
                   <li>• <strong>Credit Card:</strong> Immediate processing and instant access</li>
-                  <li>• <strong>ACH Transfer:</strong> 3-5 business day processing delay though you will stil have instante access to survey</li>
+                  <li>• <strong>ACH Transfer:</strong> 3-5 business day processing delay though you will stil have instant access to survey</li>
                 </ul>
               </div>
             </div>
