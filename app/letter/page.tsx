@@ -65,20 +65,20 @@ export default function LetterPage() {
 
           <div className="p-8 md:p-12">
             {/* Letter Content */}
-            <div className="prose max-w-none">
-              <p className="text-base leading-relaxed mb-6">
+            <div className="prose max-w-none text-gray-900">
+              <p className="text-base leading-relaxed mb-6 text-gray-900">
                 On behalf of Cancer and Careers, I want to personally thank you for participating in this comprehensive survey examining workplace benefits and programs for employees managing cancer and other serious health conditions.
               </p>
 
-              <p className="text-base leading-relaxed mb-6">
+              <p className="text-base leading-relaxed mb-6 text-gray-900">
                 By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Index</strong> — a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
               </p>
               
-              <p className="text-base leading-relaxed mb-6">
+              <p className="text-base leading-relaxed mb-6 text-gray-900">
                 The Index will also highlight organizations that exemplify excellence in workplace support.
               </p>
 
-              <p className="text-base leading-relaxed mb-6">
+              <p className="text-base leading-relaxed mb-6 text-gray-900">
                 This <strong>20-minute survey</strong> is designed to be as efficient as possible while capturing the depth of information needed to understand the landscape and identify meaningful standards.
               </p>
 
@@ -94,7 +94,7 @@ export default function LetterPage() {
                 All responses will be collected and analyzed by <strong>BEYOND Insights</strong>, an independent research firm. Individual responses will only be accessible to BEYOND Insights and Cancer and Careers for analysis purposes and will not be shared publicly.
               </p>
 
-              <p className="text-base leading-relaxed mb-6">
+              <p className="text-base leading-relaxed mb-6 text-gray-900">
                 Thank you again for your leadership in creating better workplaces for employees managing cancer and other serious health conditions.
               </p>
 
