@@ -25,7 +25,7 @@ function Card({
           : 'border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50'
       }`}
     >
-      <p className={`font-medium ${selected ? 'text-orange-600' : 'text-gray-800'}`}>
+      <p className={`font-medium ${selected ? 'text-orange-600' : 'text-gray-900'}`}>
         {children}
       </p>
     </div>
@@ -206,7 +206,7 @@ function AuthorizationContent() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-900">Loading...</p>
         </div>
       </div>
     )
@@ -218,7 +218,7 @@ function AuthorizationContent() {
 
       <main className="max-w-4xl mx-auto px-6 py-10 flex-1">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Organization & Authorization</h1>
-        <p className="text-base text-gray-600 mb-6">
+        <p className="text-base text-gray-900 mb-6">
           Please provide your organization details and confirm your authorization to complete this survey.
         </p>
 
@@ -319,7 +319,7 @@ function AuthorizationContent() {
         <h2 className="text-xl font-bold text-gray-900 mb-2">
           Are you <span className="text-blue-700 font-bold">authorized</span> to provide information on behalf of your organization?
         </h2>
-        <p className="text-base text-gray-600 mb-4">(Select ONE)</p>
+        <p className="text-base text-gray-900 mb-4">(Select ONE)</p>
         <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 mt-6 mb-8">
           <Card selected={au1 === 'Yes'} onClick={() => setAu1('Yes')}>
             Yes, I am authorized
@@ -338,7 +338,7 @@ function AuthorizationContent() {
               Which of the following best describes your{' '}
               <span className="text-blue-700 font-bold">authorization</span>?
             </h2>
-            <p className="text-base text-gray-600 mb-6">(Select ALL that apply)</p>
+            <p className="text-base text-gray-900 mb-6">(Select ALL that apply)</p>
             <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 mt-6 mb-8">
               {[
                 'I have direct responsibility for benefits design and administration',
@@ -407,7 +407,7 @@ export default function AuthorizationPage() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-900">Loading...</p>
         </div>
       </div>
     }>
