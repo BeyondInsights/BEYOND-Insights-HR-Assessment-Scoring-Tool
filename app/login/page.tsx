@@ -111,8 +111,6 @@ export default function LoginPage() {
   localStorage.setItem('auth_completed', 'true')
   router.push('/letter')  // Changed from /authorization
 }
-
-  }
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
