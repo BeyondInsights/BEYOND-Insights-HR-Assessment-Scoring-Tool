@@ -115,7 +115,7 @@ export default function PaymentPage() {
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
-                ACH available (3-5 day processing)
+                ACH available (1-2 day processing)
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
