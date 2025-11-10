@@ -64,10 +64,10 @@ export default function PaymentPage() {
         <div className="text-center mb-8">
           <Award className="w-16 h-16 text-orange-600 mx-auto mb-4" />
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Assessment Payment
+            Survey Payment
           </h1>
           <p className="text-lg text-gray-600">
-            Complete payment to begin your assessment
+            Complete payment to begin your survey
           </p>
         </div>
 
@@ -82,7 +82,7 @@ export default function PaymentPage() {
           </div>
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex justify-between">
-              <span className="text-gray-600">Assessment Fee</span>
+              <span className="text-gray-600">Survey Fee</span>
               <span className="text-2xl font-bold text-gray-900">$1,250</span>
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function PaymentPage() {
             <ul className="space-y-2 mb-4">
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
-                Quicker assessment access with credit card
+                Quicker survey access with credit card
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
@@ -180,11 +180,11 @@ export default function PaymentPage() {
           <div className="space-y-2 text-sm text-blue-800">
             <div className="flex items-start gap-2">
               <span className="font-bold">Credit Card:</span>
-              <span>Immediate processing and quicker assessment access</span>
+              <span>Immediate processing and quicker survey access</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="font-bold">ACH Transfer:</span>
-              <span>3-5 business days to clear, then assessment access granted</span>
+              <span>3-5 business days to clear, then survey access granted</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="font-bold">Invoice:</span>
