@@ -115,7 +115,7 @@ export default function ZeffyPaymentPage() {
             <Award className="w-12 h-12 text-indigo-600 mr-4" />
             <div>
               <h2 className="text-3xl font-bold text-gray-900">
-                Complete Your Assessment Payment
+                Complete Your Survey Payment
               </h2>
             </div>
           </div>
@@ -136,11 +136,11 @@ export default function ZeffyPaymentPage() {
                 <p className="font-medium">{companyData.contactName}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Assessment Type</p>
+                <p className="text-sm text-gray-500">Survey Type</p>
                 <p className="font-medium">Best Companies Index</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Assessment Fee</p>
+                <p className="text-sm text-gray-500">Survey Fee</p>
                 <p className="font-medium text-2xl text-gray-900">$1,250</p>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function ZeffyPaymentPage() {
 
           {/* Benefits List */}
           <div className="bg-white/50 rounded-lg p-6 mb-6">
-            <h3 className="font-semibold text-gray-900 mb-3">Your Assessment Includes:</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Your Survey Fee Includes:</h3>
             <ul className="space-y-2">
               <li className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5" />
@@ -201,13 +201,13 @@ export default function ZeffyPaymentPage() {
               <div className="flex items-start gap-2">
                 <span className="font-bold mt-0.5">•</span>
                 <div>
-                  <strong>Tax Deductibility:</strong> This $1,250 payment is a <strong>professional service fee</strong> for assessment and certification services. <strong>It is NOT a tax-deductible charitable donation.</strong>
+                  <strong>Tax Deductibility:</strong> This $1,250 payment is a <strong>professional service fee</strong> for survey access and certification services. <strong>It is NOT a tax-deductible charitable donation.</strong>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-bold mt-0.5">•</span>
                 <div>
-                  <strong>Optional Platform Tip:</strong> The payment form includes an optional tip to support Zeffy's platform. This tip is <strong>entirely optional</strong> and separate from your assessment fee. You can change it to "Other" and enter <strong>$0</strong> if you prefer.
+                  <strong>Optional Platform Tip:</strong> The payment form includes an optional tip to support Zeffy's platform. This tip is <strong>entirely optional</strong> and separate from your survey fee. You can change it to "Other" and enter <strong>$0</strong> if you prefer.
                 </div>
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function ZeffyPaymentPage() {
               <div className="flex items-start gap-2 text-sm">
                 <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                 <p className="text-blue-900">
-                  <strong>Note:</strong> The payment form includes an optional tip to Zeffy. You can change this to "Other" and enter <strong>$0</strong> - it's entirely optional and separate from your $1,250 assessment fee.
+                  <strong>Note:</strong> The payment form includes an optional tip to Zeffy. You can change this to "Other" and enter <strong>$0</strong> - it's entirely optional and separate from your $1,250 survey fee.
                 </p>
               </div>
             </div>
