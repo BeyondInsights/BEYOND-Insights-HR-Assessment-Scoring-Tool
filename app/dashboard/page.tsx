@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [email, setEmail] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [paymentCompleted, setPaymentCompleted] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('')
   const [dimensionProgress, setDimensionProgress] = useState(new Array(13).fill(0))
   const [sectionProgress, setSectionProgress] = useState({
     firmographics: 0,
@@ -28,7 +29,7 @@ export default function DashboardPage() {
     employeeImpact: 0,
   })
 
-useEffect(() => {
+  useEffect(() => {
     if (typeof window === 'undefined') return
     
     // Check if authorization is complete
@@ -50,8 +51,9 @@ useEffect(() => {
         setEmail(savedEmail);
         
         const paymentStatus = localStorage.getItem('payment_completed');
-        const paymentMethod = localStorage.getItem('payment_method');
-        setPaymentCompleted(paymentStatus === 'true' || paymentMethod === 'invoice' || paymentMethod === 'ach' || paymentMethod === 'card');
+        const method = localStorage.getItem('payment_method');
+        setPaymentCompleted(paymentStatus === 'true');
+        setPaymentMethod(method || '');
         
         const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
         if (firmo?.companyName) setCompanyName(firmo.companyName);
@@ -189,6 +191,68 @@ useEffect(() => {
     return () => window.removeEventListener("focus", handleFocus);
   }, [router])
 
+  // CHECK FOR INVOICE PAYMENT - BEFORE RENDERING DASHBOARD
+  if (paymentMethod === 'invoice' && !paymentCompleted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+        <Header />
+        
+        <main className="max-w-4xl mx-auto px-6 py-16 flex-1">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-12 h-12 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Payment Processing
+            </h1>
+            
+            <p className="text-lg text-gray-900 mb-6">
+              We have not received payment from your organization yet.
+            </p>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6 text-left">
+              <h3 className="font-semibold text-blue-900 mb-3">What happens next:</h3>
+              <ul className="space-y-2 text-sm text-blue-800">
+                <li className="flex items-start">
+                  <span className="font-bold mr-2">1.</span>
+                  <span>Your invoice has been sent to your billing contact</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-bold mr-2">2.</span>
+                  <span>Once we receive payment, you'll be notified via email</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-bold mr-2">3.</span>
+                  <span>You'll then have immediate access to the survey</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-8">
+              <p className="text-sm text-orange-900">
+                <strong>Invoice payments typically process within 10-15 business days.</strong>
+              </p>
+            </div>
+            
+            <p className="text-sm text-gray-900 mb-2">
+              <strong>Questions about your invoice or payment?</strong>
+            </p>
+            <p className="text-sm text-gray-900">
+              Contact us at{' '}
+              <a href="mailto:info@cancerandcareers.org" className="text-orange-600 hover:underline font-medium">
+                info@cancerandcareers.org
+              </a>
+            </p>
+          </div>
+        </main>
+        
+        <Footer />
+      </div>
+    )
+  }
  
   const overallProgress = Math.round(
     (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
@@ -221,13 +285,13 @@ useEffect(() => {
   }
 
   const handleDimensionClick = (idx: number) => {
-  if (!paymentCompleted) {
-    return;
+    if (!paymentCompleted) {
+      return;
+    }
+    if (allCoreDone) {
+      router.push(`/survey/dimensions/${idx+1}`)
+    }
   }
-  if (allCoreDone) {
-    router.push(`/survey/dimensions/${idx+1}`)
-  }
-}
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
@@ -275,7 +339,6 @@ useEffect(() => {
         )}
 
         {paymentCompleted && (() => {
-          const paymentMethod = localStorage.getItem('payment_method')
           const isInvoice = paymentMethod === 'invoice'
           
           return (
@@ -312,99 +375,101 @@ useEffect(() => {
             </div>
           )
         })()}
-{/* Completion Banner - Shows when everything is 100% complete */}
-{paymentCompleted && (() => {
-  const allSectionsComplete = 
-    sectionProgress.firmographics === 100 &&
-    sectionProgress.general === 100 &&
-    sectionProgress.current === 100 &&
-    dimensionProgress.every(p => p === 100) &&
-    advancedProgress.crossDimensional === 100 &&
-    advancedProgress.employeeImpact === 100;
 
-  if (!allSectionsComplete) return null;
+        {/* Completion Banner */}
+        {paymentCompleted && (() => {
+          const allSectionsComplete = 
+            sectionProgress.firmographics === 100 &&
+            sectionProgress.general === 100 &&
+            sectionProgress.current === 100 &&
+            dimensionProgress.every(p => p === 100) &&
+            advancedProgress.crossDimensional === 100 &&
+            advancedProgress.employeeImpact === 100;
 
-  return (
-    <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-orange-600 rounded-xl p-8 mb-8 shadow-xl">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-start gap-4 text-white flex-1">
-          <svg width="60" height="60" viewBox="0 0 60 60" fill="none" className="flex-shrink-0">
-            <circle cx="30" cy="30" r="28" fill="white" opacity="0.2"/>
-            <path d="M30 10 L35 23 L48 27 L38 37 L40 50 L30 43 L20 50 L22 37 L12 27 L25 23 Z" fill="white"/>
-          </svg>
-          <div>
-            <h3 className="text-2xl font-bold mb-2">Thank You!</h3>
-            <p className="text-lg mb-1">
-              You completed all sections of the survey!
-            </p>
-            <p className="text-white/90">
-              Learn about next steps, upload supporting documentation, and discover how to use the certification badge if your organization qualifies.
-            </p>
+          if (!allSectionsComplete) return null;
+
+          return (
+            <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-orange-600 rounded-xl p-8 mb-8 shadow-xl">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-start gap-4 text-white flex-1">
+                  <svg width="60" height="60" viewBox="0 0 60 60" fill="none" className="flex-shrink-0">
+                    <circle cx="30" cy="30" r="28" fill="white" opacity="0.2"/>
+                    <path d="M30 10 L35 23 L48 27 L38 37 L40 50 L30 43 L20 50 L22 37 L12 27 L25 23 Z" fill="white"/>
+                  </svg>
+                  <div>
+                    <h3 className="text-2xl font-bold mb-2">Thank You!</h3>
+                    <p className="text-lg mb-1">
+                      You completed all sections of the survey!
+                    </p>
+                    <p className="text-white/90">
+                      Learn about next steps, upload supporting documentation, and discover how to use the certification badge if your organization qualifies.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => router.push('/completion')}
+                  className="px-8 py-4 bg-white text-purple-600 rounded-lg font-bold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 whitespace-nowrap"
+                >
+                  View What's Next
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-10">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">How this works</h2>
+          <p className="text-sm text-gray-700 mb-4">
+            Complete this survey in three stages. Your work saves automatically on every change, and you can stop anytime to return later.
+          </p>
+          
+          <div className="space-y-4">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                1
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">Complete Core Sections</h3>
+                <p className="text-sm text-gray-600">
+                  Complete Company Profile, General Employee Benefits, and Current Support (in any order)
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                2
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">Rate 13 Dimensions of Support</h3>
+                <p className="text-sm text-gray-600">
+                  Once Stage 1 is complete, assess all 13 dimensions (in any order)
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                3
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">Complete 2 Additional Sections</h3>
+                <p className="text-sm text-gray-600">
+                  After finishing all 13 dimensions, complete the Cross-Dimensional and Employee-Impact sections
+                </p>
+              </div>
+            </div>
           </div>
+          
+          <p className="text-xs text-gray-500 mt-4 italic">
+            Progress meters reflect partial completion - you can re-enter any section to review or edit your responses.
+          </p>
         </div>
-        <button
-          onClick={() => router.push('/completion')}
-          className="px-8 py-4 bg-white text-purple-600 rounded-lg font-bold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 whitespace-nowrap"
-        >
-          View What's Next
-        </button>
-      </div>
-    </div>
-  );
-})()}
-<div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-10">
-  <h2 className="text-lg font-semibold text-gray-900 mb-2">How this works</h2>
-  <p className="text-sm text-gray-700 mb-4">
-    Complete this survey in three stages. Your work saves automatically on every change, and you can stop anytime to return later.
-  </p>
-  
-  <div className="space-y-4">
-    <div className="flex gap-3">
-      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-        1
-      </div>
-      <div>
-        <h3 className="font-semibold text-gray-900 text-sm">Complete Core Sections</h3>
-        <p className="text-sm text-gray-600">
-          Complete Company Profile, General Employee Benefits, and Current Support (in any order)
-        </p>
-      </div>
-    </div>
-    
-    <div className="flex gap-3">
-      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-        2
-      </div>
-      <div>
-        <h3 className="font-semibold text-gray-900 text-sm">Rate 13 Dimensions of Support</h3>
-        <p className="text-sm text-gray-600">
-          Once Stage 1 is complete, assess all 13 dimensions (in any order)
-        </p>
-      </div>
-    </div>
-    
-    <div className="flex gap-3">
-      <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-        3
-      </div>
-      <div>
-        <h3 className="font-semibold text-gray-900 text-sm">Complete 2 Additional Sections</h3>
-        <p className="text-sm text-gray-600">
-          After finishing all 13 dimensions, complete the Cross-Dimensional and Employee-Impact sections
-        </p>
-      </div>
-    </div>
-  </div>
-  
-  <p className="text-xs text-gray-500 mt-4 italic">
-    Progress meters reflect partial completion - you can re-enter any section to review or edit your responses.
-  </p>
-</div>
         
         {/* Core Sections */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {sections.map((s) => {
-            const isLocked = false // Always allow access if they've completed payment (any method)
+            const isLocked = false
             
             return (
               <div
@@ -461,46 +526,46 @@ useEffect(() => {
         <h2 className="text-xl font-bold text-gray-900 mb-4">13 Dimensions of Support</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {dimensions.map((dim, idx) => {
-  const isLocked = !paymentCompleted || !allCoreDone;
-  const isClickable = !isLocked;
-  
-  return (
-    <div
-      key={dim}
-      role="button"
-      tabIndex={isClickable ? 0 : -1}
-      onClick={() => handleDimensionClick(idx)}
-      onKeyDown={(e) => isClickable && e.key === 'Enter' && handleDimensionClick(idx)}
-      className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300
-        ${isLocked
-          ? 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-60'
-          : 'cursor-pointer bg-white hover:bg-blue-50 hover:shadow-md border-gray-200 transform hover:scale-105'
-        }`}
-    >
-      <div className="flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          <h3 className="text-base font-semibold text-gray-800">{dim}</h3>
-          {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
-        </div>
-        <p className="text-xs text-gray-500">
-          {!paymentCompleted ? (
-            'Payment required'
-          ) : !allCoreDone ? (
-            'Complete all 3 core sections first'
-          ) : dimensionProgress[idx] === 100 ? (
-            'Completed'
-          ) : (
-            'Click to begin'
-          )}
-        </p>
-      </div>
-      <ProgressCircle completion={isLocked ? 0 : (dimensionProgress[idx] || 0)} />
-    </div>
-  );
-})}
+            const isLocked = !paymentCompleted || !allCoreDone;
+            const isClickable = !isLocked;
+            
+            return (
+              <div
+                key={dim}
+                role="button"
+                tabIndex={isClickable ? 0 : -1}
+                onClick={() => handleDimensionClick(idx)}
+                onKeyDown={(e) => isClickable && e.key === 'Enter' && handleDimensionClick(idx)}
+                className={`rounded-xl border-2 p-6 flex justify-between items-center shadow-sm transition-all duration-300
+                  ${isLocked
+                    ? 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-60'
+                    : 'cursor-pointer bg-white hover:bg-blue-50 hover:shadow-md border-gray-200 transform hover:scale-105'
+                  }`}
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-base font-semibold text-gray-800">{dim}</h3>
+                    {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {!paymentCompleted ? (
+                      'Payment required'
+                    ) : !allCoreDone ? (
+                      'Complete all 3 core sections first'
+                    ) : dimensionProgress[idx] === 100 ? (
+                      'Completed'
+                    ) : (
+                      'Click to begin'
+                    )}
+                  </p>
+                </div>
+                <ProgressCircle completion={isLocked ? 0 : (dimensionProgress[idx] || 0)} />
+              </div>
+            );
+          })}
         </div>
 
-        {/* Additional Survey Sections - Locked until all 13 dimensions complete */}
+        {/* Additional Survey Sections */}
         {paymentCompleted && (
           <>
             <div className="bg-purple-50 border-l-4 border-purple-600 p-6 mb-6 rounded-lg">
