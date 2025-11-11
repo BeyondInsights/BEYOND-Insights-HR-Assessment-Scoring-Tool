@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { CreditCard, FileText, Award, Building2, AlertTriangle } from 'lucide-react'
+import { CreditCard, FileText, Award, Building2, AlertTriangle, Info } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { getUserAssessment } from '@/lib/supabase/auth'
@@ -95,7 +95,7 @@ export default function PaymentPage() {
 
         {/* Payment Options */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Zeffy Payment - RECOMMENDED */}
+          {/* Online Payment - RECOMMENDED */}
           <button
             onClick={() => router.push('/payment/zeffy')}
             className="relative p-6 rounded-xl border-2 border-orange-500 bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-lg transition-all text-left group"
@@ -111,28 +111,23 @@ export default function PaymentPage() {
             <ul className="space-y-2 mb-4">
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
-                Quicker survey access with credit card or ACH payment
+                Immediate access with credit card
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
-                ACH available (1-2 day processing)
+                ACH bank transfer available
               </li>
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-green-600 mr-2">✓</span>
                 Secure payment processing
               </li>
             </ul>
-            <div className="bg-orange-100 border border-orange-300 rounded-lg p-3 mb-4">
-              <p className="text-xs text-orange-900">
-                <strong>Note:</strong> Surveys are analyzed after payment.  Credit card payment is preferred.
-              </p>
-            </div>
             <div className="text-orange-600 font-semibold group-hover:underline">
               Continue with Online Payment →
             </div>
           </button>
 
-          {/* Invoice - USE ONLY IF NEEDED */}
+          {/* Invoice - Alternative Option */}
           <button
             onClick={() => router.push('/payment/invoice')}
             className="p-6 rounded-xl border-2 border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg transition-all text-left group"
@@ -140,31 +135,22 @@ export default function PaymentPage() {
             <FileText className="w-12 h-12 text-gray-600 mb-4 group-hover:text-blue-600" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">Request Invoice</h3>
             <p className="text-gray-700 mb-4">
-              For organizations requiring internal payment processing
+              Available if unable to use credit card or bank transfer
             </p>
             <ul className="space-y-2 mb-4">
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-blue-600 mr-2">✓</span>
                 Net 14 days payment terms
               </li>
-              <li className="text-sm text-gray-600 flex items-center">
-                <span className="text-blue-600 mr-2">✓</span>
-                Check or ACH bank transfer
-              </li>
             </ul>
             
-            {/* Warning Box */}
-            <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-4">
+            {/* Info Box - Softened */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-yellow-900 font-semibold mb-1">
-                    Option if credit card/ACH not available
-                  </p>
-                  <p className="text-xs text-yellow-800">
-                    Score, feedback, and certification will not be available until payment is received and processed (typically 14-21 days).
-                  </p>
-                </div>
+                <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-blue-900">
+                  Survey can be accessed once payment is received and processed (typically 14-21 days).
+                </p>
               </div>
             </div>
             
@@ -172,25 +158,6 @@ export default function PaymentPage() {
               Request Invoice →
             </div>
           </button>
-        </div>
-
-        {/* Additional Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-          <h3 className="font-semibold text-blue-900 mb-3">Payment Processing Timeline</h3>
-          <div className="space-y-2 text-sm text-blue-800">
-            <div className="flex items-start gap-2">
-              <span className="font-bold">Credit Card:</span>
-              <span>Immediate processing and quicker survey access</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="font-bold">ACH Transfer:</span>
-              <span>1-2 business days to clear, though you will still have immediate access to survey</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="font-bold">Invoice:</span>
-              <span>14-21 days typical processing time (payment + processing)</span>
-            </div>
-          </div>
         </div>
 
         {/* Back Button */}
