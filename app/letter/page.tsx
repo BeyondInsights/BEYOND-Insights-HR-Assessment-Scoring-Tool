@@ -53,8 +53,8 @@ export default function LetterPage() {
       
       <main className="max-w-4xl mx-auto px-6 py-8 flex-1">
         <div className="bg-white rounded-xl shadow-lg relative">
-          {/* Badge Logo - Top Right Corner */}
-          <div className="absolute top-6 right-6 z-10">
+          {/* Badge Logo - Top Left Corner */}
+          <div className="absolute top-6 left-6 z-10">
             <img
               src="/best-companies-2026-logo.png"
               alt="Best Companies for Working with Cancer Award Logo"
@@ -62,17 +62,14 @@ export default function LetterPage() {
             />
           </div>
 
-          {/* Header Banner */}
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-xl px-8 py-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-white text-center">
-              Best Companies for Working with Cancer
+          {/* Header Banner - Title on 2 rows, left padding for badge */}
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-xl px-8 py-6 pl-40">
+            <h1 className="text-2xl md:text-3xl font-bold text-white">
+              Best Companies for<br />Working with Cancer
             </h1>
-            <p className="text-orange-100 text-center mt-2">
-              2026 Employer Index Survey
-            </p>
           </div>
 
-          <div className="p-8 md:p-12 md:pr-40">
+          <div className="p-8 md:p-12">
             {/* Letter Content */}
             <div className="prose max-w-none text-gray-900">
               <p className="text-base leading-relaxed mb-6 text-gray-900">
