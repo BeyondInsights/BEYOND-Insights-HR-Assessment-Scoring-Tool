@@ -52,7 +52,16 @@ export default function LetterPage() {
       <Header />
       
       <main className="max-w-4xl mx-auto px-6 py-8 flex-1">
-        <div className="bg-white rounded-xl shadow-lg">
+        <div className="bg-white rounded-xl shadow-lg relative">
+          {/* Badge Logo - Top Right Corner */}
+          <div className="absolute top-6 right-6 z-10">
+            <img
+              src="/best-companies-2026-logo.png"
+              alt="Best Companies for Working with Cancer Award Logo"
+              className="h-20 sm:h-24 lg:h-28 w-auto drop-shadow-lg opacity-95"
+            />
+          </div>
+
           {/* Header Banner */}
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-xl px-8 py-6">
             <h1 className="text-2xl md:text-3xl font-bold text-white text-center">
@@ -63,7 +72,7 @@ export default function LetterPage() {
             </p>
           </div>
 
-          <div className="p-8 md:p-12">
+          <div className="p-8 md:p-12 md:pr-40">
             {/* Letter Content */}
             <div className="prose max-w-none text-gray-900">
               <p className="text-base leading-relaxed mb-6 text-gray-900">
