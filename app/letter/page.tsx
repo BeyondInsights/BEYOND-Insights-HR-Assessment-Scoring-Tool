@@ -52,21 +52,17 @@ export default function LetterPage() {
       <Header />
       
       <main className="max-w-4xl mx-auto px-6 py-8 flex-1">
-        <div className="bg-white rounded-xl shadow-lg relative">
-          {/* Badge Logo - Top Left Corner */}
-          <div className="absolute top-6 left-6 z-10">
+        <div className="bg-white rounded-xl shadow-lg">
+          {/* Header Banner with badge on right side */}
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-xl px-8 py-6 flex items-center justify-between gap-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-white text-left">
+              2026 Best Companies for<br />Working with Cancer Index
+            </h1>
             <img
               src="/best-companies-2026-logo.png"
               alt="Best Companies for Working with Cancer Award Logo"
-              className="h-20 sm:h-24 lg:h-28 w-auto drop-shadow-lg opacity-95"
+              className="h-20 sm:h-24 w-auto flex-shrink-0 drop-shadow-lg"
             />
-          </div>
-
-          {/* Header Banner - Title on 2 rows, left padding for badge */}
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-xl px-8 py-6 pl-40">
-            <h1 className="text-2xl md:text-3xl font-bold text-white">
-              Best Companies for<br />Working with Cancer
-            </h1>
           </div>
 
           <div className="p-8 md:p-12">
