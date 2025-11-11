@@ -54,12 +54,30 @@ export default function Header() {
   return (
     <header className="shadow-md">
       <div className="bg-white">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 gap-3">
-          {/* Left: Reset + Profile + Back */}
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 gap-4">
+          {/* Left: Badge */}
+          <div className="flex items-center">
+            <img
+              src="/best-companies-2026-logo.png"
+              alt="Best Companies for Working with Cancer Award Logo"
+              className="h-16 sm:h-20 lg:h-24 w-auto drop-shadow-md"
+            />
+          </div>
+
+          {/* Center: CAC Logo */}
+          <div className="flex-1 flex justify-center">
+            <img
+              src="/cancer-careers-logo.png"
+              alt="Cancer and Careers Logo"
+              className="h-10 sm:h-14 lg:h-16 w-auto"
+            />
+          </div>
+
+          {/* Right: All buttons */}
           <div className="flex items-center gap-3">
             <button
               onClick={handleReset}
-              className="flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-red-700 transition text-sm"
+              className="flex items-center gap-2 bg-black text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-gray-800 transition text-sm"
               title="Reset all data (including database)"
             >
               <RotateCcw className="w-4 h-4" />
@@ -67,51 +85,31 @@ export default function Header() {
             </button>
             <button
               onClick={() => router.push('/company-profile')}
-              className="flex items-center gap-2 bg-purple-700 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-purple-800 transition text-sm"
+              className="flex items-center gap-2 bg-black text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-gray-800 transition text-sm"
               title="View your company profile"
             >
               <FileText className="w-4 h-4" />
               Review Your Company Profile
             </button>
-            {showBack ? (
+            {showBack && !onPrintPage && (
               <button
                 onClick={() => router.push('/dashboard')}
-                className="bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-orange-700 transition text-sm"
+                className="bg-black text-white px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-gray-800 transition text-sm"
                 title="Back to Dashboard"
               >
                 Back to Dashboard
               </button>
-            ) : (
-              <div className="w-40" /> // spacer keeps logos centered
             )}
-          </div>
-
-{/* Center: Award logo */}
-<div className="flex-1 flex justify-center">
-  <img
-    src="/best-companies-2026-logo.png"
-    alt="Best Companies for Working with Cancer Award Logo"
-    className="h-16 sm:h-24 lg:h-28 w-auto drop-shadow-md"
-  />
-</div>
-
-          {/* Right: CAC logo + Print/Download */}
-          <div className="flex items-center gap-3">
             {!onPrintPage && (
               <button
                 onClick={goPrintView}
-                className="flex items-center gap-2 bg-slate-800 text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-slate-900 transition text-sm"
+                className="flex items-center gap-2 bg-black text-white px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-gray-800 transition text-sm"
                 title="Open printable full survey"
               >
                 <Download className="w-4 h-4" />
                 Review / Download Survey
               </button>
             )}
-            <img
-              src="/cancer-careers-logo.png"
-              alt="Cancer and Careers Logo"
-              className="h-10 sm:h-14 lg:h-16 w-auto"
-            />
           </div>
         </div>
       </div>
