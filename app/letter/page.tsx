@@ -61,7 +61,7 @@ export default function LetterPage() {
             <img
               src="/best-companies-2026-logo.png"
               alt="Best Companies for Working with Cancer Award Logo"
-              className="h-20 sm:h-24 w-auto flex-shrink-0 drop-shadow-lg"
+              className="h-24 sm:h-28 lg:h-32 w-auto flex-shrink-0 drop-shadow-lg"
             />
           </div>
 
