@@ -159,7 +159,7 @@ export default function PaymentPage() {
                 <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-xs text-yellow-900 font-semibold mb-1">
-                    Use only if credit card/ACH not available
+                    Option if credit card/ACH not available
                   </p>
                   <p className="text-xs text-yellow-800">
                     Score, feedback, and certification will not be available until payment is received and processed (typically 14-21 days).
