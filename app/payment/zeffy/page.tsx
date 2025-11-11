@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, CheckCircle, Award, Building2, CreditCard, Loader2, AlertCircle } from 'lucide-react'
+import { X, CheckCircle, Award, Building2, CreditCard, Loader2, AlertCircle, Info } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { getCurrentUser } from '@/lib/supabase/auth'
@@ -17,7 +17,6 @@ export default function ZeffyPaymentPage() {
     contactName: ''
   })
   
-  // UPDATED: Dynamic URL with parameters instead of constant
   const [zeffyUrl, setZeffyUrl] = useState('')
 
   useEffect(() => {
@@ -34,7 +33,6 @@ export default function ZeffyPaymentPage() {
       contactName: `${firstName} ${lastName}`
     })
     
-    // UPDATED: Build Zeffy URL with parameters for tracking
     const baseUrl = 'https://www.zeffy.com/en-US/ticketing/best-companies-for-working-with-cancer'
     const params = new URLSearchParams({
       survey_id: surveyId,
@@ -61,20 +59,16 @@ export default function ZeffyPaymentPage() {
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
-      // Listen for payment completion from Zeffy
       if (event.origin === 'https://www.zeffy.com') {
         if (event.data.type === 'payment_complete' || event.data.status === 'success') {
           setPaymentStatus('success')
           
-          // Determine payment method from event data if available
-          const method = event.data.payment_method || 'card' // Default to card
+          const method = event.data.payment_method || 'card'
           
-          // Set payment status in localStorage
           localStorage.setItem('payment_completed', 'true')
           localStorage.setItem('payment_method', method)
           localStorage.setItem('payment_date', new Date().toISOString())
           
-          // ALSO save to database
           try {
             const user = await getCurrentUser()
             if (user) {
@@ -146,23 +140,6 @@ export default function ZeffyPaymentPage() {
             </div>
           </div>
 
-          {/* Payment Method Notice */}
-          <div className="bg-orange-50 border-l-4 border-orange-500 p-4 mb-6">
-            <div className="flex items-start">
-              <AlertCircle className="w-5 h-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-semibold text-orange-900 mb-1">Important: Surveys are analyzed after payment.  Credit Card Strongly Recommended</p>
-                <p className="text-sm text-orange-800 mb-2">
-                  While both credit card and ACH (bank transfer) options are available, <strong>credit card payment is strongly preferred</strong>.
-                </p>
-                <ul className="text-sm text-orange-800 space-y-1 ml-4">
-                  <li>• <strong>Credit Card:</strong> Immediate processing and instant access</li>
-                  <li>• <strong>ACH Transfer:</strong> 1-2 business day processing delay, though you will stil have immediate access to survey</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
           {/* Benefits List */}
           <div className="bg-white/50 rounded-lg p-6 mb-6">
             <h3 className="font-semibold text-gray-900 mb-3">Your Survey Fee Includes:</h3>
@@ -194,20 +171,29 @@ export default function ZeffyPaymentPage() {
             </ul>
           </div>
 
-          {/* Important Payment Notes */}
+          {/* Important Payment Notes - UPDATED with softer, consolidated language */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6">
-            <h3 className="font-semibold text-blue-900 mb-3">Important Payment Information:</h3>
+            <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+              <Info className="w-5 h-5" />
+              Payment Information
+            </h3>
             <div className="space-y-3 text-sm text-blue-800">
               <div className="flex items-start gap-2">
                 <span className="font-bold mt-0.5">•</span>
                 <div>
-                  <strong>Tax Deductibility:</strong> This $1,250 payment is a <strong>professional service fee</strong> for survey access and certification services. <strong>It is NOT a tax-deductible charitable donation.</strong>
+                  <strong>Tax Deductibility:</strong> While Cancer and Careers / CEW Foundation is a 501(c)(3) charitable organization and donations are tax-deductible, this $1,250 payment is a <strong>professional service fee</strong> for survey access, analysis, and certification services, and is therefore <strong>not tax-deductible as a charitable contribution</strong>.
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-bold mt-0.5">•</span>
                 <div>
-                  <strong>Optional Platform Tip:</strong> The payment form includes an optional tip to support Zeffy's platform. This tip is <strong>entirely optional</strong> and separate from your survey fee. You can change it to "Other" and enter <strong>$0</strong> if you prefer.
+                  <strong>Payment Methods:</strong> Both credit card and ACH (bank transfer) options are available. Credit card provides immediate confirmation, while ACH transfers typically process within 1-2 business days.
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-bold mt-0.5">•</span>
+                <div>
+                  <strong>Platform Tip:</strong> The payment form includes an optional tip to support Zeffy's platform. This is entirely optional and separate from your survey fee—you may adjust or remove it as you prefer.
                 </div>
               </div>
             </div>
@@ -256,7 +242,7 @@ export default function ZeffyPaymentPage() {
         </div>
       </main>
 
-      {/* Payment Modal */}
+      {/* Payment Modal - SIMPLIFIED, removed repetitive warnings */}
       {showPaymentModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center 
                       justify-center z-50 p-4">
@@ -271,7 +257,7 @@ export default function ZeffyPaymentPage() {
                   Survey Payment
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  {companyData.name}
+                  {companyData.name} • $1,250
                 </p>
               </div>
               <button
@@ -296,27 +282,7 @@ export default function ZeffyPaymentPage() {
               </div>
             )}
 
-            {/* Payment Method Reminder */}
-            <div className="bg-orange-50 border-b border-orange-200 p-4">
-              <div className="flex items-start gap-2 text-sm">
-                <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                <p className="text-orange-900">
-                  <strong>Reminder:</strong> Surveys are analyzed after payment is received; <strong>Credit card payment</strong> is recommended. ACH transfers require 1-2 business days processing.
-                </p>
-              </div>
-            </div>
-
-            {/* Zeffy Tip Reminder */}
-            <div className="bg-blue-50 border-b border-blue-200 p-4">
-              <div className="flex items-start gap-2 text-sm">
-                <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <p className="text-blue-900">
-                  <strong>Note:</strong> The payment form includes an optional tip to Zeffy. You can change this to "Other" and enter <strong>$0</strong> - it's entirely optional and separate from your $1,250 survey fee.
-                </p>
-              </div>
-            </div>
-
-            {/* Iframe - UPDATED to use dynamic URL */}
+            {/* Iframe */}
             <div className="flex-1 overflow-hidden relative bg-gray-50">
               {zeffyUrl ? (
                 <iframe
