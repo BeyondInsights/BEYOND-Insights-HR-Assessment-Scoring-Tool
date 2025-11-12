@@ -38,6 +38,18 @@ export default function Dimension9Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   const [D9A_ITEMS] = useState(() => shuffleArray(D9A_ITEMS_BASE));
+
+  // ===== VALIDATION ADDITIONS =====
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+
+  const markTouched = (fieldName: string) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }))
+  }
+
+  const isStepValid = (): boolean => {
+    return validateStep() === null
+  }
+  // ===== END VALIDATION ADDITIONS =====
   
   useEffect(() => {
     const saved = localStorage.getItem("dimension9_data");
@@ -79,6 +91,8 @@ export default function Dimension9Page() {
       ...prev,
       d9a: { ...(prev.d9a || {}), [item]: status }
     }));
+    
+    markTouched('d9a'); // VALIDATION: Mark d9a as touched
     
     setIsTransitioning(true);
     
@@ -285,6 +299,31 @@ const getTotalSteps = () => {
             </div>
 
             <div className="p-8">
+              {/* VALIDATION: Progress Counter */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">
+                      Progress: {Object.keys(ans.d9a || {}).length} of {D9A_ITEMS.length} items rated
+                    </p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      {Object.keys(ans.d9a || {}).length === D9A_ITEMS.length 
+                        ? '✓ All items completed!' 
+                        : `${D9A_ITEMS.length - Object.keys(ans.d9a || {}).length} items remaining`}
+                    </p>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {Math.round((Object.keys(ans.d9a || {}).length / D9A_ITEMS.length) * 100)}%
+                  </div>
+                </div>
+                <div className="mt-3 w-full bg-blue-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    style={{ width: `${(Object.keys(ans.d9a || {}).length / D9A_ITEMS.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
@@ -389,30 +428,42 @@ const getTotalSteps = () => {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
-            <p className="font-bold text-gray-900 mb-4">
-              Are the <span className="text-blue-600 font-bold">Executive Commitment & Resources elements</span> your 
-              organization <span className="text-blue-600 font-bold">currently offers</span>...?
-            </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
-            
-            <div className="space-y-2">
-              {[
-                "Only available in select locations",
-                "Vary across locations", 
-                "Generally consistent across all locations"
-              ].map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setField("d9aa", opt)}
-                  className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d9aa === opt
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+            {/* VALIDATION: Red border wrapper */}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.d9aa && !ans.d9aa
+                ? 'border-red-500 bg-red-50' 
+                : 'border-transparent'
+            }`}>
+              <p className="font-bold text-gray-900 mb-4">
+                Are the <span className="text-blue-600 font-bold">Executive Commitment & Resources elements</span> your 
+                organization <span className="text-blue-600 font-bold">currently offers</span>...?
+                {/* VALIDATION: Required asterisk */}
+                <span className="text-red-600 ml-1">*</span>
+              </p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+              
+              <div className="space-y-2">
+                {[
+                  "Only available in select locations",
+                  "Vary across locations", 
+                  "Generally consistent across all locations"
+                ].map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      setField("d9aa", opt);
+                      markTouched("d9aa"); // VALIDATION: Mark as touched
+                    }}
+                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                      ans.d9aa === opt
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -484,9 +535,15 @@ const getTotalSteps = () => {
             >
               ← Back
             </button>
+            {/* VALIDATION: Conditional Continue button styling */}
             <button 
               onClick={next} 
-              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+              disabled={!isStepValid()}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                isStepValid()
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
             >
               Continue →
             </button>
