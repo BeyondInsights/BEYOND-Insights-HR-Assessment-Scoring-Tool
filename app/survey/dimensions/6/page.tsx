@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -13,7 +13,6 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-// Data for D6.a - ALL 12 ITEMS FROM SURVEY
 const D6A_ITEMS_BASE = [
   "Strong anti-discrimination policies specific to health conditions",
   "Clear process for confidential health disclosures",
@@ -38,6 +37,18 @@ export default function Dimension6Page() {
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D6A_ITEMS] = useState(() => shuffleArray(D6A_ITEMS_BASE));
+  
+  // ===== VALIDATION ADDITIONS =====
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const markTouched = (fieldName: string) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }));
+  };
+
+  const isStepValid = (): boolean => {
+    return validateStep() === null;
+  };
+  // ===== END VALIDATION ADDITIONS =====
   
   useEffect(() => {
     const saved = localStorage.getItem("dimension6_data");
@@ -92,6 +103,9 @@ export default function Dimension6Page() {
       d6a: { ...(prev.d6a || {}), [item]: status }
     }));
     
+    // VALIDATION: Mark d6a as touched
+    markTouched('d6a');
+    
     setIsTransitioning(true);
     
     setTimeout(() => {
@@ -137,10 +151,10 @@ export default function Dimension6Page() {
   const showD6_2 = hasAnyOffered;
 
   const getTotalSteps = () => {
-    let total = 3; // intro, D6.a, D6.b
-    if (showd6aa) total++; // d6aa
-    if (showD6_2) total++; // D6.2
-    total++; // completion
+    let total = 3;
+    if (showd6aa) total++;
+    if (showD6_2) total++;
+    total++;
     return total;
   };
 
@@ -311,6 +325,31 @@ export default function Dimension6Page() {
             </div>
 
             <div className="p-8">
+              {/* VALIDATION: Progress Counter */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">
+                      Progress: {Object.keys(ans.d6a || {}).length} of {D6A_ITEMS.length} items rated
+                    </p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      {Object.keys(ans.d6a || {}).length === D6A_ITEMS.length 
+                        ? '✓ All items completed!' 
+                        : `${D6A_ITEMS.length - Object.keys(ans.d6a || {}).length} items remaining`}
+                    </p>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {Math.round((Object.keys(ans.d6a || {}).length / D6A_ITEMS.length) * 100)}%
+                  </div>
+                </div>
+                <div className="mt-3 w-full bg-blue-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    style={{ width: `${(Object.keys(ans.d6a || {}).length / D6A_ITEMS.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
@@ -397,13 +436,19 @@ export default function Dimension6Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous option
+                  ← View previous option
                 </button>
 
+                {/* VALIDATION: Updated Continue button */}
                 {Object.keys(ans.d6a || {}).length === D6A_ITEMS.length && !isTransitioning && (
                   <button
                     onClick={next}
-                    className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
+                    disabled={!isStepValid()}
+                    className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                      isStepValid()
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer animate-pulse'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                    }`}
                   >
                     Continue →
                   </button>
@@ -417,30 +462,42 @@ export default function Dimension6Page() {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
-            <p className="font-bold text-gray-900 mb-4">
-              Are the <span className="text-blue-600 font-bold">Culture & Psychological Safety support options</span> your 
-              organization <span className="text-blue-600 font-bold">currently offers</span>...?
-            </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
-            
-            <div className="space-y-2">
-              {[
-                "Only available in select locations",
-                "Vary across locations", 
-                "Generally consistent across all locations"
-              ].map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setField("d6aa", opt)}
-                  className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d6aa === opt
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+            {/* VALIDATION: Wrapper with red border */}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.d6aa && !ans.d6aa
+                ? 'border-red-500 bg-red-50' 
+                : 'border-gray-200 bg-white'
+            }`}>
+              {/* VALIDATION: Required asterisk */}
+              <p className="font-bold text-gray-900 mb-4">
+                Are the <span className="text-blue-600 font-bold">Culture & Psychological Safety support options</span> your 
+                organization <span className="text-blue-600 font-bold">currently offers</span>...?
+                <span className="text-red-600 ml-1">*</span>
+              </p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+              
+              <div className="space-y-2">
+                {[
+                  "Only available in select locations",
+                  "Vary across locations", 
+                  "Generally consistent across all locations"
+                ].map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      setField("d6aa", opt);
+                      markTouched("d6aa"); // VALIDATION: Mark as touched
+                    }}
+                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                      ans.d6aa === opt
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -480,43 +537,55 @@ export default function Dimension6Page() {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Measuring Psychological Safety</h3>
             
-            <p className="font-bold text-gray-900 mb-4">
-              How do you <span className="text-blue-600 font-bold">measure psychological safety</span> for <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>?
-            </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ALL that are available in at least one location)</p>
-            
-            <div className="space-y-2">
-              {[
-                "Regular pulse surveys",
-                "Focus groups",
-                "Exit interview data",
-                "Manager feedback",
-                "One-on-One discussion with employee",
-                "Some other way (specify)",
-                "Don't formally measure"
-              ].map(opt => (
-                <div key={opt}>
-                  <button
-                    onClick={() => toggleMultiSelect("d6_2", opt)}
-                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                      ans.d6_2?.includes(opt)
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                  {opt.includes("(specify)") && ans.d6_2?.includes(opt) && (
-                    <input
-                      type="text"
-                      value={ans.d6_2_other || ""}
-                      onChange={(e) => setField("d6_2_other", e.target.value)}
-                      placeholder="Please specify..."
-                      className="mt-2 w-full px-4 py-3 border-2 border-gray-300 rounded-lg"
-                    />
-                  )}
-                </div>
-              ))}
+            {/* VALIDATION: Wrapper with red border */}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.d6_2 && (!ans.d6_2 || ans.d6_2.length === 0)
+                ? 'border-red-500 bg-red-50' 
+                : 'border-gray-200 bg-white'
+            }`}>
+              {/* VALIDATION: Required asterisk */}
+              <p className="font-bold text-gray-900 mb-4">
+                How do you <span className="text-blue-600 font-bold">measure psychological safety</span> for <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>?
+                <span className="text-red-600 ml-1">*</span>
+              </p>
+              <p className="text-sm text-gray-600 mb-4">(Select ALL that are available in at least one location)</p>
+              
+              <div className="space-y-2">
+                {[
+                  "Regular pulse surveys",
+                  "Focus groups",
+                  "Exit interview data",
+                  "Manager feedback",
+                  "One-on-One discussion with employee",
+                  "Some other way (specify)",
+                  "Don't formally measure"
+                ].map(opt => (
+                  <div key={opt}>
+                    <button
+                      onClick={() => {
+                        toggleMultiSelect("d6_2", opt);
+                        markTouched("d6_2"); // VALIDATION: Mark as touched
+                      }}
+                      className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                        ans.d6_2?.includes(opt)
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                    {opt.includes("(specify)") && ans.d6_2?.includes(opt) && (
+                      <input
+                        type="text"
+                        value={ans.d6_2_other || ""}
+                        onChange={(e) => setField("d6_2_other", e.target.value)}
+                        placeholder="Please specify..."
+                        className="mt-2 w-full px-4 py-3 border-2 border-gray-300 rounded-lg"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -552,11 +621,17 @@ export default function Dimension6Page() {
               onClick={back} 
               className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
             >
-              ← Back
+              ← Back
             </button>
+            {/* VALIDATION: Updated Continue button */}
             <button 
-              onClick={next} 
-              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+              onClick={next}
+              disabled={!isStepValid()}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                isStepValid()
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
             >
               Continue →
             </button>
@@ -568,5 +643,3 @@ export default function Dimension6Page() {
     </div>
   );
 }
-
-
