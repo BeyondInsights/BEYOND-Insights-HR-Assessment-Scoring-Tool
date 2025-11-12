@@ -10,6 +10,18 @@ export default function GeneralBenefitsPage() {
  const [step, setStep] = useState(1);
  const [ans, setAns] = useState<any>({});
  
+ // ===== VALIDATION ADDITIONS =====
+ const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+ const markTouched = (fieldName: string) => {
+   setTouched(prev => ({ ...prev, [fieldName]: true }));
+ };
+
+ const isStepValid = (): boolean => {
+   return validateStep() === null;
+ };
+ // ===== END VALIDATION ADDITIONS =====
+ 
  // Debug: Log every time ans changes
  useEffect(() => {
  console.log("GENERAL ans changed:", ans);
@@ -72,6 +84,7 @@ export default function GeneralBenefitsPage() {
  return { ...prev, [key]: [...withoutExclusive, value] };
  }
  });
+ markTouched(key); // Mark field as touched
  setErrors("");
  };
  // Validation
@@ -335,10 +348,15 @@ export default function GeneralBenefitsPage() {
  Current Benefits Landscape
  </h2>
  
- <div>
+ <div className={`border-2 rounded-lg p-4 ${
+ touched.cb1_standard && (!Array.isArray(ans.cb1_standard) || ans.cb1_standard.length === 0)
+ ? 'border-red-500 bg-red-50'
+ : 'border-gray-200 bg-white'
+ }`}>
  <p className="text-base font-bold text-gray-900 mb-1">
  Which of the following <span className="text-blue-600">standard benefits</span> does 
  your organization currently provide?
+ <span className="text-red-600 ml-1">*</span>
  </p>
  <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
@@ -379,10 +397,15 @@ export default function GeneralBenefitsPage() {
  Current Benefits Landscape
  </h2>
  
- <div>
+ <div className={`border-2 rounded-lg p-4 ${
+ touched.cb1_leave && (!Array.isArray(ans.cb1_leave) || ans.cb1_leave.length === 0)
+ ? 'border-red-500 bg-red-50'
+ : 'border-gray-200 bg-white'
+ }`}>
  <p className="text-base font-bold text-gray-900 mb-1">
  Which of the following <span className="text-blue-600">leave & flexibility programs</span> does 
  your organization currently provide?
+ <span className="text-red-600 ml-1">*</span>
  </p>
  <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
@@ -423,10 +446,15 @@ export default function GeneralBenefitsPage() {
  Current Benefits Landscape
  </h2>
  
- <div>
+ <div className={`border-2 rounded-lg p-4 ${
+ touched.cb1_wellness && (!Array.isArray(ans.cb1_wellness) || ans.cb1_wellness.length === 0)
+ ? 'border-red-500 bg-red-50'
+ : 'border-gray-200 bg-white'
+ }`}>
  <p className="text-base font-bold text-gray-900 mb-1">
  Which of the following <span className="text-blue-600">wellness & support programs</span> does 
  your organization currently provide?
+ <span className="text-red-600 ml-1">*</span>
  </p>
  <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
@@ -467,10 +495,15 @@ export default function GeneralBenefitsPage() {
  Current Benefits Landscape
  </h2>
  
- <div>
+ <div className={`border-2 rounded-lg p-4 ${
+ touched.cb1_financial && (!Array.isArray(ans.cb1_financial) || ans.cb1_financial.length === 0)
+ ? 'border-red-500 bg-red-50'
+ : 'border-gray-200 bg-white'
+ }`}>
  <p className="text-base font-bold text-gray-900 mb-1">
  Which of the following <span className="text-blue-600">financial & legal assistance</span> programs does 
  your organization currently provide?
+ <span className="text-red-600 ml-1">*</span>
  </p>
  <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
@@ -511,10 +544,15 @@ export default function GeneralBenefitsPage() {
  Current Benefits Landscape
  </h2>
  
- <div>
+ <div className={`border-2 rounded-lg p-4 ${
+ touched.cb1_navigation && (!Array.isArray(ans.cb1_navigation) || ans.cb1_navigation.length === 0)
+ ? 'border-red-500 bg-red-50'
+ : 'border-gray-200 bg-white'
+ }`}>
  <p className="text-base font-bold text-gray-900 mb-1">
  Which of the following <span className="text-blue-600">care navigation & support services</span> does 
  your organization currently provide?
+ <span className="text-red-600 ml-1">*</span>
  </p>
  <p className="text-sm text-gray-600 mb-4">(Select ALL that apply)</p>
  
@@ -572,8 +610,15 @@ export default function GeneralBenefitsPage() {
  min="0"
  max="100"
  value={ans.cb1a || ""}
- onChange={(e) => setField("cb1a", e.target.value)}
- className="w-24 px-4 py-2 border-2 border-gray-300 rounded-lg text-center"
+ onChange={(e) => {
+ setField("cb1a", e.target.value);
+ markTouched("cb1a");
+ }}
+ className={`w-24 px-4 py-2 border-2 rounded-lg text-center ${
+ touched.cb1a && ans.cb1a && (parseInt(ans.cb1a) < 0 || parseInt(ans.cb1a) > 100)
+ ? 'border-red-500 bg-red-50'
+ : 'border-gray-300'
+ }`}
  placeholder="0"
  />
  <span className="text-base">% access to healthcare through national or government Systems</span>
@@ -658,7 +703,7 @@ export default function GeneralBenefitsPage() {
     </p>
     <button
       onClick={() => { 
-        localStorage.setItem("general_benefits_complete", "true");  // CHANGE THIS LINE - ADD HYPHEN
+        localStorage.setItem("general_benefits_complete", "true");
         router.push("/dashboard");
       }}
       className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
@@ -683,7 +728,12 @@ export default function GeneralBenefitsPage() {
  )}
  <button 
  onClick={next} 
- className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+ disabled={!isStepValid()}
+ className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+ isStepValid()
+ ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer'
+ : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+ }`}
  >
  Next  →
  </button>
@@ -695,6 +745,3 @@ export default function GeneralBenefitsPage() {
  </div>
  );
 }
-
-
-
