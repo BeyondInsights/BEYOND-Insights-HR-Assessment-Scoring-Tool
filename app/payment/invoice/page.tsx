@@ -282,11 +282,11 @@ export default function InvoicePaymentPage() {
       doc.text('TOTAL DUE:', pageWidth / 2, yPos + 2, { align: 'right' })
       doc.text('$1,250.00', pageWidth - 25, yPos + 2, { align: 'right' })
 
-      // Payment Terms box - EXPANDED HEIGHT
+      // Payment Terms box - Box ends after "Please include..." line
       yPos += 20
       doc.setDrawColor(255, 107, 53)
       doc.setLineWidth(0.5)
-      doc.rect(20, yPos, pageWidth - 40, 105)
+      doc.rect(20, yPos, pageWidth - 40, 92)
       
       doc.setFontSize(11)
       doc.setTextColor(255, 107, 53)
