@@ -35,6 +35,18 @@ export default function Dimension7Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   const [D7A_ITEMS] = useState(() => shuffleArray(D7A_ITEMS_BASE));
+
+  // ===== VALIDATION ADDITIONS =====
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+
+  const markTouched = (fieldName: string) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }))
+  }
+
+  const isStepValid = (): boolean => {
+    return validateStep() === null
+  }
+  // ===== END VALIDATION ADDITIONS =====
   
   useEffect(() => {
     const saved = localStorage.getItem("dimension7_data");
@@ -76,6 +88,8 @@ export default function Dimension7Page() {
       ...prev,
       d7a: { ...(prev.d7a || {}), [item]: status }
     }));
+    
+    markTouched('d7a'); // VALIDATION: Mark d7a as touched
     
     setIsTransitioning(true);
     
@@ -281,6 +295,31 @@ export default function Dimension7Page() {
             </div>
 
             <div className="p-8">
+              {/* VALIDATION: Progress Counter */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">
+                      Progress: {Object.keys(ans.d7a || {}).length} of {D7A_ITEMS.length} items rated
+                    </p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      {Object.keys(ans.d7a || {}).length === D7A_ITEMS.length 
+                        ? '✓ All items completed!' 
+                        : `${D7A_ITEMS.length - Object.keys(ans.d7a || {}).length} items remaining`}
+                    </p>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {Math.round((Object.keys(ans.d7a || {}).length / D7A_ITEMS.length) * 100)}%
+                  </div>
+                </div>
+                <div className="mt-3 w-full bg-blue-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    style={{ width: `${(Object.keys(ans.d7a || {}).length / D7A_ITEMS.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
@@ -388,30 +427,42 @@ export default function Dimension7Page() {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
-            <p className="font-bold text-gray-900 mb-4">
-              Are the <span className="text-blue-600">Career Continuity & Advancement support options</span> your 
-              organization currently offers...?
-            </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
-            
-            <div className="space-y-2">
-              {[
-                "Only available in select locations",
-                "Vary across locations", 
-                "Generally consistent across all locations"
-              ].map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setField("d7aa", opt)}
-                  className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d7aa === opt
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+            {/* VALIDATION: Red border wrapper */}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.d7aa && !ans.d7aa
+                ? 'border-red-500 bg-red-50' 
+                : 'border-transparent'
+            }`}>
+              <p className="font-bold text-gray-900 mb-4">
+                Are the <span className="text-blue-600">Career Continuity & Advancement support options</span> your 
+                organization currently offers...?
+                {/* VALIDATION: Required asterisk */}
+                <span className="text-red-600 ml-1">*</span>
+              </p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+              
+              <div className="space-y-2">
+                {[
+                  "Only available in select locations",
+                  "Vary across locations", 
+                  "Generally consistent across all locations"
+                ].map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      setField("d7aa", opt);
+                      markTouched("d7aa"); // VALIDATION: Mark as touched
+                    }}
+                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                      ans.d7aa === opt
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -483,9 +534,15 @@ export default function Dimension7Page() {
             >
               ← Back
             </button>
+            {/* VALIDATION: Conditional Continue button styling */}
             <button 
               onClick={next} 
-              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+              disabled={!isStepValid()}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                isStepValid()
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
             >
               Continue →
             </button>
