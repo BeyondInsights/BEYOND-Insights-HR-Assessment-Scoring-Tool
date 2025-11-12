@@ -237,13 +237,14 @@ export default function DashboardPage() {
               </p>
             </div>
             
+            {/* ✅ UPDATED EMAIL ADDRESS */}
             <p className="text-sm text-gray-900 mb-2">
               <strong>Questions about your invoice or payment?</strong>
             </p>
             <p className="text-sm text-gray-900">
               Contact us at{' '}
-              <a href="mailto:info@cancerandcareers.org" className="text-orange-600 hover:underline font-medium">
-                info@cancerandcareers.org
+              <a href="mailto:cacbestcompanies@cew.org" className="text-orange-600 hover:underline font-medium">
+                cacbestcompanies@cew.org
               </a>
             </p>
           </div>
