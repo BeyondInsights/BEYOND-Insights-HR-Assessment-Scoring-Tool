@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FileText, Building2, MapPin, Download, Loader2, AlertTriangle } from 'lucide-react'
+import { FileText, Building2, MapPin, Download, Loader2 } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { getCurrentUser } from '@/lib/supabase/auth'
@@ -205,7 +205,7 @@ export default function InvoicePaymentPage() {
       yPos += 5
       doc.text('United States', 20, yPos)
       yPos += 5
-      doc.text('Email: financeteam@cew.org', 20, yPos)
+      doc.text('Email: cacbestcompanies@cew.org', 20, yPos)
 
       // Bill To section (right)
       let rightYPos = 70
@@ -347,7 +347,7 @@ export default function InvoicePaymentPage() {
       yPos += 6
       doc.setFontSize(8)
       doc.setTextColor(100, 100, 100)
-      doc.text('Please include the invoice number in your payment reference. Questions: financeteam@cew.org', 30, yPos)
+      doc.text('Please include the invoice number in your payment reference. Questions: cacbestcompanies@cew.org', 30, yPos)
 
       // Footer
       yPos = doc.internal.pageSize.getHeight() - 20
@@ -357,8 +357,8 @@ export default function InvoicePaymentPage() {
       doc.setFontSize(9)
       doc.setTextColor(100, 100, 100)
       doc.text('Thank you for your commitment to supporting employees with cancer!', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 4
-      doc.text('Cancer and Careers | www.cancerandcareers.org | financeteam@cew.org', pageWidth / 2, yPos, { align: 'center' })
+      yPos += 5
+      doc.text('Cancer and Careers | www.cancerandcareers.org | cacbestcompanies@cew.org', pageWidth / 2, yPos, { align: 'center' })
 
       // Save the PDF
       doc.save(`Invoice-${data.invoiceNumber}.pdf`)
@@ -382,29 +382,11 @@ export default function InvoicePaymentPage() {
             </div>
           </div>
 
-          {/* CRITICAL WARNING */}
-          <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-6 mb-6">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="font-bold text-yellow-900 mb-2">Important: Delayed Access Notice</h3>
-                <p className="text-sm text-yellow-900 mb-3">
-                  <strong>Invoice payment should only be used if credit card or ACH bank transfer are not available options for your organization.</strong>
-                </p>
-                <p className="text-sm text-yellow-800 mb-2">
-                  Organizations selecting invoice payment will experience significant delays:
-                </p>
-                <ul className="text-sm text-yellow-900 space-y-1 ml-4">
-                  <li>• <strong>Assessment access</strong> granted only after payment received and processed</li>
-                  <li>• <strong>Score and detailed feedback</strong> unavailable until payment clears</li>
-                  <li>• <strong>Certification materials</strong> delayed until payment confirmation</li>
-                  <li>• <strong>Typical timeline:</strong> 14-21 days (payment processing + verification)</li>
-                </ul>
-                <p className="text-sm text-yellow-900 mt-3 font-semibold">
-                  For quicker access, please return to payment options and select online payment (credit card preferred).
-                </p>
-              </div>
-            </div>
+          {/* Simple Notice */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-900">
+              Invoice payment should only be used if credit card or ACH bank transfer are not available options for your organization.
+            </p>
           </div>
 
           {/* Company Info (Pre-filled) - COMPACT LAYOUT */}
