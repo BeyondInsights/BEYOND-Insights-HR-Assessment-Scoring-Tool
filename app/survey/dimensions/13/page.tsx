@@ -37,6 +37,18 @@ export default function Dimension13Page() {
   
   const [D13A_ITEMS] = useState(() => shuffleArray(D13A_ITEMS_BASE));
   
+  // ===== VALIDATION ADDITIONS =====
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const markTouched = (fieldName: string) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }));
+  };
+
+  const isStepValid = (): boolean => {
+    return validateStep() === null;
+  };
+  // ===== END VALIDATION ADDITIONS =====
+  
   useEffect(() => {
     const saved = localStorage.getItem("dimension13_data");
     if (saved) {
@@ -69,6 +81,7 @@ export default function Dimension13Page() {
 
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
+    markTouched(key); // Mark field as touched
     setErrors("");
   };
 
@@ -77,6 +90,7 @@ export default function Dimension13Page() {
       ...prev,
       d13a: { ...(prev.d13a || {}), [item]: status }
     }));
+    markTouched('d13a'); // Mark d13a as touched
     
     setIsTransitioning(true);
     
@@ -112,14 +126,14 @@ export default function Dimension13Page() {
   "Assessing feasibility",
   "In active planning / development",
   "Currently use",  // Special wording for D13
-  "Unsure"  // D13 has 5 options!
+  "Unsure"
 ];
 
 const hasAnyOffered = Object.values(ans.d13a || {}).some(
   (status) => status === "Currently use"  // Special wording for D13
 );
 
-const showD13aa = isMultiCountry && hasAnyOffered;  // Make sure it's hasAnyOffered
+const showD13aa = isMultiCountry && hasAnyOffered;
 const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disclosure"] === "Currently use";
   
   const getTotalSteps = () => {
@@ -289,6 +303,31 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
             </div>
 
             <div className="p-8">
+              {/* Progress Counter */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">
+                      Progress: {Object.keys(ans.d13a || {}).length} of {D13A_ITEMS.length} items rated
+                    </p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      {Object.keys(ans.d13a || {}).length === D13A_ITEMS.length 
+                        ? '✓ All items completed!' 
+                        : `${D13A_ITEMS.length - Object.keys(ans.d13a || {}).length} items remaining`}
+                    </p>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {Math.round((Object.keys(ans.d13a || {}).length / D13A_ITEMS.length) * 100)}%
+                  </div>
+                </div>
+                <div className="mt-3 w-full bg-blue-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    style={{ width: `${(Object.keys(ans.d13a || {}).length / D13A_ITEMS.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
@@ -381,11 +420,16 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
                 {Object.keys(ans.d13a || {}).length === D13A_ITEMS.length && !isTransitioning && (
                   <button
                     onClick={next}
-                    className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
+                    disabled={!isStepValid()}
+                    className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                      isStepValid()
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer animate-pulse'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                    }`}
                   >
                     Continue →
                   </button>
-                )}
+                }}
               </div>
             </div>
           </div>
@@ -396,30 +440,37 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Usage</h3>
             
-            <p className="font-bold text-gray-900 mb-4">
-              Are the <span className="text-blue-600 font-bold">Communication & Awareness approaches</span> your 
-              organization <span className="text-blue-600 font-bold">currently use</span>...?
-            </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
-            
-            <div className="space-y-2">
-              {[
-                "Only used in select locations",
-                "Vary across locations", 
-                "Generally consistent across all locations"
-              ].map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setField("d13aa", opt)}
-                  className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d13aa === opt
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.d13aa && !ans.d13aa
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-200 bg-white'
+            }`}>
+              <p className="font-bold text-gray-900 mb-1">
+                Are the <span className="text-blue-600 font-bold">Communication & Awareness approaches</span> your 
+                organization <span className="text-blue-600 font-bold">currently use</span>...?
+                <span className="text-red-600 ml-1">*</span>
+              </p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+              
+              <div className="space-y-2">
+                {[
+                  "Only used in select locations",
+                  "Vary across locations", 
+                  "Generally consistent across all locations"
+                ].map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => setField("d13aa", opt)}
+                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                      ans.d13aa === opt
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -456,37 +507,44 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
           </div>
         )}
 
-        {/* Step 4: D13.1 Communication Frequency */}
+        {/* Step 4: D13.1 Communication Frequency - REQUIRED */}
         {step === 4 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Communication Frequency</h3>
             
-            <p className="font-bold text-gray-900 mb-4">
-              How <span className="text-blue-600 font-bold">frequently</span> does your organization <span className="text-blue-600 font-bold">communicate about workplace support programs</span> for <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>?
-            </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
-            
-            <div className="space-y-2">
-              {[
-                "Monthly or more often",
-                "Quarterly",
-                "Twice per year",
-                "Annually (typically during enrollment or on World Cancer Day)",
-                "Only when asked/reactive only",
-                "No regular communication schedule"
-              ].map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setField("d13_1", opt)}
-                  className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d13_1 === opt
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.d13_1 && !ans.d13_1
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-200 bg-white'
+            }`}>
+              <p className="font-bold text-gray-900 mb-1">
+                How <span className="text-blue-600 font-bold">frequently</span> does your organization <span className="text-blue-600 font-bold">communicate about workplace support programs</span> for <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>?
+                <span className="text-red-600 ml-1">*</span>
+              </p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+              
+              <div className="space-y-2">
+                {[
+                  "Monthly or more often",
+                  "Quarterly",
+                  "Twice per year",
+                  "Annually (typically during enrollment or on World Cancer Day)",
+                  "Only when asked/reactive only",
+                  "No regular communication schedule"
+                ].map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => setField("d13_1", opt)}
+                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                      ans.d13_1 === opt
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -528,7 +586,12 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
             </button>
             <button 
               onClick={next} 
-              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+              disabled={!isStepValid()}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                isStepValid()
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
             >
               Continue →
             </button>
