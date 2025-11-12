@@ -191,14 +191,14 @@ export default function DashboardPage() {
     return () => window.removeEventListener("focus", handleFocus);
   }, [router])
 
-  // Payment bypass for testing - controlled by environment variable
-  const bypassPayment = true  // FORCE ON FOR TESTING
+  // Payment bypass for testing - FORCED ON FOR TESTING
+  const bypassPayment = true  // CHANGE THIS TO false FOR PRODUCTION
 
   // CHECK FOR INVOICE PAYMENT - BEFORE RENDERING DASHBOARD
   if (!bypassPayment && paymentMethod === 'invoice' && !paymentCompleted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
-       <Header />
+        <Header />
         
         <main className="max-w-4xl mx-auto px-6 py-16 flex-1">
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
