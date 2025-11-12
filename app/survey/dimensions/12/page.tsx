@@ -81,7 +81,7 @@ export default function Dimension12Page() {
 
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
-    markTouched(key); // Mark field as touched
+    markTouched(key);
     setErrors("");
   };
 
@@ -90,7 +90,7 @@ export default function Dimension12Page() {
       ...prev,
       d12a: { ...(prev.d12a || {}), [item]: status }
     }));
-    markTouched('d12a'); // Mark d12a as touched
+    markTouched('d12a');
     
     setIsTransitioning(true);
     
@@ -122,30 +122,30 @@ export default function Dimension12Page() {
   };
 
   const STATUS_OPTIONS = [
-  "Not able to measure / track in foreseeable future",  // Special wording for D12
-  "Assessing feasibility",
-  "In active planning / development",
-  "Currently measure / track",  // Special wording for D12
-  "Unsure"
-];
+    "Not able to measure / track in foreseeable future",
+    "Assessing feasibility",
+    "In active planning / development",
+    "Currently measure / track",
+    "Unsure"
+  ];
  
-const hasAnyOffered = Object.values(ans.d12a || {}).some(
-  (status) => status === "Currently measure / track"  // Special wording for D12
-);
+  const hasAnyOffered = Object.values(ans.d12a || {}).some(
+    (status) => status === "Currently measure / track"
+  );
 
-const showD12aa = isMultiCountry && hasAnyOffered;
-const showD12_1 = Object.values(ans.d12a || {}).some(
-  (status) => status === "Currently measure / track"
-);
-const showD12_2 = showD12_1;
+  const showD12aa = isMultiCountry && hasAnyOffered;
+  const showD12_1 = Object.values(ans.d12a || {}).some(
+    (status) => status === "Currently measure / track"
+  );
+  const showD12_2 = showD12_1;
   
   const getTotalSteps = () => {
-    let total = 2; // intro, D12.a
-    if (showD12aa) total++; // D12.aa
-    total++; // D12.b
-    if (showD12_1) total++; // D12.1
-    if (showD12_2) total++; // D12.2
-    total++; // completion
+    let total = 2;
+    if (showD12aa) total++;
+    total++;
+    if (showD12_1) total++;
+    if (showD12_2) total++;
+    total++;
     return total;
   };
 
@@ -177,22 +177,22 @@ const showD12_2 = showD12_1;
 
     if (step === 1) {
       if (showD12aa) {
-        setStep(2); // D12.aa
+        setStep(2);
       } else {
-        setStep(showD12aa ? 3 : 2); // D12.b
+        setStep(showD12aa ? 3 : 2);
       }
     } else if (step === 2) {
       if (showD12aa) {
-        setStep(3); // D12.b
+        setStep(3);
       } else {
-        setStep(showD12_1 ? 4 : 6); // D12.1 or completion
+        setStep(showD12_1 ? 4 : 6);
       }
     } else if (step === 3) {
-      setStep(showD12_1 ? 4 : 6); // D12.1 or completion
+      setStep(showD12_1 ? 4 : 6);
     } else if (step === 4) {
-      setStep(showD12_2 ? 5 : 6); // D12.2 or completion
+      setStep(showD12_2 ? 5 : 6);
     } else if (step === 5) {
-      setStep(6); // completion
+      setStep(6);
     } else if (step === 6) {
       localStorage.setItem("dimension12_complete", "true");
       router.push("/dashboard");
@@ -244,7 +244,6 @@ const showD12_2 = showD12_1;
           </div>
         )}
 
-        {/* Step 0: Introduction */}
         {step === 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
             <div className="max-w-3xl mx-auto">
@@ -298,7 +297,6 @@ const showD12_2 = showD12_1;
           </div>
         )}
 
-        {/* Step 1: D12.a Progressive Cards */}
         {step === 1 && (
           <div className="bg-white rounded-xl shadow-sm">
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 rounded-t-xl">
@@ -313,7 +311,6 @@ const showD12_2 = showD12_1;
             </div>
 
             <div className="p-8">
-              {/* Progress Counter */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -436,13 +433,12 @@ const showD12_2 = showD12_1;
                   >
                     Continue →
                   </button>
-                }}
+                )}
               </div>
             </div>
           </div>
         )}
         
-        {/* Step 2: D12.aa (conditional for multi-country) */}
         {step === 2 && showD12aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Tracking</h3>
@@ -482,7 +478,6 @@ const showD12_2 = showD12_1;
           </div>
         )}
 
-        {/* Step 3: D12.b open-end */}
         {step === 3 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Practices</h3>
@@ -514,7 +509,6 @@ const showD12_2 = showD12_1;
           </div>
         )}
 
-        {/* Step 4: D12.1 (conditional) */}
         {step === 4 && showD12_1 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Individual Experience Review</h3>
@@ -546,7 +540,6 @@ const showD12_2 = showD12_1;
           </div>
         )}
 
-        {/* Step 5: D12.2 (conditional) */}
         {step === 5 && showD12_2 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Program Changes</h3>
@@ -578,7 +571,6 @@ const showD12_2 = showD12_1;
           </div>
         )}
 
-        {/* Step 6: Completion */}
         {step === 6 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
@@ -604,7 +596,6 @@ const showD12_2 = showD12_1;
           </div>
         )}
 
-        {/* Universal Navigation */}
         {step > 1 && step < 6 && (
           <div className="flex justify-between mt-8">
             <button 
