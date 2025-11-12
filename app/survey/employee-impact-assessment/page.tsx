@@ -41,6 +41,18 @@ export default function EmployeeImpactPage() {
     return shuffled;
   });
 
+  // ===== VALIDATION ADDITIONS =====
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const markTouched = (fieldName: string) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }));
+  };
+
+  const isStepValid = (): boolean => {
+    return validateStep() === null;
+  };
+  // ===== END VALIDATION ADDITIONS =====
+
   // Load saved data on mount
   useEffect(() => {
     const saved = localStorage.getItem("employee-impact-assessment_data");
@@ -73,16 +85,19 @@ export default function EmployeeImpactPage() {
         [item]: value
       }
     }));
+    markTouched('ei1'); // Mark grid as touched
     setErrors("");
   };
 
   const handleRadioChange = (field, value) => {
     setAns({ ...ans, [field]: value });
+    markTouched(field); // Mark field as touched
     setErrors("");
   };
 
   const handleTextChange = (field, value) => {
     setAns({ ...ans, [field]: value });
+    markTouched(field); // Mark field as touched
     setErrors("");
   };
 
@@ -92,6 +107,7 @@ export default function EmployeeImpactPage() {
     } else {
       setAns({ ...ans, [`${field}_none`]: false });
     }
+    markTouched(field); // Mark field as touched
   };
 
   const validateStep = () => {
@@ -108,6 +124,17 @@ export default function EmployeeImpactPage() {
       const shouldShowEI3 = ans.ei2 === "yes_comprehensive" || ans.ei2 === "yes_basic";
       if (shouldShowEI3 && !ans.ei3) {
         return "Please select an option";
+      }
+    } else if (step === 4) {
+      // CRITICAL FIX: Added validation for step 4
+      if (assignedQuestion === 'ei4') {
+        if (!ans.ei4_none && !ans.ei4?.trim()) {
+          return "Please provide advice or check 'No additional advice'";
+        }
+      } else if (assignedQuestion === 'ei5') {
+        if (!ans.ei5_none && !ans.ei5?.trim()) {
+          return "Please provide feedback or check 'None that I can think of'";
+        }
       }
     }
     return null;
@@ -172,9 +199,20 @@ export default function EmployeeImpactPage() {
           </div>
         </div>
 
+        {/* Enhanced Error Banner */}
         {errors && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            {errors}
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+            <div className="flex items-start">
+              <svg className="w-6 h-6 text-red-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="text-sm font-semibold text-red-800 mb-1">
+                  Please complete all required fields
+                </h3>
+                <p className="text-sm text-red-700">{errors}</p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -234,53 +272,75 @@ export default function EmployeeImpactPage() {
             
             <p className="font-bold text-gray-900 mb-2">
               To what extent has your organization seen <span className="text-purple-600">positive outcomes</span> in the following areas as a result of your workplace support programs for <span className="text-purple-600">employees managing cancer or other serious health conditions</span>?
+              <span className="text-red-600 ml-1">*</span>
             </p>
 
             <p className="text-sm text-gray-600 mb-6">(Select ONE for each outcome)</p>
 
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-blue-600">
-                    <th className="border border-gray-300 p-3 text-left font-semibold text-white min-w-[200px]">
-                      Outcome Area
-                    </th>
-                    {EI1_OPTIONS.map(opt => (
-                      <th key={opt.value} className="border border-gray-300 p-3 text-center font-semibold text-white min-w-[120px]">
-                        {opt.label}
+            {/* Validation wrapper for grid */}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.ei1 && !shuffledItems.every(item => ans.ei1?.[item])
+                ? 'border-red-500 bg-red-50' 
+                : 'border-gray-200 bg-white'
+            }`}>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-blue-600">
+                      <th className="border border-gray-300 p-3 text-left font-semibold text-white min-w-[200px]">
+                        Outcome Area
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {shuffledItems.map((item, idx) => (
-                    <tr key={item} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="border border-gray-300 p-3 font-medium text-gray-900">
-                        {item}
-                      </td>
                       {EI1_OPTIONS.map(opt => (
-                        <td key={opt.value} className="border border-gray-300 p-3 text-center">
-                          <button
-                            onClick={() => handleGridChange(item, opt.value)}
-                            className={`w-6 h-6 rounded-full border-2 mx-auto flex items-center justify-center transition-all ${
-                              ans.ei1?.[item] === opt.value
-                                ? 'border-purple-500 bg-purple-500'
-                                : 'border-gray-300 hover:border-purple-300'
-                            }`}
-                          >
-                            {ans.ei1?.[item] === opt.value && (
-                              <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
-                            )}
-                          </button>
-                        </td>
+                        <th key={opt.value} className="border border-gray-300 p-3 text-center font-semibold text-white min-w-[120px]">
+                          {opt.label}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {shuffledItems.map((item, idx) => (
+                      <tr key={item} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="border border-gray-300 p-3 font-medium text-gray-900">
+                          {item}
+                        </td>
+                        {EI1_OPTIONS.map(opt => (
+                          <td key={opt.value} className="border border-gray-300 p-3 text-center">
+                            <button
+                              onClick={() => handleGridChange(item, opt.value)}
+                              className={`w-6 h-6 rounded-full border-2 mx-auto flex items-center justify-center transition-all ${
+                                ans.ei1?.[item] === opt.value
+                                  ? 'border-purple-500 bg-purple-500'
+                                  : 'border-gray-300 hover:border-purple-300'
+                              }`}
+                            >
+                              {ans.ei1?.[item] === opt.value && (
+                                <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
+                              )}
+                            </button>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Inline error */}
+              {touched.ei1 && !shuffledItems.every(item => ans.ei1?.[item]) && (
+                <p className="mt-3 text-sm text-red-600 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Please rate all items
+                </p>
+              )}
             </div>
 
-            <div className="mt-4 text-sm text-gray-600">
+            <div className={`mt-4 text-sm font-medium ${
+              Object.keys(ans.ei1 || {}).length === shuffledItems.length 
+                ? 'text-green-600' 
+                : 'text-orange-600'
+            }`}>
               Answered: {Object.keys(ans.ei1 || {}).length} of {shuffledItems.length}
             </div>
           </div>
@@ -293,41 +353,59 @@ export default function EmployeeImpactPage() {
             
             <p className="font-bold text-gray-900 mb-2">
               Has your organization <span className="text-purple-600">measured the ROI</span> of your workplace support programs for <span className="text-purple-600">employees managing cancer or other serious health conditions</span>?
+              <span className="text-red-600 ml-1">*</span>
             </p>
 
             <p className="text-sm text-gray-600 mb-6">(Select ONE)</p>
             
-            <div className="space-y-3">
-              {[
-                { value: "yes_comprehensive", label: "Yes, comprehensive ROI analysis completed" },
-                { value: "yes_basic", label: "Yes, basic ROI analysis completed" },
-                { value: "currently_conducting", label: "Currently conducting ROI analysis" },
-                { value: "planning", label: "Planning to measure ROI" },
-                { value: "no_plans", label: "No plans to measure ROI" }
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleRadioChange('ei2', option.value)}
-                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                    ans.ei2 === option.value
-                      ? "border-purple-500 bg-purple-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+            {/* Validation wrapper */}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.ei2 && !ans.ei2
+                ? 'border-red-500 bg-red-50' 
+                : 'border-gray-200 bg-white'
+            }`}>
+              <div className="space-y-3">
+                {[
+                  { value: "yes_comprehensive", label: "Yes, comprehensive ROI analysis completed" },
+                  { value: "yes_basic", label: "Yes, basic ROI analysis completed" },
+                  { value: "currently_conducting", label: "Currently conducting ROI analysis" },
+                  { value: "planning", label: "Planning to measure ROI" },
+                  { value: "no_plans", label: "No plans to measure ROI" }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleRadioChange('ei2', option.value)}
+                    className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
                       ans.ei2 === option.value
-                        ? "border-purple-500 bg-purple-500"
-                        : "border-gray-300"
-                    }`}>
-                      {ans.ei2 === option.value && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
+                        ? "border-purple-500 bg-purple-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                        ans.ei2 === option.value
+                          ? "border-purple-500 bg-purple-500"
+                          : "border-gray-300"
+                      }`}>
+                        {ans.ei2 === option.value && (
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        )}
+                      </div>
+                      <span className="text-gray-900">{option.label}</span>
                     </div>
-                    <span className="text-gray-900">{option.label}</span>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
+
+              {/* Inline error */}
+              {touched.ei2 && !ans.ei2 && (
+                <p className="mt-3 text-sm text-red-600 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Please select an option
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -339,45 +417,63 @@ export default function EmployeeImpactPage() {
             
             <p className="font-bold text-gray-900 mb-2">
               What was the <span className="text-purple-600">approximate ROI</span> of your workplace support programs?
+              <span className="text-red-600 ml-1">*</span>
             </p>
 
             <p className="text-sm text-gray-600 mb-6">(Select ONE)</p>
             
-            <div className="space-y-3">
-              {[
-                { value: "negative", rating: "Negative ROI", description: "costs exceed benefits by more than 100%" },
-                { value: "breakeven", rating: "Break-even", description: "costs and benefits are roughly equal" },
-                { value: "1_1_2_0", rating: "1.1 - 2.0x ROI", description: "benefits are 10-100% more than costs" },
-                { value: "2_1_3_0", rating: "2.1 - 3.0x ROI", description: "benefits are 2-3 times the costs" },
-                { value: "3_1_5_0", rating: "3.1 - 5.0x ROI", description: "benefits are 3-5 times the costs" },
-                { value: "greater_5", rating: "Greater than 5.0x ROI", description: "benefits exceed 5 times the costs" }
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleRadioChange('ei3', option.value)}
-                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
-                    ans.ei3 === option.value
-                      ? "border-purple-500 bg-purple-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+            {/* Validation wrapper */}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.ei3 && !ans.ei3
+                ? 'border-red-500 bg-red-50' 
+                : 'border-gray-200 bg-white'
+            }`}>
+              <div className="space-y-3">
+                {[
+                  { value: "negative", rating: "Negative ROI", description: "costs exceed benefits by more than 100%" },
+                  { value: "breakeven", rating: "Break-even", description: "costs and benefits are roughly equal" },
+                  { value: "1_1_2_0", rating: "1.1 - 2.0x ROI", description: "benefits are 10-100% more than costs" },
+                  { value: "2_1_3_0", rating: "2.1 - 3.0x ROI", description: "benefits are 2-3 times the costs" },
+                  { value: "3_1_5_0", rating: "3.1 - 5.0x ROI", description: "benefits are 3-5 times the costs" },
+                  { value: "greater_5", rating: "Greater than 5.0x ROI", description: "benefits exceed 5 times the costs" }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleRadioChange('ei3', option.value)}
+                    className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
                       ans.ei3 === option.value
-                        ? "border-purple-500 bg-purple-500"
-                        : "border-gray-300"
-                    }`}>
-                      {ans.ei3 === option.value && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
+                        ? "border-purple-500 bg-purple-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                        ans.ei3 === option.value
+                          ? "border-purple-500 bg-purple-500"
+                          : "border-gray-300"
+                      }`}>
+                        {ans.ei3 === option.value && (
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        )}
+                      </div>
+                      <span>
+                        <span className="font-bold text-gray-900">{option.rating}</span>
+                        <span className="text-gray-700"> ({option.description})</span>
+                      </span>
                     </div>
-                    <span>
-                      <span className="font-bold text-gray-900">{option.rating}</span>
-                      <span className="text-gray-700"> ({option.description})</span>
-                    </span>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
+
+              {/* Inline error */}
+              {touched.ei3 && !ans.ei3 && (
+                <p className="mt-3 text-sm text-red-600 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Please select an option
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -389,6 +485,7 @@ export default function EmployeeImpactPage() {
             
             <p className="font-bold text-gray-900 mb-6">
               Based on learnings from implementation of your programs and policies, <span className="text-purple-600">what advice would you give to other HR leaders who want to improve support</span> for <span className="text-purple-600">employees managing cancer or other serious health conditions</span>?
+              <span className="text-red-600 ml-1">*</span>
             </p>
 
             <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
@@ -396,11 +493,33 @@ export default function EmployeeImpactPage() {
             <textarea
               value={ans.ei4_none ? "" : (ans.ei4 || "")}
               onChange={(e) => handleTextChange('ei4', e.target.value)}
+              onBlur={() => markTouched('ei4')}
               disabled={ans.ei4_none}
               rows={8}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-all ${
+                touched.ei4 && !ans.ei4_none && !ans.ei4?.trim()
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-gray-300 focus:border-purple-500'
+              } disabled:bg-gray-100 disabled:cursor-not-allowed`}
               placeholder="Share your insights and recommendations..."
             />
+
+            {/* Character count */}
+            {!ans.ei4_none && (
+              <p className="mt-1 text-xs text-gray-500">
+                {ans.ei4?.length || 0} characters
+              </p>
+            )}
+
+            {/* Inline error */}
+            {touched.ei4 && !ans.ei4_none && !ans.ei4?.trim() && (
+              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Please provide advice or check 'No additional advice'
+              </p>
+            )}
 
             <div className="mt-4">
               <label className="flex items-center cursor-pointer">
@@ -436,6 +555,7 @@ export default function EmployeeImpactPage() {
             
             <p className="font-bold text-gray-900 mb-6">
               Are there <span className="text-purple-600">any important aspects of supporting employees managing cancer or other serious health conditions</span> that this survey did not address?
+              <span className="text-red-600 ml-1">*</span>
             </p>
 
             <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
@@ -443,11 +563,33 @@ export default function EmployeeImpactPage() {
             <textarea
               value={ans.ei5_none ? "" : (ans.ei5 || "")}
               onChange={(e) => handleTextChange('ei5', e.target.value)}
+              onBlur={() => markTouched('ei5')}
               disabled={ans.ei5_none}
               rows={8}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-all ${
+                touched.ei5 && !ans.ei5_none && !ans.ei5?.trim()
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-gray-300 focus:border-purple-500'
+              } disabled:bg-gray-100 disabled:cursor-not-allowed`}
               placeholder="Share any additional aspects or considerations..."
             />
+
+            {/* Character count */}
+            {!ans.ei5_none && (
+              <p className="mt-1 text-xs text-gray-500">
+                {ans.ei5?.length || 0} characters
+              </p>
+            )}
+
+            {/* Inline error */}
+            {touched.ei5 && !ans.ei5_none && !ans.ei5?.trim() && (
+              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Please provide feedback or check 'None that I can think of'
+              </p>
+            )}
 
             <div className="mt-4">
               <label className="flex items-center cursor-pointer">
@@ -487,8 +629,13 @@ export default function EmployeeImpactPage() {
               ← Back
             </button>
             <button 
-              onClick={next} 
-              className="px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+              onClick={next}
+              disabled={!isStepValid()}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                isStepValid()
+                  ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:shadow-lg cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
             >
               {step === 4 ? 'Complete Assessment →' : 'Continue →'}
             </button>
