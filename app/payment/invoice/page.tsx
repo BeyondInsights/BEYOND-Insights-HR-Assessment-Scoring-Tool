@@ -199,13 +199,13 @@ export default function InvoicePaymentPage() {
       yPos += 6
       doc.text('Cancer and Careers', 20, yPos)
       yPos += 5
-      doc.text('75 Maiden Lane, Suite 501', 20, yPos)
+      doc.text('250 W. 57th Street, Suite 918', 20, yPos)
       yPos += 5
-      doc.text('New York, NY 10038', 20, yPos)
+      doc.text('New York, NY 10107', 20, yPos)
       yPos += 5
       doc.text('United States', 20, yPos)
       yPos += 5
-      doc.text('Email: info@cancerandcareers.org', 20, yPos)
+      doc.text('Email: financeteam@cew.org', 20, yPos)
 
       // Bill To section (right)
       let rightYPos = 70
@@ -282,11 +282,11 @@ export default function InvoicePaymentPage() {
       doc.text('TOTAL DUE:', pageWidth / 2, yPos + 2, { align: 'right' })
       doc.text('$1,250.00', pageWidth - 25, yPos + 2, { align: 'right' })
 
-      // Payment Terms box
+      // Payment Terms box - EXPANDED HEIGHT
       yPos += 20
       doc.setDrawColor(255, 107, 53)
       doc.setLineWidth(0.5)
-      doc.rect(20, yPos, pageWidth - 40, 75)
+      doc.rect(20, yPos, pageWidth - 40, 105)
       
       doc.setFontSize(11)
       doc.setTextColor(255, 107, 53)
@@ -305,29 +305,49 @@ export default function InvoicePaymentPage() {
       doc.text('Payment Methods:', 25, yPos)
       doc.setFontSize(9)
       yPos += 5
-      doc.text('• Check payable to: Cancer and Careers', 30, yPos)
+      doc.text('• Check payable to: Cosmetic Executive Women, Foundation, LTD', 30, yPos)
+      yPos += 4
+      doc.setFontSize(8)
+      doc.setTextColor(100, 100, 100)
+      doc.text('  Mail to: 250 W. 57th Street, Suite 918, New York, NY 10107', 30, yPos)
       
       // ACH Transfer Details
       yPos += 6
+      doc.setFontSize(9)
+      doc.setTextColor(0, 0, 0)
       doc.setFont(undefined, 'bold')
-      doc.text('• For ACH Transfer (Bank Transfer):', 30, yPos)
+      doc.text('• ACH Transfer (Domestic US Bank Transfer):', 30, yPos)
       doc.setFont(undefined, 'normal')
       yPos += 4
-      doc.text('Bank Name: ACME BANK ANYWHERE USA', 35, yPos)
+      doc.text('Account Name: Cosmetic Executive Women, Foundation, LTD', 35, yPos)
       yPos += 4
-      doc.text('Bank Account Name: Checking', 35, yPos)
+      doc.text('Bank: Bank of America', 35, yPos)
       yPos += 4
-      doc.text('Bank Account Number: #### #### ####', 35, yPos)
+      doc.text('ACH Routing Number: 021000322', 35, yPos)
       yPos += 4
-      doc.text('Bank Routing Number: #########', 35, yPos)
+      doc.text('Account Number: 483043533766', 35, yPos)
       yPos += 4
-      doc.text(`Reference/Invoice Number: ${data.invoiceNumber}`, 35, yPos)
-      yPos += 5
+      doc.text(`Reference: ${data.invoiceNumber}`, 35, yPos)
+      
+      // Wire Transfer Details
+      yPos += 6
+      doc.setFont(undefined, 'bold')
+      doc.text('• Wire Transfer (Domestic & International):', 30, yPos)
+      doc.setFont(undefined, 'normal')
+      yPos += 4
+      doc.text('Wire Routing Number: 026009593', 35, yPos)
+      yPos += 4
+      doc.text('SWIFT Code: BOFAUS3N', 35, yPos)
+      yPos += 4
+      doc.text('Bank Address: One Bryant Park, 36th Floor, New York, NY 10036', 35, yPos)
+      yPos += 4
+      doc.text(`Reference: ${data.invoiceNumber}`, 35, yPos)
+      
+      // Contact & Instructions
+      yPos += 6
       doc.setFontSize(8)
       doc.setTextColor(100, 100, 100)
-      doc.text('Please initiate the ACH transfer to the bank details provided above.', 35, yPos)
-      yPos += 4
-      doc.text('Kindly ensure that the invoice number is included in the transfer description.', 35, yPos)
+      doc.text('Please include the invoice number in your payment reference. Questions: financeteam@cew.org', 30, yPos)
 
       // Footer
       yPos = doc.internal.pageSize.getHeight() - 20
@@ -338,7 +358,7 @@ export default function InvoicePaymentPage() {
       doc.setTextColor(100, 100, 100)
       doc.text('Thank you for your commitment to supporting employees with cancer!', pageWidth / 2, yPos, { align: 'center' })
       yPos += 4
-      doc.text('Cancer and Careers | www.cancerandcareers.org | info@cancerandcareers.org', pageWidth / 2, yPos, { align: 'center' })
+      doc.text('Cancer and Careers | www.cancerandcareers.org | financeteam@cew.org', pageWidth / 2, yPos, { align: 'center' })
 
       // Save the PDF
       doc.save(`Invoice-${data.invoiceNumber}.pdf`)
