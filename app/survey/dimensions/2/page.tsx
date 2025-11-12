@@ -44,6 +44,18 @@ export default function Dimension2Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D2A_ITEMS] = useState(() => shuffleArray(D2A_ITEMS_BASE));
   
+  // ===== VALIDATION ADDITIONS =====
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const markTouched = (fieldName: string) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }));
+  };
+
+  const isStepValid = (): boolean => {
+    return validateStep() === null;
+  };
+  // ===== END VALIDATION ADDITIONS =====
+  
   // Load saved answers on mount
   useEffect(() => {
     const saved = localStorage.getItem("dimension2_data");
@@ -88,6 +100,9 @@ export default function Dimension2Page() {
       ...prev,
       d2a: { ...(prev.d2a || {}), [item]: status }
     }));
+    
+    // VALIDATION: Mark d2a as touched
+    markTouched('d2a');
     
     setIsTransitioning(true);
     
@@ -298,6 +313,31 @@ export default function Dimension2Page() {
             </div>
 
             <div className="p-8">
+              {/* VALIDATION: Progress Counter */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">
+                      Progress: {Object.keys(ans.d2a || {}).length} of {D2A_ITEMS.length} items rated
+                    </p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      {Object.keys(ans.d2a || {}).length === D2A_ITEMS.length 
+                        ? '✓ All items completed!' 
+                        : `${D2A_ITEMS.length - Object.keys(ans.d2a || {}).length} items remaining`}
+                    </p>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {Math.round((Object.keys(ans.d2a || {}).length / D2A_ITEMS.length) * 100)}%
+                  </div>
+                </div>
+                <div className="mt-3 w-full bg-blue-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    style={{ width: `${(Object.keys(ans.d2a || {}).length / D2A_ITEMS.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
@@ -387,10 +427,16 @@ export default function Dimension2Page() {
                   ← View previous option
                 </button>
 
+                {/* VALIDATION: Updated Continue button */}
                 {Object.keys(ans.d2a || {}).length === D2A_ITEMS.length && !isTransitioning && (
                   <button
                     onClick={next}
-                    className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
+                    disabled={!isStepValid()}
+                    className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                      isStepValid()
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                    }`}
                   >
                     Continue →
                   </button>
@@ -405,35 +451,47 @@ export default function Dimension2Page() {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
-            <p className="font-bold text-gray-900 mb-4">
-              Are the <span className="text-blue-600">Insurance & Financial Protection support options</span> your 
-              organization currently offers...?
-            </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
-            
-            <div className="space-y-2">
-              {[
-                "Only available in select locations",
-                "Vary across locations", 
-                "Generally consistent across all locations"
-              ].map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setField("D2aa", opt)}
-                  className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.D2aa === opt
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+            {/* VALIDATION: Wrapper with red border */}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.D2aa && !ans.D2aa
+                ? 'border-red-500 bg-red-50' 
+                : 'border-gray-200 bg-white'
+            }`}>
+              {/* VALIDATION: Required asterisk */}
+              <p className="font-bold text-gray-900 mb-4">
+                Are the <span className="text-blue-600">Insurance & Financial Protection support options</span> your 
+                organization currently offers...?
+                <span className="text-red-600 ml-1">*</span>
+              </p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+              
+              <div className="space-y-2">
+                {[
+                  "Only available in select locations",
+                  "Vary across locations", 
+                  "Generally consistent across all locations"
+                ].map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      setField("D2aa", opt);
+                      markTouched("D2aa"); // VALIDATION: Mark as touched
+                    }}
+                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                      ans.D2aa === opt
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Step 3: D2.b open-end (OR Step 2 if no D2aa) */}
+        {/* Step 3: D2.b open-end (OR Step 2 if no D2aa) - OPTIONAL, NO VALIDATION */}
         {(step === 3 || (step === 2 && !showD2aa)) && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Benefits</h3>
@@ -500,9 +558,15 @@ export default function Dimension2Page() {
             >
               ← Back
             </button>
+            {/* VALIDATION: Updated Continue button */}
             <button 
-              onClick={next} 
-              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+              onClick={next}
+              disabled={!isStepValid()}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                isStepValid()
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
             >
               Continue →
             </button>
