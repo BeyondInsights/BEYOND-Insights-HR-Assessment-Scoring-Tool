@@ -191,8 +191,11 @@ export default function DashboardPage() {
     return () => window.removeEventListener("focus", handleFocus);
   }, [router])
 
+  // Payment bypass for testing - controlled by environment variable
+  const bypassPayment = process.env.NEXT_PUBLIC_BYPASS_PAYMENT === 'true'
+
   // CHECK FOR INVOICE PAYMENT - BEFORE RENDERING DASHBOARD
-  if (paymentMethod === 'invoice' && !paymentCompleted) {
+  if (!bypassPayment && paymentMethod === 'invoice' && !paymentCompleted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
         <Header />
@@ -279,17 +282,17 @@ export default function DashboardPage() {
   const all13DimensionsDone = dimensionProgress.every(p => p === 100)
 
   const handleSectionClick = (sectionId: string) => {
-    if (!paymentCompleted) {
+    if (!paymentCompleted && !bypassPayment) {
       return;
     }
     router.push(`/survey/${sectionId}`)
   }
 
   const handleDimensionClick = (idx: number) => {
-    if (!paymentCompleted) {
+    if (!paymentCompleted && !bypassPayment) {
       return;
     }
-    if (allCoreDone) {
+    if (allCoreDone || bypassPayment) {
       router.push(`/survey/dimensions/${idx+1}`)
     }
   }
@@ -297,6 +300,15 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
+
+      {/* Testing Mode Banner - Only shows when payment is bypassed */}
+      {bypassPayment && (
+        <div className="bg-red-600 text-white text-center py-2 px-4">
+          <p className="text-sm font-bold">
+            ⚠️ TESTING MODE: Payment requirement bypassed - Remember to disable before production!
+          </p>
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto px-6 py-10 flex-1">
         <div className="mb-8">
@@ -316,7 +328,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Payment Status Banner */}
-        {!paymentCompleted && (
+        {!paymentCompleted && !bypassPayment && (
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8 rounded-lg">
             <div className="flex items-start">
               <Lock className="w-6 h-6 text-yellow-600 mr-3 mt-1" />
