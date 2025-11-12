@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-// Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -37,7 +36,6 @@ export default function Dimension13Page() {
   
   const [D13A_ITEMS] = useState(() => shuffleArray(D13A_ITEMS_BASE));
   
-  // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const markTouched = (fieldName: string) => {
@@ -47,7 +45,6 @@ export default function Dimension13Page() {
   const isStepValid = (): boolean => {
     return validateStep() === null;
   };
-  // ===== END VALIDATION ADDITIONS =====
   
   useEffect(() => {
     const saved = localStorage.getItem("dimension13_data");
@@ -81,7 +78,7 @@ export default function Dimension13Page() {
 
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
-    markTouched(key); // Mark field as touched
+    markTouched(key);
     setErrors("");
   };
 
@@ -90,7 +87,7 @@ export default function Dimension13Page() {
       ...prev,
       d13a: { ...(prev.d13a || {}), [item]: status }
     }));
-    markTouched('d13a'); // Mark d13a as touched
+    markTouched('d13a');
     
     setIsTransitioning(true);
     
@@ -122,22 +119,21 @@ export default function Dimension13Page() {
   };
 
   const STATUS_OPTIONS = [
-  "Not able to utilize in foreseeable future",  // Special wording for D13
-  "Assessing feasibility",
-  "In active planning / development",
-  "Currently use",  // Special wording for D13
-  "Unsure"
-];
+    "Not able to utilize in foreseeable future",
+    "Assessing feasibility",
+    "In active planning / development",
+    "Currently use",
+    "Unsure"
+  ];
 
-const hasAnyOffered = Object.values(ans.d13a || {}).some(
-  (status) => status === "Currently use"  // Special wording for D13
-);
+  const hasAnyOffered = Object.values(ans.d13a || {}).some(
+    (status) => status === "Currently use"
+  );
 
-const showD13aa = isMultiCountry && hasAnyOffered;
-const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disclosure"] === "Currently use";
+  const showD13aa = isMultiCountry && hasAnyOffered;
   
   const getTotalSteps = () => {
-    let total = 5; // intro, D13.a, D13.aa (conditional), D13.b, D13.1, completion
+    let total = 5;
     return total;
   };
 
@@ -175,16 +171,16 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
 
     if (step === 1) {
       if (showD13aa) {
-        setStep(2); // D13.aa
+        setStep(2);
       } else {
-        setStep(3); // D13.b
+        setStep(3);
       }
     } else if (step === 2) {
-      setStep(3); // D13.b
+      setStep(3);
     } else if (step === 3) {
-      setStep(4); // D13.1
+      setStep(4);
     } else if (step === 4) {
-      setStep(5); // completion
+      setStep(5);
     } else if (step === 5) {
       localStorage.setItem("dimension13_complete", "true");
       router.push("/dashboard");
@@ -234,7 +230,6 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
           </div>
         )}
 
-        {/* Step 0: Introduction */}
         {step === 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
             <div className="max-w-3xl mx-auto">
@@ -288,7 +283,6 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
           </div>
         )}
 
-        {/* Step 1: D13.a Progressive Cards */}
         {step === 1 && (
           <div className="bg-white rounded-xl shadow-sm">
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 rounded-t-xl">
@@ -296,14 +290,13 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-white mb-2">COMMUNICATION & AWARENESS</h2>
                   <p className="text-gray-300 text-sm">
-                    Inform, educate, and engage employees about available workplace support programs for those managing cancer or other serious health conditions
+                    Inform, educate, and engage employees about available workplace support programs
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="p-8">
-              {/* Progress Counter */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -429,24 +422,21 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
                   >
                     Continue →
                   </button>
-                }}
+                )}
               </div>
             </div>
           </div>
         )}
         
-        {/* Step 2: D13.aa (conditional for multi-country) */}
-      {step === 2 && showD13aa && (
+        {step === 2 && showD13aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Usage</h3>
             
-            {/* VALIDATION: Wrapper with red border */}
             <div className={`border-2 rounded-lg p-4 ${
               touched.d13aa && !ans.d13aa
                 ? 'border-red-500 bg-red-50' 
                 : 'border-gray-200 bg-white'
             }`}>
-              {/* VALIDATION: Required asterisk */}
               <p className="font-bold text-gray-900 mb-4">
                 Are the <span className="text-blue-600 font-bold">Communication & Awareness approaches</span> your 
                 organization <span className="text-blue-600 font-bold">currently use</span>...?
@@ -464,7 +454,7 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
                     key={opt}
                     onClick={() => {
                       setField("d13aa", opt);
-                      markTouched("d13aa"); // VALIDATION: Mark as touched
+                      markTouched("d13aa");
                     }}
                     className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                       ans.d13aa === opt
@@ -479,7 +469,7 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
             </div>
           </div>
         )}
-        {/* Step 3: D13.b open-end */}
+
         {step === 3 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Approaches</h3>
@@ -511,7 +501,6 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
           </div>
         )}
 
-        {/* Step 4: D13.1 Communication Frequency - REQUIRED */}
         {step === 4 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Communication Frequency</h3>
@@ -553,7 +542,6 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
           </div>
         )}
 
-        {/* Step 5: Completion */}
         {step === 5 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
@@ -579,7 +567,6 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
           </div>
         )}
 
-        {/* Universal Navigation */}
         {step > 1 && step < 5 && (
           <div className="flex justify-between mt-8">
             <button 
