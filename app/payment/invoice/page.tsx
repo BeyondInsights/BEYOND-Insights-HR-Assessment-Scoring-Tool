@@ -282,11 +282,11 @@ export default function InvoicePaymentPage() {
       doc.text('TOTAL DUE:', pageWidth / 2, yPos + 2, { align: 'right' })
       doc.text('$1,250.00', pageWidth - 25, yPos + 2, { align: 'right' })
 
-      // Payment Terms box - Box ends after "Please include..." line
+      // Payment Terms box - Ends right after payment instructions
       yPos += 20
       doc.setDrawColor(255, 107, 53)
       doc.setLineWidth(0.5)
-      doc.rect(20, yPos, pageWidth - 40, 92)
+      doc.rect(20, yPos, pageWidth - 40, 88)
       
       doc.setFontSize(11)
       doc.setTextColor(255, 107, 53)
@@ -343,11 +343,14 @@ export default function InvoicePaymentPage() {
       yPos += 4
       doc.text(`Reference: ${data.invoiceNumber}`, 35, yPos)
       
-      // Contact & Instructions
-      yPos += 6
+      // Contact & Instructions - LAST LINE IN BOX
+      yPos += 5
       doc.setFontSize(8)
       doc.setTextColor(100, 100, 100)
       doc.text('Please include the invoice number in your payment reference. Questions: cacbestcompanies@cew.org', 30, yPos)
+
+      // Move past the orange box before adding footer
+      yPos += 15
 
       // Footer
       yPos = doc.internal.pageSize.getHeight() - 20
