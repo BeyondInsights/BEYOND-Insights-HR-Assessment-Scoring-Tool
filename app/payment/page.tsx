@@ -11,6 +11,28 @@ export default function PaymentPage() {
   const [companyName, setCompanyName] = useState('')
   const [loading, setLoading] = useState(true)
 
+  // ========================================
+  // TESTING MODE - CHANGE THIS ONE LINE TO TOGGLE
+  // ========================================
+  const TESTING_MODE = true  // ← Set to false for production
+  
+  // Testing mode handler - simulates payment completion
+  const handleTestingModePayment = (method: 'card' | 'ach' | 'invoice') => {
+    if (!TESTING_MODE) return false; // Do nothing if not in testing mode
+    
+    console.log(`[TESTING MODE] Simulating ${method} payment...`)
+    
+    // Simulate payment completion
+    localStorage.setItem('payment_completed', 'true')
+    localStorage.setItem('payment_method', method)
+    localStorage.setItem('payment_date', new Date().toISOString())
+    
+    // Redirect to dashboard
+    router.push('/dashboard')
+    return true; // Indicates testing mode handled it
+  }
+  // ========================================
+
   useEffect(() => {
     const checkPaymentStatus = async () => {
       try {
@@ -60,6 +82,15 @@ export default function PaymentPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
 
+      {/* TESTING MODE BANNER - Only shows when TESTING_MODE = true */}
+      {TESTING_MODE && (
+        <div className="bg-red-600 text-white text-center py-3 px-4 sticky top-0 z-50">
+          <p className="text-sm font-bold">
+            ⚠️ TESTING MODE ACTIVE - All payments simulated for review purposes (Change TESTING_MODE to false for production)
+          </p>
+        </div>
+      )}
+
       <main className="max-w-4xl mx-auto px-6 py-10 flex-1">
         <div className="text-center mb-8">
           <Award className="w-16 h-16 text-orange-600 mx-auto mb-4" />
@@ -97,7 +128,13 @@ export default function PaymentPage() {
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Online Payment - RECOMMENDED */}
           <button
-            onClick={() => router.push('/payment/zeffy')}
+            onClick={() => {
+              // TESTING MODE CHECK - Added for testing
+              if (handleTestingModePayment('card')) return;
+              
+              // PRODUCTION CODE - Your existing Zeffy navigation
+              router.push('/payment/zeffy')
+            }}
             className="relative p-6 rounded-xl border-2 border-orange-500 bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-lg transition-all text-left group"
           >
             <div className="absolute top-4 right-4 bg-orange-600 text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -129,7 +166,13 @@ export default function PaymentPage() {
 
           {/* Invoice - Alternative Option */}
           <button
-            onClick={() => router.push('/payment/invoice')}
+            onClick={() => {
+              // TESTING MODE CHECK - Added for testing
+              if (handleTestingModePayment('invoice')) return;
+              
+              // PRODUCTION CODE - Your existing invoice navigation
+              router.push('/payment/invoice')
+            }}
             className="p-6 rounded-xl border-2 border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg transition-all text-left group"
           >
             <FileText className="w-12 h-12 text-gray-600 mb-4 group-hover:text-blue-600" />
