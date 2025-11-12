@@ -192,28 +192,13 @@ export default function DashboardPage() {
   }, [router])
 
   // Payment bypass for testing - controlled by environment variable
-  const bypassPayment = process.env.NEXT_PUBLIC_BYPASS_PAYMENT === 'true'
+  const bypassPayment = true  // FORCE ON FOR TESTING
 
   // CHECK FOR INVOICE PAYMENT - BEFORE RENDERING DASHBOARD
   if (!bypassPayment && paymentMethod === 'invoice' && !paymentCompleted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
        <Header />
-
-{/* TEMPORARY DEBUG TEST */}
-<div style={{
-  background: '#FFEB3B',
-  color: '#000',
-  padding: '20px',
-  textAlign: 'center',
-  border: '5px solid red',
-  fontSize: '18px',
-  fontWeight: 'bold'
-}}>
-  <p>🔍 DEBUG: What value is the app seeing?</p>
-  <p>NEXT_PUBLIC_BYPASS_PAYMENT = "{process.env.NEXT_PUBLIC_BYPASS_PAYMENT}"</p>
-  <p>Is it working?: {process.env.NEXT_PUBLIC_BYPASS_PAYMENT === 'true' ? 'YES ✅' : 'NO ❌'}</p>
-</div>
         
         <main className="max-w-4xl mx-auto px-6 py-16 flex-1">
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
