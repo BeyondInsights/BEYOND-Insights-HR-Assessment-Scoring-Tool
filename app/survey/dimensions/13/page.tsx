@@ -436,16 +436,18 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
         )}
         
         {/* Step 2: D13.aa (conditional for multi-country) */}
-        {step === 2 && showD13aa && (
+      {step === 2 && showD13aa && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Usage</h3>
             
+            {/* VALIDATION: Wrapper with red border */}
             <div className={`border-2 rounded-lg p-4 ${
               touched.d13aa && !ans.d13aa
-                ? 'border-red-500 bg-red-50'
+                ? 'border-red-500 bg-red-50' 
                 : 'border-gray-200 bg-white'
             }`}>
-              <p className="font-bold text-gray-900 mb-1">
+              {/* VALIDATION: Required asterisk */}
+              <p className="font-bold text-gray-900 mb-4">
                 Are the <span className="text-blue-600 font-bold">Communication & Awareness approaches</span> your 
                 organization <span className="text-blue-600 font-bold">currently use</span>...?
                 <span className="text-red-600 ml-1">*</span>
@@ -460,7 +462,10 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
                 ].map(opt => (
                   <button
                     key={opt}
-                    onClick={() => setField("d13aa", opt)}
+                    onClick={() => {
+                      setField("d13aa", opt);
+                      markTouched("d13aa"); // VALIDATION: Mark as touched
+                    }}
                     className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                       ans.d13aa === opt
                         ? "border-blue-500 bg-blue-50"
@@ -474,7 +479,6 @@ const showD13_1 = ans.d13a?.["Proactive communication at point of diagnosis disc
             </div>
           </div>
         )}
-
         {/* Step 3: D13.b open-end */}
         {step === 3 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
