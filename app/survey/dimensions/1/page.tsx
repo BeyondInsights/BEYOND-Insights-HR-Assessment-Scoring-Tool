@@ -38,6 +38,18 @@ export default function Dimension1Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D1A_ITEMS] = useState(() => shuffleArray(D1A_ITEMS_BASE));
   
+  // ===== VALIDATION ADDITIONS =====
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const markTouched = (fieldName: string) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }));
+  };
+
+  const isStepValid = (): boolean => {
+    return validateStep() === null;
+  };
+  // ===== END VALIDATION ADDITIONS =====
+  
   // Load saved answers on mount
   useEffect(() => {
     const saved = localStorage.getItem("dimension1_data");
@@ -74,9 +86,10 @@ export default function Dimension1Page() {
   
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
+    markTouched(key); // Mark field as touched
     setErrors("");
   };
-  // ADD THIS FUNCTION
+  
   const toggleMultiSelect = (key: string, value: string) => {
     setAns((prev: any) => {
       const current = prev[key] || [];
@@ -86,6 +99,7 @@ export default function Dimension1Page() {
         return { ...prev, [key]: [...current, value] };
       }
     });
+    markTouched(key); // Mark field as touched
     setErrors("");
   };
   
@@ -94,6 +108,7 @@ export default function Dimension1Page() {
       ...prev,
       d1a: { ...(prev.d1a || {}), [item]: status }
     }));
+    markTouched('d1a'); // Mark d1a as touched
     
     setIsTransitioning(true);
     
@@ -140,7 +155,7 @@ export default function Dimension1Page() {
   const showD1_5 = ans.d1a?.["Job protection beyond local / legal requirements"] === "Currently offer";
   const showD1_6 = ans.d1a?.["Disability pay top-up (employer adds to disability insurance)"] === "Currently offer";
 
-  // D1aa should show if multi-country AND at least one "Currently offer" (FIX #2)
+  // D1aa should show if multi-country AND at least one "Currently offer"
   const hasAnyOffered = Object.values(ans.d1a || {}).some(
     (status) => status === "Currently offer"
   );
@@ -362,6 +377,31 @@ export default function Dimension1Page() {
             </div>
 
             <div className="p-8">
+              {/* Progress Counter */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">
+                      Progress: {Object.keys(ans.d1a || {}).length} of {D1A_ITEMS.length} items rated
+                    </p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      {Object.keys(ans.d1a || {}).length === D1A_ITEMS.length 
+                        ? '✓ All items completed!' 
+                        : `${D1A_ITEMS.length - Object.keys(ans.d1a || {}).length} items remaining`}
+                    </p>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {Math.round((Object.keys(ans.d1a || {}).length / D1A_ITEMS.length) * 100)}%
+                  </div>
+                </div>
+                <div className="mt-3 w-full bg-blue-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    style={{ width: `${(Object.keys(ans.d1a || {}).length / D1A_ITEMS.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
@@ -454,7 +494,12 @@ export default function Dimension1Page() {
                 {Object.keys(ans.d1a || {}).length === D1A_ITEMS.length && !isTransitioning && (
                   <button
                     onClick={next}
-                    className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
+                    disabled={!isStepValid()}
+                    className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                      isStepValid()
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer animate-pulse'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                    }`}
                   >
                     Continue →
                   </button>
@@ -469,30 +514,37 @@ export default function Dimension1Page() {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
-            <p className="font-bold text-gray-900 mb-4">
-              Are the <span className="text-blue-600">Medical Leave & Flexibility support options</span> your 
-              organization currently offers...?
-            </p>
-            <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
-            
-            <div className="space-y-2">
-              {[
-                "Only available in select locations",
-                "Vary across locations", 
-                "Generally consistent across all locations"
-              ].map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setField("d1aa", opt)}
-                  className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
-                    ans.d1aa === opt
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+            <div className={`border-2 rounded-lg p-4 ${
+              touched.d1aa && !ans.d1aa
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-200 bg-white'
+            }`}>
+              <p className="font-bold text-gray-900 mb-1">
+                Are the <span className="text-blue-600">Medical Leave & Flexibility support options</span> your 
+                organization currently offers...?
+                <span className="text-red-600 ml-1">*</span>
+              </p>
+              <p className="text-sm text-gray-600 mb-4">(Select ONE)</p>
+              
+              <div className="space-y-2">
+                {[
+                  "Only available in select locations",
+                  "Vary across locations", 
+                  "Generally consistent across all locations"
+                ].map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => setField("d1aa", opt)}
+                    className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
+                      ans.d1aa === opt
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -1004,7 +1056,12 @@ export default function Dimension1Page() {
             </button>
             <button 
               onClick={next} 
-              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+              disabled={!isStepValid()}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                isStepValid()
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
             >
               Continue →
             </button>
