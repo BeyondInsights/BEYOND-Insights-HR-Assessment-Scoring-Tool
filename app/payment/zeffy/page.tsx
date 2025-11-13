@@ -33,7 +33,7 @@ export default function ZeffyPaymentPage() {
       contactName: `${firstName} ${lastName}`
     })
     
-    const baseUrl = 'https://www.zeffy.com/en-US/ticketing/best-companies-for-working-with-cancer'
+    const baseUrl = 'https://www.zeffy.com/en-US/ticketing/test-620'
     const params = new URLSearchParams({
       survey_id: surveyId,
       source: 'assessment_app',
