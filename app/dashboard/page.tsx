@@ -200,7 +200,7 @@ export default function DashboardPage() {
   }, [router])
 
   // Payment bypass for testing - FORCED ON FOR TESTING
-  const bypassPayment = false  // CHANGE THIS TO false FOR PRODUCTION
+  const bypassPayment = true  // CHANGE THIS TO false FOR PRODUCTION
  
   const overallProgress = Math.round(
     (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
