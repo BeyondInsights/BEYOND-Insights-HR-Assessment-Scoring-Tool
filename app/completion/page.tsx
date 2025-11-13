@@ -89,7 +89,7 @@ export default function CompletionPage() {
               </p>
               
               <p className="text-base leading-relaxed">
-                Your thoughtful responses provide essential insights that will help identify meaningful opportunities to enhance care and support across organizations.
+                Your participation will truly impact workplaces for those impacted by cancer or other serious health conditions.
               </p>
             </div>
 
@@ -249,19 +249,18 @@ export default function CompletionPage() {
                   </div>
                 </div>
 
-                {/* Index Release */}
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                    2
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">Index Release: Early March 2026</h3>
-                    <p className="text-sm text-gray-700">
-                      The 2026 Best Companies for Working With Cancer Index will be officially announced.
-                    </p>
-                  </div>
-                </div>
-
+{/* Index Release */}
+<div className="flex items-start gap-4">
+  <div className="flex-shrink-0 w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+    2
+  </div>
+  <div className="flex-1">
+    <h3 className="font-semibold text-gray-900 mb-1">Index Release</h3>
+    <p className="text-sm text-gray-700">
+      The 2026 Best Companies for Working With Cancer Index release is scheduled to be announced in early March, 2026.
+    </p>
+  </div>
+</div>
                 {/* Notification */}
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold">
@@ -281,38 +280,17 @@ export default function CompletionPage() {
                     4
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">Benchmarking Reports: March 2026</h3>
-                    <p className="text-sm text-gray-700 mb-2">
-                      Comprehensive benchmarking reports will be distributed to all participating companies.
-                    </p>
+                    <h3 className="font-semibold text-gray-900 mb-1">Benchmarking Reports: Distributed March 2026</h3>
                     <div className="bg-white border border-teal-200 rounded-lg p-3">
                       <p className="text-xs text-gray-600">
-                        <strong>Note:</strong> Benchmarking Reports are included with your application fee. All reports are completely confidential and shared back only to your company. No individual data is shared with the public or any other participating company.
+                        <strong>Please Note:</strong> Benchmarking Reports are included with the application fee. All reports are completely confidential and shared back only to the participating company. No individual data is shared with the public or any other participating company.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Badge & Marketing Section */}
-            <div className="bg-amber-50 rounded-lg p-8 mb-8 border border-amber-200">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="flex-shrink-0">
-                  <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-16 w-auto" />
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Recognition & Marketing Materials</h2>
-                  <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                    Organizations that meet or exceed our benchmark standards will be eligible to receive the <strong>Best Companies for Working with Cancer</strong> certification badge and access to marketing materials.
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    If your organization qualifies, we'll provide comprehensive guidelines for using the certification badge in your recruiting materials, website, and employee communications, along with supporting marketing assets.
-                  </p>
-                </div>
-              </div>
-            </div>
-                
+     
             {/* Action button */}
             <div className="flex justify-center mb-8">
               <button
