@@ -305,7 +305,7 @@ export default function InvoicePaymentPage() {
       doc.text('Payment Methods:', 25, yPos)
       doc.setFontSize(9)
       yPos += 5
-      doc.text('• Check payable to: Cosmetic Executive Women, Foundation, LTD', 30, yPos)
+      doc.text('• Check payable to: Cosmetic Executive Women Foundation, LTD', 30, yPos)
       yPos += 4
       doc.setFontSize(8)
       doc.setTextColor(100, 100, 100)
@@ -319,7 +319,7 @@ export default function InvoicePaymentPage() {
       doc.text('• ACH Transfer (Domestic US Bank Transfer):', 30, yPos)
       doc.setFont(undefined, 'normal')
       yPos += 4
-      doc.text('Account Name: Cosmetic Executive Women, Foundation, LTD', 35, yPos)
+      doc.text('Account Name: Cosmetic Executive Women Foundation, LTD', 35, yPos)
       yPos += 4
       doc.text('Bank: Bank of America', 35, yPos)
       yPos += 4
@@ -532,7 +532,7 @@ export default function InvoicePaymentPage() {
             {/* Invoice Summary */}
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-700">Assessment Fee</span>
+                <span className="text-gray-700">Survey Fee</span>
                 <span className="text-2xl font-bold text-gray-900">$1,250.00</span>
               </div>
               <p className="text-sm text-gray-600">Payment Terms: Net 30 Days</p>
