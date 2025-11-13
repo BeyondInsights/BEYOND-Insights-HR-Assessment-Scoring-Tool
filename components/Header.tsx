@@ -77,15 +77,15 @@ export default function Header() {
               )}
               
               {showInvoiceButton && (
-                <button
-                  onClick={() => router.push('/payment/invoice')}
-                  className="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg font-semibold shadow-sm hover:bg-green-700 transition text-sm w-full"
-                  title="View and download your invoice"
-                >
-                  <Receipt className="w-4 h-4" />
-                  View Invoice
-                </button>
-              )}
+  <button
+    onClick={() => router.push('/payment/invoice/view')}
+    className="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg font-semibold shadow-sm hover:bg-green-700 transition text-sm w-full"
+    title="View and download your invoice"
+  >
+    <Receipt className="w-4 h-4" />
+    View Invoice
+  </button>
+)}
               
               {showBack && !onPrintPage && (
                 <button
