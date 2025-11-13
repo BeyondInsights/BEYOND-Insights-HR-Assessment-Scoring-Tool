@@ -72,45 +72,62 @@ function AuthorizationContent() {
     au2: false,
   })
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      // Check if user is authenticated with Supabase
-      const authenticated = await isAuthenticated()
-      
-      if (!authenticated) {
-        // Not logged in - redirect to login page with redirect parameter
-        const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
-        router.push(`/${redirectParam}`)
-        return
-      }
-
-      // Load existing data if any
-      try {
-        const assessment = await getUserAssessment()
-        if (assessment) {
-          // Load authorization data if it exists
-          const authData = assessment.firmographics_data as any
-          if (authData) {
-            if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
-            if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
-            if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
-            if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
-            if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
-            if (authData.au1) setAu1(authData.au1)
-            if (authData.au2) setAu2(authData.au2)
-            if (authData.other) setOther(authData.other)
-          }
-        }
-      } catch (error) {
-        console.error('Error loading data:', error)
-      }
-
-      setLoading(false)
+ useEffect(() => {
+  const checkAuth = async () => {
+    // Check if user is authenticated with Supabase
+    const authenticated = await isAuthenticated()
+    
+    if (!authenticated) {
+      // Not logged in - redirect to login page with redirect parameter
+      const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
+      router.push(`/${redirectParam}`)
+      return
     }
 
-    checkAuth()
-  }, [router, redirect])
+    // ============================================
+    // CLEAR OLD USER DATA IMMEDIATELY IF NEW USER
+    // ============================================
+    const currentEmail = localStorage.getItem('auth_email')
+    const lastUserEmail = localStorage.getItem('last_user_email')
+    
+    // Check if this is a different user
+    if (lastUserEmail && lastUserEmail !== currentEmail) {
+      console.log('Different user detected - clearing old data immediately')
+      const emailToKeep = currentEmail
+      localStorage.clear()
+      // Restore only the new user's email
+      localStorage.setItem('auth_email', emailToKeep || '')
+      localStorage.setItem('last_user_email', emailToKeep || '')
+    }
+    // ============================================
 
+    // Load existing data if any
+    try {
+      const assessment = await getUserAssessment()
+      if (assessment) {
+        // Load authorization data if it exists
+        const authData = assessment.firmographics_data as any
+        if (authData) {
+          if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
+          if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
+          if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
+          if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
+          if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
+          if (authData.au1) setAu1(authData.au1)
+          if (authData.au2) setAu2(authData.au2)
+          if (authData.other) setOther(authData.other)
+        }
+      }
+    } catch (error) {
+      console.error('Error loading data:', error)
+    }
+
+    setLoading(false)
+  }
+
+  checkAuth()
+}, [router, redirect])
+  
   const handleBlur = (field: keyof typeof touched) => {
     setTouched(prev => ({ ...prev, [field]: true }))
   }
