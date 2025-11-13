@@ -249,10 +249,7 @@ export default function PaymentPage() {
             <div>
               <h3 className="font-semibold text-blue-900 mb-2">About Invoice Payment</h3>
               <p className="text-sm text-blue-800 mb-2">
-                Selecting invoice payment grants you immediate access to begin your survey. Your results will be provided upon receipt of payment within 30 days.
-              </p>
-              <p className="text-sm text-blue-800">
-                An invoice will be sent to your billing contact within 1 business day.
+                Selecting invoice payment grants you immediate access to begin your survey. Your results will be provided upon receipt of payment (due within 30 days).
               </p>
             </div>
           </div>
