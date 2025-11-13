@@ -5,6 +5,7 @@ import { CreditCard, FileText, Award, Building2, AlertTriangle, Info } from 'luc
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { getUserAssessment } from '@/lib/supabase/auth'
+import { supabase } from '@/lib/supabase/client'
 
 export default function PaymentPage() {
   const router = useRouter()
@@ -61,6 +62,46 @@ export default function PaymentPage() {
     
     checkPaymentStatus()
   }, [router])
+
+  // Handle invoice selection - grant immediate access with pending payment
+  const handleInvoiceSelection = async () => {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.error('No user found')
+        return
+      }
+
+      // Update Supabase with invoice payment method
+      const { error } = await supabase
+        .from('assessments')
+        .update({
+          payment_completed: true,  // Grant access immediately
+          payment_method: 'invoice',
+          payment_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+
+      if (error) {
+        console.error('Error updating payment status:', error)
+        alert('Failed to process invoice request. Please try again.')
+        return
+      }
+
+      // Also update localStorage for backward compatibility
+      localStorage.setItem('payment_completed', 'true')
+      localStorage.setItem('payment_method', 'invoice')
+      localStorage.setItem('payment_date', new Date().toISOString())
+
+      // Redirect to dashboard immediately
+      router.push('/dashboard')
+    } catch (error) {
+      console.error('Error processing invoice:', error)
+      alert('An error occurred. Please try again.')
+    }
+  }
 
   // Show loading state while checking payment status
   if (loading) {
@@ -164,33 +205,57 @@ export default function PaymentPage() {
             </div>
           </button>
 
-          {/* Invoice - Alternative Option */}
+          {/* Invoice - Alternative Option - NOW WITH IMMEDIATE ACCESS */}
           <button
             onClick={() => {
-              // TESTING MODE CHECK - Added for testing
+              // TESTING MODE CHECK
               if (handleTestingModePayment('invoice')) return;
               
-              // PRODUCTION CODE - Your existing invoice navigation
-              router.push('/payment/invoice')
+              // PRODUCTION CODE - Handle invoice selection immediately
+              handleInvoiceSelection()
             }}
             className="p-6 rounded-xl border-2 border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg transition-all text-left group"
           >
             <FileText className="w-12 h-12 text-gray-600 mb-4 group-hover:text-blue-600" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">Request Invoice</h3>
             <p className="text-gray-700 mb-4">
-              Available if unable to use credit card or bank transfer
+              Begin survey immediately, invoice follows
             </p>
             <ul className="space-y-2 mb-4">
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-blue-600 mr-2">✓</span>
-                Net 30 days payment terms
+                Start survey right away
+              </li>
+              <li className="text-sm text-gray-600 flex items-center">
+                <span className="text-blue-600 mr-2">✓</span>
+                Invoice sent within 1 business day
+              </li>
+              <li className="text-sm text-gray-600 flex items-center">
+                <span className="text-blue-600 mr-2">✓</span>
+                Net 30 payment terms
               </li>
             </ul>
             
             <div className="text-gray-600 font-semibold group-hover:text-blue-600 group-hover:underline">
-              Request Invoice →
+              Request Invoice & Begin →
             </div>
           </button>
+        </div>
+
+        {/* Invoice Information Banner */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-8">
+          <div className="flex items-start">
+            <Info className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-2">About Invoice Payment</h3>
+              <p className="text-sm text-blue-800 mb-2">
+                Selecting invoice payment grants you immediate access to begin your survey. Your results will be provided upon receipt of payment within 30 days.
+              </p>
+              <p className="text-sm text-blue-800">
+                An invoice will be sent to your billing contact within 1 business day.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Back Button */}
