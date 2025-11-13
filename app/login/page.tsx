@@ -20,30 +20,62 @@ export default function LoginPage() {
   
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setErrors('')
-    setSuccessMessage('')
-    setGeneratedAppId('')
-    setShowAppId(false)
-    
-    // Validation
-    if (!email.trim()) {
-      setErrors('Please enter your email address')
-      setLoading(false)
-      return
-    }
-    if (!email.includes('@')) {
-      setErrors('Please enter a valid email address')
-      setLoading(false)
-      return
-    }
-    if (!isNewUser && !surveyId.trim()) {
-      setErrors('Please enter your Survey ID')
-      setLoading(false)
-      return
-    }
+  e.preventDefault()
+  setLoading(true)
+  setErrors('')
+  setSuccessMessage('')
+  setGeneratedAppId('')
+  setShowAppId(false)
+  
+  // Validation
+  if (!email.trim()) {
+    setErrors('Please enter your email address')
+    setLoading(false)
+    return
+  }
+  if (!email.includes('@')) {
+    setErrors('Please enter a valid email address')
+    setLoading(false)
+    return
+  }
+  if (!isNewUser && !surveyId.trim()) {
+    setErrors('Please enter your Survey ID')
+    setLoading(false)
+    return
+  }
 
+     // ============================================
+    // CLEAR OLD USER DATA BEFORE NEW LOGIN
+    // ============================================
+    const newEmail = email.trim()
+    const lastUserEmail = localStorage.getItem('last_user_email')
+    
+    // Check if this is a different user
+    if (lastUserEmail && lastUserEmail !== newEmail) {
+      console.log('Different user logging in - clearing all old data')
+      localStorage.clear()
+    }
+    // ============================================
+
+    try {
+      const result = await authenticateUser(
+        email.trim(),
+        isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
+      )
+
+      if (result.mode === 'error') {
+        setErrors(result.message)
+      } else {
+        // Store email in localStorage
+        localStorage.setItem('login_email', email)
+        localStorage.setItem('auth_email', email)
+        localStorage.setItem('user_authenticated', 'true')
+        localStorage.setItem('last_user_email', email)
+      
+      if (!isNewUser) {
+        localStorage.setItem('login_Survey_id', surveyId)
+      }
+      
     try {
       const result = await authenticateUser(
         email.trim(),
