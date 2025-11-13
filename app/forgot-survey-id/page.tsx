@@ -143,6 +143,7 @@ export default function ForgotSurveyIdPage() {
               >
                 Go to Login →
               </button>
+            </div>
           
             <div className="mt-8 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 text-center">
