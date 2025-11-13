@@ -338,7 +338,7 @@ export default function DashboardPage() {
                   </h3>
                   <p className={isInvoice ? 'text-blue-800' : 'text-green-800'}>
                     {isInvoice 
-                      ? 'Your invoice has been generated.  You can view or download by clicking the View Invoice button above. You can continue working on your survey now. Your results will be provided upon receipt of payment within 30 days.'
+                      ? 'You can access your invoice by clicking the View Invoice button above. Continue working on your survey and your results will be provided upon receipt of payment within 30 days.'
                       : 'Transaction completed successfully. Your payment has been processed and you have full access to complete your survey.'
                     }
                   </p>
