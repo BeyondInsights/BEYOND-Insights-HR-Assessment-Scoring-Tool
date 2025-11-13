@@ -190,7 +190,7 @@ export default function InvoiceViewPage() {
       yPos += 15
       doc.setTextColor(0, 0, 0)
       doc.setFont(undefined, 'bold')
-      doc.text('Assessment Fee', 25, yPos)
+      doc.text('Survey Fee', 25, yPos)
       doc.setFont(undefined, 'normal')
       doc.setFontSize(9)
       doc.setTextColor(100, 100, 100)
@@ -236,7 +236,7 @@ export default function InvoiceViewPage() {
       doc.text('Payment Methods:', 25, yPos)
       doc.setFontSize(9)
       yPos += 5
-      doc.text('• Check payable to: Cosmetic Executive Women, Foundation, LTD', 30, yPos)
+      doc.text('• Check payable to: Cosmetic Executive Women Foundation, LTD', 30, yPos)
       yPos += 4
       doc.setFontSize(8)
       doc.setTextColor(100, 100, 100)
@@ -250,7 +250,7 @@ export default function InvoiceViewPage() {
       doc.text('• ACH Transfer (Domestic US Bank Transfer):', 30, yPos)
       doc.setFont(undefined, 'normal')
       yPos += 4
-      doc.text('Account Name: Cosmetic Executive Women, Foundation, LTD', 35, yPos)
+      doc.text('Account Name: Cosmetic Executive Women Foundation, LTD', 35, yPos)
       yPos += 4
       doc.text('Bank: Bank of America', 35, yPos)
       yPos += 4
@@ -415,7 +415,7 @@ export default function InvoiceViewPage() {
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Assessment Fee</p>
+                  <p className="text-sm text-gray-600 mb-1">Survey Fee</p>
                   <p className="text-xs text-gray-500">Best Companies for Working with Cancer Index</p>
                 </div>
                 <p className="text-2xl font-bold text-gray-900">$1,250.00</p>
