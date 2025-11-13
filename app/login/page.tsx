@@ -17,9 +17,7 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState('')
   const [generatedAppId, setGeneratedAppId] = useState('')
   const [showAppId, setShowAppId] = useState(false)
-  
-
-  const handleSubmit = async (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
   setLoading(true)
   setErrors('')
@@ -44,108 +42,91 @@ export default function LoginPage() {
     return
   }
 
-     // ============================================
-    // CLEAR OLD USER DATA BEFORE NEW LOGIN
-    // ============================================
-    const newEmail = email.trim()
-    const lastUserEmail = localStorage.getItem('last_user_email')
-    
-    // Check if this is a different user
-    if (lastUserEmail && lastUserEmail !== newEmail) {
-      console.log('Different user logging in - clearing all old data')
-      localStorage.clear()
-    }
-    // ============================================
+  // ============================================
+  // CLEAR OLD USER DATA BEFORE NEW LOGIN
+  // ============================================
+  const newEmail = email.trim()
+  const lastUserEmail = localStorage.getItem('last_user_email')
+  
+  // Check if this is a different user
+  if (lastUserEmail && lastUserEmail !== newEmail) {
+    console.log('Different user logging in - clearing all old data')
+    localStorage.clear()
+  }
+  // ============================================
 
-    try {
-      const result = await authenticateUser(
-        email.trim(),
-        isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
-      )
+  try {
+    const result = await authenticateUser(
+      newEmail,
+      isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
+    )
 
-      if (result.mode === 'error') {
-        setErrors(result.message)
-      } else {
-        // Store email in localStorage
-        localStorage.setItem('login_email', email)
-        localStorage.setItem('auth_email', email)
-        localStorage.setItem('user_authenticated', 'true')
-        localStorage.setItem('last_user_email', email)
+    if (result.mode === 'error') {
+      setErrors(result.message)
+    } else {
+      // Store email in localStorage
+      localStorage.setItem('login_email', email)
+      localStorage.setItem('auth_email', email)
+      localStorage.setItem('user_authenticated', 'true')
+      localStorage.setItem('last_user_email', email)
       
       if (!isNewUser) {
         localStorage.setItem('login_Survey_id', surveyId)
       }
       
-    try {
-      const result = await authenticateUser(
-        email.trim(),
-        isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
-      )
+      // For existing/returning users - check letter status before redirecting
+      if (result.mode === 'existing' && !result.needsVerification) {
+        const user = await getCurrentUser()
+        if (user) {
+          const { data: assessment } = await supabase
+            .from('assessments')
+            .select('letter_viewed, auth_completed, payment_method, payment_completed')
+            .eq('user_id', user.id)
+            .single()
+          
+          setSuccessMessage(result.message)
+          setTimeout(() => {
+            // Step 1: Check if letter viewed
+            if (!assessment?.letter_viewed) {
+              router.push('/letter')
+              return
+            }
+            
+            // Step 2: Check if authorization completed
+            if (!assessment?.auth_completed) {
+              router.push('/authorization')
+              return
+            }
+            
+            // Step 3: Check if payment method selected
+            if (!assessment?.payment_method) {
+              router.push('/payment')
+              return
+            }
+            
+            // Step 4: Send to dashboard (handles both paid and invoice pending)
+            router.push('/dashboard')
+          }, 1000)
+        }
+      } else if (result.mode === 'new') {
+        // New user - show App ID and let them proceed to letter
+        setSuccessMessage('Account created successfully!')
+        if (result.appId) {
+          setGeneratedAppId(result.appId)
+          setShowAppId(true)
+          localStorage.setItem('login_Survey_id', result.appId)
+        }
+      }
+    }
+  } catch (err) {
+    setErrors('An unexpected error occurred. Please try again.')
+    console.error('Auth error:', err)
+  } finally {
+    setLoading(false)
+  }
+} 
 
-     if (result.mode === 'error') {
-  setErrors(result.message)
-} else {
-  // Store email in localStorage
-  localStorage.setItem('login_email', email)
-  localStorage.setItem('auth_email', email)
-  localStorage.setItem('user_authenticated', 'true')
   
-  if (!isNewUser) {
-    localStorage.setItem('login_Survey_id', surveyId)
-  }
-  
-  // For existing/returning users - check letter status before redirecting
-  if (result.mode === 'existing' && !result.needsVerification) {
-    const user = await getCurrentUser()
-    if (user) {
-      const { data: assessment } = await supabase
-        .from('assessments')
-        .select('letter_viewed, auth_completed, payment_method, payment_completed')
-        .eq('user_id', user.id)
-        .single()
-      
-      setSuccessMessage(result.message)
-      setTimeout(() => {
-        // Step 1: Check if letter viewed
-        if (!assessment?.letter_viewed) {
-          router.push('/letter')
-          return
-        }
-        
-        // Step 2: Check if authorization completed
-        if (!assessment?.auth_completed) {
-          router.push('/authorization')
-          return
-        }
-        
-        // Step 3: Check if payment method selected
-        if (!assessment?.payment_method) {
-          router.push('/payment')
-          return
-        }
-        
-        // Step 4: Send to dashboard (handles both paid and invoice pending)
-        router.push('/dashboard')
-      }, 1000)
-    }
-  } else if (result.mode === 'new') {
-    // New user - show App ID and let them proceed to letter
-    setSuccessMessage('Account created successfully!')
-    if (result.appId) {
-      setGeneratedAppId(result.appId)
-      setShowAppId(true)
-      localStorage.setItem('login_Survey_id', result.appId)
-    }
-  }
-}
-    } catch (err) {
-      setErrors('An unexpected error occurred. Please try again.')
-      console.error('Auth error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleProceedToSurvey = () => {
   localStorage.setItem('user_authenticated', 'true')
   localStorage.setItem('auth_completed', 'true')
