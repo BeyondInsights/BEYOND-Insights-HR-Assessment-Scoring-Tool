@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Mail, CheckCircle, ArrowLeft, Copy } from 'lucide-react'
-import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { supabase } from '@/lib/supabase/client'
 
@@ -80,7 +79,19 @@ export default function ForgotSurveyIdPage() {
   if (surveyId) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
-        <Header />
+        {/* Simple Header - Logo Only */}
+        <header className="shadow-md">
+          <div className="bg-white">
+            <div className="max-w-7xl mx-auto flex justify-center px-6 py-4">
+              <img
+                src="/cancer-careers-logo.png"
+                alt="Cancer and Careers Logo"
+                className="h-14 sm:h-18 lg:h-22 w-auto"
+              />
+            </div>
+          </div>
+          <div className="h-2 bg-orange-600" />
+        </header>
         
         <main className="max-w-2xl mx-auto px-6 py-16 flex-1">
           <div className="bg-white rounded-2xl shadow-lg p-8">
@@ -160,7 +171,19 @@ export default function ForgotSurveyIdPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
-      <Header />
+      {/* Simple Header - Logo Only */}
+      <header className="shadow-md">
+        <div className="bg-white">
+          <div className="max-w-7xl mx-auto flex justify-center px-6 py-4">
+            <img
+              src="/cancer-careers-logo.png"
+              alt="Cancer and Careers Logo"
+              className="h-14 sm:h-18 lg:h-22 w-auto"
+            />
+          </div>
+        </div>
+        <div className="h-2 bg-orange-600" />
+      </header>
       
       <main className="max-w-2xl mx-auto px-6 py-16 flex-1">
         <div className="bg-white rounded-2xl shadow-lg p-8">
