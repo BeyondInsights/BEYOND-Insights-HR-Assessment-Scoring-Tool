@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FileText, Download, CheckCircle } from 'lucide-react'
+import { FileText, Download, CheckCircle, Mail } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -11,7 +11,41 @@ export default function InvoiceViewPage() {
   const [loading, setLoading] = useState(true)
   const [scriptLoaded, setScriptLoaded] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [emailSending, setEmailSending] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
 
+  const sendInvoiceEmail = async () => {
+  setEmailSending(true)
+  
+  try {
+    const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email')
+    const firstName = localStorage.getItem('login_first_name')
+    const lastName = localStorage.getItem('login_last_name')
+    const name = `${firstName} ${lastName}`.trim() || 'Valued Partner'
+    
+    const invoiceUrl = `${window.location.origin}/payment/invoice/view`
+    const dashboardUrl = `${window.location.origin}/dashboard`
+    
+    const response = await fetch('/api/send-invoice-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name, invoiceUrl, dashboardUrl })
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to send email')
+    }
+    
+    setEmailSent(true)
+    setTimeout(() => setEmailSent(false), 5000)
+  } catch (error) {
+    console.error('Error sending email:', error)
+    alert('Failed to send email. Please try again or contact support.')
+  } finally {
+    setEmailSending(false)
+  }
+}
+  
   useEffect(() => {
     // Check if user has invoice data
     const invoiceDataStr = localStorage.getItem('invoice_data')
@@ -345,20 +379,37 @@ export default function InvoiceViewPage() {
         {/* Invoice Details Card */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center">
-              <FileText className="w-8 h-8 text-orange-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">Your Invoice</h1>
-            </div>
-            <button
-              onClick={downloadInvoice}
-              disabled={!scriptLoaded || downloading}
-              className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download className="w-5 h-5" />
-              {downloading ? 'Generating PDF...' : 'Download Invoice PDF'}
-            </button>
-          </div>
+  <div className="flex items-center">
+    <FileText className="w-8 h-8 text-orange-600 mr-3" />
+    <h1 className="text-2xl font-bold text-gray-900">Your Invoice</h1>
+  </div>
+  <div className="flex gap-3">
+    <button
+      onClick={sendInvoiceEmail}
+      disabled={emailSending}
+      className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <Mail className="w-5 h-5" />
+      {emailSending ? 'Sending...' : emailSent ? 'Email Sent!' : 'Email Invoice to Me'}
+    </button>
+    <button
+      onClick={downloadInvoice}
+      disabled={!scriptLoaded || downloading}
+      className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <Download className="w-5 h-5" />
+      {downloading ? 'Generating PDF...' : 'Download Invoice PDF'}
+    </button>
+  </div>
+</div>
 
+{emailSent && (
+  <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded">
+    <p className="text-sm text-green-800">
+      ✓ Invoice link sent to your email! Check your inbox.
+    </p>
+  </div>
+)}
           <div className="border-t border-gray-200 pt-6">
             <div className="grid grid-cols-2 gap-8 mb-8">
               <div>
