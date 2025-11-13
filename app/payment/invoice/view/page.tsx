@@ -430,21 +430,15 @@ export default function InvoiceViewPage() {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors"
-          >
-            Go to Dashboard & Begin Survey →
-          </button>
-          <button
-            onClick={() => router.push('/payment')}
-            className="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-          >
-            Back to Payment Options
-          </button>
-        </div>
+        {/* Action Button */}
+<div>
+  <button
+    onClick={() => router.push('/dashboard')}
+    className="w-full px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+  >
+    Return to Dashboard →
+  </button>
+</div>
       </main>
 
       <Footer />
