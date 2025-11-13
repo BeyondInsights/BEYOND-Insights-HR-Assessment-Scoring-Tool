@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Award, Users, CheckCircle2 } from 'lucide-react'
+import { Award, Users, CheckCircle2, Calendar, BarChart3, Bell, FileText } from 'lucide-react'
 
 export default function CompletionPage() {
   const [companyName, setCompanyName] = useState('')
@@ -67,11 +67,11 @@ export default function CompletionPage() {
           <div className="p-8 sm:p-12">
             {/* Thank you heading */}
             <h1 className="text-4xl font-bold text-gray-900 mb-3">
-              Thank You
+              Thank You!
             </h1>
             
             <p className="text-xl text-gray-700 mb-2">
-              Survey Complete
+              Survey Successfully Submitted
             </p>
 
             {companyName && (
@@ -85,12 +85,24 @@ export default function CompletionPage() {
             {/* Main message */}
             <div className="space-y-4 mb-10 text-gray-700">
               <p className="text-base leading-relaxed">
-                We know how valuable your time is, and we deeply appreciate your commitment to this important work.
+                You have successfully submitted your company's survey responses for the <strong>Cancer and Careers Best Companies for Working With Cancer Index</strong>. By participating, your organization is playing a vital role in shaping the future of workplace support for employees managing cancer and other serious health conditions.
               </p>
               
               <p className="text-base leading-relaxed">
-                Your thoughtful responses provide essential insights into your organization's current support landscape and will help identify meaningful opportunities to enhance care for employees navigating cancer and other serious health conditions.
+                Your thoughtful responses provide essential insights that will help identify meaningful opportunities to enhance care and support across organizations.
               </p>
+            </div>
+
+            {/* Dashboard Access */}
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-8">
+              <div className="flex items-start gap-3">
+                <FileText className="w-5 h-5 text-purple-700 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-gray-700">
+                    You may download your submitted responses at any time by visiting your dashboard. All your survey data is securely saved and accessible whenever you need it.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Optional Employee Survey Section - REQUIRED */}
@@ -216,6 +228,73 @@ export default function CompletionPage() {
               </div>
             </div>
 
+            {/* Timeline - What Happens Next */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-8 mb-8 border border-blue-200">
+              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <Calendar className="w-6 h-6 mr-2 text-blue-600" />
+                What Happens Next?
+              </h2>
+              
+              <div className="space-y-5">
+                {/* Survey Close */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                    1
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-1">Survey Close: January 23, 2026</h3>
+                    <p className="text-sm text-gray-700">
+                      BEYOND Insights will conduct and finalize analysis following the close of the survey.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Index Release */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-1">Index Release: Early March 2026</h3>
+                    <p className="text-sm text-gray-700">
+                      The 2026 Best Companies for Working With Cancer Index will be officially announced.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Notification */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-1">Certification Notification</h3>
+                    <p className="text-sm text-gray-700">
+                      Certified companies will be notified 2 weeks prior to public announcement, and marketing materials will be distributed.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Benchmarking Reports */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold">
+                    4
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-1">Benchmarking Reports: March 2026</h3>
+                    <p className="text-sm text-gray-700 mb-2">
+                      Comprehensive benchmarking reports will be distributed to all participating companies.
+                    </p>
+                    <div className="bg-white border border-teal-200 rounded-lg p-3">
+                      <p className="text-xs text-gray-600">
+                        <strong>Note:</strong> Benchmarking Reports are included with your application fee. All reports are completely confidential and shared back only to your company. No individual data is shared with the public or any other participating company.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Badge & Marketing Section */}
             <div className="bg-amber-50 rounded-lg p-8 mb-8 border border-amber-200">
               <div className="flex items-start gap-4 mb-6">
@@ -233,48 +312,62 @@ export default function CompletionPage() {
                 </div>
               </div>
             </div>
-
-            {/* Next steps */}
-            <div className="bg-blue-50 rounded-lg p-8 mb-8 border border-blue-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">What Happens Next</h2>
-              
-              <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                A member of the Cancer and Careers team will carefully review your survey, then reach out to you at{' '}
-                <span className="font-semibold text-blue-700">{email}</span>{' '}
-                within the next 7 to 10 business days.
-              </p>
-              
-              <p className="text-sm text-gray-700 leading-relaxed">
-                We'll discuss your results, answer any questions, and collaborate with you to explore meaningful next steps for your organization.
-              </p>
-            </div>
-
-            {/* Info note */}
-            <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-8">
-              <p className="text-sm text-gray-700">
-                <strong>Note:</strong> You can return to this page anytime from your dashboard to review next steps or update your employee survey preference.
-              </p>
-            </div>
                 
             {/* Action button */}
-            <div className="flex justify-center">
+            <div className="flex justify-center mb-8">
               <button
                 onClick={handleContinue}
-                className={`px-8 py-3 rounded-lg font-semibold transition-colors ${
+                className={`px-8 py-4 rounded-lg font-semibold transition-colors text-lg ${
                   employeeSurveyOptIn === null
                     ? 'bg-gray-400 text-white cursor-not-allowed'
                     : 'bg-purple-600 text-white hover:bg-purple-700'
                 }`}
               >
-                Return to Dashboard
+                Continue to Dashboard
               </button>
             </div>
 
-            {/* Footer note */}
-            <div className="text-center mt-8">
-              <p className="text-sm text-gray-600">
-                We're honored to partner with you on this important work.
+            {/* Closing Message */}
+            <div className="border-t border-gray-200 pt-8 mb-8">
+              <p className="text-base text-gray-700 text-center mb-4">
+                Thank you again for participating. Your responses will truly impact workplaces for those impacted by cancer and other serious health conditions.
               </p>
+              <p className="text-base font-semibold text-gray-900 text-center">
+                With appreciation,<br />
+                The Cancer and Careers Team
+              </p>
+            </div>
+
+            {/* Resources Section */}
+            <div className="bg-gray-50 rounded-lg p-6 mb-8">
+              <h3 className="font-semibold text-gray-900 mb-3 text-center">Additional Resources</h3>
+              <div className="space-y-2 text-sm text-center">
+                <div>
+                  <a 
+                    href="https://www.cancerandcareers.org/en/employers/best-companies" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 font-medium underline"
+                  >
+                    Learn more about the Best Companies for Working With Cancer Index
+                  </a>
+                </div>
+                <div className="text-gray-600">
+                  Questions? Email:{' '}
+                  <a href="mailto:cacbestcompanies@cew.org" className="text-purple-600 hover:text-purple-700 font-medium underline">
+                    cacbestcompanies@cew.org
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* CAC Logo at Bottom */}
+            <div className="flex justify-center pt-6 border-t border-gray-200">
+              <img 
+                src="/cancer-careers-logo.png" 
+                alt="Cancer and Careers" 
+                className="h-16 w-auto opacity-80"
+              />
             </div>
           </div>
         </div>
