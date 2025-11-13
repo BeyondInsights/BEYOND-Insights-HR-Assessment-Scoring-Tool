@@ -17,7 +17,8 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState('')
   const [generatedAppId, setGeneratedAppId] = useState('')
   const [showAppId, setShowAppId] = useState(false)
- const handleSubmit = async (e: React.FormEvent) => {
+
+   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
   setLoading(true)
   setErrors('')
@@ -74,44 +75,45 @@ export default function LoginPage() {
         localStorage.setItem('login_Survey_id', surveyId)
       }
       
-    // For existing/returning users - simplified redirect logic
-if (result.mode === 'existing' && !result.needsVerification) {
-  const user = await getCurrentUser()
-  if (user) {
-    const { data: assessment } = await supabase
-      .from('assessments')
-      .select('auth_completed')
-      .eq('user_id', user.id)
-      .single()
-    
-    setSuccessMessage(result.message)
-    setTimeout(() => {
-      // Check if authorization completed
-      if (!assessment?.auth_completed) {
-        router.push('/authorization')
-        return
+      // For existing/returning users - simplified redirect logic
+      if (result.mode === 'existing' && !result.needsVerification) {
+        const user = await getCurrentUser()
+        if (user) {
+          const { data: assessment } = await supabase
+            .from('assessments')
+            .select('auth_completed')
+            .eq('user_id', user.id)
+            .single()
+          
+          setSuccessMessage(result.message)
+          setTimeout(() => {
+            // Check if authorization completed
+            if (!assessment?.auth_completed) {
+              router.push('/authorization')
+              return
+            }
+            
+            // Send to dashboard (handles payment and everything else)
+            router.push('/dashboard')
+          }, 1000)
+        }
+      } else if (result.mode === 'new') {
+        // New user - show App ID and let them proceed to letter
+        setSuccessMessage('Account created successfully!')
+        if (result.appId) {
+          setGeneratedAppId(result.appId)
+          setShowAppId(true)
+          localStorage.setItem('login_Survey_id', result.appId)
+        }
       }
-      
-      // Send to dashboard (handles payment and everything else)
-      router.push('/dashboard')
-    }, 1000)
-  }
-} else if (result.mode === 'new') {
-  // New user - show App ID and let them proceed to letter
-  setSuccessMessage('Account created successfully!')
-  if (result.appId) {
-    setGeneratedAppId(result.appId)
-    setShowAppId(true)
-    localStorage.setItem('login_Survey_id', result.appId)
-  }
-}
+    }
   } catch (err) {
     setErrors('An unexpected error occurred. Please try again.')
     console.error('Auth error:', err)
   } finally {
     setLoading(false)
   }
-} 
+}
 
   
   const handleProceedToSurvey = () => {
