@@ -14,7 +14,7 @@ export default function PaymentPage() {
   // ========================================
   // TESTING MODE - CHANGE THIS ONE LINE TO TOGGLE
   // ========================================
-  const TESTING_MODE = true  // ← Set to false for production
+  const TESTING_MODE = false  // ← Set to false for production
   
   // Testing mode handler - simulates payment completion
   const handleTestingModePayment = (method: 'card' | 'ach' | 'invoice') => {
