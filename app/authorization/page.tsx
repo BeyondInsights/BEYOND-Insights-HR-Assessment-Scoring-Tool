@@ -107,6 +107,22 @@ function AuthorizationContent() {
     au2.length > 0
 
   const handleContinue = async () => {
+    // ============================================
+    // CLEAR OLD USER DATA IF THIS IS A NEW USER
+    // ============================================
+    const currentEmail = localStorage.getItem('auth_email')
+    const lastUserEmail = localStorage.getItem('last_user_email')
+    
+    // Check if this is a different user
+    if (lastUserEmail && lastUserEmail !== currentEmail) {
+      console.log('Different user detected - clearing old data')
+      const emailToKeep = currentEmail
+      localStorage.clear()
+      // Restore only the new user's email
+      localStorage.setItem('auth_email', emailToKeep || '')
+    }
+    // ============================================
+    
     if (!companyInfo.companyName.trim()) {
       setErrors('Please enter your company name')
       return
@@ -159,14 +175,14 @@ function AuthorizationContent() {
         }
 
         const { error } = await supabase
-  .from('assessments')
-  .update({
-    company_name: companyInfo.companyName,
-    firmographics_data: authorizationData,
-    auth_completed: true,
-    updated_at: new Date().toISOString()
-  })
-  .eq('user_id', user.id)
+          .from('assessments')
+          .update({
+            company_name: companyInfo.companyName,
+            firmographics_data: authorizationData,
+            auth_completed: true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
 
         if (error) {
           console.error('Error saving:', error)
@@ -181,6 +197,9 @@ function AuthorizationContent() {
         localStorage.setItem('login_title', titleToStore || '')
         localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
         localStorage.setItem('auth_completed', 'true')
+        
+        // Track this user's email to detect when a different user logs in
+        localStorage.setItem('last_user_email', currentEmail || '')
         
         // CHECK PAYMENT STATUS BEFORE REDIRECTING
         const assessment = await getUserAssessment()
