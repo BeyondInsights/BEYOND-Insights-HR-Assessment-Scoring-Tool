@@ -404,6 +404,7 @@ export default function PrintPage() {
     </p>
   </div>
 </div>
+</div>
   
   <div className="bg-blue-50 border border-blue-200 rounded p-3">
     <p className="text-sm text-blue-800">
