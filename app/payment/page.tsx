@@ -63,46 +63,6 @@ export default function PaymentPage() {
     checkPaymentStatus()
   }, [router])
 
-  // Handle invoice selection - grant immediate access with pending payment
-  const handleInvoiceSelection = async () => {
-    try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        console.error('No user found')
-        return
-      }
-
-      // Update Supabase with invoice payment method
-      const { error } = await supabase
-        .from('assessments')
-        .update({
-          payment_completed: true,  // Grant access immediately
-          payment_method: 'invoice',
-          payment_date: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-
-      if (error) {
-        console.error('Error updating payment status:', error)
-        alert('Failed to process invoice request. Please try again.')
-        return
-      }
-
-      // Also update localStorage for backward compatibility
-      localStorage.setItem('payment_completed', 'true')
-      localStorage.setItem('payment_method', 'invoice')
-      localStorage.setItem('payment_date', new Date().toISOString())
-
-      // Redirect to dashboard immediately
-      router.push('/dashboard')
-    } catch (error) {
-      console.error('Error processing invoice:', error)
-      alert('An error occurred. Please try again.')
-    }
-  }
-
   // Show loading state while checking payment status
   if (loading) {
     return (
@@ -211,8 +171,8 @@ export default function PaymentPage() {
               // TESTING MODE CHECK
               if (handleTestingModePayment('invoice')) return;
               
-              // PRODUCTION CODE - Handle invoice selection immediately
-              handleInvoiceSelection()
+              // PRODUCTION CODE - Navigate to invoice page to collect info
+              router.push('/payment/invoice')
             }}
             className="p-6 rounded-xl border-2 border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg transition-all text-left group"
           >
