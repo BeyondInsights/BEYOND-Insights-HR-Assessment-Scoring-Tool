@@ -336,7 +336,7 @@ export default function InvoiceViewPage() {
               </h3>
               <p className="text-green-800">
                 Your invoice has been generated and you have immediate access to begin your survey. 
-                The invoice will be sent to your email within 1 business day. Payment is due within 30 days.
+                Payment is due within 30 days.
               </p>
             </div>
           </div>
@@ -424,8 +424,7 @@ export default function InvoiceViewPage() {
 
             <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
               <p className="text-sm text-orange-900">
-                <strong>📧 Invoice Delivery:</strong> Your invoice will be emailed to you within 1 business day. 
-                You can also download it anytime using the button above.
+                <strong>📧 Invoice Download:</strong> You can download it anytime using the button above.
               </p>
             </div>
           </div>
