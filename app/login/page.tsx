@@ -151,10 +151,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <p className="text-center text-slate-700 mb-8">
-        <strong>Enter your information to begin or continue survey</strong>
-      </p>
-
             {/* Generated App ID Display - Only show AFTER account creation */}
             {showAppId && generatedAppId && (
               <div className="mb-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
