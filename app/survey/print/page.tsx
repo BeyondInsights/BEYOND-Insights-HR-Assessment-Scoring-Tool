@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'  // ADD THIS LINE
+import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -49,7 +49,7 @@ const ALL_DIMENSION_SCHEMAS = [
 ]
 
 export default function PrintPage() {
-  const router = useRouter()  // ADD THIS LINE
+  const router = useRouter()
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
   const [companyName, setCompanyName] = useState('Your Company')
   const [currentDate, setCurrentDate] = useState('')
@@ -101,15 +101,12 @@ export default function PrintPage() {
   const handleDownload = () => {
     expandAll()
     setTimeout(() => {
-      // Clone the document and clean it up
       const printContent = document.querySelector('main')?.cloneNode(true) as HTMLElement
       if (!printContent) return
       
-      // Remove all print:hidden elements
       printContent.querySelectorAll('.print\\:hidden').forEach(el => el.remove())
       printContent.querySelectorAll('button').forEach(el => el.remove())
       
-      // Create clean HTML document
       const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -137,7 +134,6 @@ export default function PrintPage() {
 </body>
 </html>`
       
-      // Trigger download
       const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -292,18 +288,15 @@ export default function PrintPage() {
         )
 
       case 'grid':
-        // Use exact options from schema
         let gridOptions = field.statusOptions || field.responseOptions || field.scale || []
         const gridItems = field.programs || field.items || field.elements || []
         
-        // Check if this is a dimension grid by looking for typical dimension scale options
         const isDimensionGrid = gridOptions.some(opt => 
           opt.includes('Not able to offer') || 
           opt.includes('Currently offer') ||
           opt.includes('Assessing feasibility')
         )
         
-        // If it's a dimension grid and the order is wrong (Currently offer is first), reverse it
         if (isDimensionGrid && gridOptions[0] && gridOptions[0].includes('Currently')) {
           gridOptions = [...gridOptions].reverse()
         }
@@ -358,7 +351,6 @@ export default function PrintPage() {
         <Header />
       </div>
 
-      {/* Print Header */}
       <div className="hidden print:block text-center mb-4 pb-3 border-b border-gray-300">
         <h1 className="text-xl font-bold text-gray-900 mb-1">Best Companies for Working with Cancer</h1>
         <p className="text-sm text-gray-600">2026 Employer Index Survey</p>
@@ -366,56 +358,45 @@ export default function PrintPage() {
       </div>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
- {/* Action Bar - Screen Only */}
-<div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 print:hidden">
-  <div className="flex justify-between items-start mb-3">
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Survey Print Preview</h1>
-      <p className="text-sm text-gray-600">Review and download the complete survey questionnaire</p>
-    </div>
-    <div className="flex gap-2">
-      <button 
-        onClick={() => router.push('/dashboard')} 
-        className="px-4 py-1.5 text-sm bg-gray-800 text-white rounded hover:bg-gray-700 flex items-center gap-2"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        Back to Dashboard
-      </button>
-      <button onClick={expandAll} className="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
-        Expand All
-      </button>
-      <button onClick={collapseAll} className="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
-        Collapse All
-      </button>
-      <button onClick={handleDownload} className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-        </svg>
-        Download Survey
-      </button>
-    </div>
-  </div>
-  
-  <div className="bg-blue-50 border border-blue-200 rounded p-3">
-    <p className="text-sm text-blue-800">
-      Click "Download" to save as HTML file. All sections will be automatically expanded for printing.
-    </p>
-  </div>
-</div>
-</div>
-  
-  <div className="bg-blue-50 border border-blue-200 rounded p-3">
-    <p className="text-sm text-blue-800">
-      Click "Download" to save as HTML file. All sections will be automatically expanded for printing.
-    </p>
-  </div>
-</div>
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 print:hidden">
+          <div className="flex justify-between items-start mb-3">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Survey Print Preview</h1>
+              <p className="text-sm text-gray-600">Review and download the complete survey questionnaire</p>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => router.push('/dashboard')} 
+                className="px-4 py-1.5 text-sm bg-gray-800 text-white rounded hover:bg-gray-700 flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Dashboard
+              </button>
+              <button onClick={expandAll} className="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+                Expand All
+              </button>
+              <button onClick={collapseAll} className="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+                Collapse All
+              </button>
+              <button onClick={handleDownload} className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+                Download Survey
+              </button>
+            </div>
+          </div>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded p-3">
+            <p className="text-sm text-blue-800">
+              Click "Download" to save as HTML file. All sections will be automatically expanded for printing.
+            </p>
+          </div>
+        </div>
       
-        {/* Survey Sections */}
         <div className="space-y-3">
-          {/* Section 1: Firmographics */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection('firmographics')}
@@ -438,7 +419,6 @@ export default function PrintPage() {
             )}
           </div>
 
-          {/* Section 2: General Benefits */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection('general')}
@@ -461,7 +441,6 @@ export default function PrintPage() {
             )}
           </div>
 
-          {/* Section 3: Current Support */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection('current')}
@@ -484,12 +463,10 @@ export default function PrintPage() {
             )}
           </div>
 
-          {/* Section 4 Header - NO NUMBER */}
           <div className="bg-gray-50 rounded-lg p-3 border-l-4 border-blue-500">
             <h2 className="text-lg font-bold text-gray-900">13 Dimensions of Support</h2>
           </div>
 
-          {/* 13 Dimensions - INDENTED */}
           <div className="ml-4">
             {ALL_DIMENSION_SCHEMAS.map((schema, idx) => (
               <div key={idx} className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-2">
@@ -522,7 +499,6 @@ export default function PrintPage() {
             ))}
           </div>
 
-          {/* Section 5: Cross-Dimensional */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection('cross')}
@@ -545,7 +521,6 @@ export default function PrintPage() {
             )}
           </div>
 
-          {/* Section 6: Employee Impact */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection('impact')}
