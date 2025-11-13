@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import dynamic from 'next/dynamic'
-import { Lock, CheckCircle, CreditCard } from 'lucide-react'
+import { Lock, CheckCircle, CreditCard, Award } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { isFoundingPartner, getFoundingPartnerMessage } from '@/lib/founding-partners'
 
 const ProgressCircle = dynamic(() => import('@/components/ProgressCircle'), {
   ssr: false
@@ -18,6 +19,7 @@ export default function DashboardPage() {
   const [companyName, setCompanyName] = useState('')
   const [paymentCompleted, setPaymentCompleted] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('')
+  const [isFoundingPartnerUser, setIsFoundingPartnerUser] = useState(false)
   const [dimensionProgress, setDimensionProgress] = useState(new Array(13).fill(0))
   const [sectionProgress, setSectionProgress] = useState({
     firmographics: 0,
@@ -50,10 +52,16 @@ export default function DashboardPage() {
         const savedEmail = localStorage.getItem('auth_email') || '';
         setEmail(savedEmail);
         
+        // Check if user is a Founding Partner (fee waived)
+        const surveyId = localStorage.getItem('survey_id') || '';
+        const isFoundingPart = isFoundingPartner(surveyId);
+        setIsFoundingPartnerUser(isFoundingPart);
+        
+        // Get payment status - Founding Partners automatically have payment completed
         const paymentStatus = localStorage.getItem('payment_completed');
         const method = localStorage.getItem('payment_method');
-        setPaymentCompleted(paymentStatus === 'true');
-        setPaymentMethod(method || '');
+        setPaymentCompleted(isFoundingPart || paymentStatus === 'true');
+        setPaymentMethod(isFoundingPart ? 'founding_partner' : (method || ''));
         
         const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
         if (firmo?.companyName) setCompanyName(firmo.companyName);
@@ -195,7 +203,8 @@ export default function DashboardPage() {
   const bypassPayment = true  // CHANGE THIS TO false FOR PRODUCTION
 
   // CHECK FOR INVOICE PAYMENT - BEFORE RENDERING DASHBOARD
-  if (!bypassPayment && paymentMethod === 'invoice' && !paymentCompleted) {
+  // NOTE: Founding Partners skip this check entirely
+  if (!bypassPayment && !isFoundingPartnerUser && paymentMethod === 'invoice' && !paymentCompleted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
         <Header />
@@ -240,7 +249,6 @@ export default function DashboardPage() {
               </p>
             </div>
             
-            {/* ✅ UPDATED EMAIL ADDRESS */}
             <p className="text-sm text-gray-900 mb-2">
               <strong>Questions about your invoice or payment?</strong>
             </p>
@@ -352,6 +360,26 @@ export default function DashboardPage() {
         )}
 
         {paymentCompleted && (() => {
+          // Show Founding Partner message if applicable
+          if (isFoundingPartnerUser) {
+            return (
+              <div className="border-l-4 bg-purple-50 border-purple-400 p-6 mb-8 rounded-lg">
+                <div className="flex items-start">
+                  <Award className="w-6 h-6 text-purple-600 mr-3 mt-1" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-purple-900 mb-2">
+                      {getFoundingPartnerMessage()}
+                    </h3>
+                    <p className="text-purple-800">
+                      Thank you for being a Founding Partner of the Best Companies for Working with Cancer Index. Your participation fee has been waived and you have full access to complete your survey.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+          
+          // Show regular payment status for non-founding partners
           const isInvoice = paymentMethod === 'invoice'
           
           return (
