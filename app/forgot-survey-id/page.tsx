@@ -131,7 +131,7 @@ export default function ForgotSurveyIdPage() {
                 </li>
                 <li className="flex items-start">
                   <span className="font-bold mr-2">3.</span>
-                  <span>Access your assessment dashboard</span>
+                  <span>Access your survey dashboard</span>
                 </li>
               </ol>
             </div>
@@ -143,19 +143,7 @@ export default function ForgotSurveyIdPage() {
               >
                 Go to Login →
               </button>
-              
-              <button
-                onClick={() => {
-                  setSurveyId('')
-                  setCompanyName('')
-                  setEmail('')
-                }}
-                className="w-full px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-              >
-                Look Up Another Survey ID
-              </button>
-            </div>
-
+          
             <div className="mt-8 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 text-center">
                 <strong>Tip:</strong> Save this Survey ID in a safe place so you don't lose it again!
