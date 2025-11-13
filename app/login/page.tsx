@@ -74,50 +74,37 @@ export default function LoginPage() {
         localStorage.setItem('login_Survey_id', surveyId)
       }
       
-      // For existing/returning users - check letter status before redirecting
-      if (result.mode === 'existing' && !result.needsVerification) {
-        const user = await getCurrentUser()
-        if (user) {
-          const { data: assessment } = await supabase
-            .from('assessments')
-            .select('letter_viewed, auth_completed, payment_method, payment_completed')
-            .eq('user_id', user.id)
-            .single()
-          
-          setSuccessMessage(result.message)
-          setTimeout(() => {
-            // Step 1: Check if letter viewed
-            if (!assessment?.letter_viewed) {
-              router.push('/letter')
-              return
-            }
-            
-            // Step 2: Check if authorization completed
-            if (!assessment?.auth_completed) {
-              router.push('/authorization')
-              return
-            }
-            
-            // Step 3: Check if payment method selected
-            if (!assessment?.payment_method) {
-              router.push('/payment')
-              return
-            }
-            
-            // Step 4: Send to dashboard (handles both paid and invoice pending)
-            router.push('/dashboard')
-          }, 1000)
-        }
-      } else if (result.mode === 'new') {
-        // New user - show App ID and let them proceed to letter
-        setSuccessMessage('Account created successfully!')
-        if (result.appId) {
-          setGeneratedAppId(result.appId)
-          setShowAppId(true)
-          localStorage.setItem('login_Survey_id', result.appId)
-        }
+    // For existing/returning users - simplified redirect logic
+if (result.mode === 'existing' && !result.needsVerification) {
+  const user = await getCurrentUser()
+  if (user) {
+    const { data: assessment } = await supabase
+      .from('assessments')
+      .select('auth_completed')
+      .eq('user_id', user.id)
+      .single()
+    
+    setSuccessMessage(result.message)
+    setTimeout(() => {
+      // Check if authorization completed
+      if (!assessment?.auth_completed) {
+        router.push('/authorization')
+        return
       }
-    }
+      
+      // Send to dashboard (handles payment and everything else)
+      router.push('/dashboard')
+    }, 1000)
+  }
+} else if (result.mode === 'new') {
+  // New user - show App ID and let them proceed to letter
+  setSuccessMessage('Account created successfully!')
+  if (result.appId) {
+    setGeneratedAppId(result.appId)
+    setShowAppId(true)
+    localStorage.setItem('login_Survey_id', result.appId)
+  }
+}
   } catch (err) {
     setErrors('An unexpected error occurred. Please try again.')
     console.error('Auth error:', err)
