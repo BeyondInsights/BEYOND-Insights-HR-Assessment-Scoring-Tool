@@ -81,7 +81,7 @@ export default function InvoicePaymentPage() {
         ...formData,
         invoiceNumber: `INV-${Date.now()}`,
         invoiceDate: new Date().toLocaleDateString(),
-        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(), // Changed to 30 days
         amount: 1250
       }
       localStorage.setItem('invoice_data', JSON.stringify(invoiceData))
@@ -89,9 +89,9 @@ export default function InvoicePaymentPage() {
       // Generate PDF
       await generateInvoicePDF(invoiceData)
       
-      // Grant access to dashboard
+      // Grant immediate access to dashboard with invoice payment
       localStorage.setItem('payment_method', 'invoice');
-      localStorage.setItem('payment_completed', 'false');
+      localStorage.setItem('payment_completed', 'true');  // ✅ CHANGED TO TRUE - grants immediate access
       localStorage.setItem('payment_date', new Date().toISOString());
 
       // ALSO save to database
@@ -101,7 +101,7 @@ export default function InvoicePaymentPage() {
           await supabase
   .from('assessments')
   .update({
-    payment_completed: false,  // ✅ CORRECT!
+    payment_completed: true,  // ✅ CHANGED TO TRUE - grants immediate access
     payment_method: 'invoice',
     payment_date: new Date().toISOString()
   })
@@ -385,10 +385,13 @@ export default function InvoicePaymentPage() {
             </div>
           </div>
 
-          {/* Simple Notice */}
+          {/* Updated Notice */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-900 font-semibold mb-2">
+              You'll receive immediate access to begin your survey
+            </p>
             <p className="text-sm text-blue-900">
-              Invoice payment should only be used if credit card or ACH bank transfer are not available options for your organization.
+              Your invoice will download automatically. Results will be provided upon receipt of payment within 30 days.
             </p>
           </div>
 
@@ -555,7 +558,7 @@ export default function InvoicePaymentPage() {
                 ) : (
                   <>
                     <Download className="w-5 h-5 mr-2" />
-                    Download Invoice & Continue to Dashboard
+                    Download Invoice & Begin Survey
                   </>
                 )}
               </button>
