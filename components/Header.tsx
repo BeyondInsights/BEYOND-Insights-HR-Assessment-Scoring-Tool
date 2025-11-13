@@ -12,10 +12,20 @@ export default function Header() {
   
   // Check if user paid via invoice
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const paymentMethod = localStorage.getItem('payment_method')
-      const isInvoice = paymentMethod === 'invoice'
-      setShowInvoiceButton(isInvoice)
+  if (typeof window !== 'undefined') {
+    const currentEmail = localStorage.getItem('auth_email')
+    const lastUserEmail = localStorage.getItem('last_user_email')
+    
+    // If different user, clear payment data
+    if (lastUserEmail && lastUserEmail !== currentEmail) {
+      console.log('Different user in header - hiding invoice button')
+      setShowInvoiceButton(false)
+      return
+    }
+    
+    const paymentMethod = localStorage.getItem('payment_method')
+    const isInvoice = paymentMethod === 'invoice'
+    setShowInvoiceButton(isInvoice)
       
       // Load jsPDF library if needed
       if (isInvoice && !document.querySelector('script[src*="jspdf"]')) {
