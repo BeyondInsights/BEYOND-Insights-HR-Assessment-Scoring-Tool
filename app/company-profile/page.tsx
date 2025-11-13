@@ -906,7 +906,32 @@ function downloadHTML(data: any) {
       <div style="color: #64748b; font-size: 0.875rem;">
         ${data.generatedAt}${data.email ? ` • ${data.email}` : ''}
       </div>
+      ${data.applicationId ? `
+        <div style="color: #64748b; font-size: 0.75rem; margin-top: 0.25rem;">
+          Application ID: <span style="font-family: monospace; font-weight: 600;">${data.applicationId}</span>
+        </div>
+      ` : ''}
     </div>
+    
+    ${data.employeeSurveyOptIn !== 'Not answered' ? `
+      <div class="section" style="background: linear-gradient(to right, #f0fdf4, #dbeafe); border-left: 4px solid #10B981;">
+        <h2 class="section-title" style="color: #065F46;">Employee Survey Participation</h2>
+        <div class="grid-2">
+          <div class="field">
+            <div class="field-label">Opted In for Employee Survey</div>
+            <div class="field-value" style="font-weight: 700; color: ${data.employeeSurveyOptIn === 'Yes' ? '#065F46' : '#475569'};">
+              ${data.employeeSurveyOptIn}
+            </div>
+          </div>
+          ${data.employeeSurveyOptInDate ? `
+            <div class="field">
+              <div class="field-label">Date Opted In</div>
+              <div class="field-value">${data.employeeSurveyOptInDate}</div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    ` : ''}
     
     <div class="grid-2">
       <div class="section">
@@ -1242,15 +1267,25 @@ export default function CompanyProfileFixed() {
     const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email') || '';
     const firstName = localStorage.getItem('login_first_name') || '';
     const lastName  = localStorage.getItem('login_last_name')  || '';
+    
+    // Employee survey opt-in data
+    const employeeSurveyOptIn = localStorage.getItem('employee_survey_opt_in');
+    const employeeSurveyOptInDate = localStorage.getItem('employee_survey_opt_in_date');
 
     setData({
-  companyName,
-  email,
-  applicationId: localStorage.getItem('login_application_id') || '',
-  firstName,
-  lastName,
-  generatedAt: new Date().toLocaleDateString(),
-  firmographics: firmo, general: gen, current: cur, cross, impact,
+      companyName,
+      email,
+      applicationId: localStorage.getItem('login_application_id') || '',
+      firstName,
+      lastName,
+      generatedAt: new Date().toLocaleDateString(),
+      employeeSurveyOptIn: employeeSurveyOptIn === 'true' ? 'Yes' : employeeSurveyOptIn === 'false' ? 'No' : 'Not answered',
+      employeeSurveyOptInDate: employeeSurveyOptInDate ? new Date(employeeSurveyOptInDate).toLocaleDateString() : null,
+      firmographics: firmo, 
+      general: gen, 
+      current: cur, 
+      cross, 
+      impact,
       dimensions
     });
   }, []);
@@ -1293,12 +1328,12 @@ export default function CompanyProfileFixed() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
           <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-  {data.generatedAt}
-  {data.email && ` • ${data.email}`}
-  {data.applicationId && (
-    <span className="font-mono font-semibold"> • App ID: {data.applicationId}</span>
-  )}
-</p>
+            {data.generatedAt}
+            {data.email && ` • ${data.email}`}
+            {data.applicationId && (
+              <span className="font-mono font-semibold"> • App ID: {data.applicationId}</span>
+            )}
+          </p>
    
           <div className="mt-4 print:hidden">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
@@ -1330,6 +1365,35 @@ export default function CompanyProfileFixed() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-6">
+        
+        {/* EMPLOYEE SURVEY OPT-IN BANNER - Only show if answered */}
+        {data.employeeSurveyOptIn !== 'Not answered' && (
+          <div className="mb-6 rounded-lg border-l-4 overflow-hidden" 
+               style={{ 
+                 background: 'linear-gradient(to right, #f0fdf4, #dbeafe)',
+                 borderColor: '#10B981'
+               }}>
+            <div className="bg-white bg-opacity-50 p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#10B981' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <h2 className="text-lg font-bold" style={{ color: '#065F46' }}>Employee Survey Participation</h2>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <Field 
+                  label="Opted In for Employee Survey" 
+                  value={<span style={{ fontWeight: 700, color: data.employeeSurveyOptIn === 'Yes' ? '#065F46' : BRAND.gray[700] }}>
+                    {data.employeeSurveyOptIn}
+                  </span>} 
+                />
+                {data.employeeSurveyOptInDate && (
+                  <Field label="Date Opted In" value={data.employeeSurveyOptInDate} />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
          
         {/* POC + COMPANY PROFILE SIDE BY SIDE */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
