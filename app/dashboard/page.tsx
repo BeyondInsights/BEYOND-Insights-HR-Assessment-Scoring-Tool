@@ -200,71 +200,7 @@ export default function DashboardPage() {
   }, [router])
 
   // Payment bypass for testing - FORCED ON FOR TESTING
-  const bypassPayment = true  // CHANGE THIS TO false FOR PRODUCTION
-
-  // CHECK FOR INVOICE PAYMENT - BEFORE RENDERING DASHBOARD
-  // NOTE: Founding Partners skip this check entirely
-  if (!bypassPayment && !isFoundingPartnerUser && paymentMethod === 'invoice' && !paymentCompleted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
-        <Header />
-        
-        <main className="max-w-4xl mx-auto px-6 py-16 flex-1">
-          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-            <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Payment Processing
-            </h1>
-            
-            <p className="text-lg text-gray-900 mb-6">
-              We have not received payment from your organization yet.
-            </p>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6 text-left">
-              <h3 className="font-semibold text-blue-900 mb-3">What happens next:</h3>
-              <ul className="space-y-2 text-sm text-blue-800">
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">1.</span>
-                  <span>Your invoice has been sent to your billing contact</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">2.</span>
-                  <span>Once we receive payment, you'll be notified via email</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">3.</span>
-                  <span>You'll then have immediate access to the survey</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-8">
-              <p className="text-sm text-orange-900">
-                <strong>Invoice payments typically process within 10-15 business days.</strong>
-              </p>
-            </div>
-            
-            <p className="text-sm text-gray-900 mb-2">
-              <strong>Questions about your invoice or payment?</strong>
-            </p>
-            <p className="text-sm text-gray-900">
-              Contact us at{' '}
-              <a href="mailto:cacbestcompanies@cew.org" className="text-orange-600 hover:underline font-medium">
-                cacbestcompanies@cew.org
-              </a>
-            </p>
-          </div>
-        </main>
-        
-        <Footer />
-      </div>
-    )
-  }
+  const bypassPayment = false  // CHANGE THIS TO false FOR PRODUCTION
  
   const overallProgress = Math.round(
     (sectionProgress.firmographics + sectionProgress.general + sectionProgress.current) / 3
@@ -402,7 +338,7 @@ export default function DashboardPage() {
                   </h3>
                   <p className={isInvoice ? 'text-blue-800' : 'text-green-800'}>
                     {isInvoice 
-                      ? 'Your invoice has been generated. You can continue working on your survey while we process your payment. Payment is due within 14 days.'
+                      ? 'Your invoice has been generated and will be sent within 1 business day. You can continue working on your survey now. Your results will be provided upon receipt of payment within 30 days.'
                       : 'Transaction completed successfully. Your payment has been processed and you have full access to complete your survey.'
                     }
                   </p>
