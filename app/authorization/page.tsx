@@ -11,21 +11,31 @@ function Card({
   selected,
   children,
   onClick,
+  hasError = false,
 }: {
   selected: boolean
   children: React.ReactNode
   onClick: () => void
+  hasError?: boolean
 }) {
   return (
     <div
       onClick={onClick}
-      className={`p-4 rounded-xl border-2 cursor-pointer shadow-sm ${
-        selected
+      className={`p-4 rounded-xl border-2 cursor-pointer shadow-sm transition-all ${
+        hasError
+          ? 'border-red-500 bg-red-50'
+          : selected
           ? 'border-orange-500 bg-orange-50'
           : 'border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50'
       }`}
     >
-      <p className={`font-medium ${selected ? 'text-orange-600' : 'text-gray-900'}`}>
+      <p className={`font-medium ${
+        hasError
+          ? 'text-red-600'
+          : selected 
+          ? 'text-orange-600' 
+          : 'text-gray-900'
+      }`}>
         {children}
       </p>
     </div>
@@ -50,6 +60,17 @@ function AuthorizationContent() {
   const [au2, setAu2] = useState<string[]>([])
   const [other, setOther] = useState<string>('')
   const [errors, setErrors] = useState('')
+  
+  // Touched state for validation
+  const [touched, setTouched] = useState({
+    companyName: false,
+    firstName: false,
+    lastName: false,
+    title: false,
+    titleOther: false,
+    au1: false,
+    au2: false,
+  })
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -90,7 +111,12 @@ function AuthorizationContent() {
     checkAuth()
   }, [router, redirect])
 
+  const handleBlur = (field: keyof typeof touched) => {
+    setTouched(prev => ({ ...prev, [field]: true }))
+  }
+
   const toggleAu2 = (option: string) => {
+    setTouched(prev => ({ ...prev, au2: true }))
     setAu2((prev) =>
       prev.includes(option)
         ? prev.filter((o) => o !== option)
@@ -98,15 +124,36 @@ function AuthorizationContent() {
     )
   }
 
+  // Validation checks
+  const isCompanyNameValid = companyInfo.companyName.trim().length > 0
+  const isFirstNameValid = companyInfo.firstName.trim().length > 0
+  const isLastNameValid = companyInfo.lastName.trim().length > 0
+  const isTitleValid = companyInfo.title.trim().length > 0
+  const isTitleOtherValid = companyInfo.title !== 'Other' || (companyInfo.titleOther?.trim().length || 0) > 0
+  const isAu1Valid = au1 === 'Yes'
+  const isAu2Valid = au2.length > 0
+
   const canContinue = 
-    companyInfo.companyName.trim() &&
-    companyInfo.firstName.trim() &&
-    companyInfo.lastName.trim() &&
-    (companyInfo.title !== 'Other' ? companyInfo.title.trim() : (companyInfo.titleOther?.trim() || '')) &&
-    au1 === 'Yes' && 
-    au2.length > 0
+    isCompanyNameValid &&
+    isFirstNameValid &&
+    isLastNameValid &&
+    isTitleValid &&
+    isTitleOtherValid &&
+    isAu1Valid && 
+    isAu2Valid
 
   const handleContinue = async () => {
+    // Mark all fields as touched for validation display
+    setTouched({
+      companyName: true,
+      firstName: true,
+      lastName: true,
+      title: true,
+      titleOther: true,
+      au1: true,
+      au2: true,
+    })
+    
     // ============================================
     // CLEAR OLD USER DATA IF THIS IS A NEW USER
     // ============================================
@@ -123,31 +170,31 @@ function AuthorizationContent() {
     }
     // ============================================
     
-    if (!companyInfo.companyName.trim()) {
+    if (!isCompanyNameValid) {
       setErrors('Please enter your company name')
       return
     }
-    if (!companyInfo.firstName.trim()) {
+    if (!isFirstNameValid) {
       setErrors('Please enter your first name')
       return
     }
-    if (!companyInfo.lastName.trim()) {
+    if (!isLastNameValid) {
       setErrors('Please enter your last name')
       return
     }
-    if (!companyInfo.title.trim()) {
+    if (!isTitleValid) {
       setErrors('Please select your title')
       return
     }
-    if (companyInfo.title === 'Other' && !companyInfo.titleOther?.trim()) {
+    if (!isTitleOtherValid) {
       setErrors('Please specify your title')
       return
     }
-    if (au1 !== 'Yes') {
+    if (!isAu1Valid) {
       setErrors('You must be authorized to complete this survey')
       return
     }
-    if (au2.length === 0) {
+    if (!isAu2Valid) {
       setErrors('Please select at least one authorization description')
       return
     }
@@ -260,9 +307,17 @@ function AuthorizationContent() {
                 type="text"
                 value={companyInfo.companyName}
                 onChange={(e) => setCompanyInfo(prev => ({ ...prev, companyName: e.target.value }))}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                onBlur={() => handleBlur('companyName')}
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors ${
+                  touched.companyName && !isCompanyNameValid
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:border-orange-500'
+                }`}
                 placeholder="Enter company name"
               />
+              {touched.companyName && !isCompanyNameValid && (
+                <p className="text-red-600 text-sm mt-1">Company name is required</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -274,9 +329,17 @@ function AuthorizationContent() {
                   type="text"
                   value={companyInfo.firstName}
                   onChange={(e) => setCompanyInfo(prev => ({ ...prev, firstName: e.target.value }))}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  onBlur={() => handleBlur('firstName')}
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors ${
+                    touched.firstName && !isFirstNameValid
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-orange-500'
+                  }`}
                   placeholder="First name"
                 />
+                {touched.firstName && !isFirstNameValid && (
+                  <p className="text-red-600 text-sm mt-1">First name is required</p>
+                )}
               </div>
 
               <div>
@@ -287,9 +350,17 @@ function AuthorizationContent() {
                   type="text"
                   value={companyInfo.lastName}
                   onChange={(e) => setCompanyInfo(prev => ({ ...prev, lastName: e.target.value }))}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  onBlur={() => handleBlur('lastName')}
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors ${
+                    touched.lastName && !isLastNameValid
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-orange-500'
+                  }`}
                   placeholder="Last name"
                 />
+                {touched.lastName && !isLastNameValid && (
+                  <p className="text-red-600 text-sm mt-1">Last name is required</p>
+                )}
               </div>
             </div>
 
@@ -300,7 +371,12 @@ function AuthorizationContent() {
               <select
                 value={companyInfo.title}
                 onChange={(e) => setCompanyInfo(prev => ({ ...prev, title: e.target.value }))}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                onBlur={() => handleBlur('title')}
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors ${
+                  touched.title && !isTitleValid
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:border-orange-500'
+                }`}
               >
                 <option value="">Select your title</option>
                 <option value="Chief Human Resources Officer (CHRO)">Chief Human Resources Officer (CHRO)</option>
@@ -322,15 +398,28 @@ function AuthorizationContent() {
                 <option value="Talent Management Director">Talent Management Director</option>
                 <option value="Other">Other</option>
               </select>
+              {touched.title && !isTitleValid && (
+                <p className="text-red-600 text-sm mt-1">Title is required</p>
+              )}
               
               {companyInfo.title === 'Other' && (
-                <input
-                  type="text"
-                  value={companyInfo.titleOther || ''}
-                  onChange={(e) => setCompanyInfo(prev => ({ ...prev, titleOther: e.target.value }))}
-                  className="w-full mt-3 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="Please specify your title"
-                />
+                <>
+                  <input
+                    type="text"
+                    value={companyInfo.titleOther || ''}
+                    onChange={(e) => setCompanyInfo(prev => ({ ...prev, titleOther: e.target.value }))}
+                    onBlur={() => handleBlur('titleOther')}
+                    className={`w-full mt-3 px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors ${
+                      touched.titleOther && !isTitleOtherValid
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:border-orange-500'
+                    }`}
+                    placeholder="Please specify your title"
+                  />
+                  {touched.titleOther && !isTitleOtherValid && (
+                    <p className="text-red-600 text-sm mt-1">Please specify your title</p>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -341,16 +430,29 @@ function AuthorizationContent() {
         </h2>
         <p className="text-base text-gray-900 mb-4">(Select ONE)</p>
         <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 mt-6 mb-8">
-          <Card selected={au1 === 'Yes'} onClick={() => setAu1('Yes')}>
+          <Card 
+            selected={au1 === 'Yes'} 
+            onClick={() => {
+              setTouched(prev => ({ ...prev, au1: true }))
+              setAu1('Yes')
+            }}
+            hasError={touched.au1 && !isAu1Valid}
+          >
             Yes, I am authorized
           </Card>
-          <Card selected={au1 === 'No'} onClick={() => {
-            setAu1('No')
-            router.push('/not-authorized')
-          }}>
+          <Card 
+            selected={au1 === 'No'} 
+            onClick={() => {
+              setAu1('No')
+              router.push('/not-authorized')
+            }}
+          >
             No, I am not authorized
           </Card>
         </div>
+        {touched.au1 && !isAu1Valid && (
+          <p className="text-red-600 text-sm mt-2 -mt-6 mb-6">You must be authorized to complete this survey</p>
+        )}
 
         {au1 === 'Yes' && (
           <div className="mt-12">
@@ -372,17 +474,21 @@ function AuthorizationContent() {
                   key={option}
                   selected={au2.includes(option)}
                   onClick={() => toggleAu2(option)}
+                  hasError={touched.au2 && !isAu2Valid}
                 >
                   {option}
                 </Card>
               ))}
             </div>
+            {touched.au2 && !isAu2Valid && (
+              <p className="text-red-600 text-sm -mt-6 mb-6">Please select at least one authorization description</p>
+            )}
             {au2.includes('Other (please specify)') && (
               <input
                 type="text"
                 value={other}
                 onChange={(e) => setOther(e.target.value)}
-                className="w-full mt-2 px-4 py-3 border-2 rounded-lg"
+                className="w-full mt-2 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 placeholder="Please specify…"
               />
             )}
