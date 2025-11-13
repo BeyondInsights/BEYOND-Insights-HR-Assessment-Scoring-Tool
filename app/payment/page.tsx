@@ -183,19 +183,9 @@ export default function PaymentPage() {
             <ul className="space-y-2 mb-4">
               <li className="text-sm text-gray-600 flex items-center">
                 <span className="text-blue-600 mr-2">✓</span>
-                Net 14 days payment terms
+                Net 30 days payment terms
               </li>
             </ul>
-            
-            {/* Info Box - Softened */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <div className="flex items-start gap-2">
-                <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-blue-900">
-                  Survey can be accessed once payment is received and processed (typically 14-21 days).
-                </p>
-              </div>
-            </div>
             
             <div className="text-gray-600 font-semibold group-hover:text-blue-600 group-hover:underline">
               Request Invoice →
