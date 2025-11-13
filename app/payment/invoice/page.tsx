@@ -179,7 +179,7 @@ export default function InvoicePaymentPage() {
       yPos += 6
       doc.text(`Due Date: ${data.dueDate}`, pageWidth - 20, yPos, { align: 'right' })
       yPos += 6
-      doc.text('Payment Terms: Net 14', pageWidth - 20, yPos, { align: 'right' })
+      doc.text('Payment Terms: Net 30', pageWidth - 20, yPos, { align: 'right' })
 
       // Line separator
       yPos = 60
@@ -532,7 +532,7 @@ export default function InvoicePaymentPage() {
                 <span className="text-gray-700">Assessment Fee</span>
                 <span className="text-2xl font-bold text-gray-900">$1,250.00</span>
               </div>
-              <p className="text-sm text-gray-600">Payment Terms: Net 14 Days</p>
+              <p className="text-sm text-gray-600">Payment Terms: Net 30 Days</p>
             </div>
 
             {/* Buttons */}
