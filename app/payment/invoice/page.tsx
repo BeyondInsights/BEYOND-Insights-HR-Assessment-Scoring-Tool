@@ -298,7 +298,7 @@ export default function InvoicePaymentPage() {
       doc.setTextColor(0, 0, 0)
       doc.setFont(undefined, 'bold')
       yPos += 7
-      doc.text('Payment is due within 14 days of invoice date.', 25, yPos)
+      doc.text('Payment is due within 30 days of invoice date.', 25, yPos)
       
       doc.setFont(undefined, 'normal')
       yPos += 7
