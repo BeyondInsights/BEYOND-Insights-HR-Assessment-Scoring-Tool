@@ -259,7 +259,7 @@ export default function InvoicePaymentPage() {
       yPos += 15
       doc.setTextColor(0, 0, 0)
       doc.setFont(undefined, 'bold')
-      doc.text('Assessment Fee', 25, yPos)
+      doc.text('Survey Fee', 25, yPos)
       doc.setFont(undefined, 'normal')
       doc.setFontSize(9)
       doc.setTextColor(100, 100, 100)
