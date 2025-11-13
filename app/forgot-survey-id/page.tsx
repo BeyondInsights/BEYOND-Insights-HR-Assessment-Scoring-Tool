@@ -238,8 +238,8 @@ export default function ForgotSurveyIdPage() {
             </p>
             <p className="text-sm text-gray-600">
               Contact us at{' '}
-              <a href="mailto:info@cancerandcareers.org" className="text-orange-600 hover:underline">
-                info@cancerandcareers.org
+              <a href="mailto:cacbestcompanies@cew.org" className="text-orange-600 hover:underline">
+                cacbestcompanies@cew.org
               </a>
             </p>
           </div>
