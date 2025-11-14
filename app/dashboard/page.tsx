@@ -45,8 +45,8 @@ export default function DashboardPage() {
       if (typeof window === 'undefined') return;
       
       try {
-        const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9a','c2','c3','c4','c5','c6'];
-        const genRequired = ['cb1','cb1_standard','cb1_leave','cb1_wellness','cb1_financial','cb1_navigation','cb1a','cb2b'];
+        const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9','s9a','c2','c3','c4','c5','c6'];
+        const genRequired = ['cb1_standard','cb1_leave','cb1_wellness','cb1_financial','cb1_navigation','cb1a','cb2b'];
         const curRequired = ['cb3a','cb3b','cb3c','cb3d','or1','or2a','or3','or5a','or6'];
         
         const savedEmail = localStorage.getItem('auth_email') || '';
