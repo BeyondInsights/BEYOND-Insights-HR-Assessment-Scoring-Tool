@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { authenticateUser, getCurrentUser } from '@/lib/supabase/auth'
 import { formatAppId } from '@/lib/supabase/utils'
 import { supabase } from '@/lib/supabase/client'
+import { isFoundingPartner } from '@/lib/founding-partners'
 import Footer from '@/components/Footer'
 
 export default function LoginPage() {
@@ -53,6 +54,30 @@ export default function LoginPage() {
   if (lastUserEmail && lastUserEmail !== newEmail) {
     console.log('Different user logging in - clearing all old data')
     localStorage.clear()
+  }
+  // ============================================
+
+  // ============================================
+  // CHECK FOR FOUNDING PARTNER ID FIRST
+  // ============================================
+  if (!isNewUser && isFoundingPartner(surveyId.trim())) {
+    console.log('Founding Partner ID detected:', surveyId.trim())
+    
+    // Store Founding Partner info in localStorage
+    localStorage.setItem('login_email', email)
+    localStorage.setItem('auth_email', email)
+    localStorage.setItem('survey_id', surveyId.trim())
+    localStorage.setItem('user_authenticated', 'true')
+    localStorage.setItem('last_user_email', email)
+    localStorage.setItem('login_Survey_id', surveyId.trim())
+    
+    // Show success message and redirect
+    setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
+    setTimeout(() => {
+      router.push('/authorization')
+    }, 1500)
+    setLoading(false)
+    return
   }
   // ============================================
 
