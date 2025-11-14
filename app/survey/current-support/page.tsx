@@ -170,7 +170,7 @@ export default function CurrentSupportPage() {
       const skipToOR3 = [
         "No formal approach: Handle situations as they arise",
         "Developing approach: Currently building programs and policies",
-        "Basic support -- legal minimums plus some informal flexibility"
+        "Basic support: Legal minimums plus some informal flexibility"
       ];
       
       if (skipToOR3.includes(ans.or1)) {
@@ -207,7 +207,7 @@ export default function CurrentSupportPage() {
       const skipToOR3 = [
         "No formal approach: Handle situations as they arise",
         "Developing approach: Currently building programs and policies",
-        "Basic support -- legal minimums plus some informal flexibility"
+        "Basic support: Legal minimums plus some informal flexibility"
       ];
       if (skipToOR3.includes(ans.or1)) {
         setStep(10); // Go back to OR3
@@ -261,7 +261,7 @@ export default function CurrentSupportPage() {
   const OR1_OPTIONS = [
     "No formal approach: Handle situations as they arise",
     "Developing approach: Currently building programs and policies",
-    "Basic support -- legal minimums plus some informal flexibility",
+    "Basic support: Legal minimums plus some informal flexibility",
     "Moderate support: Some programs beyond legal requirements",
     "Strong support: Meaningful programs beyond legal minimums",
     "Leading-edge support: Extensive, innovative programs"
