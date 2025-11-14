@@ -112,7 +112,7 @@ export default function LetterPage() {
               <ul className="text-base leading-relaxed space-y-2 mb-6 ml-6 list-disc">
                 <li>Please have your organization's current benefits documentation readily available for reference</li>
                 <li>This survey should be completed by someone directly involved in your organization's benefits policies and programs, or someone authorized to provide this information</li>
-                <li>You may need to consult with colleagues from Benefits, Compensation, or other HR functions to provide complete responses</li>
+                <li>You may need to consult with colleagues from Benefits or other HR functions to provide complete responses</li>
                 <li>Your progress will be saved automatically, and you can return to complete or review any section before submitting</li>
               </ul>
 
