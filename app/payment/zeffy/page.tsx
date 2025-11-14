@@ -147,13 +147,13 @@ export default function ZeffyPaymentPage() {
               <li className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5" />
                 <span className="text-gray-700">
-                  Comprehensive evaluation across 13 dimensions of workplace support
+                  Proprietary benchmarking insights and recommendations
                 </span>
               </li>
               <li className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5" />
                 <span className="text-gray-700">
-                  Proprietary benchmarking insights and recommendations
+                  Comprehensive evaluation across 13 dimensions of workplace support
                 </span>
               </li>
               <li className="flex items-start">
@@ -193,7 +193,7 @@ export default function ZeffyPaymentPage() {
               <div className="flex items-start gap-2">
                 <span className="font-bold mt-0.5">•</span>
                 <div>
-                  <strong>Platform Tip:</strong> The payment form includes an optional tip to support Zeffy's platform. This is entirely optional and separate from your survey fee—you may adjust or remove it as you prefer.
+                  <strong>Platform Tip:</strong> The payment form includes an optional tip to support Zeffy's platform, which is free for nonprofits. This is entirely optional and separate from your survey fee—you may adjust or remove it as you prefer.
                 </div>
               </div>
             </div>
