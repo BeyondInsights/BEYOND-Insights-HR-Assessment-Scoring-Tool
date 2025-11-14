@@ -249,27 +249,15 @@ export default function CompletionPage() {
                   </div>
                 </div>
 
-{/* Index Release */}
-<div className="flex items-start gap-4">
-  <div className="flex-shrink-0 w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-    2
-  </div>
-  <div className="flex-1">
-    <h3 className="font-semibold text-gray-900 mb-1">Initiative Release</h3>
-    <p className="text-sm text-gray-700">
-      The Cancer and Careers 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in early March, 2026.
-    </p>
-  </div>
-</div>
-                {/* Notification */}
+                {/* Index Release */}
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold">
-                    3
+                  <div className="flex-shrink-0 w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                    2
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">Certification Notification</h3>
+                    <h3 className="font-semibold text-gray-900 mb-1">Initiative Release</h3>
                     <p className="text-sm text-gray-700">
-                      Certified companies will be notified 2 weeks prior to public announcement, and marketing materials will be distributed.
+                      The Cancer and Careers 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in early March, 2026.
                     </p>
                   </div>
                 </div>
@@ -277,7 +265,7 @@ export default function CompletionPage() {
                 {/* Benchmarking Reports */}
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold">
-                    4
+                    3
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 mb-1">Benchmarking Reports: Distributed March 2026</h3>
