@@ -9,18 +9,18 @@ export const d9Schema = {
       'Not able to offer in foreseeable future'
     ],
    programs: [
-  "Executive accountability metrics",
-  "Public success story celebrations",
-  "Compensation tied to support outcomes",
-  "ESG/CSR reporting inclusion",
-  "Year-over-year budget growth",
-  "Executive sponsors communicate regularly about workplace support programs",
-  "Dedicated budget allocation for serious illness support programs",
-  "C-suite executive serves as program champion/sponsor",
-  "Support programs included in investor/stakeholder communications",
-  "Cross-functional executive steering committee for workplace support programs",
-  "Support metrics included in annual report/sustainability reporting",
-  "Executive-led town halls focused on health benefits and employee support"
+  'Executive accountability metrics',
+  'Public success story celebrations',
+  'Compensation tied to support outcomes',
+  'ESG/CSR reporting inclusion',
+  'Year-over-year budget growth',
+  'Executive sponsors communicate regularly about workplace support programs',
+  'Dedicated budget allocation for serious illness support programs',
+  'C-suite executive serves as program champion/sponsor',
+  'Support programs included in investor/stakeholder communications',
+  'Cross-functional executive steering committee for workplace support programs',
+  'Support metrics included in annual report/sustainability reporting',
+  'Executive-led town halls focused on health benefits and employee support'
 ]
   },
   d9aa: {
