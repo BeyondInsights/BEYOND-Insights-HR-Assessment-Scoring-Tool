@@ -158,7 +158,7 @@ export default function InvoiceViewPage() {
     doc.setFontSize(9)
     doc.setTextColor(100, 100, 100)
     yPos += 5
-    doc.text('Best Companies for Working with Cancer Index', 25, yPos)
+    doc.text('Best Companies for Working with Cancer Initiative', 25, yPos)
     
     doc.setFontSize(10)
     doc.setTextColor(0, 0, 0)
@@ -331,7 +331,7 @@ export default function InvoiceViewPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold mb-2">Invoice #{invoiceData.invoiceNumber}</h1>
-                <p className="opacity-90">Cancer and Careers Best Companies Index</p>
+                <p className="opacity-90">Cancer and Careers Best Companies Initiative</p>
               </div>
               <FileText className="w-16 h-16 opacity-20" />
             </div>
@@ -384,7 +384,7 @@ export default function InvoiceViewPage() {
                   <tr className="border-t">
                     <td className="px-6 py-4">
                       <p className="font-medium">Survey Fee</p>
-                      <p className="text-sm text-gray-500">Best Companies for Working with Cancer Index</p>
+                      <p className="text-sm text-gray-500">Best Companies for Working with Cancer Initiative</p>
                     </td>
                     <td className="px-6 py-4 text-right font-medium">$1,250.00</td>
                   </tr>
