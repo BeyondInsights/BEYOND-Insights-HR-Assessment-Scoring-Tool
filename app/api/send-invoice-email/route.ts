@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const { email, name, invoiceUrl, dashboardUrl } = await request.json()
 
     const { data, error } = await resend.emails.send({
-      from: 'Cancer and Careers <onboarding@resend.dev>',
+      from: 'Cancer and Careers <invoices@notifications.beyondinsights.com>',
       to: [email],
       subject: 'Cancer and Careers: Invoice Confirmation and Dashboard Link',
       html: `
