@@ -12,26 +12,38 @@ export default function PaymentSuccessPage() {
     transactionId: ''
   });
 
-  useEffect(() => {
-    const method = localStorage.getItem('payment_method') || 'card';
-    const date = localStorage.getItem('payment_date') || new Date().toISOString();
-    const txnId = `TXN-${Date.now()}`;
-    
-    let methodDisplay = 'Credit Card';
-    if (method === 'ach') {
-      methodDisplay = 'ACH Transfer';
-    } else if (method === 'invoice') {
-      methodDisplay = 'Invoice';
-    } else if (method === 'card') {
-      methodDisplay = 'Credit Card';
-    }
-    
-    setPaymentInfo({
-      method: methodDisplay,
-      date: new Date(date).toLocaleDateString(),
-      transactionId: txnId
-    });
-  }, []);
+ useEffect(() => {
+  // CHECK IF COMING FROM ZEFFY (new)
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromZeffy = urlParams.get('payment') === 'completed';
+  
+  // If coming from Zeffy, MARK PAYMENT AS COMPLETE (new)
+  if (fromZeffy) {
+    localStorage.setItem('payment_completed', 'true');  // ← CRITICAL
+    localStorage.setItem('payment_method', 'card');
+    localStorage.setItem('payment_date', new Date().toISOString());
+  }
+  
+  // Your existing code - reads the values
+  const method = localStorage.getItem('payment_method') || 'card';
+  const date = localStorage.getItem('payment_date') || new Date().toISOString();
+  const txnId = `TXN-${Date.now()}`;
+  
+  let methodDisplay = 'Credit Card';
+  if (method === 'ach') {
+    methodDisplay = 'ACH Transfer';
+  } else if (method === 'invoice') {
+    methodDisplay = 'Invoice';
+  } else if (method === 'card') {
+    methodDisplay = 'Credit Card';
+  }
+  
+  setPaymentInfo({
+    method: methodDisplay,
+    date: new Date(date).toLocaleDateString(),
+    transactionId: txnId
+  });
+}, []);
 
   const handleDownloadReceipt = () => {
     const receiptHTML = `
