@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FileText, Download, Loader2, ArrowLeft } from 'lucide-react'
+import { FileText, Download, Loader2, ArrowLeft, Mail } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -13,22 +13,22 @@ export default function InvoiceViewPage() {
   const [scriptLoaded, setScriptLoaded] = useState(false)
 
   useEffect(() => {
-  // Get invoice ID from URL if provided
-  const params = new URLSearchParams(window.location.search)
-  const id = params.get('id')
-  
-  // Load invoice data from localStorage
-  const storedData = localStorage.getItem('invoice_data')
-  if (storedData) {
-    const data = JSON.parse(storedData)
+    // Get invoice ID from URL after component mounts
+    const params = new URLSearchParams(window.location.search)
+    const id = params.get('id')
     
-    // If no ID in URL, just show the stored invoice
-    // If ID in URL, verify it matches
-    if (!id || data.invoiceNumber === id) {
-      setInvoiceData(data)
-      setInvoiceId(data.invoiceNumber || id)
+    // Load invoice data from localStorage
+    const storedData = localStorage.getItem('invoice_data')
+    if (storedData) {
+      const data = JSON.parse(storedData)
+      // If no ID in URL, just show the stored invoice
+      // If ID in URL, verify it matches
+      if (!id || data.invoiceNumber === id) {
+        setInvoiceData(data)
+        setInvoiceId(data.invoiceNumber || id)
+      }
     }
-  }
+
     // Load jsPDF
     if (!document.querySelector('script[src*="jspdf"]')) {
       const script = document.createElement('script')
@@ -43,26 +43,44 @@ export default function InvoiceViewPage() {
       setScriptLoaded(true)
       setLoading(false)
     }
-  }, [invoiceId])
+  }, [])
 
-  const generateAndDownloadPDF = async () => {
-    if (!invoiceData || !scriptLoaded) return
+  const generatePDFBase64 = async () => {
+    if (!invoiceData || !scriptLoaded) return ''
 
     const { jsPDF } = (window as any).jspdf
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
     let yPos = 20
 
-    // Header with text instead of images
-    doc.setFontSize(14)
-    doc.setTextColor(107, 44, 145)
-    doc.setFont(undefined, 'bold')
-    doc.text('CANCER + CAREERS', 20, yPos)
-    doc.setFontSize(12)
-    doc.setTextColor(0, 168, 150)
-    doc.text('BEST COMPANIES', pageWidth / 2, yPos, { align: 'center' })
+    // Try to add the Cancer + Careers logo
+    try {
+      const cacImg = new Image()
+      cacImg.crossOrigin = 'anonymous'
+      cacImg.src = '/cancer-careers-logo.png'
+      
+      await new Promise((resolve, reject) => {
+        cacImg.onload = resolve
+        cacImg.onerror = reject
+        setTimeout(reject, 500)
+      })
+      
+      if (cacImg.complete && cacImg.naturalWidth > 0) {
+        doc.addImage(cacImg, 'PNG', 20, yPos, 45, 16, undefined, 'FAST')
+      }
+    } catch (logoError) {
+      doc.setFontSize(14)
+      doc.setTextColor(255, 107, 53)
+      doc.setFont(undefined, 'bold')
+      doc.text('CANCER + CAREERS', 20, yPos + 10)
+    }
+
+    // Best Companies text
     doc.setFontSize(10)
-    doc.text('FOR WORKING WITH CANCER', pageWidth / 2, yPos + 5, { align: 'center' })
+    doc.setTextColor(0, 168, 150)
+    doc.setFont(undefined, 'bold')
+    doc.text('BEST COMPANIES', pageWidth / 2, yPos + 5, { align: 'center' })
+    doc.text('FOR WORKING WITH CANCER', pageWidth / 2, yPos + 10, { align: 'center' })
 
     // Invoice header
     doc.setFontSize(28)
@@ -112,11 +130,13 @@ export default function InvoiceViewPage() {
     doc.setFont(undefined, 'normal')
     doc.setFontSize(10)
     rightYPos += 6
-    doc.text(invoiceData.companyName, pageWidth / 2 + 10, rightYPos)
+    doc.text(invoiceData.companyName || 'BEYOND Insights', pageWidth / 2 + 10, rightYPos)
     rightYPos += 5
     doc.text(invoiceData.contactName, pageWidth / 2 + 10, rightYPos)
-    rightYPos += 5
-    doc.text(invoiceData.title, pageWidth / 2 + 10, rightYPos)
+    if (invoiceData.title) {
+      rightYPos += 5
+      doc.text(invoiceData.title, pageWidth / 2 + 10, rightYPos)
+    }
     rightYPos += 5
     doc.text(invoiceData.addressLine1, pageWidth / 2 + 10, rightYPos)
     if (invoiceData.addressLine2) {
@@ -163,11 +183,69 @@ export default function InvoiceViewPage() {
     doc.text('TOTAL DUE:', pageWidth / 2, yPos + 2, { align: 'right' })
     doc.text('$1,250.00', pageWidth - 25, yPos + 2, { align: 'right' })
 
-    // Payment instructions (simplified)
+    // Payment Terms box with all details
     yPos += 20
+    doc.setDrawColor(255, 107, 53)
+    doc.setLineWidth(0.5)
+    doc.rect(20, yPos, pageWidth - 40, 88)
+    
+    doc.setFontSize(11)
+    doc.setTextColor(255, 107, 53)
+    doc.setFont(undefined, 'bold')
+    yPos += 7
+    doc.text('Payment Terms & Instructions', 25, yPos)
+    
     doc.setFontSize(10)
     doc.setTextColor(0, 0, 0)
-    doc.text('Payment due within 30 days. See invoice for payment details.', 25, yPos)
+    doc.setFont(undefined, 'bold')
+    yPos += 7
+    doc.text('Payment is due within 30 days of invoice date.', 25, yPos)
+    
+    doc.setFont(undefined, 'normal')
+    yPos += 7
+    doc.text('Payment Methods:', 25, yPos)
+    doc.setFontSize(9)
+    yPos += 5
+    doc.text('• Check payable to: Cosmetic Executive Women Foundation, LTD', 30, yPos)
+    yPos += 4
+    doc.setFontSize(8)
+    doc.setTextColor(100, 100, 100)
+    doc.text('  Mail to: 250 W. 57th Street, Suite 918, New York, NY 10107', 30, yPos)
+    
+    yPos += 6
+    doc.setFontSize(9)
+    doc.setTextColor(0, 0, 0)
+    doc.setFont(undefined, 'bold')
+    doc.text('• ACH Transfer (Domestic US Bank Transfer):', 30, yPos)
+    doc.setFont(undefined, 'normal')
+    yPos += 4
+    doc.text('Account Name: Cosmetic Executive Women Foundation, LTD', 35, yPos)
+    yPos += 4
+    doc.text('Bank: Bank of America', 35, yPos)
+    yPos += 4
+    doc.text('ACH Routing Number: 021000322', 35, yPos)
+    yPos += 4
+    doc.text('Account Number: 483043533766', 35, yPos)
+    yPos += 4
+    doc.text(`Reference: ${invoiceData.invoiceNumber}`, 35, yPos)
+    
+    yPos += 6
+    doc.setFont(undefined, 'bold')
+    doc.text('• Wire Transfer (Domestic & International):', 30, yPos)
+    doc.setFont(undefined, 'normal')
+    yPos += 4
+    doc.text('Wire Routing Number: 026009593', 35, yPos)
+    yPos += 4
+    doc.text('SWIFT Code: BOFAUS3N', 35, yPos)
+    yPos += 4
+    doc.text('Bank Address: One Bryant Park, 36th Floor, New York, NY 10036', 35, yPos)
+    yPos += 4
+    doc.text(`Reference: ${invoiceData.invoiceNumber}`, 35, yPos)
+    
+    yPos += 5
+    doc.setFontSize(8)
+    doc.setTextColor(100, 100, 100)
+    doc.text('Please include the invoice number in your payment reference. Questions: cacbestcompanies@cew.org', 30, yPos)
 
     // Footer
     yPos = doc.internal.pageSize.getHeight() - 20
@@ -177,9 +255,34 @@ export default function InvoiceViewPage() {
     doc.setFontSize(9)
     doc.setTextColor(100, 100, 100)
     doc.text('Thank you for your commitment to supporting employees with cancer!', pageWidth / 2, yPos, { align: 'center' })
+    yPos += 5
+    doc.text('Cancer and Careers | www.cancerandcareers.org | cacbestcompanies@cew.org', pageWidth / 2, yPos, { align: 'center' })
 
-    // Save
-    doc.save(`Invoice-${invoiceData.invoiceNumber}.pdf`)
+    // Return base64 only (no save)
+    return doc.output('datauristring', { compress: true }).split(',')[1]
+  }
+
+  const generateAndDownloadPDF = async () => {
+    const base64 = await generatePDFBase64()
+    
+    // Convert base64 back to blob for download
+    const byteCharacters = atob(base64)
+    const byteNumbers = new Array(byteCharacters.length)
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i)
+    }
+    const byteArray = new Uint8Array(byteNumbers)
+    const blob = new Blob([byteArray], { type: 'application/pdf' })
+    
+    // Create download link
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Invoice-${invoiceData.invoiceNumber}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   if (loading) {
@@ -293,7 +396,7 @@ export default function InvoiceViewPage() {
               </table>
             </div>
 
-            {/* Actions */}
+            {/* Actions - ALL THREE BUTTONS */}
             <div className="flex gap-4">
               <button
                 onClick={generateAndDownloadPDF}
@@ -302,6 +405,36 @@ export default function InvoiceViewPage() {
                 <Download className="w-5 h-5 mr-2" />
                 Download PDF Invoice
               </button>
+              
+              <button
+                onClick={async () => {
+                  const contactEmail = localStorage.getItem('login_email') || ''
+                  const pdfBase64 = await generatePDFBase64()
+                  
+                  const emailResponse = await fetch('/api/send-invoice-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      email: contactEmail,
+                      name: invoiceData.contactName,
+                      invoiceUrl: window.location.href,
+                      dashboardUrl: `${window.location.origin}/dashboard`,
+                      invoicePdfBase64: pdfBase64,
+                    }),
+                  })
+                  
+                  if (emailResponse.ok) {
+                    alert('Invoice has been emailed to ' + contactEmail)
+                  } else {
+                    alert('Failed to send email. Please try again.')
+                  }
+                }}
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center"
+              >
+                <Mail className="w-5 h-5 mr-2" />
+                Email Invoice to Me
+              </button>
+              
               <button
                 onClick={() => router.push('/dashboard')}
                 className="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 flex items-center"
