@@ -131,7 +131,7 @@ export default function ZeffyPaymentPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Survey Type</p>
-                <p className="font-medium">Best Companies Index</p>
+                <p className="font-medium">Best Companies Initiative</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Survey Fee</p>
@@ -159,7 +159,7 @@ export default function ZeffyPaymentPage() {
               <li className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5" />
                 <span className="text-gray-700">
-                  Eligibility for Best Companies Index recognition
+                  Eligibility for Best Companies Initiative recognition
                 </span>
               </li>
               <li className="flex items-start">
