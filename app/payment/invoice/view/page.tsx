@@ -13,23 +13,22 @@ export default function InvoiceViewPage() {
   const [scriptLoaded, setScriptLoaded] = useState(false)
 
   useEffect(() => {
-    // Get invoice ID from URL after component mounts
-    const params = new URLSearchParams(window.location.search)
-    const id = params.get('id')
-    setInvoiceId(id)
+  // Get invoice ID from URL if provided
+  const params = new URLSearchParams(window.location.search)
+  const id = params.get('id')
+  
+  // Load invoice data from localStorage
+  const storedData = localStorage.getItem('invoice_data')
+  if (storedData) {
+    const data = JSON.parse(storedData)
     
-    // Load invoice data from localStorage
-    const storedData = localStorage.getItem('invoice_data')
-    if (storedData) {
-      const data = JSON.parse(storedData)
-      // Check if this is the right invoice
-      if (data.invoiceNumber === id) {
-        setInvoiceData(data)
-      }
+    // If no ID in URL, just show the stored invoice
+    // If ID in URL, verify it matches
+    if (!id || data.invoiceNumber === id) {
+      setInvoiceData(data)
+      setInvoiceId(data.invoiceNumber || id)
     }
-
-    // Rest of your useEffect code for loading jsPDF...
-
+  }
     // Load jsPDF
     if (!document.querySelector('script[src*="jspdf"]')) {
       const script = document.createElement('script')
