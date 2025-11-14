@@ -81,44 +81,60 @@ export default function InvoicePaymentPage() {
         ...formData,
         invoiceNumber: `INV-${Date.now()}`,
         invoiceDate: new Date().toLocaleDateString(),
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(), // Changed to 30 days
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         amount: 1250
       }
-      localStorage.setItem('invoice_data', JSON.stringify(invoiceData))
-
-      // Generate PDF
-      const pdfBase64 = await generateInvoicePDF(invoiceData)
-
-      // Send email
-      await fetch('/api/send-invoice-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: localStorage.getItem('login_email'),
-          name: companyData.contactName,
-          invoiceUrl: `${window.location.origin}/invoice`,
-          dashboardUrl: `${window.location.origin}/dashboard`,
-          invoicePdfBase64: pdfBase64,
-        }),
-      })
       
-      // Grant immediate access to dashboard with invoice payment
-      localStorage.setItem('payment_method', 'invoice');
-      localStorage.setItem('payment_completed', 'true');  // ✅ CHANGED TO TRUE - grants immediate access
-      localStorage.setItem('payment_date', new Date().toISOString());
+      // Store invoice data for viewing
+      localStorage.setItem('invoice_data', JSON.stringify(invoiceData))
+      localStorage.setItem('current_invoice_number', invoiceData.invoiceNumber)
 
-      // ALSO save to database
+      // Generate PDF with base64 for email
+      const pdfBase64 = await generateInvoicePDF(invoiceData)
+      console.log('PDF generated, base64 length:', pdfBase64?.length)
+
+      // Send email with attached PDF
+      try {
+        const contactEmail = localStorage.getItem('login_email') || ''
+        
+        const emailResponse = await fetch('/api/send-invoice-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: contactEmail,
+            name: companyData.contactName,
+            invoiceUrl: `${window.location.origin}/invoice-view?id=${invoiceData.invoiceNumber}`,
+            dashboardUrl: `${window.location.origin}/dashboard`,
+            invoicePdfBase64: pdfBase64,
+          }),
+        })
+        
+        if (!emailResponse.ok) {
+          console.error('Email send failed:', await emailResponse.text())
+        } else {
+          console.log('Invoice email sent successfully')
+        }
+      } catch (emailError) {
+        console.error('Error sending email:', emailError)
+      }
+      
+      // Grant immediate access
+      localStorage.setItem('payment_method', 'invoice')
+      localStorage.setItem('payment_completed', 'true')
+      localStorage.setItem('payment_date', new Date().toISOString())
+
+      // Save to database
       try {
         const user = await getCurrentUser()
         if (user) {
           await supabase
-  .from('assessments')
-  .update({
-    payment_completed: true,  // ✅ CHANGED TO TRUE - grants immediate access
-    payment_method: 'invoice',
-    payment_date: new Date().toISOString()
-  })
-  .eq('user_id', user.id)
+            .from('assessments')
+            .update({
+              payment_completed: true,
+              payment_method: 'invoice',
+              payment_date: new Date().toISOString()
+            })
+            .eq('user_id', user.id)
         }
       } catch (error) {
         console.error('Error saving payment to database:', error)
@@ -126,7 +142,7 @@ export default function InvoicePaymentPage() {
       
       setLoading(false)
       
-      // Redirect to dashboard after short delay
+      // Redirect to dashboard
       setTimeout(() => {
         router.push('/dashboard')
       }, 1500)
@@ -144,39 +160,16 @@ export default function InvoicePaymentPage() {
       const pageWidth = doc.internal.pageSize.getWidth()
       let yPos = 20
 
-      // Try to add logos, but continue if they fail
-      try {
-        const cacImg = new Image()
-        cacImg.crossOrigin = 'anonymous'
-        cacImg.src = '/cancer-careers-logo.png'
-        await new Promise((resolve) => {
-          cacImg.onload = resolve
-          setTimeout(resolve, 1000) // Timeout after 1 second
-        })
-        if (cacImg.complete) {
-          doc.addImage(cacImg, 'PNG', 20, yPos, 50, 18)
-        }
-
-        const bcImg = new Image()
-        bcImg.crossOrigin = 'anonymous'
-        bcImg.src = '/best-companies-2026-logo.png'
-        await new Promise((resolve) => {
-          bcImg.onload = resolve
-          setTimeout(resolve, 1000)
-        })
-        if (bcImg.complete) {
-          const logoWidth = 30
-          const centerX = (pageWidth - logoWidth) / 2
-          doc.addImage(bcImg, 'PNG', centerX, yPos, logoWidth, 30)
-        }
-      } catch (logoError) {
-        console.warn('Logos failed to load, continuing without them')
-        // Add text fallback
-        doc.setFontSize(10)
-        doc.setTextColor(255, 107, 53)
-        doc.text('CANCER + CAREERS', 20, yPos)
-        doc.text('BEST COMPANIES', pageWidth / 2, yPos + 5, { align: 'center' })
-      }
+      // Use text headers instead of images to reduce file size
+      doc.setFontSize(14)
+      doc.setTextColor(107, 44, 145) // Purple
+      doc.setFont(undefined, 'bold')
+      doc.text('CANCER + CAREERS', 20, yPos)
+      doc.setFontSize(12)
+      doc.setTextColor(0, 168, 150) // Teal
+      doc.text('BEST COMPANIES', pageWidth / 2, yPos, { align: 'center' })
+      doc.setFontSize(10)
+      doc.text('FOR WORKING WITH CANCER', pageWidth / 2, yPos + 5, { align: 'center' })
 
       // Invoice header (right side)
       doc.setFontSize(28)
@@ -295,7 +288,7 @@ export default function InvoicePaymentPage() {
       doc.text('TOTAL DUE:', pageWidth / 2, yPos + 2, { align: 'right' })
       doc.text('$1,250.00', pageWidth - 25, yPos + 2, { align: 'right' })
 
-      // Payment Terms box - Ends right after payment instructions
+      // Payment Terms box
       yPos += 20
       doc.setDrawColor(255, 107, 53)
       doc.setLineWidth(0.5)
@@ -356,14 +349,11 @@ export default function InvoicePaymentPage() {
       yPos += 4
       doc.text(`Reference: ${data.invoiceNumber}`, 35, yPos)
       
-      // Contact & Instructions - LAST LINE IN BOX
+      // Contact & Instructions
       yPos += 5
       doc.setFontSize(8)
       doc.setTextColor(100, 100, 100)
       doc.text('Please include the invoice number in your payment reference. Questions: cacbestcompanies@cew.org', 30, yPos)
-
-      // Move past the orange box before adding footer
-      yPos += 15
 
       // Footer
       yPos = doc.internal.pageSize.getHeight() - 20
@@ -376,15 +366,14 @@ export default function InvoicePaymentPage() {
       yPos += 5
       doc.text('Cancer and Careers | www.cancerandcareers.org | cacbestcompanies@cew.org', pageWidth / 2, yPos, { align: 'center' })
 
-      // Save the PDF
-      // Get base64 for email
-const pdfBase64 = doc.output('datauristring').split(',')[1]
+      // Get base64 for email (using compress option to reduce size)
+      const pdfBase64 = doc.output('datauristring', { compress: true }).split(',')[1]
 
-// Save the PDF (keep this line!)
-doc.save(`Invoice-${data.invoiceNumber}.pdf`)
+      // Save the PDF locally
+      doc.save(`Invoice-${data.invoiceNumber}.pdf`)
 
-// Return the base64
-return pdfBase64
+      // Return base64 for email
+      return pdfBase64
     } catch (error) {
       console.error('Error in PDF generation:', error)
       throw error
@@ -405,7 +394,6 @@ return pdfBase64
             </div>
           </div>
 
-          {/* Updated Notice */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-900 font-semibold mb-2">
               You'll receive immediate access to begin your survey
@@ -415,7 +403,6 @@ return pdfBase64
             </p>
           </div>
 
-          {/* Company Info (Pre-filled) - COMPACT LAYOUT */}
           <div className="bg-gray-50 rounded-lg p-6 mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Organization Information</h2>
             <div className="grid grid-cols-2 gap-6">
@@ -432,9 +419,7 @@ return pdfBase64
             </div>
           </div>
 
-          {/* Invoice Form */}
           <form onSubmit={(e) => { e.preventDefault(); handleDownloadInvoice(); }}>
-            {/* PO Number */}
             <div className="mb-6">
               <label className="block text-sm font-medium mb-2">
                 Purchase Order Number (Optional)
@@ -448,7 +433,6 @@ return pdfBase64
               />
             </div>
 
-            {/* Billing Address */}
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <MapPin className="w-5 h-5 mr-2 text-gray-600" />
@@ -549,7 +533,6 @@ return pdfBase64
               </div>
             </div>
 
-            {/* Invoice Summary */}
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-700">Survey Fee</span>
@@ -558,7 +541,6 @@ return pdfBase64
               <p className="text-sm text-gray-600">Payment Terms: Net 30 Days</p>
             </div>
 
-            {/* Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 type="submit"
