@@ -307,7 +307,7 @@ export default function DashboardPage() {
                       {getFoundingPartnerMessage()}
                     </h3>
                     <p className="text-purple-800">
-                      Thank you for being a Founding Partner of the Best Companies for Working with Cancer Index. Your participation fee has been waived and you have full access to complete your survey.
+                      Thank you for being a Founding Partner of the Best Companies for Working with Cancer Initiative. Your participation fee has been waived and you have full access to complete your survey.
                     </p>
                   </div>
                 </div>
