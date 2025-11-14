@@ -114,7 +114,7 @@ export default function LoginPage() {
           setTimeout(() => {
             // Check if authorization completed
             if (!assessment?.auth_completed) {
-              router.push('/authorization')
+              router.push('/letter')
               return
             }
             
