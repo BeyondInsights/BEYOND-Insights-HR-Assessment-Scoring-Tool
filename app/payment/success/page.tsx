@@ -127,7 +127,7 @@ export default function PaymentSuccessPage() {
   <div class="header">
     <div class="checkmark">✓</div>
     <h1>Payment Receipt</h1>
-    <p>Best Companies for Working with Cancer Index Survey</p>
+    <p>Best Companies for Working with Cancer Initiative Survey</p>
   </div>
 
   <div class="details">
