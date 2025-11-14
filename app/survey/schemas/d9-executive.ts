@@ -8,19 +8,20 @@ export const d9Schema = {
       'Assessing feasibility',
       'Not able to offer in foreseeable future'
     ],
-    programs: [
-      'Executive accountability metrics',
-      'Public success story celebrations',
-      'Compensation tied to support outcomes',
-      'ESG/CSR reporting inclusion',
-      'Year-over-year budget growth',
-      'Executive sponsors communicate regularly about workplace support programs',
-      'Dedicated budget allocation for serious illness support programs',
-      'C-suite executive serves as program champion/sponsor',
-      'Support programs included in investor/stakeholder communications',
-      'Cross-functional executive steering committee for workplace support programs',
-      'Support metrics included in annual report/sustainability reporting'
-    ]
+   programs: [
+  'Paid medical leave beyond local / legal requirements',
+  'Intermittent leave beyond local / legal requirements',
+  'Flexible work hours during treatment',
+  'Remote work options for on-site employees',
+  'Reduced schedule/part-time with full benefits',
+  'Job protection beyond local / legal requirements',
+  'Emergency leave within 24 hours',
+  'Leave donation bank',
+  'Disability pay top-up',
+  'PTO accrual during leave',
+  'Paid micro-breaks for medical-related side effects',
+  'Full salary (100%) continuation during cancer-related short-term disability leave'
+]
   },
   d9aa: {
     type: 'select',
