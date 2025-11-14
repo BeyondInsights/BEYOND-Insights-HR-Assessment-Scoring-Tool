@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { isAuthenticated, getUserAssessment } from '@/lib/supabase/auth'
+import { isFoundingPartner } from '@/lib/founding-partners'
 import { supabase } from '@/lib/supabase/client'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
@@ -74,6 +75,20 @@ function AuthorizationContent() {
 
  useEffect(() => {
   const checkAuth = async () => {
+    // ============================================
+    // FOUNDING PARTNER CHECK - SKIP SUPABASE
+    // ============================================
+    const surveyId = localStorage.getItem('survey_id') || ''
+    const { isFoundingPartner } = await import('@/lib/founding-partners')
+    
+    if (isFoundingPartner(surveyId)) {
+      console.log('Founding Partner - skipping Supabase auth')
+      localStorage.setItem('auth_completed', 'true')
+      setLoading(false)
+      return
+    }
+    // ============================================
+    
     // Check if user is authenticated with Supabase
     const authenticated = await isAuthenticated()
     
