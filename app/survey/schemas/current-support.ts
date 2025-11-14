@@ -118,22 +118,29 @@ export const currentSupportSchema = {
     ],
     hasOther: true
   },
-  or5a: {
-    type: 'multiselect',
-    label: 'Types of caregiver support provided',
-    options: [
-      'Paid caregiver leave',
-      'Flexible work for caregivers',
-      'Caregiver resource center',
-      'Support groups',
-      'Backup care services',
-      'Elder care resources',
-      'Legal/financial planning',
-      'EAP for caregivers',
-      'Manager training on caregiver support',
-      'No specific caregiver support'
-    ]
-  },
+  
+or5a: {
+  type: 'multiselect',
+  label: 'Types of caregiver support provided',
+  options: [
+    'Flexible work schedules',
+    'Flexible work arrangements',
+    'Caregiver leave (paid)',
+    'Caregiver leave (unpaid)',
+    'Employee assistance program (EAP) counseling',
+    'Caregiver support groups',
+    'Referrals to eldercare / dependent care resources',
+    'Financial assistance or subsidies',
+    'Respite care coverage',
+    'Modified job duties / reduced workload',
+    'Manager training on supporting caregivers',
+    'Backup care services',
+    'Legal / financial planning resources',
+    'Concierge caregiving support through a 3rd party provider (e.g., Wellthy, Cleo, Bright Horizons, Maven, etc.)',
+    'Some other support (specify):',
+    'Not able to provide caregiver support at this time'
+  ]
+},
   or6: {
     type: 'multiselect',
     label: 'How do you monitor program effectiveness while maintaining privacy?',
