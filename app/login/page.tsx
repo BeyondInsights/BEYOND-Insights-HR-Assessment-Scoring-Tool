@@ -74,7 +74,7 @@ export default function LoginPage() {
     // Show success message and redirect
     setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
     setTimeout(() => {
-      router.push('/authorization')
+      router.push('/letter')
     }, 1500)
     setLoading(false)
     return
