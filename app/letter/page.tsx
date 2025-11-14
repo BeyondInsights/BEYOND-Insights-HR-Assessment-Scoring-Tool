@@ -11,24 +11,49 @@ export default function LetterPage() {
   const [ready, setReady] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  // Check if user is authenticated
+// Check if user is authenticated
   useEffect(() => {
     const checkAuth = async () => {
+      // ============================================
+      // CHECK FOR FOUNDING PARTNER FIRST
+      // ============================================
+      const surveyId = localStorage.getItem('survey_id') || ''
+      const { isFoundingPartner } = await import('@/lib/founding-partners')
+      
+      if (isFoundingPartner(surveyId)) {
+        console.log('Founding Partner - skipping Supabase check on letter page')
+        return
+      }
+      // ============================================
+      
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        router.push('/login') // or wherever your login page is
+        router.push('/login')
       }
     }
     checkAuth()
   }, [router])
 
-  const handleContinue = async () => {
+ const handleContinue = async () => {
     if (!ready) return
     
     setLoading(true)
     
     try {
-      // Mark letter as viewed in database
+      // ============================================
+      // CHECK FOR FOUNDING PARTNER
+      // ============================================
+      const surveyId = localStorage.getItem('survey_id') || ''
+      const { isFoundingPartner } = await import('@/lib/founding-partners')
+      
+      if (isFoundingPartner(surveyId)) {
+        console.log('Founding Partner - going to authorization')
+        router.push('/authorization')
+        return
+      }
+      // ============================================
+      
+      // REGULAR USERS - Update Supabase
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {
@@ -37,7 +62,6 @@ export default function LetterPage() {
           .update({ letter_viewed: true })
           .eq('user_id', user.id)
         
-        // Redirect to authorization/firmographics page
         router.push('/authorization')
       }
     } catch (error) {
