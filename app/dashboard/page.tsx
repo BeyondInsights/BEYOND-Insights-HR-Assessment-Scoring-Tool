@@ -366,28 +366,25 @@ export default function DashboardPage() {
           if (!allSectionsComplete) return null;
 
           return (
-            <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-orange-600 rounded-xl p-8 mb-8 shadow-xl">
+            <div className="bg-green-50 border-2 border-green-400 rounded-xl p-8 mb-8 shadow-lg">
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-start gap-4 text-white flex-1">
+                <div className="flex items-start gap-4 text-gray-900 flex-1">
                   <svg width="60" height="60" viewBox="0 0 60 60" fill="none" className="flex-shrink-0">
-                    <circle cx="30" cy="30" r="28" fill="white" opacity="0.2"/>
-                    <path d="M30 10 L35 23 L48 27 L38 37 L40 50 L30 43 L20 50 L22 37 L12 27 L25 23 Z" fill="white"/>
+                    <circle cx="30" cy="30" r="28" fill="#22c55e" opacity="0.2"/>
+                    <path d="M30 10 L35 23 L48 27 L38 37 L40 50 L30 43 L20 50 L22 37 L12 27 L25 23 Z" fill="#22c55e"/>
                   </svg>
                   <div>
-                    <h3 className="text-2xl font-bold mb-2">Thank You!</h3>
-                    <p className="text-lg mb-1">
-                      You completed all sections of the survey!
-                    </p>
-                    <p className="text-white/90">
-                      Learn about next steps, upload supporting documentation, and discover how to use the certification badge if your organization qualifies.
+                    <h3 className="text-2xl font-bold mb-2 text-green-900">Thank You!</h3>
+                    <p className="text-base text-gray-800">
+                      All sections of the Cancer and Careers Best Companies for Working With Cancer Survey are complete. A confirmation email with next steps has been sent to you.
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => router.push('/completion')}
-                  className="px-8 py-4 bg-white text-purple-600 rounded-lg font-bold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 whitespace-nowrap"
+                  className="px-8 py-4 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 whitespace-nowrap"
                 >
-                  View What's Next
+                  View What's Next →
                 </button>
               </div>
             </div>
