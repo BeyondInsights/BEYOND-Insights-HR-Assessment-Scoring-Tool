@@ -9,6 +9,7 @@ export default function GeneralBenefitsPage() {
  const router = useRouter();
  const [step, setStep] = useState(1);
  const [ans, setAns] = useState<any>({});
+ const [isUSAOnly, setIsUSAOnly] = useState(false);
  
  // ===== VALIDATION ADDITIONS =====
  const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -31,7 +32,7 @@ export default function GeneralBenefitsPage() {
  }
  }, [ans]);
  
- // Debug: Try to load on mount
+ // Check for USA-only on mount and auto-fill CB1a if needed
  useEffect(() => {
  console.log("GENERAL checking for saved data...");
  const saved = localStorage.getItem("general_benefits_data");
@@ -41,20 +42,29 @@ export default function GeneralBenefitsPage() {
  } else {
  console.log("NO saved general data found");
  }
- }, []);
- const [errors, setErrors] = useState<string>("");
-
- // Load saved answers on mount
- useEffect(() => {
- const saved = localStorage.getItem("general_benefits_data");
- if (saved) setAns(JSON.parse(saved));
  
+ // Check if USA-only from firmographics
+ const firmographics = localStorage.getItem("firmographics_data");
+ if (firmographics) {
+   const parsed = JSON.parse(firmographics);
+   // USA-only if: s9 contains "USA" or "United States" AND s9a is "No other countries"
+   const hqIsUSA = parsed.s9 && (
+     parsed.s9.toLowerCase().includes("usa") || 
+     parsed.s9.toLowerCase().includes("united states") ||
+     parsed.s9.toLowerCase().includes("u.s.")
+   );
+   const noOtherCountries = parsed.s9a === "No other countries - headquarters only";
+   
+   if (hqIsUSA && noOtherCountries) {
+     console.log("USA-ONLY detected - auto-filling CB1a with 0% and will skip step 7");
+     setIsUSAOnly(true);
+     // Auto-fill CB1a with 0% for USA-only
+     setAns((prev: any) => ({ ...prev, cb1a: "0" }));
+   }
+ }
  }, []);
-
- // Save answers when they change
- useEffect(() => {
- localStorage.setItem("general_benefits_data", JSON.stringify(ans));
- }, [ans]);
+ 
+ const [errors, setErrors] = useState<string>("");
 
  // Set field helper
  const setField = (key: string, value: any) => {
@@ -87,6 +97,7 @@ export default function GeneralBenefitsPage() {
  markTouched(key); // Mark field as touched
  setErrors("");
  };
+ 
  // Validation
  const validateStep = () => {
  switch (step) {
@@ -123,8 +134,9 @@ export default function GeneralBenefitsPage() {
  }
  return null;
 
- case 7: // CB1a - percentage (optional)
- if (ans.cb1a && (parseInt(ans.cb1a) < 0 || parseInt(ans.cb1a) > 100)) {
+ case 7: // CB1a - percentage (SHOULD BE SKIPPED FOR USA-ONLY)
+ // This step should only show for multi-country orgs
+ if (!isUSAOnly && ans.cb1a && (parseInt(ans.cb1a) < 0 || parseInt(ans.cb1a) > 100)) {
  return "Please enter a valid percentage (0-100)";
  }
  return null;
@@ -137,12 +149,20 @@ export default function GeneralBenefitsPage() {
  }
  };
 
- // Navigation
+ // Navigation with CB1a skip logic
  const next = () => {
  const error = validateStep();
  if (error) {
  setErrors(error);
  return;
+ }
+ 
+ // Skip step 7 (CB1a) if USA-only
+ if (step === 6 && isUSAOnly) {
+   console.log("Skipping CB1a (step 7) because USA-only - jumping to step 8");
+   setStep(8);
+   setErrors("");
+   return;
  }
  
  if (step < 9) {
@@ -152,6 +172,14 @@ export default function GeneralBenefitsPage() {
  };
 
  const back = () => {
+ // Skip step 7 (CB1a) when going back if USA-only
+ if (step === 8 && isUSAOnly) {
+   console.log("Skipping CB1a (step 7) when going back because USA-only");
+   setStep(6);
+   setErrors("");
+   return;
+ }
+ 
  if (step > 1) {
  setStep(step - 1);
  setErrors("");
@@ -258,6 +286,13 @@ export default function GeneralBenefitsPage() {
  />
  </div>
  </div>
+
+ {/* USA-Only indicator */}
+ {isUSAOnly && (
+   <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
+     <strong>Note:</strong> CB1a (national healthcare access) has been auto-filled with 0% because you indicated USA-only presence.
+   </div>
+ )}
 
  {/* Error display */}
  {errors && (
@@ -586,8 +621,8 @@ export default function GeneralBenefitsPage() {
  </div>
  )}
 
- {/* Step 7: CB1a - Government Healthcare */}
- {step === 7 && (
+ {/* Step 7: CB1a - Government Healthcare (ONLY FOR MULTI-COUNTRY) */}
+ {step === 7 && !isUSAOnly && (
  <div className="bg-white p-6 rounded-lg shadow-sm">
  <h2 className="text-2xl font-bold text-gray-900 mb-6">
  Current Benefits Landscape
@@ -596,7 +631,7 @@ export default function GeneralBenefitsPage() {
  <div>
  <p className="text-base font-bold text-gray-900 mb-1">
  What percentage of your employees have access to{" "}
- <span className="text-blue-600">healthcare through national or government Systems</span>{" "}
+ <span className="text-blue-600">healthcare through national or government systems</span>{" "}
  (rather than employer-provided insurance)?
  </p>
  <p className="text-sm text-gray-600 mb-2">(Enter whole number below)</p>
@@ -621,7 +656,7 @@ export default function GeneralBenefitsPage() {
  }`}
  placeholder="0"
  />
- <span className="text-base">% access to healthcare through national or government Systems</span>
+ <span className="text-base">% access to healthcare through national or government systems</span>
  </div>
  </div>
  </div>
