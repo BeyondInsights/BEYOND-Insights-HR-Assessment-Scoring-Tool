@@ -74,14 +74,7 @@ export default function InvoiceViewPage() {
       doc.setFont(undefined, 'bold')
       doc.text('CANCER + CAREERS', 20, yPos + 10)
     }
-
-    // Best Companies text
-    doc.setFontSize(10)
-    doc.setTextColor(0, 168, 150)
-    doc.setFont(undefined, 'bold')
-    doc.text('BEST COMPANIES', pageWidth / 2, yPos + 5, { align: 'center' })
-    doc.text('FOR WORKING WITH CANCER', pageWidth / 2, yPos + 10, { align: 'center' })
-
+  
     // Invoice header
     doc.setFontSize(28)
     doc.setTextColor(255, 107, 53)
