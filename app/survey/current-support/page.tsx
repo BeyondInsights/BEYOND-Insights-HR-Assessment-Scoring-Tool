@@ -120,8 +120,7 @@ export default function CurrentSupportPage() {
           return "Please specify other trigger";
         return null;
 
-      case 9: // OR2b
-        if (!ans.or2b?.trim()) return "Please describe the most impactful change";
+      case 9: // OR2b - NOW OPTIONAL
         return null;
 
       case 10: // OR3 (conditional)
@@ -795,47 +794,33 @@ export default function CurrentSupportPage() {
           </div>
         )}
 
-        {/* Step 9: OR2b (conditional) */}
-        {step === 9 && (
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Current Support</h2>
-            
-            <div>
-              <p className="text-base font-bold text-gray-900 mb-1">
-                What has been the <span className="text-blue-600">single most impactful change</span> your organization has made to support employees managing cancer or other serious health conditions?
-                <span className="text-red-600 ml-1">*</span>
-              </p>
-              <p className="text-sm text-gray-600 mb-4">(Please be as specific and detailed as possible)</p>
-              
-              <textarea
-                value={ans.or2b || ""}
-                onChange={(e) => setField("or2b", e.target.value)}
-                onBlur={() => markTouched("or2b")}
-                className={`w-full min-h-[140px] px-4 py-3 border-2 rounded-lg ${
-                  touched.or2b && !ans.or2b?.trim()
-                    ? 'border-red-500 bg-red-50'
-                    : 'border-gray-300'
-                }`}
-                placeholder="Please describe the most impactful change..."
-              />
-              
-              {/* Character count */}
-              <p className="mt-1 text-xs text-gray-500">
-                {ans.or2b?.length || 0} characters
-              </p>
-
-              {/* Inline error */}
-              {touched.or2b && !ans.or2b?.trim() && (
-                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  Please describe the most impactful change
-                </p>
-              )}
-            </div>
-          </div>
-        )}
+{/* Step 9: OR2b (conditional - OPTIONAL) */}
+{step === 9 && (
+  <div className="bg-white p-6 rounded-lg shadow-sm">
+    <h2 className="text-2xl font-bold text-gray-900 mb-6">Current Support</h2>
+    
+    <div>
+      <p className="text-base font-bold text-gray-900 mb-1">
+        What has been the <span className="text-blue-600">single most impactful change</span> your organization has made to support employees managing cancer or other serious health conditions?
+        <span className="text-gray-500 ml-2 font-normal">(Optional)</span>
+      </p>
+      <p className="text-sm text-gray-600 mb-4">
+        Please be as specific and detailed as possible. You may skip this question if you prefer not to answer.
+      </p>
+      
+      <textarea
+        value={ans.or2b || ""}
+        onChange={(e) => setField("or2b", e.target.value)}
+        className="w-full min-h-[140px] px-4 py-3 border-2 border-gray-300 rounded-lg"
+        placeholder="Describe the most impactful change (optional)..."
+      />
+      
+      <p className="mt-1 text-xs text-gray-500">
+        {ans.or2b?.length || 0} characters
+      </p>
+    </div>
+  </div>
+)}
 
         {/* Step 10: OR3 (conditional) */}
         {step === 10 && (
