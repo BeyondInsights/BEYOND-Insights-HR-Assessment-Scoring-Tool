@@ -180,7 +180,7 @@ export default function InvoiceViewPage() {
     yPos += 20
     doc.setDrawColor(255, 107, 53)
     doc.setLineWidth(0.5)
-    doc.rect(20, yPos, pageWidth - 40, 88)
+    doc.rect(20, yPos, pageWidth - 40, 92)
     
     doc.setFontSize(11)
     doc.setTextColor(255, 107, 53)
@@ -222,10 +222,13 @@ export default function InvoiceViewPage() {
     yPos += 4
     doc.text(`Reference: ${invoiceData.invoiceNumber}`, 35, yPos)
     
+    // Wire Transfer Details - UPDATED with Account Number
     yPos += 6
     doc.setFont(undefined, 'bold')
     doc.text('• Wire Transfer (Domestic & International):', 30, yPos)
     doc.setFont(undefined, 'normal')
+    yPos += 4
+    doc.text('Account Number: 483043533766', 35, yPos)
     yPos += 4
     doc.text('Wire Routing Number: 026009593', 35, yPos)
     yPos += 4
