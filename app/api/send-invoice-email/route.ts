@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
                   <tr>
                     <td style="padding: 35px 40px 25px;">
                       <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0;">
-                        Dear ${name},
+                        Dear ${name || 'Valued Client'},
                       </p>
                       <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 15px 0 0 0;">
                         Thank you for participating in the <strong>Cancer and Careers Best Companies for Working With Cancer</strong> initiative. 
