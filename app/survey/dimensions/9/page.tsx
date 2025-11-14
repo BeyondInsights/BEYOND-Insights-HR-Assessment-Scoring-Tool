@@ -25,7 +25,8 @@ const D9A_ITEMS_BASE = [
   "C-suite executive serves as program champion/sponsor",
   "Support programs included in investor/stakeholder communications",
   "Cross-functional executive steering committee for workplace support programs",
-  "Support metrics included in annual report/sustainability reporting"
+  "Support metrics included in annual report/sustainability reporting",
+  "Executive-led town halls focused on health benefits and employee support"
 ];
 
 export default function Dimension9Page() {
