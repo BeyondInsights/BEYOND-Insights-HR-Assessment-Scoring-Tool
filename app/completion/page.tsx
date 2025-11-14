@@ -257,7 +257,7 @@ export default function CompletionPage() {
   <div className="flex-1">
     <h3 className="font-semibold text-gray-900 mb-1">Initiative Release</h3>
     <p className="text-sm text-gray-700">
-      The 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in early March, 2026.
+      The Cancer and Careers 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in early March, 2026.
     </p>
   </div>
 </div>
@@ -283,7 +283,7 @@ export default function CompletionPage() {
                     <h3 className="font-semibold text-gray-900 mb-1">Benchmarking Reports: Distributed March 2026</h3>
                     <div className="bg-white border border-teal-200 rounded-lg p-3">
                       <p className="text-xs text-gray-600">
-                        <strong>Please Note:</strong> Benchmarking Reports are included with the application fee. All reports are completely confidential and shared back only to the participating company. No individual data is shared with the public or any other participating company.
+                        <strong>Please Note:</strong> Benchmarking Reports are included with the survey fee. All reports are completely confidential and shared back only to the participating company. No individual data is shared with the public or any other participating company.
                       </p>
                     </div>
                   </div>
@@ -308,7 +308,7 @@ export default function CompletionPage() {
             {/* Closing Message */}
             <div className="border-t border-gray-200 pt-8 mb-8">
               <p className="text-base text-gray-700 text-center mb-4">
-                Thank you again for participating. Your responses will truly impact workplaces for those impacted by cancer and other serious health conditions.
+                Thank you again for participating. Your responses will improve workplaces for all employees. 
               </p>
               <p className="text-base font-semibold text-gray-900 text-center">
                 With appreciation,<br />
