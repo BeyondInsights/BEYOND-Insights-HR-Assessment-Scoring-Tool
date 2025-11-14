@@ -25,7 +25,8 @@ const D1A_ITEMS_BASE = [
   "Leave donation bank (employees can donate PTO to colleagues)",
   "Disability pay top-up (employer adds to disability insurance)",
   "PTO accrual during leave",
-  "Paid micro-breaks for medical-related side effects"
+  "Paid micro-breaks for medical-related side effects",
+  "Full salary (100%) continuation during cancer-related short-term disability leave"
 ];
 
 export default function Dimension1Page() {
