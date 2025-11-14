@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { FileText, Building2, MapPin, Download, Loader2 } from 'lucide-react'
 import Header from '@/components/Header'
@@ -11,6 +11,8 @@ export default function InvoicePaymentPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [scriptLoaded, setScriptLoaded] = useState(false)
+  const emailSentRef = useRef(false)  // Prevents duplicate emails
+  
   const [companyData, setCompanyData] = useState({
     companyName: '',
     contactName: '',
@@ -93,30 +95,34 @@ export default function InvoicePaymentPage() {
       const pdfBase64 = await generateInvoicePDF(invoiceData)
       console.log('PDF generated, base64 length:', pdfBase64?.length)
 
-      // Send email with attached PDF
-      try {
-        const contactEmail = localStorage.getItem('login_email') || ''
-        
-        const emailResponse = await fetch('/api/send-invoice-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: contactEmail,
-            name: companyData.contactName,
-            // In handleDownloadInvoice, when sending the email:
-            invoiceUrl: `${window.location.origin}/payment/invoice/view?id=${invoiceData.invoiceNumber}`,
-            dashboardUrl: `${window.location.origin}/dashboard`,
-            invoicePdfBase64: pdfBase64,
-          }),
-        })
-        
-        if (!emailResponse.ok) {
-          console.error('Email send failed:', await emailResponse.text())
-        } else {
-          console.log('Invoice email sent successfully')
+      // Send email ONLY ONCE - check the ref to prevent duplicates
+      if (!emailSentRef.current) {
+        try {
+          const contactEmail = localStorage.getItem('login_email') || ''
+          console.log('SENDING EMAIL to:', contactEmail)
+          
+          const emailResponse = await fetch('/api/send-invoice-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: contactEmail,
+              name: companyData.contactName,
+              invoiceUrl: `${window.location.origin}/payment/invoice/view?id=${invoiceData.invoiceNumber}`,
+              dashboardUrl: `${window.location.origin}/dashboard`,
+              invoicePdfBase64: pdfBase64,
+            }),
+          })
+          
+          emailSentRef.current = true  // Mark as sent
+          
+          if (!emailResponse.ok) {
+            console.error('Email send failed:', await emailResponse.text())
+          } else {
+            console.log('Invoice email sent successfully')
+          }
+        } catch (emailError) {
+          console.error('Error sending email:', emailError)
         }
-      } catch (emailError) {
-        console.error('Error sending email:', emailError)
       }
       
       // Grant immediate access
@@ -143,6 +149,11 @@ export default function InvoicePaymentPage() {
       
       setLoading(false)
       
+      // Reset email sent flag for next time
+      setTimeout(() => {
+        emailSentRef.current = false
+      }, 3000)
+      
       // Redirect to dashboard
       setTimeout(() => {
         router.push('/dashboard')
@@ -154,249 +165,234 @@ export default function InvoicePaymentPage() {
     }
   }
 
-  // This is the updated generateInvoicePDF function for your invoice page
-// Replace your existing generateInvoicePDF function with this one
-
-const generateInvoicePDF = async (data: any) => {
-  try {
-    const { jsPDF } = (window as any).jspdf
-    const doc = new jsPDF()
-    const pageWidth = doc.internal.pageSize.getWidth()
-    let yPos = 20
-
-    // Try to add the Cancer + Careers logo with size optimization
+  const generateInvoicePDF = async (data: any) => {
     try {
-      const cacImg = new Image()
-      cacImg.crossOrigin = 'anonymous'
-      cacImg.src = '/cancer-careers-logo.png'
-      
-      await new Promise((resolve, reject) => {
-        cacImg.onload = resolve
-        cacImg.onerror = reject
-        setTimeout(reject, 500) // Quick timeout
-      })
-      
-      // Add logo if loaded successfully, smaller size to reduce file size
-      if (cacImg.complete && cacImg.naturalWidth > 0) {
-        doc.addImage(cacImg, 'PNG', 20, yPos, 45, 16, undefined, 'FAST')
+      const { jsPDF } = (window as any).jspdf
+      const doc = new jsPDF()
+      const pageWidth = doc.internal.pageSize.getWidth()
+      let yPos = 20
+
+      // Try to add the Cancer + Careers logo
+      try {
+        const cacImg = new Image()
+        cacImg.crossOrigin = 'anonymous'
+        cacImg.src = '/cancer-careers-logo.png'
+        
+        await new Promise((resolve, reject) => {
+          cacImg.onload = resolve
+          cacImg.onerror = reject
+          setTimeout(reject, 500)
+        })
+        
+        if (cacImg.complete && cacImg.naturalWidth > 0) {
+          doc.addImage(cacImg, 'PNG', 20, yPos, 45, 16, undefined, 'FAST')
+        }
+      } catch (logoError) {
+        doc.setFontSize(14)
+        doc.setTextColor(255, 107, 53)
+        doc.setFont(undefined, 'bold')
+        doc.text('CANCER + CAREERS', 20, yPos + 10)
       }
-    } catch (logoError) {
-      // Fallback to text if logo fails
-      doc.setFontSize(14)
+
+      // Invoice header (right side)
+      doc.setFontSize(28)
+      doc.setTextColor(255, 107, 53)
+      doc.text('INVOICE', pageWidth - 20, yPos + 5, { align: 'right' })
+      
+      doc.setFontSize(10)
+      doc.setTextColor(0, 0, 0)
+      yPos += 15
+      doc.text(`Invoice #: ${data.invoiceNumber}`, pageWidth - 20, yPos, { align: 'right' })
+      yPos += 6
+      doc.text(`Invoice Date: ${data.invoiceDate}`, pageWidth - 20, yPos, { align: 'right' })
+      yPos += 6
+      doc.text(`Due Date: ${data.dueDate}`, pageWidth - 20, yPos, { align: 'right' })
+      yPos += 6
+      doc.text('Payment Terms: Net 30', pageWidth - 20, yPos, { align: 'right' })
+
+      // Line separator
+      yPos = 60
+      doc.setDrawColor(255, 107, 53)
+      doc.setLineWidth(1)
+      doc.line(20, yPos, pageWidth - 20, yPos)
+
+      // From section (left)
+      yPos += 10
+      doc.setFontSize(11)
+      doc.setFont(undefined, 'bold')
+      doc.text('From', 20, yPos)
+      doc.setFont(undefined, 'normal')
+      doc.setFontSize(10)
+      yPos += 6
+      doc.text('Cancer and Careers', 20, yPos)
+      yPos += 5
+      doc.text('250 W. 57th Street, Suite 918', 20, yPos)
+      yPos += 5
+      doc.text('New York, NY 10107', 20, yPos)
+      yPos += 5
+      doc.text('United States', 20, yPos)
+      yPos += 5
+      doc.text('Email: cacbestcompanies@cew.org', 20, yPos)
+
+      // Bill To section (right)
+      let rightYPos = 70
+      doc.setFontSize(11)
+      doc.setFont(undefined, 'bold')
+      doc.text('Bill To', pageWidth / 2 + 10, rightYPos)
+      doc.setFont(undefined, 'normal')
+      doc.setFontSize(10)
+      rightYPos += 6
+      doc.text(data.companyName || 'BEYOND Insights', pageWidth / 2 + 10, rightYPos)
+      rightYPos += 5
+      doc.text(data.contactName, pageWidth / 2 + 10, rightYPos)
+      if (data.title) {
+        rightYPos += 5
+        doc.text(`${data.title}`, pageWidth / 2 + 10, rightYPos)
+      }
+      rightYPos += 5
+      doc.text(data.addressLine1, pageWidth / 2 + 10, rightYPos)
+      if (data.addressLine2) {
+        rightYPos += 5
+        doc.text(data.addressLine2, pageWidth / 2 + 10, rightYPos)
+      }
+      rightYPos += 5
+      doc.text(`${data.city}, ${data.state} ${data.zipCode}`, pageWidth / 2 + 10, rightYPos)
+      rightYPos += 5
+      doc.text(data.country, pageWidth / 2 + 10, rightYPos)
+      
+      if (data.poNumber) {
+        rightYPos += 5
+        doc.setFont(undefined, 'bold')
+        doc.text(`PO #: ${data.poNumber}`, pageWidth / 2 + 10, rightYPos)
+        doc.setFont(undefined, 'normal')
+      }
+
+      // Table header
+      yPos = Math.max(yPos, rightYPos) + 15
+      doc.setFillColor(51, 51, 51)
+      doc.rect(20, yPos, pageWidth - 40, 10, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFont(undefined, 'bold')
+      doc.text('Description', 25, yPos + 7)
+      doc.text('Amount', pageWidth - 25, yPos + 7, { align: 'right' })
+
+      // Table content
+      yPos += 15
+      doc.setTextColor(0, 0, 0)
+      doc.setFont(undefined, 'bold')
+      doc.text('Survey Fee', 25, yPos)
+      doc.setFont(undefined, 'normal')
+      doc.setFontSize(9)
+      doc.setTextColor(100, 100, 100)
+      yPos += 5
+      doc.text('Best Companies for Working with Cancer Index', 25, yPos)
+      
+      doc.setFontSize(10)
+      doc.setTextColor(0, 0, 0)
+      doc.text('$1,250.00', pageWidth - 25, yPos - 5, { align: 'right' })
+
+      // Total row
+      yPos += 10
+      doc.setDrawColor(200, 200, 200)
+      doc.line(20, yPos, pageWidth - 20, yPos)
+      yPos += 8
+      doc.setFillColor(245, 245, 245)
+      doc.rect(20, yPos - 5, pageWidth - 40, 10, 'F')
+      doc.setFont(undefined, 'bold')
+      doc.setFontSize(12)
+      doc.text('TOTAL DUE:', pageWidth / 2, yPos + 2, { align: 'right' })
+      doc.text('$1,250.00', pageWidth - 25, yPos + 2, { align: 'right' })
+
+      // Payment Terms box
+      yPos += 20
+      doc.setDrawColor(255, 107, 53)
+      doc.setLineWidth(0.5)
+      doc.rect(20, yPos, pageWidth - 40, 88)
+      
+      doc.setFontSize(11)
       doc.setTextColor(255, 107, 53)
       doc.setFont(undefined, 'bold')
-      doc.text('CANCER + CAREERS', 20, yPos + 10)
-    }
-
-    // // Best Companies text - REMOVED
-// doc.setFontSize(10)
-// doc.setTextColor(0, 168, 150)
-// doc.setFont(undefined, 'bold')
-// doc.text('BEST COMPANIES', pageWidth / 2, yPos + 5, { align: 'center' })
-// doc.text('FOR WORKING WITH CANCER', pageWidth / 2, yPos + 10, { align: 'center' })
-
-    // Invoice header (right side)
-    doc.setFontSize(28)
-    doc.setTextColor(255, 107, 53)
-    doc.text('INVOICE', pageWidth - 20, yPos + 5, { align: 'right' })
-    
-    doc.setFontSize(10)
-    doc.setTextColor(0, 0, 0)
-    yPos += 15
-    doc.text(`Invoice #: ${data.invoiceNumber}`, pageWidth - 20, yPos, { align: 'right' })
-    yPos += 6
-    doc.text(`Invoice Date: ${data.invoiceDate}`, pageWidth - 20, yPos, { align: 'right' })
-    yPos += 6
-    doc.text(`Due Date: ${data.dueDate}`, pageWidth - 20, yPos, { align: 'right' })
-    yPos += 6
-    doc.text('Payment Terms: Net 30', pageWidth - 20, yPos, { align: 'right' })
-
-    // Line separator
-    yPos = 60
-    doc.setDrawColor(255, 107, 53)
-    doc.setLineWidth(1)
-    doc.line(20, yPos, pageWidth - 20, yPos)
-
-    // From and Bill To sections
-    yPos += 10
-    
-    // From section (left)
-    doc.setFontSize(11)
-    doc.setFont(undefined, 'bold')
-    doc.text('From', 20, yPos)
-    doc.setFont(undefined, 'normal')
-    doc.setFontSize(10)
-    yPos += 6
-    doc.text('Cancer and Careers', 20, yPos)
-    yPos += 5
-    doc.text('250 W. 57th Street, Suite 918', 20, yPos)
-    yPos += 5
-    doc.text('New York, NY 10107', 20, yPos)
-    yPos += 5
-    doc.text('United States', 20, yPos)
-    yPos += 5
-    doc.text('Email: cacbestcompanies@cew.org', 20, yPos)
-
-    // Bill To section (right)
-    let rightYPos = 70
-    doc.setFontSize(11)
-    doc.setFont(undefined, 'bold')
-    doc.text('Bill To', pageWidth / 2 + 10, rightYPos)
-    doc.setFont(undefined, 'normal')
-    doc.setFontSize(10)
-    rightYPos += 6
-    doc.text(data.companyName || 'BEYOND Insights', pageWidth / 2 + 10, rightYPos)
-    rightYPos += 5
-    doc.text(data.contactName, pageWidth / 2 + 10, rightYPos)
-    if (data.title) {
-      rightYPos += 5
-      doc.text(`${data.title}`, pageWidth / 2 + 10, rightYPos)
-    }
-    rightYPos += 5
-    doc.text(data.addressLine1, pageWidth / 2 + 10, rightYPos)
-    if (data.addressLine2) {
-      rightYPos += 5
-      doc.text(data.addressLine2, pageWidth / 2 + 10, rightYPos)
-    }
-    rightYPos += 5
-    doc.text(`${data.city}, ${data.state} ${data.zipCode}`, pageWidth / 2 + 10, rightYPos)
-    rightYPos += 5
-    doc.text(data.country, pageWidth / 2 + 10, rightYPos)
-    
-    if (data.poNumber) {
-      rightYPos += 5
+      yPos += 7
+      doc.text('Payment Terms & Instructions', 25, yPos)
+      
+      doc.setFontSize(10)
+      doc.setTextColor(0, 0, 0)
       doc.setFont(undefined, 'bold')
-      doc.text(`PO #: ${data.poNumber}`, pageWidth / 2 + 10, rightYPos)
+      yPos += 7
+      doc.text('Payment is due within 30 days of invoice date.', 25, yPos)
+      
       doc.setFont(undefined, 'normal')
+      yPos += 7
+      doc.text('Payment Methods:', 25, yPos)
+      doc.setFontSize(9)
+      yPos += 5
+      doc.text('• Check payable to: Cosmetic Executive Women Foundation, LTD', 30, yPos)
+      yPos += 4
+      doc.setFontSize(8)
+      doc.setTextColor(100, 100, 100)
+      doc.text('  Mail to: 250 W. 57th Street, Suite 918, New York, NY 10107', 30, yPos)
+      
+      // ACH Transfer Details
+      yPos += 6
+      doc.setFontSize(9)
+      doc.setTextColor(0, 0, 0)
+      doc.setFont(undefined, 'bold')
+      doc.text('• ACH Transfer (Domestic US Bank Transfer):', 30, yPos)
+      doc.setFont(undefined, 'normal')
+      yPos += 4
+      doc.text('Account Name: Cosmetic Executive Women Foundation, LTD', 35, yPos)
+      yPos += 4
+      doc.text('Bank: Bank of America', 35, yPos)
+      yPos += 4
+      doc.text('ACH Routing Number: 021000322', 35, yPos)
+      yPos += 4
+      doc.text('Account Number: 483043533766', 35, yPos)
+      yPos += 4
+      doc.text(`Reference: ${data.invoiceNumber}`, 35, yPos)
+      
+      // Wire Transfer Details
+      yPos += 6
+      doc.setFont(undefined, 'bold')
+      doc.text('• Wire Transfer (Domestic & International):', 30, yPos)
+      doc.setFont(undefined, 'normal')
+      yPos += 4
+      doc.text('Wire Routing Number: 026009593', 35, yPos)
+      yPos += 4
+      doc.text('SWIFT Code: BOFAUS3N', 35, yPos)
+      yPos += 4
+      doc.text('Bank Address: One Bryant Park, 36th Floor, New York, NY 10036', 35, yPos)
+      yPos += 4
+      doc.text(`Reference: ${data.invoiceNumber}`, 35, yPos)
+      
+      yPos += 5
+      doc.setFontSize(8)
+      doc.setTextColor(100, 100, 100)
+      doc.text('Please include the invoice number in your payment reference. Questions: cacbestcompanies@cew.org', 30, yPos)
+
+      // Footer
+      yPos = doc.internal.pageSize.getHeight() - 20
+      doc.setDrawColor(200, 200, 200)
+      doc.line(20, yPos, pageWidth - 20, yPos)
+      yPos += 5
+      doc.setFontSize(9)
+      doc.setTextColor(100, 100, 100)
+      doc.text('Thank you for your commitment to supporting employees with cancer!', pageWidth / 2, yPos, { align: 'center' })
+      yPos += 5
+      doc.text('Cancer and Careers | www.cancerandcareers.org | cacbestcompanies@cew.org', pageWidth / 2, yPos, { align: 'center' })
+
+      // Get base64 with compression
+      const pdfBase64 = doc.output('datauristring', { compress: true }).split(',')[1]
+
+      // Save the PDF
+      doc.save(`Invoice-${data.invoiceNumber}.pdf`)
+
+      // Return base64 for email
+      return pdfBase64
+    } catch (error) {
+      console.error('Error in PDF generation:', error)
+      throw error
     }
-
-    // Table header
-    yPos = Math.max(yPos, rightYPos) + 15
-    doc.setFillColor(51, 51, 51)
-    doc.rect(20, yPos, pageWidth - 40, 10, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFont(undefined, 'bold')
-    doc.text('Description', 25, yPos + 7)
-    doc.text('Amount', pageWidth - 25, yPos + 7, { align: 'right' })
-
-    // Table content
-    yPos += 15
-    doc.setTextColor(0, 0, 0)
-    doc.setFont(undefined, 'bold')
-    doc.text('Survey Fee', 25, yPos)
-    doc.setFont(undefined, 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(100, 100, 100)
-    yPos += 5
-    doc.text('Best Companies for Working with Cancer Index', 25, yPos)
-    
-    doc.setFontSize(10)
-    doc.setTextColor(0, 0, 0)
-    doc.text('$1,250.00', pageWidth - 25, yPos - 5, { align: 'right' })
-
-    // Total row
-    yPos += 10
-    doc.setDrawColor(200, 200, 200)
-    doc.line(20, yPos, pageWidth - 20, yPos)
-    yPos += 8
-    doc.setFillColor(245, 245, 245)
-    doc.rect(20, yPos - 5, pageWidth - 40, 10, 'F')
-    doc.setFont(undefined, 'bold')
-    doc.setFontSize(12)
-    doc.text('TOTAL DUE:', pageWidth / 2, yPos + 2, { align: 'right' })
-    doc.text('$1,250.00', pageWidth - 25, yPos + 2, { align: 'right' })
-
-    // Payment Terms & Instructions box - COMPLETE WITH ALL DETAILS
-    yPos += 20
-    doc.setDrawColor(255, 107, 53)
-    doc.setLineWidth(0.5)
-    doc.rect(20, yPos, pageWidth - 40, 88)
-    
-    doc.setFontSize(11)
-    doc.setTextColor(255, 107, 53)
-    doc.setFont(undefined, 'bold')
-    yPos += 7
-    doc.text('Payment Terms & Instructions', 25, yPos)
-    
-    doc.setFontSize(10)
-    doc.setTextColor(0, 0, 0)
-    doc.setFont(undefined, 'bold')
-    yPos += 7
-    doc.text('Payment is due within 30 days of invoice date.', 25, yPos)
-    
-    doc.setFont(undefined, 'normal')
-    yPos += 7
-    doc.text('Payment Methods:', 25, yPos)
-    doc.setFontSize(9)
-    yPos += 5
-    doc.text('• Check payable to: Cosmetic Executive Women Foundation, LTD', 30, yPos)
-    yPos += 4
-    doc.setFontSize(8)
-    doc.setTextColor(100, 100, 100)
-    doc.text('  Mail to: 250 W. 57th Street, Suite 918, New York, NY 10107', 30, yPos)
-    
-    // ACH Transfer Details
-    yPos += 6
-    doc.setFontSize(9)
-    doc.setTextColor(0, 0, 0)
-    doc.setFont(undefined, 'bold')
-    doc.text('• ACH Transfer (Domestic US Bank Transfer):', 30, yPos)
-    doc.setFont(undefined, 'normal')
-    yPos += 4
-    doc.text('Account Name: Cosmetic Executive Women Foundation, LTD', 35, yPos)
-    yPos += 4
-    doc.text('Bank: Bank of America', 35, yPos)
-    yPos += 4
-    doc.text('ACH Routing Number: 021000322', 35, yPos)
-    yPos += 4
-    doc.text('Account Number: 483043533766', 35, yPos)
-    yPos += 4
-    doc.text(`Reference: ${data.invoiceNumber}`, 35, yPos)
-    
-    // Wire Transfer Details
-    yPos += 6
-    doc.setFont(undefined, 'bold')
-    doc.text('• Wire Transfer (Domestic & International):', 30, yPos)
-    doc.setFont(undefined, 'normal')
-    yPos += 4
-    doc.text('Wire Routing Number: 026009593', 35, yPos)
-    yPos += 4
-    doc.text('SWIFT Code: BOFAUS3N', 35, yPos)
-    yPos += 4
-    doc.text('Bank Address: One Bryant Park, 36th Floor, New York, NY 10036', 35, yPos)
-    yPos += 4
-    doc.text(`Reference: ${data.invoiceNumber}`, 35, yPos)
-    
-    // Contact line at bottom of box
-    yPos += 5
-    doc.setFontSize(8)
-    doc.setTextColor(100, 100, 100)
-    doc.text('Please include the invoice number in your payment reference. Questions: cacbestcompanies@cew.org', 30, yPos)
-
-    // Footer - moved down
-    yPos = doc.internal.pageSize.getHeight() - 20
-    doc.setDrawColor(200, 200, 200)
-    doc.line(20, yPos, pageWidth - 20, yPos)
-    yPos += 5
-    doc.setFontSize(9)
-    doc.setTextColor(100, 100, 100)
-    doc.text('Thank you for your commitment to supporting employees with cancer!', pageWidth / 2, yPos, { align: 'center' })
-    yPos += 5
-    doc.text('Cancer and Careers | www.cancerandcareers.org | cacbestcompanies@cew.org', pageWidth / 2, yPos, { align: 'center' })
-
-    // Get base64 with compression
-    const pdfBase64 = doc.output('datauristring', { compress: true }).split(',')[1]
-
-    // Save the PDF
-    doc.save(`Invoice-${data.invoiceNumber}.pdf`)
-
-    // Return base64 for email
-    return pdfBase64
-  } catch (error) {
-    console.error('Error in PDF generation:', error)
-    throw error
   }
-}
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
