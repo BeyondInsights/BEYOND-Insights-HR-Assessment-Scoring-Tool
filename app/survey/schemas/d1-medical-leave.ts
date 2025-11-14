@@ -9,18 +9,19 @@ export const d1Schema = {
       'Not able to offer in foreseeable future'
     ],
     programs: [
-      'Paid medical leave beyond local / legal requirements',
-      'Intermittent leave beyond local / legal requirements',
-      'Flexible work hours during treatment',
-      'Remote work options for on-site employees',
-      'Reduced schedule/part-time with full benefits',
-      'Job protection beyond local / legal requirements',
-      'Emergency leave within 24 hours',
-      'Leave donation bank',
-      'Disability pay top-up',
-      'PTO accrual during leave',
-      'Paid micro-breaks for medical-related side effects'
-    ]
+  'Paid medical leave beyond local / legal requirements',
+  'Intermittent leave beyond local / legal requirements',
+  'Flexible work hours during treatment',
+  'Remote work options for on-site employees',
+  'Reduced schedule/part-time with full benefits',
+  'Job protection beyond local / legal requirements',
+  'Emergency leave within 24 hours',
+  'Leave donation bank',
+  'Disability pay top-up',
+  'PTO accrual during leave',
+  'Paid micro-breaks for medical-related side effects',
+  'Full salary (100%) continuation during cancer-related short-term disability leave'
+]
   },
   d1aa: {
     type: 'select',
