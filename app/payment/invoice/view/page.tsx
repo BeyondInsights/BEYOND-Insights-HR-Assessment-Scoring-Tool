@@ -1,30 +1,34 @@
 'use client'
-export const dynamic = 'force-dynamic'  // ← Add this line
-
 import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { FileText, Download, Loader2, ArrowLeft } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
 export default function InvoiceViewPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const invoiceId = searchParams.get('id')
+  const [invoiceId, setInvoiceId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [invoiceData, setInvoiceData] = useState<any>(null)
   const [scriptLoaded, setScriptLoaded] = useState(false)
 
   useEffect(() => {
+    // Get invoice ID from URL after component mounts
+    const params = new URLSearchParams(window.location.search)
+    const id = params.get('id')
+    setInvoiceId(id)
+    
     // Load invoice data from localStorage
     const storedData = localStorage.getItem('invoice_data')
     if (storedData) {
       const data = JSON.parse(storedData)
       // Check if this is the right invoice
-      if (data.invoiceNumber === invoiceId) {
+      if (data.invoiceNumber === id) {
         setInvoiceData(data)
       }
     }
+
+    // Rest of your useEffect code for loading jsPDF...
 
     // Load jsPDF
     if (!document.querySelector('script[src*="jspdf"]')) {
