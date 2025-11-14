@@ -310,7 +310,7 @@ export default function CurrentSupportPage() {
     "Manager training on supporting caregivers",
     "Backup care services",
     "Legal / financial planning resources",
-    "Concierge caregiving support through a 3rd party provider (e.g., Welthy, Cleo, Bright Horizons, Maven, etc.)",
+    "Concierge caregiving support through a 3rd party provider (e.g., Wellthy, Cleo, Bright Horizons, Maven, etc.)",
     "Some other support (specify):",
     "Not able to provide caregiver support at this time"
   ];
