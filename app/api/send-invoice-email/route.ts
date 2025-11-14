@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await resend.emails.send({
       from: 'Cancer and Careers <invoices@notifications.beyondinsights.com>',
       to: [email],
-      subject: 'Your CAC Best Companies Index Invoice & Survey Access',
+      subject: 'Your CAC Best Companies Initiative Invoice & Survey Access',
       attachments,
       html: `
         <!DOCTYPE html>
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
                         Best Companies for Working with Cancer
                       </h1>
                       <p style="color: #6b7280; font-size: 14px; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
-                        2026 Index
+                        2026 Initiative
                       </p>
                     </td>
                   </tr>
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
                             </p>
                             <p style="color: #78350f; font-size: 14px; margin: 8px 0 0 0; line-height: 1.5;">
                               Payment is due within 30 days. Full payment is required to receive your benchmarking report 
-                              and consideration for the 2026 Cancer and Careers Best Companies for Working With Cancer Index.
+                              and consideration for the 2026 Cancer and Careers Best Companies for Working With Cancer Initiative.
                             </p>
                           </td>
                         </tr>
