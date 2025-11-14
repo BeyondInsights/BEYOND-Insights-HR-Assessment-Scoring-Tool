@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
                         Best Companies for Working with Cancer
                       </h1>
                       <p style="color: #6b7280; font-size: 14px; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
-                        2026 Index Assessment
+                        2026 Index
                       </p>
                     </td>
                   </tr>
@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
                         ${name && name.trim() ? `Dear ${name},` : 'Hello,'}
                       </p>
                       <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 15px 0 0 0;">
-                        Thank you for participating in the <strong>Cancer and Careers Best Companies for Working With Cancer</strong> initiative. 
-                        Your organization's commitment to this assessment demonstrates leadership in workplace support.
+                        Thank you for participating in the <strong>Cancer and Careers Best Companies for Working With Cancer</strong> Initiative. 
+                        Your organization's commitment to this Initiative demonstrates leadership in workplace support.
                       </p>
                     </td>
                   </tr>
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
                                 </td>
                                 <td style="padding-left: 15px;">
                                   <h3 style="color: #1a1a1a; font-size: 17px; font-weight: 600; margin: 0 0 8px 0;">
-                                    Complete Your Assessment
+                                    Complete Your Survey
                                   </h3>
                                   <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0 0 15px 0;">
                                     Access your personalized dashboard to continue with the survey questions.
@@ -164,8 +164,8 @@ export async function POST(request: NextRequest) {
                   <tr>
                     <td style="padding: 20px 40px 35px; border-top: 1px solid #e5e7eb;">
                       <p style="color: #4b5563; font-size: 15px; line-height: 1.6; margin: 0;">
-                        Your participation plays a vital role in shaping the future of workplace support 
-                        for employees managing cancer and other serious health conditions.
+                        Thank you again for participating. 
+                        Your responses will improve workplaces for all employees. 
                       </p>
                       <p style="color: #1a1a1a; font-size: 15px; margin: 25px 0 0 0;">
                         With appreciation,
