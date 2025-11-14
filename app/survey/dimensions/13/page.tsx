@@ -22,7 +22,7 @@ const D13A_ITEMS_BASE = [
   "Employee testimonials/success stories",
   "Multi-channel communication strategy",
   "Family/caregiver communication inclusion",
-  "Anonymous information access options",
+  "C",
   "Cancer awareness month campaigns with resources"
 ];
 
