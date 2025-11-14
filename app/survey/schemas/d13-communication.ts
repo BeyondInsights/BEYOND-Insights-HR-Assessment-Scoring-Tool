@@ -18,7 +18,7 @@ export const d13Schema = {
       'Employee testimonials/success stories',
       'Multi-channel communication strategy',
       'Family/caregiver communication inclusion',
-      'Anonymous information access options',
+      'Ability to access program information and resources anonymously',
       'Cancer awareness month campaigns with resources'
     ]
   },
