@@ -303,34 +303,7 @@ function AuthorizationContent() {
       }
     }
   }
-        // Also save to localStorage for backward compatibility
-        localStorage.setItem('login_company_name', companyInfo.companyName)
-        localStorage.setItem('login_first_name', companyInfo.firstName)
-        localStorage.setItem('login_last_name', companyInfo.lastName)
-        localStorage.setItem('login_title', titleToStore || '')
-        localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
-        localStorage.setItem('auth_completed', 'true')
-        
-        // Track this user's email to detect when a different user logs in
-        localStorage.setItem('last_user_email', currentEmail || '')
-        
-        // CHECK PAYMENT STATUS BEFORE REDIRECTING
-        const assessment = await getUserAssessment()
-        if (assessment?.payment_completed) {
-          // Already paid - use redirect parameter or go to dashboard
-          console.log('Payment already completed, redirecting...')
-          router.push(redirect)
-        } else {
-          // Not paid yet - continue to payment page
-          router.push('/payment')
-        }
-      } catch (error) {
-        console.error('Error:', error)
-        setErrors('An error occurred. Please try again.')
-      }
-    }
-  }
-
+ 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
