@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
                     <td style="background-color: #ffffff; padding: 40px 40px 30px; text-align: center; border-bottom: 1px solid #e5e7eb;">
                    <img src="https://i.imgur.com/VCYiY3r.png" 
                      alt="Cancer and Careers" 
-                     style="max-height: 40px; max-width: 150px; height: auto; width: auto;">
+                     width="120" 
+                     height="35">
                       <h1 style="color: #1a1a1a; font-size: 22px; font-weight: 600; margin: 25px 0 10px 0; letter-spacing: -0.5px;">
                         Best Companies for Working with Cancer
                       </h1>
