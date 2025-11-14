@@ -188,12 +188,12 @@ const generateInvoicePDF = async (data: any) => {
       doc.text('CANCER + CAREERS', 20, yPos + 10)
     }
 
-    // Best Companies text (no logo)
-    doc.setFontSize(10)
-    doc.setTextColor(0, 168, 150)
-    doc.setFont(undefined, 'bold')
-    doc.text('BEST COMPANIES', pageWidth / 2, yPos + 5, { align: 'center' })
-    doc.text('FOR WORKING WITH CANCER', pageWidth / 2, yPos + 10, { align: 'center' })
+    // // Best Companies text - REMOVED
+// doc.setFontSize(10)
+// doc.setTextColor(0, 168, 150)
+// doc.setFont(undefined, 'bold')
+// doc.text('BEST COMPANIES', pageWidth / 2, yPos + 5, { align: 'center' })
+// doc.text('FOR WORKING WITH CANCER', pageWidth / 2, yPos + 10, { align: 'center' })
 
     // Invoice header (right side)
     doc.setFontSize(28)
