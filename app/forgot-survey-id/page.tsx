@@ -24,10 +24,12 @@ export default function ForgotSurveyIdPage() {
       console.log('Looking up email:', email)
       
       const { data: assessment, error: dbError } = await supabase
-        .from('assessments')
-        .select('app_id, company_name, email')
-        .eq('email', email.toLowerCase().trim())
-        .single()
+  .from('assessments')
+  .select('app_id, company_name, email')
+  .eq('email', email.toLowerCase().trim())
+  .order('created_at', { ascending: false })
+  .limit(1)
+  .single()
 
       console.log('Database response:', { assessment, dbError })
 
