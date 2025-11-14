@@ -85,7 +85,7 @@ export default function CompletionPage() {
             {/* Main message */}
             <div className="space-y-4 mb-10 text-gray-700">
               <p className="text-base leading-relaxed">
-                You have successfully submitted your company's survey responses for the <strong>Cancer and Careers Best Companies for Working With Cancer Index</strong>. By participating, your organization is playing a vital role in shaping the future of workplace support for employees managing cancer and other serious health conditions.
+                You have successfully submitted your company's survey responses for the <strong>Cancer and Careers Best Companies for Working With Cancer Initiative</strong>. By participating, your organization is playing a vital role in shaping the future of workplace support for employees managing cancer and other serious health conditions.
               </p>
               
               <p className="text-base leading-relaxed">
@@ -255,9 +255,9 @@ export default function CompletionPage() {
     2
   </div>
   <div className="flex-1">
-    <h3 className="font-semibold text-gray-900 mb-1">Index Release</h3>
+    <h3 className="font-semibold text-gray-900 mb-1">Initiative Release</h3>
     <p className="text-sm text-gray-700">
-      The 2026 Best Companies for Working With Cancer Index release is scheduled to be announced in early March, 2026.
+      The 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in early March, 2026.
     </p>
   </div>
 </div>
@@ -327,7 +327,7 @@ export default function CompletionPage() {
                     rel="noopener noreferrer"
                     className="text-purple-600 hover:text-purple-700 font-medium underline"
                   >
-                    Learn more about the Best Companies for Working With Cancer Index
+                    Learn more about the Best Companies for Working With Cancer Initiative
                   </a>
                 </div>
                 <div className="text-gray-600">
