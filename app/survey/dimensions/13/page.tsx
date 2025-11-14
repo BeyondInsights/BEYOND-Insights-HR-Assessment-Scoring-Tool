@@ -23,7 +23,7 @@ const D13A_ITEMS_BASE = [
   "Multi-channel communication strategy",
   "Family/caregiver communication inclusion",
   "Anonymous information access options",
-  "Cancer awareness month campaigns with resources and survivor stories"
+  "Cancer awareness month campaigns with resources"
 ];
 
 export default function Dimension13Page() {
