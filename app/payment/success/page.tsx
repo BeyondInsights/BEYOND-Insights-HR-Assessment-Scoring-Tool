@@ -133,7 +133,7 @@ export default function PaymentSuccessPage() {
     </div>
     <div class="detail-row">
       <span class="label">Amount Paid</span>
-      <span class="value amount">$1,200.00</span>
+      <span class="value amount">$1,250.00</span>
     </div>
   </div>
 
@@ -202,7 +202,7 @@ export default function PaymentSuccessPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-1">Amount Paid</p>
-              <p className="font-semibold text-green-600 text-lg">$1,200.00</p>
+              <p className="font-semibold text-green-600 text-lg">$1,250.00</p>
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-1">Payment Method</p>
