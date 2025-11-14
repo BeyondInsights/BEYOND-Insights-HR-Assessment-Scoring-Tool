@@ -284,13 +284,6 @@ export default function GeneralBenefitsPage() {
  </div>
  </div>
 
- {/* USA-Only indicator */}
- {isUSAOnly && (
-   <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
-     <strong>Note:</strong> CB1a (national healthcare access) has been auto-filled with 0% because you indicated USA-only presence.
-   </div>
- )}
-
  {/* Error display */}
  {errors && (
  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
