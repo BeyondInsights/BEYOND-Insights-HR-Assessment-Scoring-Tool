@@ -19,7 +19,7 @@ export const d13Schema = {
       'Multi-channel communication strategy',
       'Family/caregiver communication inclusion',
       'Anonymous information access options',
-      'Cancer awareness month campaigns with resources and survivor stories'
+      'Cancer awareness month campaigns with resources'
     ]
   },
   d13aa: {
