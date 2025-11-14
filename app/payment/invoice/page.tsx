@@ -37,6 +37,8 @@ export default function InvoicePaymentPage() {
       const title = localStorage.getItem('login_title') || ''
       const applicationId = localStorage.getItem('login_application_id') || ''
       
+    console.log('firstName:', firstName, 'lastName:', lastName, 'contactName:', `${firstName} ${lastName}`)
+
       setCompanyData({
         companyName,
         contactName: `${firstName} ${lastName}`,
@@ -106,7 +108,7 @@ export default function InvoicePaymentPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               email: contactEmail,
-              name: companyData.contactName,
+              name: companyData.contactName?.trim() || companyData.companyName || 'Valued Client',
               invoiceUrl: `${window.location.origin}/payment/invoice/view?id=${invoiceData.invoiceNumber}`,
               dashboardUrl: `${window.location.origin}/dashboard`,
               invoicePdfBase64: pdfBase64,
