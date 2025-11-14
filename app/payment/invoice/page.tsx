@@ -87,7 +87,20 @@ export default function InvoicePaymentPage() {
       localStorage.setItem('invoice_data', JSON.stringify(invoiceData))
 
       // Generate PDF
-      await generateInvoicePDF(invoiceData)
+      const pdfBase64 = await generateInvoicePDF(invoiceData)
+
+      // Send email
+      await fetch('/api/send-invoice-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: localStorage.getItem('login_email'),
+          name: companyData.contactName,
+          invoiceUrl: `${window.location.origin}/invoice`,
+          dashboardUrl: `${window.location.origin}/dashboard`,
+          invoicePdfBase64: pdfBase64,
+        }),
+      })
       
       // Grant immediate access to dashboard with invoice payment
       localStorage.setItem('payment_method', 'invoice');
@@ -364,7 +377,14 @@ export default function InvoicePaymentPage() {
       doc.text('Cancer and Careers | www.cancerandcareers.org | cacbestcompanies@cew.org', pageWidth / 2, yPos, { align: 'center' })
 
       // Save the PDF
-      doc.save(`Invoice-${data.invoiceNumber}.pdf`)
+      // Get base64 for email
+const pdfBase64 = doc.output('datauristring').split(',')[1]
+
+// Save the PDF (keep this line!)
+doc.save(`Invoice-${data.invoiceNumber}.pdf`)
+
+// Return the base64
+return pdfBase64
     } catch (error) {
       console.error('Error in PDF generation:', error)
       throw error
