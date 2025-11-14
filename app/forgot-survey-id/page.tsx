@@ -23,28 +23,26 @@ export default function ForgotSurveyIdPage() {
     try {
       console.log('Looking up email:', email)
       
-      const { data: assessment, error: dbError } = await supabase
+const { data: assessments, error: dbError } = await supabase
   .from('assessments')
   .select('app_id, company_name, email')
   .eq('email', email.toLowerCase().trim())
-  .order('created_at', { ascending: false })
-  .limit(1)
-  .single()
 
-      console.log('Database response:', { assessment, dbError })
+if (dbError) {
+  console.error('Database error:', dbError)
+  setError(`Database error: ${dbError.message}`)
+  setLoading(false)
+  return
+}
 
-      if (dbError) {
-        console.error('Database error:', dbError)
-        setError(`Database error: ${dbError.message}`)
-        setLoading(false)
-        return
-      }
+if (!assessments || assessments.length === 0) {
+  setError('No assessment found for this email address.')
+  setLoading(false)
+  return
+}
 
-      if (!assessment) {
-        setError('No assessment found for this email address.')
-        setLoading(false)
-        return
-      }
+// Use the first (and likely only) record
+const assessment = assessments[0]
 
       // Log the lookup for analytics
       try {
