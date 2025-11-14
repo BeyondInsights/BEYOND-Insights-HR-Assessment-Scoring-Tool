@@ -103,7 +103,8 @@ export default function InvoicePaymentPage() {
           body: JSON.stringify({
             email: contactEmail,
             name: companyData.contactName,
-            invoiceUrl: `${window.location.origin}/invoice-view?id=${invoiceData.invoiceNumber}`,
+            // In handleDownloadInvoice, when sending the email:
+            invoiceUrl: `${window.location.origin}/payment/invoice/view?id=${invoiceData.invoiceNumber}`,
             dashboardUrl: `${window.location.origin}/dashboard`,
             invoicePdfBase64: pdfBase64,
           }),
