@@ -287,7 +287,7 @@ export default function InvoicePaymentPage() {
       doc.setFontSize(9)
       doc.setTextColor(100, 100, 100)
       yPos += 5
-      doc.text('Best Companies for Working with Cancer Index', 25, yPos)
+      doc.text('Best Companies for Working with Cancer Initiative', 25, yPos)
       
       doc.setFontSize(10)
       doc.setTextColor(0, 0, 0)
