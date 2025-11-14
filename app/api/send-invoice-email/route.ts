@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
                   <!-- Header with Logo -->
                   <tr>
                     <td style="background-color: #ffffff; padding: 40px 40px 30px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-                      <img src="${invoiceUrl.split('/invoice')[0]}/cancer-careers-logo.png" 
-                           alt="Cancer and Careers" 
-                           style="height: 60px; width: auto;">
+                    <img src="https://i.imgur.com/VCYiY3r.png" 
+                         alt="Cancer and Careers" 
+                         style="height: 60px; width: auto;">
                       <h1 style="color: #1a1a1a; font-size: 22px; font-weight: 600; margin: 25px 0 10px 0; letter-spacing: -0.5px;">
                         Best Companies for Working with Cancer
                       </h1>
