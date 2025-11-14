@@ -232,17 +232,38 @@ function AuthorizationContent() {
     }
 
     if (canContinue) {
+      const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
+
+      // Save to localStorage
+      localStorage.setItem('login_company_name', companyInfo.companyName)
+      localStorage.setItem('login_first_name', companyInfo.firstName)
+      localStorage.setItem('login_last_name', companyInfo.lastName)
+      localStorage.setItem('login_title', titleToStore || '')
+      localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
+      localStorage.setItem('auth_completed', 'true')
+      localStorage.setItem('last_user_email', currentEmail || '')
+
+      // ============================================
+      // CHECK IF FOUNDING PARTNER
+      // ============================================
+      const surveyId = localStorage.getItem('survey_id') || ''
+      const { isFoundingPartner } = await import('@/lib/founding-partners')
+      
+      if (isFoundingPartner(surveyId)) {
+        console.log('Founding Partner - going straight to dashboard')
+        router.push('/dashboard')
+        return
+      }
+      // ============================================
+
+      // REGULAR USERS - Save to Supabase and check payment
       try {
-        // Get current user
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
           router.push('/')
           return
         }
 
-        const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
-
-        // Save to Supabase
         const authorizationData = {
           companyName: companyInfo.companyName,
           firstName: companyInfo.firstName,
@@ -268,7 +289,20 @@ function AuthorizationContent() {
           setErrors('Failed to save. Please try again.')
           return
         }
-
+        
+        // Check payment status
+        const assessment = await getUserAssessment()
+        if (assessment?.payment_completed) {
+          router.push(redirect)
+        } else {
+          router.push('/payment')
+        }
+      } catch (error) {
+        console.error('Error:', error)
+        setErrors('An error occurred. Please try again.')
+      }
+    }
+  }
         // Also save to localStorage for backward compatibility
         localStorage.setItem('login_company_name', companyInfo.companyName)
         localStorage.setItem('login_first_name', companyInfo.firstName)
