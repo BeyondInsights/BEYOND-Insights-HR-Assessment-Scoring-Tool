@@ -12,19 +12,44 @@ export default function PaymentSuccessPage() {
     transactionId: ''
   });
 
- useEffect(() => {
-  // CHECK IF COMING FROM ZEFFY (new)
+useEffect(() => {
+  // CHECK IF COMING FROM ZEFFY
   const urlParams = new URLSearchParams(window.location.search);
   const fromZeffy = urlParams.get('payment') === 'completed';
   
-  // If coming from Zeffy, MARK PAYMENT AS COMPLETE (new)
+  // If coming from Zeffy, MARK PAYMENT AS COMPLETE
   if (fromZeffy) {
-    localStorage.setItem('payment_completed', 'true');  // ← CRITICAL
+    localStorage.setItem('payment_completed', 'true');
     localStorage.setItem('payment_method', 'card');
     localStorage.setItem('payment_date', new Date().toISOString());
   }
   
-  // Your existing code - reads the values
+  // NEW: Break out of Zeffy iframe/platform
+  const isInIframe = window.self !== window.top;
+  const isPopup = window.opener !== null;
+
+  if (isPopup) {
+    // We're a popup - refresh parent and close
+    console.log('Detected popup - refreshing parent and closing');
+    try {
+      window.opener.location.href = window.opener.location.origin + '/dashboard';
+      window.close();
+    } catch (e) {
+      console.error('Could not refresh parent:', e);
+      window.location.href = '/dashboard';
+    }
+  } else if (isInIframe) {
+    // We're in an iframe - break out to parent
+    console.log('Detected iframe - breaking out to parent window');
+    window.top.location.href = window.location.origin + '/dashboard';
+  } else {
+    // Normal flow - show the success page for 3 seconds then redirect
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 3000);
+  }
+  
+  // Your existing code for setting payment info
   const method = localStorage.getItem('payment_method') || 'card';
   const date = localStorage.getItem('payment_date') || new Date().toISOString();
   const txnId = `TXN-${Date.now()}`;
