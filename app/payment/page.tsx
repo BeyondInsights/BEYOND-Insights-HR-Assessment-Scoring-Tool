@@ -71,9 +71,6 @@ export default function PaymentPage() {
   
   checkPaymentStatus()
 }, [router])
-    
-    checkPaymentStatus()
-  }, [router])
 
   // Show loading state while checking payment status
   if (loading) {
