@@ -19,195 +19,175 @@ export default function LoginPage() {
   const [generatedAppId, setGeneratedAppId] = useState('')
   const [showAppId, setShowAppId] = useState(false)
 
-   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setLoading(true)
-  setErrors('')
-  setSuccessMessage('')
-  setGeneratedAppId('')
-  setShowAppId(false)
-  
-  // Validation
-  if (!email.trim()) {
-    setErrors('Please enter your email address')
-    setLoading(false)
-    return
-  }
-  if (!email.includes('@')) {
-    setErrors('Please enter a valid email address')
-    setLoading(false)
-    return
-  }
-  if (!isNewUser && !surveyId.trim()) {
-    setErrors('Please enter your Survey ID')
-    setLoading(false)
-    return
-  }
-
- // ============================================
-// CLEAR OLD USER DATA ONLY IF DIFFERENT USER
-// ============================================
-const currentEmail = (email || '').toLowerCase().trim()
-const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
-
-if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
-  console.log('Different user logging in - clearing old data')
-  const emailToKeep = currentEmail
-  localStorage.clear()
-  // Restore the new user's email
-  localStorage.setItem('auth_email', emailToKeep)
-  localStorage.setItem('last_user_email', emailToKeep)
-} else if (currentEmail && !lastUserEmail) {
-  // First time login - just set it
-  localStorage.setItem('last_user_email', currentEmail)
-  console.log('First login - setting last_user_email')
-} else {
-  console.log('Same user returning - keeping all data')
-}
-
-  // ============================================
-  // CHECK FOR FOUNDING PARTNER ID FIRST
-  // ============================================
-  if (!isNewUser && isFoundingPartner(surveyId.trim())) {
-    console.log('Founding Partner ID detected:', surveyId.trim())
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setErrors('')
+    setSuccessMessage('')
+    setGeneratedAppId('')
+    setShowAppId(false)
     
-    // Store Founding Partner info in localStorage
-    localStorage.setItem('login_email', email)
-    localStorage.setItem('auth_email', email)
-    localStorage.setItem('survey_id', surveyId.trim())
-    localStorage.setItem('user_authenticated', 'true')
-    localStorage.setItem('last_user_email', email)
-    localStorage.setItem('login_Survey_id', surveyId.trim())
-    
-    // Show success message and redirect
-    setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
-    setTimeout(() => {
-      router.push('/letter')
-    }, 1500)
-    setLoading(false)
-    return
-  }
-  // ============================================
+    // Validation
+    if (!email.trim()) {
+      setErrors('Please enter your email address')
+      setLoading(false)
+      return
+    }
+    if (!email.includes('@')) {
+      setErrors('Please enter a valid email address')
+      setLoading(false)
+      return
+    }
+    if (!isNewUser && !surveyId.trim()) {
+      setErrors('Please enter your Survey ID')
+      setLoading(false)
+      return
+    }
 
-  try {
-    const result = await authenticateUser(
-  currentEmail,  // ✅ FIXED
-  isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
-)
+    // ============================================
+    // CLEAR OLD USER DATA ONLY IF DIFFERENT USER
+    // ============================================
+    const currentEmail = (email || '').toLowerCase().trim()
+    const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
 
-   if (result.mode === 'error') {
-  setErrors(result.message)
-} else {
-  // ============================================
-  // CLEAR OLD DATA FOR NEW USERS
-  // ============================================
-  if (result.mode === 'new') {
-    console.log('New user account - clearing any old localStorage data')
-    const emailToKeep = currentEmail
-    localStorage.clear()
-    localStorage.setItem('auth_email', emailToKeep)
-    localStorage.setItem('login_email', email)
-  }
-  // ============================================
-  
-  // Store email in localStorage
-  localStorage.setItem('login_email', email)
-  localStorage.setItem('auth_email', email)
-  localStorage.setItem('user_authenticated', 'true')
-  localStorage.setItem('last_user_email', email)
+    if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
+      console.log('Different user logging in - clearing old data')
+      const emailToKeep = currentEmail
+      localStorage.clear()
+      localStorage.setItem('auth_email', emailToKeep)
+      localStorage.setItem('last_user_email', emailToKeep)
+    } else if (currentEmail && !lastUserEmail) {
+      localStorage.setItem('last_user_email', currentEmail)
+      console.log('First login - setting last_user_email')
+    } else {
+      console.log('Same user returning - keeping all data')
+    }
+    // ============================================
+
+    // ============================================
+    // CHECK FOR FOUNDING PARTNER ID FIRST
+    // ============================================
+    if (!isNewUser && isFoundingPartner(surveyId.trim())) {
+      console.log('Founding Partner ID detected:', surveyId.trim())
       
-      if (!isNewUser) {
-        localStorage.setItem('login_Survey_id', surveyId)
-      }
+      localStorage.setItem('login_email', email)
+      localStorage.setItem('auth_email', email)
+      localStorage.setItem('survey_id', surveyId.trim())
+      localStorage.setItem('user_authenticated', 'true')
+      localStorage.setItem('last_user_email', email)
+      localStorage.setItem('login_Survey_id', surveyId.trim())
       
-      // For existing/returning users - simplified redirect logic
-      if (result.mode === 'existing' && !result.needsVerification) {
-        const user = await getCurrentUser()
-        if (user) {
-          const { data: assessment } = await supabase
-            .from('assessments')
-            .select('auth_completed')
-            .eq('user_id', user.id)
-            .single()
-          
-          setSuccessMessage(result.message)
-          setTimeout(() => {
-            // Check if authorization completed
-            if (!assessment?.auth_completed) {
-              router.push('/letter')
-              return
-            }
-            
-            // Send to dashboard (handles payment and everything else)
-            router.push('/dashboard')
-          }, 1000)
+      setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
+      setTimeout(() => {
+        router.push('/letter')
+      }, 1500)
+      setLoading(false)
+      return
+    }
+    // ============================================
+
+    try {
+      const result = await authenticateUser(
+        currentEmail,
+        isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
+      )
+
+      if (result.mode === 'error') {
+        setErrors(result.message)
+      } else {
+        // ============================================
+        // CLEAR OLD DATA FOR NEW USERS
+        // ============================================
+        if (result.mode === 'new') {
+          console.log('New user account - clearing any old localStorage data')
+          const emailToKeep = currentEmail
+          localStorage.clear()
+          localStorage.setItem('auth_email', emailToKeep)
+          localStorage.setItem('login_email', email)
         }
-      } else if (result.mode === 'new') {
-  // New user - show App ID
-  if (result.needsVerification) {
-    // Email verification required
-    setSuccessMessage('Account created! Please check your email to verify your account before proceeding.')
-    if (result.appId) {
-      setGeneratedAppId(result.appId)
-      setShowAppId(true)
-      localStorage.setItem('login_Survey_id', result.appId)
-    }
-  } else {
-    // No verification needed (shouldn't happen with Supabase, but handle it)
-    setSuccessMessage('Account created successfully!')
-    if (result.appId) {
-      setGeneratedAppId(result.appId)
-      setShowAppId(true)
-      localStorage.setItem('login_Survey_id', result.appId)
+        // ============================================
+        
+        // Store email in localStorage
+        localStorage.setItem('login_email', email)
+        localStorage.setItem('auth_email', email)
+        localStorage.setItem('user_authenticated', 'true')
+        localStorage.setItem('last_user_email', email)
+        
+        if (!isNewUser) {
+          localStorage.setItem('login_Survey_id', surveyId)
+        }
+        
+        // For existing/returning users
+        if (result.mode === 'existing' && !result.needsVerification) {
+          const user = await getCurrentUser()
+          if (user) {
+            const { data: assessment } = await supabase
+              .from('assessments')
+              .select('auth_completed')
+              .eq('user_id', user.id)
+              .single()
+            
+            setSuccessMessage(result.message)
+            setTimeout(() => {
+              if (!assessment?.auth_completed) {
+                router.push('/letter')
+                return
+              }
+              router.push('/dashboard')
+            }, 1000)
+          }
+        } else if (result.mode === 'new') {
+          // New user - show App ID and set bypass flag
+          setSuccessMessage('Account created successfully!')
+          if (result.appId) {
+            setGeneratedAppId(result.appId)
+            setShowAppId(true)
+            localStorage.setItem('login_Survey_id', result.appId)
+            localStorage.setItem('new_user_just_created', 'true')
+          }
+        }
+      }
+    } catch (err) {
+      setErrors('An unexpected error occurred. Please try again.')
+      console.error('Auth error:', err)
+    } finally {
+      setLoading(false)
     }
   }
-}
-    }
-  } catch (err) {
-    setErrors('An unexpected error occurred. Please try again.')
-    console.error('Auth error:', err)
-  } finally {
-    setLoading(false)
-  }
-}
 
-  
   const handleProceedToSurvey = () => {
-  localStorage.setItem('user_authenticated', 'true')
-  localStorage.setItem('auth_completed', 'true')
-  router.push('/letter')  // Changed from /authorization
-}
+    localStorage.setItem('user_authenticated', 'true')
+    localStorage.setItem('auth_completed', 'true')
+    router.push('/letter')
+  }
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
       <main className="flex flex-1 items-center justify-center px-4 py-12">
-  <div className="w-full max-w-3xl">
-    {/* Login Card */}
-    <div className="bg-white rounded-2xl shadow-2xl p-10">
-      {/* Header with badge and title side by side */}
-      <div className="flex items-center justify-center gap-6 mb-8">
-        {/* Award badge on the left */}
-        <div className="flex-shrink-0">
-          <img
-            src="/best-companies-2026-logo.png"
-            alt="Best Companies Award Logo"
-            className="h-40 sm:h-48 lg:h-56 w-auto"
-          />
-        </div>
-        
-         {/* Title on the right - UPDATED LAYOUT */}
-        <div className="flex-1">
-          <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#F37021] leading-snug">
-            Welcome to the
-          </p>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#F37021] leading-snug">
-            Best Companies for<br />
-            Working with Cancer Survey
-          </h1>
-        </div>
-      </div>
+        <div className="w-full max-w-3xl">
+          <div className="bg-white rounded-2xl shadow-2xl p-10">
+            {/* Header with badge and title */}
+            <div className="flex items-center justify-center gap-6 mb-8">
+              <div className="flex-shrink-0">
+                <img
+                  src="/best-companies-2026-logo.png"
+                  alt="Best Companies Award Logo"
+                  className="h-40 sm:h-48 lg:h-56 w-auto"
+                />
+              </div>
+              
+              <div className="flex-1">
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#F37021] leading-snug">
+                  Welcome to the
+                </p>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#F37021] leading-snug">
+                  Best Companies for<br />
+                  Working with Cancer Survey
+                </h1>
+              </div>
+            </div>
 
-            {/* Generated App ID Display - Only show AFTER account creation */}
+            {/* Generated App ID Display */}
             {showAppId && generatedAppId && (
               <div className="mb-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
                 <div className="flex items-start gap-3">
@@ -242,14 +222,11 @@ if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
                       </p>
                     </div>
                     
-                   <button
+                    <button
                       onClick={handleProceedToSurvey}
-                      disabled={successMessage.includes('verify')}
-                      className={`w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg transform hover:scale-105 ${
-                        successMessage.includes('verify') ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
+                      className="w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg transform hover:scale-105"
                     >
-                      {successMessage.includes('verify') ? 'Check your email to verify account →' : 'Begin Survey Now →'}
+                      Begin Survey Now →
                     </button>
                   </div>
                 </div>
@@ -334,7 +311,7 @@ if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
                     />
                   </div>
 
-                  {/* Survey ID Input (for returning users) - UPDATED */}
+                  {/* Survey ID Input (for returning users) */}
                   {!isNewUser && (
                     <div>
                       <label htmlFor="surveyId" className="block text-sm font-semibold text-slate-800 mb-2">
@@ -375,7 +352,7 @@ if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
                   </button>
                 </form>
 
-                {/* Help Text - UPDATED WITH CAC LIGHT BLUE */}
+                {/* Help Text */}
                 <div 
                   className="mt-6 space-y-3 text-sm text-slate-800 p-4 rounded-lg border-2"
                   style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}
@@ -437,25 +414,22 @@ if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
                   </div>
                 </div>
 
-{/* Forgot Survey ID Section */}
-<div className="mt-8 pt-6 border-t border-amber-200 text-center">
-  <p className="text-sm text-slate-700 mb-3">
-    Lost your Survey ID?
-  </p>
-  <button
-    type="button"
-    onClick={() => router.push('/forgot-survey-id')}
-    className="text-sm text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-2"
-  >
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-    Find My Survey ID →
-  </button>
-</div>
-
-
-                
+                {/* Forgot Survey ID Section */}
+                <div className="mt-8 pt-6 border-t border-amber-200 text-center">
+                  <p className="text-sm text-slate-700 mb-3">
+                    Lost your Survey ID?
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/forgot-survey-id')}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Find My Survey ID →
+                  </button>
+                </div>
               </>
             )}
 
