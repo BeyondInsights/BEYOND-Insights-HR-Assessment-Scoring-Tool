@@ -281,13 +281,17 @@ function AuthorizationContent() {
           return
         }
         
-        // Check payment status
-        const assessment = await getUserAssessment()
-        if (assessment?.payment_completed) {
-          router.push(redirect)
-        } else {
-          router.push('/payment')
-        }
+        // Check payment status from BOTH Supabase AND localStorage
+const assessment = await getUserAssessment()
+const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
+
+if (assessment?.payment_completed || localPaymentComplete) {
+  console.log('Payment confirmed - redirecting to dashboard')
+  router.push('/dashboard')  // Always go to dashboard if paid
+} else {
+  console.log('Payment not found - redirecting to payment page')
+  router.push('/payment')
+}
       } catch (error) {
         console.error('Error:', error)
         setErrors('An error occurred. Please try again.')
