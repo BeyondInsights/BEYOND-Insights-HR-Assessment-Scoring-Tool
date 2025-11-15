@@ -116,9 +116,13 @@ export default function LoginPage() {
               .eq('user_id', user.id)
               .single()
             
+            // Check BOTH localStorage AND Supabase
+            const localAuthCompleted = localStorage.getItem('auth_completed') === 'true'
+            const supabaseAuthCompleted = assessment?.auth_completed
+            
             setSuccessMessage(result.message)
             setTimeout(() => {
-              if (!assessment?.auth_completed) {
+              if (!localAuthCompleted && !supabaseAuthCompleted) {
                 router.push('/letter')
                 return
               }
