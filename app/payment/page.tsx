@@ -34,31 +34,43 @@ export default function PaymentPage() {
   }
   // ========================================
 
-  useEffect(() => {
-    const checkPaymentStatus = async () => {
-      try {
-        // Check if payment already completed
-        const assessment = await getUserAssessment()
-        
-        if (assessment?.payment_completed) {
-  // Already paid - redirect to dashboard
-  console.log('Payment already completed, redirecting to dashboard...')
-  window.location.href = '/dashboard'  // ✅ Hard redirect instead of router.push
-  return
-}
-        
-        // Not paid yet - load company name and show payment options
-        const name = localStorage.getItem('login_company_name') || 'Your Organization'
-        setCompanyName(name)
-        setLoading(false)
-      } catch (error) {
-        console.error('Error checking payment status:', error)
-        // On error, still show payment page
-        const name = localStorage.getItem('login_company_name') || 'Your Organization'
-        setCompanyName(name)
-        setLoading(false)
+ useEffect(() => {
+  const checkPaymentStatus = async () => {
+    try {
+      // Prevent multiple redirects
+      if (sessionStorage.getItem('payment_redirect_in_progress')) {
+        console.log('Redirect already in progress, skipping...')
+        return
       }
+
+      // Check if payment already completed
+      const assessment = await getUserAssessment()
+      
+      if (assessment?.payment_completed) {
+        console.log('Payment already completed, redirecting to dashboard...')
+        sessionStorage.setItem('payment_redirect_in_progress', 'true')
+        
+        // Try multiple redirect methods
+        setTimeout(() => {
+          window.location.replace('/dashboard')  // Even stronger than href
+        }, 100)
+        return
+      }
+      
+      // Not paid yet - load company name and show payment options
+      const name = localStorage.getItem('login_company_name') || 'Your Organization'
+      setCompanyName(name)
+      setLoading(false)
+    } catch (error) {
+      console.error('Error checking payment status:', error)
+      const name = localStorage.getItem('login_company_name') || 'Your Organization'
+      setCompanyName(name)
+      setLoading(false)
     }
+  }
+  
+  checkPaymentStatus()
+}, [router])
     
     checkPaymentStatus()
   }, [router])
