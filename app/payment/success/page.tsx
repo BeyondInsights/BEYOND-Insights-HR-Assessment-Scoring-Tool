@@ -24,32 +24,35 @@ useEffect(() => {
     localStorage.setItem('payment_date', new Date().toISOString());
   }
   
-  // NEW: Break out of Zeffy iframe/platform
+  // Break out of Zeffy iframe/platform with error handling
   const isInIframe = window.self !== window.top;
   const isPopup = window.opener !== null;
 
   if (isPopup) {
-    // We're a popup - refresh parent and close
-    console.log('Detected popup - refreshing parent and closing');
     try {
       window.opener.location.href = window.opener.location.origin + '/dashboard';
       window.close();
     } catch (e) {
-      console.error('Could not refresh parent:', e);
+      console.log('Popup redirect blocked, using fallback');
       window.location.href = '/dashboard';
     }
   } else if (isInIframe) {
-    // We're in an iframe - break out to parent
-    console.log('Detected iframe - breaking out to parent window');
-    window.top.location.href = window.location.origin + '/dashboard';
+    try {
+      // Try to break out of iframe
+      window.top.location.href = window.location.origin + '/dashboard';
+    } catch (e) {
+      // Cross-origin restriction - just redirect the iframe itself
+      console.log('Iframe breakout blocked (cross-origin), redirecting normally');
+      window.location.href = '/dashboard';
+    }
   } else {
-    // Normal flow - show the success page for 3 seconds then redirect
+    // Normal flow - show success page briefly then redirect
     setTimeout(() => {
       router.push('/dashboard');
     }, 3000);
   }
   
-  // Your existing code for setting payment info
+  // Set payment info display
   const method = localStorage.getItem('payment_method') || 'card';
   const date = localStorage.getItem('payment_date') || new Date().toISOString();
   const txnId = `TXN-${Date.now()}`;
@@ -68,7 +71,7 @@ useEffect(() => {
     date: new Date(date).toLocaleDateString(),
     transactionId: txnId
   });
-}, []);
+}, [router]);
 
   const handleDownloadReceipt = () => {
     const receiptHTML = `
