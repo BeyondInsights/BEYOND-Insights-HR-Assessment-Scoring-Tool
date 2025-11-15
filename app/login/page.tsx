@@ -44,29 +44,23 @@ export default function LoginPage() {
       return
     }
 
-    // ============================================
-    // CLEAR OLD USER DATA ONLY IF DIFFERENT USER
-    // ============================================
     const currentEmail = (email || '').toLowerCase().trim()
     const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
 
+    // Clear old data only if different user
     if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
       console.log('Different user logging in - clearing old data')
-      const emailToKeep = currentEmail
       localStorage.clear()
-      localStorage.setItem('auth_email', emailToKeep)
-      localStorage.setItem('last_user_email', emailToKeep)
+      localStorage.setItem('auth_email', currentEmail)
+      localStorage.setItem('last_user_email', currentEmail)
     } else if (currentEmail && !lastUserEmail) {
       localStorage.setItem('last_user_email', currentEmail)
       console.log('First login - setting last_user_email')
     } else {
       console.log('Same user returning - keeping all data')
     }
-    // ============================================
 
-    // ============================================
-    // CHECK FOR FOUNDING PARTNER ID FIRST
-    // ============================================
+    // Check for Founding Partner ID first
     if (!isNewUser && isFoundingPartner(surveyId.trim())) {
       console.log('Founding Partner ID detected:', surveyId.trim())
       
@@ -84,7 +78,6 @@ export default function LoginPage() {
       setLoading(false)
       return
     }
-    // ============================================
 
     try {
       const result = await authenticateUser(
@@ -95,17 +88,13 @@ export default function LoginPage() {
       if (result.mode === 'error') {
         setErrors(result.message)
       } else {
-        // ============================================
-        // CLEAR OLD DATA FOR NEW USERS
-        // ============================================
+        // Clear old data for NEW users only
         if (result.mode === 'new') {
           console.log('New user account - clearing any old localStorage data')
-          const emailToKeep = currentEmail
           localStorage.clear()
-          localStorage.setItem('auth_email', emailToKeep)
+          localStorage.setItem('auth_email', currentEmail)
           localStorage.setItem('login_email', email)
         }
-        // ============================================
         
         // Store email in localStorage
         localStorage.setItem('login_email', email)
@@ -143,7 +132,7 @@ export default function LoginPage() {
             setGeneratedAppId(result.appId)
             setShowAppId(true)
             localStorage.setItem('login_Survey_id', result.appId)
-            localStorage.setItem('new_user_just_created', 'true')
+            localStorage.setItem('new_user_bypass', 'true')  // Bypass flag for all pages
           }
         }
       }
@@ -155,10 +144,9 @@ export default function LoginPage() {
     }
   }
 
-const handleProceedToSurvey = () => {
-  localStorage.setItem('user_authenticated', 'true')
-  router.push('/authorization')  // ✅ RIGHT - authorization has bypass
-}
+  const handleProceedToSurvey = () => {
+    router.push('/authorization')
+  }
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
