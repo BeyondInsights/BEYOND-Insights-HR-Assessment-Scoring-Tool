@@ -155,11 +155,10 @@ export default function LoginPage() {
     }
   }
 
-  const handleProceedToSurvey = () => {
-    localStorage.setItem('user_authenticated', 'true')
-    localStorage.setItem('auth_completed', 'true')
-    router.push('/letter')
-  }
+const handleProceedToSurvey = () => {
+  localStorage.setItem('user_authenticated', 'true')
+  router.push('/authorization')  // ✅ RIGHT - authorization has bypass
+}
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
