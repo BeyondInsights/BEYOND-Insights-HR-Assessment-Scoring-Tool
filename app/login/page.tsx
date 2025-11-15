@@ -95,14 +95,26 @@ if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
   isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
 )
 
-    if (result.mode === 'error') {
-      setErrors(result.message)
-    } else {
-      // Store email in localStorage
-      localStorage.setItem('login_email', email)
-      localStorage.setItem('auth_email', email)
-      localStorage.setItem('user_authenticated', 'true')
-      localStorage.setItem('last_user_email', email)
+   if (result.mode === 'error') {
+  setErrors(result.message)
+} else {
+  // ============================================
+  // CLEAR OLD DATA FOR NEW USERS
+  // ============================================
+  if (result.mode === 'new') {
+    console.log('New user account - clearing any old localStorage data')
+    const emailToKeep = currentEmail
+    localStorage.clear()
+    localStorage.setItem('auth_email', emailToKeep)
+    localStorage.setItem('login_email', email)
+  }
+  // ============================================
+  
+  // Store email in localStorage
+  localStorage.setItem('login_email', email)
+  localStorage.setItem('auth_email', email)
+  localStorage.setItem('user_authenticated', 'true')
+  localStorage.setItem('last_user_email', email)
       
       if (!isNewUser) {
         localStorage.setItem('login_Survey_id', surveyId)
