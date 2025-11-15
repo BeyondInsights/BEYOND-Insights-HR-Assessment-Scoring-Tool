@@ -26,6 +26,17 @@ export default function LetterPage() {
       }
       // ============================================
       
+      // ============================================
+      // CHECK FOR NEW USER BYPASS
+      // ============================================
+      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
+      
+      if (newUserBypass) {
+        console.log('New user bypass active - skipping auth check on letter page')
+        return
+      }
+      // ============================================
+      
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/login')
@@ -52,6 +63,15 @@ export default function LetterPage() {
         return
       }
       // ============================================
+      
+      // Check for new user bypass - skip Supabase update
+      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
+      
+      if (newUserBypass) {
+        console.log('New user - proceeding to authorization')
+        router.push('/authorization')
+        return
+      }
       
       // REGULAR USERS - Update Supabase
       const { data: { user } } = await supabase.auth.getUser()
