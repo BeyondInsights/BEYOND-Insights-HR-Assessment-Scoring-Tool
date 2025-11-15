@@ -1,9 +1,72 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FileText, Download, Loader2, ArrowLeft, Mail } from 'lucide-react'
+import { FileText, Download, Loader2, ArrowLeft, Mail, X, CheckCircle, AlertCircle } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+
+// Branded Modal Component
+function BrandedModal({
+  isOpen,
+  onClose,
+  message,
+  type = 'success'
+}: {
+  isOpen: boolean
+  onClose: () => void
+  message: string
+  type?: 'success' | 'error'
+}) {
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+        {/* Header with logo */}
+        <div className="flex items-center justify-between p-6 border-b">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">BI</span>
+            </div>
+            <span className="font-semibold text-gray-900">BEYOND Insights</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 text-center">
+          <div className="flex justify-center mb-4">
+            {type === 'success' ? (
+              <CheckCircle className="w-12 h-12 text-green-600" />
+            ) : (
+              <AlertCircle className="w-12 h-12 text-red-600" />
+            )}
+          </div>
+          
+          <div className={`rounded-lg p-4 mb-6 ${
+            type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+          } border`}>
+            <p className="text-gray-800">
+              {message}
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function InvoiceViewPage() {
   const router = useRouter()
@@ -11,6 +74,11 @@ export default function InvoiceViewPage() {
   const [loading, setLoading] = useState(true)
   const [invoiceData, setInvoiceData] = useState<any>(null)
   const [scriptLoaded, setScriptLoaded] = useState(false)
+  
+  // Modal state
+  const [showModal, setShowModal] = useState(false)
+  const [modalMessage, setModalMessage] = useState('')
+  const [modalType, setModalType] = useState<'success' | 'error'>('success')
 
   useEffect(() => {
     // Get invoice ID from URL after component mounts
@@ -222,7 +290,7 @@ export default function InvoiceViewPage() {
     yPos += 4
     doc.text(`Reference: ${invoiceData.invoiceNumber}`, 35, yPos)
     
-    // Wire Transfer Details - UPDATED with Account Number
+    // Wire Transfer Details
     yPos += 6
     doc.setFont(undefined, 'bold')
     doc.text('• Wire Transfer (Domestic & International):', 30, yPos)
@@ -279,6 +347,33 @@ export default function InvoiceViewPage() {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+  }
+
+  const handleEmailInvoice = async () => {
+    const contactEmail = localStorage.getItem('login_email') || ''
+    const pdfBase64 = await generatePDFBase64()
+    
+    const emailResponse = await fetch('/api/send-invoice-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: contactEmail,
+        name: invoiceData.contactName,
+        invoiceUrl: window.location.href,
+        dashboardUrl: `${window.location.origin}/dashboard`,
+        invoicePdfBase64: pdfBase64,
+      }),
+    })
+    
+    if (emailResponse.ok) {
+      setModalMessage(`Invoice has been emailed to ${contactEmail}`)
+      setModalType('success')
+      setShowModal(true)
+    } else {
+      setModalMessage('Failed to send email. Please try again.')
+      setModalType('error')
+      setShowModal(true)
+    }
   }
 
   if (loading) {
@@ -392,7 +487,7 @@ export default function InvoiceViewPage() {
               </table>
             </div>
 
-            {/* Actions - ALL THREE BUTTONS */}
+            {/* Actions */}
             <div className="flex gap-4">
               <button
                 onClick={generateAndDownloadPDF}
@@ -403,28 +498,7 @@ export default function InvoiceViewPage() {
               </button>
               
               <button
-                onClick={async () => {
-                  const contactEmail = localStorage.getItem('login_email') || ''
-                  const pdfBase64 = await generatePDFBase64()
-                  
-                  const emailResponse = await fetch('/api/send-invoice-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      email: contactEmail,
-                      name: invoiceData.contactName,
-                      invoiceUrl: window.location.href,
-                      dashboardUrl: `${window.location.origin}/dashboard`,
-                      invoicePdfBase64: pdfBase64,
-                    }),
-                  })
-                  
-                  if (emailResponse.ok) {
-                    alert('Invoice has been emailed to ' + contactEmail)
-                  } else {
-                    alert('Failed to send email. Please try again.')
-                  }
-                }}
+                onClick={handleEmailInvoice}
                 className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center"
               >
                 <Mail className="w-5 h-5 mr-2" />
@@ -453,6 +527,14 @@ export default function InvoiceViewPage() {
       </main>
 
       <Footer />
+      
+      {/* Branded Modal */}
+      <BrandedModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        message={modalMessage}
+        type={modalType}
+      />
     </div>
   )
 }
