@@ -127,7 +127,8 @@ export default function InvoicePaymentPage() {
         }
       }
       
-      // Grant immediate access
+     // Grant immediate access
+      localStorage.removeItem('new_user_bypass')  // ← ADD THIS LINE
       localStorage.setItem('payment_method', 'invoice')
       localStorage.setItem('payment_completed', 'true')
       localStorage.setItem('payment_date', new Date().toISOString())
