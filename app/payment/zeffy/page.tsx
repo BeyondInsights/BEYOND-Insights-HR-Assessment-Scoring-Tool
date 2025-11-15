@@ -1,17 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, CheckCircle, Award, Building2, CreditCard, Loader2, AlertCircle, Info } from 'lucide-react'
+import { CheckCircle, Award, Building2, CreditCard, Loader2, Info } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { getCurrentUser } from '@/lib/supabase/auth'
-import { supabase } from '@/lib/supabase/client'
 
 export default function ZeffyPaymentPage() {
   const router = useRouter()
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'error' | null>(null)
   const [companyData, setCompanyData] = useState({
     name: '',
     contactName: ''
@@ -45,59 +41,37 @@ export default function ZeffyPaymentPage() {
   }, [])
 
   const handleOpenPayment = () => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      setShowPaymentModal(true)
-    }, 500)
-  }
-
-  const handleCloseModal = () => {
-    setShowPaymentModal(false)
-    setTimeout(() => setPaymentStatus(null), 300)
-  }
-
-  useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.origin === 'https://www.zeffy.com') {
-        if (event.data.type === 'payment_complete' || event.data.status === 'success') {
-          setPaymentStatus('success')
-          
-          const method = event.data.payment_method || 'card'
-          
-          localStorage.setItem('payment_completed', 'true')
-          localStorage.setItem('payment_method', method)
-          localStorage.setItem('payment_date', new Date().toISOString())
-          
-          try {
-            const user = await getCurrentUser()
-            if (user) {
-              await supabase
-                .from('assessments')
-                .update({
-                  payment_completed: true,
-                  payment_method: method,
-                  payment_date: new Date().toISOString()
-                })
-                .eq('user_id', user.id)
-            }
-          } catch (error) {
-            console.error('Error saving payment to database:', error)
-          }
-          
-          setTimeout(() => {
-            handleCloseModal()
-            router.push('/payment/success')
-          }, 2000)
-        }
+    if (!zeffyUrl) {
+      alert('Payment URL not ready. Please try again.');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    // Open Zeffy in a new window
+    const paymentWindow = window.open(
+      zeffyUrl,
+      'zeffy_payment',
+      'width=900,height=900,menubar=no,toolbar=no,location=no,scrollbars=yes'
+    );
+    
+    setIsLoading(false);
+    
+    if (!paymentWindow) {
+      alert('Please allow popups to complete payment. Check your browser\'s popup blocker.');
+      return;
+    }
+    
+    // Monitor when payment window closes
+    const checkWindow = setInterval(() => {
+      if (paymentWindow.closed) {
+        clearInterval(checkWindow);
+        console.log('Payment window closed - refreshing to check status');
+        // Refresh current page to check if payment was completed
+        window.location.reload();
       }
-    }
-
-    if (showPaymentModal) {
-      window.addEventListener('message', handleMessage)
-      return () => window.removeEventListener('message', handleMessage)
-    }
-  }, [showPaymentModal, router])
+    }, 1000);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
@@ -171,7 +145,7 @@ export default function ZeffyPaymentPage() {
             </ul>
           </div>
 
-          {/* Important Payment Notes - UPDATED with softer, consolidated language */}
+          {/* Payment Information */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6">
             <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
               <Info className="w-5 h-5" />
@@ -196,6 +170,12 @@ export default function ZeffyPaymentPage() {
                   <strong>Platform Tip:</strong> The payment form includes an optional tip to support Zeffy's platform, which is free for nonprofits. This is entirely optional and separate from your survey fee—you may adjust or remove it as you prefer.
                 </div>
               </div>
+              <div className="flex items-start gap-2">
+                <span className="font-bold mt-0.5">•</span>
+                <div>
+                  <strong>New Window:</strong> Payment will open in a new window. After completing payment, you'll be automatically redirected back to your dashboard.
+                </div>
+              </div>
             </div>
           </div>
 
@@ -212,7 +192,7 @@ export default function ZeffyPaymentPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Loading Payment Form...
+                  Opening Payment Window...
                 </>
               ) : !zeffyUrl ? (
                 <>
@@ -237,85 +217,10 @@ export default function ZeffyPaymentPage() {
           </div>
 
           <p className="text-sm text-gray-600 mt-4 text-center">
-            🔒 Secure payment processing
+            🔒 Secure payment processing • Payment opens in new window
           </p>
         </div>
       </main>
-
-      {/* Payment Modal - SIMPLIFIED, removed repetitive warnings */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center 
-                      justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-5xl h-[95vh] 
-                        flex flex-col shadow-2xl">
-            
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 
-                          bg-gradient-to-r from-indigo-50 to-blue-50">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Survey Payment
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  {companyData.name} • $1,250
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-2 
-                         rounded-lg hover:bg-gray-100"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Success Message */}
-            {paymentStatus === 'success' && (
-              <div className="bg-green-50 border-b border-green-200 p-4">
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                  <span className="text-green-800 font-medium">
-                    Payment successful! Redirecting...
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Iframe */}
-            <div className="flex-1 overflow-hidden relative bg-gray-50">
-              {zeffyUrl ? (
-                <iframe
-                  src={zeffyUrl}
-                  className="absolute inset-0 w-full h-full border-0"
-                  title="Payment Form"
-                  allow="payment"
-                  sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                Need help? Contact info@cancerandcareers.org
-              </p>
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2 
-                         rounded hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>
