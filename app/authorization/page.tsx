@@ -75,22 +75,35 @@ function AuthorizationContent() {
 
  useEffect(() => {
   const checkAuth = async () => {
-    // ============================================
-    // FOUNDING PARTNER CHECK - SKIP SUPABASE
-    // ============================================
-    const surveyId = localStorage.getItem('survey_id') || ''
-    const { isFoundingPartner } = await import('@/lib/founding-partners')
-    
-    if (isFoundingPartner(surveyId)) {
-      console.log('Founding Partner - skipping Supabase auth')
-      localStorage.setItem('auth_completed', 'true')
-      setLoading(false)
-      return
-    }
-    // ============================================
-    
-    // Check if user is authenticated with Supabase
-    const authenticated = await isAuthenticated()
+// ============================================
+// FOUNDING PARTNER CHECK - SKIP SUPABASE
+// ============================================
+const surveyId = localStorage.getItem('survey_id') || ''
+const { isFoundingPartner } = await import('@/lib/founding-partners')
+
+if (isFoundingPartner(surveyId)) {
+  console.log('Founding Partner - skipping Supabase auth')
+  localStorage.setItem('auth_completed', 'true')
+  setLoading(false)
+  return
+}
+// ============================================
+
+// ============================================
+// NEW USER BYPASS - Just created account
+// ============================================
+const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+
+if (justCreated) {
+  console.log('New user just created - bypassing auth check')
+  localStorage.removeItem('new_user_just_created')
+  setLoading(false)
+  return
+}
+// ============================================
+
+// Check if user is authenticated with Supabase
+const authenticated = await isAuthenticated()
     
     if (!authenticated) {
       // Not logged in - redirect to login page with redirect parameter
