@@ -105,30 +105,17 @@ export default function LoginPage() {
         if (!isNewUser) {
           localStorage.setItem('login_Survey_id', surveyId)
         }
-        
         // For existing/returning users
-        if (result.mode === 'existing' && !result.needsVerification) {
-          const user = await getCurrentUser()
-          if (user) {
-            const { data: assessment } = await supabase
-              .from('assessments')
-              .select('auth_completed')
-              .eq('user_id', user.id)
-              .single()
-            
-            setSuccessMessage(result.message)
-            setTimeout(() => {
-              if (!assessment?.auth_completed) {
-                router.push('/letter')
-                return
-              }
-              router.push('/dashboard')
-            }, 1000)
-          }
-      } else if (result.mode === 'new') {
-  // Check if this is actually a returning user (has localStorage data but Supabase was deleted)
-  const hasExistingData = localStorage.getItem('auth_completed') === 'true'
-  
+    if (result.mode === 'existing' && !result.needsVerification) {
+      // Returning user - ALWAYS go to dashboard
+      setSuccessMessage(result.message)
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 1000)
+    } else if (result.mode === 'new') {
+      // Check if this is actually a returning user (has localStorage data but Supabase was deleted)
+      const hasExistingData = localStorage.getItem('auth_completed') === 'true'
+      
   if (!isNewUser && hasExistingData) {
     // They're trying to return but Supabase account was deleted - send to dashboard
     console.log('Returning user with existing localStorage data - going to dashboard')
@@ -146,7 +133,7 @@ export default function LoginPage() {
       localStorage.setItem('new_user_bypass', 'true')
     }
   }
-}
+}     
       }
     } catch (err) {
       setErrors('An unexpected error occurred. Please try again.')
