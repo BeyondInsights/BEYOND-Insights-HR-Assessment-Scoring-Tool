@@ -7,7 +7,6 @@ import { supabase } from '@/lib/supabase/client'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 
-/** Card component mimicking the Company Profile styling */
 function Card({
   selected,
   children,
@@ -43,7 +42,6 @@ function Card({
   )
 }
 
-// Separate component that uses useSearchParams
 function AuthorizationContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -62,7 +60,6 @@ function AuthorizationContent() {
   const [other, setOther] = useState<string>('')
   const [errors, setErrors] = useState('')
   
-  // Touched state for validation
   const [touched, setTouched] = useState({
     companyName: false,
     firstName: false,
@@ -73,94 +70,89 @@ function AuthorizationContent() {
     au2: false,
   })
 
- useEffect(() => {
-  const checkAuth = async () => {
-// ============================================
-// FOUNDING PARTNER CHECK - SKIP SUPABASE
-// ============================================
-const surveyId = localStorage.getItem('survey_id') || ''
-const { isFoundingPartner } = await import('@/lib/founding-partners')
-
-if (isFoundingPartner(surveyId)) {
-  console.log('Founding Partner - skipping Supabase auth')
-  localStorage.setItem('auth_completed', 'true')
-  setLoading(false)
-  return
-}
-// ============================================
-
-// ============================================
-// NEW USER BYPASS - Just created account
-// ============================================
-const justCreated = localStorage.getItem('new_user_just_created') === 'true'
-
-if (justCreated) {
-  console.log('New user just created - bypassing auth check')
-  localStorage.removeItem('new_user_just_created')
-  setLoading(false)
-  return
-}
-// ============================================
-
-// Check if user is authenticated with Supabase
-const authenticated = await isAuthenticated()
-    
-    if (!authenticated) {
-      // Not logged in - redirect to login page with redirect parameter
-      const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
-      router.push(`/${redirectParam}`)
-      return
-    }
-
-    // ============================================
-    // CLEAR OLD USER DATA ONLY IF TRULY DIFFERENT USER
-    // ============================================
-    const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
-    const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
-    
-    // Only clear if we have BOTH emails AND they're different
-    if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
-      console.log('Different user logging in - clearing old data')
-      const emailToKeep = currentEmail
-      localStorage.clear()
-      // Restore only the new user's email
-      localStorage.setItem('auth_email', emailToKeep || '')
-      localStorage.setItem('last_user_email', emailToKeep || '')
-    } else if (currentEmail && !lastUserEmail) {
-      // First time - just set it
-      localStorage.setItem('last_user_email', currentEmail)
-      console.log('First login - setting last_user_email')
-    } else {
-      console.log('Same user returning - keeping all data')
-    }
-    // ============================================
-
-    // Load existing data if any
-    try {
-      const assessment = await getUserAssessment()
-      if (assessment) {
-        // Load authorization data if it exists
-        const authData = assessment.firmographics_data as any
-        if (authData) {
-          if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
-          if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
-          if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
-          if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
-          if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
-          if (authData.au1) setAu1(authData.au1)
-          if (authData.au2) setAu2(authData.au2)
-          if (authData.other) setOther(authData.other)
-        }
+  useEffect(() => {
+    const checkAuth = async () => {
+      // ============================================
+      // FOUNDING PARTNER CHECK - SKIP SUPABASE
+      // ============================================
+      const surveyId = localStorage.getItem('survey_id') || ''
+      const { isFoundingPartner } = await import('@/lib/founding-partners')
+      
+      if (isFoundingPartner(surveyId)) {
+        console.log('Founding Partner - skipping Supabase auth')
+        localStorage.setItem('auth_completed', 'true')
+        setLoading(false)
+        return
       }
-    } catch (error) {
-      console.error('Error loading data:', error)
+      // ============================================
+      
+      // ============================================
+      // NEW USER BYPASS - Just created account
+      // ============================================
+      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+      
+      if (justCreated) {
+        console.log('New user just created - bypassing auth check')
+        localStorage.removeItem('new_user_just_created')
+        setLoading(false)
+        return
+      }
+      // ============================================
+      
+      // Check if user is authenticated with Supabase
+      const authenticated = await isAuthenticated()
+      
+      if (!authenticated) {
+        const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
+        router.push(`/${redirectParam}`)
+        return
+      }
+
+      // ============================================
+      // CLEAR OLD USER DATA ONLY IF TRULY DIFFERENT USER
+      // ============================================
+      const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
+      const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
+      
+      if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
+        console.log('Different user logging in - clearing old data')
+        const emailToKeep = currentEmail
+        localStorage.clear()
+        localStorage.setItem('auth_email', emailToKeep || '')
+        localStorage.setItem('last_user_email', emailToKeep || '')
+      } else if (currentEmail && !lastUserEmail) {
+        localStorage.setItem('last_user_email', currentEmail)
+        console.log('First login - setting last_user_email')
+      } else {
+        console.log('Same user returning - keeping all data')
+      }
+      // ============================================
+
+      // Load existing data if any
+      try {
+        const assessment = await getUserAssessment()
+        if (assessment) {
+          const authData = assessment.firmographics_data as any
+          if (authData) {
+            if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
+            if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
+            if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
+            if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
+            if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
+            if (authData.au1) setAu1(authData.au1)
+            if (authData.au2) setAu2(authData.au2)
+            if (authData.other) setOther(authData.other)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error)
+      }
+
+      setLoading(false)
     }
 
-    setLoading(false)
-  }
-
-  checkAuth()
-}, [router, redirect])
+    checkAuth()
+  }, [router, redirect])
   
   const handleBlur = (field: keyof typeof touched) => {
     setTouched(prev => ({ ...prev, [field]: true }))
@@ -175,7 +167,6 @@ const authenticated = await isAuthenticated()
     )
   }
 
-  // Validation checks
   const isCompanyNameValid = companyInfo.companyName.trim().length > 0
   const isFirstNameValid = companyInfo.firstName.trim().length > 0
   const isLastNameValid = companyInfo.lastName.trim().length > 0
@@ -194,7 +185,6 @@ const authenticated = await isAuthenticated()
     isAu2Valid
 
   const handleContinue = async () => {
-    // Mark all fields as touched for validation display
     setTouched({
       companyName: true,
       firstName: true,
@@ -238,7 +228,6 @@ const authenticated = await isAuthenticated()
       const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
       const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
 
-      // Save to localStorage
       localStorage.setItem('login_company_name', companyInfo.companyName)
       localStorage.setItem('login_first_name', companyInfo.firstName)
       localStorage.setItem('login_last_name', companyInfo.lastName)
@@ -295,16 +284,16 @@ const authenticated = await isAuthenticated()
         }
         
         // Check payment status from BOTH Supabase AND localStorage
-const assessment = await getUserAssessment()
-const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
+        const assessment = await getUserAssessment()
+        const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
 
-if (assessment?.payment_completed || localPaymentComplete) {
-  console.log('Payment confirmed - redirecting to dashboard')
-  router.push('/dashboard')  // Always go to dashboard if paid
-} else {
-  console.log('Payment not found - redirecting to payment page')
-  router.push('/payment')
-}
+        if (assessment?.payment_completed || localPaymentComplete) {
+          console.log('Payment confirmed - redirecting to dashboard')
+          router.push('/dashboard')
+        } else {
+          console.log('Payment not found - redirecting to payment page')
+          router.push('/payment')
+        }
       } catch (error) {
         console.error('Error:', error)
         setErrors('An error occurred. Please try again.')
@@ -570,7 +559,6 @@ if (assessment?.payment_completed || localPaymentComplete) {
   )
 }
 
-// Main component that wraps content in Suspense
 export default function AuthorizationPage() {
   return (
     <Suspense fallback={
