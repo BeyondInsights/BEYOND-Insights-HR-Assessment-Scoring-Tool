@@ -100,19 +100,25 @@ function AuthorizationContent() {
     }
 
     // ============================================
-    // CLEAR OLD USER DATA IMMEDIATELY IF NEW USER
+    // CLEAR OLD USER DATA ONLY IF TRULY DIFFERENT USER
     // ============================================
-    const currentEmail = localStorage.getItem('auth_email')
-    const lastUserEmail = localStorage.getItem('last_user_email')
+    const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
+    const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
     
-    // Check if this is a different user
-    if (lastUserEmail && lastUserEmail !== currentEmail) {
-      console.log('Different user detected - clearing old data immediately')
+    // Only clear if we have BOTH emails AND they're different
+    if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
+      console.log('Different user logging in - clearing old data')
       const emailToKeep = currentEmail
       localStorage.clear()
       // Restore only the new user's email
       localStorage.setItem('auth_email', emailToKeep || '')
       localStorage.setItem('last_user_email', emailToKeep || '')
+    } else if (currentEmail && !lastUserEmail) {
+      // First time - just set it
+      localStorage.setItem('last_user_email', currentEmail)
+      console.log('First login - setting last_user_email')
+    } else {
+      console.log('Same user returning - keeping all data')
     }
     // ============================================
 
@@ -186,22 +192,6 @@ function AuthorizationContent() {
       au2: true,
     })
     
-    // ============================================
-    // CLEAR OLD USER DATA IF THIS IS A NEW USER
-    // ============================================
-    const currentEmail = localStorage.getItem('auth_email')
-    const lastUserEmail = localStorage.getItem('last_user_email')
-    
-    // Check if this is a different user
-    if (lastUserEmail && lastUserEmail !== currentEmail) {
-      console.log('Different user detected - clearing old data')
-      const emailToKeep = currentEmail
-      localStorage.clear()
-      // Restore only the new user's email
-      localStorage.setItem('auth_email', emailToKeep || '')
-    }
-    // ============================================
-    
     if (!isCompanyNameValid) {
       setErrors('Please enter your company name')
       return
@@ -232,6 +222,7 @@ function AuthorizationContent() {
     }
 
     if (canContinue) {
+      const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
       const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
 
       // Save to localStorage
