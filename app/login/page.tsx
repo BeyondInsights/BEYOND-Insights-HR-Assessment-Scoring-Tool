@@ -116,13 +116,9 @@ export default function LoginPage() {
               .eq('user_id', user.id)
               .single()
             
-            // Check BOTH localStorage AND Supabase
-            const localAuthCompleted = localStorage.getItem('auth_completed') === 'true'
-            const supabaseAuthCompleted = assessment?.auth_completed
-            
             setSuccessMessage(result.message)
             setTimeout(() => {
-              if (!localAuthCompleted && !supabaseAuthCompleted) {
+              if (!assessment?.auth_completed) {
                 router.push('/letter')
                 return
               }
@@ -148,9 +144,9 @@ export default function LoginPage() {
     }
   }
 
- const handleProceedToSurvey = () => {
-  router.push('/letter')
-}
+  const handleProceedToSurvey = () => {
+    router.push('/letter')
+  }
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
