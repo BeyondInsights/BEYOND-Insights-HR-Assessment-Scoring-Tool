@@ -91,9 +91,9 @@ if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
 
   try {
     const result = await authenticateUser(
-      newEmail,
-      isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
-    )
+  currentEmail,  // ✅ FIXED
+  isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
+)
 
     if (result.mode === 'error') {
       setErrors(result.message)
