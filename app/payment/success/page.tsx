@@ -19,10 +19,11 @@ useEffect(() => {
   
   // If coming from Zeffy, MARK PAYMENT AS COMPLETE
   if (fromZeffy) {
-    localStorage.setItem('payment_completed', 'true');
-    localStorage.setItem('payment_method', 'card');
-    localStorage.setItem('payment_date', new Date().toISOString());
-  }
+  localStorage.removeItem('new_user_bypass');  // ← ADD THIS LINE
+  localStorage.setItem('payment_completed', 'true');
+  localStorage.setItem('payment_method', 'card');
+  localStorage.setItem('payment_date', new Date().toISOString());
+}
   
   // Break out of Zeffy iframe/platform with error handling
   const isInIframe = window.self !== window.top;
