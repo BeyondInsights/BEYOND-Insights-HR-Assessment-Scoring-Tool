@@ -44,18 +44,26 @@ export default function LoginPage() {
     return
   }
 
-  // ============================================
-  // CLEAR OLD USER DATA BEFORE NEW LOGIN
-  // ============================================
-  const newEmail = email.trim()
-  const lastUserEmail = localStorage.getItem('last_user_email')
-  
-  // Check if this is a different user
-  if (lastUserEmail && lastUserEmail !== newEmail) {
-    console.log('Different user logging in - clearing all old data')
-    localStorage.clear()
-  }
-  // ============================================
+ // ============================================
+// CLEAR OLD USER DATA ONLY IF DIFFERENT USER
+// ============================================
+const currentEmail = (email || '').toLowerCase().trim()
+const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
+
+if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
+  console.log('Different user logging in - clearing old data')
+  const emailToKeep = currentEmail
+  localStorage.clear()
+  // Restore the new user's email
+  localStorage.setItem('auth_email', emailToKeep)
+  localStorage.setItem('last_user_email', emailToKeep)
+} else if (currentEmail && !lastUserEmail) {
+  // First time login - just set it
+  localStorage.setItem('last_user_email', currentEmail)
+  console.log('First login - setting last_user_email')
+} else {
+  console.log('Same user returning - keeping all data')
+}
 
   // ============================================
   // CHECK FOR FOUNDING PARTNER ID FIRST
