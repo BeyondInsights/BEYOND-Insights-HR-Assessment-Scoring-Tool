@@ -32,37 +32,38 @@ export default function PaymentPage() {
     router.push('/dashboard')
     return true; // Indicates testing mode handled it
   }
-  // ========================================
-
- useEffect(() => {
+  
+  useEffect(() => {
   const checkPaymentStatus = async () => {
     try {
-      // Prevent multiple redirects
-      if (sessionStorage.getItem('payment_redirect_in_progress')) {
-        console.log('Redirect already in progress, skipping...')
+      // First check localStorage (faster)
+      const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
+      
+      if (localPaymentComplete) {
+        console.log('Payment found in localStorage - redirecting immediately')
+        window.location.href = '/dashboard'
         return
       }
-
-      // Check if payment already completed
+      
+      // Then check Supabase
       const assessment = await getUserAssessment()
       
       if (assessment?.payment_completed) {
-        console.log('Payment already completed, redirecting to dashboard...')
-        sessionStorage.setItem('payment_redirect_in_progress', 'true')
-        
-        // Try multiple redirect methods
-        setTimeout(() => {
-          window.location.replace('/dashboard')  // Even stronger than href
-        }, 100)
+        console.log('Payment found in Supabase - redirecting')
+        localStorage.setItem('payment_completed', 'true')
+        window.location.href = '/dashboard'
         return
       }
       
-      // Not paid yet - load company name and show payment options
+      // No payment found - show payment page
+      console.log('No payment found - showing payment options')
       const name = localStorage.getItem('login_company_name') || 'Your Organization'
       setCompanyName(name)
       setLoading(false)
+      
     } catch (error) {
       console.error('Error checking payment status:', error)
+      // On error, still show payment page
       const name = localStorage.getItem('login_company_name') || 'Your Organization'
       setCompanyName(name)
       setLoading(false)
@@ -70,7 +71,8 @@ export default function PaymentPage() {
   }
   
   checkPaymentStatus()
-}, [router])
+}, [])
+
 
   // Show loading state while checking payment status
   if (loading) {
