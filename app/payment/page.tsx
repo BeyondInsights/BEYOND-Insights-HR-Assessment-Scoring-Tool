@@ -24,6 +24,7 @@ export default function PaymentPage() {
     console.log(`[TESTING MODE] Simulating ${method} payment...`)
     
     // Simulate payment completion
+    localStorage.removeItem('new_user_bypass')
     localStorage.setItem('payment_completed', 'true')
     localStorage.setItem('payment_method', method)
     localStorage.setItem('payment_date', new Date().toISOString())
