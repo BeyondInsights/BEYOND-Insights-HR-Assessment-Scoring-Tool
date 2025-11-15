@@ -143,14 +143,25 @@ if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
           }, 1000)
         }
       } else if (result.mode === 'new') {
-        // New user - show App ID and let them proceed to letter
-        setSuccessMessage('Account created successfully!')
-        if (result.appId) {
-          setGeneratedAppId(result.appId)
-          setShowAppId(true)
-          localStorage.setItem('login_Survey_id', result.appId)
-        }
-      }
+  // New user - show App ID
+  if (result.needsVerification) {
+    // Email verification required
+    setSuccessMessage('Account created! Please check your email to verify your account before proceeding.')
+    if (result.appId) {
+      setGeneratedAppId(result.appId)
+      setShowAppId(true)
+      localStorage.setItem('login_Survey_id', result.appId)
+    }
+  } else {
+    // No verification needed (shouldn't happen with Supabase, but handle it)
+    setSuccessMessage('Account created successfully!')
+    if (result.appId) {
+      setGeneratedAppId(result.appId)
+      setShowAppId(true)
+      localStorage.setItem('login_Survey_id', result.appId)
+    }
+  }
+}
     }
   } catch (err) {
     setErrors('An unexpected error occurred. Please try again.')
@@ -231,11 +242,14 @@ if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
                       </p>
                     </div>
                     
-                    <button
+                   <button
                       onClick={handleProceedToSurvey}
-                      className="w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg transform hover:scale-105"
+                      disabled={successMessage.includes('verify')}
+                      className={`w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg transform hover:scale-105 ${
+                        successMessage.includes('verify') ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
-                      Begin Survey Now →
+                      {successMessage.includes('verify') ? 'Check your email to verify account →' : 'Begin Survey Now →'}
                     </button>
                   </div>
                 </div>
