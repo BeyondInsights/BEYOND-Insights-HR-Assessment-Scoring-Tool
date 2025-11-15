@@ -71,62 +71,87 @@ function AuthorizationContent() {
   })
 
   useEffect(() => {
-    const checkAuth = async () => {
-      // Check for Founding Partner first
-      const surveyId = localStorage.getItem('survey_id') || ''
-      const { isFoundingPartner } = await import('@/lib/founding-partners')
-      
-      if (isFoundingPartner(surveyId)) {
-        console.log('Founding Partner - skipping Supabase auth')
-        localStorage.setItem('auth_completed', 'true')
-        setLoading(false)
-        return
-      }
-      
-      // Check for new user bypass flag
-      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
-      
-      if (newUserBypass) {
-        console.log('New user bypass active - skipping auth check')
-        // Don't remove the flag yet - let it persist until they complete payment
-        setLoading(false)
-        return
-      }
-      
-      // For returning users, check Supabase authentication
-      const authenticated = await isAuthenticated()
-      
-      if (!authenticated) {
-        const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
-        router.push(`/${redirectParam}`)
-        return
-      }
-
-      // Load existing data from Supabase
-      try {
-        const assessment = await getUserAssessment()
-        if (assessment) {
-          const authData = assessment.firmographics_data as any
-          if (authData) {
-            if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
-            if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
-            if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
-            if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
-            if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
-            if (authData.au1) setAu1(authData.au1)
-            if (authData.au2) setAu2(authData.au2)
-            if (authData.other) setOther(authData.other)
-          }
-        }
-      } catch (error) {
-        console.error('Error loading data:', error)
-      }
-
+  const checkAuth = async () => {
+    // Check for Founding Partner first
+    const surveyId = localStorage.getItem('survey_id') || ''
+    const { isFoundingPartner } = await import('@/lib/founding-partners')
+    
+    if (isFoundingPartner(surveyId)) {
+      console.log('Founding Partner - skipping Supabase auth')
+      localStorage.setItem('auth_completed', 'true')
       setLoading(false)
+      return
+    }
+    
+    // Check for new user bypass flag
+    const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
+    
+    if (newUserBypass) {
+      console.log('New user bypass active - skipping auth check')
+      setLoading(false)
+      return
+    }
+    
+    // For returning users, check Supabase authentication
+    const authenticated = await isAuthenticated()
+    
+    if (!authenticated) {
+      const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
+      router.push(`/${redirectParam}`)
+      return
     }
 
-    checkAuth()
-  }, [router, redirect])
+    // ============================================
+    // LOAD DATA FROM BOTH LOCALSTORAGE AND SUPABASE
+    // ============================================
+    
+    // First try localStorage (fastest and always available)
+    const storedAuth = localStorage.getItem('authorization')
+    if (storedAuth) {
+      try {
+        const authData = JSON.parse(storedAuth)
+        if (authData.au1) setAu1(authData.au1)
+        if (authData.au2) setAu2(authData.au2)
+        if (authData.other) setOther(authData.other)
+      } catch (e) {
+        console.error('Error parsing localStorage auth:', e)
+      }
+    }
+    
+    const companyName = localStorage.getItem('login_company_name')
+    const firstName = localStorage.getItem('login_first_name')
+    const lastName = localStorage.getItem('login_last_name')
+    const title = localStorage.getItem('login_title')
+    
+    if (companyName) setCompanyInfo(prev => ({ ...prev, companyName }))
+    if (firstName) setCompanyInfo(prev => ({ ...prev, firstName }))
+    if (lastName) setCompanyInfo(prev => ({ ...prev, lastName }))
+    if (title) setCompanyInfo(prev => ({ ...prev, title }))
+    
+    // Then check Supabase (may override localStorage if newer)
+    try {
+      const assessment = await getUserAssessment()
+      if (assessment && assessment.firmographics_data) {
+        const authData = assessment.firmographics_data as any
+        if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
+        if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
+        if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
+        if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
+        if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
+        if (authData.au1) setAu1(authData.au1)
+        if (authData.au2) setAu2(authData.au2)
+        if (authData.other) setOther(authData.other)
+      }
+    } catch (error) {
+      console.error('Error loading from Supabase:', error)
+      // Continue anyway - localStorage data is fine
+    }
+
+    setLoading(false)
+  }
+
+  checkAuth()
+}, [router, redirect])
   
   const handleBlur = (field: keyof typeof touched) => {
     setTouched(prev => ({ ...prev, [field]: true }))
