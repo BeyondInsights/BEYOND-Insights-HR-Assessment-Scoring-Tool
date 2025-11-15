@@ -72,9 +72,7 @@ function AuthorizationContent() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      // ============================================
-      // FOUNDING PARTNER CHECK - SKIP SUPABASE
-      // ============================================
+      // Check for Founding Partner first
       const surveyId = localStorage.getItem('survey_id') || ''
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       
@@ -84,22 +82,18 @@ function AuthorizationContent() {
         setLoading(false)
         return
       }
-      // ============================================
       
-      // ============================================
-      // NEW USER BYPASS - Just created account
-      // ============================================
-      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+      // Check for new user bypass flag
+      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
       
-      if (justCreated) {
-        console.log('New user just created - bypassing auth check')
-        localStorage.removeItem('new_user_just_created')
+      if (newUserBypass) {
+        console.log('New user bypass active - skipping auth check')
+        // Don't remove the flag yet - let it persist until they complete payment
         setLoading(false)
         return
       }
-      // ============================================
       
-      // Check if user is authenticated with Supabase
+      // For returning users, check Supabase authentication
       const authenticated = await isAuthenticated()
       
       if (!authenticated) {
@@ -108,27 +102,7 @@ function AuthorizationContent() {
         return
       }
 
-      // ============================================
-      // CLEAR OLD USER DATA ONLY IF TRULY DIFFERENT USER
-      // ============================================
-      const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
-      const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
-      
-      if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
-        console.log('Different user logging in - clearing old data')
-        const emailToKeep = currentEmail
-        localStorage.clear()
-        localStorage.setItem('auth_email', emailToKeep || '')
-        localStorage.setItem('last_user_email', emailToKeep || '')
-      } else if (currentEmail && !lastUserEmail) {
-        localStorage.setItem('last_user_email', currentEmail)
-        console.log('First login - setting last_user_email')
-      } else {
-        console.log('Same user returning - keeping all data')
-      }
-      // ============================================
-
-      // Load existing data if any
+      // Load existing data from Supabase
       try {
         const assessment = await getUserAssessment()
         if (assessment) {
@@ -228,6 +202,7 @@ function AuthorizationContent() {
       const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
       const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
 
+      // Save to localStorage
       localStorage.setItem('login_company_name', companyInfo.companyName)
       localStorage.setItem('login_first_name', companyInfo.firstName)
       localStorage.setItem('login_last_name', companyInfo.lastName)
@@ -236,9 +211,7 @@ function AuthorizationContent() {
       localStorage.setItem('auth_completed', 'true')
       localStorage.setItem('last_user_email', currentEmail || '')
 
-      // ============================================
-      // CHECK IF FOUNDING PARTNER
-      // ============================================
+      // Check if Founding Partner
       const surveyId = localStorage.getItem('survey_id') || ''
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       
@@ -247,9 +220,18 @@ function AuthorizationContent() {
         router.push('/dashboard')
         return
       }
-      // ============================================
 
-      // REGULAR USERS - Save to Supabase and check payment
+      // Check if new user with bypass flag
+      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
+      
+      if (newUserBypass) {
+        console.log('New user - proceeding to payment')
+        // Keep bypass flag active for payment page
+        router.push('/payment')
+        return
+      }
+
+      // Regular returning users - Save to Supabase
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
@@ -283,7 +265,7 @@ function AuthorizationContent() {
           return
         }
         
-        // Check payment status from BOTH Supabase AND localStorage
+        // Check payment status
         const assessment = await getUserAssessment()
         const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
 
