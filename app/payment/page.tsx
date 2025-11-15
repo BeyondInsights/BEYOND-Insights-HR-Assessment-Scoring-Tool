@@ -39,21 +39,21 @@ export default function PaymentPage() {
       // First check localStorage (faster)
       const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
       
-      if (localPaymentComplete) {
-        console.log('Payment found in localStorage - redirecting immediately')
-        window.location.href = '/dashboard'
-        return
-      }
+     if (localPaymentComplete) {
+      console.log('Payment found in localStorage - redirecting immediately')
+      window.location.replace('/dashboard')  // ✅ Stronger redirect, no back button
+      return
+    }
       
       // Then check Supabase
       const assessment = await getUserAssessment()
       
       if (assessment?.payment_completed) {
-        console.log('Payment found in Supabase - redirecting')
-        localStorage.setItem('payment_completed', 'true')
-        window.location.href = '/dashboard'
-        return
-      }
+  console.log('Payment found in Supabase - redirecting')
+  localStorage.setItem('payment_completed', 'true')
+  window.location.replace('/dashboard')  // ✅ Changed from .href
+  return
+}
       
       // No payment found - show payment page
       console.log('No payment found - showing payment options')
