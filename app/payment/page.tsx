@@ -41,11 +41,11 @@ export default function PaymentPage() {
         const assessment = await getUserAssessment()
         
         if (assessment?.payment_completed) {
-          // Already paid - redirect to dashboard
-          console.log('Payment already completed, redirecting to dashboard...')
-          router.push('/dashboard')
-          return
-        }
+  // Already paid - redirect to dashboard
+  console.log('Payment already completed, redirecting to dashboard...')
+  window.location.href = '/dashboard'  // ✅ Hard redirect instead of router.push
+  return
+}
         
         // Not paid yet - load company name and show payment options
         const name = localStorage.getItem('login_company_name') || 'Your Organization'
