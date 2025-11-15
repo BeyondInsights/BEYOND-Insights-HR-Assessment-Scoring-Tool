@@ -24,12 +24,11 @@ function BrandedModal({
       <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl">
         {/* Header with logo */}
         <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">BI</span>
-            </div>
-            <span className="font-semibold text-gray-900">BEYOND Insights</span>
-          </div>
+          <img 
+            src="/BI_LOGO_FINAL.png" 
+            alt="BEYOND Insights" 
+            className="h-8 w-auto"
+          />
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
