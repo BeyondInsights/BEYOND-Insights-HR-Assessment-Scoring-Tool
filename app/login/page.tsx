@@ -125,16 +125,28 @@ export default function LoginPage() {
               router.push('/dashboard')
             }, 1000)
           }
-        } else if (result.mode === 'new') {
-          // New user - show App ID and set bypass flag
-          setSuccessMessage('Account created successfully!')
-          if (result.appId) {
-            setGeneratedAppId(result.appId)
-            setShowAppId(true)
-            localStorage.setItem('login_Survey_id', result.appId)
-            localStorage.setItem('new_user_bypass', 'true')  // Bypass flag for all pages
-          }
-        }
+      } else if (result.mode === 'new') {
+  // Check if this is actually a returning user (has localStorage data but Supabase was deleted)
+  const hasExistingData = localStorage.getItem('auth_completed') === 'true'
+  
+  if (!isNewUser && hasExistingData) {
+    // They're trying to return but Supabase account was deleted - send to dashboard
+    console.log('Returning user with existing localStorage data - going to dashboard')
+    setSuccessMessage('Welcome back! Redirecting...')
+    setTimeout(() => {
+      router.push('/dashboard')
+    }, 1000)
+  } else {
+    // Actually a new user - show App ID and set bypass flag
+    setSuccessMessage('Account created successfully!')
+    if (result.appId) {
+      setGeneratedAppId(result.appId)
+      setShowAppId(true)
+      localStorage.setItem('login_Survey_id', result.appId)
+      localStorage.setItem('new_user_bypass', 'true')
+    }
+  }
+}
       }
     } catch (err) {
       setErrors('An unexpected error occurred. Please try again.')
