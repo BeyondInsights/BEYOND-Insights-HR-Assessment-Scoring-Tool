@@ -93,24 +93,40 @@ export default function GeneralBenefitsPage() {
       }
       
       // Determine which step to resume at based on completed data
-      if (!data.cb1 || (Array.isArray(data.cb1) && data.cb1.length === 0)) {
-        setStep(1);
-      } else if (!data.cb2b || (Array.isArray(data.cb2b) && data.cb2b.length === 0)) {
+      // Step 1: Guidelines (no validation, always advance)
+      
+      // Step 2: Standard Benefits (cb1_standard)
+      if (!data.cb1_standard || (Array.isArray(data.cb1_standard) && data.cb1_standard.length === 0)) {
         setStep(2);
-      } else if (!data.cb3 || (Array.isArray(data.cb3) && data.cb3.length === 0)) {
+      } 
+      // Step 3: Leave & Flexibility (cb1_leave)
+      else if (!data.cb1_leave || (Array.isArray(data.cb1_leave) && data.cb1_leave.length === 0)) {
         setStep(3);
-      } else if (!data.cb3a) {
+      }
+      // Step 4: Wellness & Support (cb1_wellness)
+      else if (!data.cb1_wellness || (Array.isArray(data.cb1_wellness) && data.cb1_wellness.length === 0)) {
         setStep(4);
-      } else if (!data.cb3b) {
+      }
+      // Step 5: Financial & Legal (cb1_financial)
+      else if (!data.cb1_financial || (Array.isArray(data.cb1_financial) && data.cb1_financial.length === 0)) {
         setStep(5);
-      } else if (!data.cb3c || (Array.isArray(data.cb3c) && data.cb3c.length === 0)) {
+      }
+      // Step 6: Care Navigation (cb1_navigation)
+      else if (!data.cb1_navigation || (Array.isArray(data.cb1_navigation) && data.cb1_navigation.length === 0)) {
         setStep(6);
-      } else if (!checkIsUSAOnly && !data.cb1a) {
+      }
+      // Step 7: Government Healthcare % (cb1a) - ONLY for multi-country
+      else if (!checkIsUSAOnly && !data.cb1a) {
         setStep(7);
-      } else if (!data.cb3d || (Array.isArray(data.cb3d) && data.cb3d.length === 0)) {
+      }
+      // Step 8: Future Plans (cb2b)
+      else if (!data.cb2b) {
         setStep(8);
       }
-      // Otherwise stays at current step
+      // Otherwise everything is complete - go to step 9
+      else {
+        setStep(9);
+      }
     } catch (e) {
       console.error('Error parsing saved data:', e);
     }
