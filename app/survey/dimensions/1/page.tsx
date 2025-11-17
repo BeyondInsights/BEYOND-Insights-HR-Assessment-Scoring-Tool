@@ -40,6 +40,7 @@ export default function Dimension1Page() {
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D1A_ITEMS] = useState(() => shuffleArray(D1A_ITEMS_BASE));
+  const [isLoadingProgress, setIsLoadingProgress] = useState(true); // ✅ ADD THIS
   
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -73,7 +74,10 @@ export default function Dimension1Page() {
     
     // Load saved answers and determine resume point
     const saved = localStorage.getItem("dimension1_data");
-    if (!saved) return; // No saved data, stay at step 0
+    if (!saved) {
+      setIsLoadingProgress(false); // ✅ No saved data, ready to render
+      return;
+    }
     
     try {
       const savedAnswers = JSON.parse(saved);
@@ -109,6 +113,8 @@ export default function Dimension1Page() {
     } catch (e) {
       console.error("Error loading saved data:", e);
     }
+    
+    setIsLoadingProgress(false); // ✅ Data loaded, ready to render
   }, []); // Run once on mount
   // ===== END RESUME PROGRESS LOGIC =====
 
@@ -324,7 +330,16 @@ export default function Dimension1Page() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
+      {/* Loading state while checking saved progress */}
+      {isLoadingProgress ? (
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your progress...</p>
+          </div>
+        </main>
+      ) : (
+        <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
         {/* Progress indicator */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
@@ -1108,6 +1123,7 @@ export default function Dimension1Page() {
           </div>
         )}
       </main>
+      )}
       
       <Footer />
     </div>
