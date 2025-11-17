@@ -251,11 +251,34 @@ function AuthorizationContent() {
       }
       // ============================================
 
+      // ============================================
+      // CHECK FOR NEW USER WITH BYPASS FLAGS
+      // ============================================
+      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
+      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+      
+      if (hasAuthFlag || justCreated) {
+        console.log('New user with bypass - going to payment')
+        // Clear the just created flag now
+        localStorage.removeItem('new_user_just_created')
+        router.push('/payment')
+        return
+      }
+      // ============================================
+
       // REGULAR USERS - Save to Supabase and check payment
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
-          router.push('/')
+          // No Supabase user - check if they have bypass flags
+          const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
+          if (hasAuthFlag) {
+            console.log('No Supabase user but has auth flag - proceeding to payment')
+            router.push('/payment')
+          } else {
+            console.log('No Supabase user and no bypass - redirecting to login')
+            router.push('/')
+          }
           return
         }
 
