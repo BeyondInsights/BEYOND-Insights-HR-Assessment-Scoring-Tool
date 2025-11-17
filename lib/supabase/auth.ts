@@ -26,13 +26,12 @@ export async function authenticateUser(
     // NEW USER - No survey ID provided
     if (!surveyId) {
       const appId = generateAppId()
-      const tempPassword = appId  // Use Survey ID as password
 
       console.log('[AUTH] Creating new user account...')
       
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
-        password: tempPassword,
+        password: appId,  // USE SURVEY ID AS PASSWORD
         options: {
           data: {
             app_id: appId
@@ -69,7 +68,7 @@ export async function authenticateUser(
         
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
-          password: tempPassword
+          password: appId  // USE SURVEY ID AS PASSWORD
         })
 
         if (signInError) {
@@ -86,119 +85,75 @@ export async function authenticateUser(
         }
       }
     }
-// EXISTING USER - Survey ID provided
-if (surveyId) {
-  const cleanSurveyId = surveyId.replace(/-/g, '')
-  
-  console.log('[AUTH] Looking up existing user')
-  
-  const { data: assessments, error: queryError } = await supabase
-    .from('assessments')
-    .select('*')
-    .eq('app_id', cleanSurveyId)
-    .limit(1)
 
-  if (queryError) {
-    console.error('[AUTH] Query error:', queryError)
-    return {
-      mode: 'error',
-      needsVerification: false,
-      message: 'Unable to verify Survey ID. Please try again.',
-      error: queryError.message
-    }
-  }
+    // EXISTING USER - Survey ID provided
+    if (surveyId) {
+      const cleanSurveyId = surveyId.replace(/-/g, '')
+      
+      console.log('[AUTH] Looking up existing user')
+      
+      const { data: assessments, error: queryError } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('app_id', cleanSurveyId)
+        .limit(1)
 
-  if (!assessments || assessments.length === 0) {
-    return {
-      mode: 'error',
-      needsVerification: false,
-      message: 'Survey ID not found. Please check and try again.',
-      error: 'Survey ID not found'
-    }
-  }
+      if (queryError) {
+        console.error('[AUTH] Query error:', queryError)
+        return {
+          mode: 'error',
+          needsVerification: false,
+          message: 'Unable to verify Survey ID. Please try again.',
+          error: queryError.message
+        }
+      }
 
-  const assessment = assessments[0]
-  
-  if (assessment.email.toLowerCase() !== email.toLowerCase()) {
-    return {
-      mode: 'error',
-      needsVerification: false,
-      message: 'Email does not match Survey ID. Please check and try again.',
-      error: 'Email mismatch'
-    }
-  }
+      if (!assessments || assessments.length === 0) {
+        return {
+          mode: 'error',
+          needsVerification: false,
+          message: 'Survey ID not found. Please check and try again.',
+          error: 'Survey ID not found'
+        }
+      }
 
-  // ============================================
-  // FIX: Generate new password and update user
-  // ============================================
-  const newPassword = Math.random().toString(36).slice(-12) + 'Aa1!'
-  
-  console.log('[AUTH] Resetting password for returning user')
-  
-  // First, sign in as admin to update the password
-  const { data: { user: adminUser }, error: adminError } = await supabase.auth.admin.getUserById(assessment.user_id)
-  
-  if (adminError || !adminUser) {
-    console.log('[AUTH] Could not find user, will recreate')
-    // User doesn't exist in auth - create them
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password: newPassword
-    })
+      const assessment = assessments[0]
+      
+      if (assessment.email.toLowerCase() !== email.toLowerCase()) {
+        return {
+          mode: 'error',
+          needsVerification: false,
+          message: 'Email does not match Survey ID. Please check and try again.',
+          error: 'Email mismatch'
+        }
+      }
 
-    if (signUpError) {
-      console.error('[AUTH] Re-signup error:', signUpError)
+      console.log('[AUTH] Signing in returning user')
+      
+      // Sign in with Survey ID as password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: cleanSurveyId  // USE SURVEY ID AS PASSWORD
+      })
+
+      if (signInError) {
+        console.error('[AUTH] Sign-in error:', signInError)
+        return {
+          mode: 'error',
+          needsVerification: false,
+          message: 'Unable to sign in. Please try again.',
+          error: signInError.message
+        }
+      }
+
+      console.log('[AUTH] Returning user signed in successfully')
+
       return {
-        mode: 'error',
+        mode: 'existing',
         needsVerification: false,
-        message: 'Unable to access account. Please try again.',
-        error: signUpError.message
+        message: 'Welcome back! Redirecting to your survey...'
       }
     }
-
-    if (authData.user) {
-      // Update assessment with new user_id
-      await supabase
-        .from('assessments')
-        .update({ user_id: authData.user.id })
-        .eq('app_id', cleanSurveyId)
-    }
-  } else {
-    // User exists - update their password
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
-      assessment.user_id,
-      { password: newPassword }
-    )
-    
-    if (updateError) {
-      console.error('[AUTH] Password update error:', updateError)
-    }
-  }
-  
-  // Sign in with Survey ID as password
-const { error: signInError } = await supabase.auth.signInWithPassword({
-  email,
-  password: cleanSurveyId  // Use Survey ID as password
-})
-
-if (signInError) {
-  console.error('[AUTH] Sign-in error:', signInError)
-  return {
-    mode: 'error',
-    needsVerification: false,
-    message: 'Unable to sign in. Please try again.',
-    error: signInError.message
-  }
-}
-
-console.log('[AUTH] Returning user signed in successfully')
-
-return {
-  mode: 'existing',
-  needsVerification: false,
-  message: 'Welcome back! Redirecting to your survey...'
-}
-}
 
     return {
       mode: 'error',
