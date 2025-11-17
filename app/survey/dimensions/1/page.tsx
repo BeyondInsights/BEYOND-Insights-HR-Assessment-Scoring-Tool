@@ -38,6 +38,7 @@ export default function Dimension1Page() {
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D1A_ITEMS] = useState(() => shuffleArray(D1A_ITEMS_BASE));
+  const [resumeComplete, setResumeComplete] = useState(false); // Track resume sync
   
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -74,7 +75,10 @@ export default function Dimension1Page() {
   // ===== RESUME PROGRESS LOGIC =====
   // After data loads, calculate where to resume
   useEffect(() => {
-    if (Object.keys(ans).length === 0) return; // No saved data yet
+    if (Object.keys(ans).length === 0) {
+      setResumeComplete(true); // No saved data, ready to show
+      return;
+    }
     
     const gridAnswers = ans.d1a || {};
     const answeredCount = Object.keys(gridAnswers).length;
@@ -101,6 +105,8 @@ export default function Dimension1Page() {
         setStep(3); // Start at D1.b, next() will navigate from there
       }
     }
+    
+    setResumeComplete(true); // Resume logic done, safe to show UI
   }, [ans, isMultiCountry]); // Run when ans or isMultiCountry changes
   // ===== END RESUME PROGRESS LOGIC =====
 
@@ -437,7 +443,10 @@ export default function Dimension1Page() {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    Item {currentItemIndex + 1} of {D1A_ITEMS.length}
+                    {resumeComplete 
+                      ? `Item ${currentItemIndex + 1} of ${D1A_ITEMS.length}`
+                      : 'Loading position...'
+                    }
                   </span>
                   <div className="flex gap-1">
                     {D1A_ITEMS.map((item, idx) => (
