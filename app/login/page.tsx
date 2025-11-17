@@ -6,6 +6,7 @@ import { authenticateUser, getCurrentUser } from '@/lib/supabase/auth'
 import { formatAppId } from '@/lib/supabase/utils'
 import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
+import { loadUserDataFromSupabase } from '@/lib/supabase/load-data-from-supabase'
 import Footer from '@/components/Footer'
 
 export default function LoginPage() {
@@ -96,12 +97,12 @@ export default function LoginPage() {
         setErrors(result.message)
       } else {
         // ============================================
-        // CLEAR OLD DATA FOR NEW USERS
+        // DON'T CLEAR DATA FOR NEW USERS
         // ============================================
         if (result.mode === 'new') {
-  console.log('New user account created')
-  // DON'T clear localStorage - it contains the Supabase session!
-}
+          console.log('New user account created')
+          // Supabase session is in localStorage - don't clear it!
+        }
         // ============================================
         
         // Store email in localStorage
@@ -114,17 +115,28 @@ export default function LoginPage() {
           localStorage.setItem('login_Survey_id', surveyId)
         }
         
-        // For existing/returning users - ALWAYS GO TO DASHBOARD
+        // ============================================
+        // CRITICAL FIX: LOAD DATA FROM SUPABASE FOR RETURNING USERS
+        // ============================================
         if (result.mode === 'existing' && !result.needsVerification) {
           const user = await getCurrentUser()
           if (user) {
-            setSuccessMessage(result.message)
-            setTimeout(() => {
-              router.push('/dashboard')
-            }, 1000)
+            setSuccessMessage('Loading your survey data...')
+            
+            // LOAD ALL DATA FROM SUPABASE INTO LOCALSTORAGE
+            const loaded = await loadUserDataFromSupabase()
+            
+            if (loaded) {
+              setSuccessMessage('✅ Welcome back! Redirecting...')
+              setTimeout(() => {
+                router.push('/dashboard')
+              }, 1000)
+            } else {
+              setErrors('Could not load your data. Please try again.')
+            }
           }
         } else if (result.mode === 'new') {
-          // New user - show App ID and set bypass flag
+          // New user - show App ID
           setSuccessMessage('Account created successfully!')
           if (result.appId) {
             setGeneratedAppId(result.appId)
@@ -133,6 +145,7 @@ export default function LoginPage() {
             localStorage.setItem('new_user_just_created', 'true')
           }
         }
+        // ============================================
       }
     } catch (err) {
       setErrors('An unexpected error occurred. Please try again.')
@@ -143,9 +156,8 @@ export default function LoginPage() {
   }
 
   const handleProceedToSurvey = () => {
-    // Keep all authentication flags set for new user
     localStorage.setItem('user_authenticated', 'true')
-    localStorage.setItem('new_user_just_created', 'true')  // Keep this flag
+    localStorage.setItem('new_user_just_created', 'true')
     console.log('🚀 New user proceeding to survey')
     router.push('/letter')
   }
@@ -198,7 +210,7 @@ export default function LoginPage() {
                     
                     <div className="mb-4 p-4 border-2 rounded-lg" style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}>
                       <p className="text-sm text-slate-900 font-semibold mb-2">
-                        📝 Important - Save This ID!
+                        📌 Important - Save This ID!
                       </p>
                       <p className="text-sm text-slate-800">
                         You can start your Survey right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
