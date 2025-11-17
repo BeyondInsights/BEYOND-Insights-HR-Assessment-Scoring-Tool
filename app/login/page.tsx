@@ -130,7 +130,7 @@ export default function LoginPage() {
       setGeneratedAppId(result.appId)
       setShowAppId(true)
       localStorage.setItem('login_Survey_id', result.appId)
-      localStorage.setItem('new_user_bypass', 'true')
+      
     }
   }
 }     
