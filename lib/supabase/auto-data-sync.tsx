@@ -79,18 +79,7 @@ async function syncToSupabase() {
       console.log('[SKIP] No Supabase user - skipping sync')
       return
     }
-    
-    // Check if this is a Founding Partner (skip Supabase for them)
-    const surveyId = localStorage.getItem('survey_id') || ''
-    try {
-      const { isFoundingPartner } = await import('@/lib/founding-partners')
-      if (isFoundingPartner(surveyId)) {
-        console.log('[SKIP] Founding Partner - skipping Supabase sync')
-        return
-      }
-    } catch (e) {
-      // Founding partners module not found, continue
-    }
+   
     
     // Collect all data
     const updateData = collectAllSurveyData()
