@@ -1,12 +1,3 @@
-/**
- * AUTO DATA SYNC - Syncs ALL localStorage to Supabase automatically
- * 
- * This component monitors localStorage and automatically syncs survey data to Supabase.
- * NO CHANGES to survey pages required - it works with existing localStorage keys.
- * 
- * CRITICAL: Does NOT auto-complete sections - only syncs what's actually in localStorage
- */
-
 'use client'
 
 import { useEffect, useRef } from 'react'
@@ -82,13 +73,6 @@ function collectAllSurveyData() {
  */
 async function syncToSupabase() {
   try {
-    // Check if user is authenticated
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      console.log('[AUTO-SYNC] No Supabase user - skipping sync')
-      return
-    }
-    
     // Check if this is a Founding Partner (skip Supabase for them)
     const surveyId = localStorage.getItem('survey_id') || ''
     try {
@@ -109,22 +93,56 @@ async function syncToSupabase() {
       return
     }
     
-    console.log(`[AUTO-SYNC] Syncing ${Object.keys(updateData).length} items to Supabase...`)
-    
     // Add timestamp
     updateData.updated_at = new Date().toISOString()
     
-    // Update Supabase
-    const { error } = await supabase
-      .from('assessments')
-      .update(updateData)
-      .eq('user_id', user.id)
+    // ============================================
+    // CRITICAL FIX: Support both bypass flags AND Supabase sessions
+    // ============================================
     
-    if (error) {
-      console.error('[AUTO-SYNC] Sync error:', error.message)
-    } else {
-      console.log('[AUTO-SYNC] Sync successful!')
+    // Option 1: Try Supabase session first (returning users)
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user) {
+      console.log(`[AUTO-SYNC] Syncing ${Object.keys(updateData).length} items via Supabase session...`)
+      
+      const { error } = await supabase
+        .from('assessments')
+        .update(updateData)
+        .eq('user_id', user.id)
+      
+      if (error) {
+        console.error('[AUTO-SYNC] Sync error:', error.message)
+      } else {
+        console.log('[AUTO-SYNC] Sync successful!')
+      }
+      return
     }
+    
+    // Option 2: Use app_id lookup (new users with bypass flags)
+    const appId = localStorage.getItem('login_Survey_id') || localStorage.getItem('survey_id')
+    
+    if (appId) {
+      console.log(`[AUTO-SYNC] No session - syncing ${Object.keys(updateData).length} items via app_id: ${appId}`)
+      
+      const cleanAppId = appId.replace(/-/g, '')
+      
+      const { error } = await supabase
+        .from('assessments')
+        .update(updateData)
+        .eq('app_id', cleanAppId)
+      
+      if (error) {
+        console.error('[AUTO-SYNC] Sync error:', error.message)
+      } else {
+        console.log('[AUTO-SYNC] Sync successful via app_id!')
+      }
+      return
+    }
+    
+    // No way to identify user
+    console.warn('[AUTO-SYNC] Cannot sync - no Supabase user and no app_id found')
+    
   } catch (error) {
     console.error('[AUTO-SYNC] Sync failed:', error)
   }
