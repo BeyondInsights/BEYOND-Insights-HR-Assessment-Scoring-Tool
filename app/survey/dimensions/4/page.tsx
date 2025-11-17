@@ -35,6 +35,7 @@ export default function Dimension4Page() {
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D4A_ITEMS] = useState(() => shuffleArray(D4A_ITEMS_BASE));
+  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track when resume sync is done
   
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -77,11 +78,43 @@ export default function Dimension4Page() {
     }
   }, [ans]);
 
+  // ===== RESUME PROGRESS LOGIC ===== ✅
   useEffect(() => {
-    if (step !== 1) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof window === 'undefined') return; // SSR safety
+    if (Object.keys(ans).length === 0) {
+      setResumeComplete(true);
+      return;
     }
-  }, [step]);
+
+    const gridAnswers = ans.d4a || {};
+    const answeredCount = Object.keys(gridAnswers).length;
+
+    // Case 1: Grid partially complete → Resume at first unanswered item
+    if (answeredCount > 0 && answeredCount < D4A_ITEMS.length) {
+      setStep(1);
+      const firstUnanswered = D4A_ITEMS.findIndex(item => !gridAnswers[item]);
+      setCurrentItemIndex(firstUnanswered !== -1 ? firstUnanswered : 0);
+    }
+    // Case 2: Grid complete → Skip to first incomplete follow-up
+    else if (answeredCount === D4A_ITEMS.length) {
+      const hasOffered = Object.values(gridAnswers).some(s => s === "Currently offer");
+      const needsD4aa = isMultiCountry && hasOffered;
+      
+      if (needsD4aa && !ans.D4aa) {
+        setStep(2);
+      } else if (!ans.d4b && !ans.d4b_none) {
+        setStep(needsD4aa ? 3 : 2);
+      }
+    }
+    
+    setResumeComplete(true);
+  }, [ans, D4A_ITEMS, isMultiCountry]);
+  // ===== END RESUME PROGRESS LOGIC =====
+
+  // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step, currentItemIndex]);
 
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
@@ -366,7 +399,10 @@ export default function Dimension4Page() {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    Item {currentItemIndex + 1} of {D4A_ITEMS.length}
+                    {resumeComplete 
+                      ? `Item ${currentItemIndex + 1} of ${D4A_ITEMS.length}`
+                      : 'Loading position...'
+                    }
                   </span>
                   <div className="flex gap-1">
                     {D4A_ITEMS.map((item, idx) => (
