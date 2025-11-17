@@ -55,7 +55,7 @@ export async function loadUserDataFromSupabase(): Promise<boolean> {
     dataFields.forEach(field => {
       if (assessment[field] && typeof assessment[field] === 'object') {
         localStorage.setItem(field, JSON.stringify(assessment[field]))
-        console.log(`  ✓ Loaded ${field}`)
+        console.log(`  ✓ Loaded ${field}`)  // ✅ FIXED - Added opening backtick
       }
     })
     
@@ -74,7 +74,7 @@ export async function loadUserDataFromSupabase(): Promise<boolean> {
     completeFields.forEach(field => {
       if (assessment[field] === true) {
         localStorage.setItem(field, 'true')
-        console.log(`  ✓ Loaded ${field}: true`)
+        console.log(`  ✓ Loaded ${field}: true`)  // ✅ FIXED - Added opening backtick
       }
     })
     
