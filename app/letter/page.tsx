@@ -26,8 +26,21 @@ export default function LetterPage() {
       }
       // ============================================
       
+      // ============================================
+      // CHECK FOR NEW USER BYPASS FLAG
+      // ============================================
+      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
+      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+      
+      if (hasAuthFlag || justCreated) {
+        console.log('User authenticated via bypass flag - allowing access')
+        return
+      }
+      // ============================================
+      
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
+        console.log('No Supabase user and no bypass flag - redirecting to login')
         router.push('/')
       }
     }
