@@ -90,9 +90,9 @@ function AuthorizationContent() {
       // NEW USER BYPASS - Just created account
       // ============================================
       const justCreated = localStorage.getItem('new_user_just_created') === 'true'
-      const isAuthenticated = localStorage.getItem('user_authenticated') === 'true'
+      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
       
-      if (justCreated || isAuthenticated) {
+      if (justCreated || hasAuthFlag) {
         console.log('New user or authenticated - bypassing auth check')
         localStorage.removeItem('new_user_just_created')
         setLoading(false)
