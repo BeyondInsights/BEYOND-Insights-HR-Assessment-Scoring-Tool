@@ -1,10 +1,3 @@
-/**
- * AUTO DATA SYNC - Syncs ALL localStorage to Supabase automatically
- * 
- * This component monitors localStorage and automatically syncs survey data to Supabase.
- * NO CHANGES to survey pages required - it works with existing localStorage keys.
- */
-
 'use client'
 
 import { useEffect, useRef } from 'react'
@@ -17,7 +10,7 @@ import { supabase } from './client'
 function collectAllSurveyData() {
   const updateData: Record<string, any> = {}
   
-  console.log('ðŸ” Scanning localStorage for survey data...')
+  console.log('[AUTO-SYNC] Scanning localStorage for survey data...')
   
   // List of all data keys we need to sync
   const dataKeys = [
@@ -25,7 +18,7 @@ function collectAllSurveyData() {
     'general_benefits_data',
     'current_support_data',
     'cross_dimensional_data',
-    'employee_impact_data',  // ✅ FIXED: Match Supabase column name
+    'employee_impact_data',
     ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
   ]
   
@@ -36,7 +29,7 @@ function collectAllSurveyData() {
     'general_benefits_complete',
     'current_support_complete',
     'cross_dimensional_complete',
-    'employee_impact_complete',  // ✅ FIXED: Match Supabase column name
+    'employee_impact_complete',
     ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
   ]
   
@@ -48,10 +41,10 @@ function collectAllSurveyData() {
         const parsed = JSON.parse(value)
         if (Object.keys(parsed).length > 0) {
           updateData[key] = parsed
-          console.log(`  Ã¢Å“â€¦ Found ${key}:`, Object.keys(parsed).length, 'fields')
+          console.log(`  [FOUND] ${key}:`, Object.keys(parsed).length, 'fields')
         }
       } catch (e) {
-        console.warn(`  Ã¢ï¿½Å¡ Could not parse ${key}`)
+        console.warn(`  [ERROR] Could not parse ${key}`)
       }
     }
   })
@@ -61,7 +54,7 @@ function collectAllSurveyData() {
     const value = localStorage.getItem(key)
     if (value === 'true') {
       updateData[key] = true
-      console.log(`  Ã¢Å“â€¦ Found ${key}: true`)
+      console.log(`  [FOUND] ${key}: true`)
     }
   })
   
@@ -69,7 +62,7 @@ function collectAllSurveyData() {
   const companyName = localStorage.getItem('login_company_name')
   if (companyName) {
     updateData.company_name = companyName
-    console.log(`  Ã¢Å“â€¦ Found company_name:`, companyName)
+    console.log(`  [FOUND] company_name:`, companyName)
   }
   
   return updateData
@@ -83,7 +76,7 @@ async function syncToSupabase() {
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      console.log('Ã¢ï¿½Â­Ã¯Â¸ï¿½ No Supabase user - skipping sync')
+      console.log('[SKIP] No Supabase user - skipping sync')
       return
     }
     
@@ -92,7 +85,7 @@ async function syncToSupabase() {
     try {
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       if (isFoundingPartner(surveyId)) {
-        console.log('Ã¢ï¿½Â­Ã¯Â¸ï¿½ Founding Partner - skipping Supabase sync')
+        console.log('[SKIP] Founding Partner - skipping Supabase sync')
         return
       }
     } catch (e) {
@@ -103,11 +96,11 @@ async function syncToSupabase() {
     const updateData = collectAllSurveyData()
     
     if (Object.keys(updateData).length === 0) {
-      console.log('Ã¢ï¿½Â­Ã¯Â¸ï¿½ No data to sync')
+      console.log('[SKIP] No data to sync')
       return
     }
     
-    console.log(`Ã°Å¸'Â¾ Syncing ${Object.keys(updateData).length} items to Supabase...`)
+    console.log(`[SYNC] Syncing ${Object.keys(updateData).length} items to Supabase...`)
     
     // Add timestamp
     updateData.updated_at = new Date().toISOString()
@@ -119,12 +112,12 @@ async function syncToSupabase() {
       .eq('user_id', user.id)
     
     if (error) {
-      console.error('Ã¢ï¿½Å’ Sync error:', error.message)
+      console.error('[ERROR] Sync error:', error.message)
     } else {
-      console.log('Ã¢Å“â€¦ Sync successful!')
+      console.log('[SUCCESS] Sync successful!')
     }
   } catch (error) {
-    console.error('Ã¢ï¿½Å’ Sync failed:', error)
+    console.error('[ERROR] Sync failed:', error)
   }
 }
 
@@ -140,7 +133,7 @@ export default function AutoDataSync() {
   // Sync when navigating between pages
   useEffect(() => {
     if (pathname !== lastPath.current && lastPath.current !== '') {
-      console.log('Ã°Å¸"ï¿½ Route changed - triggering sync')
+      console.log('[ROUTE] Route changed - triggering sync')
       if (!syncInProgress.current) {
         syncInProgress.current = true
         syncToSupabase().finally(() => {
@@ -153,9 +146,9 @@ export default function AutoDataSync() {
   
   // Sync every 30 seconds
   useEffect(() => {
-    console.log('â° Auto-sync initialized - will sync every 30 seconds')
+    console.log('[TIMER] Auto-sync initialized - will sync every 30 seconds')
     const interval = setInterval(() => {
-      console.log('â° Periodic sync triggered')
+      console.log('[TIMER] Periodic sync triggered')
       if (!syncInProgress.current) {
         syncInProgress.current = true
         syncToSupabase().finally(() => {
@@ -170,7 +163,7 @@ export default function AutoDataSync() {
   // Sync before page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      console.log('Ã°Å¸'â€¹ Page closing - final sync')
+      console.log('[UNLOAD] Page closing - final sync')
       // Use sendBeacon for more reliable sync on page close
       const data = collectAllSurveyData()
       if (Object.keys(data).length > 0) {
@@ -185,4 +178,3 @@ export default function AutoDataSync() {
   
   return null
 }
-
