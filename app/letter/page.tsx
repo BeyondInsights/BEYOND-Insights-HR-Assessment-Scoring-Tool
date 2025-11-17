@@ -26,18 +26,6 @@ export default function LetterPage() {
       }
       // ============================================
       
-      // ============================================
-      // CHECK FOR NEW USER BYPASS
-      // ============================================
-      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
-      
-      if (newUserBypass) {
-        console.log('New user bypass active - skipping auth check on letter page')
-        return
-      }
-      // ============================================
-      
-      // For returning users, check Supabase
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/')
@@ -65,18 +53,6 @@ export default function LetterPage() {
       }
       // ============================================
       
-      // ============================================
-      // CHECK FOR NEW USER BYPASS
-      // ============================================
-      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
-      
-      if (newUserBypass) {
-        console.log('New user - proceeding to authorization')
-        router.push('/authorization')
-        return
-      }
-      // ============================================
-      
       // REGULAR USERS - Update Supabase
       const { data: { user } } = await supabase.auth.getUser()
       
@@ -90,8 +66,6 @@ export default function LetterPage() {
       }
     } catch (error) {
       console.error('Error updating letter status:', error)
-      // Continue anyway - localStorage has everything
-      router.push('/authorization')
     } finally {
       setLoading(false)
     }
@@ -123,7 +97,7 @@ export default function LetterPage() {
               </p>
 
               <p className="text-base leading-relaxed mb-6 text-gray-900">
-                By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Initiative</strong> — a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
+                By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Initiative</strong> – a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
               </p>
               
               <p className="text-base leading-relaxed mb-6 text-gray-900">
@@ -189,7 +163,7 @@ export default function LetterPage() {
                   {loading ? (
                     'Processing...'
                   ) : ready ? (
-                    'Continue to Survey'
+                    'Continue to Survey →'
                   ) : (
                     'Please acknowledge to continue'
                   )}
