@@ -72,42 +72,40 @@ function AuthorizationContent() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      // Check for Founding Partner first
+      // ============================================
+      // FOUNDING PARTNER CHECK - SKIP SUPABASE
+      // ============================================
       const surveyId = localStorage.getItem('survey_id') || ''
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       
       if (isFoundingPartner(surveyId)) {
-        console.log('Founding Partner - skipping Supabase auth')
-        localStorage.setItem('auth_completed', 'true')
+        console.log('Founding Partner - skipping Supabase completely')
         setLoading(false)
         return
       }
+      // ============================================
       
-      // Check for new user bypass flag
-      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
+      // ============================================
+      // CHECK IF USER JUST LOGGED IN
+      // ============================================
+      const userAuthenticated = localStorage.getItem('user_authenticated') === 'true'
       
-      if (newUserBypass) {
-        console.log('New user bypass active - skipping auth check')
-        // Don't remove the flag yet - let it persist until they complete payment
-        setLoading(false)
+      if (!userAuthenticated) {
+        console.log('Not authenticated - redirecting to login')
+        router.push('/')
         return
       }
-      
-      // For returning users, check Supabase authentication
-      const authenticated = await isAuthenticated()
-      
-      if (!authenticated) {
-        const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
-        router.push(`/${redirectParam}`)
-        return
-      }
+      // ============================================
 
-      // Load existing data from Supabase
+      // ============================================
+      // LOAD EXISTING DATA (for returning users)
+      // ============================================
       try {
-        const assessment = await getUserAssessment()
-        if (assessment) {
-          const authData = assessment.firmographics_data as any
-          if (authData) {
+        const authenticated = await isAuthenticated()
+        if (authenticated) {
+          const assessment = await getUserAssessment()
+          if (assessment?.firmographics_data) {
+            const authData = assessment.firmographics_data as any
             if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
             if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
             if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
@@ -202,7 +200,6 @@ function AuthorizationContent() {
       const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
       const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
 
-      // Save to localStorage
       localStorage.setItem('login_company_name', companyInfo.companyName)
       localStorage.setItem('login_first_name', companyInfo.firstName)
       localStorage.setItem('login_last_name', companyInfo.lastName)
@@ -211,7 +208,9 @@ function AuthorizationContent() {
       localStorage.setItem('auth_completed', 'true')
       localStorage.setItem('last_user_email', currentEmail || '')
 
-      // Check if Founding Partner
+      // ============================================
+      // CHECK IF FOUNDING PARTNER
+      // ============================================
       const surveyId = localStorage.getItem('survey_id') || ''
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       
@@ -220,18 +219,9 @@ function AuthorizationContent() {
         router.push('/dashboard')
         return
       }
+      // ============================================
 
-      // Check if new user with bypass flag
-      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
-      
-      if (newUserBypass) {
-        console.log('New user - proceeding to payment')
-        // Keep bypass flag active for payment page
-        router.push('/payment')
-        return
-      }
-
-      // Regular returning users - Save to Supabase
+      // REGULAR USERS - Save to Supabase and check payment
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
@@ -265,7 +255,7 @@ function AuthorizationContent() {
           return
         }
         
-        // Check payment status
+        // Check payment status from BOTH Supabase AND localStorage
         const assessment = await getUserAssessment()
         const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
 
@@ -507,7 +497,7 @@ function AuthorizationContent() {
                 value={other}
                 onChange={(e) => setOther(e.target.value)}
                 className="w-full mt-2 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                placeholder="Please specify…"
+                placeholder="Please specifyâ€¦"
               />
             )}
           </div>
@@ -531,7 +521,7 @@ function AuthorizationContent() {
                 : 'opacity-50 cursor-not-allowed'
             }`}
           >
-            Continue →
+            Continue â†’
           </button>
         </div>
       </main>
