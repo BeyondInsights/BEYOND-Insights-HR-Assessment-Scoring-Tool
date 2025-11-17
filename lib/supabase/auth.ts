@@ -87,73 +87,55 @@ export async function authenticateUser(
     }
 
     // EXISTING USER - Survey ID provided
-    if (surveyId) {
-      const cleanSurveyId = surveyId.replace(/-/g, '')
-      
-      console.log('[AUTH] Looking up existing user')
-      
-      const { data: assessments, error: queryError } = await supabase
-        .from('assessments')
-        .select('*')
-        .eq('app_id', cleanSurveyId)
-        .limit(1)
+if (surveyId) {
+  const cleanSurveyId = surveyId.replace(/-/g, '')
+  
+  console.log('[AUTH] Attempting sign-in with Survey ID as password')
+  
+  // TRY TO SIGN IN FIRST (this will work if user exists)
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    email: email.toLowerCase(),
+    password: cleanSurveyId
+  })
 
-      if (queryError) {
-        console.error('[AUTH] Query error:', queryError)
-        return {
-          mode: 'error',
-          needsVerification: false,
-          message: 'Unable to verify Survey ID. Please try again.',
-          error: queryError.message
-        }
-      }
+  if (signInError) {
+    console.error('[AUTH] Sign-in failed:', signInError)
+    return {
+      mode: 'error',
+      needsVerification: false,
+      message: 'Invalid email or Survey ID. Please check and try again.',
+      error: signInError.message
+    }
+  }
 
-      if (!assessments || assessments.length === 0) {
-        return {
-          mode: 'error',
-          needsVerification: false,
-          message: 'Survey ID not found. Please check and try again.',
-          error: 'Survey ID not found'
-        }
-      }
+  if (signInData.user) {
+    console.log('[AUTH] Sign-in successful!')
+    
+    // NOW WE CAN QUERY (authenticated)
+    const { data: assessment, error: queryError } = await supabase
+      .from('assessments')
+      .select('app_id')
+      .eq('user_id', signInData.user.id)
+      .single()
 
-      const assessment = assessments[0]
-      
-      if (assessment.email.toLowerCase() !== email.toLowerCase()) {
-        return {
-          mode: 'error',
-          needsVerification: false,
-          message: 'Email does not match Survey ID. Please check and try again.',
-          error: 'Email mismatch'
-        }
-      }
-
-      console.log('[AUTH] Signing in returning user')
-      
-      // Sign in with Survey ID as password
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password: cleanSurveyId  // USE SURVEY ID AS PASSWORD
-      })
-
-      if (signInError) {
-        console.error('[AUTH] Sign-in error:', signInError)
-        return {
-          mode: 'error',
-          needsVerification: false,
-          message: 'Unable to sign in. Please try again.',
-          error: signInError.message
-        }
-      }
-
-      console.log('[AUTH] Returning user signed in successfully')
-
+    if (queryError || assessment?.app_id !== cleanSurveyId) {
+      console.error('[AUTH] Survey ID mismatch')
+      await supabase.auth.signOut()
       return {
-        mode: 'existing',
+        mode: 'error',
         needsVerification: false,
-        message: 'Welcome back! Redirecting to your survey...'
+        message: 'Survey ID does not match this account.',
+        error: 'Survey ID mismatch'
       }
     }
+
+    return {
+      mode: 'existing',
+      needsVerification: false,
+      message: 'Welcome back! Redirecting to your survey...'
+    }
+  }
+}
 
     return {
       mode: 'error',
