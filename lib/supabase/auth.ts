@@ -1,188 +1,220 @@
-/**
- * AUTO DATA SYNC - Syncs ALL localStorage to Supabase automatically
- * 
- * This component monitors localStorage and automatically syncs survey data to Supabase.
- * NO CHANGES to survey pages required - it works with existing localStorage keys.
- */
-
-'use client'
-
-import { useEffect, useRef } from 'react'
-import { usePathname } from 'next/navigation'
 import { supabase } from './client'
+import { generateAppId, isValidEmail } from './utils'
 
-/**
- * Collect all survey data from localStorage
- */
-function collectAllSurveyData() {
-  const updateData: Record<string, any> = {}
-  
-  console.log('🔍 Scanning localStorage for survey data...')
-  
-  // List of all data keys we need to sync
-  const dataKeys = [
-    'firmographics_data',
-    'general_benefits_data',
-    'current_support_data',
-    'cross_dimensional_data',
-    'employee-impact-assessment_data',
-    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
-  ]
-  
-  // List of all completion flags
-  const completeKeys = [
-    'firmographics_complete',
-    'auth_completed',
-    'general_benefits_complete',
-    'current_support_complete',
-    'cross_dimensional_complete',
-    'employee-impact-assessment_complete',
-    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
-  ]
-  
-  // Collect data
-  dataKeys.forEach(key => {
-    const value = localStorage.getItem(key)
-    if (value) {
-      try {
-        const parsed = JSON.parse(value)
-        if (Object.keys(parsed).length > 0) {
-          updateData[key] = parsed
-          console.log(`  âœ… Found ${key}:`, Object.keys(parsed).length, 'fields')
-        }
-      } catch (e) {
-        console.warn(`  â�š Could not parse ${key}`)
-      }
-    }
-  })
-  
-  // Collect completion flags
-  completeKeys.forEach(key => {
-    const value = localStorage.getItem(key)
-    if (value === 'true') {
-      updateData[key] = true
-      console.log(`  âœ… Found ${key}: true`)
-    }
-  })
-  
-  // Also collect company_name if present
-  const companyName = localStorage.getItem('login_company_name')
-  if (companyName) {
-    updateData.company_name = companyName
-    console.log(`  âœ… Found company_name:`, companyName)
-  }
-  
-  return updateData
+export interface AuthResult {
+  mode: 'new' | 'existing' | 'error'
+  needsVerification: boolean
+  message: string
+  appId?: string
+  error?: string
 }
 
-/**
- * Sync all localStorage data to Supabase
- */
-async function syncToSupabase() {
+export async function authenticateUser(
+  email: string,
+  surveyId?: string
+): Promise<AuthResult> {
   try {
-    // Check if user is authenticated
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      console.log('â�­ï¸� No Supabase user - skipping sync')
-      return
-    }
-    
-    // Check if this is a Founding Partner (skip Supabase for them)
-    const surveyId = localStorage.getItem('survey_id') || ''
-    try {
-      const { isFoundingPartner } = await import('@/lib/founding-partners')
-      if (isFoundingPartner(surveyId)) {
-        console.log('â�­ï¸� Founding Partner - skipping Supabase sync')
-        return
+    if (!isValidEmail(email)) {
+      return {
+        mode: 'error',
+        needsVerification: false,
+        message: 'Please enter a valid email address',
+        error: 'Invalid email format'
       }
-    } catch (e) {
-      // Founding partners module not found, continue
     }
+
+    // Check for bypass flags (new user just created)
+    const bypassAuth = localStorage.getItem('bypass_supabase_auth') === 'true'
+    const userAuthenticated = localStorage.getItem('user_authenticated') === 'true'
     
-    // Collect all data
-    const updateData = collectAllSurveyData()
-    
-    if (Object.keys(updateData).length === 0) {
-      console.log('â�­ï¸� No data to sync')
-      return
+    if (bypassAuth && userAuthenticated) {
+      console.log('[AUTH] Bypass flags detected - allowing through')
+      return {
+        mode: 'new',
+        needsVerification: false,
+        message: 'Account created successfully!'
+      }
     }
-    
-    console.log(`ðŸ'¾ Syncing ${Object.keys(updateData).length} items to Supabase...`)
-    
-    // Add timestamp
-    updateData.updated_at = new Date().toISOString()
-    
-    // Update Supabase
-    const { error } = await supabase
-      .from('assessments')
-      .update(updateData)
-      .eq('user_id', user.id)
-    
-    if (error) {
-      console.error('â�Œ Sync error:', error.message)
-    } else {
-      console.log('âœ… Sync successful!')
+
+    // NEW USER - No survey ID provided
+    if (!surveyId) {
+      const appId = generateAppId()
+      const tempPassword = Math.random().toString(36).slice(-12)
+
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password: tempPassword,
+        options: {
+          data: {
+            app_id: appId
+          }
+        }
+      })
+
+      if (signUpError) {
+        console.error('[AUTH] Signup error:', signUpError)
+        return {
+          mode: 'error',
+          needsVerification: false,
+          message: 'Unable to create account. Please try again.',
+          error: signUpError.message
+        }
+      }
+
+      if (authData.user) {
+        const { error: insertError } = await supabase
+          .from('assessments')
+          .insert({
+            user_id: authData.user.id,
+            email,
+            app_id: appId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+
+        if (insertError) {
+          console.error('[AUTH] Assessment insert error:', insertError)
+        }
+
+        return {
+          mode: 'new',
+          needsVerification: false,
+          message: 'Account created successfully!',
+          appId
+        }
+      }
     }
+
+    // EXISTING USER - Survey ID provided
+    if (surveyId) {
+      const cleanSurveyId = surveyId.replace(/-/g, '')
+      
+      const { data: assessments, error: queryError } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('app_id', cleanSurveyId)
+        .limit(1)
+
+      if (queryError) {
+        console.error('[AUTH] Query error:', queryError)
+        return {
+          mode: 'error',
+          needsVerification: false,
+          message: 'Unable to verify Survey ID. Please try again.',
+          error: queryError.message
+        }
+      }
+
+      if (!assessments || assessments.length === 0) {
+        return {
+          mode: 'error',
+          needsVerification: false,
+          message: 'Survey ID not found. Please check and try again.',
+          error: 'Survey ID not found'
+        }
+      }
+
+      const assessment = assessments[0]
+      
+      if (assessment.email.toLowerCase() !== email.toLowerCase()) {
+        return {
+          mode: 'error',
+          needsVerification: false,
+          message: 'Email does not match Survey ID. Please check and try again.',
+          error: 'Email mismatch'
+        }
+      }
+
+      const tempPassword = Math.random().toString(36).slice(-12)
+      
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: tempPassword
+      })
+
+      if (signInError) {
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password: tempPassword
+        })
+
+        if (signUpError) {
+          console.error('[AUTH] Re-signup error:', signUpError)
+          return {
+            mode: 'error',
+            needsVerification: false,
+            message: 'Unable to access account. Please try again.',
+            error: signUpError.message
+          }
+        }
+
+        if (authData.user) {
+          await supabase
+            .from('assessments')
+            .update({ user_id: authData.user.id })
+            .eq('app_id', cleanSurveyId)
+        }
+      }
+
+      return {
+        mode: 'existing',
+        needsVerification: false,
+        message: 'Welcome back! Redirecting to your survey...'
+      }
+    }
+
+    return {
+      mode: 'error',
+      needsVerification: false,
+      message: 'Authentication failed. Please try again.',
+      error: 'Unknown authentication state'
+    }
+
   } catch (error) {
-    console.error('â�Œ Sync failed:', error)
+    console.error('[AUTH] Unexpected error:', error)
+    return {
+      mode: 'error',
+      needsVerification: false,
+      message: 'An unexpected error occurred. Please try again.',
+      error: String(error)
+    }
   }
 }
 
-/**
- * Auto Data Sync Component
- * Add to root layout to enable automatic syncing
- */
-export default function AutoDataSync() {
-  const pathname = usePathname()
-  const lastPath = useRef<string>('')
-  const syncInProgress = useRef(false)
-  
-  // Sync when navigating between pages
-  useEffect(() => {
-    if (pathname !== lastPath.current && lastPath.current !== '') {
-      console.log('ðŸ"� Route changed - triggering sync')
-      if (!syncInProgress.current) {
-        syncInProgress.current = true
-        syncToSupabase().finally(() => {
-          syncInProgress.current = false
-        })
-      }
-    }
-    lastPath.current = pathname
-  }, [pathname])
-  
-  // Sync every 30 seconds
-  useEffect(() => {
-    console.log('⏰ Auto-sync initialized - will sync every 30 seconds')
-    const interval = setInterval(() => {
-      console.log('⏰ Periodic sync triggered')
-      if (!syncInProgress.current) {
-        syncInProgress.current = true
-        syncToSupabase().finally(() => {
-          syncInProgress.current = false
-        })
-      }
-    }, 30000)
-    
-    return () => clearInterval(interval)
-  }, [])
-  
-  // Sync before page unload
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      console.log('ðŸ'‹ Page closing - final sync')
-      // Use sendBeacon for more reliable sync on page close
-      const data = collectAllSurveyData()
-      if (Object.keys(data).length > 0) {
-        // Fallback to regular sync
-        syncToSupabase()
-      }
-    }
-    
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [])
-  
-  return null
+export async function getCurrentUser() {
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
 }
 
+export async function getUserAssessment() {
+  const user = await getCurrentUser()
+  if (!user) return null
+
+  const { data, error } = await supabase
+    .from('assessments')
+    .select('*')
+    .eq('user_id', user.id)
+    .single()
+
+  if (error) {
+    console.error('[AUTH] Error fetching assessment:', error)
+    return null
+  }
+
+  return data
+}
+
+export async function isAuthenticated(): Promise<boolean> {
+  // Check for bypass flags first (new user)
+  const bypassAuth = localStorage.getItem('bypass_supabase_auth') === 'true'
+  const userAuthenticated = localStorage.getItem('user_authenticated') === 'true'
+  
+  if (bypassAuth && userAuthenticated) {
+    console.log('[AUTH] Bypass authentication - new user')
+    return true
+  }
+
+  // Check Supabase auth
+  const { data: { user } } = await supabase.auth.getUser()
+  return !!user
+}
