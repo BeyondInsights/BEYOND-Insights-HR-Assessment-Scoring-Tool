@@ -36,9 +36,8 @@ export default function Dimension12Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   const [D12A_ITEMS] = useState(() => shuffleArray(D12A_ITEMS_BASE));
-  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track when resume sync is done
+  const [resumeComplete, setResumeComplete] = useState(false);
   
-  // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const markTouched = (fieldName: string) => {
@@ -48,7 +47,6 @@ export default function Dimension12Page() {
   const isStepValid = (): boolean => {
     return validateStep() === null;
   };
-  // ===== END VALIDATION ADDITIONS =====
   
   useEffect(() => {
     const saved = localStorage.getItem("dimension12_data");
@@ -76,7 +74,7 @@ export default function Dimension12Page() {
 
   // ===== RESUME PROGRESS LOGIC ===== ✅
   useEffect(() => {
-    if (typeof window === 'undefined') return; // SSR safety
+    if (typeof window === 'undefined') return;
     if (Object.keys(ans).length === 0) {
       setResumeComplete(true);
       return;
@@ -91,16 +89,11 @@ export default function Dimension12Page() {
       const firstUnanswered = D12A_ITEMS.findIndex(item => !gridAnswers[item]);
       setCurrentItemIndex(firstUnanswered !== -1 ? firstUnanswered : 0);
     }
-    // Case 2: Grid complete → Skip to first incomplete follow-up
-    else if (answeredCount === D12A_ITEMS.length) {
-      // Follow-up logic varies by dimension
-    }
     
     setResumeComplete(true);
   }, [ans, D12A_ITEMS, isMultiCountry]);
   // ===== END RESUME PROGRESS LOGIC =====
 
-  // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step, currentItemIndex]);
@@ -205,7 +198,7 @@ export default function Dimension12Page() {
       if (showD12aa) {
         setStep(2);
       } else {
-        setStep(showD12aa ? 3 : 2);
+        setStep(3);  // ✅ FIXED: Always go to step 3 (D12b question)
       }
     } else if (step === 2) {
       if (showD12aa) {
