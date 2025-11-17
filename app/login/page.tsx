@@ -263,9 +263,9 @@ if (signInError) {
   }
 
   const handleProceedToSurvey = () => {
-    localStorage.setItem('user_authenticated', 'true')
-    router.push('/authorization')
-  }
+  localStorage.setItem('user_authenticated', 'true')
+  router.push('/letter')  // ✅ Changed from '/authorization' to '/letter'
+}
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
