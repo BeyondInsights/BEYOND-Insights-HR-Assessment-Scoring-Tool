@@ -32,67 +32,12 @@ const D1A_ITEMS_BASE = [
 export default function Dimension1Page() {
   const router = useRouter();
   
-  // ===== RESUME PROGRESS LOGIC =====
-  // Initialize state from saved data to resume where user left off
-  const getInitialState = () => {
-    const saved = localStorage.getItem("dimension1_data");
-    let initialStep = 0;
-    let initialItemIndex = 0;
-    let savedAnswers = {};
-    let isMultiCountry = false;
-    
-    // Check multi-country status
-    const firmographicsData = localStorage.getItem("firmographics_data");
-    if (firmographicsData) {
-      const parsed = JSON.parse(firmographicsData);
-      isMultiCountry = parsed.s9a !== "No other countries - headquarters only";
-    }
-    
-    if (saved) {
-      try {
-        savedAnswers = JSON.parse(saved);
-        const gridAnswers = (savedAnswers as any).d1a || {};
-        const answeredCount = Object.keys(gridAnswers).length;
-        
-        // If some grid items are answered but not all
-        if (answeredCount > 0 && answeredCount < D1A_ITEMS_BASE.length) {
-          initialStep = 1; // Stay in grid
-          // Find first unanswered item
-          const firstUnanswered = D1A_ITEMS_BASE.findIndex(item => !gridAnswers[item]);
-          initialItemIndex = firstUnanswered !== -1 ? firstUnanswered : 0;
-        }
-        // If all grid items answered
-        else if (answeredCount === D1A_ITEMS_BASE.length) {
-          // Skip intro and grid, go to next incomplete section
-          const hasAnyOffered = Object.values(gridAnswers).some(
-            (status) => status === "Currently offer"
-          );
-          
-          if (isMultiCountry && hasAnyOffered && !(savedAnswers as any).d1aa) {
-            initialStep = 2; // Go to D1aa
-          } else if (!(savedAnswers as any).d1b) {
-            initialStep = 3; // Go to D1.b
-          } else {
-            // Check follow-ups
-            initialStep = 3; // Default to D1.b, next() will handle navigation
-          }
-        }
-      } catch (e) {
-        console.error("Error loading saved data:", e);
-      }
-    }
-    
-    return { initialStep, initialItemIndex, savedAnswers, isMultiCountry };
-  };
-  
-  const { initialStep, initialItemIndex, savedAnswers, isMultiCountry: initialIsMultiCountry } = getInitialState();
-  // ===== END RESUME PROGRESS LOGIC =====
-  
-  const [step, setStep] = useState(initialStep);
-  const [ans, setAns] = useState<any>(savedAnswers);
+  // Initialize with default values (will be updated in useEffect)
+  const [step, setStep] = useState(0);
+  const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
-  const [currentItemIndex, setCurrentItemIndex] = useState(initialItemIndex);
-  const [isMultiCountry, setIsMultiCountry] = useState(initialIsMultiCountry);
+  const [currentItemIndex, setCurrentItemIndex] = useState(0);
+  const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D1A_ITEMS] = useState(() => shuffleArray(D1A_ITEMS_BASE));
   
@@ -108,15 +53,64 @@ export default function Dimension1Page() {
   };
   // ===== END VALIDATION ADDITIONS =====
   
-  // NOTE: Initial data load now handled in getInitialState() above
-  // This useEffect is kept for any dynamic updates to multi-country status
+  // ===== RESUME PROGRESS LOGIC =====
+  // Load saved data and calculate where to resume (CLIENT-SIDE ONLY)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Check multi-country status
     const firmographicsData = localStorage.getItem("firmographics_data");
+    let multiCountry = false;
     if (firmographicsData) {
-      const parsed = JSON.parse(firmographicsData);
-      setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
+      try {
+        const parsed = JSON.parse(firmographicsData);
+        multiCountry = parsed.s9a !== "No other countries - headquarters only";
+        setIsMultiCountry(multiCountry);
+      } catch (e) {
+        console.error("Error parsing firmographics:", e);
+      }
     }
-  }, []);
+    
+    // Load saved answers and determine resume point
+    const saved = localStorage.getItem("dimension1_data");
+    if (!saved) return; // No saved data, stay at step 0
+    
+    try {
+      const savedAnswers = JSON.parse(saved);
+      setAns(savedAnswers);
+      
+      const gridAnswers = savedAnswers.d1a || {};
+      const answeredCount = Object.keys(gridAnswers).length;
+      
+      // If some grid items are answered but not all
+      if (answeredCount > 0 && answeredCount < D1A_ITEMS_BASE.length) {
+        setStep(1); // Stay in grid
+        // Find first unanswered item
+        const firstUnanswered = D1A_ITEMS_BASE.findIndex(item => !gridAnswers[item]);
+        if (firstUnanswered !== -1) {
+          setCurrentItemIndex(firstUnanswered);
+        }
+      }
+      // If all grid items answered, skip to next incomplete section
+      else if (answeredCount === D1A_ITEMS_BASE.length) {
+        const hasAnyOffered = Object.values(gridAnswers).some(
+          (status) => status === "Currently offer"
+        );
+        
+        if (multiCountry && hasAnyOffered && !savedAnswers.d1aa) {
+          setStep(2); // Go to D1aa
+        } else if (!savedAnswers.d1b) {
+          setStep(3); // Go to D1.b
+        } else {
+          // Grid and basic questions done, stay at D1.b to trigger follow-up navigation
+          setStep(3);
+        }
+      }
+    } catch (e) {
+      console.error("Error loading saved data:", e);
+    }
+  }, []); // Run once on mount
+  // ===== END RESUME PROGRESS LOGIC =====
 
   // Save answers when they change
   useEffect(() => {
