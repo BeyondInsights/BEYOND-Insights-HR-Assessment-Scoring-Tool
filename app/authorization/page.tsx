@@ -79,45 +79,78 @@ function AuthorizationContent() {
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       
       if (isFoundingPartner(surveyId)) {
-        console.log('Founding Partner - skipping Supabase completely')
+        console.log('Founding Partner - skipping Supabase auth')
+        localStorage.setItem('auth_completed', 'true')
         setLoading(false)
         return
       }
       // ============================================
       
       // ============================================
-      // CHECK IF USER JUST LOGGED IN
+      // NEW USER BYPASS - Just created account
       // ============================================
-      const userAuthenticated = localStorage.getItem('user_authenticated') === 'true'
+      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
       
-      if (!userAuthenticated) {
-        console.log('Not authenticated - redirecting to login')
-        router.push('/')
+      if (newUserBypass) {
+        console.log('New user bypass active - skipping auth check')
+        setLoading(false)
         return
       }
       // ============================================
+      
+      // For returning users, check Supabase authentication
+      const authenticated = await isAuthenticated()
+      
+      if (!authenticated) {
+        const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
+        router.push(`/${redirectParam}`)
+        return
+      }
 
       // ============================================
-      // LOAD EXISTING DATA (for returning users)
+      // LOAD DATA FROM BOTH LOCALSTORAGE AND SUPABASE
       // ============================================
+      
+      // First try localStorage (fastest and always available)
+      const storedAuth = localStorage.getItem('authorization')
+      if (storedAuth) {
+        try {
+          const authData = JSON.parse(storedAuth)
+          if (authData.au1) setAu1(authData.au1)
+          if (authData.au2) setAu2(authData.au2)
+          if (authData.other) setOther(authData.other)
+        } catch (e) {
+          console.error('Error parsing localStorage auth:', e)
+        }
+      }
+      
+      const companyName = localStorage.getItem('login_company_name')
+      const firstName = localStorage.getItem('login_first_name')
+      const lastName = localStorage.getItem('login_last_name')
+      const title = localStorage.getItem('login_title')
+      
+      if (companyName) setCompanyInfo(prev => ({ ...prev, companyName }))
+      if (firstName) setCompanyInfo(prev => ({ ...prev, firstName }))
+      if (lastName) setCompanyInfo(prev => ({ ...prev, lastName }))
+      if (title) setCompanyInfo(prev => ({ ...prev, title }))
+      
+      // Then check Supabase (may override localStorage if newer)
       try {
-        const authenticated = await isAuthenticated()
-        if (authenticated) {
-          const assessment = await getUserAssessment()
-          if (assessment?.firmographics_data) {
-            const authData = assessment.firmographics_data as any
-            if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
-            if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
-            if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
-            if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
-            if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
-            if (authData.au1) setAu1(authData.au1)
-            if (authData.au2) setAu2(authData.au2)
-            if (authData.other) setOther(authData.other)
-          }
+        const assessment = await getUserAssessment()
+        if (assessment && assessment.firmographics_data) {
+          const authData = assessment.firmographics_data as any
+          if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
+          if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
+          if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
+          if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
+          if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
+          if (authData.au1) setAu1(authData.au1)
+          if (authData.au2) setAu2(authData.au2)
+          if (authData.other) setOther(authData.other)
         }
       } catch (error) {
-        console.error('Error loading data:', error)
+        console.error('Error loading from Supabase:', error)
+        // Continue anyway - localStorage data is fine
       }
 
       setLoading(false)
@@ -200,6 +233,7 @@ function AuthorizationContent() {
       const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
       const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
 
+      // ALWAYS save to localStorage
       localStorage.setItem('login_company_name', companyInfo.companyName)
       localStorage.setItem('login_first_name', companyInfo.firstName)
       localStorage.setItem('login_last_name', companyInfo.lastName)
@@ -221,55 +255,58 @@ function AuthorizationContent() {
       }
       // ============================================
 
-      // REGULAR USERS - Save to Supabase and check payment
+      // ALWAYS try to save to Supabase (even for new users)
+      const authorizationData = {
+        companyName: companyInfo.companyName,
+        firstName: companyInfo.firstName,
+        lastName: companyInfo.lastName,
+        title: titleToStore,
+        au1,
+        au2,
+        other
+      }
+
       try {
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-          router.push('/')
-          return
-        }
-
-        const authorizationData = {
-          companyName: companyInfo.companyName,
-          firstName: companyInfo.firstName,
-          lastName: companyInfo.lastName,
-          title: titleToStore,
-          au1,
-          au2,
-          other
-        }
-
-        const { error } = await supabase
-          .from('assessments')
-          .update({
-            company_name: companyInfo.companyName,
-            firmographics_data: authorizationData,
-            auth_completed: true,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id)
-
-        if (error) {
-          console.error('Error saving:', error)
-          setErrors('Failed to save. Please try again.')
-          return
-        }
         
-        // Check payment status from BOTH Supabase AND localStorage
-        const assessment = await getUserAssessment()
-        const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
+        if (user) {
+          // User session exists - save to Supabase
+          const { error } = await supabase
+            .from('assessments')
+            .update({
+              company_name: companyInfo.companyName,
+              firmographics_data: authorizationData,
+              auth_completed: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id)
 
-        if (assessment?.payment_completed || localPaymentComplete) {
-          console.log('Payment confirmed - redirecting to dashboard')
-          router.push('/dashboard')
+          if (error) {
+            console.error('Error saving to Supabase:', error)
+            // Continue anyway - localStorage has the data
+          } else {
+            console.log('Successfully saved to Supabase')
+          }
+          
+          // Check payment status for returning users
+          const assessment = await getUserAssessment()
+          const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
+
+          if (assessment?.payment_completed || localPaymentComplete) {
+            console.log('Payment confirmed - redirecting to dashboard')
+            router.push('/dashboard')
+            return
+          }
         } else {
-          console.log('Payment not found - redirecting to payment page')
-          router.push('/payment')
+          console.log('No Supabase session yet (new user) - proceeding with localStorage only')
         }
       } catch (error) {
-        console.error('Error:', error)
-        setErrors('An error occurred. Please try again.')
+        console.error('Supabase error:', error)
+        // Continue anyway - localStorage has the data
       }
+      
+      // Go to payment (works for both new and returning users)
+      router.push('/payment')
     }
   }
  
@@ -497,7 +534,7 @@ function AuthorizationContent() {
                 value={other}
                 onChange={(e) => setOther(e.target.value)}
                 className="w-full mt-2 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                placeholder="Please specifyâ€¦"
+                placeholder="Please specify…"
               />
             )}
           </div>
@@ -521,7 +558,7 @@ function AuthorizationContent() {
                 : 'opacity-50 cursor-not-allowed'
             }`}
           >
-            Continue â†’
+            Continue
           </button>
         </div>
       </main>
