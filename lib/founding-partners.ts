@@ -1,6 +1,5 @@
 // Founding Partner Survey IDs - Pre-generated for partners with waived fees
 // These IDs bypass payment processing and show "Founding Partner - Fee Waived" on dashboard
-
 export const FOUNDING_PARTNER_IDS = [
   'FP-748923',
   'FP-392847',
@@ -37,7 +36,8 @@ export const FOUNDING_PARTNER_IDS = [
   'FP-984216',
   'FP-325847',
   'FP-561093',
-  'FP-847632'
+  'FP-847632',
+  'FP-219745'  // ✅ NEW - 37th Founding Partner ID
 ];
 
 /**
