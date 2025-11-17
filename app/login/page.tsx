@@ -6,7 +6,6 @@ import { authenticateUser, getCurrentUser } from '@/lib/supabase/auth'
 import { formatAppId } from '@/lib/supabase/utils'
 import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
-import { loadUserDataFromSupabase } from '@/lib/supabase/load-data-from-supabase'
 import Footer from '@/components/Footer'
 
 export default function LoginPage() {
@@ -66,14 +65,15 @@ export default function LoginPage() {
     // ============================================
 
     // ============================================
-    // CHECK FOR FOUNDING PARTNER ID FIRST
+    // CHECK IF FOUNDING PARTNER (but still create Supabase account)
     // ============================================
     const isFP = !isNewUser && isFoundingPartner(surveyId.trim())
     if (isFP) {
-      console.log('Founding Partner ID detected:', surveyId.trim())
+      console.log('✅ Founding Partner ID detected:', surveyId.trim())
       localStorage.setItem('survey_id', surveyId.trim())
       localStorage.setItem('is_founding_partner', 'true')
     }
+    // ============================================
 
     try {
       const result = await authenticateUser(
@@ -85,11 +85,14 @@ export default function LoginPage() {
         setErrors(result.message)
       } else {
         // ============================================
-        // DON'T CLEAR DATA FOR NEW USERS
+        // CLEAR OLD DATA FOR NEW USERS
         // ============================================
         if (result.mode === 'new') {
-          console.log('New user account created')
-          // Supabase session is in localStorage - don't clear it!
+          console.log('New user account - clearing any old localStorage data')
+          const emailToKeep = currentEmail
+          localStorage.clear()
+          localStorage.setItem('auth_email', emailToKeep)
+          localStorage.setItem('login_email', email)
         }
         // ============================================
         
@@ -103,28 +106,54 @@ export default function LoginPage() {
           localStorage.setItem('login_Survey_id', surveyId)
         }
         
-        // ============================================
-        // CRITICAL FIX: LOAD DATA FROM SUPABASE FOR RETURNING USERS
-        // ============================================
+        // For existing/returning users
         if (result.mode === 'existing' && !result.needsVerification) {
           const user = await getCurrentUser()
           if (user) {
-            setSuccessMessage('Loading your survey data...')
+            const { data: assessment } = await supabase
+              .from('assessments')
+              .select('auth_completed, is_founding_partner, payment_completed')
+              .eq('user_id', user.id)
+              .single()
             
-            // LOAD ALL DATA FROM SUPABASE INTO LOCALSTORAGE
-            const loaded = await loadUserDataFromSupabase()
-            
-            if (loaded) {
-              setSuccessMessage('✅ Welcome back! Redirecting...')
-              setTimeout(() => {
-                router.push('/dashboard')
-              }, 1000)
-            } else {
-              setErrors('Could not load your data. Please try again.')
+            // ✅ NEW: Set FP flag in database for existing users
+            if (isFP && !assessment?.is_founding_partner) {
+              await supabase
+                .from('assessments')
+                .update({ 
+                  is_founding_partner: true,
+                  payment_completed: true
+                })
+                .eq('user_id', user.id)
+              console.log('✅ Founding Partner flags set in database')
             }
+            
+            setSuccessMessage(result.message)
+            setTimeout(() => {
+              if (!assessment?.auth_completed) {
+                router.push('/letter')
+                return
+              }
+              router.push('/dashboard')
+            }, 1000)
           }
         } else if (result.mode === 'new') {
-          // New user - show App ID
+          // ✅ NEW: Set FP flag in database for new users
+          if (isFP && result.appId) {
+            const user = await getCurrentUser()
+            if (user) {
+              await supabase
+                .from('assessments')
+                .update({ 
+                  is_founding_partner: true,
+                  payment_completed: true
+                })
+                .eq('user_id', user.id)
+              console.log('✅ New Founding Partner - flags set in database')
+            }
+          }
+          
+          // New user - show App ID and set bypass flag
           setSuccessMessage('Account created successfully!')
           if (result.appId) {
             setGeneratedAppId(result.appId)
@@ -133,7 +162,6 @@ export default function LoginPage() {
             localStorage.setItem('new_user_just_created', 'true')
           }
         }
-        // ============================================
       }
     } catch (err) {
       setErrors('An unexpected error occurred. Please try again.')
@@ -143,12 +171,10 @@ export default function LoginPage() {
     }
   }
 
-  const handleProceedToSurvey = () => {
-    localStorage.setItem('user_authenticated', 'true')
-    localStorage.setItem('new_user_just_created', 'true')
-    console.log('🚀 New user proceeding to survey')
-    router.push('/letter')
-  }
+const handleProceedToSurvey = () => {
+  localStorage.setItem('user_authenticated', 'true')
+  router.push('/authorization')
+}
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
