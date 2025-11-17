@@ -8,6 +8,7 @@ export default function GeneralBenefitsPage() {
  console.log("GENERAL BENEFITS PAGE LOADED");
  const router = useRouter();
  const [step, setStep] = useState(1);
+  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track resume sync
  const [ans, setAns] = useState<any>({});
  const [isUSAOnly, setIsUSAOnly] = useState(false);
  
@@ -63,6 +64,38 @@ export default function GeneralBenefitsPage() {
    }
  }
  }, []);
+  // ===== RESUME PROGRESS LOGIC ===== ✅
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (Object.keys(ans).length === 0) {
+      setResumeComplete(true);
+      return;
+    }
+
+    // Determine which step to resume at based on completed data
+    if (!ans.cb1 || (Array.isArray(ans.cb1) && ans.cb1.length === 0)) {
+      setStep(1);
+    } else if (!ans.cb2b || (Array.isArray(ans.cb2b) && ans.cb2b.length === 0)) {
+      setStep(2);
+    } else if (!ans.cb3 || (Array.isArray(ans.cb3) && ans.cb3.length === 0)) {
+      setStep(3);
+    } else if (!ans.cb3a) {
+      setStep(4);
+    } else if (!ans.cb3b) {
+      setStep(5);
+    } else if (!ans.cb3c || (Array.isArray(ans.cb3c) && ans.cb3c.length === 0)) {
+      setStep(6);
+    } else if (!isUSAOnly && !ans.cb1a) {
+      setStep(7);
+    } else if (!ans.cb3d || (Array.isArray(ans.cb3d) && ans.cb3d.length === 0)) {
+      setStep(8);
+    }
+    // Otherwise stays at current step
+    
+    setResumeComplete(true);
+  }, [ans, isUSAOnly]);
+  // ===== END RESUME PROGRESS LOGIC =====
+
  
  const [errors, setErrors] = useState<string>("");
 
