@@ -90,19 +90,21 @@ function AuthorizationContent() {
       // NEW USER BYPASS - Just created account
       // ============================================
       const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+      const isAuthenticated = localStorage.getItem('user_authenticated') === 'true'
       
-      if (justCreated) {
-        console.log('New user just created - bypassing auth check')
+      if (justCreated || isAuthenticated) {
+        console.log('New user or authenticated - bypassing auth check')
         localStorage.removeItem('new_user_just_created')
         setLoading(false)
         return
       }
       // ============================================
       
-      // Check if user is authenticated with Supabase
+      // Check if user is authenticated with Supabase (ONLY for returning users)
       const authenticated = await isAuthenticated()
       
       if (!authenticated) {
+        console.log('Not authenticated - redirecting to login')
         const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
         router.push(`/${redirectParam}`)
         return
@@ -257,6 +259,7 @@ function AuthorizationContent() {
           return
         }
 
+        // BUILD COMPLETE DATA OBJECT WITH ALL ANSWERS
         const authorizationData = {
           companyName: companyInfo.companyName,
           firstName: companyInfo.firstName,
@@ -267,15 +270,24 @@ function AuthorizationContent() {
           other
         }
 
+        console.log('💾 Saving authorization data to Supabase:', authorizationData)
+
+        // SAVE BOTH DATA AND FLAG
         const { error } = await supabase
           .from('assessments')
           .update({
             company_name: companyInfo.companyName,
-            firmographics_data: authorizationData,
-            auth_completed: true,
+            firmographics_data: authorizationData,  // ✅ ACTUAL ANSWERS
+            auth_completed: true,                    // ✅ COMPLETION FLAG
+            firmographics_complete: true,            // ✅ SECTION FLAG
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id)
+
+        console.log('✅ Save result:', error ? 'ERROR' : 'SUCCESS')
+        if (error) {
+          console.error('❌ Supabase error:', error)
+        }
 
         if (error) {
           console.error('Error saving:', error)
