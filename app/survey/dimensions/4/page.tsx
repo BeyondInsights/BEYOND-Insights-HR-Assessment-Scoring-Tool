@@ -35,9 +35,8 @@ export default function Dimension4Page() {
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D4A_ITEMS] = useState(() => shuffleArray(D4A_ITEMS_BASE));
-  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track when resume sync is done
+  const [resumeComplete, setResumeComplete] = useState(false);
   
-  // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const markTouched = (fieldName: string) => {
@@ -47,18 +46,15 @@ export default function Dimension4Page() {
   const isStepValid = (): boolean => {
     return validateStep() === null;
   };
-  // ===== END VALIDATION ADDITIONS =====
   
   useEffect(() => {
     const saved = localStorage.getItem("dimension4_data");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-
-    // Convert d1_6 to array if it was saved as a string
-      if (parsed.d1_6 && !Array.isArray(parsed.d1_6)) {
-        parsed.d1_6 = [parsed.d1_6];
-      }    
+        if (parsed.d1_6 && !Array.isArray(parsed.d1_6)) {
+          parsed.d1_6 = [parsed.d1_6];
+        }    
         setAns(parsed);
       } catch (e) {
         console.error("Error loading saved data:", e);
@@ -78,9 +74,9 @@ export default function Dimension4Page() {
     }
   }, [ans]);
 
-  // ===== RESUME PROGRESS LOGIC ===== ✅
+  // ===== RESUME PROGRESS LOGIC - FIXED ===== ✅
   useEffect(() => {
-    if (typeof window === 'undefined') return; // SSR safety
+    if (typeof window === 'undefined') return;
     if (Object.keys(ans).length === 0) {
       setResumeComplete(true);
       return;
@@ -100,10 +96,10 @@ export default function Dimension4Page() {
       const hasOffered = Object.values(gridAnswers).some(s => s === "Currently offer");
       const needsD4aa = isMultiCountry && hasOffered;
       
-      if (needsD4aa && !ans.D4aa) {
+      if (needsD4aa && !ans.d4aa) {
         setStep(2);
       } else if (!ans.d4b && !ans.d4b_none) {
-        setStep(needsD4aa ? 3 : 2);
+        setStep(3);  // ✅ FIXED: Always go to step 3, not conditional
       }
     }
     
@@ -111,7 +107,6 @@ export default function Dimension4Page() {
   }, [ans, D4A_ITEMS, isMultiCountry]);
   // ===== END RESUME PROGRESS LOGIC =====
 
-  // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step, currentItemIndex]);
@@ -139,9 +134,7 @@ export default function Dimension4Page() {
       d4a: { ...(prev.d4a || {}), [item]: status }
     }));
     
-    // VALIDATION: Mark d4a as touched
     markTouched('d4a');
-    
     setIsTransitioning(true);
     
     setTimeout(() => {
@@ -371,7 +364,6 @@ export default function Dimension4Page() {
             </div>
 
             <div className="p-8">
-              {/* VALIDATION: Progress Counter */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -488,7 +480,6 @@ export default function Dimension4Page() {
                   ← View previous option
                 </button>
 
-                {/* VALIDATION: Updated Continue button */}
                 {Object.keys(ans.d4a || {}).length === D4A_ITEMS.length && !isTransitioning && (
                   <button
                     onClick={next}
@@ -511,13 +502,11 @@ export default function Dimension4Page() {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Geographic Availability</h3>
             
-            {/* VALIDATION: Wrapper with red border */}
             <div className={`border-2 rounded-lg p-4 ${
               touched.d4aa && !ans.d4aa
                 ? 'border-red-500 bg-red-50' 
                 : 'border-gray-200 bg-white'
             }`}>
-              {/* VALIDATION: Required asterisk */}
               <p className="font-bold text-gray-900 mb-4">
                 Are the <span className="text-blue-600 font-bold">Navigation & Expert Resources</span> your 
                 organization <span className="text-blue-600 font-bold">currently offers</span>...?
@@ -535,7 +524,7 @@ export default function Dimension4Page() {
                     key={opt}
                     onClick={() => {
                       setField("d4aa", opt);
-                      markTouched("d4aa"); // VALIDATION: Mark as touched
+                      markTouched("d4aa");
                     }}
                     className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                       ans.d4aa === opt
@@ -586,13 +575,11 @@ export default function Dimension4Page() {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Navigation Support Providers</h3>
             
-            {/* VALIDATION: Wrapper with red border */}
             <div className={`border-2 rounded-lg p-4 ${
               touched.d4_1a && (!ans.d4_1a || ans.d4_1a.length === 0)
                 ? 'border-red-500 bg-red-50' 
                 : 'border-gray-200 bg-white'
             }`}>
-              {/* VALIDATION: Required asterisk */}
               <p className="font-bold text-gray-900 mb-4">
                 Who provides <span className="text-blue-600 font-bold">navigation support</span> for <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span> at your organization?
                 <span className="text-red-600 ml-1">*</span>
@@ -612,7 +599,7 @@ export default function Dimension4Page() {
                     <button
                       onClick={() => {
                         toggleMultiSelect("d4_1a", opt);
-                        markTouched("d4_1a"); // VALIDATION: Mark as touched
+                        markTouched("d4_1a");
                       }}
                       className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                         ans.d4_1a?.includes(opt)
@@ -642,13 +629,11 @@ export default function Dimension4Page() {
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Available Services</h3>
             
-            {/* VALIDATION: Wrapper with red border */}
             <div className={`border-2 rounded-lg p-4 ${
               touched.d4_1b && (!ans.d4_1b || ans.d4_1b.length === 0)
                 ? 'border-red-500 bg-red-50' 
                 : 'border-gray-200 bg-white'
             }`}>
-              {/* VALIDATION: Required asterisk */}
               <p className="font-bold text-gray-900 mb-4">
                 Which of the following <span className="text-blue-600 font-bold">services</span> are available through your organization's navigation support for <span className="text-blue-600 font-bold">employees managing cancer or other serious health conditions</span>?
                 <span className="text-red-600 ml-1">*</span>
@@ -672,7 +657,7 @@ export default function Dimension4Page() {
                     <button
                       onClick={() => {
                         toggleMultiSelect("d4_1b", opt);
-                        markTouched("d4_1b"); // VALIDATION: Mark as touched
+                        markTouched("d4_1b");
                       }}
                       className={`w-full px-4 py-3 text-left text-sm md:text-base rounded-lg border-2 transition-all ${
                         ans.d4_1b?.includes(opt)
@@ -731,7 +716,6 @@ export default function Dimension4Page() {
             >
               ← Back
             </button>
-            {/* VALIDATION: Updated Continue button */}
             <button 
               onClick={next}
               disabled={!isStepValid()}
