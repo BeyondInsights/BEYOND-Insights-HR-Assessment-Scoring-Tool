@@ -58,7 +58,7 @@ export default function CurrentSupportPage() {
     }
     
     setResumeComplete(true);
-  }, [ans]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
 

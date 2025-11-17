@@ -52,7 +52,7 @@ export default function EmployeeImpactPage() {
     }
     
     setResumeComplete(true);
-  }, [ans]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
   const [errors, setErrors] = useState("");

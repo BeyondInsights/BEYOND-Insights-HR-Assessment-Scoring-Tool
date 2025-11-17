@@ -93,7 +93,7 @@ export default function GeneralBenefitsPage() {
     // Otherwise stays at current step
     
     setResumeComplete(true);
-  }, [ans, isUSAOnly]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
  

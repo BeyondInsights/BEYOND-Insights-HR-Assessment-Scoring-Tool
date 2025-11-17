@@ -73,7 +73,7 @@ export default function Dimension6Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension6_data", JSON.stringify(ans));
     }
-  }, [ans]);
+  }, []);
 
   // ===== RESUME PROGRESS LOGIC ===== ✅
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function Dimension6Page() {
     }
     
     setResumeComplete(true);
-  }, [ans, D6A_ITEMS, isMultiCountry]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
   // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)

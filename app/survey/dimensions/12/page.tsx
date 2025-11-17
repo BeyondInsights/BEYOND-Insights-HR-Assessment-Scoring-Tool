@@ -70,7 +70,7 @@ export default function Dimension12Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension12_data", JSON.stringify(ans));
     }
-  }, [ans]);
+  }, []);
 
   // ===== RESUME PROGRESS LOGIC ===== ✅
   useEffect(() => {
@@ -91,7 +91,7 @@ export default function Dimension12Page() {
     }
     
     setResumeComplete(true);
-  }, [ans, D12A_ITEMS, isMultiCountry]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
   useEffect(() => {

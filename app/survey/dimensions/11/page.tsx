@@ -76,7 +76,7 @@ export default function Dimension11Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension11_data", JSON.stringify(ans));
     }
-  }, [ans]);
+  }, []);
 
   // ===== RESUME PROGRESS LOGIC ===== ✅
   useEffect(() => {
@@ -101,7 +101,7 @@ export default function Dimension11Page() {
     }
     
     setResumeComplete(true);
-  }, [ans, D11A_ITEMS, isMultiCountry]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
   // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)

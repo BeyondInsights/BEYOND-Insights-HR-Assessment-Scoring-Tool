@@ -72,7 +72,7 @@ export default function Dimension4Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension4_data", JSON.stringify(ans));
     }
-  }, [ans]);
+  }, []);
 
   // ===== RESUME PROGRESS LOGIC - FIXED ===== ✅
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function Dimension4Page() {
     }
     
     setResumeComplete(true);
-  }, [ans, D4A_ITEMS, isMultiCountry]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
   useEffect(() => {

@@ -75,7 +75,7 @@ export default function Dimension8Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension8_data", JSON.stringify(ans));
     }
-  }, [ans]);
+  }, []);
 
   // ===== RESUME PROGRESS LOGIC ===== ✅
   useEffect(() => {
@@ -100,7 +100,7 @@ export default function Dimension8Page() {
     }
     
     setResumeComplete(true);
-  }, [ans, D8A_ITEMS, isMultiCountry]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
   // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)

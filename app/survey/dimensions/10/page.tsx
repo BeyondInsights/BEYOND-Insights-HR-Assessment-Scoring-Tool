@@ -82,7 +82,7 @@ export default function Dimension10Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension10_data", JSON.stringify(ans));
     }
-  }, [ans]);
+  }, []);
 
   // ===== RESUME PROGRESS LOGIC ===== ✅
   useEffect(() => {
@@ -107,7 +107,7 @@ export default function Dimension10Page() {
     }
     
     setResumeComplete(true);
-  }, [ans, D10A_ITEMS, isMultiCountry]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
   // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)

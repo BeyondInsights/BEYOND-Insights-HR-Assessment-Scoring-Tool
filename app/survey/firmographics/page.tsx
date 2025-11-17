@@ -44,7 +44,7 @@ export default function FirmographicsPage() {
       localStorage.setItem("firmographics_data", JSON.stringify(ans));
       console.log("Firmographics auto-saved:", ans);
     }
-  }, []);
+  }, [ans]);
 
   // ===== RESUME PROGRESS LOGIC ===== ✅
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function FirmographicsPage() {
     // Otherwise stays at current step
     
     setResumeComplete(true);
-  }, [ans]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
 

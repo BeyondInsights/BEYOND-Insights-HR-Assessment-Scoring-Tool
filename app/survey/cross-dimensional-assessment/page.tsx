@@ -133,7 +133,7 @@ export default function CrossDimensionalPage() {
     }
     
     setResumeComplete(true);
-  }, [ans]);
+  }, []);
   // ===== END RESUME PROGRESS LOGIC =====
 
 
