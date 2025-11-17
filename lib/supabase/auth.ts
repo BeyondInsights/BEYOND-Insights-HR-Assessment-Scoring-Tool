@@ -61,7 +61,7 @@ export async function authenticateUser(
         }
       }
 
-      iif (authData.user) {
+      if (authData.user) {
   const { error: insertError } = await supabase
     .from('assessments')
     .insert({
