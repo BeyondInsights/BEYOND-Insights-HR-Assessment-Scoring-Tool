@@ -1,3 +1,10 @@
+/**
+ * AUTO DATA SYNC - Syncs ALL localStorage to Supabase automatically
+ * 
+ * This component monitors localStorage and automatically syncs survey data to Supabase.
+ * NO CHANGES to survey pages required - it works with existing localStorage keys.
+ */
+
 'use client'
 
 import { useEffect, useRef } from 'react'
@@ -10,7 +17,7 @@ import { supabase } from './client'
 function collectAllSurveyData() {
   const updateData: Record<string, any> = {}
   
-  console.log('[AUTO-SYNC] Scanning localStorage for survey data...')
+  console.log('ðŸ” Scanning localStorage for survey data...')
   
   // List of all data keys we need to sync
   const dataKeys = [
@@ -18,7 +25,7 @@ function collectAllSurveyData() {
     'general_benefits_data',
     'current_support_data',
     'cross_dimensional_data',
-    'employee-impact-assessment_data',
+    'employee_impact_data',  // ✅ FIXED: Match Supabase column name
     ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
   ]
   
@@ -29,11 +36,11 @@ function collectAllSurveyData() {
     'general_benefits_complete',
     'current_support_complete',
     'cross_dimensional_complete',
-    'employee-impact-assessment_complete',
+    'employee_impact_complete',  // ✅ FIXED: Match Supabase column name
     ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
   ]
   
-  // Collect data - ONLY if it exists in localStorage
+  // Collect data
   dataKeys.forEach(key => {
     const value = localStorage.getItem(key)
     if (value) {
@@ -41,20 +48,20 @@ function collectAllSurveyData() {
         const parsed = JSON.parse(value)
         if (Object.keys(parsed).length > 0) {
           updateData[key] = parsed
-          console.log(`[AUTO-SYNC] Found ${key}: ${Object.keys(parsed).length} fields`)
+          console.log(`  Ã¢Å“â€¦ Found ${key}:`, Object.keys(parsed).length, 'fields')
         }
       } catch (e) {
-        console.warn(`[AUTO-SYNC] Could not parse ${key}`)
+        console.warn(`  Ã¢ï¿½Å¡ Could not parse ${key}`)
       }
     }
   })
   
-  // Collect completion flags - ONLY if localStorage explicitly says 'true'
+  // Collect completion flags
   completeKeys.forEach(key => {
     const value = localStorage.getItem(key)
     if (value === 'true') {
       updateData[key] = true
-      console.log(`[AUTO-SYNC] Found ${key}: true`)
+      console.log(`  Ã¢Å“â€¦ Found ${key}: true`)
     }
   })
   
@@ -62,7 +69,7 @@ function collectAllSurveyData() {
   const companyName = localStorage.getItem('login_company_name')
   if (companyName) {
     updateData.company_name = companyName
-    console.log(`[AUTO-SYNC] Found company_name: ${companyName}`)
+    console.log(`  Ã¢Å“â€¦ Found company_name:`, companyName)
   }
   
   return updateData
@@ -73,12 +80,19 @@ function collectAllSurveyData() {
  */
 async function syncToSupabase() {
   try {
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      console.log('Ã¢ï¿½Â­Ã¯Â¸ï¿½ No Supabase user - skipping sync')
+      return
+    }
+    
     // Check if this is a Founding Partner (skip Supabase for them)
     const surveyId = localStorage.getItem('survey_id') || ''
     try {
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       if (isFoundingPartner(surveyId)) {
-        console.log('[AUTO-SYNC] Founding Partner - skipping Supabase sync')
+        console.log('Ã¢ï¿½Â­Ã¯Â¸ï¿½ Founding Partner - skipping Supabase sync')
         return
       }
     } catch (e) {
@@ -89,62 +103,28 @@ async function syncToSupabase() {
     const updateData = collectAllSurveyData()
     
     if (Object.keys(updateData).length === 0) {
-      console.log('[AUTO-SYNC] No data to sync')
+      console.log('Ã¢ï¿½Â­Ã¯Â¸ï¿½ No data to sync')
       return
     }
+    
+    console.log(`Ã°Å¸'Â¾ Syncing ${Object.keys(updateData).length} items to Supabase...`)
     
     // Add timestamp
     updateData.updated_at = new Date().toISOString()
     
-    // ============================================
-    // CRITICAL FIX: Support both bypass flags AND Supabase sessions
-    // ============================================
+    // Update Supabase
+    const { error } = await supabase
+      .from('assessments')
+      .update(updateData)
+      .eq('user_id', user.id)
     
-    // Option 1: Try Supabase session first (returning users)
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (user) {
-      console.log(`[AUTO-SYNC] Syncing ${Object.keys(updateData).length} items via Supabase session...`)
-      
-      const { error } = await supabase
-        .from('assessments')
-        .update(updateData)
-        .eq('user_id', user.id)
-      
-      if (error) {
-        console.error('[AUTO-SYNC] Sync error:', error.message)
-      } else {
-        console.log('[AUTO-SYNC] Sync successful!')
-      }
-      return
+    if (error) {
+      console.error('Ã¢ï¿½Å’ Sync error:', error.message)
+    } else {
+      console.log('Ã¢Å“â€¦ Sync successful!')
     }
-    
-    // Option 2: Use app_id lookup (new users with bypass flags)
-    const appId = localStorage.getItem('login_Survey_id') || localStorage.getItem('survey_id')
-    
-    if (appId) {
-      console.log(`[AUTO-SYNC] No session - syncing ${Object.keys(updateData).length} items via app_id: ${appId}`)
-      
-      const cleanAppId = appId.replace(/-/g, '')
-      
-      const { error } = await supabase
-        .from('assessments')
-        .update(updateData)
-        .eq('app_id', cleanAppId)
-      
-      if (error) {
-        console.error('[AUTO-SYNC] Sync error:', error.message)
-      } else {
-        console.log('[AUTO-SYNC] Sync successful via app_id!')
-      }
-      return
-    }
-    
-    // No way to identify user
-    console.warn('[AUTO-SYNC] Cannot sync - no Supabase user and no app_id found')
-    
   } catch (error) {
-    console.error('[AUTO-SYNC] Sync failed:', error)
+    console.error('Ã¢ï¿½Å’ Sync failed:', error)
   }
 }
 
@@ -160,7 +140,7 @@ export default function AutoDataSync() {
   // Sync when navigating between pages
   useEffect(() => {
     if (pathname !== lastPath.current && lastPath.current !== '') {
-      console.log('[AUTO-SYNC] Route changed - triggering sync')
+      console.log('Ã°Å¸"ï¿½ Route changed - triggering sync')
       if (!syncInProgress.current) {
         syncInProgress.current = true
         syncToSupabase().finally(() => {
@@ -173,9 +153,9 @@ export default function AutoDataSync() {
   
   // Sync every 30 seconds
   useEffect(() => {
-    console.log('[AUTO-SYNC] Auto-sync initialized - will sync every 30 seconds')
+    console.log('â° Auto-sync initialized - will sync every 30 seconds')
     const interval = setInterval(() => {
-      console.log('[AUTO-SYNC] Periodic sync triggered')
+      console.log('â° Periodic sync triggered')
       if (!syncInProgress.current) {
         syncInProgress.current = true
         syncToSupabase().finally(() => {
@@ -190,9 +170,11 @@ export default function AutoDataSync() {
   // Sync before page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      console.log('[AUTO-SYNC] Page closing - final sync')
+      console.log('Ã°Å¸'â€¹ Page closing - final sync')
+      // Use sendBeacon for more reliable sync on page close
       const data = collectAllSurveyData()
       if (Object.keys(data).length > 0) {
+        // Fallback to regular sync
         syncToSupabase()
       }
     }
@@ -203,3 +185,4 @@ export default function AutoDataSync() {
   
   return null
 }
+
