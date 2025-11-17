@@ -26,7 +26,7 @@ export async function authenticateUser(
     // NEW USER - No survey ID provided
     if (!surveyId) {
       const appId = generateAppId()
-      const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!'
+      const tempPassword = appId  // Use Survey ID as password
 
       console.log('[AUTH] Creating new user account...')
       
@@ -175,30 +175,29 @@ if (surveyId) {
     }
   }
   
-  // Now sign them in with the new password
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email,
-    password: newPassword
-  })
+  // Sign in with Survey ID as password
+const { error: signInError } = await supabase.auth.signInWithPassword({
+  email,
+  password: cleanSurveyId  // Use Survey ID as password
+})
 
-  if (signInError) {
-    console.error('[AUTH] Sign-in error:', signInError)
-    return {
-      mode: 'error',
-      needsVerification: false,
-      message: 'Unable to sign in. Please try again.',
-      error: signInError.message
-    }
-  }
-
-  console.log('[AUTH] Returning user signed in successfully')
-  // ============================================
-
+if (signInError) {
+  console.error('[AUTH] Sign-in error:', signInError)
   return {
-    mode: 'existing',
+    mode: 'error',
     needsVerification: false,
-    message: 'Welcome back! Redirecting to your survey...'
+    message: 'Unable to sign in. Please try again.',
+    error: signInError.message
   }
+}
+
+console.log('[AUTH] Returning user signed in successfully')
+
+return {
+  mode: 'existing',
+  needsVerification: false,
+  message: 'Welcome back! Redirecting to your survey...'
+}
 }
 
     return {
