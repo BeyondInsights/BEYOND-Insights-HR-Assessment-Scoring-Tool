@@ -61,29 +61,45 @@ export async function authenticateUser(
         }
       }
 
-      if (authData.user) {
-        const { error: insertError } = await supabase
-          .from('assessments')
-          .insert({
-            user_id: authData.user.id,
-            email,
-            app_id: appId,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
+      iif (authData.user) {
+  const { error: insertError } = await supabase
+    .from('assessments')
+    .insert({
+      user_id: authData.user.id,
+      email,
+      app_id: appId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
 
-        if (insertError) {
-          console.error('[AUTH] Assessment insert error:', insertError)
-        }
+  if (insertError) {
+    console.error('[AUTH] Assessment insert error:', insertError)
+  }
 
-        return {
-          mode: 'new',
-          needsVerification: false,
-          message: 'Account created successfully!',
-          appId
-        }
-      }
-    }
+  // ============================================
+  // CRITICAL FIX: Sign them in immediately
+  // ============================================
+  console.log('[AUTH] Signing in new user...')
+  
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password: tempPassword
+  })
+
+  if (signInError) {
+    console.error('[AUTH] Auto sign-in error:', signInError)
+  } else {
+    console.log('[AUTH] Session established!')
+  }
+  // ============================================
+
+  return {
+    mode: 'new',
+    needsVerification: false,
+    message: 'Account created successfully!',
+    appId
+  }
+}
 
     // EXISTING USER - Survey ID provided
     if (surveyId) {
