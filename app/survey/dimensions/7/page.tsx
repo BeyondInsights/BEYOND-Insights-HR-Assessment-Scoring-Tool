@@ -35,6 +35,7 @@ export default function Dimension7Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   const [D7A_ITEMS] = useState(() => shuffleArray(D7A_ITEMS_BASE));
+  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track when resume sync is done
 
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -72,11 +73,36 @@ export default function Dimension7Page() {
     }
   }, [ans]);
 
+  // ===== RESUME PROGRESS LOGIC ===== ✅
   useEffect(() => {
-    if (step !== 1) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof window === 'undefined') return; // SSR safety
+    if (Object.keys(ans).length === 0) {
+      setResumeComplete(true);
+      return;
     }
-  }, [step]);
+
+    const gridAnswers = ans.d7a || {};
+    const answeredCount = Object.keys(gridAnswers).length;
+
+    // Case 1: Grid partially complete → Resume at first unanswered item
+    if (answeredCount > 0 && answeredCount < D7A_ITEMS.length) {
+      setStep(1);
+      const firstUnanswered = D7A_ITEMS.findIndex(item => !gridAnswers[item]);
+      setCurrentItemIndex(firstUnanswered !== -1 ? firstUnanswered : 0);
+    }
+    // Case 2: Grid complete → Skip to first incomplete follow-up
+    else if (answeredCount === D7A_ITEMS.length) {
+      // Follow-up logic varies by dimension
+    }
+    
+    setResumeComplete(true);
+  }, [ans, D7A_ITEMS, isMultiCountry]);
+  // ===== END RESUME PROGRESS LOGIC =====
+
+  // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step, currentItemIndex]);
 
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
@@ -323,7 +349,10 @@ export default function Dimension7Page() {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    Item {currentItemIndex + 1} of {D7A_ITEMS.length}
+                    {resumeComplete 
+                      ? `Item ${currentItemIndex + 1} of ${D7A_ITEMS.length}`
+                      : 'Loading position...'
+                    }
                   </span>
                   <div className="flex gap-1">
                     {D7A_ITEMS.map((item, idx) => (
