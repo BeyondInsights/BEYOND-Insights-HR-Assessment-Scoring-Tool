@@ -33,22 +33,28 @@ export default function EmployeeImpactPage() {
   const [ans, setAns] = useState({});
 
   // ===== RESUME PROGRESS LOGIC ===== ✅
+  // CRITICAL: Read from localStorage directly to determine resume point  
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (Object.keys(ans).length === 0) {
+    
+    const saved = localStorage.getItem("employee-impact-assessment_data");
+    if (!saved) {
       setResumeComplete(true);
       return;
     }
 
-    const completedFields = Object.keys(ans).filter(key => {
-      const val = ans[key];
-      if (Array.isArray(val)) return val.length > 0;
-      if (typeof val === 'string') return val.trim().length > 0;
-      return val != null;
-    }).length;
-
-    if (completedFields > 0) {
-      console.log('Resuming with', completedFields, 'fields');
+    try {
+      const data = JSON.parse(saved);
+      
+      // Determine which step based on what's completed
+      if (!data.ei1 || Object.keys(data.ei1 || {}).length === 0) {
+        setStep(1);
+      } else if (!data.ei2) {
+        setStep(2);
+      }
+      // Otherwise stays at current step
+    } catch (e) {
+      console.error('Error parsing saved data:', e);
     }
     
     setResumeComplete(true);

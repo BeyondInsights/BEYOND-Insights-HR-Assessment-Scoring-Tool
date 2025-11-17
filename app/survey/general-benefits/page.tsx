@@ -65,32 +65,55 @@ export default function GeneralBenefitsPage() {
  }
  }, []);
   // ===== RESUME PROGRESS LOGIC ===== ✅
+  // CRITICAL: Read from localStorage directly to determine resume point
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (Object.keys(ans).length === 0) {
+    
+    const saved = localStorage.getItem("general_benefits_data");
+    if (!saved) {
       setResumeComplete(true);
       return;
     }
 
-    // Determine which step to resume at based on completed data
-    if (!ans.cb1 || (Array.isArray(ans.cb1) && ans.cb1.length === 0)) {
-      setStep(1);
-    } else if (!ans.cb2b || (Array.isArray(ans.cb2b) && ans.cb2b.length === 0)) {
-      setStep(2);
-    } else if (!ans.cb3 || (Array.isArray(ans.cb3) && ans.cb3.length === 0)) {
-      setStep(3);
-    } else if (!ans.cb3a) {
-      setStep(4);
-    } else if (!ans.cb3b) {
-      setStep(5);
-    } else if (!ans.cb3c || (Array.isArray(ans.cb3c) && ans.cb3c.length === 0)) {
-      setStep(6);
-    } else if (!isUSAOnly && !ans.cb1a) {
-      setStep(7);
-    } else if (!ans.cb3d || (Array.isArray(ans.cb3d) && ans.cb3d.length === 0)) {
-      setStep(8);
+    try {
+      const data = JSON.parse(saved);
+      
+      // Also check if USA-only to properly calculate step
+      const firmographics = localStorage.getItem("firmographics_data");
+      let checkIsUSAOnly = false;
+      if (firmographics) {
+        const parsed = JSON.parse(firmographics);
+        const hqIsUSA = parsed.s9 && (
+          parsed.s9.toLowerCase().includes("usa") || 
+          parsed.s9.toLowerCase().includes("united states") ||
+          parsed.s9.toLowerCase().includes("u.s.")
+        );
+        const noOtherCountries = parsed.s9a === "No other countries - headquarters only";
+        checkIsUSAOnly = hqIsUSA && noOtherCountries;
+      }
+      
+      // Determine which step to resume at based on completed data
+      if (!data.cb1 || (Array.isArray(data.cb1) && data.cb1.length === 0)) {
+        setStep(1);
+      } else if (!data.cb2b || (Array.isArray(data.cb2b) && data.cb2b.length === 0)) {
+        setStep(2);
+      } else if (!data.cb3 || (Array.isArray(data.cb3) && data.cb3.length === 0)) {
+        setStep(3);
+      } else if (!data.cb3a) {
+        setStep(4);
+      } else if (!data.cb3b) {
+        setStep(5);
+      } else if (!data.cb3c || (Array.isArray(data.cb3c) && data.cb3c.length === 0)) {
+        setStep(6);
+      } else if (!checkIsUSAOnly && !data.cb1a) {
+        setStep(7);
+      } else if (!data.cb3d || (Array.isArray(data.cb3d) && data.cb3d.length === 0)) {
+        setStep(8);
+      }
+      // Otherwise stays at current step
+    } catch (e) {
+      console.error('Error parsing saved data:', e);
     }
-    // Otherwise stays at current step
     
     setResumeComplete(true);
   }, []);

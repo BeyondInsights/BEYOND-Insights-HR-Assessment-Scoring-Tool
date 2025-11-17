@@ -113,23 +113,30 @@ export default function CrossDimensionalPage() {
   }, [router]);
 
   // ===== RESUME PROGRESS LOGIC ===== ✅
+  // CRITICAL: Read from localStorage directly to determine resume point
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (Object.keys(ans).length === 0) {
+    
+    const saved = localStorage.getItem("cross_dimensional_data");
+    if (!saved) {
       setResumeComplete(true);
       return;
     }
 
-    // Resume logic: Check completed fields
-    const completedFields = Object.keys(ans).filter(key => {
-      const val = ans[key];
-      if (Array.isArray(val)) return val.length > 0;
-      if (typeof val === 'string') return val.trim().length > 0;
-      return val != null;
-    }).length;
-
-    if (completedFields > 0) {
-      console.log('Resuming with', completedFields, 'completed fields');
+    try {
+      const data = JSON.parse(saved);
+      
+      // Determine which step based on what's completed
+      if (!data.cd1a || (Array.isArray(data.cd1a) && data.cd1a.length < 3)) {
+        setStep(1);
+      } else if (!data.cd1b || (Array.isArray(data.cd1b) && data.cd1b.length < 3)) {
+        setStep(2);
+      } else if (!data.cd2 || (Array.isArray(data.cd2) && data.cd2.length === 0)) {
+        setStep(3);
+      }
+      // Otherwise stays at current step
+    } catch (e) {
+      console.error('Error parsing saved data:', e);
     }
     
     setResumeComplete(true);

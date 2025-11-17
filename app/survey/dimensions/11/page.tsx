@@ -78,30 +78,53 @@ export default function Dimension11Page() {
     }
   }, []);
 
-  // ===== RESUME PROGRESS LOGIC ===== ✅
+  // ===== RESUME PROGRESS LOGIC =====
+  // CRITICAL: Read from localStorage directly to determine resume point
   useEffect(() => {
-    if (typeof window === 'undefined') return; // SSR safety
-    if (Object.keys(ans).length === 0) {
+    if (typeof window === 'undefined') return;
+    
+    const saved = localStorage.getItem("dimension11_data");
+    if (!saved) {
       setResumeComplete(true);
       return;
     }
 
-    const gridAnswers = ans.d11a || {};
-    const answeredCount = Object.keys(gridAnswers).length;
-
-    // Case 1: Grid partially complete → Resume at first unanswered item
-    if (answeredCount > 0 && answeredCount < D11A_ITEMS.length) {
-      setStep(1);
-      const firstUnanswered = D11A_ITEMS.findIndex(item => !gridAnswers[item]);
-      setCurrentItemIndex(firstUnanswered !== -1 ? firstUnanswered : 0);
-    }
-    // Case 2: Grid complete → Skip to first incomplete follow-up
-    else if (answeredCount === D11A_ITEMS.length) {
-      // Follow-up logic varies by dimension
+    try {
+      const data = JSON.parse(saved);
+      
+      // Also check if multi-country from firmographics
+      const firmographics = localStorage.getItem("firmographics_data");
+      let checkIsMultiCountry = false;
+      if (firmographics) {
+        const parsed = JSON.parse(firmographics);
+        const notUSAOnly = parsed.s9a !== "No other countries - headquarters only";
+        checkIsMultiCountry = notUSAOnly;
+      }
+      
+      // Determine resume point based on grid completion
+      if (!data.d11a || Object.keys(data.d11a || {}).length === 0) {
+        setStep(1);
+        setCurrentItemIndex(0);
+      } else {
+        const gridItems = Object.keys(data.d11a || {});
+        const firstIncomplete = gridItems.findIndex(item => !data.d11a[item]);
+        
+        if (firstIncomplete !== -1) {
+          setStep(1);
+          setCurrentItemIndex(firstIncomplete);
+        } else if (!data.d11b || data.d11b.trim() === '') {
+          setStep(2);
+        } else if (checkIsMultiCountry && !data.d11aa) {
+          setStep(3);
+        }
+        // Otherwise stays at current step
+      }
+    } catch (e) {
+      console.error('Error parsing saved data:', e);
     }
     
-    setResumeComplete(true);
-  }, []);
+    setResumeComplete(true); // ✅ Mark resume as complete
+  }, []); // Empty array - runs once on mount
   // ===== END RESUME PROGRESS LOGIC =====
 
   // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)

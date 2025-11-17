@@ -73,41 +73,52 @@ export default function Dimension1Page() {
   }, []);
 
   // ===== RESUME PROGRESS LOGIC =====
-  // After data loads, calculate where to resume
+  // CRITICAL: Read from localStorage directly to determine resume point
   useEffect(() => {
-    if (Object.keys(ans).length === 0) {
-      setResumeComplete(true); // No saved data, ready to show
+    if (typeof window === 'undefined') return;
+    
+    const saved = localStorage.getItem("dimension1_data");
+    if (!saved) {
+      setResumeComplete(true);
       return;
     }
-    
-    const gridAnswers = ans.d1a || {};
-    const answeredCount = Object.keys(gridAnswers).length;
-    
-    // If some grid items answered but not all - find first unanswered
-    if (answeredCount > 0 && answeredCount < D1A_ITEMS.length && step === 0) {
-      setStep(1); // Go to grid
-      const firstUnanswered = D1A_ITEMS.findIndex(item => !gridAnswers[item]);
-      if (firstUnanswered !== -1) {
-        setCurrentItemIndex(firstUnanswered);
-      }
-    }
-    // If grid fully answered and still at intro, skip ahead
-    else if (answeredCount === D1A_ITEMS.length && step === 0) {
-      const hasAnyOffered = Object.values(gridAnswers).some(
-        (status) => status === "Currently offer"
-      );
+
+    try {
+      const data = JSON.parse(saved);
       
-      if (isMultiCountry && hasAnyOffered && !ans.d1aa) {
-        setStep(2); // Go to D1aa
-      } else if (!ans.d1b) {
-        setStep(3); // Go to D1.b
-      } else {
-        setStep(3); // Start at D1.b, next() will navigate from there
+      // Also check if multi-country from firmographics
+      const firmographics = localStorage.getItem("firmographics_data");
+      let checkIsMultiCountry = false;
+      if (firmographics) {
+        const parsed = JSON.parse(firmographics);
+        const notUSAOnly = parsed.s9a !== "No other countries - headquarters only";
+        checkIsMultiCountry = notUSAOnly;
       }
+      
+      // Determine resume point based on grid completion
+      if (!data.d1a || Object.keys(data.d1a || {}).length === 0) {
+        setStep(1);
+        setCurrentItemIndex(0);
+      } else {
+        const gridItems = Object.keys(data.d1a || {});
+        const firstIncomplete = gridItems.findIndex(item => !data.d1a[item]);
+        
+        if (firstIncomplete !== -1) {
+          setStep(1);
+          setCurrentItemIndex(firstIncomplete);
+        } else if (!data.d1b || data.d1b.trim() === '') {
+          setStep(2);
+        } else if (checkIsMultiCountry && !data.d1aa) {
+          setStep(3);
+        }
+        // Otherwise stays at current step
+      }
+    } catch (e) {
+      console.error('Error parsing saved data:', e);
     }
     
-    setResumeComplete(true); // Resume logic done, safe to show UI
-  }, []); // Run when ans or isMultiCountry changes
+    setResumeComplete(true); // ✅ Mark resume as complete
+  }, []); // Empty array - runs once on mount
   // ===== END RESUME PROGRESS LOGIC =====
 
   // Save answers when they change

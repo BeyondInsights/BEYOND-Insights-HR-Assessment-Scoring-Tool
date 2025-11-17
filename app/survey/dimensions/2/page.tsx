@@ -84,39 +84,53 @@ export default function Dimension2Page() {
     }
   }, []);
 
-  // ===== RESUME PROGRESS LOGIC ===== ✅
+  // ===== RESUME PROGRESS LOGIC =====
+  // CRITICAL: Read from localStorage directly to determine resume point
   useEffect(() => {
-    if (typeof window === 'undefined') return; // SSR safety
-    if (Object.keys(ans).length === 0) {
-      // No saved data - stay at intro
+    if (typeof window === 'undefined') return;
+    
+    const saved = localStorage.getItem("dimension2_data");
+    if (!saved) {
       setResumeComplete(true);
       return;
     }
 
-    const gridAnswers = ans.d2a || {};
-    const answeredCount = Object.keys(gridAnswers).length;
-
-    // Case 1: Grid partially complete → Resume at first unanswered item
-    if (answeredCount > 0 && answeredCount < D2A_ITEMS.length) {
-      setStep(1); // Go to grid
-      const firstUnanswered = D2A_ITEMS.findIndex(item => !gridAnswers[item]);
-      setCurrentItemIndex(firstUnanswered !== -1 ? firstUnanswered : 0);
-    } 
-    // Case 2: Grid complete → Skip to first incomplete follow-up
-    else if (answeredCount === D2A_ITEMS.length) {
-      const hasOffered = Object.values(gridAnswers).some(s => s === "Currently offer");
-      const needsD2aa = isMultiCountry && hasOffered;
+    try {
+      const data = JSON.parse(saved);
       
-      if (needsD2aa && !ans.D2aa) {
-        setStep(2); // Go to D2aa
-      } else if (!ans.d2b && !ans.d2b_none) {
-        setStep(needsD2aa ? 3 : 2); // Go to D2.b
+      // Also check if multi-country from firmographics
+      const firmographics = localStorage.getItem("firmographics_data");
+      let checkIsMultiCountry = false;
+      if (firmographics) {
+        const parsed = JSON.parse(firmographics);
+        const notUSAOnly = parsed.s9a !== "No other countries - headquarters only";
+        checkIsMultiCountry = notUSAOnly;
       }
-      // Otherwise stay at intro (all complete)
+      
+      // Determine resume point based on grid completion
+      if (!data.d2a || Object.keys(data.d2a || {}).length === 0) {
+        setStep(1);
+        setCurrentItemIndex(0);
+      } else {
+        const gridItems = Object.keys(data.d2a || {});
+        const firstIncomplete = gridItems.findIndex(item => !data.d2a[item]);
+        
+        if (firstIncomplete !== -1) {
+          setStep(1);
+          setCurrentItemIndex(firstIncomplete);
+        } else if (!data.d2b || data.d2b.trim() === '') {
+          setStep(2);
+        } else if (checkIsMultiCountry && !data.d2aa) {
+          setStep(3);
+        }
+        // Otherwise stays at current step
+      }
+    } catch (e) {
+      console.error('Error parsing saved data:', e);
     }
     
     setResumeComplete(true); // ✅ Mark resume as complete
-  }, []);
+  }, []); // Empty array - runs once on mount
   // ===== END RESUME PROGRESS LOGIC =====
 
   // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)

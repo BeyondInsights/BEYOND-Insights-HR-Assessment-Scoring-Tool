@@ -72,26 +72,53 @@ export default function Dimension12Page() {
     }
   }, []);
 
-  // ===== RESUME PROGRESS LOGIC ===== ✅
+  // ===== RESUME PROGRESS LOGIC =====
+  // CRITICAL: Read from localStorage directly to determine resume point
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (Object.keys(ans).length === 0) {
+    
+    const saved = localStorage.getItem("dimension12_data");
+    if (!saved) {
       setResumeComplete(true);
       return;
     }
 
-    const gridAnswers = ans.d12a || {};
-    const answeredCount = Object.keys(gridAnswers).length;
-
-    // Case 1: Grid partially complete → Resume at first unanswered item
-    if (answeredCount > 0 && answeredCount < D12A_ITEMS.length) {
-      setStep(1);
-      const firstUnanswered = D12A_ITEMS.findIndex(item => !gridAnswers[item]);
-      setCurrentItemIndex(firstUnanswered !== -1 ? firstUnanswered : 0);
+    try {
+      const data = JSON.parse(saved);
+      
+      // Also check if multi-country from firmographics
+      const firmographics = localStorage.getItem("firmographics_data");
+      let checkIsMultiCountry = false;
+      if (firmographics) {
+        const parsed = JSON.parse(firmographics);
+        const notUSAOnly = parsed.s9a !== "No other countries - headquarters only";
+        checkIsMultiCountry = notUSAOnly;
+      }
+      
+      // Determine resume point based on grid completion
+      if (!data.d12a || Object.keys(data.d12a || {}).length === 0) {
+        setStep(1);
+        setCurrentItemIndex(0);
+      } else {
+        const gridItems = Object.keys(data.d12a || {});
+        const firstIncomplete = gridItems.findIndex(item => !data.d12a[item]);
+        
+        if (firstIncomplete !== -1) {
+          setStep(1);
+          setCurrentItemIndex(firstIncomplete);
+        } else if (!data.d12b || data.d12b.trim() === '') {
+          setStep(2);
+        } else if (checkIsMultiCountry && !data.d12aa) {
+          setStep(3);
+        }
+        // Otherwise stays at current step
+      }
+    } catch (e) {
+      console.error('Error parsing saved data:', e);
     }
     
-    setResumeComplete(true);
-  }, []);
+    setResumeComplete(true); // ✅ Mark resume as complete
+  }, []); // Empty array - runs once on mount
   // ===== END RESUME PROGRESS LOGIC =====
 
   useEffect(() => {

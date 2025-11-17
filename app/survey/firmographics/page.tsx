@@ -47,40 +47,50 @@ export default function FirmographicsPage() {
   }, [ans]);
 
   // ===== RESUME PROGRESS LOGIC ===== ✅
+  // CRITICAL: Read from localStorage directly to determine resume point
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (Object.keys(ans).length === 0) {
+    
+    const saved = localStorage.getItem("firmographics_data");
+    if (!saved) {
       setResumeComplete(true);
       return;
     }
 
-    // Resume at first incomplete step
-    // Check each required field in order
-    if (!ans.s1 || !ans.s2) {
-      setStep(1);
-    } else if (!ans.s4a || !ans.s4b) {
-      setStep(2);
-    } else if (!ans.s5) {
-      setStep(3);
-    } else if (!ans.s6 || (Array.isArray(ans.s6) && ans.s6.length === 0)) {
-      setStep(4);
-    } else if (!ans.s7) {
-      setStep(5);
-    } else if (!ans.s8) {
-      setStep(6);
-    } else if (!ans.s9) {
-      setStep(7);
-    } else if (!ans.s9a) {
-      setStep(8);
-    } else if (!ans.c2) {
-      setStep(9);
-    } else if (!ans.c4) {
-      setStep(10);
+    try {
+      const data = JSON.parse(saved);
+      
+      // Check saved data to determine which step to resume at
+      if (!data.s1 || !data.s2) {
+        setStep(1);
+      } else if (!data.s4a || !data.s4b) {
+        setStep(2);
+      } else if (!data.s5) {
+        setStep(3);
+      } else if (!data.s6 || (Array.isArray(data.s6) && data.s6.length === 0)) {
+        setStep(4);
+      } else if (!data.s7) {
+        setStep(5);
+      } else if (!data.s8) {
+        setStep(6);
+      } else if (!data.s9 || !data.s9a) {
+        setStep(7);
+      } else if (!data.c2) {
+        setStep(8);
+      } else if (!data.c3) {
+        setStep(9);
+      } else if (data.c3 && data.c3 !== "All employees (100%)" && (!data.c4 || data.c4.length === 0)) {
+        setStep(9);
+      } else if (!data.c5 || !data.c6) {
+        setStep(10);
+      }
+      // If all complete, stay on step 10 (completion screen)
+    } catch (e) {
+      console.error('Error parsing saved data:', e);
     }
-    // Otherwise stays at current step
     
     setResumeComplete(true);
-  }, []);
+  }, []); // Empty array - runs once on mount
   // ===== END RESUME PROGRESS LOGIC =====
 
 
