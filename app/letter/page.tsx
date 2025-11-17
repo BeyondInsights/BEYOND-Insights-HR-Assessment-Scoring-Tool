@@ -21,24 +21,15 @@ export default function LetterPage() {
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       
       if (isFoundingPartner(surveyId)) {
-        console.log('Founding Partner - skipping Supabase check on letter page')
+        console.log('Founding Partner - skipping auth check on letter page')
         return
       }
       // ============================================
       
-      // ============================================
-      // CHECK FOR NEW USER BYPASS
-      // ============================================
-      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
-      
-      if (newUserBypass) {
-        console.log('New user bypass active - skipping auth check on letter page')
-        return
-      }
-      // ============================================
-      
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      // For regular users, check if they came from login
+      const userAuthenticated = localStorage.getItem('user_authenticated') === 'true'
+      if (!userAuthenticated) {
+        console.log('No authentication flag - redirecting to login')
         router.push('/login')
       }
     }
@@ -63,15 +54,6 @@ export default function LetterPage() {
         return
       }
       // ============================================
-      
-      // Check for new user bypass - skip Supabase update
-      const newUserBypass = localStorage.getItem('new_user_bypass') === 'true'
-      
-      if (newUserBypass) {
-        console.log('New user - proceeding to authorization')
-        router.push('/authorization')
-        return
-      }
       
       // REGULAR USERS - Update Supabase
       const { data: { user } } = await supabase.auth.getUser()
@@ -117,7 +99,7 @@ export default function LetterPage() {
               </p>
 
               <p className="text-base leading-relaxed mb-6 text-gray-900">
-                By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Initiative</strong> — a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
+                By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Initiative</strong> â€” a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
               </p>
               
               <p className="text-base leading-relaxed mb-6 text-gray-900">
@@ -183,7 +165,7 @@ export default function LetterPage() {
                   {loading ? (
                     'Processing...'
                   ) : ready ? (
-                    'Continue to Survey →'
+                    'Continue to Survey â†’'
                   ) : (
                     'Please acknowledge to continue'
                   )}
