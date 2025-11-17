@@ -8,6 +8,7 @@ export default function FirmographicsPage() {
   console.log("FIRMOGRAPHICS PAGE LOADED");
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track resume sync
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
 
@@ -44,6 +45,44 @@ export default function FirmographicsPage() {
       console.log("Firmographics auto-saved:", ans);
     }
   }, [ans]);
+
+  // ===== RESUME PROGRESS LOGIC ===== ✅
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (Object.keys(ans).length === 0) {
+      setResumeComplete(true);
+      return;
+    }
+
+    // Resume at first incomplete step
+    // Check each required field in order
+    if (!ans.s1 || !ans.s2) {
+      setStep(1);
+    } else if (!ans.s4a || !ans.s4b) {
+      setStep(2);
+    } else if (!ans.s5) {
+      setStep(3);
+    } else if (!ans.s6 || (Array.isArray(ans.s6) && ans.s6.length === 0)) {
+      setStep(4);
+    } else if (!ans.s7) {
+      setStep(5);
+    } else if (!ans.s8) {
+      setStep(6);
+    } else if (!ans.s9) {
+      setStep(7);
+    } else if (!ans.s9a) {
+      setStep(8);
+    } else if (!ans.c2) {
+      setStep(9);
+    } else if (!ans.c4) {
+      setStep(10);
+    }
+    // Otherwise stays at current step
+    
+    setResumeComplete(true);
+  }, [ans]);
+  // ===== END RESUME PROGRESS LOGIC =====
+
 
   // Set field helper
   const setField = (key: string, value: any) => {
