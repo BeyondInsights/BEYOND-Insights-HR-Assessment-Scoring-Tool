@@ -23,24 +23,13 @@ export async function authenticateUser(
       }
     }
 
-    // Check for bypass flags (new user just created)
-    const bypassAuth = localStorage.getItem('bypass_supabase_auth') === 'true'
-    const userAuthenticated = localStorage.getItem('user_authenticated') === 'true'
-    
-    if (bypassAuth && userAuthenticated) {
-      console.log('[AUTH] Bypass flags detected - allowing through')
-      return {
-        mode: 'new',
-        needsVerification: false,
-        message: 'Account created successfully!'
-      }
-    }
-
     // NEW USER - No survey ID provided
     if (!surveyId) {
       const appId = generateAppId()
-      const tempPassword = Math.random().toString(36).slice(-12)
+      const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!'
 
+      console.log('[AUTH] Creating new user account...')
+      
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password: tempPassword,
@@ -62,44 +51,41 @@ export async function authenticateUser(
       }
 
       if (authData.user) {
-  const { error: insertError } = await supabase
-    .from('assessments')
-    .insert({
-      user_id: authData.user.id,
-      email,
-      app_id: appId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
+        const { error: insertError } = await supabase
+          .from('assessments')
+          .insert({
+            user_id: authData.user.id,
+            email,
+            app_id: appId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
 
-  if (insertError) {
-    console.error('[AUTH] Assessment insert error:', insertError)
-  }
+        if (insertError) {
+          console.error('[AUTH] Assessment insert error:', insertError)
+        }
 
-  // ============================================
-  // CRITICAL FIX: Sign them in immediately
-  // ============================================
-  console.log('[AUTH] Signing in new user...')
-  
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email,
-    password: tempPassword
-  })
+        console.log('[AUTH] Signing in new user to establish session...')
+        
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: tempPassword
+        })
 
-  if (signInError) {
-    console.error('[AUTH] Auto sign-in error:', signInError)
-  } else {
-    console.log('[AUTH] Session established!')
-  }
-  // ============================================
+        if (signInError) {
+          console.error('[AUTH] Auto sign-in error:', signInError)
+        } else {
+          console.log('[AUTH] Session established successfully!')
+        }
 
-  return {
-    mode: 'new',
-    needsVerification: false,
-    message: 'Account created successfully!',
-    appId
-  }
-}
+        return {
+          mode: 'new',
+          needsVerification: false,
+          message: 'Account created successfully!',
+          appId
+        }
+      }
+    }
 
     // EXISTING USER - Survey ID provided
     if (surveyId) {
@@ -141,7 +127,7 @@ export async function authenticateUser(
         }
       }
 
-      const tempPassword = Math.random().toString(36).slice(-12)
+      const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!'
       
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -169,6 +155,11 @@ export async function authenticateUser(
             .from('assessments')
             .update({ user_id: authData.user.id })
             .eq('app_id', cleanSurveyId)
+          
+          await supabase.auth.signInWithPassword({
+            email,
+            password: tempPassword
+          })
         }
       }
 
@@ -221,16 +212,6 @@ export async function getUserAssessment() {
 }
 
 export async function isAuthenticated(): Promise<boolean> {
-  // Check for bypass flags first (new user)
-  const bypassAuth = localStorage.getItem('bypass_supabase_auth') === 'true'
-  const userAuthenticated = localStorage.getItem('user_authenticated') === 'true'
-  
-  if (bypassAuth && userAuthenticated) {
-    console.log('[AUTH] Bypass authentication - new user')
-    return true
-  }
-
-  // Check Supabase auth
   const { data: { user } } = await supabase.auth.getUser()
   return !!user
 }
