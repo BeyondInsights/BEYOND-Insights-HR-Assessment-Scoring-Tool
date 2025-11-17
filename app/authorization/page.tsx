@@ -2,7 +2,6 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { isAuthenticated, getUserAssessment } from '@/lib/supabase/auth'
-import { isFoundingPartner } from '@/lib/founding-partners'
 import { supabase } from '@/lib/supabase/client'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
@@ -73,38 +72,22 @@ function AuthorizationContent() {
   useEffect(() => {
     const checkAuth = async () => {
       // ============================================
-      // FOUNDING PARTNER CHECK - SKIP SUPABASE
-      // ============================================
-      const surveyId = localStorage.getItem('survey_id') || ''
-      const { isFoundingPartner } = await import('@/lib/founding-partners')
-      
-      if (isFoundingPartner(surveyId)) {
-        console.log('Founding Partner - skipping Supabase auth')
-        localStorage.setItem('auth_completed', 'true')
-        setLoading(false)
-        return
-      }
-      // ============================================
-      
-      // ============================================
       // NEW USER BYPASS - Just created account
       // ============================================
       const justCreated = localStorage.getItem('new_user_just_created') === 'true'
-      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
       
-      if (justCreated || hasAuthFlag) {
-        console.log('New user or authenticated - bypassing auth check')
+      if (justCreated) {
+        console.log('New user just created - bypassing auth check')
         localStorage.removeItem('new_user_just_created')
         setLoading(false)
         return
       }
       // ============================================
       
-      // Check if user is authenticated with Supabase (ONLY for returning users)
+      // Check if user is authenticated with Supabase
       const authenticated = await isAuthenticated()
       
       if (!authenticated) {
-        console.log('Not authenticated - redirecting to login')
         const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
         router.push(`/${redirectParam}`)
         return
@@ -238,51 +221,14 @@ function AuthorizationContent() {
       localStorage.setItem('auth_completed', 'true')
       localStorage.setItem('last_user_email', currentEmail || '')
 
-      // ============================================
-      // CHECK IF FOUNDING PARTNER
-      // ============================================
-      const surveyId = localStorage.getItem('survey_id') || ''
-      const { isFoundingPartner } = await import('@/lib/founding-partners')
-      
-      if (isFoundingPartner(surveyId)) {
-        console.log('Founding Partner - going straight to dashboard')
-        router.push('/dashboard')
-        return
-      }
-      // ============================================
-
-      // ============================================
-      // CHECK FOR NEW USER WITH BYPASS FLAGS
-      // ============================================
-      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
-      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
-      
-      if (hasAuthFlag || justCreated) {
-        console.log('New user with bypass - going to payment')
-        // Clear the just created flag now
-        localStorage.removeItem('new_user_just_created')
-        router.push('/payment')
-        return
-      }
-      // ============================================
-
-      // REGULAR USERS - Save to Supabase and check payment
+      // Save to Supabase and check payment OR founding partner status
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
-          // No Supabase user - check if they have bypass flags
-          const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
-          if (hasAuthFlag) {
-            console.log('No Supabase user but has auth flag - proceeding to payment')
-            router.push('/payment')
-          } else {
-            console.log('No Supabase user and no bypass - redirecting to login')
-            router.push('/')
-          }
+          router.push('/')
           return
         }
 
-        // BUILD COMPLETE DATA OBJECT WITH ALL ANSWERS
         const authorizationData = {
           companyName: companyInfo.companyName,
           firstName: companyInfo.firstName,
@@ -293,24 +239,15 @@ function AuthorizationContent() {
           other
         }
 
-        console.log('💾 Saving authorization data to Supabase:', authorizationData)
-
-        // SAVE BOTH DATA AND FLAG
         const { error } = await supabase
           .from('assessments')
           .update({
             company_name: companyInfo.companyName,
-            firmographics_data: authorizationData,  // ✅ ACTUAL ANSWERS
-            auth_completed: true,                    // ✅ COMPLETION FLAG
-            firmographics_complete: true,            // ✅ SECTION FLAG
+            firmographics_data: authorizationData,
+            auth_completed: true,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id)
-
-        console.log('✅ Save result:', error ? 'ERROR' : 'SUCCESS')
-        if (error) {
-          console.error('❌ Supabase error:', error)
-        }
 
         if (error) {
           console.error('Error saving:', error)
@@ -318,15 +255,16 @@ function AuthorizationContent() {
           return
         }
         
-        // Check payment status from BOTH Supabase AND localStorage
+        // ✅ FIXED: Check payment OR founding partner status
         const assessment = await getUserAssessment()
-        const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
+        const isFP = assessment?.is_founding_partner || false
+        const paymentComplete = assessment?.payment_completed || false
 
-        if (assessment?.payment_completed || localPaymentComplete) {
-          console.log('Payment confirmed - redirecting to dashboard')
+        if (paymentComplete || isFP) {
+          console.log('Payment complete or Founding Partner - redirecting to dashboard')
           router.push('/dashboard')
         } else {
-          console.log('Payment not found - redirecting to payment page')
+          console.log('Payment required - redirecting to payment page')
           router.push('/payment')
         }
       } catch (error) {
