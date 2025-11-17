@@ -188,7 +188,7 @@ export default function EmployeeImpactPage() {
       setErrors("");
     } else {
       // Mark as complete and navigate to dashboard
-      localStorage.setItem("employee-impact-assessment_complete", "true");
+      localStorage.setItem("employee_impact_complete", "true");  // ✅ CORRECT KEY
       localStorage.setItem("employee_impact_data", JSON.stringify(ans));
       router.push("/dashboard");
     }
