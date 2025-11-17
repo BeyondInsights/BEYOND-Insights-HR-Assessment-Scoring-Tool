@@ -68,24 +68,12 @@ export default function LoginPage() {
     // ============================================
     // CHECK FOR FOUNDING PARTNER ID FIRST
     // ============================================
-    if (!isNewUser && isFoundingPartner(surveyId.trim())) {
+    const isFP = !isNewUser && isFoundingPartner(surveyId.trim())
+    if (isFP) {
       console.log('Founding Partner ID detected:', surveyId.trim())
-      
-      localStorage.setItem('login_email', email)
-      localStorage.setItem('auth_email', email)
       localStorage.setItem('survey_id', surveyId.trim())
-      localStorage.setItem('user_authenticated', 'true')
-      localStorage.setItem('last_user_email', email)
-      localStorage.setItem('login_Survey_id', surveyId.trim())
-      
-      setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
-      setTimeout(() => {
-        router.push('/letter')
-      }, 1500)
-      setLoading(false)
-      return
+      localStorage.setItem('is_founding_partner', 'true')
     }
-    // ============================================
 
     try {
       const result = await authenticateUser(
