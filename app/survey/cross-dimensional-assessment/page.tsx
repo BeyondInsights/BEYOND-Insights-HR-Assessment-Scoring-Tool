@@ -62,6 +62,7 @@ const DIMENSION_DEFINITIONS: Record<string, string> = {
 export default function CrossDimensionalPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
+  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track resume sync
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
   const [allDimensionsComplete, setAllDimensionsComplete] = useState(false);
@@ -110,6 +111,31 @@ export default function CrossDimensionalPage() {
       }
     }
   }, [router]);
+
+  // ===== RESUME PROGRESS LOGIC ===== ✅
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (Object.keys(ans).length === 0) {
+      setResumeComplete(true);
+      return;
+    }
+
+    // Resume logic: Check completed fields
+    const completedFields = Object.keys(ans).filter(key => {
+      const val = ans[key];
+      if (Array.isArray(val)) return val.length > 0;
+      if (typeof val === 'string') return val.trim().length > 0;
+      return val != null;
+    }).length;
+
+    if (completedFields > 0) {
+      console.log('Resuming with', completedFields, 'completed fields');
+    }
+    
+    setResumeComplete(true);
+  }, [ans]);
+  // ===== END RESUME PROGRESS LOGIC =====
+
 
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
