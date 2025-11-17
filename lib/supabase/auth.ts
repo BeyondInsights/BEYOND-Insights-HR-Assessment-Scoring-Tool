@@ -150,7 +150,19 @@ async function generateUniqueAppId(): Promise<string> {
   throw new Error('Failed to generate unique app_id')
 }
 
+// ✅ FIXED - Now checks bypass flags first
 export async function isAuthenticated(): Promise<boolean> {
+  // Check bypass flags first (for new users and Founding Partners)
+  if (typeof window !== 'undefined') {
+    const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
+    const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+    if (hasAuthFlag || justCreated) {
+      console.log('✅ Authenticated via bypass flag')
+      return true
+    }
+  }
+  
+  // Then check Supabase session
   const { data: { session } } = await supabase.auth.getSession()
   return !!session
 }
@@ -162,6 +174,11 @@ export async function getCurrentUser() {
 
 export async function signOut() {
   await supabase.auth.signOut()
+  // Clear bypass flags on sign out
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('user_authenticated')
+    localStorage.removeItem('new_user_just_created')
+  }
 }
 
 export async function getUserAssessment() {
