@@ -146,7 +146,10 @@ export default function LoginPage() {
   }
 
   const handleProceedToSurvey = () => {
+    // Keep all authentication flags set for new user
     localStorage.setItem('user_authenticated', 'true')
+    localStorage.setItem('new_user_just_created', 'true')  // Keep this flag
+    console.log('🚀 New user proceeding to survey')
     router.push('/letter')
   }
     
