@@ -122,6 +122,7 @@ export default function LoginPage() {
         if (isFP) {
           assessmentData.is_founding_partner = true
           assessmentData.payment_completed = true
+          assessmentData.payment_method = 'Founding Partner - Fee Waived'  // ← ADD THIS
           console.log('[FOUNDING PARTNER] Setting FP flags in database')
         }
 
@@ -192,12 +193,13 @@ export default function LoginPage() {
     }
     
     await supabase.from('assessments').insert([{
-      user_id: newAuth.user.id,
-      app_id: surveyId.trim(),
-      email: currentEmail,
-      is_founding_partner: true,
-      payment_completed: true,
-    }])
+  user_id: newAuth.user.id,
+  app_id: surveyId.trim(),
+  email: currentEmail,
+  is_founding_partner: true,
+  payment_completed: true,
+  payment_method: 'Founding Partner - Fee Waived',  // ← ADD THIS
+}])
     
     localStorage.setItem('login_email', email)
     localStorage.setItem('auth_email', email)
