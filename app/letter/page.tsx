@@ -66,7 +66,20 @@ export default function LetterPage() {
       }
       // ============================================
       
-      // REGULAR USERS - Update Supabase
+      // ============================================
+      // CHECK FOR NEW USER WITH BYPASS FLAGS
+      // ============================================
+      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
+      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+      
+      if (hasAuthFlag || justCreated) {
+        console.log('New user with bypass - proceeding to authorization')
+        router.push('/authorization')
+        return
+      }
+      // ============================================
+      
+      // REGULAR RETURNING USERS - Update Supabase
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {
@@ -76,9 +89,18 @@ export default function LetterPage() {
           .eq('user_id', user.id)
         
         router.push('/authorization')
+      } else {
+        // No user and no bypass flags - redirect to login
+        console.log('No user found - redirecting to login')
+        router.push('/')
       }
     } catch (error) {
       console.error('Error updating letter status:', error)
+      // On error, still try to proceed if they have auth flags
+      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
+      if (hasAuthFlag) {
+        router.push('/authorization')
+      }
     } finally {
       setLoading(false)
     }
