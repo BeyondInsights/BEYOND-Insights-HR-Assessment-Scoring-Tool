@@ -99,12 +99,9 @@ export default function LoginPage() {
         // CLEAR OLD DATA FOR NEW USERS
         // ============================================
         if (result.mode === 'new') {
-          console.log('New user account - clearing any old localStorage data')
-          const emailToKeep = currentEmail
-          localStorage.clear()
-          localStorage.setItem('auth_email', emailToKeep)
-          localStorage.setItem('login_email', email)
-        }
+  console.log('New user account created')
+  // DON'T clear localStorage - it contains the Supabase session!
+}
         // ============================================
         
         // Store email in localStorage
