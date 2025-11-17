@@ -55,19 +55,27 @@ export default function LetterPage() {
       }
       // ============================================
       
-      // REGULAR USERS - Update Supabase
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user) {
-        await supabase
-          .from('assessments')
-          .update({ letter_viewed: true })
-          .eq('user_id', user.id)
+      // REGULAR USERS - Try to save to Supabase (but don't block if it fails)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
         
-        router.push('/authorization')
+        if (user) {
+          await supabase
+            .from('assessments')
+            .update({ letter_viewed: true })
+            .eq('user_id', user.id)
+        }
+      } catch (error) {
+        console.error('Error updating letter status:', error)
+        // Continue anyway - don't block user flow
       }
+      
+      // Always proceed to authorization
+      router.push('/authorization')
     } catch (error) {
-      console.error('Error updating letter status:', error)
+      console.error('Error:', error)
+      // Still proceed
+      router.push('/authorization')
     } finally {
       setLoading(false)
     }
