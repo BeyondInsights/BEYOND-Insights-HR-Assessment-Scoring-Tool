@@ -117,32 +117,23 @@ export default function LoginPage() {
           localStorage.setItem('login_Survey_id', surveyId)
         }
         
-        // For existing/returning users - ALWAYS go to dashboard
+        // For existing/returning users - ALWAYS GO TO DASHBOARD
         if (result.mode === 'existing' && !result.needsVerification) {
-          setSuccessMessage(result.message)
-          setTimeout(() => {
-            router.push('/dashboard')
-          }, 1000)
-        } else if (result.mode === 'new') {
-          // Check if actually returning user with existing data
-          const hasExistingData = localStorage.getItem('auth_completed') === 'true'
-          
-          if (!isNewUser && hasExistingData) {
-            // Returning user but Supabase account was deleted - send to dashboard
-            console.log('Returning user with existing localStorage data - going to dashboard')
-            setSuccessMessage('Welcome back! Redirecting...')
+          const user = await getCurrentUser()
+          if (user) {
+            setSuccessMessage(result.message)
             setTimeout(() => {
               router.push('/dashboard')
             }, 1000)
-          } else {
-            // Actually a new user - show App ID and set bypass flag
-            setSuccessMessage('Account created successfully!')
-            if (result.appId) {
-              setGeneratedAppId(result.appId)
-              setShowAppId(true)
-              localStorage.setItem('login_Survey_id', result.appId)
-              localStorage.setItem('new_user_bypass', 'true')
-            }
+          }
+        } else if (result.mode === 'new') {
+          // New user - show App ID and set bypass flag
+          setSuccessMessage('Account created successfully!')
+          if (result.appId) {
+            setGeneratedAppId(result.appId)
+            setShowAppId(true)
+            localStorage.setItem('login_Survey_id', result.appId)
+            localStorage.setItem('new_user_just_created', 'true')
           }
         }
       }
@@ -224,7 +215,7 @@ export default function LoginPage() {
                       onClick={handleProceedToSurvey}
                       className="w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg transform hover:scale-105"
                     >
-                      Begin Survey Now
+                      Begin Survey Now →
                     </button>
                   </div>
                 </div>
@@ -425,7 +416,7 @@ export default function LoginPage() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    Find My Survey ID
+                    Find My Survey ID →
                   </button>
                 </div>
               </>
