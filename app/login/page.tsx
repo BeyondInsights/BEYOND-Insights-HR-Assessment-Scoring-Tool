@@ -166,29 +166,55 @@ export default function LoginPage() {
       // ============================================
       // HANDLE RETURNING USERS (including RETURNING Founding Partners)
       // ============================================
-      console.log('[RETURNING USER] Attempting to authenticate...')
-      
-      // For Founding Partners, use Survey ID as password
-      // For regular users, use their Survey ID (which was their password)
-      const passwordToUse = surveyId.trim().replace(/-/g, '')
-      
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: currentEmail,
-        password: passwordToUse,
-      })
+     // RETURNING USERS
+  console.log('[RETURNING USER] Attempting to authenticate...')
+  
+  const passwordToUse = surveyId.trim().replace(/-/g, '')
+  
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    email: currentEmail,
+    password: passwordToUse,
+  })
+  
+  // If auth failed and it's a Founding Partner, create account now
+  if (signInError && isFP) {
+    console.log('[FP] No account - creating now')
+    
+    const { data: newAuth, error: signUpError } = await supabase.auth.signUp({
+      email: currentEmail,
+      password: passwordToUse,
+    })
+    
+    if (signUpError || !newAuth.user) {
+      setErrors('Failed to create Founding Partner account')
+      setLoading(false)
+      return
+    }
+    
+    await supabase.from('assessments').insert([{
+      user_id: newAuth.user.id,
+      app_id: surveyId.trim(),
+      email: currentEmail,
+      is_founding_partner: true,
+      payment_completed: true,
+    }])
+    
+    localStorage.setItem('login_email', email)
+    localStorage.setItem('auth_email', email)
+    localStorage.setItem('user_authenticated', 'true')
+    localStorage.setItem('survey_id', surveyId.trim())
+    
+    setSuccessMessage('✅ Founding Partner verified! Redirecting...')
+    setTimeout(() => router.push('/letter'), 1500)
+    setLoading(false)
+    return
+  }
 
-      if (signInError) {
-        console.error('[AUTH] Sign-in failed:', signInError)
-        setErrors('Invalid email or Survey ID. Please check your credentials.')
-        setLoading(false)
-        return
-      }
-
-      if (!signInData.user) {
-        setErrors('Sign-in failed - no user returned')
-        setLoading(false)
-        return
-      }
+if (signInError) {
+  setErrors('Invalid email or Survey ID')
+  setLoading(false)
+  return
+}
 
       console.log('[RETURNING USER] Successfully authenticated:', signInData.user.id)
 
