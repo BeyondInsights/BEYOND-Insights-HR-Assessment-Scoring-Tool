@@ -80,7 +80,7 @@ export default function EmployeeImpactPage() {
 
   // Load saved data on mount
   useEffect(() => {
-    const saved = localStorage.getItem("employee-impact-assessment_data");
+    const saved = localStorage.getItem("employee_impact_data");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -94,7 +94,7 @@ export default function EmployeeImpactPage() {
   // Save data whenever answers change
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("employee-impact-assessment_data", JSON.stringify(ans));
+      localStorage.setItem("employee_impact_data", JSON.stringify(ans));
     }
   }, [ans]);
 
@@ -189,7 +189,7 @@ export default function EmployeeImpactPage() {
     } else {
       // Mark as complete and navigate to dashboard
       localStorage.setItem("employee-impact-assessment_complete", "true");
-      localStorage.setItem("employee-impact-assessment_data", JSON.stringify(ans));
+      localStorage.setItem("employee_impact_data", JSON.stringify(ans));
       router.push("/dashboard");
     }
   };
