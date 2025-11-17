@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic'
 import { Lock, CheckCircle, CreditCard, Award } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { isFoundingPartner, getFoundingPartnerMessage } from '@/lib/founding-partners'
+import { calculateDimensionProgress } from '@/lib/dimension-progress-helper'
 
 const ProgressCircle = dynamic(() => import('@/components/ProgressCircle'), {
   ssr: false
@@ -75,14 +76,7 @@ export default function DashboardPage() {
         
         const dimProgress = [];
         for (let i = 1; i <= 13; i++) {
-          const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
-          const complete = localStorage.getItem(`dimension${i}_complete`) === 'true';
-          if (complete) {
-            dimProgress.push(100);
-          } else {
-            const keys = Object.keys(dimData).length;
-            dimProgress.push(keys === 0 ? 0 : Math.min(95, Math.round((keys / 25) * 100)));
-          }
+          dimProgress.push(calculateDimensionProgress(i));
         }
         setDimensionProgress(dimProgress);
         
