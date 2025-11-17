@@ -126,10 +126,10 @@ export default function DashboardPage() {
           current: curProg
         });
         
-        const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}');
+        const empImpact = JSON.parse(localStorage.getItem('employee_impact_data') || '{}');
         const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}');
         
-        const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true';
+        const empImpactComplete = localStorage.getItem('employee_impact_complete') === 'true';
         const crossDimComplete = localStorage.getItem('cross_dimensional_complete') === 'true';
         
         let empImpactProg = 0;
