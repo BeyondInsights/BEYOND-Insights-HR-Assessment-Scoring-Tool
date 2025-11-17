@@ -29,7 +29,32 @@ const EI1_OPTIONS = [
 export default function EmployeeImpactPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
+  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track resume sync
   const [ans, setAns] = useState({});
+
+  // ===== RESUME PROGRESS LOGIC ===== ✅
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (Object.keys(ans).length === 0) {
+      setResumeComplete(true);
+      return;
+    }
+
+    const completedFields = Object.keys(ans).filter(key => {
+      const val = ans[key];
+      if (Array.isArray(val)) return val.length > 0;
+      if (typeof val === 'string') return val.trim().length > 0;
+      return val != null;
+    }).length;
+
+    if (completedFields > 0) {
+      console.log('Resuming with', completedFields, 'fields');
+    }
+    
+    setResumeComplete(true);
+  }, [ans]);
+  // ===== END RESUME PROGRESS LOGIC =====
+
   const [errors, setErrors] = useState("");
   const [assignedQuestion, setAssignedQuestion] = useState('ei4');
   const [shuffledItems] = useState(() => {
