@@ -37,39 +37,49 @@ export default function PaymentPage() {
 useEffect(() => {
   const checkPaymentStatus = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      // First check localStorage (faster)
+      const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
       
-      if (!user) {
-        router.push('/login')
+      if (localPaymentComplete) {
+        console.log('Payment found in localStorage - redirecting immediately')
+        window.location.replace('/dashboard')
         return
       }
-
-      const { data: assessment } = await supabase
-        .from('assessments')
-        .select('payment_completed, is_founding_partner')  // ← ADD is_founding_partner HERE
-        .eq('user_id', user.id)
-        .single()
-
-      // ← ADD THIS CHECK RIGHT HERE, BEFORE OTHER CHECKS:
+      
+      // Then check Supabase
+      const assessment = await getUserAssessment()
+      
+      // Check for Founding Partner
       if (assessment?.is_founding_partner) {
-        router.push('/dashboard')
+        console.log('✅ Founding Partner - bypassing payment')
+        localStorage.setItem('payment_completed', 'true')
+        window.location.replace('/dashboard')
         return
       }
-
-      // Then your existing payment check:
+      
       if (assessment?.payment_completed) {
-        router.push('/dashboard')
+        console.log('Payment found in Supabase - redirecting')
+        localStorage.setItem('payment_completed', 'true')
+        window.location.replace('/dashboard')
         return
       }
-
-      // Rest of your code...
+      
+      // No payment found - show payment page
+      console.log('No payment found - showing payment options')
+      const name = localStorage.getItem('login_company_name') || 'Your Organization'
+      setCompanyName(name)
+      setLoading(false)
+      
     } catch (error) {
-      console.error(error)
+      console.error('Error checking payment status:', error)
+      const name = localStorage.getItem('login_company_name') || 'Your Organization'
+      setCompanyName(name)
+      setLoading(false)
     }
   }
-
+  
   checkPaymentStatus()
-}, [router])
+}, [])
 
 
   // Show loading state while checking payment status
