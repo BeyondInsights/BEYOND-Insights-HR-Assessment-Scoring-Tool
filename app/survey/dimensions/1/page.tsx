@@ -31,11 +31,68 @@ const D1A_ITEMS_BASE = [
 
 export default function Dimension1Page() {
   const router = useRouter();
-  const [step, setStep] = useState(0);
-  const [ans, setAns] = useState<any>({});
+  
+  // ===== RESUME PROGRESS LOGIC =====
+  // Initialize state from saved data to resume where user left off
+  const getInitialState = () => {
+    const saved = localStorage.getItem("dimension1_data");
+    let initialStep = 0;
+    let initialItemIndex = 0;
+    let savedAnswers = {};
+    let isMultiCountry = false;
+    
+    // Check multi-country status
+    const firmographicsData = localStorage.getItem("firmographics_data");
+    if (firmographicsData) {
+      const parsed = JSON.parse(firmographicsData);
+      isMultiCountry = parsed.s9a !== "No other countries - headquarters only";
+    }
+    
+    if (saved) {
+      try {
+        savedAnswers = JSON.parse(saved);
+        const gridAnswers = (savedAnswers as any).d1a || {};
+        const answeredCount = Object.keys(gridAnswers).length;
+        
+        // If some grid items are answered but not all
+        if (answeredCount > 0 && answeredCount < D1A_ITEMS_BASE.length) {
+          initialStep = 1; // Stay in grid
+          // Find first unanswered item
+          const firstUnanswered = D1A_ITEMS_BASE.findIndex(item => !gridAnswers[item]);
+          initialItemIndex = firstUnanswered !== -1 ? firstUnanswered : 0;
+        }
+        // If all grid items answered
+        else if (answeredCount === D1A_ITEMS_BASE.length) {
+          // Skip intro and grid, go to next incomplete section
+          const hasAnyOffered = Object.values(gridAnswers).some(
+            (status) => status === "Currently offer"
+          );
+          
+          if (isMultiCountry && hasAnyOffered && !(savedAnswers as any).d1aa) {
+            initialStep = 2; // Go to D1aa
+          } else if (!(savedAnswers as any).d1b) {
+            initialStep = 3; // Go to D1.b
+          } else {
+            // Check follow-ups
+            initialStep = 3; // Default to D1.b, next() will handle navigation
+          }
+        }
+      } catch (e) {
+        console.error("Error loading saved data:", e);
+      }
+    }
+    
+    return { initialStep, initialItemIndex, savedAnswers, isMultiCountry };
+  };
+  
+  const { initialStep, initialItemIndex, savedAnswers, isMultiCountry: initialIsMultiCountry } = getInitialState();
+  // ===== END RESUME PROGRESS LOGIC =====
+  
+  const [step, setStep] = useState(initialStep);
+  const [ans, setAns] = useState<any>(savedAnswers);
   const [errors, setErrors] = useState<string>("");
-  const [currentItemIndex, setCurrentItemIndex] = useState(0);
-  const [isMultiCountry, setIsMultiCountry] = useState(false);
+  const [currentItemIndex, setCurrentItemIndex] = useState(initialItemIndex);
+  const [isMultiCountry, setIsMultiCountry] = useState(initialIsMultiCountry);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D1A_ITEMS] = useState(() => shuffleArray(D1A_ITEMS_BASE));
   
@@ -51,19 +108,9 @@ export default function Dimension1Page() {
   };
   // ===== END VALIDATION ADDITIONS =====
   
-  // Load saved answers on mount
+  // NOTE: Initial data load now handled in getInitialState() above
+  // This useEffect is kept for any dynamic updates to multi-country status
   useEffect(() => {
-    const saved = localStorage.getItem("dimension1_data");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAns(parsed);
-      } catch (e) {
-        console.error("Error loading saved data:", e);
-      }
-    }
-    
-    // Check if multi-country from firmographics
     const firmographicsData = localStorage.getItem("firmographics_data");
     if (firmographicsData) {
       const parsed = JSON.parse(firmographicsData);
@@ -78,12 +125,10 @@ export default function Dimension1Page() {
     }
   }, [ans]);
 
-  // Scroll to top when step changes (MOBILE FIX)
+  // Scroll to top when step OR grid item changes (MOBILE FIX)
   useEffect(() => {
-    if (step !== 1) { // Don't scroll during progressive card navigation
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [step]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step, currentItemIndex]);
   
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
