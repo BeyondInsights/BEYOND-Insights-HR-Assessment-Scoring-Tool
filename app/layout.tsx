@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SavedToast from "@/components/SavedToast";
+import AutoDataSync from "@/lib/supabase/auto-data-sync";  // <-- ADD THIS LINE
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,10 +27,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <AutoDataSync />  {/* <-- ADD THIS LINE */}
         {children}
         <SavedToast />
       </body>
     </html>
   );
 }
-
