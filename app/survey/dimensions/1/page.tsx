@@ -126,7 +126,7 @@ export default function Dimension1Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension1_data", JSON.stringify(ans));
     }
-  }, []);
+  }, [ans]);
 
   // Scroll to top when step OR grid item changes (MOBILE FIX)
   useEffect(() => {
