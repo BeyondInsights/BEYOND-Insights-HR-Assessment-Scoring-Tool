@@ -38,6 +38,7 @@ export const FOUNDING_PARTNER_IDS = [
   'FP-561093',
   'FP-847632',
   'FP-219745',  // ✅ NEW - 37th Founding Partner ID
+  'FP-421967',  // ✅ NEW - 38th Founding Partner ID
   'TEST-FP-001',
   'TEST-FP-002',
   'TEST-FP-003'
