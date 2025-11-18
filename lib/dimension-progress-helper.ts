@@ -12,6 +12,7 @@ export function calculateDimensionProgress(dimensionNumber: number): number {
     const dimData = JSON.parse(rawData);
     if (Object.keys(dimData).length === 0) return 0;
     
+    // Grid items per dimension
     const gridCounts = [0, 12, 17, 10, 10, 11, 12, 9, 12, 11, 20, 13, 8, 9];
     const gridCount = gridCounts[dimensionNumber];
     if (!gridCount) return 0;
@@ -20,24 +21,30 @@ export function calculateDimensionProgress(dimensionNumber: number): number {
     const gridAnswers = dimData[gridKey] || {};
     const gridAnswered = Object.keys(gridAnswers).length;
     
-    let completed = gridAnswered;
-    let total = gridCount;
+    // Grid represents 90% of progress
+    const gridProgress = (gridAnswered / gridCount) * 90;
     
+    // Check if there are any other fields answered
+    let hasOtherAnswers = false;
     const allKeys = Object.keys(dimData);
     for (let i = 0; i < allKeys.length; i++) {
-      const key = allKeys[i];
-      if (key !== gridKey && dimData[key] !== undefined && dimData[key] !== '') {
-        completed++;
-        total++;
+      if (allKeys[i] !== gridKey && dimData[allKeys[i]] !== undefined && dimData[allKeys[i]] !== '') {
+        hasOtherAnswers = true;
+        break;
       }
     }
     
-    if (total === 0) return 0;
-    const pct = Math.round((completed / total) * 100);
-    return pct > 95 ? 95 : pct;
+    // Add 10% if grid is complete and other questions answered
+    let bonus = 0;
+    if (gridAnswered === gridCount && hasOtherAnswers) {
+      bonus = 10;
+    }
+    
+    const total = Math.round(gridProgress + bonus);
+    return total;
     
   } catch (e) {
-    console.error('Progress calc error:', e);
+    console.error('Progress error:', e);
     return 0;
   }
 }
