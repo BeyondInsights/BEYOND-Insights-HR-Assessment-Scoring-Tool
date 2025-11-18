@@ -34,35 +34,27 @@ export default function PaymentPage() {
     return true; // Indicates testing mode handled it
   }
   
-useEffect(() => {
+  useEffect(() => {
   const checkPaymentStatus = async () => {
     try {
       // First check localStorage (faster)
       const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
       
-      if (localPaymentComplete) {
-        console.log('Payment found in localStorage - redirecting immediately')
-        window.location.replace('/dashboard')
-        return
-      }
+     if (localPaymentComplete) {
+      console.log('Payment found in localStorage - redirecting immediately')
+      window.location.replace('/dashboard')  // ✅ Stronger redirect, no back button
+      return
+    }
       
       // Then check Supabase
       const assessment = await getUserAssessment()
       
-      // Check for Founding Partner
-      if (assessment?.is_founding_partner) {
-        console.log('✅ Founding Partner - bypassing payment')
-        localStorage.setItem('payment_completed', 'true')
-        window.location.replace('/dashboard')
-        return
-      }
-      
       if (assessment?.payment_completed) {
-        console.log('Payment found in Supabase - redirecting')
-        localStorage.setItem('payment_completed', 'true')
-        window.location.replace('/dashboard')
-        return
-      }
+  console.log('Payment found in Supabase - redirecting')
+  localStorage.setItem('payment_completed', 'true')
+  window.location.replace('/dashboard')  // ✅ Changed from .href
+  return
+}
       
       // No payment found - show payment page
       console.log('No payment found - showing payment options')
@@ -72,6 +64,7 @@ useEffect(() => {
       
     } catch (error) {
       console.error('Error checking payment status:', error)
+      // On error, still show payment page
       const name = localStorage.getItem('login_company_name') || 'Your Organization'
       setCompanyName(name)
       setLoading(false)

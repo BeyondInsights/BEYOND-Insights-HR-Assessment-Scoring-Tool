@@ -11,25 +11,75 @@ export default function LetterPage() {
   const [ready, setReady] = useState(false)
   const [loading, setLoading] = useState(false)
 
-// Check if user is authenticated
+  // Check if user is authenticated
   useEffect(() => {
     const checkAuth = async () => {
-      // Check Supabase auth for all users (including FPs)
+      // ============================================
+      // CHECK FOR FOUNDING PARTNER FIRST
+      // ============================================
+      const surveyId = localStorage.getItem('survey_id') || ''
+      const { isFoundingPartner } = await import('@/lib/founding-partners')
+      
+      if (isFoundingPartner(surveyId)) {
+        console.log('Founding Partner - skipping Supabase check on letter page')
+        return
+      }
+      // ============================================
+      
+      // ============================================
+      // CHECK FOR NEW USER BYPASS FLAG
+      // ============================================
+      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
+      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+      
+      if (hasAuthFlag || justCreated) {
+        console.log('User authenticated via bypass flag - allowing access')
+        return
+      }
+      // ============================================
+      
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        router.push('/login')
+        console.log('No Supabase user and no bypass flag - redirecting to login')
+        router.push('/')
       }
     }
     checkAuth()
   }, [router])
 
- const handleContinue = async () => {
+  const handleContinue = async () => {
     if (!ready) return
     
     setLoading(true)
     
     try {
-      // Save letter viewed status to Supabase for all users
+      // ============================================
+      // CHECK FOR FOUNDING PARTNER
+      // ============================================
+      const surveyId = localStorage.getItem('survey_id') || ''
+      const { isFoundingPartner } = await import('@/lib/founding-partners')
+      
+      if (isFoundingPartner(surveyId)) {
+        console.log('Founding Partner - going to authorization')
+        router.push('/authorization')
+        return
+      }
+      // ============================================
+      
+      // ============================================
+      // CHECK FOR NEW USER WITH BYPASS FLAGS
+      // ============================================
+      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
+      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+      
+      if (hasAuthFlag || justCreated) {
+        console.log('New user with bypass - proceeding to authorization')
+        router.push('/authorization')
+        return
+      }
+      // ============================================
+      
+      // REGULAR RETURNING USERS - Update Supabase
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {
@@ -39,9 +89,18 @@ export default function LetterPage() {
           .eq('user_id', user.id)
         
         router.push('/authorization')
+      } else {
+        // No user and no bypass flags - redirect to login
+        console.log('No user found - redirecting to login')
+        router.push('/')
       }
     } catch (error) {
       console.error('Error updating letter status:', error)
+      // On error, still try to proceed if they have auth flags
+      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
+      if (hasAuthFlag) {
+        router.push('/authorization')
+      }
     } finally {
       setLoading(false)
     }
@@ -73,7 +132,7 @@ export default function LetterPage() {
               </p>
 
               <p className="text-base leading-relaxed mb-6 text-gray-900">
-                By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Initiative</strong> — a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
+                By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Initiative</strong> – a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
               </p>
               
               <p className="text-base leading-relaxed mb-6 text-gray-900">

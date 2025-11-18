@@ -8,7 +8,6 @@ export default function FirmographicsPage() {
   console.log("FIRMOGRAPHICS PAGE LOADED");
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track resume sync
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
 
@@ -45,54 +44,6 @@ export default function FirmographicsPage() {
       console.log("Firmographics auto-saved:", ans);
     }
   }, [ans]);
-
-  // ===== RESUME PROGRESS LOGIC ===== ✅
-  // CRITICAL: Read from localStorage directly to determine resume point
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("firmographics_data");
-    if (!saved) {
-      setResumeComplete(true);
-      return;
-    }
-
-    try {
-      const data = JSON.parse(saved);
-      
-      // Check saved data to determine which step to resume at
-      if (!data.s1 || !data.s2) {
-        setStep(1);
-      } else if (!data.s4a || !data.s4b) {
-        setStep(2);
-      } else if (!data.s5) {
-        setStep(3);
-      } else if (!data.s6 || (Array.isArray(data.s6) && data.s6.length === 0)) {
-        setStep(4);
-      } else if (!data.s7) {
-        setStep(5);
-      } else if (!data.s8) {
-        setStep(6);
-      } else if (!data.s9 || !data.s9a) {
-        setStep(7);
-      } else if (!data.c2) {
-        setStep(8);
-      } else if (!data.c3) {
-        setStep(9);
-      } else if (data.c3 && data.c3 !== "All employees (100%)" && (!data.c4 || data.c4.length === 0)) {
-        setStep(9);
-      } else if (!data.c5 || !data.c6) {
-        setStep(10);
-      }
-      // If all complete, stay on step 10 (completion screen)
-    } catch (e) {
-      console.error('Error parsing saved data:', e);
-    }
-    
-    setResumeComplete(true);
-  }, []); // Empty array - runs once on mount
-  // ===== END RESUME PROGRESS LOGIC =====
-
 
   // Set field helper
   const setField = (key: string, value: any) => {

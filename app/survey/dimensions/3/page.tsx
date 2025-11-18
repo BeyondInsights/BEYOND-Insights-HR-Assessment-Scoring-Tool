@@ -36,7 +36,6 @@ export default function Dimension3Page() {
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D3A_ITEMS] = useState(() => shuffleArray(D3A_ITEMS_BASE));
-  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track when resume sync is done
   
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -75,61 +74,14 @@ export default function Dimension3Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension3_data", JSON.stringify(ans));
     }
-  }, []);
+  }, [ans]);
 
-  // ===== RESUME PROGRESS LOGIC =====
-  // CRITICAL: Read from localStorage directly to determine resume point
+  // Scroll to top when step changes (MOBILE FIX)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("dimension3_data");
-    if (!saved) {
-      setResumeComplete(true);
-      return;
+    if (step !== 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
-    try {
-      const data = JSON.parse(saved);
-      
-      // Also check if multi-country from firmographics
-      const firmographics = localStorage.getItem("firmographics_data");
-      let checkIsMultiCountry = false;
-      if (firmographics) {
-        const parsed = JSON.parse(firmographics);
-        const notUSAOnly = parsed.s9a !== "No other countries - headquarters only";
-        checkIsMultiCountry = notUSAOnly;
-      }
-      
-      // Determine resume point based on grid completion
-      if (!data.d3a || Object.keys(data.d3a || {}).length === 0) {
-        setStep(1);
-        setCurrentItemIndex(0);
-      } else {
-        const gridItems = Object.keys(data.d3a || {});
-        const firstIncomplete = gridItems.findIndex(item => !data.d3a[item]);
-        
-        if (firstIncomplete !== -1) {
-          setStep(1);
-          setCurrentItemIndex(firstIncomplete);
-        } else if (!data.d3b || data.d3b.trim() === '') {
-          setStep(2);
-        } else if (checkIsMultiCountry && !data.d3aa) {
-          setStep(3);
-        }
-        // Otherwise stays at current step
-      }
-    } catch (e) {
-      console.error('Error parsing saved data:', e);
-    }
-    
-    setResumeComplete(true); // ✅ Mark resume as complete
-  }, []); // Empty array - runs once on mount
-  // ===== END RESUME PROGRESS LOGIC =====
-
-  // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step, currentItemIndex]);
+  }, [step]);
   
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
@@ -417,10 +369,7 @@ export default function Dimension3Page() {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    {resumeComplete 
-                      ? `Item ${currentItemIndex + 1} of ${D3A_ITEMS.length}`
-                      : 'Loading position...'
-                    }
+                    Item {currentItemIndex + 1} of {D3A_ITEMS.length}
                   </span>
                   <div className="flex gap-1">
                     {D3A_ITEMS.map((item, idx) => (

@@ -38,7 +38,6 @@ export default function Dimension1Page() {
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D1A_ITEMS] = useState(() => shuffleArray(D1A_ITEMS_BASE));
-  const [resumeComplete, setResumeComplete] = useState(false); // Track resume sync
   
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -72,55 +71,6 @@ export default function Dimension1Page() {
     }
   }, []);
 
-  // ===== RESUME PROGRESS LOGIC =====
-  // CRITICAL: Read from localStorage directly to determine resume point
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("dimension1_data");
-    if (!saved) {
-      setResumeComplete(true);
-      return;
-    }
-
-    try {
-      const data = JSON.parse(saved);
-      
-      // Also check if multi-country from firmographics
-      const firmographics = localStorage.getItem("firmographics_data");
-      let checkIsMultiCountry = false;
-      if (firmographics) {
-        const parsed = JSON.parse(firmographics);
-        const notUSAOnly = parsed.s9a !== "No other countries - headquarters only";
-        checkIsMultiCountry = notUSAOnly;
-      }
-      
-      // Determine resume point based on grid completion
-      if (!data.d1a || Object.keys(data.d1a || {}).length === 0) {
-        setStep(1);
-        setCurrentItemIndex(0);
-      } else {
-        const gridItems = Object.keys(data.d1a || {});
-        const firstIncomplete = gridItems.findIndex(item => !data.d1a[item]);
-        
-        if (firstIncomplete !== -1) {
-          setStep(1);
-          setCurrentItemIndex(firstIncomplete);
-        } else if (!data.d1b || data.d1b.trim() === '') {
-          setStep(2);
-        } else if (checkIsMultiCountry && !data.d1aa) {
-          setStep(3);
-        }
-        // Otherwise stays at current step
-      }
-    } catch (e) {
-      console.error('Error parsing saved data:', e);
-    }
-    
-    setResumeComplete(true); // ✅ Mark resume as complete
-  }, []); // Empty array - runs once on mount
-  // ===== END RESUME PROGRESS LOGIC =====
-
   // Save answers when they change
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
@@ -128,10 +78,12 @@ export default function Dimension1Page() {
     }
   }, [ans]);
 
-  // Scroll to top when step OR grid item changes (MOBILE FIX)
+  // Scroll to top when step changes (MOBILE FIX)
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step, currentItemIndex]);
+    if (step !== 1) { // Don't scroll during progressive card navigation
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [step]);
   
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
@@ -454,10 +406,7 @@ export default function Dimension1Page() {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    {resumeComplete 
-                      ? `Item ${currentItemIndex + 1} of ${D1A_ITEMS.length}`
-                      : 'Loading position...'
-                    }
+                    Item {currentItemIndex + 1} of {D1A_ITEMS.length}
                   </span>
                   <div className="flex gap-1">
                     {D1A_ITEMS.map((item, idx) => (

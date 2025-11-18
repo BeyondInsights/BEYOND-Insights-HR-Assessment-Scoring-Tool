@@ -2,6 +2,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { authenticateUser, getCurrentUser } from '@/lib/supabase/auth'
 import { formatAppId } from '@/lib/supabase/utils'
 import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
@@ -64,196 +65,75 @@ export default function LoginPage() {
     // ============================================
 
     // ============================================
-    // CHECK IF THIS IS A FOUNDING PARTNER ID
+    // CHECK FOR FOUNDING PARTNER ID FIRST
     // ============================================
-    const isFP = !isNewUser && isFoundingPartner(surveyId.trim())
-    
-    if (isFP) {
-      console.log('✅ FOUNDING PARTNER DETECTED:', surveyId.trim())
+    if (!isNewUser && isFoundingPartner(surveyId.trim())) {
+      console.log('Founding Partner ID detected:', surveyId.trim())
       
-      // Store the FP Survey ID
+      localStorage.setItem('login_email', email)
+      localStorage.setItem('auth_email', email)
       localStorage.setItem('survey_id', surveyId.trim())
+      localStorage.setItem('user_authenticated', 'true')
+      localStorage.setItem('last_user_email', email)
       localStorage.setItem('login_Survey_id', surveyId.trim())
+      
+      setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
+      setTimeout(() => {
+        router.push('/letter')
+      }, 1500)
+      setLoading(false)
+      return
     }
     // ============================================
 
     try {
-      // ============================================
-      // HANDLE NEW USERS (including NEW Founding Partners)
-      // ============================================
-      if (isNewUser) {
-        console.log('[NEW USER] Creating Supabase account...')
+      const result = await authenticateUser(
+        currentEmail,
+        isNewUser ? undefined : surveyId.trim().replace(/-/g, '')
+      )
+
+      if (result.mode === 'error') {
+        setErrors(result.message)
+      } else {
+        // ============================================
+        // CLEAR OLD DATA FOR NEW USERS
+        // ============================================
+        if (result.mode === 'new') {
+  console.log('New user account created')
+  // DON'T clear localStorage - it contains the Supabase session!
+}
+        // ============================================
         
-        // Generate unique App ID
-        const timestamp = Date.now().toString()
-        const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase()
-        const newAppId = `CAC${timestamp}${randomSuffix}`
-        
-        // Use App ID as temporary password
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email: currentEmail,
-          password: newAppId,
-        })
-
-        if (signUpError) {
-          setErrors(`Account creation failed: ${signUpError.message}`)
-          setLoading(false)
-          return
-        }
-
-        if (!authData.user) {
-          setErrors('Account creation failed - no user returned')
-          setLoading(false)
-          return
-        }
-
-        console.log('[NEW USER] Supabase account created:', authData.user.id)
-
-        // Create assessment record with FP flag if applicable
-        const assessmentData: any = {
-          user_id: authData.user.id,
-          app_id: newAppId,
-          email: currentEmail,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }
-
-        // If this is a Founding Partner, set the flags
-        if (isFP) {
-          assessmentData.is_founding_partner = true
-          assessmentData.payment_completed = true
-          assessmentData.payment_method = 'Founding Partner - Fee Waived'  // ← ADD THIS
-          console.log('[FOUNDING PARTNER] Setting FP flags in database')
-        }
-
-        const { error: insertError } = await supabase
-          .from('assessments')
-          .insert([assessmentData])
-
-        if (insertError) {
-          console.error('[DATABASE] Insert failed:', insertError)
-          setErrors('Failed to create account record')
-          setLoading(false)
-          return
-        }
-
-        console.log('[NEW USER] Assessment record created')
-
-        // Store in localStorage
+        // Store email in localStorage
         localStorage.setItem('login_email', email)
         localStorage.setItem('auth_email', email)
         localStorage.setItem('user_authenticated', 'true')
         localStorage.setItem('last_user_email', email)
-        localStorage.setItem('login_Survey_id', newAppId)
-        localStorage.setItem('new_user_just_created', 'true')
-
-        if (isFP) {
-          // For Founding Partners, show success and go directly to letter
-          setSuccessMessage('✅ Founding Partner account created! Redirecting...')
-          setTimeout(() => {
-            router.push('/letter')
-          }, 1500)
-        } else {
-          // For regular users, show App ID
-          setSuccessMessage('Account created successfully!')
-          setGeneratedAppId(newAppId)
-          setShowAppId(true)
+        
+        if (!isNewUser) {
+          localStorage.setItem('login_Survey_id', surveyId)
         }
-
-        setLoading(false)
-        return
+        
+        // For existing/returning users - ALWAYS GO TO DASHBOARD
+        if (result.mode === 'existing' && !result.needsVerification) {
+          const user = await getCurrentUser()
+          if (user) {
+            setSuccessMessage(result.message)
+            setTimeout(() => {
+              router.push('/dashboard')
+            }, 1000)
+          }
+        } else if (result.mode === 'new') {
+          // New user - show App ID and set bypass flag
+          setSuccessMessage('Account created successfully!')
+          if (result.appId) {
+            setGeneratedAppId(result.appId)
+            setShowAppId(true)
+            localStorage.setItem('login_Survey_id', result.appId)
+            localStorage.setItem('new_user_just_created', 'true')
+          }
+        }
       }
-
-      // ============================================
-      // HANDLE RETURNING USERS (including RETURNING Founding Partners)
-      // ============================================
-     // RETURNING USERS
-  console.log('[RETURNING USER] Attempting to authenticate...')
-  
-  const passwordToUse = surveyId.trim().replace(/-/g, '')
-  
-  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-    email: currentEmail,
-    password: passwordToUse,
-  })
-  
-  // If auth failed and it's a Founding Partner, create account now
-  if (signInError && isFP) {
-    console.log('[FP] No account - creating now')
-    
-    const { data: newAuth, error: signUpError } = await supabase.auth.signUp({
-      email: currentEmail,
-      password: passwordToUse,
-    })
-    
-    if (signUpError || !newAuth.user) {
-      setErrors('Failed to create Founding Partner account')
-      setLoading(false)
-      return
-    }
-    
-    await supabase.from('assessments').insert([{
-  user_id: newAuth.user.id,
-  app_id: surveyId.trim(),
-  email: currentEmail,
-  is_founding_partner: true,
-  payment_completed: true,
-  payment_method: 'Founding Partner - Fee Waived',  // ← ADD THIS
-}])
-    
-    localStorage.setItem('login_email', email)
-    localStorage.setItem('auth_email', email)
-    localStorage.setItem('user_authenticated', 'true')
-    localStorage.setItem('survey_id', surveyId.trim())
-    
-    setSuccessMessage('✅ Founding Partner verified! Redirecting...')
-    setTimeout(() => router.push('/letter'), 1500)
-    setLoading(false)
-    return
-  }
-
-if (signInError) {
-  setErrors('Invalid email or Survey ID')
-  setLoading(false)
-  return
-}
-
-      console.log('[RETURNING USER] Successfully authenticated:', signInData.user.id)
-
-      // Get assessment data
-      const { data: assessment, error: fetchError } = await supabase
-        .from('assessments')
-        .select('*')
-        .eq('user_id', signInData.user.id)
-        .single()
-
-      if (fetchError) {
-        console.error('[DATABASE] Fetch failed:', fetchError)
-        setErrors('Failed to retrieve account data')
-        setLoading(false)
-        return
-      }
-
-      // Store in localStorage
-      localStorage.setItem('login_email', email)
-      localStorage.setItem('auth_email', email)
-      localStorage.setItem('user_authenticated', 'true')
-      localStorage.setItem('last_user_email', email)
-      localStorage.setItem('login_Survey_id', surveyId)
-      
-      if (isFP) {
-        localStorage.setItem('survey_id', surveyId.trim())
-      }
-
-      // Determine where to send them
-      if (!assessment?.auth_completed) {
-        setSuccessMessage('✅ Welcome back! Redirecting to authorization...')
-        setTimeout(() => router.push('/letter'), 1000)
-      } else {
-        setSuccessMessage('✅ Welcome back! Redirecting to dashboard...')
-        setTimeout(() => router.push('/dashboard'), 1000)
-      }
-
     } catch (err) {
       setErrors('An unexpected error occurred. Please try again.')
       console.error('Auth error:', err)
@@ -263,9 +143,12 @@ if (signInError) {
   }
 
   const handleProceedToSurvey = () => {
-  localStorage.setItem('user_authenticated', 'true')
-  router.push('/letter')  // ✅ Changed from '/authorization' to '/letter'
-}
+    // Keep all authentication flags set for new user
+    localStorage.setItem('user_authenticated', 'true')
+    localStorage.setItem('new_user_just_created', 'true')  // Keep this flag
+    console.log('🚀 New user proceeding to survey')
+    router.push('/letter')
+  }
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
@@ -430,7 +313,7 @@ if (signInError) {
                         onChange={(e) => setSurveyId(e.target.value.toUpperCase())}
                         className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg font-mono text-lg focus:border-[#F37021] focus:ring-2 focus:ring-orange-100 outline-none transition-all"
                         placeholder="CAC-251027-001AB"
-                        maxLength={20}
+                        maxLength={25}
                       />
                       <p className="text-xs text-slate-600 mt-2">
                         Enter your Survey ID (with or without dashes)

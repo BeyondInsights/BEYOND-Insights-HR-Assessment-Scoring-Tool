@@ -36,8 +36,8 @@ export default function Dimension12Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   const [D12A_ITEMS] = useState(() => shuffleArray(D12A_ITEMS_BASE));
-  const [resumeComplete, setResumeComplete] = useState(false);
   
+  // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const markTouched = (fieldName: string) => {
@@ -47,6 +47,7 @@ export default function Dimension12Page() {
   const isStepValid = (): boolean => {
     return validateStep() === null;
   };
+  // ===== END VALIDATION ADDITIONS =====
   
   useEffect(() => {
     const saved = localStorage.getItem("dimension12_data");
@@ -70,60 +71,13 @@ export default function Dimension12Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension12_data", JSON.stringify(ans));
     }
-  }, []);
-
-  // ===== RESUME PROGRESS LOGIC =====
-  // CRITICAL: Read from localStorage directly to determine resume point
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("dimension12_data");
-    if (!saved) {
-      setResumeComplete(true);
-      return;
-    }
-
-    try {
-      const data = JSON.parse(saved);
-      
-      // Also check if multi-country from firmographics
-      const firmographics = localStorage.getItem("firmographics_data");
-      let checkIsMultiCountry = false;
-      if (firmographics) {
-        const parsed = JSON.parse(firmographics);
-        const notUSAOnly = parsed.s9a !== "No other countries - headquarters only";
-        checkIsMultiCountry = notUSAOnly;
-      }
-      
-      // Determine resume point based on grid completion
-      if (!data.d12a || Object.keys(data.d12a || {}).length === 0) {
-        setStep(1);
-        setCurrentItemIndex(0);
-      } else {
-        const gridItems = Object.keys(data.d12a || {});
-        const firstIncomplete = gridItems.findIndex(item => !data.d12a[item]);
-        
-        if (firstIncomplete !== -1) {
-          setStep(1);
-          setCurrentItemIndex(firstIncomplete);
-        } else if (!data.d12b || data.d12b.trim() === '') {
-          setStep(2);
-        } else if (checkIsMultiCountry && !data.d12aa) {
-          setStep(3);
-        }
-        // Otherwise stays at current step
-      }
-    } catch (e) {
-      console.error('Error parsing saved data:', e);
-    }
-    
-    setResumeComplete(true); // ✅ Mark resume as complete
-  }, []); // Empty array - runs once on mount
-  // ===== END RESUME PROGRESS LOGIC =====
+  }, [ans]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step, currentItemIndex]);
+    if (step !== 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [step]);
 
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
@@ -225,7 +179,7 @@ export default function Dimension12Page() {
       if (showD12aa) {
         setStep(2);
       } else {
-        setStep(3);  // ✅ FIXED: Always go to step 3 (D12b question)
+        setStep(showD12aa ? 3 : 2);
       }
     } else if (step === 2) {
       if (showD12aa) {
@@ -384,10 +338,7 @@ export default function Dimension12Page() {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    {resumeComplete 
-                      ? `Item ${currentItemIndex + 1} of ${D12A_ITEMS.length}`
-                      : 'Loading position...'
-                    }
+                    Item {currentItemIndex + 1} of {D12A_ITEMS.length}
                   </span>
                   <div className="flex gap-1">
                     {D12A_ITEMS.map((item, idx) => (

@@ -7,7 +7,6 @@ import Footer from "@/components/Footer";
 export default function CurrentSupportPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track resume sync
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
 
@@ -35,41 +34,6 @@ export default function CurrentSupportPage() {
       }
     }
   }, []);
-  // ===== RESUME PROGRESS LOGIC ===== ✅
-  // CRITICAL: Read from localStorage directly to determine resume point
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("current_support_data");
-    if (!saved) {
-      setResumeComplete(true);
-      return;
-    }
-
-    try {
-      const data = JSON.parse(saved);
-      
-      // Count how many fields have data to determine resume position
-      const completedFields = Object.keys(data).filter(key => {
-        const val = data[key];
-        if (Array.isArray(val)) return val.length > 0;
-        if (typeof val === 'string') return val.trim().length > 0;
-        return val != null;
-      }).length;
-
-      // If substantial progress, don't reset to beginning
-      if (completedFields > 2) {
-        // Keep current step (already loaded from save)
-        console.log('Resuming with', completedFields, 'completed fields');
-      }
-    } catch (e) {
-      console.error('Error parsing saved data:', e);
-    }
-    
-    setResumeComplete(true);
-  }, []);
-  // ===== END RESUME PROGRESS LOGIC =====
-
 
   // Save answers when they change
   useEffect(() => {

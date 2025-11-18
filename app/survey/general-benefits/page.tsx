@@ -8,7 +8,6 @@ export default function GeneralBenefitsPage() {
  console.log("GENERAL BENEFITS PAGE LOADED");
  const router = useRouter();
  const [step, setStep] = useState(1);
-  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track resume sync
  const [ans, setAns] = useState<any>({});
  const [isUSAOnly, setIsUSAOnly] = useState(false);
  
@@ -64,77 +63,6 @@ export default function GeneralBenefitsPage() {
    }
  }
  }, []);
-  // ===== RESUME PROGRESS LOGIC ===== ✅
-  // CRITICAL: Read from localStorage directly to determine resume point
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("general_benefits_data");
-    if (!saved) {
-      setResumeComplete(true);
-      return;
-    }
-
-    try {
-      const data = JSON.parse(saved);
-      
-      // Also check if USA-only to properly calculate step
-      const firmographics = localStorage.getItem("firmographics_data");
-      let checkIsUSAOnly = false;
-      if (firmographics) {
-        const parsed = JSON.parse(firmographics);
-        const hqIsUSA = parsed.s9 && (
-          parsed.s9.toLowerCase().includes("usa") || 
-          parsed.s9.toLowerCase().includes("united states") ||
-          parsed.s9.toLowerCase().includes("u.s.")
-        );
-        const noOtherCountries = parsed.s9a === "No other countries - headquarters only";
-        checkIsUSAOnly = hqIsUSA && noOtherCountries;
-      }
-      
-      // Determine which step to resume at based on completed data
-      // Step 1: Guidelines (no validation, always advance)
-      
-      // Step 2: Standard Benefits (cb1_standard)
-      if (!data.cb1_standard || (Array.isArray(data.cb1_standard) && data.cb1_standard.length === 0)) {
-        setStep(2);
-      } 
-      // Step 3: Leave & Flexibility (cb1_leave)
-      else if (!data.cb1_leave || (Array.isArray(data.cb1_leave) && data.cb1_leave.length === 0)) {
-        setStep(3);
-      }
-      // Step 4: Wellness & Support (cb1_wellness)
-      else if (!data.cb1_wellness || (Array.isArray(data.cb1_wellness) && data.cb1_wellness.length === 0)) {
-        setStep(4);
-      }
-      // Step 5: Financial & Legal (cb1_financial)
-      else if (!data.cb1_financial || (Array.isArray(data.cb1_financial) && data.cb1_financial.length === 0)) {
-        setStep(5);
-      }
-      // Step 6: Care Navigation (cb1_navigation)
-      else if (!data.cb1_navigation || (Array.isArray(data.cb1_navigation) && data.cb1_navigation.length === 0)) {
-        setStep(6);
-      }
-      // Step 7: Government Healthcare % (cb1a) - ONLY for multi-country
-      else if (!checkIsUSAOnly && !data.cb1a) {
-        setStep(7);
-      }
-      // Step 8: Future Plans (cb2b)
-      else if (!data.cb2b) {
-        setStep(8);
-      }
-      // Otherwise everything is complete - go to step 9
-      else {
-        setStep(9);
-      }
-    } catch (e) {
-      console.error('Error parsing saved data:', e);
-    }
-    
-    setResumeComplete(true);
-  }, []);
-  // ===== END RESUME PROGRESS LOGIC =====
-
  
  const [errors, setErrors] = useState<string>("");
 

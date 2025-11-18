@@ -29,38 +29,7 @@ const EI1_OPTIONS = [
 export default function EmployeeImpactPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track resume sync
   const [ans, setAns] = useState({});
-
-  // ===== RESUME PROGRESS LOGIC ===== ✅
-  // CRITICAL: Read from localStorage directly to determine resume point  
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("employee-impact-assessment_data");
-    if (!saved) {
-      setResumeComplete(true);
-      return;
-    }
-
-    try {
-      const data = JSON.parse(saved);
-      
-      // Determine which step based on what's completed
-      if (!data.ei1 || Object.keys(data.ei1 || {}).length === 0) {
-        setStep(1);
-      } else if (!data.ei2) {
-        setStep(2);
-      }
-      // Otherwise stays at current step
-    } catch (e) {
-      console.error('Error parsing saved data:', e);
-    }
-    
-    setResumeComplete(true);
-  }, []);
-  // ===== END RESUME PROGRESS LOGIC =====
-
   const [errors, setErrors] = useState("");
   const [assignedQuestion, setAssignedQuestion] = useState('ei4');
   const [shuffledItems] = useState(() => {
@@ -86,7 +55,7 @@ export default function EmployeeImpactPage() {
 
   // Load saved data on mount
   useEffect(() => {
-    const saved = localStorage.getItem("employee_impact_data");
+    const saved = localStorage.getItem("employee-impact-assessment_data");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -100,7 +69,7 @@ export default function EmployeeImpactPage() {
   // Save data whenever answers change
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("employee_impact_data", JSON.stringify(ans));
+      localStorage.setItem("employee-impact-assessment_data", JSON.stringify(ans));
     }
   }, [ans]);
 
@@ -194,8 +163,8 @@ export default function EmployeeImpactPage() {
       setErrors("");
     } else {
       // Mark as complete and navigate to dashboard
-      localStorage.setItem("employee_impact_complete", "true");  // ✅ CORRECT KEY
-      localStorage.setItem("employee_impact_data", JSON.stringify(ans));
+      localStorage.setItem("employee-impact-assessment_complete", "true");
+      localStorage.setItem("employee-impact-assessment_data", JSON.stringify(ans));
       router.push("/dashboard");
     }
   };

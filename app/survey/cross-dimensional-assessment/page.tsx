@@ -62,7 +62,6 @@ const DIMENSION_DEFINITIONS: Record<string, string> = {
 export default function CrossDimensionalPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track resume sync
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
   const [allDimensionsComplete, setAllDimensionsComplete] = useState(false);
@@ -111,38 +110,6 @@ export default function CrossDimensionalPage() {
       }
     }
   }, [router]);
-
-  // ===== RESUME PROGRESS LOGIC ===== ✅
-  // CRITICAL: Read from localStorage directly to determine resume point
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("cross_dimensional_data");
-    if (!saved) {
-      setResumeComplete(true);
-      return;
-    }
-
-    try {
-      const data = JSON.parse(saved);
-      
-      // Determine which step based on what's completed
-      if (!data.cd1a || (Array.isArray(data.cd1a) && data.cd1a.length < 3)) {
-        setStep(1);
-      } else if (!data.cd1b || (Array.isArray(data.cd1b) && data.cd1b.length < 3)) {
-        setStep(2);
-      } else if (!data.cd2 || (Array.isArray(data.cd2) && data.cd2.length === 0)) {
-        setStep(3);
-      }
-      // Otherwise stays at current step
-    } catch (e) {
-      console.error('Error parsing saved data:', e);
-    }
-    
-    setResumeComplete(true);
-  }, []);
-  // ===== END RESUME PROGRESS LOGIC =====
-
 
   useEffect(() => {
     if (Object.keys(ans).length > 0) {

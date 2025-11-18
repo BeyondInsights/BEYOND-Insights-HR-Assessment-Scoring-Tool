@@ -35,7 +35,6 @@ export default function Dimension7Page() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   const [D7A_ITEMS] = useState(() => shuffleArray(D7A_ITEMS_BASE));
-  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track when resume sync is done
 
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -71,61 +70,13 @@ export default function Dimension7Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension7_data", JSON.stringify(ans));
     }
-  }, []);
+  }, [ans]);
 
-  // ===== RESUME PROGRESS LOGIC =====
-  // CRITICAL: Read from localStorage directly to determine resume point
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("dimension7_data");
-    if (!saved) {
-      setResumeComplete(true);
-      return;
+    if (step !== 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
-    try {
-      const data = JSON.parse(saved);
-      
-      // Also check if multi-country from firmographics
-      const firmographics = localStorage.getItem("firmographics_data");
-      let checkIsMultiCountry = false;
-      if (firmographics) {
-        const parsed = JSON.parse(firmographics);
-        const notUSAOnly = parsed.s9a !== "No other countries - headquarters only";
-        checkIsMultiCountry = notUSAOnly;
-      }
-      
-      // Determine resume point based on grid completion
-      if (!data.d7a || Object.keys(data.d7a || {}).length === 0) {
-        setStep(1);
-        setCurrentItemIndex(0);
-      } else {
-        const gridItems = Object.keys(data.d7a || {});
-        const firstIncomplete = gridItems.findIndex(item => !data.d7a[item]);
-        
-        if (firstIncomplete !== -1) {
-          setStep(1);
-          setCurrentItemIndex(firstIncomplete);
-        } else if (!data.d7b || data.d7b.trim() === '') {
-          setStep(2);
-        } else if (checkIsMultiCountry && !data.d7aa) {
-          setStep(3);
-        }
-        // Otherwise stays at current step
-      }
-    } catch (e) {
-      console.error('Error parsing saved data:', e);
-    }
-    
-    setResumeComplete(true); // ✅ Mark resume as complete
-  }, []); // Empty array - runs once on mount
-  // ===== END RESUME PROGRESS LOGIC =====
-
-  // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step, currentItemIndex]);
+  }, [step]);
 
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
@@ -372,10 +323,7 @@ export default function Dimension7Page() {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    {resumeComplete 
-                      ? `Item ${currentItemIndex + 1} of ${D7A_ITEMS.length}`
-                      : 'Loading position...'
-                    }
+                    Item {currentItemIndex + 1} of {D7A_ITEMS.length}
                   </span>
                   <div className="flex gap-1">
                     {D7A_ITEMS.map((item, idx) => (

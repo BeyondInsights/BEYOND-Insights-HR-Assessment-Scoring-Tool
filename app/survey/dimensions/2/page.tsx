@@ -43,7 +43,6 @@ export default function Dimension2Page() {
   const [isMultiCountry, setIsMultiCountry] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [D2A_ITEMS] = useState(() => shuffleArray(D2A_ITEMS_BASE));
-  const [resumeComplete, setResumeComplete] = useState(false); // ✅ Track when resume sync is done
   
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -82,61 +81,14 @@ export default function Dimension2Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension2_data", JSON.stringify(ans));
     }
-  }, []);
+  }, [ans]);
 
-  // ===== RESUME PROGRESS LOGIC =====
-  // CRITICAL: Read from localStorage directly to determine resume point
+  // Scroll to top when step changes (MOBILE FIX)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("dimension2_data");
-    if (!saved) {
-      setResumeComplete(true);
-      return;
+    if (step !== 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
-    try {
-      const data = JSON.parse(saved);
-      
-      // Also check if multi-country from firmographics
-      const firmographics = localStorage.getItem("firmographics_data");
-      let checkIsMultiCountry = false;
-      if (firmographics) {
-        const parsed = JSON.parse(firmographics);
-        const notUSAOnly = parsed.s9a !== "No other countries - headquarters only";
-        checkIsMultiCountry = notUSAOnly;
-      }
-      
-      // Determine resume point based on grid completion
-      if (!data.d2a || Object.keys(data.d2a || {}).length === 0) {
-        setStep(1);
-        setCurrentItemIndex(0);
-      } else {
-        const gridItems = Object.keys(data.d2a || {});
-        const firstIncomplete = gridItems.findIndex(item => !data.d2a[item]);
-        
-        if (firstIncomplete !== -1) {
-          setStep(1);
-          setCurrentItemIndex(firstIncomplete);
-        } else if (!data.d2b || data.d2b.trim() === '') {
-          setStep(2);
-        } else if (checkIsMultiCountry && !data.d2aa) {
-          setStep(3);
-        }
-        // Otherwise stays at current step
-      }
-    } catch (e) {
-      console.error('Error parsing saved data:', e);
-    }
-    
-    setResumeComplete(true); // ✅ Mark resume as complete
-  }, []); // Empty array - runs once on mount
-  // ===== END RESUME PROGRESS LOGIC =====
-
-  // ✅ Scroll to top on BOTH step AND currentItemIndex changes (MOBILE FIX)
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step, currentItemIndex]);
+  }, [step]);
   
   const setField = (key: string, value: any) => {
     setAns((prev: any) => ({ ...prev, [key]: value }));
@@ -388,12 +340,8 @@ export default function Dimension2Page() {
 
               <div className="mb-6">
                 <div className="flex items-center justify-between">
-                  {/* ✅ Item number display with loading protection */}
                   <span className="text-lg font-bold text-gray-800">
-                    {resumeComplete 
-                      ? `Item ${currentItemIndex + 1} of ${D2A_ITEMS.length}`
-                      : 'Loading position...'
-                    }
+                    Item {currentItemIndex + 1} of {D2A_ITEMS.length}
                   </span>
                   <div className="flex gap-1">
                     {D2A_ITEMS.map((item, idx) => (
