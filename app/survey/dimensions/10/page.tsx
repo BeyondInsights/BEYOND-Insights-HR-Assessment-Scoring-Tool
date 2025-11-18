@@ -82,7 +82,7 @@ export default function Dimension10Page() {
     if (Object.keys(ans).length > 0) {
       localStorage.setItem("dimension10_data", JSON.stringify(ans));
     }
-  }, []);
+  }, [ans]);
 
   // ===== RESUME PROGRESS LOGIC =====
   // CRITICAL: Read from localStorage directly to determine resume point
