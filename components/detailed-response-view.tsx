@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+
 interface DetailedViewProps {
   assessment: any
   onClose: () => void
@@ -37,14 +39,26 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
   const totalSections = sections.length
   const completionPercentage = Math.round((completedSections / totalSections) * 100)
 
+  // Get firmographics data
+  const firmographics = assessment.firmographics_data || {}
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
+        {/* Header with BI Logo */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">{assessment.company_name || 'N/A'}</h2>
-            <p className="text-blue-100 text-sm mt-1">Survey ID: {assessment.survey_id}</p>
+          <div className="flex items-center gap-4">
+            <Image 
+              src="/BI_LOGO_FINAL.png" 
+              alt="Beyond Insights" 
+              width={150} 
+              height={45}
+              className="h-10 w-auto brightness-0 invert"
+            />
+            <div className="border-l border-white/30 pl-4">
+              <p className="text-blue-100 text-sm">Survey ID</p>
+              <p className="font-semibold">{assessment.app_id || assessment.survey_id || 'N/A'}</p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -58,16 +72,57 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {/* Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <h3 className="text-sm font-semibold text-blue-900 mb-1">Contact Person</h3>
-              <p className="text-lg font-bold text-blue-700">
-                {assessment.firmographics_data?.firstName || ''} {assessment.firmographics_data?.lastName || ''}
-              </p>
-              <p className="text-sm text-blue-600 mt-1">{assessment.email}</p>
+          
+          {/* Company Information Section */}
+          <div className="mb-6 bg-gray-50 rounded-lg p-5 border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Company Information</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Company Name</p>
+                <p className="font-semibold text-gray-900">{assessment.company_name || firmographics.companyName || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Industry</p>
+                <p className="font-semibold text-gray-900">{firmographics.c2 || assessment.c2 || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Company Revenue</p>
+                <p className="font-semibold text-gray-900">{firmographics.c5 || assessment.c5 || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Headquarters</p>
+                <p className="font-semibold text-gray-900">{firmographics.s9 || assessment.s9 || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide"># Countries w/ Presence</p>
+                <p className="font-semibold text-gray-900">{firmographics.s9a || assessment.s9a || 'N/A'}</p>
+              </div>
             </div>
+          </div>
 
+          {/* Contact Information Section */}
+          <div className="mb-6 bg-blue-50 rounded-lg p-5 border border-blue-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Contact Information</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Contact Person</p>
+                <p className="font-semibold text-gray-900">
+                  {firmographics.firstName || ''} {firmographics.lastName || ''}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Email</p>
+                <p className="font-semibold text-gray-900">{assessment.email || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Title</p>
+                <p className="font-semibold text-gray-900">{firmographics.s5 || assessment.s5 || 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Status Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
               <h3 className="text-sm font-semibold text-green-900 mb-1">Completion Status</h3>
               <div className="flex items-baseline gap-2">
@@ -91,11 +146,34 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                 {assessment.daysInProgress} days in progress
               </p>
             </div>
+
+            {/* User Type Badge */}
+            <div className={`rounded-lg p-4 border ${
+              assessment.isFoundingPartner 
+                ? 'bg-purple-50 border-purple-300' 
+                : 'bg-blue-50 border-blue-200'
+            }`}>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">Participant Type</h3>
+              {assessment.isFoundingPartner ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">⭐</span>
+                  <div>
+                    <p className="font-bold text-purple-700">Founding Partner</p>
+                    <p className="text-sm text-purple-600">No payment required</p>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="font-bold text-blue-700">Standard Participant</p>
+                  <p className="text-sm text-blue-600">$1,250 fee</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Payment Info - Only for Non-Founding Partners */}
           {!assessment.isFoundingPartner && (
-            <div className="mb-8 bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="mb-6 bg-gray-50 rounded-lg p-4 border border-gray-200">
               <h3 className="text-lg font-bold text-gray-900 mb-3">Payment Information</h3>
               <div className="grid grid-cols-3 gap-4">
                 <div>
@@ -115,19 +193,6 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                   <p className="font-semibold text-gray-900">
                     ${(assessment.payment_amount || 1250).toLocaleString()}
                   </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Founding Partner Badge */}
-          {assessment.isFoundingPartner && (
-            <div className="mb-8 bg-purple-50 rounded-lg p-4 border-2 border-purple-300">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">⭐</span>
-                <div>
-                  <h3 className="text-lg font-bold text-purple-900">Founding Partner</h3>
-                  <p className="text-sm text-purple-700">No payment required</p>
                 </div>
               </div>
             </div>
@@ -175,31 +240,6 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                   </span>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Progress Summary */}
-          <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Progress Summary</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">Authorization & Firmographics</span>
-                <span className={`font-semibold ${assessment.auth_completed ? 'text-green-600' : 'text-gray-400'}`}>
-                  {assessment.auth_completed ? '✓ Complete' : '○ Incomplete'}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">Survey Sections</span>
-                <span className="font-semibold text-blue-600">
-                  {completedSections} / {totalSections} Complete
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">Overall Progress</span>
-                <span className="font-semibold text-purple-600">
-                  {completionPercentage}%
-                </span>
-              </div>
             </div>
           </div>
         </div>
