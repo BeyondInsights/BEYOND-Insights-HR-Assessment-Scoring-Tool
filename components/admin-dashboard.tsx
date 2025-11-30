@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
 import * as XLSX from 'xlsx'
@@ -291,10 +292,23 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-8 px-6">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">Survey Administration Dashboard</h1>
-          <p className="text-purple-100">Best Companies for Working with Cancer Initiative - 2026</p>
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-6 px-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="bg-white rounded-lg p-2">
+              <Image 
+                src="/BI_LOGO_FINAL.png" 
+                alt="Beyond Insights" 
+                width={160} 
+                height={48}
+                className="h-10 w-auto"
+              />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Survey Administration Dashboard</h1>
+              <p className="text-purple-100 text-sm">Best Companies for Working with Cancer Initiative - 2026</p>
+            </div>
+          </div>
         </div>
       </div>
 
