@@ -24,6 +24,7 @@
     "react-hot-toast": "^2.6.0",
     "react-is": "^18.3.1",
     "survey-core": "^2.3.7",
+    "xlsx": "^0.18.5",
     "survey-react-ui": "^2.3.7"
   },
   "devDependencies": {
