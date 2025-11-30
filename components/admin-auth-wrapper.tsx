@@ -31,8 +31,8 @@ export default function AdminAuthWrapper({
       // ADMIN EMAIL WHITELIST - ADD YOUR EMAILS HERE
       // ============================================
       const adminEmails = [
-        'john@beyondinsights.com',
-        'jfbauer@beyondinsights.com',
+        'john.bekier@beyondinsights.com',
+        'andy.borinstein@beyondinsights.com',
         // Add CAC admin emails below:
         'admin@cancerandcareers.org',
       ]
