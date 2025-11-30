@@ -1,0 +1,587 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase/client'
+import { isFoundingPartner } from '@/lib/founding-partners'
+import * as XLSX from 'xlsx'
+import DetailedResponseView from './detailed-response-view'
+
+interface AssessmentData {
+  id: string
+  user_id: string
+  email: string
+  company_name: string
+  survey_id: string
+  payment_completed: boolean
+  payment_method?: string
+  payment_amount?: number
+  auth_completed: boolean
+  letter_viewed: boolean
+  created_at: string
+  updated_at: string
+  
+  // Contact info from firmographics
+  firmographics_data?: {
+    firstName?: string
+    lastName?: string
+    companyName?: string
+  }
+  
+  // Section completion flags
+  firmographics_complete?: boolean
+  general_benefits_complete?: boolean
+  current_support_complete?: boolean
+  dimension1_complete?: boolean
+  dimension2_complete?: boolean
+  dimension3_complete?: boolean
+  dimension4_complete?: boolean
+  dimension5_complete?: boolean
+  dimension6_complete?: boolean
+  dimension7_complete?: boolean
+  dimension8_complete?: boolean
+  dimension9_complete?: boolean
+  dimension10_complete?: boolean
+  dimension11_complete?: boolean
+  dimension12_complete?: boolean
+  dimension13_complete?: boolean
+  cross_dimensional_complete?: boolean
+  'employee-impact-assessment_complete'?: boolean
+  
+  // Computed fields
+  isFoundingPartner?: boolean
+  status?: string
+  completionPercentage?: number
+  daysInProgress?: number
+  sectionsCompleted?: number
+  totalSections?: number
+}
+
+export default function AdminDashboard() {
+  const [assessments, setAssessments] = useState<AssessmentData[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [filterType, setFilterType] = useState<string>('all')
+  const [sortField, setSortField] = useState<string>('updated_at')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [selectedAssessment, setSelectedAssessment] = useState<AssessmentData | null>(null)
+
+  // Fetch all assessment data from Supabase
+  useEffect(() => {
+    fetchAssessments()
+    
+    // Set up real-time updates
+    const subscription = supabase
+      .channel('assessments_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'assessments' },
+        (payload) => {
+          console.log('Real-time update:', payload)
+          fetchAssessments()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  const fetchAssessments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('assessments')
+        .select('*')
+        .order('updated_at', { ascending: false })
+
+      if (error) throw error
+
+      // Process data to add computed fields
+      const processedData = (data || []).map(assessment => {
+        const isFP = isFoundingPartner(assessment.survey_id || '')
+        
+        // Count completed sections
+        const sectionFlags = [
+          'firmographics_complete',
+          'general_benefits_complete',
+          'current_support_complete',
+          'dimension1_complete',
+          'dimension2_complete',
+          'dimension3_complete',
+          'dimension4_complete',
+          'dimension5_complete',
+          'dimension6_complete',
+          'dimension7_complete',
+          'dimension8_complete',
+          'dimension9_complete',
+          'dimension10_complete',
+          'dimension11_complete',
+          'dimension12_complete',
+          'dimension13_complete',
+          'cross_dimensional_complete',
+          'employee-impact-assessment_complete'
+        ]
+        
+        const sectionsCompleted = sectionFlags.filter(flag => 
+          assessment[flag as keyof typeof assessment] === true
+        ).length
+        
+        const totalSections = sectionFlags.length
+        const completionPercentage = Math.round((sectionsCompleted / totalSections) * 100)
+        
+        // Determine status
+        let status = 'Not Started'
+        if (sectionsCompleted === totalSections) {
+          status = 'Completed'
+        } else if (sectionsCompleted > 0 || assessment.auth_completed) {
+          status = 'In Progress'
+        }
+        
+        // Calculate days in progress
+        const startDate = new Date(assessment.created_at)
+        const now = new Date()
+        const daysInProgress = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+
+        return {
+          ...assessment,
+          isFoundingPartner: isFP,
+          status,
+          completionPercentage,
+          daysInProgress,
+          sectionsCompleted,
+          totalSections
+        }
+      })
+
+      setAssessments(processedData)
+    } catch (error) {
+      console.error('Error fetching assessments:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Calculate metrics
+  const metrics = {
+    foundingPartnersStarted: assessments.filter(a => a.isFoundingPartner && a.auth_completed).length,
+    foundingPartnersCompleted: assessments.filter(a => a.isFoundingPartner && a.status === 'Completed').length,
+    standardStarted: assessments.filter(a => !a.isFoundingPartner && a.auth_completed).length,
+    standardCompleted: assessments.filter(a => !a.isFoundingPartner && a.status === 'Completed').length,
+    totalRevenue: assessments
+      .filter(a => !a.isFoundingPartner && a.payment_completed)
+      .reduce((sum, a) => sum + (a.payment_amount || 1250), 0),
+    averageCompletion: assessments.length > 0 ? Math.round(
+      assessments.reduce((sum, a) => sum + (a.completionPercentage || 0), 0) / assessments.length
+    ) : 0,
+    averageDaysToComplete: assessments.filter(a => a.status === 'Completed').length > 0 ? Math.round(
+      assessments
+        .filter(a => a.status === 'Completed')
+        .reduce((sum, a) => sum + (a.daysInProgress || 0), 0) / 
+        assessments.filter(a => a.status === 'Completed').length
+    ) : 0
+  }
+
+  // Filter and sort data
+  const filteredAssessments = assessments
+    .filter(a => {
+      const matchesSearch = 
+        a.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.firmographics_data?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.firmographics_data?.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      const matchesStatus = filterStatus === 'all' || a.status === filterStatus
+      
+      const matchesType = 
+        filterType === 'all' ||
+        (filterType === 'founding' && a.isFoundingPartner) ||
+        (filterType === 'standard' && !a.isFoundingPartner)
+      
+      return matchesSearch && matchesStatus && matchesType
+    })
+    .sort((a, b) => {
+      const aVal = a[sortField as keyof AssessmentData]
+      const bVal = b[sortField as keyof AssessmentData]
+      
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return sortDirection === 'asc' 
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal)
+      }
+      
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+      }
+      
+      return 0
+    })
+
+  // Export to Excel
+  const exportToExcel = () => {
+    const exportData = filteredAssessments.map(a => ({
+      'Company Name': a.company_name || 'N/A',
+      'Contact Person': `${a.firmographics_data?.firstName || ''} ${a.firmographics_data?.lastName || ''}`.trim() || 'N/A',
+      'Email': a.email || 'N/A',
+      'Survey ID': a.survey_id || 'N/A',
+      'User Type': a.isFoundingPartner ? 'Founding Partner' : 'Standard',
+      'Payment Status': a.payment_completed ? 'Paid' : 'Unpaid',
+      'Payment Method': a.payment_method || 'N/A',
+      'Payment Amount': a.isFoundingPartner ? '$0 (FP)' : `$${(a.payment_amount || 1250).toLocaleString()}`,
+      'Status': a.status,
+      'Progress %': `${a.completionPercentage}%`,
+      'Sections Completed': `${a.sectionsCompleted}/${a.totalSections}`,
+      'Date Started': new Date(a.created_at).toLocaleDateString(),
+      'Last Updated': new Date(a.updated_at).toLocaleDateString(),
+      'Days in Progress': a.daysInProgress,
+      'Auth Completed': a.auth_completed ? 'Yes' : 'No',
+      'Firmographics': a.firmographics_complete ? '✓' : '✗',
+      'General Benefits': a.general_benefits_complete ? '✓' : '✗',
+      'Current Support': a.current_support_complete ? '✓' : '✗',
+      'Dimension 1': a.dimension1_complete ? '✓' : '✗',
+      'Dimension 2': a.dimension2_complete ? '✓' : '✗',
+      'Dimension 3': a.dimension3_complete ? '✓' : '✗',
+      'Dimension 4': a.dimension4_complete ? '✓' : '✗',
+      'Dimension 5': a.dimension5_complete ? '✓' : '✗',
+      'Dimension 6': a.dimension6_complete ? '✓' : '✗',
+      'Dimension 7': a.dimension7_complete ? '✓' : '✗',
+      'Dimension 8': a.dimension8_complete ? '✓' : '✗',
+      'Dimension 9': a.dimension9_complete ? '✓' : '✗',
+      'Dimension 10': a.dimension10_complete ? '✓' : '✗',
+      'Dimension 11': a.dimension11_complete ? '✓' : '✗',
+      'Dimension 12': a.dimension12_complete ? '✓' : '✗',
+      'Dimension 13': a.dimension13_complete ? '✓' : '✗',
+      'Cross Dimensional': a.cross_dimensional_complete ? '✓' : '✗',
+      'Employee Impact': a['employee-impact-assessment_complete'] ? '✓' : '✗'
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Survey Responses')
+    
+    // Auto-size columns
+    const maxWidth = 50
+    const colWidths = Object.keys(exportData[0] || {}).map(key => ({
+      wch: Math.min(
+        Math.max(
+          key.length,
+          ...exportData.map(row => String(row[key as keyof typeof row]).length)
+        ),
+        maxWidth
+      )
+    }))
+    ws['!cols'] = colWidths
+    
+    XLSX.writeFile(wb, `CAC_Survey_Responses_${new Date().toISOString().split('T')[0]}.xlsx`)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <svg className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          <p className="text-gray-600">Loading dashboard data from Supabase...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-8 px-6">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold mb-2">Survey Administration Dashboard</h1>
+          <p className="text-purple-100">Best Companies for Working with Cancer Initiative - 2026</p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Founding Partners */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-600 uppercase">Founding Partners</h3>
+              <span className="px-2 py-1 bg-purple-100 text-purple-600 text-xs font-bold rounded">FP</span>
+            </div>
+            <div className="flex items-baseline gap-3">
+              <p className="text-4xl font-bold text-purple-600">{metrics.foundingPartnersStarted}</p>
+              <p className="text-sm text-gray-500">Started</p>
+            </div>
+            <div className="mt-2 pt-2 border-t border-gray-100">
+              <p className="text-2xl font-semibold text-green-600">{metrics.foundingPartnersCompleted}</p>
+              <p className="text-xs text-gray-500">Completed</p>
+            </div>
+          </div>
+
+          {/* Standard Participants */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-600 uppercase">Standard Participants</h3>
+              <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs font-bold rounded">STD</span>
+            </div>
+            <div className="flex items-baseline gap-3">
+              <p className="text-4xl font-bold text-blue-600">{metrics.standardStarted}</p>
+              <p className="text-sm text-gray-500">Started</p>
+            </div>
+            <div className="mt-2 pt-2 border-t border-gray-100">
+              <p className="text-2xl font-semibold text-green-600">{metrics.standardCompleted}</p>
+              <p className="text-xs text-gray-500">Completed</p>
+            </div>
+          </div>
+
+          {/* Revenue */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
+            <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">Total Revenue</h3>
+            <p className="text-4xl font-bold text-green-600">
+              ${metrics.totalRevenue.toLocaleString()}
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              From {assessments.filter(a => !a.isFoundingPartner && a.payment_completed).length} paid surveys
+            </p>
+          </div>
+
+          {/* Completion Stats */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-orange-500">
+            <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">Avg Completion</h3>
+            <p className="text-4xl font-bold text-orange-600">{metrics.averageCompletion}%</p>
+            <p className="text-sm text-gray-500 mt-2">
+              Avg {metrics.averageDaysToComplete} days to complete
+            </p>
+          </div>
+        </div>
+
+        {/* Filters and Search */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Company, name, or email..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Statuses</option>
+                <option value="Not Started">Not Started</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+
+            {/* Type Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Types</option>
+                <option value="founding">Founding Partners</option>
+                <option value="standard">Standard</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Results count and export */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              Showing <span className="font-semibold">{filteredAssessments.length}</span> of <span className="font-semibold">{assessments.length}</span> responses
+            </p>
+            <button
+              onClick={exportToExcel}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Export to Excel
+            </button>
+          </div>
+        </div>
+
+        {/* Data Table */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Company
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Contact
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Payment
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Progress
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Dates
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredAssessments.map((assessment) => (
+                  <tr key={assessment.id} className="hover:bg-gray-50">
+                    {/* Company */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {assessment.company_name || 'N/A'}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {assessment.survey_id}
+                      </div>
+                    </td>
+
+                    {/* Contact */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {assessment.firmographics_data?.firstName} {assessment.firmographics_data?.lastName}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {assessment.email}
+                      </div>
+                    </td>
+
+                    {/* Type */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {assessment.isFoundingPartner ? (
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                          Founding Partner
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                          Standard
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Payment */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {assessment.isFoundingPartner ? (
+                        <span className="text-xs text-gray-500">N/A (FP)</span>
+                      ) : assessment.payment_completed ? (
+                        <div>
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            Paid
+                          </span>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {assessment.payment_method || 'Unknown'}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                          Unpaid
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        assessment.status === 'Completed' 
+                          ? 'bg-green-100 text-green-800'
+                          : assessment.status === 'In Progress'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {assessment.status}
+                      </span>
+                    </td>
+
+                    {/* Progress */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full transition-all"
+                            style={{ width: `${assessment.completionPercentage}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-gray-600">
+                          {assessment.completionPercentage}%
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {assessment.sectionsCompleted}/{assessment.totalSections} sections
+                      </div>
+                    </td>
+
+                    {/* Dates */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-xs text-gray-900">
+                        Started: {new Date(assessment.created_at).toLocaleDateString()}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Updated: {new Date(assessment.updated_at).toLocaleDateString()}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        ({assessment.daysInProgress} days)
+                      </div>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => setSelectedAssessment(assessment)}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        View Details →
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {filteredAssessments.length === 0 && (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No responses found</h3>
+              <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Detailed View Modal */}
+      {selectedAssessment && (
+        <DetailedResponseView
+          assessment={selectedAssessment}
+          onClose={() => setSelectedAssessment(null)}
+        />
+      )}
+    </div>
+  )
+}
