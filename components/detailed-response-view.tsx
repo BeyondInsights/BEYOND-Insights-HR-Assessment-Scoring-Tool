@@ -42,22 +42,33 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
   // Get firmographics data
   const firmographics = assessment.firmographics_data || {}
 
+  // Get the survey ID for profile link
+  const surveyId = assessment.app_id || assessment.survey_id || ''
+
+  // Open company profile in new tab (admin version)
+  const openProfile = () => {
+    const profileUrl = `/admin/profile/${surveyId}`
+    window.open(profileUrl, '_blank')
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header with BI Logo */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Image 
-              src="/BI_LOGO_FINAL.png" 
-              alt="Beyond Insights" 
-              width={150} 
-              height={45}
-              className="h-10 w-auto brightness-0 invert"
-            />
+            <div className="bg-white rounded-lg p-2">
+              <Image 
+                src="/BI_LOGO_FINAL.png" 
+                alt="Beyond Insights" 
+                width={140} 
+                height={42}
+                className="h-8 w-auto"
+              />
+            </div>
             <div className="border-l border-white/30 pl-4">
               <p className="text-blue-100 text-sm">Survey ID</p>
-              <p className="font-semibold">{assessment.app_id || assessment.survey_id || 'N/A'}</p>
+              <p className="font-semibold">{surveyId || 'N/A'}</p>
             </div>
           </div>
           <button
@@ -75,7 +86,20 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
           
           {/* Company Information Section */}
           <div className="mb-6 bg-gray-50 rounded-lg p-5 border border-gray-200">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Company Information</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Company Information</h3>
+              {surveyId && (
+                <button
+                  onClick={openProfile}
+                  className="px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  View Full Profile
+                </button>
+              )}
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Company Name</p>
@@ -83,19 +107,19 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Industry</p>
-                <p className="font-semibold text-gray-900">{firmographics.c2 || assessment.c2 || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">{firmographics.c2 || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Company Revenue</p>
-                <p className="font-semibold text-gray-900">{firmographics.c5 || assessment.c5 || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">{firmographics.c5 || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Headquarters</p>
-                <p className="font-semibold text-gray-900">{firmographics.s9 || assessment.s9 || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">{firmographics.s9 || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide"># Countries w/ Presence</p>
-                <p className="font-semibold text-gray-900">{firmographics.s9a || assessment.s9a || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">{firmographics.s9a || 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -116,7 +140,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Title</p>
-                <p className="font-semibold text-gray-900">{firmographics.s5 || assessment.s5 || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">{firmographics.s5 || 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -245,7 +269,15 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-end">
+        <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-end gap-3">
+          {surveyId && (
+            <button
+              onClick={openProfile}
+              className="px-6 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors font-semibold"
+            >
+              View Full Profile
+            </button>
+          )}
           <button
             onClick={onClose}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
