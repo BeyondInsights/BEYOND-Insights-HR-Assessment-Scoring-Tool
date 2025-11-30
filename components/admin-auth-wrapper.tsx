@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
 
 // Admin email whitelist - keep in sync with admin/login/page.tsx
 const ADMIN_EMAILS = [
@@ -11,6 +10,9 @@ const ADMIN_EMAILS = [
   // Add CAC admin emails:
   'admin@cancerandcareers.org',
 ]
+
+// Session timeout (8 hours in milliseconds)
+const SESSION_TIMEOUT = 8 * 60 * 60 * 1000
 
 export default function AdminAuthWrapper({ 
   children 
@@ -25,29 +27,40 @@ export default function AdminAuthWrapper({
     checkAdminAccess()
   }, [])
 
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      // Check sessionStorage for admin auth
+      const authData = sessionStorage.getItem('adminAuth')
       
-      if (!user) {
-        // Not logged in - redirect to ADMIN login (not main app)
-        console.log('No user found - redirecting to admin login')
+      if (!authData) {
+        console.log('No admin session - redirecting to login')
         router.push('/admin/login')
         return
       }
 
-      const userEmail = (user.email || '').toLowerCase()
-      
-      if (ADMIN_EMAILS.includes(userEmail)) {
-        console.log('Admin access granted:', userEmail)
-        setIsAdmin(true)
-      } else {
-        // Logged in but not an admin - redirect to admin login
-        console.log('Not an admin:', userEmail)
+      const { email, timestamp } = JSON.parse(authData)
+
+      // Check if session has expired
+      if (Date.now() - timestamp > SESSION_TIMEOUT) {
+        console.log('Admin session expired')
+        sessionStorage.removeItem('adminAuth')
         router.push('/admin/login')
+        return
       }
+
+      // Verify email is still in whitelist
+      if (!ADMIN_EMAILS.includes(email.toLowerCase())) {
+        console.log('Email no longer authorized:', email)
+        sessionStorage.removeItem('adminAuth')
+        router.push('/admin/login')
+        return
+      }
+
+      console.log('Admin access granted:', email)
+      setIsAdmin(true)
     } catch (error) {
       console.error('Auth error:', error)
+      sessionStorage.removeItem('adminAuth')
       router.push('/admin/login')
     } finally {
       setLoading(false)
