@@ -3,13 +3,14 @@
  * 
  * ✅ Syncs localStorage → Supabase (saves work)
  * ✅ Syncs Supabase → localStorage (restores work on new device/browser)
+ * ✅ BLOCKS page rendering until data is loaded (fixes redirect issue)
  * 
  * NO CHANGES to survey pages required - it works with existing localStorage keys.
  */
 
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { supabase } from './client'
 
@@ -34,19 +35,8 @@ const COMPLETE_KEYS = [
   ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
 ]
 
-// Meta keys for user info
-const META_KEYS = [
-  'login_company_name',
-  'login_email',
-  'login_first_name',
-  'login_last_name',
-  'login_application_id',
-  'auth_email',
-]
-
 /**
  * Load data FROM Supabase INTO localStorage
- * Called once on mount if localStorage appears empty
  */
 async function loadFromSupabase(): Promise<boolean> {
   try {
@@ -67,7 +57,7 @@ async function loadFromSupabase(): Promise<boolean> {
     if (error) {
       if (error.code === 'PGRST116') {
         console.log('📥 No existing assessment found - new user')
-        return true // Not an error, just no data yet
+        return true
       }
       throw error
     }
@@ -97,7 +87,7 @@ async function loadFromSupabase(): Promise<boolean> {
       }
     })
 
-    // Populate meta keys from assessment
+    // Populate meta keys
     if (assessment.company_name) {
       localStorage.setItem('login_company_name', assessment.company_name)
     }
@@ -111,12 +101,8 @@ async function loadFromSupabase(): Promise<boolean> {
 
     // Populate from firmographics_data
     const firmo = assessment.firmographics_data || {}
-    if (firmo.firstName) {
-      localStorage.setItem('login_first_name', firmo.firstName)
-    }
-    if (firmo.lastName) {
-      localStorage.setItem('login_last_name', firmo.lastName)
-    }
+    if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
+    if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
 
     console.log('📥 Load from Supabase complete!')
     return true
@@ -130,15 +116,12 @@ async function loadFromSupabase(): Promise<boolean> {
  * Check if localStorage has any survey data
  */
 function hasLocalData(): boolean {
-  // Check for any data key with content
   for (const key of DATA_KEYS) {
     const value = localStorage.getItem(key)
     if (value) {
       try {
         const parsed = JSON.parse(value)
-        if (Object.keys(parsed).length > 0) {
-          return true
-        }
+        if (Object.keys(parsed).length > 0) return true
       } catch {}
     }
   }
@@ -151,9 +134,6 @@ function hasLocalData(): boolean {
 function collectAllSurveyData() {
   const updateData: Record<string, any> = {}
   
-  console.log('🔍 Scanning localStorage for survey data...')
-  
-  // Collect data
   DATA_KEYS.forEach(key => {
     const value = localStorage.getItem(key)
     if (value) {
@@ -161,29 +141,18 @@ function collectAllSurveyData() {
         const parsed = JSON.parse(value)
         if (Object.keys(parsed).length > 0) {
           updateData[key] = parsed
-          console.log(`  ✓ Found ${key}:`, Object.keys(parsed).length, 'fields')
         }
-      } catch (e) {
-        console.warn(`  ⚠ Could not parse ${key}`)
-      }
+      } catch {}
     }
   })
   
-  // Collect completion flags
   COMPLETE_KEYS.forEach(key => {
     const value = localStorage.getItem(key)
-    if (value === 'true') {
-      updateData[key] = true
-      console.log(`  ✓ Found ${key}: true`)
-    }
+    if (value === 'true') updateData[key] = true
   })
   
-  // Also collect company_name if present
   const companyName = localStorage.getItem('login_company_name')
-  if (companyName) {
-    updateData.company_name = companyName
-    console.log(`  ✓ Found company_name:`, companyName)
-  }
+  if (companyName) updateData.company_name = companyName
   
   return updateData
 }
@@ -194,19 +163,10 @@ function collectAllSurveyData() {
 async function syncToSupabase() {
   try {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      console.log('⛔️ No Supabase user - skipping sync')
-      return
-    }
+    if (!user) return
     
     const updateData = collectAllSurveyData()
-    
-    if (Object.keys(updateData).length === 0) {
-      console.log('⛔️ No data to sync')
-      return
-    }
-    
-    console.log(`💾 Syncing ${Object.keys(updateData).length} items to Supabase...`)
+    if (Object.keys(updateData).length === 0) return
     
     updateData.updated_at = new Date().toISOString()
     
@@ -218,7 +178,7 @@ async function syncToSupabase() {
     if (error) {
       console.error('❌ Sync error:', error.message)
     } else {
-      console.log('✅ Sync successful!')
+      console.log('✅ Sync to Supabase successful')
     }
   } catch (error) {
     console.error('❌ Sync failed:', error)
@@ -227,117 +187,115 @@ async function syncToSupabase() {
 
 /**
  * Auto Data Sync Component
- * Add to root layout to enable automatic bidirectional syncing
+ * 
+ * IMPORTANT: This component BLOCKS rendering until data is loaded from Supabase.
+ * This ensures redirect logic sees the correct data in localStorage.
  */
-export default function AutoDataSync() {
+export default function AutoDataSync({ children }: { children?: ReactNode }) {
   const pathname = usePathname()
   const lastPath = useRef<string>('')
   const syncInProgress = useRef(false)
-  const [initialized, setInitialized] = useState(false)
+  const [loading, setLoading] = useState(true)
   
-  // ========== NEW: Load from Supabase on mount if localStorage is empty ==========
+  // Load from Supabase on mount if localStorage is empty
   useEffect(() => {
     const initializeData = async () => {
-      // Check if we already initialized this session
       const alreadyLoaded = sessionStorage.getItem('supabase_data_loaded')
       
       if (alreadyLoaded === 'true') {
-        console.log('📥 Already loaded from Supabase this session')
-        setInitialized(true)
+        console.log('📥 Already loaded this session')
+        setLoading(false)
         return
       }
       
-      // Check if localStorage has data
       if (hasLocalData()) {
-        console.log('📥 LocalStorage has data - skipping Supabase load')
+        console.log('📥 LocalStorage has data - skipping load')
         sessionStorage.setItem('supabase_data_loaded', 'true')
-        setInitialized(true)
+        setLoading(false)
         return
       }
       
-      // No local data - try to load from Supabase
-      console.log('📥 LocalStorage empty - loading from Supabase...')
-      const success = await loadFromSupabase()
-      
-      if (success) {
-        sessionStorage.setItem('supabase_data_loaded', 'true')
-      }
-      
-      setInitialized(true)
+      console.log('📥 Loading from Supabase...')
+      await loadFromSupabase()
+      sessionStorage.setItem('supabase_data_loaded', 'true')
+      setLoading(false)
     }
     
     initializeData()
   }, [])
   
-  // Sync when navigating between pages
+  // Sync on route change
   useEffect(() => {
-    if (!initialized) return
-    
+    if (loading) return
     if (pathname !== lastPath.current && lastPath.current !== '') {
-      console.log('🔄 Route changed - triggering sync')
       if (!syncInProgress.current) {
         syncInProgress.current = true
-        syncToSupabase().finally(() => {
-          syncInProgress.current = false
-        })
+        syncToSupabase().finally(() => { syncInProgress.current = false })
       }
     }
     lastPath.current = pathname
-  }, [pathname, initialized])
+  }, [pathname, loading])
   
   // Sync every 30 seconds
   useEffect(() => {
-    if (!initialized) return
-    
-    console.log('⏰ Auto-sync initialized - will sync every 30 seconds')
+    if (loading) return
     const interval = setInterval(() => {
-      console.log('⏰ Periodic sync triggered')
       if (!syncInProgress.current) {
         syncInProgress.current = true
-        syncToSupabase().finally(() => {
-          syncInProgress.current = false
-        })
+        syncToSupabase().finally(() => { syncInProgress.current = false })
       }
     }, 30000)
-    
     return () => clearInterval(interval)
-  }, [initialized])
+  }, [loading])
   
-  // Sync before page unload
+  // Sync before unload
   useEffect(() => {
-    if (!initialized) return
-    
-    const handleBeforeUnload = () => {
-      console.log('💨 Page closing - final sync')
-      const data = collectAllSurveyData()
-      if (Object.keys(data).length > 0) {
-        syncToSupabase()
-      }
-    }
-    
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [initialized])
+    if (loading) return
+    const handleUnload = () => syncToSupabase()
+    window.addEventListener('beforeunload', handleUnload)
+    return () => window.removeEventListener('beforeunload', handleUnload)
+  }, [loading])
   
-  return null
+  // ========== SHOW LOADING SCREEN UNTIL DATA IS READY ==========
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9fafb',
+        flexDirection: 'column'
+      }}>
+        <svg 
+          width="48" 
+          height="48" 
+          viewBox="0 0 24 24"
+          style={{ 
+            animation: 'spin 1s linear infinite',
+            color: '#7c3aed',
+            marginBottom: '16px'
+          }}
+        >
+          <circle 
+            cx="12" cy="12" r="10" 
+            stroke="currentColor" 
+            strokeWidth="4" 
+            fill="none"
+            opacity="0.25"
+          />
+          <path 
+            fill="currentColor" 
+            opacity="0.75"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" 
+          />
+        </svg>
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+        <p style={{ color: '#6b7280', fontWeight: 500, margin: 0 }}>Loading your progress...</p>
+      </div>
+    )
+  }
+  
+  // Render children if provided (for wrapper usage)
+  return children ? <>{children}</> : null
 }
-
-/**
- * WHAT THIS DOES:
- * 
- * 1. ON PAGE LOAD (new device/browser):
- *    - Checks if localStorage is empty
- *    - If empty, loads ALL data from Supabase
- *    - Populates localStorage so survey sections work
- * 
- * 2. WHILE USER WORKS:
- *    - Syncs localStorage → Supabase every 30 seconds
- *    - Syncs on page navigation
- *    - Syncs before browser closes
- * 
- * This means users can:
- *    ✅ Start survey on laptop
- *    ✅ Continue on phone
- *    ✅ Finish on tablet
- *    ✅ All progress preserved!
- */
