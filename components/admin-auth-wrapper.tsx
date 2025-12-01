@@ -7,8 +7,8 @@ import { useRouter } from 'next/navigation'
 const ADMIN_EMAILS = [
   'andy.borinstein@beyondinsights.com',
   'john.bekier@beyondinsights.com',
-  // Add CAC admin emails:
-  'admin@cancerandcareers.org',
+  'leslie.hutchings@gmail.com',
+  'barbara.deal@publicisgroupe.com',
 ]
 
 // Session timeout (8 hours in milliseconds)
