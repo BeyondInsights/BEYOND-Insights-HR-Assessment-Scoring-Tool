@@ -527,20 +527,24 @@ export default function CompanyProfilePage() {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) {
+      if (!user || !user.email) {
         router.push('/');
         return;
       }
 
-      // Fetch their assessment
+      console.log('Fetching assessment for:', user.email);
+
+      // Fetch their assessment by EMAIL (more reliable than user_id)
       const { data: assessment, error } = await supabase
         .from('assessments')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('email', user.email.toLowerCase())
         .single();
 
+      console.log('Assessment result:', assessment, error);
+
       if (error) throw error;
-      if (!assessment) throw new Error('Assessment not found');
+      if (!assessment) throw new Error('Assessment not found for ' + user.email);
 
       // Transform data
       const firmo = assessment.firmographics_data || {};
