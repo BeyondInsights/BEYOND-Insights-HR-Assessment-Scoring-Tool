@@ -375,6 +375,35 @@ export default function AdminProfilePage() {
         });
       }
 
+      // Calculate progress from completion flags (same as dashboard)
+      const sectionFlags = [
+        'firmographics_complete',
+        'general_benefits_complete',
+        'current_support_complete',
+        'dimension1_complete',
+        'dimension2_complete',
+        'dimension3_complete',
+        'dimension4_complete',
+        'dimension5_complete',
+        'dimension6_complete',
+        'dimension7_complete',
+        'dimension8_complete',
+        'dimension9_complete',
+        'dimension10_complete',
+        'dimension11_complete',
+        'dimension12_complete',
+        'dimension13_complete',
+        'cross_dimensional_complete',
+        'employee_impact_complete'
+      ];
+      
+      const sectionsCompleted = sectionFlags.filter(flag => 
+        assessment[flag as keyof typeof assessment] === true
+      ).length;
+      
+      const totalSections = sectionFlags.length;
+      const calculatedProgress = Math.round((sectionsCompleted / totalSections) * 100);
+
       setData({
         companyName: assessment.company_name || firmo.companyName || 'Organization',
         email: assessment.email || '',
@@ -392,7 +421,9 @@ export default function AdminProfilePage() {
         paymentCompleted: assessment.payment_completed,
         paymentMethod: assessment.payment_method,
         paymentAmount: assessment.payment_amount,
-        overallProgress: assessment.overall_progress,
+        overallProgress: calculatedProgress,
+        sectionsCompleted,
+        totalSections,
         status: assessment.status,
         createdAt: assessment.created_at,
         updatedAt: assessment.updated_at
@@ -488,14 +519,15 @@ export default function AdminProfilePage() {
           {/* Status Banner */}
           <div className="mt-4 flex items-center gap-4 flex-wrap">
             <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-              data.status === 'completed' ? 'bg-green-100 text-green-800' :
-              data.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+              data.sectionsCompleted === data.totalSections ? 'bg-green-100 text-green-800' :
+              data.sectionsCompleted > 0 ? 'bg-yellow-100 text-yellow-800' :
               'bg-gray-100 text-gray-800'
             }`}>
-              Status: {data.status || 'Unknown'}
+              Status: {data.sectionsCompleted === data.totalSections ? 'Completed' : 
+                      data.sectionsCompleted > 0 ? 'In Progress' : 'Not Started'}
             </div>
             <div className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
-              Progress: {data.overallProgress || 0}%
+              Progress: {data.overallProgress}% ({data.sectionsCompleted} of {data.totalSections} sections)
             </div>
             {data.paymentCompleted && (
               <div className="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
