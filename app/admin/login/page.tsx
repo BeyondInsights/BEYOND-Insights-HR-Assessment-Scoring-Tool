@@ -8,8 +8,8 @@ import Image from 'next/image'
 const ADMIN_EMAILS = [
   'andy.borinstein@beyondinsights.com',
   'john.bekier@beyondinsights.com',
-  // Add CAC admin emails:
-  'admin@cancerandcareers.org',
+  'leslie.hutchings@gmail.com',
+  'barbara.deal@publicisgroupe.com',
 ]
 
 // Admin password
