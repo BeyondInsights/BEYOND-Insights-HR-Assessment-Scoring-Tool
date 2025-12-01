@@ -4,6 +4,7 @@
  * ✅ Syncs localStorage → Supabase (saves work)
  * ✅ Syncs Supabase → localStorage (restores work on new device/browser)
  * ✅ BLOCKS page rendering until data is loaded (fixes redirect issue)
+ * ✅ Syncs payment status, survey_id, and ALL completion flags
  * 
  * NO CHANGES to survey pages required - it works with existing localStorage keys.
  */
@@ -14,25 +15,39 @@ import { useEffect, useRef, useState, ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { supabase } from './client'
 
-// All data keys to sync
+// All JSONB data keys to sync (these are objects)
 const DATA_KEYS = [
   'firmographics_data',
   'general_benefits_data',
   'current_support_data',
   'cross_dimensional_data',
-  'employee-impact-assessment_data',
+  'employee_impact_data',  // Supabase column name (underscore)
   ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
 ]
 
-// All completion flags
+// Alternative key names used in localStorage (hyphenated version)
+const LOCAL_STORAGE_ALIASES: Record<string, string> = {
+  'employee_impact_data': 'employee-impact-assessment_data',
+  'employee_impact_complete': 'employee-impact-assessment_complete',
+}
+
+// All completion flags (booleans in Supabase)
 const COMPLETE_KEYS = [
   'firmographics_complete',
   'auth_completed',
   'general_benefits_complete',
   'current_support_complete',
   'cross_dimensional_complete',
-  'employee-impact-assessment_complete',
+  'employee_impact_complete',  // Supabase column name
   ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
+]
+
+// Payment and auth keys (critical for dashboard display!)
+const PAYMENT_KEYS = [
+  'payment_completed',
+  'payment_method',
+  'payment_date',
+  'payment_amount',
 ]
 
 /**
@@ -67,42 +82,74 @@ async function loadFromSupabase(): Promise<boolean> {
       return true
     }
 
-    console.log('📥 Found assessment, populating localStorage...')
+    console.log('📥 Found assessment, populating localStorage...', assessment)
 
-    // Populate data keys
+    // ========== POPULATE DATA KEYS (JSONB objects) ==========
     DATA_KEYS.forEach(key => {
       const value = assessment[key as keyof typeof assessment]
       if (value && typeof value === 'object' && Object.keys(value).length > 0) {
-        localStorage.setItem(key, JSON.stringify(value))
-        console.log(`  ✓ Loaded ${key}`)
+        // Check if this key has a localStorage alias (e.g., employee_impact_data → employee-impact-assessment_data)
+        const localKey = LOCAL_STORAGE_ALIASES[key] || key
+        localStorage.setItem(localKey, JSON.stringify(value))
+        console.log(`  ✓ Loaded ${localKey}`)
       }
     })
 
-    // Populate completion flags
+    // ========== POPULATE COMPLETION FLAGS (booleans) ==========
     COMPLETE_KEYS.forEach(key => {
       const value = assessment[key as keyof typeof assessment]
       if (value === true) {
-        localStorage.setItem(key, 'true')
-        console.log(`  ✓ Loaded ${key}: true`)
+        // Check if this key has a localStorage alias
+        const localKey = LOCAL_STORAGE_ALIASES[key] || key
+        localStorage.setItem(localKey, 'true')
+        console.log(`  ✓ Loaded ${localKey}: true`)
       }
     })
 
-    // Populate meta keys
+    // ========== POPULATE PAYMENT KEYS (CRITICAL!) ==========
+    PAYMENT_KEYS.forEach(key => {
+      const value = assessment[key as keyof typeof assessment]
+      if (value !== null && value !== undefined) {
+        if (typeof value === 'boolean') {
+          localStorage.setItem(key, value ? 'true' : 'false')
+        } else {
+          localStorage.setItem(key, String(value))
+        }
+        console.log(`  ✓ Loaded ${key}: ${value}`)
+      }
+    })
+
+    // ========== POPULATE META KEYS ==========
     if (assessment.company_name) {
       localStorage.setItem('login_company_name', assessment.company_name)
+      console.log('  ✓ Loaded company_name:', assessment.company_name)
     }
     if (assessment.email) {
       localStorage.setItem('login_email', assessment.email)
       localStorage.setItem('auth_email', assessment.email)
+      console.log('  ✓ Loaded email:', assessment.email)
     }
     if (assessment.app_id) {
       localStorage.setItem('login_application_id', assessment.app_id)
+      localStorage.setItem('survey_id', assessment.app_id)  // CRITICAL for founding partner check!
+      console.log('  ✓ Loaded app_id/survey_id:', assessment.app_id)
     }
 
-    // Populate from firmographics_data
+    // ========== POPULATE FROM FIRMOGRAPHICS_DATA ==========
     const firmo = assessment.firmographics_data || {}
-    if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
-    if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
+    if (firmo.firstName) {
+      localStorage.setItem('login_first_name', firmo.firstName)
+    }
+    if (firmo.lastName) {
+      localStorage.setItem('login_last_name', firmo.lastName)
+    }
+
+    // ========== SET AUTH_COMPLETED if we have data ==========
+    // If user has firmographics, they completed auth
+    if (assessment.firmographics_complete || (firmo && Object.keys(firmo).length > 0)) {
+      localStorage.setItem('auth_completed', 'true')
+      console.log('  ✓ Set auth_completed: true')
+    }
 
     console.log('📥 Load from Supabase complete!')
     return true
@@ -116,41 +163,66 @@ async function loadFromSupabase(): Promise<boolean> {
  * Check if localStorage has any survey data
  */
 function hasLocalData(): boolean {
-  for (const key of DATA_KEYS) {
-    const value = localStorage.getItem(key)
-    if (value) {
-      try {
-        const parsed = JSON.parse(value)
-        if (Object.keys(parsed).length > 0) return true
-      } catch {}
-    }
+  // Check for firmographics as primary indicator
+  const firmo = localStorage.getItem('firmographics_data')
+  if (firmo) {
+    try {
+      const parsed = JSON.parse(firmo)
+      if (Object.keys(parsed).length > 0) return true
+    } catch {}
   }
+  
+  // Also check for auth_completed flag
+  if (localStorage.getItem('auth_completed') === 'true') {
+    return true
+  }
+  
   return false
 }
 
 /**
- * Collect all survey data from localStorage
+ * Collect all survey data from localStorage for syncing TO Supabase
  */
 function collectAllSurveyData() {
   const updateData: Record<string, any> = {}
   
+  // Collect JSONB data
   DATA_KEYS.forEach(key => {
-    const value = localStorage.getItem(key)
+    // Check both the direct key and any alias
+    const localKey = LOCAL_STORAGE_ALIASES[key] || key
+    const value = localStorage.getItem(localKey) || localStorage.getItem(key)
     if (value) {
       try {
         const parsed = JSON.parse(value)
         if (Object.keys(parsed).length > 0) {
-          updateData[key] = parsed
+          updateData[key] = parsed  // Use Supabase column name
         }
       } catch {}
     }
   })
   
+  // Collect completion flags
   COMPLETE_KEYS.forEach(key => {
-    const value = localStorage.getItem(key)
-    if (value === 'true') updateData[key] = true
+    const localKey = LOCAL_STORAGE_ALIASES[key] || key
+    const value = localStorage.getItem(localKey) || localStorage.getItem(key)
+    if (value === 'true') {
+      updateData[key] = true  // Use Supabase column name
+    }
   })
   
+  // Collect payment keys
+  PAYMENT_KEYS.forEach(key => {
+    const value = localStorage.getItem(key)
+    if (value !== null) {
+      if (value === 'true' || value === 'false') {
+        updateData[key] = value === 'true'
+      } else {
+        updateData[key] = value
+      }
+    }
+  })
+  
+  // Collect company name
   const companyName = localStorage.getItem('login_company_name')
   if (companyName) updateData.company_name = companyName
   
@@ -170,10 +242,21 @@ async function syncToSupabase() {
     
     updateData.updated_at = new Date().toISOString()
     
-    const { error } = await supabase
+    // Try to update by user_id first, then by email
+    let { error } = await supabase
       .from('assessments')
       .update(updateData)
       .eq('user_id', user.id)
+    
+    if (error) {
+      // Fallback: try by email
+      const result = await supabase
+        .from('assessments')
+        .update(updateData)
+        .eq('email', user.email?.toLowerCase())
+      
+      error = result.error
+    }
     
     if (error) {
       console.error('❌ Sync error:', error.message)
