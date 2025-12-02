@@ -109,7 +109,7 @@ export default function AdminDashboard() {
           assessment['employee-impact-assessment_complete'],
         ]
         const sectionsCompleted = completionFlags.filter(Boolean).length
-        const totalSections = 18
+        const totalSections = 19  // Fixed: auth + firmographics + general_benefits + current_support + 13 dimensions + cross_dimensional + employee-impact = 19
         const completionPercentage = Math.round((sectionsCompleted / totalSections) * 100)
         
         let status = 'Not Started'
