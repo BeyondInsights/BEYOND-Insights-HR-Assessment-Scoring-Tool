@@ -650,7 +650,6 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
-      </div>
 
       {/* Detailed View Modal */}
       {selectedAssessment && (
