@@ -477,37 +477,36 @@ export default function AdminDashboard() {
         {/* Data Table */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full table-fixed">
               <thead className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b-2 border-indigo-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Company & Contact
+                  <th className="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-80">
+                    Company / Contact
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-24">
+                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-16">
                     Type
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-32">
+                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-24">
                     Payment
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-64">
+                  <th className="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-44">
                     Progress
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-32">
+                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-24">
                     Started
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-24">
-                    Actions
+                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-16">
+                    Action
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {filteredAssessments.map((assessment, idx) => (
                   <tr key={assessment.id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-150 group">
-                    {/* Company & Contact - Combined */}
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        {/* Company Icon */}
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
+                    {/* Company & Contact */}
+                    <td className="px-2 py-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-8 h-8 rounded flex items-center justify-center text-white font-bold text-xs flex-shrink-0 ${
                           assessment.isFoundingPartner 
                             ? 'bg-gradient-to-br from-purple-500 to-purple-700' 
                             : 'bg-gradient-to-br from-blue-500 to-blue-700'
@@ -516,7 +515,7 @@ export default function AdminDashboard() {
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold text-gray-900 truncate">
+                          <div className="text-xs font-semibold text-gray-900 truncate">
                             {assessment.company_name || 'N/A'}
                           </div>
                           <div className="text-xs text-gray-600 truncate">
@@ -532,54 +531,52 @@ export default function AdminDashboard() {
                       </div>
                     </td>
 
-                    {/* Type - Icon Based */}
-                    <td className="px-4 py-4 text-center">
+                    {/* Type */}
+                    <td className="px-2 py-2 text-center">
                       {assessment.isFoundingPartner ? (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-200 rounded-full">
-                          <svg className="w-3.5 h-3.5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                        <span className="inline-flex items-center justify-center w-10 h-6 bg-gradient-to-r from-purple-100 to-purple-200 rounded-full">
+                          <svg className="w-3 h-3 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                           </svg>
-                          <span className="text-xs font-bold text-purple-700">FP</span>
-                        </div>
+                        </span>
                       ) : (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-100 to-blue-200 rounded-full">
-                          <svg className="w-3.5 h-3.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <span className="inline-flex items-center justify-center w-10 h-6 bg-gradient-to-r from-blue-100 to-blue-200 rounded-full">
+                          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                           </svg>
-                          <span className="text-xs font-bold text-blue-700">STD</span>
-                        </div>
+                        </span>
                       )}
                     </td>
 
-                    {/* Payment Status */}
-                    <td className="px-4 py-4 text-center">
+                    {/* Payment */}
+                    <td className="px-2 py-2 text-center">
                       {assessment.isFoundingPartner ? (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg">
-                          <svg className="w-3.5 h-3.5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-purple-50 border border-purple-200 rounded text-xs font-semibold text-purple-700">
+                          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
-                          <span className="text-xs font-semibold text-purple-700">Sponsored</span>
-                        </div>
+                          Sponsor
+                        </span>
                       ) : assessment.payment_completed ? (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
-                          <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-50 border border-green-200 rounded text-xs font-semibold text-green-700">
+                          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
-                          <span className="text-xs font-semibold text-green-700">Paid</span>
-                        </div>
+                          Paid
+                        </span>
                       ) : (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg">
-                          <svg className="w-3.5 h-3.5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-red-50 border border-red-200 rounded text-xs font-semibold text-red-700">
+                          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                           </svg>
-                          <span className="text-xs font-semibold text-red-700">Unpaid</span>
-                        </div>
+                          Unpaid
+                        </span>
                       )}
                     </td>
 
-                    {/* Progress - Enhanced */}
-                    <td className="px-4 py-4">
-                      <div className="space-y-1.5">
+                    {/* Progress */}
+                    <td className="px-2 py-2">
+                      <div className="space-y-0.5">
                         <div className="flex items-center justify-between">
                           <span className={`text-xs font-bold ${
                             assessment.status === 'Completed' ? 'text-green-600' :
@@ -592,7 +589,7 @@ export default function AdminDashboard() {
                             {assessment.completionPercentage}%
                           </span>
                         </div>
-                        <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="relative w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                           <div 
                             className={`absolute left-0 top-0 h-full rounded-full transition-all duration-500 ${
                               assessment.completionPercentage === 100 
@@ -603,35 +600,31 @@ export default function AdminDashboard() {
                           />
                         </div>
                         <div className="text-xs text-gray-500">
-                          {assessment.sectionsCompleted}/{assessment.totalSections} sections complete
+                          {assessment.sectionsCompleted}/{assessment.totalSections} sections
                         </div>
                       </div>
                     </td>
 
                     {/* Date */}
-                    <td className="px-4 py-4 text-center">
-                      <div className="text-sm font-medium text-gray-900">
+                    <td className="px-2 py-2 text-center">
+                      <div className="text-xs font-medium text-gray-900">
                         {new Date(assessment.created_at).toLocaleDateString('en-US', { 
                           month: 'short', 
-                          day: 'numeric',
-                          year: 'numeric'
+                          day: 'numeric'
                         })}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {assessment.daysInProgress} days ago
+                      <div className="text-xs text-gray-500">
+                        {assessment.daysInProgress}d ago
                       </div>
                     </td>
 
                     {/* Actions */}
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-2 py-2 text-center">
                       <button
                         onClick={() => setSelectedAssessment(assessment)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-xs font-semibold hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-150 shadow-sm hover:shadow-md"
+                        className="inline-flex items-center justify-center px-2 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded text-xs font-semibold hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-150"
                       >
                         View
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
                       </button>
                     </td>
                   </tr>
