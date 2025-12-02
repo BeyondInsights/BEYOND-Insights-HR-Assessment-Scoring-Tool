@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
 import * as XLSX from 'xlsx'
@@ -289,11 +288,9 @@ export default function AdminDashboard() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Image 
-              src="/beyond-insights-logo.png" 
+            <img 
+              src="/BI_LOGO_FINAL.png" 
               alt="BEYOND Insights" 
-              width={150} 
-              height={50}
               className="h-12 w-auto"
             />
             <div className="h-8 w-px bg-gray-300" />
@@ -427,28 +424,28 @@ export default function AdminDashboard() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Company
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Contact
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Payment
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Progress
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Dates
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -457,7 +454,7 @@ export default function AdminDashboard() {
                 {filteredAssessments.map((assessment) => (
                   <tr key={assessment.id} className="hover:bg-gray-50">
                     {/* Company */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {assessment.company_name || 'N/A'}
                       </div>
@@ -467,7 +464,7 @@ export default function AdminDashboard() {
                     </td>
 
                     {/* Contact */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {assessment.firmographics_data?.firstName} {assessment.firmographics_data?.lastName}
                       </div>
@@ -477,7 +474,7 @@ export default function AdminDashboard() {
                     </td>
 
                     {/* Type */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       {assessment.isFoundingPartner ? (
                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
                           Founding Partner
@@ -490,7 +487,7 @@ export default function AdminDashboard() {
                     </td>
 
                     {/* Payment */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       {assessment.isFoundingPartner ? (
                         <span className="text-xs text-gray-500">N/A (FP)</span>
                       ) : assessment.payment_completed ? (
@@ -510,7 +507,7 @@ export default function AdminDashboard() {
                     </td>
 
                     {/* Status */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                         assessment.status === 'Completed' 
                           ? 'bg-green-100 text-green-800'
@@ -523,7 +520,7 @@ export default function AdminDashboard() {
                     </td>
 
                     {/* Progress */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <div className="w-24 bg-gray-200 rounded-full h-2">
                           <div 
@@ -541,7 +538,7 @@ export default function AdminDashboard() {
                     </td>
 
                     {/* Dates */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <div className="text-xs text-gray-900">
                         Started: {new Date(assessment.created_at).toLocaleDateString()}
                       </div>
@@ -554,7 +551,7 @@ export default function AdminDashboard() {
                     </td>
 
                     {/* Actions */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <button
                         onClick={() => setSelectedAssessment(assessment)}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
