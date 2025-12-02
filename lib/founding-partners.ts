@@ -1,6 +1,9 @@
+//lib/founding-partners.ts - UPDATED WITH FP-HR IDS
+
 // Founding Partner Survey IDs - Pre-generated for partners with waived fees
 // These IDs bypass payment processing and show "Founding Partner - Fee Waived" on dashboard
 export const FOUNDING_PARTNER_IDS = [
+  // Original generic FP IDs
   'FP-748923',
   'FP-392847',
   'FP-856201',
@@ -37,11 +40,26 @@ export const FOUNDING_PARTNER_IDS = [
   'FP-325847',
   'FP-561093',
   'FP-847632',
-  'FP-219745',  // ✅ NEW - 37th Founding Partner ID
-  'FP-421967',  // ✅ NEW - 38th Founding Partner ID
+  'FP-219745',
+  'FP-421967',
   'TEST-FP-001',
   'TEST-FP-002',
-  'TEST-FP-003'
+  'TEST-FP-003',
+  
+  // FP-HR IDs (13 Founding Partner HR Lead Companies)
+  'FP-HR-740095',  // Sanofi
+  'FP-HR-982631',  // Merck
+  'FP-HR-316326',  // Stellantis
+  'FP-HR-385190',  // L'Oréal
+  'FP-HR-410734',  // Google (Alphabet)
+  'FP-HR-267233',  // ICBC-AXA Life
+  'FP-HR-602569',  // Lloyds Bank (Group)
+  'FP-HR-532408',  // Pfizer
+  'FP-HR-087371',  // Publicis
+  'FP-HR-554736',  // Haymarket
+  'FP-HR-708691',  // Memorial
+  'FP-HR-394644',  // Ford Motor
+  'FP-HR-405810',  // Nestlé
 ];
 
 /**
