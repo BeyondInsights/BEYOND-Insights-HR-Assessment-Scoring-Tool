@@ -1,5 +1,3 @@
-//lib/founding-partners.ts - UPDATED WITH FP-HR IDS
-
 // Founding Partner Survey IDs - Pre-generated for partners with waived fees
 // These IDs bypass payment processing and show "Founding Partner - Fee Waived" on dashboard
 export const FOUNDING_PARTNER_IDS = [
