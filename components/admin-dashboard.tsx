@@ -477,25 +477,25 @@ export default function AdminDashboard() {
         {/* Data Table */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
           <div className="overflow-x-auto">
-            <table className="w-full table-fixed">
+            <table className="w-full ">
               <thead className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b-2 border-indigo-200">
                 <tr>
-                  <th className="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-80">
+                  <th className="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Company / Contact
                   </th>
-                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-16">
+                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-24">
+                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Payment
                   </th>
-                  <th className="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-44">
+                  <th className="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Progress
                   </th>
-                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-24">
+                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Started
                   </th>
-                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-16">
+                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Action
                   </th>
                 </tr>
@@ -576,7 +576,7 @@ export default function AdminDashboard() {
 
                     {/* Progress */}
                     <td className="px-2 py-2">
-                      <div className="space-y-0.5">
+                      <div className="space-y-0.5 max-w-[200px]">
                         <div className="flex items-center justify-between">
                           <span className={`text-xs font-bold ${
                             assessment.status === 'Completed' ? 'text-green-600' :
