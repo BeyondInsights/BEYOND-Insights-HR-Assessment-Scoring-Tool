@@ -168,9 +168,24 @@ export default function AdminDashboard() {
     foundingPartnersCompleted: assessments.filter(a => a.isFoundingPartner && a.status === 'Completed').length,
     standardStarted: assessments.filter(a => !a.isFoundingPartner && a.auth_completed).length,
     standardCompleted: assessments.filter(a => !a.isFoundingPartner && a.status === 'Completed').length,
-    totalRevenue: assessments
-      .filter(a => !a.isFoundingPartner && a.payment_completed)
-      .reduce((sum, a) => sum + (a.payment_amount || 1250), 0),
+    
+    // ✅ FIXED: Include FP fees in revenue (comp'd by sponsors)
+    totalRevenue: 
+      // Standard paid surveys
+      assessments
+        .filter(a => !a.isFoundingPartner && a.payment_completed)
+        .reduce((sum, a) => sum + (a.payment_amount || 1250), 0) +
+      // FP surveys (fees comp'd but count toward total)
+      assessments
+        .filter(a => a.isFoundingPartner && a.status === 'Completed')
+        .length * 1250,
+    
+    // Count of paying customers
+    paidSurveyCount: assessments.filter(a => !a.isFoundingPartner && a.payment_completed).length,
+    
+    // Count of FP comp'd fees
+    fpCompedCount: assessments.filter(a => a.isFoundingPartner && a.status === 'Completed').length,
+    
     averageCompletion: assessments.length > 0 ? Math.round(
       assessments.reduce((sum, a) => sum + (a.completionPercentage || 0), 0) / assessments.length
     ) : 0,
@@ -194,7 +209,7 @@ export default function AdminDashboard() {
       const matchesStatus = filterStatus === 'all' || a.status === filterStatus
       
       const matchesType = 
-        filterType === 'all' ||
+        filterType === 'all' || 
         (filterType === 'founding' && a.isFoundingPartner) ||
         (filterType === 'standard' && !a.isFoundingPartner)
       
@@ -204,37 +219,26 @@ export default function AdminDashboard() {
       const aVal = a[sortField as keyof AssessmentData]
       const bVal = b[sortField as keyof AssessmentData]
       
-      if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return sortDirection === 'asc' 
-          ? aVal.localeCompare(bVal)
-          : bVal.localeCompare(aVal)
+      if (sortDirection === 'asc') {
+        return aVal > bVal ? 1 : -1
+      } else {
+        return aVal < bVal ? 1 : -1
       }
-      
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
-      }
-      
-      return 0
     })
 
   // Export to Excel
   const exportToExcel = () => {
     const exportData = filteredAssessments.map(a => ({
-      'Company Name': a.company_name || 'N/A',
-      'Contact Person': `${a.firmographics_data?.firstName || ''} ${a.firmographics_data?.lastName || ''}`.trim() || 'N/A',
-      'Email': a.email || 'N/A',
+      'Company': a.company_name || 'N/A',
+      'Contact Name': `${a.firmographics_data?.firstName || ''} ${a.firmographics_data?.lastName || ''}`.trim(),
+      'Email': a.email,
       'Survey ID': a.survey_id || 'N/A',
       'User Type': a.isFoundingPartner ? 'Founding Partner' : 'Standard',
-      'Payment Status': a.payment_completed ? 'Paid' : 'Unpaid',
-      'Payment Method': a.payment_method || 'N/A',
-      'Payment Amount': a.isFoundingPartner ? '$0 (FP)' : `$${(a.payment_amount || 1250).toLocaleString()}`,
       'Status': a.status,
-      'Progress %': `${a.completionPercentage}%`,
-      'Sections Completed': `${a.sectionsCompleted}/${a.totalSections}`,
-      'Date Started': new Date(a.created_at).toLocaleDateString(),
-      'Last Updated': new Date(a.updated_at).toLocaleDateString(),
-      'Days in Progress': a.daysInProgress,
-      'Auth Completed': a.auth_completed ? 'Yes' : 'No',
+      'Completion': `${a.completionPercentage}%`,
+      'Payment Amount': a.isFoundingPartner ? '$0 (FP)' : `$${(a.payment_amount || 1250).toLocaleString()}`,
+      'Payment Status': a.isFoundingPartner ? 'N/A (FP)' : a.payment_completed ? 'Paid' : 'Unpaid',
+      'Payment Method': a.isFoundingPartner ? 'N/A' : (a.payment_method || 'N/A'),
       'Firmographics': a.firmographics_complete ? '✓' : '✗',
       'General Benefits': a.general_benefits_complete ? '✓' : '✗',
       'Current Support': a.current_support_complete ? '✓' : '✗',
@@ -251,79 +255,65 @@ export default function AdminDashboard() {
       'Dimension 11': a.dimension11_complete ? '✓' : '✗',
       'Dimension 12': a.dimension12_complete ? '✓' : '✗',
       'Dimension 13': a.dimension13_complete ? '✓' : '✗',
-      'Cross Dimensional': a.cross_dimensional_complete ? '✓' : '✗',
-      'Employee Impact': a['employee-impact-assessment_complete'] ? '✓' : '✗'
+      'Cross-Dimensional': a.cross_dimensional_complete ? '✓' : '✗',
+      'Employee Impact': a['employee-impact-assessment_complete'] ? '✓' : '✗',
+      'Sections Completed': `${a.sectionsCompleted}/${a.totalSections}`,
+      'Days in Progress': a.daysInProgress,
+      'Started': new Date(a.created_at).toLocaleDateString(),
+      'Last Updated': new Date(a.updated_at).toLocaleDateString()
     }))
 
     const ws = XLSX.utils.json_to_sheet(exportData)
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Survey Responses')
-    
-    // Auto-size columns
-    const maxWidth = 50
-    const colWidths = Object.keys(exportData[0] || {}).map(key => ({
-      wch: Math.min(
-        Math.max(
-          key.length,
-          ...exportData.map(row => String(row[key as keyof typeof row]).length)
-        ),
-        maxWidth
-      )
-    }))
-    ws['!cols'] = colWidths
-    
-    XLSX.writeFile(wb, `CAC_Survey_Responses_${new Date().toISOString().split('T')[0]}.xlsx`)
+    XLSX.utils.book_append_sheet(wb, ws, 'Assessment Responses')
+    XLSX.writeFile(wb, `assessment-responses-${new Date().toISOString().split('T')[0]}.xlsx`)
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <svg className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <p className="text-gray-600">Loading dashboard data from Supabase...</p>
+          <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-6 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="bg-white rounded-lg p-2">
-              <Image 
-                src="/BI_LOGO_FINAL.png" 
-                alt="Beyond Insights" 
-                width={160} 
-                height={48}
-                className="h-10 w-auto"
-              />
-            </div>
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Image 
+              src="/beyond-insights-logo.png" 
+              alt="BEYOND Insights" 
+              width={150} 
+              height={50}
+              className="h-12 w-auto"
+            />
+            <div className="h-8 w-px bg-gray-300" />
             <div>
-              <h1 className="text-2xl font-bold">Survey Administration Dashboard</h1>
-              <p className="text-purple-100 text-sm">Best Companies for Working with Cancer Initiative - 2026</p>
+              <h1 className="text-2xl font-bold text-gray-900">Survey Administration Dashboard</h1>
+              <p className="text-sm text-gray-600">Best Companies for Working with Cancer Initiative - 2026</p>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Metrics Grid */}
+        {/* Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Founding Partners */}
           <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-gray-600 uppercase">Founding Partners</h3>
-              <span className="px-2 py-1 bg-purple-100 text-purple-600 text-xs font-bold rounded">FP</span>
-            </div>
-            <div className="flex items-baseline gap-3">
-              <p className="text-4xl font-bold text-purple-600">{metrics.foundingPartnersStarted}</p>
-              <p className="text-sm text-gray-500">Started</p>
+            <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">Founding Partners</h3>
+            <div className="flex items-baseline gap-4">
+              <div>
+                <p className="text-4xl font-bold text-purple-600">{metrics.foundingPartnersStarted}</p>
+                <p className="text-sm text-gray-500">Started</p>
+              </div>
             </div>
             <div className="mt-2 pt-2 border-t border-gray-100">
               <p className="text-2xl font-semibold text-green-600">{metrics.foundingPartnersCompleted}</p>
@@ -333,13 +323,12 @@ export default function AdminDashboard() {
 
           {/* Standard Participants */}
           <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-gray-600 uppercase">Standard Participants</h3>
-              <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs font-bold rounded">STD</span>
-            </div>
-            <div className="flex items-baseline gap-3">
-              <p className="text-4xl font-bold text-blue-600">{metrics.standardStarted}</p>
-              <p className="text-sm text-gray-500">Started</p>
+            <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">Standard Participants</h3>
+            <div className="flex items-baseline gap-4">
+              <div>
+                <p className="text-4xl font-bold text-blue-600">{metrics.standardStarted}</p>
+                <p className="text-sm text-gray-500">Started</p>
+              </div>
             </div>
             <div className="mt-2 pt-2 border-t border-gray-100">
               <p className="text-2xl font-semibold text-green-600">{metrics.standardCompleted}</p>
@@ -353,9 +342,16 @@ export default function AdminDashboard() {
             <p className="text-4xl font-bold text-green-600">
               ${metrics.totalRevenue.toLocaleString()}
             </p>
-            <p className="text-sm text-gray-500 mt-2">
-              From {assessments.filter(a => !a.isFoundingPartner && a.payment_completed).length} paid surveys
-            </p>
+            <div className="mt-2 space-y-1">
+              <p className="text-sm text-gray-600">
+                From {metrics.paidSurveyCount} paid surveys
+              </p>
+              {metrics.fpCompedCount > 0 && (
+                <p className="text-xs text-gray-500 italic">
+                  + ${(metrics.fpCompedCount * 1250).toLocaleString()} from {metrics.fpCompedCount} FP comp'd fees
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Completion Stats */}
@@ -368,22 +364,19 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Filters and Search */}
+        {/* Search and Filters */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
               <input
                 type="text"
+                placeholder="Company, name, or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Company, name, or email..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-
-            {/* Status Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
               <select
@@ -397,8 +390,6 @@ export default function AdminDashboard() {
                 <option value="Completed">Completed</option>
               </select>
             </div>
-
-            {/* Type Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
               <select
