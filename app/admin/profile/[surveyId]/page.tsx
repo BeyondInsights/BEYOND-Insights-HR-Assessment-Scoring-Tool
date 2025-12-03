@@ -67,8 +67,8 @@ const FIELD_LABELS: Record<string, string> = {
   au2: 'Authorization Description',
   c2: 'Industry',
   c3: 'Employee Groups Excluded',
-  c4: '% Eligible for Standard Benefits',
-  c5: 'Annual Revenue',
+  c3a: 'Employee Groups Excluded',
+  c4: 'Annual Revenue',
   c6: 'Remote/Hybrid Work Policy',
   cb1: 'Current Benefits Offered',
   cb1_standard: 'Standard Benefits',
@@ -98,60 +98,80 @@ const FIELD_LABELS: Record<string, string> = {
   ei3: 'Approximate ROI',
   ei4: 'Advice for Other HR Leaders',
   ei5: 'Important Aspects Not Addressed',
-  ei4_none: 'No Additional Advice',
-  ei5_none: 'No Additional Aspects',
+  ei4_none: 'No additional advice',
+  ei5_none: 'No additional aspects to report',
   d1a: 'Leave & Flexibility Programs',
-  d1b: 'Additional Leave/Flexibility Benefits',
+  d1b: 'Other medical leave or flexibility benefits',
+  d1b_none: 'No other medical leave or flexibility benefits',
   d1aa: 'Geographic Consistency',
   d1_1: 'Additional Paid Medical Leave',
+  d1_1_usa: 'Paid medical leave (USA - beyond FMLA/state requirements)',
+  d1_1_non_usa: 'Paid medical leave (Non-USA - beyond statutory requirements)',
   d1_2: 'Additional Intermittent Leave',
+  d1_2_usa: 'Intermittent leave (USA - beyond FMLA/state requirements)',
+  d1_2_non_usa: 'Intermittent leave (Non-USA - beyond statutory requirements)',
   d1_4a: 'Additional Remote Work Time',
+  d1_4a_type: 'Remote work duration type',
   d1_4b: 'Reduced Schedule Duration',
   d1_5: 'Job Protection Duration',
+  d1_5_usa: 'Job protection (USA - beyond FMLA/state requirements)',
+  d1_5_non_usa: 'Job protection (Non-USA - beyond statutory requirements)',
   d1_6: 'Disability Pay Enhancement',
   d2a: 'Insurance & Financial Programs',
-  d2b: 'Additional Financial Protection',
+  d2b: 'Other insurance or financial protection benefits',
+  d2b_none: 'No other insurance or financial protection benefits',
   d2aa: 'Geographic Consistency',
   d3a: 'Manager Training Programs',
-  d3b: 'Additional Manager Training',
+  d3b: 'Other manager preparedness initiatives',
+  d3b_none: 'No other manager preparedness initiatives',
   d3aa: 'Geographic Consistency',
   d3_1a: 'Manager Training Type',
   d3_1: 'Manager Training Completion Rate',
   d4a: 'Navigation & Expert Resources',
-  d4b: 'Additional Navigation Resources',
+  d4b: 'Other navigation or expert resources',
+  d4b_none: 'No other navigation or expert resources',
   d4aa: 'Geographic Consistency',
   d4_1a: 'Navigation Provider',
   d4_1b: 'Navigation Services Available',
   d5a: 'Workplace Accommodations',
-  d5b: 'Additional Accommodations',
+  d5b: 'Other workplace accommodations and modifications',
+  d5b_none: 'No other workplace accommodations',
   d5aa: 'Geographic Consistency',
   d6a: 'Culture & Safety Programs',
-  d6b: 'Additional Culture Initiatives',
+  d6b: 'Other culture and psychological safety supports',
+  d6b_none: 'No other culture and psychological safety supports',
   d6aa: 'Geographic Consistency',
   d6_2: 'How Psychological Safety is Measured',
   d7a: 'Career Continuity Programs',
-  d7b: 'Additional Career Support',
+  d7b: 'Other career continuity and advancement supports',
+  d7b_none: 'No other career continuity and advancement supports',
   d7aa: 'Geographic Consistency',
   d8a: 'Return to Work Programs',
-  d8b: 'Additional Return-to-Work Support',
+  d8b: 'Other work continuation or resumption supports',
+  d8b_none: 'No other work continuation or resumption supports',
   d8aa: 'Geographic Consistency',
   d9a: 'Executive Commitment',
-  d9b: 'Additional Executive Practices',
+  d9b: 'Other executive commitment or resource allocation practices',
+  d9b_none: 'No other executive commitment practices',
   d9aa: 'Geographic Consistency',
   d10a: 'Caregiver & Family Support',
-  d10b: 'Additional Caregiver Benefits',
+  d10b: 'Other caregiver and family support benefits',
+  d10b_none: 'No other caregiver and family support benefits',
   d10aa: 'Geographic Consistency',
   d11a: 'Prevention & Wellness Programs',
-  d11b: 'Additional Prevention/Wellness',
+  d11b: 'Other prevention or wellness initiatives',
+  d11b_none: 'No other prevention or wellness initiatives',
   d11aa: 'Geographic Consistency',
   d11_1: 'Early Detection Services (100% Coverage)',
   d12a: 'Continuous Improvement Metrics',
-  d12b: 'Additional Measurement Practices',
+  d12b: 'Other measurement or continuous improvement practices',
+  d12b_none: 'No other continuous improvement practices',
   d12aa: 'Geographic Consistency',
   d12_1: 'Individual Experience Review Process',
-  d12_2: 'Changes Based on Experience',
+  d12_2: 'Changes Based on Employee Experiences',
   d13a: 'Communication Approaches',
-  d13b: 'Additional Communication Methods',
+  d13b: 'Other communication or awareness approaches',
+  d13b_none: 'No other communication or awareness approaches',
   d13aa: 'Geographic Consistency',
   d13_1: 'Communication Frequency',
   'Employee retention / tenure': 'Employee Retention & Tenure',
@@ -167,13 +187,8 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 const formatLabel = (key: string) => {
-  // Strip Q or q prefix first
   const cleanKey = key.replace(/^[Qq]/, '');
-  
-  // Check if we have a label for this key
   if (FIELD_LABELS[cleanKey]) return FIELD_LABELS[cleanKey];
-  
-  // Otherwise format it nicely
   return cleanKey.replace(/_/g, ' ')
      .replace(/([A-Z])/g, ' $1')
      .replace(/\s+/g, ' ')
@@ -189,7 +204,6 @@ function selectedOnly(value: any): string[] | string | null {
   }
   if (typeof value === 'object') return value;
   const s = String(value).trim();
-  // Filter out "Other (specify):" labels - we only want the actual value
   if (s === '' || s.includes('Other (specify)') || s.includes('other (specify)')) return null;
   return s;
 }
@@ -198,169 +212,86 @@ function normalizeStatus(s: string) {
   const x = s.toLowerCase();
   if (x.includes('provide to managers')) return 'Currently provide to managers';
   if (x.includes('measure') || x.includes('track')) {
-    if (x.includes('currently')) return 'Currently measure / track';
-    if (x.includes('not able')) return 'Not able to measure / track';
+    return 'Currently measure / track';
   }
-  if (x.includes('currently use')) return 'Currently use';
-  if (x.includes('currently')) return 'Currently offer';
-  if (x.includes('active') || x.includes('development') || x.includes('planning')) return 'In active planning / development';
-  if (x.includes('assessing') || x.includes('feasibility')) return 'Assessing feasibility';
-  if (x.includes('unsure')) return 'Unsure';
+  if (x.includes('offer')) return 'Currently offer';
+  if (x.includes('use')) return 'Currently use';
+  if (x.includes('planning') || x.includes('development')) {
+    return 'In active planning / development';
+  }
+  if (x.includes('assessing') || x.includes('feasibility')) {
+    return 'Assessing feasibility';
+  }
   if (x.includes('not able')) return 'Not able to offer';
+  if (x.includes('unsure')) return 'Unsure';
   return s;
 }
 
 function DataRow({ label, value }: { label: string; value: any }) {
-  const v = selectedOnly(value);
-  if (!v) return null;
+  if (!value) return null;
   
-  return (
-    <div className="mb-3 pb-3 border-b last:border-b-0" style={{ borderColor: BRAND.gray[200] }}>
-      <div className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>
-        {label}
-      </div>
-      {Array.isArray(v) ? (
-        <ul className="space-y-1">
-          {v.map((item, i) => (
-            <li key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {item}</li>
+  const renderValue = () => {
+    if (Array.isArray(value)) {
+      return (
+        <ul className="list-disc list-inside space-y-1">
+          {value.map((v, i) => (
+            <li key={i} className="text-sm" style={{ color: BRAND.gray[700] }}>{v}</li>
           ))}
         </ul>
-      ) : typeof v === 'object' ? (
-        <div className="text-sm" style={{ color: BRAND.gray[800] }}>{JSON.stringify(v, null, 2)}</div>
-      ) : (
-        <div className="text-sm whitespace-pre-wrap" style={{ color: BRAND.gray[800] }}>{v}</div>
-      )}
-    </div>
-  );
-}
-
-function SupportMatrix({ programs }: { programs: Array<{ program: string; status: string }> }) {
-  const groups: Record<string, string[]> = {
-    'Currently offer': [],
-    'Currently provide to managers': [],
-    'Currently measure / track': [],
-    'Currently use': [],
-    'In active planning / development': [],
-    'Assessing feasibility': [],
-    'Not able to offer': [],
-    'Unsure': []
+      );
+    }
+    if (typeof value === 'object') {
+      return (
+        <div className="space-y-1">
+          {Object.entries(value).map(([k, v]) => (
+            <div key={k} className="text-sm" style={{ color: BRAND.gray[700] }}>
+              <span className="font-medium">{formatLabel(k)}:</span> {String(v)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return <span className="text-sm" style={{ color: BRAND.gray[700] }}>{String(value)}</span>;
   };
 
-  programs.forEach(p => {
-    const norm = normalizeStatus(p.status);
-    if (groups[norm]) {
-      groups[norm].push(p.program);
-    }
-  });
-
   return (
-    <div className="mb-6">
-      <div className="grid grid-cols-1 gap-4">
-        {['Currently offer', 'Currently provide to managers', 'Currently measure / track', 'Currently use'].map(key => {
-          const items = groups[key];
-          if (items.length === 0) return null;
-          return (
-            <div key={key} className="border rounded-lg p-4" style={{ borderColor: '#10B981', backgroundColor: '#F0FDF4' }}>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">✅</span>
-                <span className="font-bold text-sm" style={{ color: '#065F46' }}>{key} ({items.length})</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {items.map((item, i) => (
-                  <div key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {item}</div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-
-        {groups['In active planning / development'].length > 0 && (
-          <div className="border rounded-lg p-4" style={{ borderColor: '#3B82F6', backgroundColor: '#EFF6FF' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">🔄</span>
-              <span className="font-bold text-sm" style={{ color: '#1E40AF' }}>In active planning / development ({groups['In active planning / development'].length})</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {groups['In active planning / development'].map((item, i) => (
-                <div key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {item}</div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {groups['Assessing feasibility'].length > 0 && (
-          <div className="border rounded-lg p-4" style={{ borderColor: '#F59E0B', backgroundColor: '#FFFBEB' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">🤔</span>
-              <span className="font-bold text-sm" style={{ color: '#92400E' }}>Assessing feasibility ({groups['Assessing feasibility'].length})</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {groups['Assessing feasibility'].map((item, i) => (
-                <div key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {item}</div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {groups['Not able to offer'].length > 0 && (
-          <div className="border rounded-lg p-4" style={{ borderColor: BRAND.gray[300], backgroundColor: BRAND.gray[50] }}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">❌</span>
-              <span className="font-bold text-sm" style={{ color: BRAND.gray[600] }}>Not able to offer ({groups['Not able to offer'].length})</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {groups['Not able to offer'].map((item, i) => (
-                <div key={i} className="text-sm" style={{ color: BRAND.gray[700] }}>• {item}</div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {groups['Unsure'].length > 0 && (
-          <div className="border rounded-lg p-4" style={{ borderColor: BRAND.gray[300], backgroundColor: BRAND.gray[50] }}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">❓</span>
-              <span className="font-bold text-sm" style={{ color: BRAND.gray[600] }}>Unsure ({groups['Unsure'].length})</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {groups['Unsure'].map((item, i) => (
-                <div key={i} className="text-sm" style={{ color: BRAND.gray[700] }}>• {item}</div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="grid grid-cols-3 gap-4 py-3 border-b" style={{ borderColor: BRAND.gray[200] }}>
+      <dt className="font-medium text-sm" style={{ color: BRAND.gray[900] }}>{label}</dt>
+      <dd className="col-span-2">{renderValue()}</dd>
     </div>
   );
 }
 
-function parseDimensionData(dimNumber: number, rawData: any) {
-  const programs: Array<{ program: string; status: string }> = [];
-  const items: Array<{ question: string; response: any }> = [];
-
-  const mainKey = `d${dimNumber}a`;
-  const mainData = rawData[mainKey];
-
-  if (mainData && typeof mainData === 'object' && !Array.isArray(mainData)) {
-    for (const [prog, stat] of Object.entries(mainData)) {
-      if (typeof stat === 'string') {
-        programs.push({ program: prog, status: stat });
-      }
+function processDimensionData(rawData: any, dimNumber: number) {
+  const mainKey = `dimension${dimNumber}_data`;
+  const data = rawData[mainKey] || {};
+  const mainDataKey = `d${dimNumber}a`;
+  const mainData = data[mainDataKey] || {};
+  
+  const programs: Array<{ status: string; items: Array<{ question: string; response: string }> }> = [];
+  
+  for (const [prog, stat] of Object.entries(mainData)) {
+    const status = normalizeStatus(String(stat));
+    const existing = programs.find(p => p.status === status);
+    if (existing) {
+      existing.items.push({ question: prog, response: '' });
+    } else {
+      programs.push({ status, items: [{ question: prog, response: '' }] });
     }
   }
 
-  const otherKeys = Object.keys(rawData).filter(k => k !== mainKey && k.startsWith(`d${dimNumber}`));
+  const items: Array<{ question: string; response: any }> = [];
+  
+  const otherKeys = Object.keys(data).filter(k => k !== mainDataKey && k.startsWith(`d${dimNumber}`));
   for (const k of otherKeys) {
-    const val = selectedOnly(rawData[k]);
+    const val = selectedOnly(data[k]);
     if (val) {
-      // Use formatLabel to get proper label
       items.push({ question: formatLabel(k), response: val });
     }
   }
 
   return { programs, items };
 }
-
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
