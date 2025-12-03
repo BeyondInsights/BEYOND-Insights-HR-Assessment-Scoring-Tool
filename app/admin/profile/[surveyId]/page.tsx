@@ -49,48 +49,129 @@ const FIELD_LABELS: Record<string, string> = {
   firstName: 'First Name',
   lastName: 'Last Name',
   title: 'Title',
+  s1: 'Birth Year',
+  s2: 'Gender Identity',
+  s3: 'Employment Status',
+  s4a: 'Department/Function',
+  s4b: 'Primary Job Function',
+  s5: 'Organization Level',
+  s6: 'Areas of Responsibility',
+  s7: 'Influence on Benefits Decisions',
   s8: 'Total Employees',
   s9: 'Headquarters Location',
   s9a: 'Countries with Operations',
+  au1: 'Authorization Confirmation',
+  au2: 'Authorization Description',
   c2: 'Industry',
-  c4: 'Annual Revenue',
+  c3: 'Employee Groups Excluded',
+  c4: '% Eligible for Standard Benefits',
   c5: 'Annual Revenue',
   c6: 'Remote/Hybrid Work Policy',
   cb1: 'Current Benefits Offered',
+  cb1_standard: 'Standard Benefits',
+  cb1_leave: 'Leave & Flexibility Benefits',
+  cb1_wellness: 'Wellness & Support Benefits',
+  cb1_financial: 'Financial & Legal Benefits',
+  cb1_navigation: 'Navigation & Support Services',
   cb1a: '% Employees with National Healthcare',
   cb2b: 'Benefits Planned (Next 2 Years)',
-  or1: 'Organization Approach',
+  cb3a: 'Support Program Approach',
+  cb3b: 'Program Structure',
+  cb3c: 'Conditions Covered',
+  cb3d: 'Program Development Method',
+  or1: 'Organization Approach to Support',
   or2a: 'What Triggered Enhanced Support',
-  or2b: 'Most Impactful Change',
-  or3: 'Primary Barriers',
+  or2b: 'Most Impactful Change Made',
+  or3: 'Primary Barriers to Support',
   or5a: 'Caregiver Support Provided',
   or6: 'How Effectiveness is Monitored',
+  or6_other: 'Other Monitoring Methods',
   cd1a: 'Top 3 Priority Dimensions',
   cd1b: 'Lowest 3 Priority Dimensions',
-  cd2: 'Biggest Challenges',
+  cd2: 'Biggest Implementation Challenges',
+  cd2_other: 'Other Challenges',
   ei1: 'Program Impact by Outcome',
   ei2: 'ROI Measurement Status',
   ei3: 'Approximate ROI',
   ei4: 'Advice for Other HR Leaders',
   ei5: 'Important Aspects Not Addressed',
+  ei4_none: 'No Additional Advice',
+  ei5_none: 'No Additional Aspects',
+  d1a: 'Leave & Flexibility Programs',
   d1b: 'Additional Leave/Flexibility Benefits',
-  d3b: 'Additional Manager Training Programs',
+  d1aa: 'Geographic Consistency',
+  d1_1: 'Additional Paid Medical Leave',
+  d1_2: 'Additional Intermittent Leave',
+  d1_4a: 'Additional Remote Work Time',
+  d1_4b: 'Reduced Schedule Duration',
+  d1_5: 'Job Protection Duration',
+  d1_6: 'Disability Pay Enhancement',
+  d2a: 'Insurance & Financial Programs',
+  d2b: 'Additional Financial Protection',
+  d2aa: 'Geographic Consistency',
+  d3a: 'Manager Training Programs',
+  d3b: 'Additional Manager Training',
+  d3aa: 'Geographic Consistency',
+  d3_1a: 'Manager Training Type',
+  d3_1: 'Manager Training Completion Rate',
+  d4a: 'Navigation & Expert Resources',
   d4b: 'Additional Navigation Resources',
+  d4aa: 'Geographic Consistency',
+  d4_1a: 'Navigation Provider',
+  d4_1b: 'Navigation Services Available',
+  d5a: 'Workplace Accommodations',
   d5b: 'Additional Accommodations',
+  d5aa: 'Geographic Consistency',
+  d6a: 'Culture & Safety Programs',
   d6b: 'Additional Culture Initiatives',
+  d6aa: 'Geographic Consistency',
+  d6_2: 'How Psychological Safety is Measured',
+  d7a: 'Career Continuity Programs',
   d7b: 'Additional Career Support',
+  d7aa: 'Geographic Consistency',
+  d8a: 'Return to Work Programs',
   d8b: 'Additional Return-to-Work Support',
-  d9b: 'Additional Executive Commitment',
-  d10b: 'Additional Caregiver Support',
+  d8aa: 'Geographic Consistency',
+  d9a: 'Executive Commitment',
+  d9b: 'Additional Executive Practices',
+  d9aa: 'Geographic Consistency',
+  d10a: 'Caregiver & Family Support',
+  d10b: 'Additional Caregiver Benefits',
+  d10aa: 'Geographic Consistency',
+  d11a: 'Prevention & Wellness Programs',
   d11b: 'Additional Prevention/Wellness',
+  d11aa: 'Geographic Consistency',
+  d11_1: 'Early Detection Services (100% Coverage)',
+  d12a: 'Continuous Improvement Metrics',
   d12b: 'Additional Measurement Practices',
-  d13b: 'Additional Communication Methods'
+  d12aa: 'Geographic Consistency',
+  d12_1: 'Individual Experience Review Process',
+  d12_2: 'Changes Based on Experience',
+  d13a: 'Communication Approaches',
+  d13b: 'Additional Communication Methods',
+  d13aa: 'Geographic Consistency',
+  d13_1: 'Communication Frequency',
+  'Employee retention / tenure': 'Employee Retention & Tenure',
+  'Employee morale': 'Employee Morale',
+  'Job satisfaction scores': 'Job Satisfaction Scores',
+  'Productivity during treatment': 'Productivity During Treatment',
+  'Time to return to work': 'Time to Return to Work',
+  'Recruitment success': 'Recruitment Success',
+  'Team cohesion': 'Team Cohesion',
+  'Trust in leadership': 'Trust in Leadership',
+  'Willingness to disclose health issues': 'Willingness to Disclose Health Issues',
+  'Overall engagement scores': 'Overall Engagement Scores'
 };
 
 const formatLabel = (key: string) => {
-  key = key.replace(/^[Qq]/, '');
-  if (FIELD_LABELS[key]) return FIELD_LABELS[key];
-  return key.replace(/_/g, ' ')
+  // Strip Q or q prefix first
+  const cleanKey = key.replace(/^[Qq]/, '');
+  
+  // Check if we have a label for this key
+  if (FIELD_LABELS[cleanKey]) return FIELD_LABELS[cleanKey];
+  
+  // Otherwise format it nicely
+  return cleanKey.replace(/_/g, ' ')
      .replace(/([A-Z])/g, ' $1')
      .replace(/\s+/g, ' ')
      .trim()
@@ -267,6 +348,7 @@ function parseDimensionData(dimNumber: number, rawData: any) {
   for (const k of otherKeys) {
     const val = selectedOnly(rawData[k]);
     if (val) {
+      // Use formatLabel to get proper label
       items.push({ question: formatLabel(k), response: val });
     }
   }
@@ -500,10 +582,12 @@ export default function ProfilePage() {
           {Object.keys(firm).length > 0 && (
             <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
               <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Company Firmographics</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
-                {Object.entries(firm).map(([k, v]) => (
-                  <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
-                ))}
+              <div className="space-y-4">
+                {Object.entries(firm).map(([k, v]) => {
+                  const val = selectedOnly(v);
+                  if (!val) return null;
+                  return <DataRow key={k} label={formatLabel(k)} value={val} />;
+                })}
               </div>
             </div>
           )}
@@ -512,10 +596,12 @@ export default function ProfilePage() {
           {Object.keys(general).length > 0 && (
             <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
               <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>General Benefits Landscape</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
-                {Object.entries(general).map(([k, v]) => (
-                  <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
-                ))}
+              <div className="space-y-4">
+                {Object.entries(general).map(([k, v]) => {
+                  const val = selectedOnly(v);
+                  if (!val) return null;
+                  return <DataRow key={k} label={formatLabel(k)} value={val} />;
+                })}
               </div>
             </div>
           )}
@@ -524,10 +610,12 @@ export default function ProfilePage() {
           {Object.keys(support).length > 0 && (
             <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
               <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Current Support Programs</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
-                {Object.entries(support).map(([k, v]) => (
-                  <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
-                ))}
+              <div className="space-y-4">
+                {Object.entries(support).map(([k, v]) => {
+                  const val = selectedOnly(v);
+                  if (!val) return null;
+                  return <DataRow key={k} label={formatLabel(k)} value={val} />;
+                })}
               </div>
             </div>
           )}
@@ -678,18 +766,20 @@ export default function ProfilePage() {
                 </div>
               )}
               
-              {impact.ei2 && (
-                <DataRow label="ROI Measurement Status" value={impact.ei2} />
-              )}
-              {impact.ei3 && (
-                <DataRow label="Approximate ROI" value={impact.ei3} />
-              )}
-              {impact.ei4 && impact.ei4 !== 'No additional advice' && (
-                <DataRow label="Advice for Other HR Leaders" value={impact.ei4} />
-              )}
-              {impact.ei5 && impact.ei5 !== 'None that I can think of' && (
-                <DataRow label="Important Aspects Not Addressed by Survey" value={impact.ei5} />
-              )}
+              <div className="space-y-4">
+                {impact.ei2 && (
+                  <DataRow label={formatLabel('ei2')} value={impact.ei2} />
+                )}
+                {impact.ei3 && (
+                  <DataRow label={formatLabel('ei3')} value={impact.ei3} />
+                )}
+                {impact.ei4 && !impact.ei4.includes('No additional advice') && (
+                  <DataRow label={formatLabel('ei4')} value={impact.ei4} />
+                )}
+                {impact.ei5 && !impact.ei5.includes('None that I can think of') && (
+                  <DataRow label={formatLabel('ei5')} value={impact.ei5} />
+                )}
+              </div>
             </div>
           )}
 
