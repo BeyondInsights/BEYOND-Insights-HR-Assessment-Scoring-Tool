@@ -263,11 +263,10 @@ function DataRow({ label, value }: { label: string; value: any }) {
   );
 }
 
-function processDimensionData(rawData: any, dimNumber: number) {
-  const mainKey = `dimension${dimNumber}_data`;
-  const data = rawData[mainKey] || {};
+function processDimensionData(dimNumber: number, dimData: any) {
+  // dimData is already the dimension{X}_data object, don't look it up again
   const mainDataKey = `d${dimNumber}a`;
-  const mainData = data[mainDataKey] || {};
+  const mainData = dimData[mainDataKey] || {};
   
   const programs: Array<{ status: string; items: Array<{ question: string; response: string }> }> = [];
   
@@ -283,9 +282,9 @@ function processDimensionData(rawData: any, dimNumber: number) {
 
   const items: Array<{ question: string; response: any }> = [];
   
-  const otherKeys = Object.keys(data).filter(k => k !== mainDataKey && k.startsWith(`d${dimNumber}`));
+  const otherKeys = Object.keys(dimData).filter(k => k !== mainDataKey && k.startsWith(`d${dimNumber}`));
   for (const k of otherKeys) {
-    const val = selectedOnly(data[k]);
+    const val = selectedOnly(dimData[k]);
     if (val) {
       items.push({ question: formatLabel(k), response: val });
     }
