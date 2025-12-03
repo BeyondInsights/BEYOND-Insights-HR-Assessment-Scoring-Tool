@@ -1,6 +1,18 @@
 // Founding Partner Survey IDs - Pre-generated for partners with waived fees
 // These IDs bypass payment processing and show "Founding Partner - Fee Waived" on dashboard
 export const FOUNDING_PARTNER_IDS = [
+  'FP-HR-410734',  // Google
+  'FP-HR-554736',  // Haymarket
+  'FP-HR-267233',  // ICBC-AXA
+  'FP-HR-602569',  // Lloyds
+  'FP-HR-999999',  // Maven - ADD THIS
+  'FP-HR-708691',  // Memorial
+  'FP-HR-982631',  // Merck
+  'FP-HR-405810',  // Nestlé
+  'FP-HR-532408',  // Pfizer
+  'FP-HR-087371',  // Publicis
+  'FP-HR-740095',  // Sanofi
+  'FP-HR-316326',  // Stellantis
   'FP-748923',
   'FP-392847',
   'FP-856201',
@@ -43,21 +55,6 @@ export const FOUNDING_PARTNER_IDS = [
   'TEST-FP-002',
   'TEST-FP-003'
 ];
-
-const FOUNDING_PARTNER_IDS = [
-  'FP-HR-410734',  // Google
-  'FP-HR-554736',  // Haymarket
-  'FP-HR-267233',  // ICBC-AXA
-  'FP-HR-602569',  // Lloyds
-  'FP-HR-999999',  // Maven - ADD THIS
-  'FP-HR-708691',  // Memorial
-  'FP-HR-982631',  // Merck
-  'FP-HR-405810',  // Nestlé
-  'FP-HR-532408',  // Pfizer
-  'FP-HR-087371',  // Publicis
-  'FP-HR-740095',  // Sanofi
-  'FP-HR-316326',  // Stellantis
-]
 
 /**
  * Check if a Survey ID is a Founding Partner ID with waived fee
