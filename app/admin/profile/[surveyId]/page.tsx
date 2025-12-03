@@ -433,7 +433,7 @@ export default function ProfilePage() {
   const general = assessment.general_benefits_data || {};
   const support = assessment.current_support_data || {};
   const cross = assessment.cross_dimensional_data || {};
-  const impact = assessment['employee_impact_data'] || {};  // ✅ UNDERSCORE not dash
+  const impact = assessment['employee_impact_data'] || {};  // ✅ CORRECT: underscore not dash
   const employeeSurveyOptIn = assessment.employee_survey_opt_in;  // ✅ NEW: Employee survey preference
   
   // 🐛 DEBUG: Log Employee Impact data
