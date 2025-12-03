@@ -45,38 +45,6 @@ const DIM_TITLE: Record<number, string> = {
   13: 'Communication & Awareness'
 };
 
-const RESPONSE_OPTIONS = [
-  'Not able to offer in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently offer',
-  'Unsure'
-];
-
-const RESPONSE_OPTIONS_D3 = [
-  'Not able to provide in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently provide to managers',
-  'Unsure'
-];
-
-const RESPONSE_OPTIONS_D12 = [
-  'Not able to measure / track in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently measure / track',
-  'Unsure'
-];
-
-const RESPONSE_OPTIONS_D13 = [
-  'Not able to utilize in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently use',
-  'Unsure'
-];
-
 const FIELD_LABELS: Record<string, string> = {
   companyName: 'Company Name',
   firstName: 'First Name',
@@ -291,78 +259,6 @@ function DataRow({ label, value }: { label: string; value: any }) {
     <div className="grid grid-cols-3 gap-4 py-3 border-b" style={{ borderColor: BRAND.gray[200] }}>
       <dt className="font-medium text-sm" style={{ color: BRAND.gray[900] }}>{label}</dt>
       <dd className="col-span-2">{renderValue()}</dd>
-    </div>
-  );
-}
-
-function SupportMatrix({ programs, dimNumber }: { programs: Array<{ status: string; items: Array<{ question: string; response: string }> }>; dimNumber: number }) {
-  let options = RESPONSE_OPTIONS;
-  if (dimNumber === 13) options = RESPONSE_OPTIONS_D13;
-  else if (dimNumber === 12) options = RESPONSE_OPTIONS_D12;
-  else if (dimNumber === 3) options = RESPONSE_OPTIONS_D3;
-
-  const byStatus: Record<string, Array<string>> = {};
-  options.forEach(opt => (byStatus[opt] = []));
-  
-  programs.forEach(({ status, items }) => {
-    items.forEach(({ question }) => {
-      if (!byStatus[status]) byStatus[status] = [];
-      byStatus[status].push(question);
-    });
-  });
-
-  const totalPrograms = programs.reduce((sum, p) => sum + p.items.length, 0);
-  const activeStatuses = dimNumber === 3 ? ['Currently provide to managers'] :
-                        dimNumber === 12 ? ['Currently measure / track'] :
-                        dimNumber === 13 ? ['Currently use'] :
-                        ['Currently offer'];
-  
-  const offeredCount = activeStatuses.reduce((sum, status) => sum + (byStatus[status]?.length || 0), 0);
-  const coverage = totalPrograms > 0 ? Math.round((offeredCount / totalPrograms) * 100) : 0;
-
-  return (
-    <div className="mb-4 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.orange }}>
-          Support Programs Status
-        </div>
-        <div className="text-xs font-semibold px-2 py-1 rounded" style={{ backgroundColor: BRAND.gray[100], color: BRAND.gray[700] }}>
-          {offeredCount} of {totalPrograms} active ({coverage}%)
-        </div>
-      </div>
-
-      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(options.length, 4)}, minmax(0, 1fr))` }}>
-        {options.map((option) => {
-          const count = byStatus[option]?.length || 0;
-          const borderColor = option.toLowerCase().includes('currently') ? '#10B981' : 
-                             option.toLowerCase().includes('planning') ? '#3B82F6' :
-                             option.toLowerCase().includes('assessing') ? '#F59E0B' : 
-                             option.toLowerCase().includes('unsure') ? '#9CA3AF' :
-                             BRAND.gray[300];
-          
-          return (
-            <div key={option} className="rounded border-l-4 bg-white p-3" style={{ borderColor, backgroundColor: BRAND.gray[50] }}>
-              <div className="text-xs font-black uppercase tracking-wide mb-2 flex items-center justify-between" style={{ color: BRAND.gray[900] }}>
-                <span>{option}</span>
-                <span className="text-sm font-black px-2 py-0.5 rounded" style={{ color: borderColor, backgroundColor: `${borderColor}15` }}>
-                  {count}
-                </span>
-              </div>
-              {count > 0 ? (
-                <ul className="space-y-1.5">
-                  {byStatus[option].sort((a, b) => a.localeCompare(b)).map((prog) => (
-                    <li key={prog} className="text-sm leading-snug" style={{ color: BRAND.gray[800] }}>
-                      • {prog}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-xs italic" style={{ color: BRAND.gray[400] }}>None</div>
-              )}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -805,7 +701,29 @@ export default function ProfilePage() {
                         </div>
                       ) : (
                         <>
-                          {programs.length > 0 && <SupportMatrix programs={programs} dimNumber={dimNum} />}
+                          {programs.length > 0 && (
+                            <div className="mb-6">
+                              <table className="w-full border" style={{ borderColor: BRAND.gray[200] }}>
+                                <thead style={{ backgroundColor: BRAND.gray[50] }}>
+                                  <tr>
+                                    <th className="px-4 py-2 text-left text-xs font-bold" style={{ color: BRAND.gray[700] }}>Program</th>
+                                    <th className="px-4 py-2 text-left text-xs font-bold" style={{ color: BRAND.gray[700] }}>Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {programs.flatMap(p => p.items).map((item, i) => {
+                                    const status = programs.find(p => p.items.includes(item))?.status || '';
+                                    return (
+                                      <tr key={i} className="border-t" style={{ borderColor: BRAND.gray[200] }}>
+                                        <td className="px-4 py-2 text-sm" style={{ color: BRAND.gray[800] }}>{item.question}</td>
+                                        <td className="px-4 py-2 text-sm font-medium" style={{ color: BRAND.gray[900] }}>{status}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
                           {items.length > 0 && (
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
                               {items.map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}
