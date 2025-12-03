@@ -53,7 +53,9 @@ const FIELD_LABELS: Record<string, string> = {
   s2: 'Gender Identity',
   s3: 'Employment Status',
   s4a: 'Department/Function',
+  s4a_other: 'Department/Function',
   s4b: 'Primary Job Function',
+  s4b_other: 'Primary Job Function',
   s5: 'Organization Level',
   s6: 'Areas of Responsibility',
   s7: 'Influence on Benefits Decisions',
@@ -186,7 +188,9 @@ function selectedOnly(value: any): string[] | string | null {
   }
   if (typeof value === 'object') return value;
   const s = String(value).trim();
-  return s === '' ? null : s;
+  // Filter out "Other (specify):" labels - we only want the actual value
+  if (s === '' || s.includes('Other (specify)') || s.includes('other (specify)')) return null;
+  return s;
 }
 
 function normalizeStatus(s: string) {
@@ -518,7 +522,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Title</p>
-                <p className="text-sm" style={{ color: BRAND.gray[800] }}>{firm.title || 'N/A'}</p>
+                <p className="text-sm" style={{ color: BRAND.gray[800] }}>{firm.title || firm.titleOther || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Industry</p>
@@ -738,7 +742,7 @@ export default function ProfilePage() {
             <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
               <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Employee Impact Assessment</h2>
               
-              {impact.ei1 && typeof impact.ei1 === 'object' && (
+              {impact.ei1 && typeof impact.ei1 === 'object' && Object.keys(impact.ei1).length > 0 && (
                 <div className="mb-6 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
                   <div className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.primary }}>
                     Program Impact by Outcome Area
@@ -746,9 +750,9 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     {Object.entries(impact.ei1).map(([item, rating]) => {
                       const ratingStr = String(rating);
-                      const bgColor = ratingStr.includes('significant') ? '#dcfce7' : 
-                                     ratingStr.includes('moderate') ? '#dbeafe' : 
-                                     ratingStr.includes('minimal') ? '#fef3c7' : BRAND.gray[100];
+                      const bgColor = ratingStr.includes('significant') || ratingStr.includes('Significant') ? '#dcfce7' : 
+                                     ratingStr.includes('moderate') || ratingStr.includes('Moderate') ? '#dbeafe' : 
+                                     ratingStr.includes('minimal') || ratingStr.includes('Minimal') ? '#fef3c7' : BRAND.gray[100];
                       
                       return (
                         <div key={item} className="flex items-center justify-between py-2.5 px-4 rounded border" 
@@ -767,18 +771,19 @@ export default function ProfilePage() {
               )}
               
               <div className="space-y-4">
-                {impact.ei2 && (
-                  <DataRow label={formatLabel('ei2')} value={impact.ei2} />
-                )}
-                {impact.ei3 && (
-                  <DataRow label={formatLabel('ei3')} value={impact.ei3} />
-                )}
-                {impact.ei4 && !impact.ei4.includes('No additional advice') && (
-                  <DataRow label={formatLabel('ei4')} value={impact.ei4} />
-                )}
-                {impact.ei5 && !impact.ei5.includes('None that I can think of') && (
-                  <DataRow label={formatLabel('ei5')} value={impact.ei5} />
-                )}
+                {Object.entries(impact).map(([key, value]) => {
+                  // Skip ei1 (already rendered above) and empty values
+                  if (key === 'ei1') return null;
+                  
+                  const val = selectedOnly(value);
+                  if (!val) return null;
+                  
+                  // Skip "none" responses
+                  const valStr = String(val).toLowerCase();
+                  if (valStr.includes('no additional') || valStr.includes('none that i can think')) return null;
+                  
+                  return <DataRow key={key} label={formatLabel(key)} value={val} />;
+                })}
               </div>
             </div>
           )}
