@@ -38,6 +38,7 @@ interface Assessment {
   dimension13_data: any
   cross_dimensional_data: any
   'employee-impact-assessment_data': any
+  employee_survey_opt_in: boolean | null
   firmographics_complete: boolean
   general_benefits_complete: boolean
   current_support_complete: boolean
@@ -205,9 +206,9 @@ export default function AdminDashboard() {
 
   const stats = {
     foundingStarted: assessments.filter((a) => a.isFoundingPartner && a.sectionsCompleted > 0).length,
-    foundingCompleted: assessments.filter((a) => a.isFoundingPartner && a.completionPercentage === 100).length,
+    foundingCompleted: assessments.filter((a) => a.isFoundingPartner && a.completionPercentage >= 100).length,
     standardStarted: assessments.filter((a) => !a.isFoundingPartner && a.sectionsCompleted > 0).length,
-    standardCompleted: assessments.filter((a) => !a.isFoundingPartner && a.completionPercentage === 100).length,
+    standardCompleted: assessments.filter((a) => !a.isFoundingPartner && a.completionPercentage >= 100).length,
     totalRevenue: assessments.reduce((sum, a) => {
       if (a.isFoundingPartner) return sum + 1250
       if (a.payment_completed) return sum + 1250
@@ -219,9 +220,9 @@ export default function AdminDashboard() {
       assessments.reduce((sum, a) => sum + a.completionPercentage, 0) / (assessments.length || 1)
     ),
     avgDays: Math.round(
-      assessments.filter((a) => a.completionPercentage === 100)
+      assessments.filter((a) => a.completionPercentage >= 100)
         .reduce((sum, a) => sum + a.daysInProgress, 0) /
-        (assessments.filter((a) => a.completionPercentage === 100).length || 1)
+        (assessments.filter((a) => a.completionPercentage >= 100).length || 1)
     ),
   }
 
