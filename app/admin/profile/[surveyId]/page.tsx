@@ -433,7 +433,7 @@ export default function ProfilePage() {
   const general = assessment.general_benefits_data || {};
   const support = assessment.current_support_data || {};
   const cross = assessment.cross_dimensional_data || {};
-  const impact = assessment['employee-impact-assessment_data'] || {};
+  const impact = assessment['employee_impact_data'] || {};  // ✅ FIXED: Changed from employee-impact-assessment_data
   
   // Calculate executive summary
   let totalCurrently = 0, totalPlanning = 0, totalAssessing = 0;
