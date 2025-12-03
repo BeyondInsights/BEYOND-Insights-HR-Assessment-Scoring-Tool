@@ -656,7 +656,7 @@ export default function ProfilePage() {
 
             {Array.from({ length: 13 }, (_, i) => i + 1).map(dimNum => {
               const dimData = assessment[`dimension${dimNum}_data`] || {};
-              const { programs, items } = parseDimensionData(dimNum, dimData);
+              const { programs, items } = processDimensionData(dimNum, dimData);
               const isEmpty = programs.length === 0 && items.length === 0;
               const isCollapsed = collapsed[dimNum];
 
