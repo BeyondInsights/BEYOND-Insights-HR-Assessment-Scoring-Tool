@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
+import { generateInvoicePDF, downloadInvoicePDF, type InvoiceData } from '@/lib/invoice-generator';
 
 const BRAND = {
   primary: '#7A34A3',
@@ -368,6 +369,7 @@ export default function ProfilePage() {
   const [assessment, setAssessment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   useEffect(() => {
     if (!surveyId) return;
@@ -469,6 +471,9 @@ export default function ProfilePage() {
           body {
             background: white;
           }
+          #invoice-content {
+            padding: 20px;
+          }
         }
       `}</style>
       
@@ -538,6 +543,48 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* PAYMENT INFORMATION */}
+          {assessment.payment_completed && (
+            <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+              <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Payment Information</h2>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Payment Status</p>
+                    <p className="text-sm font-semibold text-green-600">
+                      {assessment.payment_method === 'invoice' ? 'Paid - Invoice' : 
+                       assessment.payment_method === 'zeffy' ? 'Paid - Online' : 'Paid'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Payment Date</p>
+                    <p className="text-sm" style={{ color: BRAND.gray[800] }}>
+                      {assessment.payment_date ? new Date(assessment.payment_date).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Amount</p>
+                    <p className="text-sm" style={{ color: BRAND.gray[800] }}>
+                      {assessment.is_founding_partner ? '$0.00' : '$1,250.00'}
+                    </p>
+                  </div>
+                </div>
+                
+                {assessment.payment_method === 'invoice' && (
+                  <button
+                    onClick={() => setShowInvoiceModal(true)}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-semibold flex items-center gap-2 shadow-lg"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    View Invoice
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* EXECUTIVE SUMMARY */}
           <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 rounded-lg p-6 mb-6" style={{ borderColor: BRAND.primary }}>
@@ -792,6 +839,91 @@ export default function ProfilePage() {
             Best Companies for Working with Cancer: Employer Index - Admin View
           </div>
         </main>
+
+        {/* INVOICE MODAL */}
+        {showInvoiceModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
+              <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Company Invoice</h2>
+                <button
+                  onClick={() => setShowInvoiceModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-8">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Invoice Available</h3>
+                  <p className="text-gray-600 mb-1">
+                    {assessment.company_name}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Invoice #{assessment.survey_id || assessment.app_id}
+                  </p>
+                  {assessment.payment_date && (
+                    <p className="text-sm text-gray-500">
+                      Date: {new Date(assessment.payment_date).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={async () => {
+                      const firm = assessment.firmographics_data || {}
+                      const invoiceData: InvoiceData = {
+                        invoiceNumber: assessment.survey_id || assessment.app_id,
+                        invoiceDate: assessment.payment_date ? new Date(assessment.payment_date).toLocaleDateString() : new Date().toLocaleDateString(),
+                        dueDate: assessment.payment_date ? new Date(new Date(assessment.payment_date).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                        companyName: assessment.company_name || 'Company',
+                        contactName: `${firm.firstName || ''} ${firm.lastName || ''}`.trim() || 'Contact',
+                        title: firm.title || firm.titleOther || undefined,
+                        addressLine1: firm.addressLine1 || '123 Main St',
+                        addressLine2: firm.addressLine2 || undefined,
+                        city: firm.city || 'City',
+                        state: firm.state || 'ST',
+                        zipCode: firm.zipCode || '00000',
+                        country: firm.country || 'United States',
+                        poNumber: firm.poNumber || undefined,
+                        isFoundingPartner: assessment.is_founding_partner || false
+                      }
+                      await downloadInvoicePDF(invoiceData)
+                    }}
+                    className="w-full py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all font-semibold flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download Invoice PDF
+                  </button>
+
+                  <p className="text-center text-sm text-gray-500">
+                    This is the same invoice that was generated for the company during payment.
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t p-4 bg-gray-50 flex justify-end" style={{ borderColor: BRAND.gray[200] }}>
+                <button
+                  onClick={() => setShowInvoiceModal(false)}
+                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
