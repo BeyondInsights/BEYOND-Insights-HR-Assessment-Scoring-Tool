@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
+import { generateCompleteReport } from '@/lib/report-generator';
 
 /* =========================
    BRAND
@@ -182,391 +183,335 @@ function normalizeStatus(s: string) {
   if (x.includes('active') || x.includes('development') || x.includes('planning')) return 'In active planning / development';
   if (x.includes('assessing') || x.includes('feasibility')) return 'Assessing feasibility';
   if (x.includes('unsure')) return 'Unsure';
-  if (x.includes('not able to provide')) return 'Not able to provide in foreseeable future';
-  if (x.includes('not able to utilize')) return 'Not able to utilize in foreseeable future';
-  if (x.includes('not able')) return 'Not able to offer in foreseeable future';
-  return 'Other';
+  if (x.includes('not able')) {
+    if (x.includes('utilize')) return 'Not able to utilize in foreseeable future';
+    if (x.includes('provide')) return 'Not able to provide in foreseeable future';
+    return 'Not able to offer in foreseeable future';
+  }
+  return s;
 }
 
-/* =========================
-   DIMENSION PARSER
-========================= */
-function parseDimensionData(dimNumber: number, data: Record<string, any>): {
-  programs: Array<{ program: string; status: string }>;
-  items: Array<{ question: string; response: string }>;
-} {
-  const prefix = `d${dimNumber}`;
-  const programs: Array<{ program: string; status: string }> = [];
-  const items: Array<{ question: string; response: string }> = [];
-  
-  Object.entries(data || {}).forEach(([key, value]) => {
-    const lowerKey = key.toLowerCase();
-    
-    // Check for program status grid (d#a)
-    if (lowerKey === `${prefix}a` && hasProgramStatusMap(value)) {
-      Object.entries(value).forEach(([program, status]) => {
-        if (status != null && String(status).trim() !== '') {
-          programs.push({ program: String(program), status: String(status) });
-        }
-      });
-      return;
-    }
-    
-    // Handle d#aa (geographic consistency)
-    if (lowerKey === `${prefix}aa` && value) {
-      items.push({
-        question: 'Geographic consistency of support options',
-        response: String(value)
-      });
-      return;
-    }
-    
-    if (!key.endsWith('_none')) {
-      const resp = selectedOnly(value);
-      if (resp) {
-        items.push({
-          question: formatLabel(key),
-          response: Array.isArray(resp) ? resp.join(', ') : resp
-        });
-      }
-    }
-  });
-  
-  return { programs, items };
-}
-
-/* =========================
-   UI COMPONENTS
-========================= */
-function Field({ label, value }: { label: string; value: any }) {
-  if (!value || (Array.isArray(value) && value.length === 0)) return null;
-  const display = Array.isArray(value) ? value.join(', ') : String(value);
+function DataRow({ label, value }: { label: string; value: any }) {
+  const v = selectedOnly(value);
+  if (!v) return null;
   
   return (
-    <div className="py-2.5 border-b last:border-b-0" style={{ borderColor: BRAND.gray[200] }}>
-      <div className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[600] }}>
+    <div className="mb-3 pb-3 border-b last:border-b-0" style={{ borderColor: BRAND.gray[200] }}>
+      <div className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>
         {label}
       </div>
-      <div className="text-base" style={{ color: BRAND.gray[900] }}>{display}</div>
-    </div>
-  );
-}
-
-function DataRow({ label, value }: { label: string; value?: any }) {
-  if (!value || (Array.isArray(value) && value.length === 0)) return null;
-  const display = Array.isArray(value) ? value.join(', ') : String(value);
-
-  return (
-    <div className="row py-3 border-b last:border-b-0" style={{ borderColor: BRAND.gray[200] }}>
-      <div className="text-sm font-semibold mb-1" style={{ color: BRAND.gray[600] }}>{label}</div>
-      <div className="text-base" style={{ color: BRAND.gray[900] }}>{display}</div>
+      {Array.isArray(v) ? (
+        <ul className="space-y-1">
+          {v.map((item, i) => (
+            <li key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {item}</li>
+          ))}
+        </ul>
+      ) : typeof v === 'object' ? (
+        <div className="text-sm" style={{ color: BRAND.gray[800] }}>{JSON.stringify(v, null, 2)}</div>
+      ) : (
+        <div className="text-sm whitespace-pre-wrap" style={{ color: BRAND.gray[800] }}>{v}</div>
+      )}
     </div>
   );
 }
 
 function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: string; status: string }>; dimNumber: number }) {
-  let options = RESPONSE_OPTIONS;
-  if (dimNumber === 13) options = RESPONSE_OPTIONS_D13;
-  else if (dimNumber === 12) options = RESPONSE_OPTIONS_D12;
-  else if (dimNumber === 3) options = RESPONSE_OPTIONS_D3;
+  const groups: Record<string, string[]> = {
+    'Currently offer': [],
+    'Currently provide to managers': [],
+    'Currently measure / track': [],
+    'Currently use': [],
+    'In active planning / development': [],
+    'Assessing feasibility': [],
+    'Not able to offer in foreseeable future': [],
+    'Not able to provide in foreseeable future': [],
+    'Not able to measure / track in foreseeable future': [],
+    'Not able to utilize in foreseeable future': [],
+    'Unsure': []
+  };
 
-  const byStatus: Record<string, Array<string>> = {};
-  options.forEach(opt => (byStatus[opt] = []));
-  
-  programs.forEach(({ program, status }) => {
-    const normalized = normalizeStatus(String(status));
-    if (!byStatus[normalized]) byStatus[normalized] = [];
-    byStatus[normalized].push(program);
+  programs.forEach(p => {
+    const norm = normalizeStatus(p.status);
+    if (groups[norm]) {
+      groups[norm].push(p.program);
+    }
   });
 
-  const totalPrograms = programs.length;
-  const activeStatuses = dimNumber === 3 ? ['Currently provide to managers'] :
-                        dimNumber === 12 ? ['Currently measure / track'] :
-                        dimNumber === 13 ? ['Currently use'] :
-                        ['Currently offer'];
-  
-  const offeredCount = activeStatuses.reduce((sum, status) => sum + (byStatus[status]?.length || 0), 0);
-  const coverage = totalPrograms > 0 ? Math.round((offeredCount / totalPrograms) * 100) : 0;
+  const currentlyKeys = ['Currently offer', 'Currently provide to managers', 'Currently measure / track', 'Currently use'];
+  const planning = groups['In active planning / development'];
+  const assessing = groups['Assessing feasibility'];
+  const notAbleKeys = ['Not able to offer in foreseeable future', 'Not able to provide in foreseeable future', 
+                       'Not able to measure / track in foreseeable future', 'Not able to utilize in foreseeable future'];
+  const unsure = groups['Unsure'];
 
   return (
-    <div className="mb-4 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.orange }}>
-          Support Programs Status
-        </div>
-        <div className="text-xs font-semibold px-2 py-1 rounded" style={{ backgroundColor: BRAND.gray[100], color: BRAND.gray[700] }}>
-          {offeredCount} of {totalPrograms} active ({coverage}%)
-        </div>
-      </div>
-
-      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(options.length, 4)}, minmax(0, 1fr))` }}>
-        {options.map((option) => {
-          const count = byStatus[option]?.length || 0;
-          const borderColor = option.toLowerCase().includes('currently') ? '#10B981' : 
-                             option.toLowerCase().includes('planning') ? '#3B82F6' :
-                             option.toLowerCase().includes('assessing') ? '#F59E0B' : 
-                             option.toLowerCase().includes('unsure') ? '#9CA3AF' :
-                             BRAND.gray[300];
-          
+    <div className="mb-6">
+      <div className="grid grid-cols-1 gap-4">
+        {currentlyKeys.map(key => {
+          const items = groups[key];
+          if (items.length === 0) return null;
           return (
-            <div key={option} className="rounded border-l-4 bg-white p-3" style={{ borderColor, backgroundColor: BRAND.gray[50] }}>
-              <div className="text-xs font-black uppercase tracking-wide mb-2 flex items-center justify-between" style={{ color: BRAND.gray[900] }}>
-                <span>{option}</span>
-                <span className="text-sm font-black px-2 py-0.5 rounded" style={{ color: borderColor, backgroundColor: `${borderColor}15` }}>
-                  {count}
-                </span>
+            <div key={key} className="border rounded-lg p-4" style={{ borderColor: '#10B981', backgroundColor: '#F0FDF4' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">✅</span>
+                <span className="font-bold text-sm" style={{ color: '#065F46' }}>{key} ({items.length})</span>
               </div>
-              {count > 0 ? (
-                <ul className="space-y-1.5">
-                  {byStatus[option].sort((a, b) => a.localeCompare(b)).map((prog) => (
-                    <li key={prog} className="text-sm leading-snug" style={{ color: BRAND.gray[800] }}>
-                      • {prog}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-xs italic" style={{ color: BRAND.gray[400] }}>None</div>
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {items.map((item, i) => (
+                  <div key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {item}</div>
+                ))}
+              </div>
             </div>
           );
         })}
+
+        {planning.length > 0 && (
+          <div className="border rounded-lg p-4" style={{ borderColor: '#3B82F6', backgroundColor: '#EFF6FF' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">🔄</span>
+              <span className="font-bold text-sm" style={{ color: '#1E40AF' }}>In active planning / development ({planning.length})</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {planning.map((item, i) => (
+                <div key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {item}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {assessing.length > 0 && (
+          <div className="border rounded-lg p-4" style={{ borderColor: '#F59E0B', backgroundColor: '#FFFBEB' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">🤔</span>
+              <span className="font-bold text-sm" style={{ color: '#92400E' }}>Assessing feasibility ({assessing.length})</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {assessing.map((item, i) => (
+                <div key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {item}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {notAbleKeys.map(key => {
+          const items = groups[key];
+          if (items.length === 0) return null;
+          return (
+            <div key={key} className="border rounded-lg p-4" style={{ borderColor: BRAND.gray[300], backgroundColor: BRAND.gray[50] }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">❌</span>
+                <span className="font-bold text-sm" style={{ color: BRAND.gray[600] }}>{key} ({items.length})</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {items.map((item, i) => (
+                  <div key={i} className="text-sm" style={{ color: BRAND.gray[700] }}>• {item}</div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+        {unsure.length > 0 && (
+          <div className="border rounded-lg p-4" style={{ borderColor: BRAND.gray[300], backgroundColor: BRAND.gray[50] }}>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">❓</span>
+              <span className="font-bold text-sm" style={{ color: BRAND.gray[600] }}>Unsure ({unsure.length})</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {unsure.map((item, i) => (
+                <div key={i} className="text-sm" style={{ color: BRAND.gray[700] }}>• {item}</div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-/* =========================
-   MAIN COMPONENT
-========================= */
-export default function AdminProfilePage() {
+function parseDimensionData(dimNumber: number, rawData: any) {
+  const programs: Array<{ program: string; status: string }> = [];
+  const items: Array<{ question: string; response: any }> = [];
+
+  const mainKey = `d${dimNumber}a`;
+  const mainData = rawData[mainKey];
+
+  if (hasProgramStatusMap(mainData)) {
+    for (const [prog, stat] of Object.entries(mainData)) {
+      if (typeof stat === 'string') {
+        programs.push({ program: prog, status: stat });
+      }
+    }
+  }
+
+  const otherKeys = Object.keys(rawData).filter(k => k !== mainKey && k.startsWith(`d${dimNumber}`));
+  for (const k of otherKeys) {
+    const val = selectedOnly(rawData[k]);
+    if (val) {
+      items.push({ question: formatLabel(k), response: val });
+    }
+  }
+
+  return { programs, items };
+}
+
+export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const surveyId = params?.surveyId as string;
-  
-  const [data, setData] = useState<any>(null);
+  const surveyId = params.surveyId as string;
+
+  const [assessment, setAssessment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [generatedReport, setGeneratedReport] = useState('');
 
   useEffect(() => {
-    if (surveyId) {
-      fetchAssessmentData();
-    }
+    if (!surveyId) return;
+    fetchAssessment();
   }, [surveyId]);
 
-  const fetchAssessmentData = async () => {
+  const fetchAssessment = async () => {
     try {
-      const { data: assessment, error } = await supabase
+      const { data, error } = await supabase
         .from('assessments')
         .select('*')
-        .eq('app_id', surveyId)
+        .or(`survey_id.eq.${surveyId},app_id.eq.${surveyId}`)
         .single();
 
       if (error) throw error;
-      if (!assessment) throw new Error('Assessment not found');
-
-      // Transform data to match expected format
-      const firmo = assessment.firmographics_data || {};
-      const dimensions = [];
-      for (let i = 1; i <= 13; i++) {
-        dimensions.push({
-          number: i,
-          data: assessment[`dimension${i}_data`] || {}
-        });
-      }
-
-      // Calculate progress from completion flags (same as dashboard)
-      const sectionFlags = [
-        'firmographics_complete',
-        'general_benefits_complete',
-        'current_support_complete',
-        'dimension1_complete',
-        'dimension2_complete',
-        'dimension3_complete',
-        'dimension4_complete',
-        'dimension5_complete',
-        'dimension6_complete',
-        'dimension7_complete',
-        'dimension8_complete',
-        'dimension9_complete',
-        'dimension10_complete',
-        'dimension11_complete',
-        'dimension12_complete',
-        'dimension13_complete',
-        'cross_dimensional_complete',
-        'employee_impact_complete'
-      ];
-      
-      const sectionsCompleted = sectionFlags.filter(flag => 
-        assessment[flag as keyof typeof assessment] === true
-      ).length;
-      
-      const totalSections = sectionFlags.length;
-      const calculatedProgress = Math.round((sectionsCompleted / totalSections) * 100);
-
-      setData({
-        companyName: assessment.company_name || firmo.companyName || 'Organization',
-        email: assessment.email || '',
-        applicationId: assessment.app_id || '',
-        firstName: firmo.firstName || '',
-        lastName: firmo.lastName || '',
-        generatedAt: new Date().toLocaleDateString(),
-        firmographics: firmo,
-        general: assessment.general_benefits_data || {},
-        current: assessment.current_support_data || {},
-        cross: assessment.cross_dimensional_data || {},
-        impact: assessment.employee_impact_data || {},
-        dimensions,
-        // Additional metadata
-        paymentCompleted: assessment.payment_completed,
-        paymentMethod: assessment.payment_method,
-        paymentAmount: assessment.payment_amount,
-        overallProgress: calculatedProgress,
-        sectionsCompleted,
-        totalSections,
-        status: assessment.status,
-        createdAt: assessment.created_at,
-        updatedAt: assessment.updated_at
-      });
-    } catch (err: any) {
-      console.error('Error fetching assessment:', err);
-      setError(err.message || 'Failed to load assessment');
+      setAssessment(data);
+    } catch (error) {
+      console.error('Error fetching assessment:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const viewFullReport = () => {
+    if (!assessment) return;
+    const report = generateCompleteReport(assessment);
+    setGeneratedReport(report);
+    setShowReportModal(true);
+  };
+
+  const downloadFullReport = () => {
+    if (!assessment) return;
+    const report = generateCompleteReport(assessment);
+    const blob = new Blob([report], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${assessment.company_name?.replace(/[^a-z0-9]/gi, '_') || 'Company'}_Comprehensive_Report.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen grid place-items-center" style={{ backgroundColor: BRAND.gray[50] }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: BRAND.gray[50] }}>
         <div className="text-center">
           <svg className="animate-spin h-12 w-12 mx-auto mb-4" style={{ color: BRAND.primary }} viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <div className="text-sm" style={{ color: BRAND.gray[600] }}>Loading profile for {surveyId}...</div>
+          <p style={{ color: BRAND.gray[600] }}>Loading assessment...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (!assessment) {
     return (
-      <div className="min-h-screen grid place-items-center" style={{ backgroundColor: BRAND.gray[50] }}>
-        <div className="text-center max-w-md">
-          <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Profile</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: BRAND.gray[50] }}>
+        <div className="text-center">
+          <p className="text-xl font-bold mb-2" style={{ color: BRAND.gray[900] }}>Assessment Not Found</p>
+          <p style={{ color: BRAND.gray[600] }}>Survey ID: {surveyId}</p>
           <button
             onClick={() => router.push('/admin')}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="mt-4 px-4 py-2 rounded-lg text-white"
+            style={{ backgroundColor: BRAND.primary }}
           >
-            ← Back to Dashboard
+            Back to Dashboard
           </button>
         </div>
       </div>
     );
   }
 
-  if (!data) return null;
-
-  const firmo = data.firmographics || {};
-  const poc = {
-    name: `${data.firstName} ${data.lastName}`.trim(),
-    email: data.email,
-    dept: firmo?.s4a || firmo?.s3,
-    function: firmo?.s4b,
-    level: firmo?.s5,
-    areas: firmo?.s6,
-    influence: firmo?.s7
+  const data = {
+    firmographics: assessment.firmographics_data || {},
+    general: assessment.general_benefits_data || {},
+    support: assessment.current_support_data || {},
+    dimensions: Array.from({ length: 13 }, (_, i) => {
+      const dimNum = i + 1;
+      return {
+        number: dimNum,
+        data: assessment[`dimension${dimNum}_data`] || {}
+      };
+    }),
+    cross: assessment.cross_dimensional_data || {},
+    impact: assessment['employee-impact-assessment_data'] || {}
   };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: BRAND.gray[50] }}>
-      {/* HEADER */}
-      <header className="bg-white border-b" style={{ borderColor: BRAND.gray[200] }}>
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div className="flex items-center gap-4">
-              <div className="bg-white border rounded-lg p-2" style={{ borderColor: BRAND.gray[200] }}>
-                <Image 
-                  src="/BI_LOGO_FINAL.png" 
-                  alt="Beyond Insights" 
-                  width={140} 
-                  height={42}
-                  className="h-8 w-auto"
-                />
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <header className="mb-6">
+          <Image src="/BI_LOGO_FINAL.png" alt="Beyond Insights" width={200} height={60} className="mb-4" />
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>
+                Survey ID: {surveyId}
               </div>
-              <div className="text-xl font-black tracking-wide" style={{ color: BRAND.primary }}>
-                Admin Profile View
-              </div>
+              <h1 className="text-2xl font-bold" style={{ color: BRAND.gray[900] }}>
+                {assessment?.company_name || 'Company Profile'}
+              </h1>
             </div>
-            <button
-              onClick={() => router.push('/admin')}
-              className="px-4 py-2 text-sm font-semibold border rounded-lg hover:bg-gray-50 flex items-center gap-2"
-              style={{ borderColor: BRAND.gray[300], color: BRAND.gray[900] }}
-            >
-              ← Back to Dashboard
-            </button>
-          </div>
-
-          <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
-          <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-            Survey ID: <span className="font-mono font-semibold">{data.applicationId}</span>
-            {data.email && ` • ${data.email}`}
-          </p>
-          
-          {/* Status Banner */}
-          <div className="mt-4 flex items-center gap-4 flex-wrap">
-            <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-              data.sectionsCompleted === data.totalSections ? 'bg-green-100 text-green-800' :
-              data.sectionsCompleted > 0 ? 'bg-yellow-100 text-yellow-800' :
-              'bg-gray-100 text-gray-800'
-            }`}>
-              Status: {data.sectionsCompleted === data.totalSections ? 'Completed' : 
-                      data.sectionsCompleted > 0 ? 'In Progress' : 'Not Started'}
+            
+            <div className="flex gap-3">
+              <button
+                onClick={viewFullReport}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-semibold flex items-center gap-2 shadow-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View Full Report
+              </button>
+              
+              <button
+                onClick={downloadFullReport}
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all font-semibold flex items-center gap-2 shadow-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Download Report
+              </button>
             </div>
-            <div className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
-              Progress: {data.overallProgress}% ({data.sectionsCompleted} of {data.totalSections} sections)
+          </div>
+        </header>
+
+        {/* FIRMOGRAPHICS */}
+        {Object.keys(data.firmographics).length > 0 && (
+          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Company Firmographics</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
+              {Object.entries(data.firmographics).map(([k, v]) => (
+                <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
+              ))}
             </div>
-            {data.paymentCompleted && (
-              <div className="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
-                ✓ Paid ({data.paymentMethod})
-              </div>
-            )}
           </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-6 py-6">
-        {/* POC + COMPANY PROFILE */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          <div className="bg-white border rounded-lg p-5" style={{ borderColor: BRAND.gray[200] }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Point of Contact</h2>
-            <Field label="Name" value={poc.name} />
-            <Field label="Email" value={poc.email} />
-            <Field label="Department" value={poc.dept} />
-            <Field label="Primary Job Function" value={poc.function} />
-            <Field label="Current Level" value={poc.level} />
-            <Field label="Areas of Responsibility" value={poc.areas} />
-            <Field label="Level of Influence on Benefits" value={poc.influence} />
-          </div>
-
-          <div className="bg-white border rounded-lg p-5" style={{ borderColor: BRAND.gray[200] }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Company Profile</h2>
-            <Field label="Industry" value={firmo.c2} />
-            <Field label="Annual Revenue" value={firmo.c5} />
-            <Field label="Total Employee Size" value={firmo.s8} />
-            <Field label="HQ Location" value={firmo.s9} />
-            <Field label="Countries with Presence" value={firmo.s9a} />
-            <Field label="Remote/Hybrid Policy" value={firmo.c6} />
-          </div>
-        </div>
+        )}
 
         {/* GENERAL BENEFITS */}
-        {Object.keys(data.general || {}).length > 0 && (
+        {Object.keys(data.general).length > 0 && (
           <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>General Employee Benefits</h2>
+            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>General Benefits Landscape</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
               {Object.entries(data.general).map(([k, v]) => (
                 <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
@@ -576,11 +521,11 @@ export default function AdminProfilePage() {
         )}
 
         {/* CURRENT SUPPORT */}
-        {Object.keys(data.current || {}).length > 0 && (
+        {Object.keys(data.support).length > 0 && (
           <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Current Support for Employees Managing Cancer</h2>
+            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Current Support Programs</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
-              {Object.entries(data.current).map(([k, v]) => (
+              {Object.entries(data.support).map(([k, v]) => (
                 <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
               ))}
             </div>
@@ -761,6 +706,59 @@ export default function AdminProfilePage() {
           Best Companies for Working with Cancer: Employer Index - Admin View
         </div>
       </main>
+
+      {/* REPORT MODAL */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-bold">Comprehensive Assessment Report</h2>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={downloadFullReport}
+                  className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors flex items-center gap-2"
+                  title="Download as Markdown"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download
+                </button>
+                <button
+                  onClick={() => setShowReportModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
+              <div className="bg-white rounded-lg shadow-sm p-8 max-w-4xl mx-auto">
+                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-800">
+                  {generatedReport}
+                </pre>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-between items-center">
+              <p className="text-sm text-gray-600">
+                💡 Tip: Download the report as a markdown file for better formatting
+              </p>
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
