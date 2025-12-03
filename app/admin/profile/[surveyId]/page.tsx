@@ -436,6 +436,25 @@ export default function ProfilePage() {
   const impact = assessment['employee-impact-assessment_data'] || {};  // ✅ CORRECT: Using proper Supabase column name
   const employeeSurveyOptIn = assessment.employee_survey_opt_in;  // ✅ NEW: Employee survey preference
   
+  // 🐛 DEBUG: Log Employee Impact data
+  console.log('📊 Employee Impact Debug:', {
+    hasImpactData: Object.keys(impact).length > 0,
+    impactKeys: Object.keys(impact),
+    ei1: impact.ei1,
+    ei2: impact.ei2,
+    ei3: impact.ei3,
+    ei4: impact.ei4,
+    ei5: impact.ei5
+  })
+  
+  // 🐛 DEBUG: Log Title data
+  console.log('👤 Title Debug:', {
+    title: firm.title,
+    titleOther: firm.titleOther,
+    firstName: firm.firstName,
+    lastName: firm.lastName
+  })
+  
   // Calculate executive summary
   let totalCurrently = 0, totalPlanning = 0, totalAssessing = 0;
   for (let i = 1; i <= 13; i++) {
