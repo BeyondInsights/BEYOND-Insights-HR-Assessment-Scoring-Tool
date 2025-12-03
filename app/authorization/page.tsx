@@ -73,16 +73,25 @@ function AuthorizationContent() {
   useEffect(() => {
     const checkAuth = async () => {
       // ============================================
-      // FOUNDING PARTNER CHECK - SKIP SUPABASE
+      // FOUNDING PARTNER CHECK
       // ============================================
       const surveyId = localStorage.getItem('survey_id') || ''
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       
       if (isFoundingPartner(surveyId)) {
-        console.log('Founding Partner - skipping Supabase auth')
-        localStorage.setItem('auth_completed', 'true')
-        setLoading(false)
-        return
+        console.log('Founding Partner detected')
+        const authCompleted = localStorage.getItem('auth_completed') === 'true'
+        
+        if (authCompleted) {
+          console.log('✅ Founding Partner - auth already completed, redirecting to dashboard')
+          router.push('/dashboard')
+          return
+        } else {
+          console.log('📋 Founding Partner - needs to complete authorization')
+          localStorage.setItem('auth_completed', 'true')
+          setLoading(false)
+          return
+        }
       }
       // ============================================
       
@@ -130,10 +139,24 @@ function AuthorizationContent() {
       }
       // ============================================
 
+      // ============================================
+      // CHECK IF AUTH IS ALREADY COMPLETED - REDIRECT TO DASHBOARD
+      // ============================================
+      // Check BOTH Supabase and localStorage
+      const localAuthComplete = localStorage.getItem('auth_completed') === 'true'
+      
       // Load existing data if any
       try {
         const assessment = await getUserAssessment()
         if (assessment) {
+          // ✅ CRITICAL CHECK: If auth already completed, go to dashboard
+          if (assessment.auth_completed || localAuthComplete) {
+            console.log('✅ Authorization already completed - redirecting to dashboard')
+            router.push('/dashboard')
+            return
+          }
+          
+          // Only load form data if auth not completed
           const authData = assessment.firmographics_data as any
           if (authData) {
             if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
@@ -145,10 +168,16 @@ function AuthorizationContent() {
             if (authData.au2) setAu2(authData.au2)
             if (authData.other) setOther(authData.other)
           }
+        } else if (localAuthComplete) {
+          // No Supabase record but localStorage says completed (founding partner case)
+          console.log('✅ Authorization completed (localStorage) - redirecting to dashboard')
+          router.push('/dashboard')
+          return
         }
       } catch (error) {
         console.error('Error loading data:', error)
       }
+      // ============================================
 
       setLoading(false)
     }
