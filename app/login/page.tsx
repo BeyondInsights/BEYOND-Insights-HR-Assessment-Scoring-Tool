@@ -78,6 +78,7 @@ export default function LoginPage() {
       localStorage.setItem('login_Survey_id', surveyId.trim())
       
       // ✅ CHECK IF FOUNDING PARTNER HAS ALREADY COMPLETED AUTHORIZATION
+      // Look in localStorage first (founding partners don't use Supabase for auth)
       const authCompleted = localStorage.getItem('auth_completed') === 'true'
       
       if (authCompleted) {
@@ -127,11 +128,36 @@ export default function LoginPage() {
           localStorage.setItem('login_Survey_id', surveyId)
         }
         
-        // ✅ FOR EXISTING/RETURNING USERS - ALWAYS GO TO DASHBOARD
-        // They will be redirected from dashboard if they haven't completed things
+        // ✅ FOR EXISTING/RETURNING USERS - RESTORE DATA AND GO TO DASHBOARD
         if (result.mode === 'existing' && !result.needsVerification) {
           const user = await getCurrentUser()
           if (user) {
+            // ✅ CRITICAL: Restore completion flags from Supabase to localStorage
+            const { data: assessment } = await supabase
+              .from('assessments')
+              .select('auth_completed, payment_completed, company_name')
+              .eq('user_id', user.id)
+              .single()
+            
+            if (assessment) {
+              // Restore auth completion flag
+              if (assessment.auth_completed) {
+                localStorage.setItem('auth_completed', 'true')
+                console.log('✅ Restored auth_completed to localStorage')
+              }
+              
+              // Restore payment completion flag
+              if (assessment.payment_completed) {
+                localStorage.setItem('payment_completed', 'true')
+                console.log('✅ Restored payment_completed to localStorage')
+              }
+              
+              // Restore company name
+              if (assessment.company_name) {
+                localStorage.setItem('login_company_name', assessment.company_name)
+              }
+            }
+            
             setSuccessMessage('✅ Welcome back! Redirecting to your dashboard...')
             setTimeout(() => {
               router.push('/dashboard')
