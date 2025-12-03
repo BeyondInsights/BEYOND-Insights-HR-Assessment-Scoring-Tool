@@ -37,7 +37,7 @@ interface Assessment {
   dimension12_data: any
   dimension13_data: any
   cross_dimensional_data: any
-  'employee-impact-assessment_data': any
+  employee_impact_data: any
   employee_survey_opt_in: boolean | null
   firmographics_complete: boolean
   general_benefits_complete: boolean
@@ -56,7 +56,7 @@ interface Assessment {
   dimension12_complete: boolean
   dimension13_complete: boolean
   cross_dimensional_complete: boolean
-  'employee-impact-assessment_complete': boolean
+  employee_impact_complete: boolean
 }
 
 interface ProcessedAssessment extends Assessment {
@@ -128,7 +128,7 @@ export default function AdminDashboard() {
           assessment.dimension12_complete,
           assessment.dimension13_complete,
           assessment.cross_dimensional_complete,
-          assessment['employee-impact-assessment_complete'],
+          assessment.employee_impact_complete,
         ]
         const sectionsCompleted = completionFlags.filter(Boolean).length
         const totalSections = 19
