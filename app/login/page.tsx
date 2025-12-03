@@ -147,6 +147,15 @@ export default function LoginPage() {
               if (assessment.payment_completed) localStorage.setItem('payment_completed', 'true')
               if (assessment.payment_method) localStorage.setItem('payment_method', assessment.payment_method)
               
+              // ✅ RESTORE SURVEY SUBMISSION FLAGS
+              if (assessment.survey_submitted) {
+                localStorage.setItem('assessment_completion_shown', 'true')
+                localStorage.setItem('survey_fully_submitted', 'true')
+              }
+              if (assessment.employee_survey_opt_in !== null && assessment.employee_survey_opt_in !== undefined) {
+                localStorage.setItem('employee_survey_opt_in', assessment.employee_survey_opt_in.toString())
+              }
+              
               // Restore company info
               if (assessment.company_name) localStorage.setItem('login_company_name', assessment.company_name)
               
