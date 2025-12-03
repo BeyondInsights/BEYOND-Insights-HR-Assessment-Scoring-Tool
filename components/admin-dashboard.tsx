@@ -6,7 +6,21 @@ import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
 import * as XLSX from 'xlsx'
 import DetailedResponseView from './detailed-response-view'
-import { generateInvoicePDF, downloadInvoicePDF, type InvoiceData } from '@/lib/invoice-generator'
+
+// Import invoice generator with error handling
+let generateInvoicePDF: any
+let downloadInvoicePDF: any
+let InvoiceData: any
+
+try {
+  const invoiceModule = require('@/lib/invoice-generator')
+  generateInvoicePDF = invoiceModule.generateInvoicePDF
+  downloadInvoicePDF = invoiceModule.downloadInvoicePDF
+  InvoiceData = invoiceModule.InvoiceData
+  console.log('✅ Invoice generator loaded successfully')
+} catch (error) {
+  console.error('❌ Failed to load invoice generator:', error)
+}
 
 interface AssessmentData {
   id: string
@@ -69,6 +83,8 @@ interface AssessmentData {
 }
 
 export default function AdminDashboard() {
+  console.log('🚀 AdminDashboard rendering')
+  
   const [assessments, setAssessments] = useState<AssessmentData[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -84,6 +100,7 @@ export default function AdminDashboard() {
 
   // Fetch all assessment data from Supabase
   useEffect(() => {
+    console.log('📡 Setting up data fetch')
     fetchAssessments()
     
     // Set up real-time updates
@@ -105,12 +122,18 @@ export default function AdminDashboard() {
 
   const fetchAssessments = async () => {
     try {
+      console.log('🔍 Fetching assessments from Supabase')
       const { data, error } = await supabase
         .from('assessments')
         .select('*')
         .order('updated_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Supabase error:', error)
+        throw error
+      }
+
+      console.log(`✅ Fetched ${data?.length || 0} assessments`)
 
       // Process data to add computed fields
       const processedData = (data || []).map(assessment => {
@@ -170,8 +193,9 @@ export default function AdminDashboard() {
       })
 
       setAssessments(processedData)
+      console.log('✅ Processed and set assessments')
     } catch (error) {
-      console.error('Error fetching assessments:', error)
+      console.error('❌ Error fetching assessments:', error)
     } finally {
       setLoading(false)
     }
@@ -179,38 +203,56 @@ export default function AdminDashboard() {
 
   // Handle invoice viewing
   const handleViewInvoice = (assessment: AssessmentData) => {
+    console.log('📄 Viewing invoice for:', assessment.company_name)
     setInvoiceAssessment(assessment)
     setShowInvoiceModal(true)
   }
 
   // Handle invoice download
   const handleDownloadInvoice = async () => {
-    if (!invoiceAssessment) return
-
-    const firm = invoiceAssessment.firmographics_data || {}
-    
-    const invoiceData: InvoiceData = {
-      invoiceNumber: invoiceAssessment.survey_id || invoiceAssessment.id,
-      invoiceDate: invoiceAssessment.payment_date 
-        ? new Date(invoiceAssessment.payment_date).toLocaleDateString('en-US')
-        : new Date(invoiceAssessment.created_at).toLocaleDateString('en-US'),
-      dueDate: invoiceAssessment.payment_date 
-        ? new Date(new Date(invoiceAssessment.payment_date).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US')
-        : new Date(new Date(invoiceAssessment.created_at).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US'),
-      companyName: invoiceAssessment.company_name || firm.companyName || 'Company',
-      contactName: `${firm.firstName || ''} ${firm.lastName || ''}`.trim() || 'Contact',
-      title: firm.title || firm.titleOther || undefined,
-      addressLine1: firm.addressLine1 || '123 Main St',
-      addressLine2: firm.addressLine2 || undefined,
-      city: firm.city || 'City',
-      state: firm.state || 'ST',
-      zipCode: firm.zipCode || '00000',
-      country: firm.country || 'United States',
-      poNumber: firm.poNumber || undefined,
-      isFoundingPartner: isFoundingPartner(invoiceAssessment.survey_id || '')
+    if (!invoiceAssessment) {
+      console.error('❌ No invoice assessment selected')
+      return
     }
 
-    await downloadInvoicePDF(invoiceData)
+    if (!downloadInvoicePDF) {
+      console.error('❌ Invoice generator not loaded')
+      alert('Invoice generator is not available. Please check console for errors.')
+      return
+    }
+
+    try {
+      console.log('💾 Generating invoice PDF for:', invoiceAssessment.company_name)
+      
+      const firm = invoiceAssessment.firmographics_data || {}
+      
+      const invoiceData: any = {
+        invoiceNumber: invoiceAssessment.survey_id || invoiceAssessment.id,
+        invoiceDate: invoiceAssessment.payment_date 
+          ? new Date(invoiceAssessment.payment_date).toLocaleDateString('en-US')
+          : new Date(invoiceAssessment.created_at).toLocaleDateString('en-US'),
+        dueDate: invoiceAssessment.payment_date 
+          ? new Date(new Date(invoiceAssessment.payment_date).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US')
+          : new Date(new Date(invoiceAssessment.created_at).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US'),
+        companyName: invoiceAssessment.company_name || firm.companyName || 'Company',
+        contactName: `${firm.firstName || ''} ${firm.lastName || ''}`.trim() || 'Contact',
+        title: firm.title || firm.titleOther || undefined,
+        addressLine1: firm.addressLine1 || '123 Main St',
+        addressLine2: firm.addressLine2 || undefined,
+        city: firm.city || 'City',
+        state: firm.state || 'ST',
+        zipCode: firm.zipCode || '00000',
+        country: firm.country || 'United States',
+        poNumber: firm.poNumber || undefined,
+        isFoundingPartner: isFoundingPartner(invoiceAssessment.survey_id || '')
+      }
+
+      await downloadInvoicePDF(invoiceData)
+      console.log('✅ Invoice downloaded successfully')
+    } catch (error) {
+      console.error('❌ Error downloading invoice:', error)
+      alert('Failed to generate invoice. Check console for details.')
+    }
   }
 
   // Calculate metrics
@@ -263,29 +305,37 @@ export default function AdminDashboard() {
 
   // Export to Excel
   const exportToExcel = () => {
-    const exportData = filteredAssessments.map(a => ({
-      'Survey ID': a.survey_id,
-      'Company': a.company_name,
-      'Contact Name': `${a.firmographics_data?.firstName || ''} ${a.firmographics_data?.lastName || ''}`.trim(),
-      'Email': a.email,
-      'Type': a.isFoundingPartner ? 'Founding Partner' : 'Standard',
-      'Payment Status': a.isFoundingPartner ? 'N/A' : (a.payment_completed ? 'Paid' : 'Unpaid'),
-      'Payment Method': a.payment_method || 'N/A',
-      'Status': a.status,
-      'Completion %': a.completionPercentage,
-      'Sections Completed': `${a.sectionsCompleted}/${a.totalSections}`,
-      'Days in Progress': a.daysInProgress,
-      'Started': new Date(a.created_at).toLocaleDateString(),
-      'Last Updated': new Date(a.updated_at).toLocaleDateString()
-    }))
+    try {
+      console.log('📊 Exporting to Excel')
+      const exportData = filteredAssessments.map(a => ({
+        'Survey ID': a.survey_id,
+        'Company': a.company_name,
+        'Contact Name': `${a.firmographics_data?.firstName || ''} ${a.firmographics_data?.lastName || ''}`.trim(),
+        'Email': a.email,
+        'Type': a.isFoundingPartner ? 'Founding Partner' : 'Standard',
+        'Payment Status': a.isFoundingPartner ? 'N/A' : (a.payment_completed ? 'Paid' : 'Unpaid'),
+        'Payment Method': a.payment_method || 'N/A',
+        'Status': a.status,
+        'Completion %': a.completionPercentage,
+        'Sections Completed': `${a.sectionsCompleted}/${a.totalSections}`,
+        'Days in Progress': a.daysInProgress,
+        'Started': new Date(a.created_at).toLocaleDateString(),
+        'Last Updated': new Date(a.updated_at).toLocaleDateString()
+      }))
 
-    const ws = XLSX.utils.json_to_sheet(exportData)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Assessments')
-    XLSX.writeFile(wb, `assessment-data-${new Date().toISOString().split('T')[0]}.xlsx`)
+      const ws = XLSX.utils.json_to_sheet(exportData)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Assessments')
+      XLSX.writeFile(wb, `assessment-data-${new Date().toISOString().split('T')[0]}.xlsx`)
+      console.log('✅ Excel exported successfully')
+    } catch (error) {
+      console.error('❌ Error exporting to Excel:', error)
+      alert('Failed to export. Check console for details.')
+    }
   }
 
   if (loading) {
+    console.log('⏳ Still loading...')
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -298,6 +348,8 @@ export default function AdminDashboard() {
       </div>
     )
   }
+
+  console.log('✅ Rendering dashboard with', assessments.length, 'assessments')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -643,7 +695,7 @@ export default function AdminDashboard() {
       )}
 
       {/* INVOICE MODAL */}
-      {showInvoiceModal && invoiceAssessment && (
+      {showInvoiceModal && invoiceAssessment && downloadInvoicePDF && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 flex items-center justify-between">
