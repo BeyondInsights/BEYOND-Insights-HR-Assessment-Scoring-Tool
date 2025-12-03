@@ -27,10 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AutoDataSync>
-          {children}
-          <SavedToast />
-        </AutoDataSync>
+        <AutoDataSync />
+        {children}
+        <SavedToast />
       </body>
     </html>
   );
