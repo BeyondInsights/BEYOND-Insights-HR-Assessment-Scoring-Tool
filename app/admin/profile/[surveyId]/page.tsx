@@ -805,7 +805,7 @@ export default function ProfilePage() {
                         </div>
                       ) : (
                         <>
-                          {programs.length > 0 && <SupportMatrix programs={programs} />}
+                          {programs.length > 0 && <SupportMatrix programs={programs} dimNumber={dimNum} />}
                           {items.length > 0 && (
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
                               {items.map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}
