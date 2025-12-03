@@ -1,25 +1,30 @@
 /**
- * AUTO DATA SYNC - Syncs ALL localStorage to Supabase automatically
+ * AUTO DATA SYNC - TEMPORARILY DISABLED
  * 
- * This component monitors localStorage and automatically syncs survey data to Supabase.
- * NO CHANGES to survey pages required - it works with existing localStorage keys.
+ * This is a placeholder that does nothing.
+ * Uncomment the code below to re-enable syncing.
  */
 
+'use client'
+
+export default function AutoDataSync() {
+  // DISABLED - Not syncing anything
+  return null
+}
+
+/*
+// ORIGINAL CODE - COMMENTED OUT
 'use client'
 
 import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { supabase } from './client'
 
-/**
- * Collect all survey data from localStorage
- */
 function collectAllSurveyData() {
   const updateData: Record<string, any> = {}
   
   console.log('Scanning localStorage for survey data...')
   
-  // List of all data keys we need to sync
   const dataKeys = [
     'firmographics_data',
     'general_benefits_data',
@@ -29,7 +34,6 @@ function collectAllSurveyData() {
     ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
   ]
   
-  // List of all completion flags
   const completeKeys = [
     'firmographics_complete',
     'auth_completed',
@@ -40,7 +44,6 @@ function collectAllSurveyData() {
     ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
   ]
   
-  // Collect data
   dataKeys.forEach(key => {
     const value = localStorage.getItem(key)
     if (value) {
@@ -56,7 +59,6 @@ function collectAllSurveyData() {
     }
   })
   
-  // Collect completion flags
   completeKeys.forEach(key => {
     const value = localStorage.getItem(key)
     if (value === 'true') {
@@ -65,7 +67,6 @@ function collectAllSurveyData() {
     }
   })
   
-  // Also collect company_name if present
   const companyName = localStorage.getItem('login_company_name')
   if (companyName) {
     updateData.company_name = companyName
@@ -75,19 +76,14 @@ function collectAllSurveyData() {
   return updateData
 }
 
-/**
- * Sync all localStorage data to Supabase
- */
 async function syncToSupabase() {
   try {
-    // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       console.log('No Supabase user - skipping sync')
       return
     }
     
-    // Check if this is a Founding Partner (skip Supabase for them)
     const surveyId = localStorage.getItem('survey_id') || ''
     try {
       const { isFoundingPartner } = await import('@/lib/founding-partners')
@@ -99,7 +95,6 @@ async function syncToSupabase() {
       // Founding partners module not found, continue
     }
     
-    // Collect all data
     const updateData = collectAllSurveyData()
     
     if (Object.keys(updateData).length === 0) {
@@ -109,10 +104,8 @@ async function syncToSupabase() {
     
     console.log(`Syncing ${Object.keys(updateData).length} items to Supabase...`)
     
-    // Add timestamp
     updateData.updated_at = new Date().toISOString()
     
-    // Update Supabase
     const { error } = await supabase
       .from('assessments')
       .update(updateData)
@@ -128,16 +121,11 @@ async function syncToSupabase() {
   }
 }
 
-/**
- * Auto Data Sync Component
- * Add to root layout to enable automatic syncing
- */
 export default function AutoDataSync() {
   const pathname = usePathname()
   const lastPath = useRef<string>('')
   const syncInProgress = useRef(false)
   
-  // Sync when navigating between pages
   useEffect(() => {
     if (pathname !== lastPath.current && lastPath.current !== '') {
       console.log('Route changed - triggering sync')
@@ -151,7 +139,6 @@ export default function AutoDataSync() {
     lastPath.current = pathname
   }, [pathname])
   
-  // Sync every 30 seconds
   useEffect(() => {
     console.log('Auto-sync initialized - will sync every 30 seconds')
     const interval = setInterval(() => {
@@ -167,14 +154,11 @@ export default function AutoDataSync() {
     return () => clearInterval(interval)
   }, [])
   
-  // Sync before page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
       console.log('Page closing - final sync')
-      // Use sendBeacon for more reliable sync on page close
       const data = collectAllSurveyData()
       if (Object.keys(data).length > 0) {
-        // Fallback to regular sync
         syncToSupabase()
       }
     }
@@ -185,3 +169,4 @@ export default function AutoDataSync() {
   
   return null
 }
+*/
