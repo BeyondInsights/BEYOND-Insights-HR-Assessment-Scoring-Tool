@@ -77,10 +77,23 @@ export default function LoginPage() {
       localStorage.setItem('last_user_email', email)
       localStorage.setItem('login_Survey_id', surveyId.trim())
       
-      setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
-      setTimeout(() => {
-        router.push('/letter')
-      }, 1500)
+      // ✅ CHECK IF FOUNDING PARTNER HAS ALREADY COMPLETED AUTHORIZATION
+      const authCompleted = localStorage.getItem('auth_completed') === 'true'
+      
+      if (authCompleted) {
+        console.log('✅ Founding Partner has completed auth - going to dashboard')
+        setSuccessMessage('✅ Welcome back! Redirecting to your dashboard...')
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 1500)
+      } else {
+        console.log('📋 Founding Partner needs to complete auth - going to letter')
+        setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
+        setTimeout(() => {
+          router.push('/letter')
+        }, 1500)
+      }
+      
       setLoading(false)
       return
     }
@@ -99,9 +112,9 @@ export default function LoginPage() {
         // CLEAR OLD DATA FOR NEW USERS
         // ============================================
         if (result.mode === 'new') {
-  console.log('New user account created')
-  // DON'T clear localStorage - it contains the Supabase session!
-}
+          console.log('New user account created')
+          // DON'T clear localStorage - it contains the Supabase session!
+        }
         // ============================================
         
         // Store email in localStorage
@@ -114,11 +127,12 @@ export default function LoginPage() {
           localStorage.setItem('login_Survey_id', surveyId)
         }
         
-        // For existing/returning users - ALWAYS GO TO DASHBOARD
+        // ✅ FOR EXISTING/RETURNING USERS - ALWAYS GO TO DASHBOARD
+        // They will be redirected from dashboard if they haven't completed things
         if (result.mode === 'existing' && !result.needsVerification) {
           const user = await getCurrentUser()
           if (user) {
-            setSuccessMessage(result.message)
+            setSuccessMessage('✅ Welcome back! Redirecting to your dashboard...')
             setTimeout(() => {
               router.push('/dashboard')
             }, 1000)
@@ -198,7 +212,7 @@ export default function LoginPage() {
                     
                     <div className="mb-4 p-4 border-2 rounded-lg" style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}>
                       <p className="text-sm text-slate-900 font-semibold mb-2">
-                        📝 Important - Save This ID!
+                        🔑 Important - Save This ID!
                       </p>
                       <p className="text-sm text-slate-800">
                         You can start your Survey right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
