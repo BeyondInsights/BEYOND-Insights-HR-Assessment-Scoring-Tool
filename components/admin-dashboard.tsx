@@ -7,20 +7,7 @@ import { isFoundingPartner } from '@/lib/founding-partners'
 import * as XLSX from 'xlsx'
 import DetailedResponseView from './detailed-response-view'
 
-// Import invoice generator with error handling
-let generateInvoicePDF: any
-let downloadInvoicePDF: any
-let InvoiceData: any
-
-try {
-  const invoiceModule = require('@/lib/invoice-generator')
-  generateInvoicePDF = invoiceModule.generateInvoicePDF
-  downloadInvoicePDF = invoiceModule.downloadInvoicePDF
-  InvoiceData = invoiceModule.InvoiceData
-  console.log('✅ Invoice generator loaded successfully')
-} catch (error) {
-  console.error('❌ Failed to load invoice generator:', error)
-}
+import { generateInvoicePDF, downloadInvoicePDF, type InvoiceData } from '@/lib/invoice-generator'
 
 interface AssessmentData {
   id: string
