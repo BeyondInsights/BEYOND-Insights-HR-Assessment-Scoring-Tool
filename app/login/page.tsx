@@ -128,34 +128,79 @@ export default function LoginPage() {
           localStorage.setItem('login_Survey_id', surveyId)
         }
         
-        // ✅ FOR EXISTING/RETURNING USERS - RESTORE DATA AND GO TO DASHBOARD
+        // ✅ FOR EXISTING/RETURNING USERS - RESTORE ALL DATA AND GO TO DASHBOARD
         if (result.mode === 'existing' && !result.needsVerification) {
           const user = await getCurrentUser()
           if (user) {
-            // ✅ CRITICAL: Restore completion flags from Supabase to localStorage
+            // ✅ CRITICAL: Restore ALL survey data from Supabase to localStorage
             const { data: assessment } = await supabase
               .from('assessments')
-              .select('auth_completed, payment_completed, company_name')
+              .select('*')
               .eq('user_id', user.id)
               .single()
             
             if (assessment) {
-              // Restore auth completion flag
-              if (assessment.auth_completed) {
-                localStorage.setItem('auth_completed', 'true')
-                console.log('✅ Restored auth_completed to localStorage')
+              console.log('🔄 Restoring all survey data to localStorage...')
+              
+              // Restore completion flags
+              if (assessment.auth_completed) localStorage.setItem('auth_completed', 'true')
+              if (assessment.payment_completed) localStorage.setItem('payment_completed', 'true')
+              if (assessment.payment_method) localStorage.setItem('payment_method', assessment.payment_method)
+              
+              // Restore company info
+              if (assessment.company_name) localStorage.setItem('login_company_name', assessment.company_name)
+              
+              // Restore all survey data
+              if (assessment.firmographics_data) {
+                localStorage.setItem('firmographics_data', JSON.stringify(assessment.firmographics_data))
+              }
+              if (assessment.firmographics_complete) {
+                localStorage.setItem('firmographics_complete', 'true')
               }
               
-              // Restore payment completion flag
-              if (assessment.payment_completed) {
-                localStorage.setItem('payment_completed', 'true')
-                console.log('✅ Restored payment_completed to localStorage')
+              if (assessment.general_benefits_data) {
+                localStorage.setItem('general_benefits_data', JSON.stringify(assessment.general_benefits_data))
+              }
+              if (assessment.general_benefits_complete) {
+                localStorage.setItem('general_benefits_complete', 'true')
               }
               
-              // Restore company name
-              if (assessment.company_name) {
-                localStorage.setItem('login_company_name', assessment.company_name)
+              if (assessment.current_support_data) {
+                localStorage.setItem('current_support_data', JSON.stringify(assessment.current_support_data))
               }
+              if (assessment.current_support_complete) {
+                localStorage.setItem('current_support_complete', 'true')
+              }
+              
+              // Restore all 13 dimensions
+              for (let i = 1; i <= 13; i++) {
+                const dataKey = `dimension${i}_data`
+                const completeKey = `dimension${i}_complete`
+                
+                if (assessment[dataKey]) {
+                  localStorage.setItem(dataKey, JSON.stringify(assessment[dataKey]))
+                }
+                if (assessment[completeKey]) {
+                  localStorage.setItem(completeKey, 'true')
+                }
+              }
+              
+              // Restore cross-dimensional and employee impact
+              if (assessment['cross_dimensional_data']) {
+                localStorage.setItem('cross_dimensional_data', JSON.stringify(assessment['cross_dimensional_data']))
+              }
+              if (assessment['cross_dimensional_complete']) {
+                localStorage.setItem('cross_dimensional_complete', 'true')
+              }
+              
+              if (assessment['employee-impact-assessment_data']) {
+                localStorage.setItem('employee-impact-assessment_data', JSON.stringify(assessment['employee-impact-assessment_data']))
+              }
+              if (assessment['employee-impact-assessment_complete']) {
+                localStorage.setItem('employee-impact-assessment_complete', 'true')
+              }
+              
+              console.log('✅ All survey data restored to localStorage')
             }
             
             setSuccessMessage('✅ Welcome back! Redirecting to your dashboard...')
