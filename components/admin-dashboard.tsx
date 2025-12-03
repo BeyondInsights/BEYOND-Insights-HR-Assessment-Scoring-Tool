@@ -116,11 +116,11 @@ export default function AdminDashboard() {
           assessment['employee-impact-assessment_complete'],
         ]
         const sectionsCompleted = completionFlags.filter(Boolean).length
-        const totalSections = 18
+        const totalSections = 19
         const completionPercentage = Math.round((sectionsCompleted / totalSections) * 100)
         
         let status = 'Not Started'
-        if (completionPercentage === 100) status = 'Completed'
+        if (completionPercentage >= 100) status = 'Completed'
         else if (completionPercentage > 0) status = 'In Progress'
 
         const daysInProgress = Math.floor(
