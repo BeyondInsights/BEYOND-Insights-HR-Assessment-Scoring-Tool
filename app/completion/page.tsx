@@ -37,13 +37,65 @@ export default function CompletionPage() {
     }
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (employeeSurveyOptIn === null) {
       setShowValidation(true)
-      // Scroll to the opt-in section
       document.getElementById('employee-survey-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
+    
+    // ✅ SET FLAG SO DASHBOARD DOESN'T REDIRECT BACK HERE
+    localStorage.setItem('assessment_completion_shown', 'true')
+    localStorage.setItem('survey_fully_submitted', 'true')
+    
+    // ✅ SAVE EMPLOYEE SURVEY OPT-IN TO SUPABASE
+    try {
+      const { supabase } = await import('@/lib/supabase/client')
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (user) {
+        await supabase
+          .from('assessments')
+          .update({
+            employee_survey_opt_in: employeeSurveyOptIn,
+            survey_submitted: true,
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+        
+        console.log('✅ Survey submission saved to Supabase')
+      }
+    } catch (error) {
+      console.error('Failed to save to Supabase:', error)
+    }
+    
+    // ✅ SEND COMPLETION EMAIL
+    try {
+      const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
+      const firstName = localStorage.getItem('login_first_name') || ''
+      const lastName = localStorage.getItem('login_last_name') || ''
+      const name = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName
+      
+      const dashboardUrl = `${window.location.origin}/dashboard`
+      
+      await fetch('/api/send-completion-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          name,
+          companyName: companyName || firmo.companyName,
+          employeeSurveyOptIn,
+          dashboardUrl
+        })
+      })
+      
+      console.log('✅ Completion email sent successfully')
+    } catch (error) {
+      console.error('Failed to send completion email:', error)
+    }
+    
     window.location.href = '/dashboard'
   }
 
