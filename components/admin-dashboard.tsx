@@ -70,8 +70,6 @@ interface AssessmentData {
 }
 
 export default function AdminDashboard() {
-  console.log('🚀 AdminDashboard rendering')
-  
   const [assessments, setAssessments] = useState<AssessmentData[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -87,7 +85,6 @@ export default function AdminDashboard() {
 
   // Fetch all assessment data from Supabase
   useEffect(() => {
-    console.log('📡 Setting up data fetch')
     fetchAssessments()
     
     // Set up real-time updates
@@ -96,7 +93,6 @@ export default function AdminDashboard() {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'assessments' },
         (payload) => {
-          console.log('Real-time update:', payload)
           fetchAssessments()
         }
       )
@@ -109,18 +105,12 @@ export default function AdminDashboard() {
 
   const fetchAssessments = async () => {
     try {
-      console.log('🔍 Fetching assessments from Supabase')
       const { data, error } = await supabase
         .from('assessments')
         .select('*')
         .order('updated_at', { ascending: false })
 
-      if (error) {
-        console.error('❌ Supabase error:', error)
-        throw error
-      }
-
-      console.log(`✅ Fetched ${data?.length || 0} assessments`)
+      if (error) throw error
 
       // Process data to add computed fields
       const processedData = (data || []).map(assessment => {
@@ -180,9 +170,8 @@ export default function AdminDashboard() {
       })
 
       setAssessments(processedData)
-      console.log('✅ Processed and set assessments')
     } catch (error) {
-      console.error('❌ Error fetching assessments:', error)
+      console.error('Error fetching assessments:', error)
     } finally {
       setLoading(false)
     }
@@ -190,27 +179,15 @@ export default function AdminDashboard() {
 
   // Handle invoice viewing
   const handleViewInvoice = (assessment: AssessmentData) => {
-    console.log('📄 Viewing invoice for:', assessment.company_name)
     setInvoiceAssessment(assessment)
     setShowInvoiceModal(true)
   }
 
   // Handle invoice download
   const handleDownloadInvoice = async () => {
-    if (!invoiceAssessment) {
-      console.error('❌ No invoice assessment selected')
-      return
-    }
-
-    if (!downloadInvoicePDF) {
-      console.error('❌ Invoice generator not loaded')
-      alert('Invoice generator is not available. Please check console for errors.')
-      return
-    }
+    if (!invoiceAssessment) return
 
     try {
-      console.log('💾 Generating invoice PDF for:', invoiceAssessment.company_name)
-      
       const firm = invoiceAssessment.firmographics_data || {}
       
       const invoiceData: any = {
@@ -235,9 +212,8 @@ export default function AdminDashboard() {
       }
 
       await downloadInvoicePDF(invoiceData)
-      console.log('✅ Invoice downloaded successfully')
     } catch (error) {
-      console.error('❌ Error downloading invoice:', error)
+      console.error('Error downloading invoice:', error)
       alert('Failed to generate invoice. Check console for details.')
     }
   }
@@ -293,7 +269,6 @@ export default function AdminDashboard() {
   // Export to Excel
   const exportToExcel = () => {
     try {
-      console.log('📊 Exporting to Excel')
       const exportData = filteredAssessments.map(a => ({
         'Survey ID': a.survey_id,
         'Company': a.company_name,
@@ -314,15 +289,13 @@ export default function AdminDashboard() {
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Assessments')
       XLSX.writeFile(wb, `assessment-data-${new Date().toISOString().split('T')[0]}.xlsx`)
-      console.log('✅ Excel exported successfully')
     } catch (error) {
-      console.error('❌ Error exporting to Excel:', error)
+      console.error('Error exporting to Excel:', error)
       alert('Failed to export. Check console for details.')
     }
   }
 
   if (loading) {
-    console.log('⏳ Still loading...')
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -335,8 +308,6 @@ export default function AdminDashboard() {
       </div>
     )
   }
-
-  console.log('✅ Rendering dashboard with', assessments.length, 'assessments')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -682,7 +653,7 @@ export default function AdminDashboard() {
       )}
 
       {/* INVOICE MODAL */}
-      {showInvoiceModal && invoiceAssessment && downloadInvoicePDF && (
+      {showInvoiceModal && invoiceAssessment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 flex items-center justify-between">
