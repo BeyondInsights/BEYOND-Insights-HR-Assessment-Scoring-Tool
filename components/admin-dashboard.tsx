@@ -219,9 +219,9 @@ export default function AdminDashboard() {
   })
 
   const stats = {
-    foundingStarted: assessments.filter((a) => a.isFoundingPartner && a.sectionsCompleted > 0).length,
+    foundingStarted: assessments.filter((a) => a.isFoundingPartner).length,
     foundingCompleted: assessments.filter((a) => a.isFoundingPartner && a.completionPercentage >= 100).length,
-    standardStarted: assessments.filter((a) => !a.isFoundingPartner && a.sectionsCompleted > 0).length,
+    standardStarted: assessments.filter((a) => !a.isFoundingPartner).length,
     standardCompleted: assessments.filter((a) => !a.isFoundingPartner && a.completionPercentage >= 100).length,
     totalRevenue: assessments.reduce((sum, a) => {
       if (a.isFoundingPartner) return sum + 1250
