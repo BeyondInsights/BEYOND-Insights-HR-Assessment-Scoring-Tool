@@ -69,6 +69,7 @@ const FIELD_LABELS: Record<string, string> = {
   c3: 'Employee Groups Excluded',
   c3a: 'Employee Groups Excluded',
   c4: 'Annual Revenue',
+  c5: 'Annual Revenue',
   c6: 'Remote/Hybrid Work Policy',
   cb1: 'Current Benefits Offered',
   cb1_standard: 'Standard Benefits',
