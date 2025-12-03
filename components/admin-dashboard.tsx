@@ -95,6 +95,20 @@ export default function AdminDashboard() {
 
       const processed = (data || []).map((assessment: Assessment) => {
         const isFP = isFoundingPartner(assessment.survey_id)
+        
+        // 🐛 DEBUG: Log FP check results
+        if (assessment.company_name?.toLowerCase().includes('merck') || 
+            assessment.company_name?.toLowerCase().includes('google') ||
+            assessment.company_name?.toLowerCase().includes('pfizer') ||
+            assessment.company_name?.toLowerCase().includes('maven')) {
+          console.log('🔍 FP Check:', {
+            company: assessment.company_name,
+            surveyId: assessment.survey_id,
+            isFoundingPartner: isFP,
+            paymentMethod: assessment.payment_method
+          })
+        }
+        
         const completionFlags = [
           assessment.auth_completed,
           assessment.firmographics_complete,
