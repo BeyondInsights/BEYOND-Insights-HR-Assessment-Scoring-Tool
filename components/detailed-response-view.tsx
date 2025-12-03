@@ -51,6 +51,45 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
     window.open(profileUrl, '_blank')
   }
 
+  // Calculate executive summary stats
+  const calculateExecutiveSummary = () => {
+    let totalCurrently = 0, totalPlanning = 0, totalAssessing = 0
+    let consistent = 0, select = 0, vary = 0
+    
+    // Count programs across dimensions
+    for (let i = 1; i <= 13; i++) {
+      const dimData = assessment[`dimension${i}_data`]
+      const gridData = dimData?.[`d${i}a`]
+      
+      if (gridData && typeof gridData === 'object') {
+        Object.values(gridData).forEach((status: any) => {
+          if (typeof status === 'string') {
+            if (status.startsWith('Currently')) totalCurrently++
+            if (status === 'In active planning / development') totalPlanning++
+            if (status === 'Assessing feasibility') totalAssessing++
+          }
+        })
+      }
+      
+      // Geographic consistency
+      const aa = dimData?.[`d${i}aa`]
+      if (aa === 'Generally consistent across all locations') consistent++
+      if (aa === 'Only available in select locations') select++
+      if (aa === 'Vary across locations') vary++
+    }
+    
+    return {
+      totalCurrently,
+      totalPlanning,
+      totalAssessing,
+      consistent,
+      select,
+      vary
+    }
+  }
+
+  const execSummary = calculateExecutiveSummary()
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
@@ -190,6 +229,66 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                 <div>
                   <p className="font-bold text-blue-700">Standard Participant</p>
                   <p className="text-sm text-blue-600">$1,250 fee</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* EXECUTIVE SUMMARY PREVIEW - NEW SECTION */}
+          <div className="mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 border-2 border-blue-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Executive Summary
+            </h3>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {/* Program Offerings */}
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Programs Offered</p>
+                <p className="text-3xl font-bold text-blue-600">{execSummary.totalCurrently}</p>
+                <p className="text-xs text-gray-500 mt-1">Across all dimensions</p>
+              </div>
+              
+              {/* In Development */}
+              {execSummary.totalPlanning > 0 && (
+                <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">In Development</p>
+                  <p className="text-3xl font-bold text-orange-600">{execSummary.totalPlanning}</p>
+                  <p className="text-xs text-gray-500 mt-1">Programs planned</p>
+                </div>
+              )}
+              
+              {/* Under Assessment */}
+              {execSummary.totalAssessing > 0 && (
+                <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Under Assessment</p>
+                  <p className="text-3xl font-bold text-yellow-600">{execSummary.totalAssessing}</p>
+                  <p className="text-xs text-gray-500 mt-1">Being evaluated</p>
+                </div>
+              )}
+              
+              {/* Geographic Scope */}
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Global Consistency</p>
+                <p className="text-3xl font-bold text-green-600">{execSummary.consistent}/13</p>
+                <p className="text-xs text-gray-500 mt-1">Dimensions consistent</p>
+              </div>
+              
+              {execSummary.select > 0 && (
+                <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Select Locations</p>
+                  <p className="text-3xl font-bold text-purple-600">{execSummary.select}/13</p>
+                  <p className="text-xs text-gray-500 mt-1">Dimensions regional</p>
+                </div>
+              )}
+              
+              {execSummary.vary > 0 && (
+                <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Varies by Location</p>
+                  <p className="text-3xl font-bold text-indigo-600">{execSummary.vary}/13</p>
+                  <p className="text-xs text-gray-500 mt-1">Dimensions vary</p>
                 </div>
               )}
             </div>
