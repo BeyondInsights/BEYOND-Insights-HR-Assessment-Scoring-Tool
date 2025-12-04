@@ -7,15 +7,16 @@ import Image from 'next/image';
 import { generateInvoicePDF, downloadInvoicePDF, type InvoiceData } from '@/lib/invoice-generator';
 
 // ============================================
-// BRAND COLORS
+// BRAND COLORS - VIBRANT
 // ============================================
 const BRAND = {
   primary: '#7A34A3',      // Purple
   secondary: '#00A896',    // Teal
   accent: '#FF6B35',       // Orange
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
+  success: '#059669',      // Emerald green
+  warning: '#D97706',      // Amber
+  error: '#DC2626',        // Red
+  info: '#2563EB',         // Blue
   gray: {
     900: '#0F172A',
     800: '#1E293B',
@@ -30,11 +31,20 @@ const BRAND = {
   }
 };
 
-// Dimension colors - vibrant but professional
+// VIBRANT status colors
+const STATUS_COLORS = {
+  current: { bg: '#10B981', text: '#FFFFFF' },      // Bright green
+  planning: { bg: '#F59E0B', text: '#FFFFFF' },     // Bright amber
+  assessing: { bg: '#3B82F6', text: '#FFFFFF' },    // Bright blue
+  notOffered: { bg: '#EF4444', text: '#FFFFFF' },   // Bright red
+  unsure: { bg: '#6B7280', text: '#FFFFFF' },       // Gray
+};
+
+// Dimension colors - vibrant rainbow
 const DIM_COLORS = [
-  '#DC2626', '#EA580C', '#D97706', '#CA8A04', '#65A30D',
-  '#16A34A', '#059669', '#0D9488', '#0891B2', '#0284C7',
-  '#2563EB', '#4F46E5', '#7C3AED'
+  '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16',
+  '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9',
+  '#3B82F6', '#6366F1', '#8B5CF6'
 ];
 
 const DIM_TITLES: Record<number, string> = {
@@ -48,32 +58,29 @@ const DIM_TITLES: Record<number, string> = {
   8: 'Work Continuation & Resumption',
   9: 'Executive Commitment & Resources',
   10: 'Caregiver & Family Support',
-  11: 'Prevention, Wellness & Legal Compliance',
+  11: 'Prevention, Wellness & Compliance',
   12: 'Continuous Improvement & Outcomes',
   13: 'Communication & Awareness'
 };
 
 // ============================================
-// FIELD LABELS - Comprehensive mapping
+// FIELD LABELS
 // ============================================
 const FIELD_LABELS: Record<string, string> = {
-  // Authorization & Contact
+  // Contact
   companyName: 'Company Name',
   firstName: 'First Name',
   lastName: 'Last Name',
   title: 'Title',
   titleOther: 'Title',
   
-  // Screener Questions
+  // Screener - Role & Responsibilities
   s1: 'Birth Year',
   s2: 'Gender Identity',
-  s2_other: 'Gender Identity',
   s3: 'Employment Status',
   s4a: 'Department/Function',
-  s4a_other: 'Department/Function (Other)',
   s4b: 'Primary Job Function',
-  s4b_other: 'Primary Job Function (Other)',
-  s5: 'Organization Level',
+  s5: 'Level in Organization',
   s6: 'Areas of Responsibility',
   s7: 'Influence on Benefits Decisions',
   s8: 'Total Employees',
@@ -81,8 +88,8 @@ const FIELD_LABELS: Record<string, string> = {
   s9a: 'Countries with Operations',
   
   // Authorization
-  au1: 'Authorization Confirmation',
-  au2: 'Authorization Description',
+  au1: 'Authorization Confirmed',
+  au2: 'Authorization Basis',
   
   // Classification
   c2: 'Industry',
@@ -90,120 +97,38 @@ const FIELD_LABELS: Record<string, string> = {
   c3a: 'Employee Groups Excluded',
   c4: 'Annual Revenue',
   c5: 'Annual Revenue',
-  c6: 'Remote/Hybrid Work Approach',
+  c6: 'Remote/Hybrid Work Policy',
   
-  // General Benefits - CB1 Categories
-  cb1: 'Current Benefits',
-  cb1_standard: 'Standard Benefits',
-  cb1_leave: 'Leave & Flexibility Programs',
-  cb1_wellness: 'Wellness & Support Programs',
-  cb1_financial: 'Financial & Legal Assistance',
-  cb1_navigation: 'Care Navigation & Support',
-  cb1a: 'Employees with National Healthcare Access',
-  cb2b: 'Benefits Planned for Next 2 Years',
+  // General Benefits
+  cb1: 'Current Benefits Offered',
+  cb1a: 'Employees with National Healthcare',
+  cb2b: 'Benefits Planned (Next 2 Years)',
   
-  // Current Support - CB3
+  // Current Support
   cb3a: 'Support Beyond Legal Requirements',
   cb3b: 'Program Structure',
   cb3c: 'Health Conditions Covered',
   cb3d: 'Program Development Method',
   
-  // Organization Approach - OR
+  // Organization Approach
   or1: 'Current Approach to Support',
   or2a: 'What Triggered Enhanced Support',
-  or2b: 'Most Impactful Change Made',
-  or3: 'Primary Barriers to Support',
-  or5a: 'Caregiver Support Provided',
-  or6: 'How Effectiveness is Monitored',
-  or6_other: 'Other Monitoring Methods',
+  or2b: 'Most Impactful Change',
+  or3: 'Primary Barriers',
+  or5a: 'Caregiver Support Types',
+  or6: 'Effectiveness Monitoring',
   
   // Cross-Dimensional
   cd1a: 'Top Priority Dimensions',
   cd1b: 'Lowest Priority Dimensions',
-  cd2: 'Biggest Implementation Challenges',
-  cd2_other: 'Other Challenges',
+  cd2: 'Implementation Challenges',
   
   // Employee Impact
-  ei1: 'Program Impact by Outcome',
+  ei1: 'Program Impact by Area',
   ei2: 'ROI Measurement Status',
   ei3: 'Approximate ROI',
   ei4: 'Advice for Other HR Leaders',
-  ei5: 'Important Aspects Not Addressed',
-  
-  // Dimension-specific labels
-  d1a: 'Medical Leave & Flexibility Programs',
-  d1aa: 'Geographic Consistency',
-  d1b: 'Additional Medical Leave Benefits',
-  d1_1: 'Additional Paid Medical Leave Duration',
-  d1_1_usa: 'Additional Paid Leave (USA)',
-  d1_1_non_usa: 'Additional Paid Leave (Non-USA)',
-  d1_2: 'Additional Intermittent Leave',
-  d1_2_usa: 'Intermittent Leave (USA)',
-  d1_2_non_usa: 'Intermittent Leave (Non-USA)',
-  d1_4a: 'Additional Remote Work Time',
-  d1_4a_type: 'Remote Work Duration',
-  d1_4b: 'Reduced Schedule Duration',
-  d1_5: 'Job Protection Duration',
-  d1_5_usa: 'Job Protection (USA)',
-  d1_5_non_usa: 'Job Protection (Non-USA)',
-  d1_6: 'Disability Pay Enhancement',
-  
-  d2a: 'Insurance & Financial Programs',
-  d2aa: 'Geographic Consistency',
-  d2b: 'Additional Insurance Benefits',
-  
-  d3a: 'Manager Training Programs',
-  d3aa: 'Geographic Consistency',
-  d3b: 'Additional Manager Initiatives',
-  d3_1a: 'Training Requirement',
-  d3_1: 'Manager Training Completion Rate',
-  
-  d4a: 'Navigation & Expert Resources',
-  d4aa: 'Geographic Consistency',
-  d4b: 'Additional Navigation Resources',
-  d4_1a: 'Navigation Provider',
-  d4_1b: 'Navigation Services Available',
-  
-  d5a: 'Workplace Accommodations',
-  d5aa: 'Geographic Consistency',
-  d5b: 'Additional Accommodations',
-  
-  d6a: 'Culture & Psychological Safety',
-  d6aa: 'Geographic Consistency',
-  d6b: 'Additional Culture Supports',
-  d6_2: 'How Psychological Safety is Measured',
-  
-  d7a: 'Career Continuity Programs',
-  d7aa: 'Geographic Consistency',
-  d7b: 'Additional Career Supports',
-  
-  d8a: 'Work Continuation Programs',
-  d8aa: 'Geographic Consistency',
-  d8b: 'Additional Work Resumption Supports',
-  
-  d9a: 'Executive Commitment',
-  d9aa: 'Geographic Consistency',
-  d9b: 'Additional Executive Practices',
-  
-  d10a: 'Caregiver & Family Support',
-  d10aa: 'Geographic Consistency',
-  d10b: 'Additional Caregiver Benefits',
-  
-  d11a: 'Prevention & Wellness Programs',
-  d11aa: 'Geographic Consistency',
-  d11b: 'Additional Prevention Initiatives',
-  d11_1: 'Early Detection Services at 100% Coverage',
-  
-  d12a: 'Continuous Improvement Metrics',
-  d12aa: 'Geographic Consistency',
-  d12b: 'Additional Measurement Practices',
-  d12_1: 'Individual Experience Review Process',
-  d12_2: 'Changes from Employee Experiences',
-  
-  d13a: 'Communication Approaches',
-  d13aa: 'Geographic Consistency',
-  d13b: 'Additional Communication Methods',
-  d13_1: 'Communication Frequency',
+  ei5: 'Survey Gaps Identified',
 };
 
 // ============================================
@@ -211,151 +136,172 @@ const FIELD_LABELS: Record<string, string> = {
 // ============================================
 
 function getLabel(key: string): string {
-  // Clean up the key
-  const cleanKey = key.replace(/^[Qq]/, '');
+  const cleanKey = key.replace(/^[Qq]/, '').toLowerCase();
   
-  // Check direct mapping
+  // Direct lookup
   if (FIELD_LABELS[cleanKey]) return FIELD_LABELS[cleanKey];
   if (FIELD_LABELS[key]) return FIELD_LABELS[key];
   
-  // Format as readable label
-  return cleanKey
+  // Format nicely
+  return key
     .replace(/_/g, ' ')
     .replace(/([A-Z])/g, ' $1')
     .replace(/\s+/g, ' ')
     .trim()
-    .replace(/\b\w/g, l => l.toUpperCase());
+    .split(' ')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
 }
 
-// Get the "Other" value if it exists
-function getOtherValue(data: any, key: string): string | null {
+// Check if value is meaningless (skip these)
+function isSkippableValue(value: any, key?: string): boolean {
+  if (value === null || value === undefined) return true;
+  if (value === '') return true;
+  if (value === true || value === false) return true; // Skip booleans like "none: true"
+  
+  const strVal = String(value).toLowerCase().trim();
+  if (strVal === 'true' || strVal === 'false') return true;
+  if (strVal === 'none' || strVal === 'n/a') return true;
+  
+  // Skip "none" checkbox fields
+  if (key && (key.toLowerCase().includes('none') || key.toLowerCase().endsWith('_none'))) return true;
+  
+  return false;
+}
+
+// Get the "Other" specify value
+function getOtherSpecifyValue(data: any, key: string): string | null {
   if (!data) return null;
   
-  // Check for _other suffix
-  const otherKey = `${key}_other`;
-  if (data[otherKey] && typeof data[otherKey] === 'string' && data[otherKey].trim()) {
-    return data[otherKey].trim();
-  }
+  // Common patterns for "other" fields
+  const otherKeys = [
+    `${key}_other`,
+    `${key}Other`, 
+    `${key}_specify`,
+    `${key}Specify`,
+    `${key.replace(/_type$/, '')}_other`,
+  ];
   
-  // Check for Other key
-  const otherKey2 = `${key}Other`;
-  if (data[otherKey2] && typeof data[otherKey2] === 'string' && data[otherKey2].trim()) {
-    return data[otherKey2].trim();
+  for (const otherKey of otherKeys) {
+    if (data[otherKey] && typeof data[otherKey] === 'string' && data[otherKey].trim()) {
+      return data[otherKey].trim();
+    }
   }
   
   return null;
 }
 
-// Format a value for display, handling "Other" cases
-function formatValue(value: any, data?: any, key?: string): string | string[] | null {
-  if (value === null || value === undefined) return null;
+// Format value for display - handles "other" lookups
+function formatDisplayValue(value: any, data?: any, key?: string): string | string[] | null {
+  if (isSkippableValue(value, key)) return null;
   
   // Handle arrays
   if (Array.isArray(value)) {
-    const formatted = value.map(v => {
-      const str = String(v).trim();
-      // Replace "Other (specify)" with actual typed value if available
-      if (str.toLowerCase().includes('other') && data && key) {
-        const otherVal = getOtherValue(data, key);
-        if (otherVal) return otherVal;
-      }
-      return str;
-    }).filter(v => v !== '');
-    return formatted.length > 0 ? formatted : null;
+    const formatted = value
+      .map(v => {
+        const str = String(v).trim();
+        // Replace "Other (specify)" or just "Other" with actual typed value
+        if (str.toLowerCase().includes('other')) {
+          const otherVal = data ? getOtherSpecifyValue(data, key || '') : null;
+          if (otherVal) return `Other: ${otherVal}`;
+          return null; // Skip if no other value specified
+        }
+        return str;
+      })
+      .filter(v => v !== null && v !== '');
+    
+    return formatted.length > 0 ? formatted as string[] : null;
   }
   
-  // Handle objects
-  if (typeof value === 'object') {
-    return null; // Will be handled separately
-  }
-  
-  // Handle strings
-  const str = String(value).trim();
-  if (str === '') return null;
-  
-  // If value is "Other", try to get the actual typed value
-  if (str.toLowerCase() === 'other' && data && key) {
-    const otherVal = getOtherValue(data, key);
+  // Handle string "other"
+  const strVal = String(value).trim();
+  if (strVal.toLowerCase() === 'other') {
+    const otherVal = data ? getOtherSpecifyValue(data, key || '') : null;
     if (otherVal) return otherVal;
+    return null; // Skip if no other value
   }
   
-  return str;
+  return strVal;
 }
 
-// Normalize status for display
-function normalizeStatus(status: string): { text: string; color: string; bg: string } {
+// Get status styling - VIBRANT colors
+function getStatusStyle(status: string): { bg: string; text: string; label: string } {
   const s = status.toLowerCase();
   
-  if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use')) {
-    return { text: 'Currently Offering', color: '#166534', bg: '#DCFCE7' };
+  if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {
+    return { ...STATUS_COLORS.current, label: 'Currently Offering' };
   }
   if (s.includes('planning') || s.includes('development')) {
-    return { text: 'In Development', color: '#9A3412', bg: '#FED7AA' };
+    return { ...STATUS_COLORS.planning, label: 'In Development' };
   }
   if (s.includes('assessing') || s.includes('feasibility')) {
-    return { text: 'Under Assessment', color: '#A16207', bg: '#FEF3C7' };
+    return { ...STATUS_COLORS.assessing, label: 'Assessing' };
   }
   if (s.includes('not able')) {
-    return { text: 'Not Currently Feasible', color: '#991B1B', bg: '#FEE2E2' };
+    return { ...STATUS_COLORS.notOffered, label: 'Not Feasible' };
   }
   if (s.includes('unsure')) {
-    return { text: 'Undetermined', color: '#6B7280', bg: '#F3F4F6' };
+    return { ...STATUS_COLORS.unsure, label: 'Unsure' };
   }
   
-  return { text: status, color: BRAND.gray[700], bg: BRAND.gray[100] };
+  return { bg: BRAND.gray[400], text: '#FFFFFF', label: status };
 }
 
 // ============================================
 // COMPONENTS
 // ============================================
 
-function StatCard({ label, value, color = BRAND.primary, subtext }: { 
+function StatCard({ label, value, color, icon, subtext }: { 
   label: string; 
   value: string | number; 
-  color?: string; 
-  subtext?: string 
+  color: string;
+  icon?: React.ReactNode;
+  subtext?: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border-2 p-5 text-center shadow-sm" style={{ borderColor: color }}>
-      <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.gray[500] }}>{label}</p>
-      <p className="text-4xl font-black" style={{ color }}>{value}</p>
-      {subtext && <p className="text-xs mt-1" style={{ color: BRAND.gray[600] }}>{subtext}</p>}
+    <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="h-2" style={{ backgroundColor: color }} />
+      <div className="p-5 text-center">
+        {icon && <div className="mb-2">{icon}</div>}
+        <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>{label}</p>
+        <p className="text-4xl font-black" style={{ color }}>{value}</p>
+        {subtext && <p className="text-xs mt-1" style={{ color: BRAND.gray[600] }}>{subtext}</p>}
+      </div>
     </div>
   );
 }
 
-function InfoCard({ title, children, accent = BRAND.primary }: { 
+function SectionCard({ title, children, color = BRAND.primary }: { 
   title: string; 
-  children: React.ReactNode; 
-  accent?: string 
+  children: React.ReactNode;
+  color?: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: BRAND.gray[200] }}>
-      <div className="px-5 py-3 border-b" style={{ borderColor: BRAND.gray[200], backgroundColor: BRAND.gray[50] }}>
-        <h3 className="font-bold text-sm" style={{ color: BRAND.gray[900] }}>{title}</h3>
+    <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+      <div className="px-6 py-4 border-b flex items-center gap-3" style={{ borderColor: BRAND.gray[200], backgroundColor: BRAND.gray[50] }}>
+        <div className="w-1 h-6 rounded-full" style={{ backgroundColor: color }} />
+        <h2 className="text-lg font-bold" style={{ color: BRAND.gray[900] }}>{title}</h2>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-6">{children}</div>
     </div>
   );
 }
 
 function DataField({ label, value, fullWidth = false }: { 
   label: string; 
-  value: string | string[] | null; 
-  fullWidth?: boolean 
+  value: string | string[] | null;
+  fullWidth?: boolean;
 }) {
   if (!value) return null;
   
   return (
     <div className={fullWidth ? 'col-span-full' : ''}>
-      <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>
-        {label}
-      </p>
+      <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>{label}</p>
       {Array.isArray(value) ? (
         <ul className="space-y-1">
           {value.map((v, i) => (
             <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
-              <span className="mr-2" style={{ color: BRAND.primary }}>•</span>
+              <span className="mr-2 text-lg leading-none" style={{ color: BRAND.primary }}>•</span>
               {v}
             </li>
           ))}
@@ -368,14 +314,32 @@ function DataField({ label, value, fullWidth = false }: {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const { text, color, bg } = normalizeStatus(status);
+  const style = getStatusStyle(status);
   return (
     <span 
-      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
-      style={{ backgroundColor: bg, color }}
+      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm"
+      style={{ backgroundColor: style.bg, color: style.text }}
     >
-      {text}
+      {style.label}
     </span>
+  );
+}
+
+// Open-End Response Display
+function OpenEndResponse({ label, value }: { label: string; value: string | null }) {
+  const hasResponse = value && value.trim() && !value.toLowerCase().includes('no other') && value !== 'true';
+  
+  return (
+    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-100">
+      <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.primary }}>
+        {label}
+      </p>
+      {hasResponse ? (
+        <p className="text-sm italic" style={{ color: BRAND.gray[700] }}>"{value}"</p>
+      ) : (
+        <p className="text-sm" style={{ color: BRAND.gray[400] }}>No additional response provided</p>
+      )}
+    </div>
   );
 }
 
@@ -399,51 +363,60 @@ function DimensionSection({
   const title = DIM_TITLES[dimNum];
   const mainGridKey = `d${dimNum}a`;
   const mainGrid = dimData?.[mainGridKey] || {};
+  const openEndKey = `d${dimNum}b`;
+  const openEndValue = dimData?.[openEndKey];
+  const geoConsistencyKey = `d${dimNum}aa`;
+  const geoConsistency = dimData?.[geoConsistencyKey];
   
   // Count programs by status
-  let currentCount = 0, planningCount = 0, assessingCount = 0;
+  let currentCount = 0, planningCount = 0, assessingCount = 0, notFeasibleCount = 0;
   Object.values(mainGrid).forEach((status: any) => {
     if (typeof status === 'string') {
       const s = status.toLowerCase();
-      if (s.includes('currently') || s.includes('offer') || s.includes('provide')) currentCount++;
+      if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) currentCount++;
       else if (s.includes('planning') || s.includes('development')) planningCount++;
       else if (s.includes('assessing')) assessingCount++;
+      else if (s.includes('not able')) notFeasibleCount++;
     }
   });
   
   const totalPrograms = Object.keys(mainGrid).length;
   const hasData = totalPrograms > 0;
   
-  // Get follow-up questions
-  const followUpItems: Array<{ label: string; value: any }> = [];
+  // Get follow-up questions (excluding main grid, open-end, and geo)
+  const followUpItems: Array<{ key: string; label: string; value: any }> = [];
   Object.keys(dimData || {}).forEach(key => {
-    if (key === mainGridKey) return;
+    // Skip main grid, open-end, geo consistency
+    if (key === mainGridKey || key === openEndKey || key === geoConsistencyKey) return;
     if (!key.startsWith(`d${dimNum}`)) return;
     
     const value = dimData[key];
-    if (!value) return;
     
-    // Skip empty strings and null
-    if (typeof value === 'string' && !value.trim()) return;
-    if (Array.isArray(value) && value.length === 0) return;
+    // Skip "none" fields that are just true/false
+    if (key.toLowerCase().includes('none')) return;
+    if (isSkippableValue(value, key)) return;
     
-    // Skip "none" responses
-    const strVal = String(value).toLowerCase();
-    if (strVal.includes('no other') || strVal.includes('none')) return;
-    
-    // Get the label and format the value
     const label = getLabel(key);
-    const formattedValue = formatValue(value, dimData, key);
+    const formattedValue = formatDisplayValue(value, dimData, key);
     
     if (formattedValue) {
-      followUpItems.push({ label, value: formattedValue });
+      followUpItems.push({ key, label, value: formattedValue });
     }
   });
 
+  // Format open-end for display
+  let openEndDisplay: string | null = null;
+  if (openEndValue && typeof openEndValue === 'string' && openEndValue.trim()) {
+    const trimmed = openEndValue.trim().toLowerCase();
+    if (trimmed !== 'true' && trimmed !== 'false' && !trimmed.includes('no other')) {
+      openEndDisplay = openEndValue.trim();
+    }
+  }
+
   return (
     <div 
-      className="bg-white rounded-xl border overflow-hidden shadow-sm mb-4"
-      style={{ borderColor: BRAND.gray[200], borderLeftWidth: '4px', borderLeftColor: color }}
+      className="bg-white rounded-xl shadow-md overflow-hidden mb-4"
+      style={{ borderLeft: `4px solid ${color}` }}
     >
       {/* Header */}
       <div 
@@ -452,7 +425,7 @@ function DimensionSection({
       >
         <div className="flex items-center gap-4">
           <div 
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg"
             style={{ backgroundColor: color }}
           >
             {dimNum}
@@ -460,20 +433,25 @@ function DimensionSection({
           <div>
             <h3 className="font-bold text-base" style={{ color: BRAND.gray[900] }}>{title}</h3>
             {hasData && (
-              <div className="flex items-center gap-3 mt-1">
+              <div className="flex flex-wrap items-center gap-2 mt-1">
                 {currentCount > 0 && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
-                    {currentCount} Currently Offered
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: STATUS_COLORS.current.bg }}>
+                    {currentCount} Offering
                   </span>
                 )}
                 {planningCount > 0 && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                    {planningCount} In Development
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: STATUS_COLORS.planning.bg }}>
+                    {planningCount} Planning
                   </span>
                 )}
                 {assessingCount > 0 && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
-                    {assessingCount} Under Assessment
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: STATUS_COLORS.assessing.bg }}>
+                    {assessingCount} Assessing
+                  </span>
+                )}
+                {notFeasibleCount > 0 && (
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: STATUS_COLORS.notOffered.bg }}>
+                    {notFeasibleCount} Not Feasible
                   </span>
                 )}
               </div>
@@ -481,7 +459,7 @@ function DimensionSection({
           </div>
         </div>
         <svg 
-          className={`w-5 h-5 transition-transform ${isCollapsed ? '' : 'rotate-180'}`}
+          className={`w-6 h-6 transition-transform ${isCollapsed ? '' : 'rotate-180'}`}
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -502,25 +480,33 @@ function DimensionSection({
             </div>
           ) : (
             <>
+              {/* Geographic Consistency */}
+              {geoConsistency && (
+                <div className="mt-4 mb-4 p-3 rounded-lg" style={{ backgroundColor: BRAND.gray[50] }}>
+                  <span className="text-xs font-bold uppercase" style={{ color: BRAND.gray[500] }}>Geographic Scope: </span>
+                  <span className="text-sm font-medium" style={{ color: BRAND.gray[800] }}>{geoConsistency}</span>
+                </div>
+              )}
+              
               {/* Program Grid */}
               <div className="mt-4">
                 <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.gray[500] }}>
-                  Program Status Overview
+                  Program Status ({totalPrograms} items)
                 </p>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-lg border" style={{ borderColor: BRAND.gray[200] }}>
                   <table className="w-full">
                     <thead>
-                      <tr style={{ backgroundColor: BRAND.gray[50] }}>
-                        <th className="px-4 py-2 text-left text-xs font-bold" style={{ color: BRAND.gray[600] }}>Program / Initiative</th>
-                        <th className="px-4 py-2 text-left text-xs font-bold" style={{ color: BRAND.gray[600] }}>Status</th>
+                      <tr style={{ backgroundColor: BRAND.gray[100] }}>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase" style={{ color: BRAND.gray[600] }}>Program / Initiative</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase" style={{ color: BRAND.gray[600] }}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {Object.entries(mainGrid).map(([program, status], idx) => (
                         <tr 
                           key={idx} 
-                          className="border-t"
-                          style={{ borderColor: BRAND.gray[100] }}
+                          className={idx % 2 === 0 ? 'bg-white' : ''}
+                          style={{ backgroundColor: idx % 2 === 0 ? 'white' : BRAND.gray[50] }}
                         >
                           <td className="px-4 py-3 text-sm" style={{ color: BRAND.gray[800] }}>{program}</td>
                           <td className="px-4 py-3">
@@ -537,7 +523,7 @@ function DimensionSection({
               {followUpItems.length > 0 && (
                 <div className="mt-6 pt-4 border-t" style={{ borderColor: BRAND.gray[100] }}>
                   <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{ color: BRAND.gray[500] }}>
-                    Additional Details
+                    Follow-Up Details
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {followUpItems.map((item, idx) => (
@@ -551,6 +537,14 @@ function DimensionSection({
                   </div>
                 </div>
               )}
+
+              {/* Open-End Response */}
+              <div className="mt-6 pt-4 border-t" style={{ borderColor: BRAND.gray[100] }}>
+                <OpenEndResponse 
+                  label="Additional Comments / Other Programs Not Listed" 
+                  value={openEndDisplay}
+                />
+              </div>
             </>
           )}
         </div>
@@ -590,9 +584,9 @@ export default function ProfilePage() {
       
       console.log('📊 Assessment loaded:', {
         company: data?.company_name,
+        email: data?.email,
         hasFirmographics: !!data?.firmographics_data,
-        hasGeneral: !!data?.general_benefits_data,
-        hasDimensions: !!data?.dimension1_data
+        firmographicsKeys: data?.firmographics_data ? Object.keys(data.firmographics_data) : [],
       });
       
       setAssessment(data);
@@ -642,36 +636,73 @@ export default function ProfilePage() {
   const cross = assessment.cross_dimensional_data || {};
   const impact = assessment.employee_impact_data || assessment['employee-impact-assessment_data'] || {};
 
-  // Get contact info - check multiple possible locations
-  const contactName = `${firm.firstName || ''} ${firm.lastName || ''}`.trim() || 'Not provided';
-  const contactTitle = firm.title || firm.titleOther || 'Not provided';
+  // ============================================
+  // CONTACT & ROLE INFO - Check multiple places
+  // ============================================
+  const contactFirstName = firm.firstName || '';
+  const contactLastName = firm.lastName || '';
+  const contactName = `${contactFirstName} ${contactLastName}`.trim() || 'Not provided';
+  
+  // TITLE - Check firm.title, firm.titleOther, and if "Other" look for the specify
+  let contactTitle = 'Not provided';
+  if (firm.title && firm.title !== 'Other') {
+    contactTitle = firm.title;
+  } else if (firm.titleOther) {
+    contactTitle = firm.titleOther;
+  } else if (firm.title === 'Other' && firm.title_other) {
+    contactTitle = firm.title_other;
+  }
+  
   const contactEmail = assessment.email || 'Not provided';
+  
+  // Role & Responsibilities
+  const department = formatDisplayValue(firm.s4a, firm, 's4a') as string || formatDisplayValue(firm.s4b, firm, 's4b') as string;
+  const level = formatDisplayValue(firm.s5, firm, 's5') as string;
+  const responsibilities = formatDisplayValue(firm.s6, firm, 's6');
+  const influence = formatDisplayValue(firm.s7, firm, 's7') as string;
+  
+  // Company Info
+  const industry = formatDisplayValue(firm.c2, firm, 'c2') as string;
+  const employees = formatDisplayValue(firm.s8, firm, 's8') as string;
+  const headquarters = formatDisplayValue(firm.s9, firm, 's9') as string;
+  const countries = formatDisplayValue(firm.s9a, firm, 's9a') as string;
+  const revenue = formatDisplayValue(firm.c4 || firm.c5, firm, 'c4') as string;
+  const remotePolicy = formatDisplayValue(firm.c6, firm, 'c6') as string;
 
-  // Calculate summary stats
-  let totalCurrently = 0, totalPlanning = 0, totalAssessing = 0;
+  // ============================================
+  // CALCULATE SUMMARY STATS
+  // ============================================
+  let totalCurrently = 0, totalPlanning = 0, totalAssessing = 0, totalNotFeasible = 0;
   for (let i = 1; i <= 13; i++) {
     const gridData = assessment[`dimension${i}_data`]?.[`d${i}a`];
     if (gridData && typeof gridData === 'object') {
       Object.values(gridData).forEach((status: any) => {
         if (typeof status === 'string') {
           const s = status.toLowerCase();
-          if (s.includes('currently') || s.includes('offer') || s.includes('provide')) totalCurrently++;
+          if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) totalCurrently++;
           else if (s.includes('planning') || s.includes('development')) totalPlanning++;
           else if (s.includes('assessing')) totalAssessing++;
+          else if (s.includes('not able')) totalNotFeasible++;
         }
       });
     }
   }
   
-  const totalPrograms = totalCurrently + totalPlanning + totalAssessing;
+  const totalPrograms = totalCurrently + totalPlanning + totalAssessing + totalNotFeasible;
   const maturityScore = totalPrograms > 0 ? Math.round((totalCurrently / totalPrograms) * 100) : 0;
 
-  // Geographic consistency
-  let consistent = 0;
+  // Geographic consistency count
+  let consistentCount = 0;
   for (let i = 1; i <= 13; i++) {
     const aa = assessment[`dimension${i}_data`]?.[`d${i}aa`];
-    if (aa?.toLowerCase().includes('consistent')) consistent++;
+    if (aa && aa.toLowerCase().includes('consistent')) consistentCount++;
   }
+
+  // ============================================
+  // CURRENT BENEFITS - Separate by status
+  // ============================================
+  const currentBenefits = general.cb1 || [];
+  const plannedBenefits = general.cb2b || [];
 
   return (
     <>
@@ -682,7 +713,7 @@ export default function ProfilePage() {
         }
       `}</style>
       
-      <div className="min-h-screen" style={{ backgroundColor: BRAND.gray[50] }}>
+      <div className="min-h-screen" style={{ backgroundColor: BRAND.gray[100] }}>
         <main className="max-w-7xl mx-auto px-6 py-8">
           
           {/* HEADER */}
@@ -692,45 +723,50 @@ export default function ProfilePage() {
               <div className="flex gap-3 no-print">
                 <button
                   onClick={() => router.push('/admin')}
-                  className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center gap-2"
+                  className="px-5 py-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center gap-2 shadow-sm"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                   </svg>
-                  Back to Dashboard
+                  Back
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="px-5 py-2.5 text-white rounded-lg font-medium flex items-center gap-2 shadow-sm"
+                  className="px-5 py-2.5 text-white rounded-lg font-medium flex items-center gap-2 shadow-md"
                   style={{ backgroundColor: BRAND.success }}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Download PDF
+                  Export PDF
                 </button>
               </div>
             </div>
             
-            {/* Company Title Banner */}
+            {/* Company Banner */}
             <div 
-              className="rounded-2xl p-8 text-white shadow-lg"
-              style={{ background: `linear-gradient(135deg, ${BRAND.primary} 0%, #5B21B6 100%)` }}
+              className="rounded-2xl p-8 text-white shadow-xl"
+              style={{ background: `linear-gradient(135deg, ${BRAND.primary} 0%, #4C1D95 100%)` }}
             >
-              <p className="text-sm font-medium opacity-80 mb-1">Best Companies for Working with Cancer Index</p>
-              <h1 className="text-3xl md:text-4xl font-black mb-4">
-                {assessment.company_name || 'Company Profile'}
-              </h1>
-              <div className="flex flex-wrap gap-6 text-sm opacity-90">
+              <div className="flex items-start justify-between">
                 <div>
-                  <span className="opacity-70">Survey ID:</span> {surveyId}
+                  <p className="text-sm font-medium opacity-80 mb-1">Best Companies for Working with Cancer Index</p>
+                  <h1 className="text-3xl md:text-4xl font-black mb-4">
+                    {assessment.company_name || 'Company Profile'}
+                  </h1>
+                  <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                    <div><span className="opacity-70">Survey ID:</span> <span className="font-medium">{surveyId}</span></div>
+                    <div><span className="opacity-70">Contact:</span> <span className="font-medium">{contactName}</span></div>
+                    <div><span className="opacity-70">Title:</span> <span className="font-medium">{contactTitle}</span></div>
+                    <div><span className="opacity-70">Email:</span> <span className="font-medium">{contactEmail}</span></div>
+                  </div>
                 </div>
-                <div>
-                  <span className="opacity-70">Contact:</span> {contactName}
-                </div>
-                <div>
-                  <span className="opacity-70">Title:</span> {contactTitle}
-                </div>
+                {assessment.payment_completed && (
+                  <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2 text-center">
+                    <p className="text-xs opacity-80">Status</p>
+                    <p className="font-bold">✓ Completed</p>
+                  </div>
+                )}
               </div>
             </div>
           </header>
@@ -738,138 +774,184 @@ export default function ProfilePage() {
           {/* EXECUTIVE SUMMARY */}
           <section className="mb-8">
             <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Executive Summary</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard 
                 label="Support Maturity" 
                 value={`${maturityScore}%`}
                 color={BRAND.primary}
-                subtext={`${totalCurrently} of ${totalPrograms} programs active`}
+                subtext={`${totalCurrently} of ${totalPrograms} active`}
               />
               <StatCard 
                 label="Currently Offering" 
                 value={totalCurrently}
-                color={BRAND.success}
-                subtext="Programs in place"
+                color={STATUS_COLORS.current.bg}
+                subtext="programs in place"
               />
               <StatCard 
                 label="In Development" 
                 value={totalPlanning}
-                color={BRAND.warning}
-                subtext="Programs planned"
+                color={STATUS_COLORS.planning.bg}
+                subtext="programs planned"
               />
               <StatCard 
                 label="Global Consistency" 
-                value={`${consistent}/13`}
+                value={`${consistentCount}/13`}
                 color={BRAND.secondary}
-                subtext="Dimensions consistent"
+                subtext="dimensions consistent"
               />
             </div>
           </section>
 
-          {/* COMPANY INFORMATION */}
-          <section className="mb-8">
-            <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Company Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InfoCard title="Contact Details">
-                <div className="grid grid-cols-2 gap-4">
-                  <DataField label="Contact Person" value={contactName} />
-                  <DataField label="Email" value={contactEmail} />
-                  <DataField label="Title" value={contactTitle} />
-                  <DataField label="Industry" value={formatValue(firm.c2, firm, 'c2') as string} />
-                </div>
-              </InfoCard>
-              <InfoCard title="Organization Profile">
-                <div className="grid grid-cols-2 gap-4">
-                  <DataField label="Total Employees" value={formatValue(firm.s8, firm, 's8') as string} />
-                  <DataField label="Headquarters" value={formatValue(firm.s9, firm, 's9') as string} />
-                  <DataField label="Countries of Operation" value={formatValue(firm.s9a, firm, 's9a') as string} />
-                  <DataField label="Annual Revenue" value={formatValue(firm.c4 || firm.c5, firm, 'c4') as string} />
-                </div>
-              </InfoCard>
-            </div>
-          </section>
+          {/* COMPANY & RESPONDENT INFO */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Company Information */}
+            <SectionCard title="Company Information" color={BRAND.secondary}>
+              <div className="grid grid-cols-2 gap-4">
+                <DataField label="Industry" value={industry} />
+                <DataField label="Total Employees" value={employees} />
+                <DataField label="Headquarters" value={headquarters} />
+                <DataField label="Countries of Operation" value={countries} />
+                <DataField label="Annual Revenue" value={revenue} />
+                <DataField label="Remote/Hybrid Policy" value={remotePolicy} />
+              </div>
+            </SectionCard>
 
-          {/* PAYMENT INFO - if invoice selected */}
-          {assessment.payment_completed && assessment.payment_method === 'invoice' && (
-            <section className="mb-8">
-              <div className="bg-white rounded-xl border p-5 flex items-center justify-between" style={{ borderColor: BRAND.gray[200] }}>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#DCFCE7' }}>
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-bold" style={{ color: BRAND.gray[900] }}>Payment: Invoice Selected</p>
-                    <p className="text-sm" style={{ color: BRAND.gray[600] }}>
-                      Date: {assessment.payment_date ? new Date(assessment.payment_date).toLocaleDateString() : 'N/A'}
-                      {assessment.is_founding_partner ? ' • Founding Partner (Fee Waived)' : ' • Amount: $1,250.00'}
-                    </p>
-                  </div>
+            {/* Respondent Information */}
+            <SectionCard title="Respondent Information" color={BRAND.accent}>
+              <div className="grid grid-cols-2 gap-4">
+                <DataField label="Name" value={contactName !== 'Not provided' ? contactName : null} />
+                <DataField label="Title" value={contactTitle !== 'Not provided' ? contactTitle : null} />
+                <DataField label="Email" value={contactEmail !== 'Not provided' ? contactEmail : null} />
+                <DataField label="Department" value={department} />
+                <DataField label="Level" value={level} />
+                <DataField label="Benefits Influence" value={influence} />
+                {responsibilities && (
+                  <DataField label="Areas of Responsibility" value={responsibilities} fullWidth />
+                )}
+              </div>
+            </SectionCard>
+          </div>
+
+          {/* PAYMENT INFO */}
+          {assessment.payment_completed && (
+            <div className="bg-white rounded-xl shadow-md p-5 mb-8 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#D1FAE5' }}>
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
+                <div>
+                  <p className="font-bold" style={{ color: BRAND.gray[900] }}>
+                    Payment: {assessment.payment_method === 'invoice' ? 'Invoice' : 'Paid Online'}
+                    {assessment.is_founding_partner && ' (Founding Partner - Fee Waived)'}
+                  </p>
+                  <p className="text-sm" style={{ color: BRAND.gray[600] }}>
+                    {assessment.payment_date ? new Date(assessment.payment_date).toLocaleDateString() : 'Date not recorded'}
+                    {!assessment.is_founding_partner && ' • $1,250.00'}
+                  </p>
+                </div>
+              </div>
+              {assessment.payment_method === 'invoice' && (
                 <button
                   onClick={() => setShowInvoiceModal(true)}
-                  className="px-5 py-2.5 text-white rounded-lg font-medium flex items-center gap-2 no-print"
+                  className="px-5 py-2.5 text-white rounded-lg font-medium flex items-center gap-2 no-print shadow-md"
                   style={{ backgroundColor: BRAND.primary }}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  View Invoice
+                  Download Invoice
                 </button>
-              </div>
-            </section>
+              )}
+            </div>
           )}
 
           {/* CURRENT BENEFITS LANDSCAPE */}
-          {Object.keys(general).length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Current Benefits Landscape</h2>
-              <div className="bg-white rounded-xl border p-6" style={{ borderColor: BRAND.gray[200] }}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.entries(general).map(([key, value]) => {
-                    const formattedValue = formatValue(value, general, key);
-                    if (!formattedValue) return null;
-                    return (
-                      <DataField 
-                        key={key} 
-                        label={getLabel(key)} 
-                        value={formattedValue}
-                        fullWidth={Array.isArray(formattedValue) && formattedValue.length > 5}
-                      />
-                    );
-                  })}
-                </div>
+          {(currentBenefits.length > 0 || plannedBenefits.length > 0) && (
+            <SectionCard title="Benefits Landscape" color={BRAND.info}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Currently Offered */}
+                {currentBenefits.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLORS.current.bg }} />
+                      <p className="text-sm font-bold uppercase tracking-wide" style={{ color: BRAND.gray[600] }}>
+                        Currently Offered ({currentBenefits.length})
+                      </p>
+                    </div>
+                    <ul className="space-y-1 bg-green-50 rounded-lg p-4">
+                      {currentBenefits.map((benefit: string, i: number) => (
+                        <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
+                          <span className="mr-2 text-green-600">✓</span>
+                          {benefit}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Planned Benefits */}
+                {plannedBenefits.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLORS.planning.bg }} />
+                      <p className="text-sm font-bold uppercase tracking-wide" style={{ color: BRAND.gray[600] }}>
+                        Planned for Next 2 Years ({plannedBenefits.length})
+                      </p>
+                    </div>
+                    <ul className="space-y-1 bg-amber-50 rounded-lg p-4">
+                      {plannedBenefits.map((benefit: string, i: number) => (
+                        <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
+                          <span className="mr-2 text-amber-600">○</span>
+                          {benefit}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-            </section>
+
+              {/* National Healthcare % */}
+              {general.cb1a && (
+                <div className="mt-4 p-3 rounded-lg" style={{ backgroundColor: BRAND.gray[50] }}>
+                  <span className="text-xs font-bold uppercase" style={{ color: BRAND.gray[500] }}>
+                    Employees with National Healthcare Access:{' '}
+                  </span>
+                  <span className="text-sm font-medium" style={{ color: BRAND.gray[800] }}>
+                    {general.cb1a}%
+                  </span>
+                </div>
+              )}
+            </SectionCard>
           )}
 
-          {/* CURRENT SUPPORT PROGRAMS */}
+          {/* CURRENT SUPPORT APPROACH */}
           {Object.keys(support).length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Current Support Programs</h2>
-              <div className="bg-white rounded-xl border p-6" style={{ borderColor: BRAND.gray[200] }}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.entries(support).map(([key, value]) => {
-                    const formattedValue = formatValue(value, support, key);
-                    if (!formattedValue) return null;
-                    return (
-                      <DataField 
-                        key={key} 
-                        label={getLabel(key)} 
-                        value={formattedValue}
-                        fullWidth={Array.isArray(formattedValue) && formattedValue.length > 5}
-                      />
-                    );
-                  })}
-                </div>
+            <SectionCard title="Current Support Approach" color={BRAND.primary}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(support).map(([key, value]) => {
+                  if (isSkippableValue(value, key)) return null;
+                  const formattedValue = formatDisplayValue(value, support, key);
+                  if (!formattedValue) return null;
+                  return (
+                    <DataField 
+                      key={key} 
+                      label={getLabel(key)} 
+                      value={formattedValue}
+                      fullWidth={Array.isArray(formattedValue) && formattedValue.length > 4}
+                    />
+                  );
+                })}
               </div>
-            </section>
+            </SectionCard>
           )}
 
           {/* 13 DIMENSIONS */}
           <section className="mb-8">
-            <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>13 Dimensions of Support</h2>
+            <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>
+              13 Dimensions of Support
+            </h2>
             {Array.from({ length: 13 }, (_, i) => i + 1).map(dimNum => (
               <DimensionSection
                 key={dimNum}
@@ -884,120 +966,140 @@ export default function ProfilePage() {
 
           {/* CROSS-DIMENSIONAL ASSESSMENT */}
           {Object.keys(cross).length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Cross-Dimensional Assessment</h2>
+            <SectionCard title="Cross-Dimensional Assessment" color={BRAND.accent}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {cross.cd1a && Array.isArray(cross.cd1a) && (
-                  <InfoCard title="Top Priority Dimensions" accent={BRAND.success}>
-                    <ul className="space-y-2">
+                {/* Top Priorities */}
+                {cross.cd1a && Array.isArray(cross.cd1a) && cross.cd1a.length > 0 && (
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <p className="text-xs font-bold uppercase mb-3 text-green-700">Top 3 Priorities</p>
+                    <ol className="space-y-2">
                       {cross.cd1a.map((dim: string, i: number) => (
-                        <li key={i} className="flex items-start text-sm" style={{ color: BRAND.gray[800] }}>
+                        <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
                           <span className="mr-2 font-bold text-green-600">{i + 1}.</span>
                           {dim}
                         </li>
                       ))}
-                    </ul>
-                  </InfoCard>
+                    </ol>
+                  </div>
                 )}
-                {cross.cd1b && Array.isArray(cross.cd1b) && (
-                  <InfoCard title="Lowest Priority Dimensions" accent={BRAND.warning}>
-                    <ul className="space-y-2">
+
+                {/* Lowest Priorities */}
+                {cross.cd1b && Array.isArray(cross.cd1b) && cross.cd1b.length > 0 && (
+                  <div className="bg-amber-50 rounded-lg p-4">
+                    <p className="text-xs font-bold uppercase mb-3 text-amber-700">Lowest Priorities</p>
+                    <ol className="space-y-2">
                       {cross.cd1b.map((dim: string, i: number) => (
-                        <li key={i} className="flex items-start text-sm" style={{ color: BRAND.gray[800] }}>
-                          <span className="mr-2 font-bold text-orange-600">{i + 1}.</span>
+                        <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
+                          <span className="mr-2 font-bold text-amber-600">{i + 1}.</span>
                           {dim}
                         </li>
                       ))}
-                    </ul>
-                  </InfoCard>
+                    </ol>
+                  </div>
                 )}
-                {cross.cd2 && Array.isArray(cross.cd2) && (
-                  <InfoCard title="Implementation Challenges" accent={BRAND.error}>
+
+                {/* Challenges */}
+                {cross.cd2 && Array.isArray(cross.cd2) && cross.cd2.length > 0 && (
+                  <div className="bg-red-50 rounded-lg p-4">
+                    <p className="text-xs font-bold uppercase mb-3 text-red-700">Biggest Challenges</p>
                     <ul className="space-y-2">
-                      {cross.cd2.map((chal: string, i: number) => (
-                        <li key={i} className="flex items-start text-sm" style={{ color: BRAND.gray[800] }}>
-                          <span className="mr-2" style={{ color: BRAND.error }}>•</span>
-                          {chal}
-                        </li>
-                      ))}
+                      {cross.cd2.map((chal: string, i: number) => {
+                        // Handle "Other" challenges
+                        let displayChal = chal;
+                        if (chal.toLowerCase().includes('other')) {
+                          const otherVal = getOtherSpecifyValue(cross, 'cd2');
+                          if (otherVal) displayChal = otherVal;
+                          else return null;
+                        }
+                        return (
+                          <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
+                            <span className="mr-2 text-red-600">•</span>
+                            {displayChal}
+                          </li>
+                        );
+                      })}
                     </ul>
-                  </InfoCard>
+                  </div>
                 )}
               </div>
-            </section>
+            </SectionCard>
           )}
 
           {/* EMPLOYEE IMPACT ASSESSMENT */}
           {Object.keys(impact).length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Employee Impact Assessment</h2>
-              <div className="bg-white rounded-xl border p-6" style={{ borderColor: BRAND.gray[200] }}>
-                
-                {/* Impact Ratings Grid */}
-                {impact.ei1 && typeof impact.ei1 === 'object' && (
-                  <div className="mb-6">
-                    <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{ color: BRAND.gray[500] }}>
-                      Program Impact by Outcome Area
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {Object.entries(impact.ei1).map(([outcome, rating]) => {
-                        const ratingStr = String(rating).toLowerCase();
-                        let bgColor = BRAND.gray[100];
-                        let textColor = BRAND.gray[700];
-                        
-                        if (ratingStr.includes('significant')) {
-                          bgColor = '#DCFCE7'; textColor = '#166534';
-                        } else if (ratingStr.includes('moderate')) {
-                          bgColor = '#DBEAFE'; textColor = '#1E40AF';
-                        } else if (ratingStr.includes('minimal')) {
-                          bgColor = '#FEF3C7'; textColor = '#92400E';
-                        }
-                        
-                        return (
-                          <div 
-                            key={outcome}
-                            className="flex items-center justify-between p-3 rounded-lg"
-                            style={{ backgroundColor: BRAND.gray[50] }}
-                          >
-                            <span className="text-sm font-medium" style={{ color: BRAND.gray[800] }}>
-                              {getLabel(outcome)}
-                            </span>
-                            <span 
-                              className="text-xs font-semibold px-3 py-1 rounded-full"
-                              style={{ backgroundColor: bgColor, color: textColor }}
-                            >
-                              {String(rating).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            <SectionCard title="Employee Impact Assessment" color={BRAND.success}>
+              {/* Impact Ratings */}
+              {impact.ei1 && typeof impact.ei1 === 'object' && (
+                <div className="mb-6">
+                  <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{ color: BRAND.gray[500] }}>
+                    Program Impact by Outcome Area
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {Object.entries(impact.ei1).map(([outcome, rating]) => {
+                      const ratingStr = String(rating).toLowerCase();
+                      let bgColor = BRAND.gray[100];
+                      let dotColor = BRAND.gray[400];
+                      
+                      if (ratingStr.includes('significant')) {
+                        bgColor = '#D1FAE5'; dotColor = '#10B981';
+                      } else if (ratingStr.includes('moderate')) {
+                        bgColor = '#DBEAFE'; dotColor = '#3B82F6';
+                      } else if (ratingStr.includes('minimal')) {
+                        bgColor = '#FEF3C7'; dotColor = '#F59E0B';
+                      } else if (ratingStr.includes('no positive')) {
+                        bgColor = '#FEE2E2'; dotColor = '#EF4444';
+                      }
+                      
+                      return (
+                        <div 
+                          key={outcome}
+                          className="flex items-center justify-between p-3 rounded-lg"
+                          style={{ backgroundColor: bgColor }}
+                        >
+                          <span className="text-sm" style={{ color: BRAND.gray[800] }}>{outcome}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: dotColor }} />
+                            <span className="text-xs font-medium" style={{ color: BRAND.gray[600] }}>
+                              {String(rating).replace(/_/g, ' ')}
                             </span>
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-                
-                {/* Other impact fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.entries(impact).map(([key, value]) => {
-                    if (key === 'ei1') return null;
-                    const formattedValue = formatValue(value, impact, key);
-                    if (!formattedValue) return null;
-                    
-                    // Skip "none" responses
-                    const strVal = String(formattedValue).toLowerCase();
-                    if (strVal.includes('no additional') || strVal.includes('none that')) return null;
-                    
-                    return (
-                      <DataField 
-                        key={key} 
-                        label={getLabel(key)} 
-                        value={formattedValue}
-                        fullWidth={true}
-                      />
-                    );
-                  })}
                 </div>
+              )}
+
+              {/* ROI */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {impact.ei2 && (
+                  <DataField label="ROI Measurement Status" value={formatDisplayValue(impact.ei2, impact, 'ei2') as string} />
+                )}
+                {impact.ei3 && (
+                  <DataField label="Approximate ROI" value={formatDisplayValue(impact.ei3, impact, 'ei3') as string} />
+                )}
               </div>
-            </section>
+
+              {/* Open-End: Advice */}
+              <div className="space-y-4">
+                <OpenEndResponse 
+                  label="Advice for Other HR Leaders (EI4)" 
+                  value={
+                    impact.ei4 && typeof impact.ei4 === 'string' && impact.ei4.trim() && impact.ei4 !== 'true' 
+                      ? impact.ei4 
+                      : null
+                  }
+                />
+                <OpenEndResponse 
+                  label="Survey Gaps / Important Aspects Not Addressed (EI5)" 
+                  value={
+                    impact.ei5 && typeof impact.ei5 === 'string' && impact.ei5.trim() && impact.ei5 !== 'true'
+                      ? impact.ei5 
+                      : null
+                  }
+                />
+              </div>
+            </SectionCard>
           )}
 
           {/* FOOTER */}
@@ -1018,27 +1120,13 @@ export default function ProfilePage() {
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
               <div 
                 className="p-6 text-white"
-                style={{ background: `linear-gradient(135deg, ${BRAND.primary} 0%, #5B21B6 100%)` }}
+                style={{ background: `linear-gradient(135deg, ${BRAND.primary} 0%, #4C1D95 100%)` }}
               >
-                <h2 className="text-xl font-bold">Company Invoice</h2>
+                <h2 className="text-xl font-bold">Invoice</h2>
                 <p className="text-sm opacity-80 mt-1">{assessment.company_name}</p>
               </div>
               
               <div className="p-6">
-                <div className="text-center mb-6">
-                  <div 
-                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                    style={{ backgroundColor: '#F3E8FF' }}
-                  >
-                    <svg className="w-8 h-8" style={{ color: BRAND.primary }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <p className="text-sm" style={{ color: BRAND.gray[600] }}>
-                    Invoice #{assessment.survey_id || assessment.app_id}
-                  </p>
-                </div>
-                
                 <button
                   onClick={async () => {
                     const invoiceData: InvoiceData = {
@@ -1048,13 +1136,13 @@ export default function ProfilePage() {
                       companyName: assessment.company_name || 'Company',
                       contactName: contactName !== 'Not provided' ? contactName : 'Contact',
                       title: contactTitle !== 'Not provided' ? contactTitle : undefined,
-                      addressLine1: firm.addressLine1 || '(Address not on file)',
-                      addressLine2: firm.addressLine2 || undefined,
+                      addressLine1: firm.addressLine1 || '(Address on file)',
+                      addressLine2: firm.addressLine2,
                       city: firm.city || '',
                       state: firm.state || '',
                       zipCode: firm.zipCode || '',
                       country: firm.country || 'United States',
-                      poNumber: firm.poNumber || undefined,
+                      poNumber: firm.poNumber,
                       isFoundingPartner: assessment.is_founding_partner || false
                     };
                     await downloadInvoicePDF(invoiceData);
@@ -1069,7 +1157,7 @@ export default function ProfilePage() {
                 </button>
               </div>
               
-              <div className="px-6 py-4 border-t flex justify-end" style={{ backgroundColor: BRAND.gray[50], borderColor: BRAND.gray[200] }}>
+              <div className="px-6 py-4 border-t flex justify-end" style={{ backgroundColor: BRAND.gray[50] }}>
                 <button
                   onClick={() => setShowInvoiceModal(false)}
                   className="px-5 py-2 rounded-lg font-medium"
