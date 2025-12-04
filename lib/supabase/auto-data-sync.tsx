@@ -1,8 +1,9 @@
 /**
  * AUTO DATA SYNC - Syncs ALL localStorage to Supabase automatically
  * 
- * This component monitors localStorage and automatically syncs survey data to Supabase.
- * NO CHANGES to survey pages required - it works with existing localStorage keys.
+ * FIXED: Maps localStorage keys to correct Supabase column names
+ * - employee-impact-assessment_data -> employee_impact_data
+ * - employee-impact-assessment_complete -> employee_impact_complete
  */
 
 'use client'
@@ -10,6 +11,12 @@
 import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { supabase } from './client'
+
+// Map localStorage keys to Supabase column names
+const KEY_MAP: Record<string, string> = {
+  'employee-impact-assessment_data': 'employee_impact_data',
+  'employee-impact-assessment_complete': 'employee_impact_complete',
+}
 
 /**
  * Collect all survey data from localStorage
@@ -19,7 +26,7 @@ function collectAllSurveyData() {
   
   console.log('[AUTO-SYNC] Scanning localStorage for survey data...')
   
-  // List of all data keys we need to sync
+  // List of all data keys we need to sync (localStorage key names)
   const dataKeys = [
     'firmographics_data',
     'general_benefits_data',
@@ -29,7 +36,7 @@ function collectAllSurveyData() {
     ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
   ]
   
-  // List of all completion flags
+  // List of all completion flags (localStorage key names)
   const completeKeys = [
     'firmographics_complete',
     'auth_completed',
@@ -41,27 +48,31 @@ function collectAllSurveyData() {
   ]
   
   // Collect data
-  dataKeys.forEach(key => {
-    const value = localStorage.getItem(key)
+  dataKeys.forEach(localKey => {
+    const value = localStorage.getItem(localKey)
     if (value) {
       try {
         const parsed = JSON.parse(value)
         if (Object.keys(parsed).length > 0) {
-          updateData[key] = parsed
-          console.log(`  [AUTO-SYNC] Found ${key}: ${Object.keys(parsed).length} fields`)
+          // Map localStorage key to Supabase column name if needed
+          const dbKey = KEY_MAP[localKey] || localKey
+          updateData[dbKey] = parsed
+          console.log(`  [AUTO-SYNC] Found ${localKey} -> ${dbKey}: ${Object.keys(parsed).length} fields`)
         }
       } catch (e) {
-        console.warn(`  [AUTO-SYNC] Could not parse ${key}`)
+        console.warn(`  [AUTO-SYNC] Could not parse ${localKey}`)
       }
     }
   })
   
   // Collect completion flags
-  completeKeys.forEach(key => {
-    const value = localStorage.getItem(key)
+  completeKeys.forEach(localKey => {
+    const value = localStorage.getItem(localKey)
     if (value === 'true') {
-      updateData[key] = true
-      console.log(`  [AUTO-SYNC] Found ${key}: true`)
+      // Map localStorage key to Supabase column name if needed
+      const dbKey = KEY_MAP[localKey] || localKey
+      updateData[dbKey] = true
+      console.log(`  [AUTO-SYNC] Found ${localKey} -> ${dbKey}: true`)
     }
   })
   
@@ -69,7 +80,7 @@ function collectAllSurveyData() {
   const companyName = localStorage.getItem('login_company_name')
   if (companyName) {
     updateData.company_name = companyName
-    console.log(`  [AUTO-SYNC] Found company_name: ${companyName}`)
+    console.log(`  [AUTO-SYNC] Found company_name:`, companyName)
   }
   
   return updateData
@@ -121,7 +132,7 @@ async function syncToSupabase() {
     if (error) {
       console.error('[AUTO-SYNC] Sync error:', error.message)
     } else {
-      console.log('[AUTO-SYNC] Sync successful!')
+      console.log('[AUTO-SYNC] ✅ Sync successful!')
     }
   } catch (error) {
     console.error('[AUTO-SYNC] Sync failed:', error)
@@ -153,7 +164,7 @@ export default function AutoDataSync() {
   
   // Sync every 30 seconds
   useEffect(() => {
-    console.log('[AUTO-SYNC] Auto-sync initialized - will sync every 30 seconds')
+    console.log('[AUTO-SYNC] Initialized - will sync every 30 seconds')
     const interval = setInterval(() => {
       console.log('[AUTO-SYNC] Periodic sync triggered')
       if (!syncInProgress.current) {
