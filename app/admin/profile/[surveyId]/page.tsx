@@ -7,54 +7,54 @@ import Image from 'next/image';
 import { generateInvoicePDF, downloadInvoicePDF, type InvoiceData } from '@/lib/invoice-generator';
 
 // ============================================
-// BRAND COLORS - SUPER VIBRANT (BRIGHT!)
+// EXECUTIVE PROFESSIONAL COLORS
 // ============================================
 const BRAND = {
-  primary: '#9333EA',      // BRIGHT PURPLE
-  secondary: '#EC4899',    // HOT PINK
-  accent: '#FB923C',       // BRIGHT ORANGE
-  success: '#22C55E',      // BRIGHT GREEN
-  warning: '#FBBF24',      // BRIGHT YELLOW
-  error: '#F87171',        // CORAL RED
-  info: '#38BDF8',         // SKY BLUE
+  primary: '#1E3A5F',      // Deep Navy Blue
+  secondary: '#2D5016',    // Forest Green
+  accent: '#8B4513',       // Saddle Brown
+  success: '#166534',      // Dark Green
+  warning: '#B45309',      // Dark Amber
+  error: '#991B1B',        // Dark Red
+  info: '#1E40AF',         // Royal Blue
   gray: {
-    900: '#0F172A',
-    800: '#1E293B',
-    700: '#334155',
-    600: '#475569',
-    500: '#64748B',
-    400: '#94A3B8',
-    300: '#CBD5E1',
-    200: '#E2E8F0',
-    100: '#F1F5F9',
-    50: '#F8FAFC',
+    900: '#111827',
+    800: '#1F2937',
+    700: '#374151',
+    600: '#4B5563',
+    500: '#6B7280',
+    400: '#9CA3AF',
+    300: '#D1D5DB',
+    200: '#E5E7EB',
+    100: '#F3F4F6',
+    50: '#F9FAFB',
   }
 };
 
-// SUPER VIBRANT status colors
+// Professional status colors - RICH and BOLD
 const STATUS_COLORS = {
-  current: { bg: '#22C55E', text: '#FFFFFF' },      // BRIGHT GREEN
-  planning: { bg: '#FBBF24', text: '#1E293B' },     // BRIGHT YELLOW with dark text
-  assessing: { bg: '#38BDF8', text: '#0F172A' },    // SKY BLUE with dark text
-  notOffered: { bg: '#F87171', text: '#FFFFFF' },   // CORAL RED
-  unsure: { bg: '#A78BFA', text: '#FFFFFF' },       // LIGHT PURPLE
+  current: { bg: '#166534', text: '#FFFFFF' },      // Dark Forest Green
+  planning: { bg: '#B45309', text: '#FFFFFF' },     // Rich Amber
+  assessing: { bg: '#1E40AF', text: '#FFFFFF' },    // Royal Blue
+  notOffered: { bg: '#991B1B', text: '#FFFFFF' },   // Deep Red
+  unsure: { bg: '#4B5563', text: '#FFFFFF' },       // Slate Gray
 };
 
-// Dimension colors - NEON RAINBOW (Super vibrant!)
+// Dimension colors - RICH JEWEL TONES (Professional)
 const DIM_COLORS = [
-  '#FF3B30', // Neon Red
-  '#FF6B00', // Neon Orange
-  '#FFD60A', // Neon Yellow
-  '#34C759', // Neon Green
-  '#00E676', // Neon Mint
-  '#00BCD4', // Neon Cyan
-  '#2196F3', // Neon Blue
-  '#3D5AFE', // Neon Indigo
-  '#7C4DFF', // Neon Violet
-  '#E040FB', // Neon Magenta
-  '#FF4081', // Neon Pink
-  '#FF1744', // Neon Crimson
-  '#9C27B0', // Deep Purple
+  '#7C2D12', // Deep Rust
+  '#854D0E', // Dark Gold
+  '#365314', // Dark Olive
+  '#166534', // Forest Green
+  '#115E59', // Deep Teal
+  '#164E63', // Dark Cyan
+  '#1E3A8A', // Navy Blue
+  '#312E81', // Deep Indigo
+  '#581C87', // Deep Purple
+  '#831843', // Deep Rose
+  '#881337', // Burgundy
+  '#7F1D1D', // Dark Red
+  '#44403C', // Warm Gray
 ];
 
 const DIM_TITLES: Record<number, string> = {
@@ -817,115 +817,116 @@ export default function ProfilePage() {
   const cross = assessment.cross_dimensional_data || {};
   const impact = assessment.employee_impact_data || assessment['employee-impact-assessment_data'] || {};
 
-  // DEBUG LOGGING
-  // DEBUG LOGGING - COMPREHENSIVE
-  console.log('📊 Profile Data Debug:', {
-    // All keys at assessment level (excluding dimension data)
-    'ASSESSMENT direct keys': Object.keys(assessment).filter(k => !k.includes('dimension') && !k.includes('_data')),
-    'FIRMOGRAPHICS keys': Object.keys(firm),
-    'GENERAL keys': Object.keys(general),
-    'SUPPORT keys': Object.keys(support),
-    
-    // Contact info
-    'firstName sources': { firm: firm.firstName, assessment: assessment.firstName },
-    'lastName sources': { firm: firm.lastName, assessment: assessment.lastName },
-    'title sources': { firm: firm.title, titleOther: firm.titleOther },
-    
-    // Department - check all variations
-    's4a sources': { 
-      firm: firm.s4a, 
-      firmOther: firm.s4a_other || firm.s4aOther,
-      general: general.s4a, 
-      assessment: assessment.s4a 
-    },
-    
-    // Company Info - check all sources
-    'c2 (industry)': { firm: firm.c2, general: general.c2, assessment: assessment.c2 },
-    's8 (employees)': { firm: firm.s8, general: general.s8, assessment: assessment.s8 },
-    's9 (HQ)': { firm: firm.s9, assessment: assessment.s9 },
-    'c4/c5 (revenue)': { firm_c4: firm.c4, firm_c5: firm.c5, assessment_c4: assessment.c4 },
-    
-    // Benefits
-    'cb1 (current)': general.cb1,
-    'cb2b (planned)': general.cb2b,
-    
-    // Check raw firmographics object
-    'RAW firmographics_data': assessment.firmographics_data,
+  // ============================================
+  // DEBUG - LOG EVERYTHING TO FIND THE DATA
+  // ============================================
+  console.log('🔍 FULL ASSESSMENT OBJECT:', assessment);
+  console.log('🔍 FIRMOGRAPHICS_DATA:', firm);
+  console.log('🔍 GENERAL_BENEFITS_DATA:', general);
+  console.log('🔍 Looking for company fields:', {
+    // Check firmographics
+    'firm.s8': firm.s8,
+    'firm.s9': firm.s9,
+    'firm.c2': firm.c2,
+    'firm.c4': firm.c4,
+    'firm.c6': firm.c6,
+    'firm.industry': firm.industry,
+    'firm.employees': firm.employees,
+    'firm.totalEmployees': firm.totalEmployees,
+    // Check general
+    'general.s8': general.s8,
+    'general.s9': general.s9,
+    'general.c2': general.c2,
+    'general.c4': general.c4,
+    // Check assessment directly
+    'assessment.s8': assessment.s8,
+    'assessment.s9': assessment.s9,
+    'assessment.c2': assessment.c2,
+    'assessment.c4': assessment.c4,
+    'assessment.industry': assessment.industry,
+    'assessment.company_size': assessment.company_size,
   });
 
   // ============================================
-  // CONTACT & ROLE INFO - Check multiple places
+  // CONTACT INFO - These work fine
   // ============================================
   const contactFirstName = firm.firstName || assessment.firstName || '';
   const contactLastName = firm.lastName || assessment.lastName || '';
   const contactName = `${contactFirstName} ${contactLastName}`.trim() || null;
   
-  // TITLE - Check firm.title, firm.titleOther, and if "Other" look for the specify
   let contactTitle: string | null = null;
-  if (firm.title && firm.title !== 'Other' && firm.title.toLowerCase() !== 'other (specify)') {
+  if (firm.title && firm.title !== 'Other' && !firm.title.toLowerCase().includes('other')) {
     contactTitle = firm.title;
-  } else if (firm.titleOther) {
-    contactTitle = firm.titleOther;
-  } else if (firm.title_other) {
-    contactTitle = firm.title_other;
-  } else if (assessment.title) {
-    contactTitle = assessment.title;
+  } else if (firm.titleOther || firm.title_other) {
+    contactTitle = firm.titleOther || firm.title_other;
   }
   
-  const contactEmail = assessment.email || null;
-  
-  // Role & Responsibilities - check firm, general, support, AND raw assessment
-  const dept = firm.s4a || general.s4a || support.s4a || assessment.s4a;
-  const deptOther = firm.s4a_other || firm.s4aOther || general.s4a_other || assessment.s4a_other;
-  const department = (dept && dept.toLowerCase().includes('other')) 
-    ? (deptOther || dept) 
-    : formatDisplayValue(dept, firm, 's4a') as string || formatDisplayValue(firm.s4b || general.s4b || support.s4b || assessment.s4b, firm, 's4b') as string;
-  
-  const level = formatDisplayValue(firm.s5 || general.s5 || support.s5 || assessment.s5, firm, 's5') as string;
-  const responsibilities = formatDisplayValue(firm.s6 || general.s6 || support.s6 || assessment.s6, firm, 's6');
-  const influence = formatDisplayValue(firm.s7 || general.s7 || support.s7 || assessment.s7, firm, 's7') as string;
+  const contactEmail = assessment.email || firm.email || null;
   
   // ============================================
-  // COMPANY INFO - Check ALL possible sources
+  // ROLE INFO - Check all possible locations
   // ============================================
-  // Data might be in firmographics_data, general_benefits_data, or directly on assessment
-  const allData = { ...assessment, ...firm, ...general, ...support };
+  const getDeptValue = () => {
+    const dept = firm.s4a || firm.s4b || general.s4a || assessment.s4a;
+    if (!dept) return null;
+    if (dept.toLowerCase().includes('other')) {
+      return firm.s4a_other || firm.s4aOther || firm.s4b_other || general.s4a_other || dept;
+    }
+    return dept;
+  };
+  const department = getDeptValue();
+  const level = firm.s5 || general.s5 || assessment.s5 || null;
+  const responsibilities = firm.s6 || general.s6 || assessment.s6 || null;
+  const influence = firm.s7 || general.s7 || assessment.s7 || null;
   
-  const industry = formatDisplayValue(
-    firm.c2 || general.c2 || support.c2 || assessment.c2 || 
-    allData.industry || allData.Industry, 
-    allData, 'c2'
-  ) as string;
+  // ============================================
+  // COMPANY INFO - Search EVERYWHERE
+  // ============================================
+  const findValue = (...sources: any[]) => {
+    for (const val of sources) {
+      if (val && val !== '' && val !== 'null' && val !== 'undefined') {
+        return val;
+      }
+    }
+    return null;
+  };
   
-  const employees = formatDisplayValue(
-    firm.s8 || general.s8 || support.s8 || assessment.s8 ||
-    allData.employees || allData.totalEmployees || allData.total_employees,
-    allData, 's8'
-  ) as string;
+  const industry = findValue(
+    firm.c2, firm.industry, firm.Industry,
+    general.c2, general.industry,
+    support.c2,
+    assessment.c2, assessment.industry
+  );
   
-  const headquarters = formatDisplayValue(
-    firm.s9 || general.s9 || support.s9 || assessment.s9 ||
-    allData.headquarters || allData.hq || allData.location,
-    allData, 's9'
-  ) as string;
+  const employees = findValue(
+    firm.s8, firm.employees, firm.totalEmployees, firm.total_employees, firm.employeeCount,
+    general.s8, general.employees,
+    assessment.s8, assessment.employees, assessment.company_size
+  );
   
-  const countries = formatDisplayValue(
-    firm.s9a || general.s9a || support.s9a || assessment.s9a ||
-    allData.countries || allData.numCountries,
-    allData, 's9a'
-  ) as string;
+  const headquarters = findValue(
+    firm.s9, firm.headquarters, firm.hq, firm.location, firm.country,
+    general.s9, 
+    assessment.s9, assessment.headquarters
+  );
   
-  const revenue = formatDisplayValue(
-    firm.c4 || firm.c5 || general.c4 || general.c5 || support.c4 || support.c5 ||
-    assessment.c4 || assessment.c5 || allData.revenue || allData.annualRevenue,
-    allData, 'c4'
-  ) as string;
+  const countries = findValue(
+    firm.s9a, firm.countries, firm.numCountries, firm.countriesCount,
+    general.s9a,
+    assessment.s9a, assessment.countries
+  );
   
-  const remotePolicy = formatDisplayValue(
-    firm.c6 || general.c6 || support.c6 || assessment.c6 ||
-    allData.remotePolicy || allData.remote_policy || allData.workPolicy,
-    allData, 'c6'
-  ) as string;
+  const revenue = findValue(
+    firm.c4, firm.c5, firm.revenue, firm.annualRevenue, firm.annual_revenue,
+    general.c4, general.c5, general.revenue,
+    assessment.c4, assessment.c5, assessment.revenue
+  );
+  
+  const remotePolicy = findValue(
+    firm.c6, firm.remotePolicy, firm.remote_policy, firm.workPolicy,
+    general.c6,
+    assessment.c6, assessment.remote_policy
+  );
 
   // ============================================
   // CALCULATE SUMMARY STATS
@@ -1022,10 +1023,10 @@ export default function ProfilePage() {
               </div>
             </div>
             
-            {/* Company Banner */}
+            {/* Company Banner - KEEP PURPLE since user liked it */}
             <div 
               className="rounded-2xl p-8 text-white shadow-xl"
-              style={{ background: `linear-gradient(135deg, ${BRAND.primary} 0%, #4C1D95 100%)` }}
+              style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)' }}
             >
               <div className="flex items-start justify-between">
                 <div>
