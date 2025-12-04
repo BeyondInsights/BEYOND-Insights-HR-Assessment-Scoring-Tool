@@ -79,10 +79,14 @@ export default function InvoicePaymentPage() {
     setLoading(true)
 
     try {
+      // Get the email from localStorage
+      const userEmail = localStorage.getItem('login_email') || localStorage.getItem('auth_email') || ''
+      
       // Save invoice data
       const invoiceData = {
         ...companyData,
         ...formData,
+        email: userEmail,
         invoiceNumber: `INV-${Date.now()}`,
         invoiceDate: new Date().toLocaleDateString(),
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
@@ -133,23 +137,30 @@ export default function InvoicePaymentPage() {
       localStorage.setItem('payment_completed', 'true')
       localStorage.setItem('payment_date', new Date().toISOString())
 
-      // Save to database - including address in firmographics_data
+      // Save to database - including address AND email in firmographics_data
       try {
         const user = await getCurrentUser()
         if (user) {
-          // First get current firmographics_data
+          // First get current firmographics_data and email
           const { data: currentData } = await supabase
             .from('assessments')
-            .select('firmographics_data')
+            .select('firmographics_data, email')
             .eq('user_id', user.id)
             .single()
           
           // Merge address fields into firmographics_data
+          // IMPORTANT: Don't overwrite existing names if they're already set
+          const existingFirst = currentData?.firmographics_data?.firstName;
+          const existingLast = currentData?.firmographics_data?.lastName;
+          const existingTitle = currentData?.firmographics_data?.title;
+          
           const updatedFirmographics = {
             ...(currentData?.firmographics_data || {}),
-            firstName: companyData.contactName.split(' ')[0] || '',
-            lastName: companyData.contactName.split(' ').slice(1).join(' ') || '',
-            title: companyData.title || '',
+            // Only set names if not already in database
+            firstName: existingFirst || companyData.contactName.split(' ')[0] || '',
+            lastName: existingLast || companyData.contactName.split(' ').slice(1).join(' ') || '',
+            title: existingTitle || companyData.title || '',
+            email: currentData?.email || userEmail,
             addressLine1: formData.addressLine1,
             addressLine2: formData.addressLine2 || undefined,
             city: formData.city,
@@ -169,7 +180,7 @@ export default function InvoicePaymentPage() {
             })
             .eq('user_id', user.id)
           
-          console.log('✅ Payment and address info saved to Supabase')
+          console.log('✅ Payment, address, and email saved to Supabase')
         }
       } catch (error) {
         console.error('Error saving payment to database:', error)
@@ -276,6 +287,10 @@ export default function InvoicePaymentPage() {
       if (data.title) {
         rightYPos += 5
         doc.text(`${data.title}`, pageWidth / 2 + 10, rightYPos)
+      }
+      if (data.email) {
+        rightYPos += 5
+        doc.text(data.email, pageWidth / 2 + 10, rightYPos)
       }
       rightYPos += 5
       doc.text(data.addressLine1, pageWidth / 2 + 10, rightYPos)
