@@ -133,18 +133,43 @@ export default function InvoicePaymentPage() {
       localStorage.setItem('payment_completed', 'true')
       localStorage.setItem('payment_date', new Date().toISOString())
 
-      // Save to database
+      // Save to database - including address in firmographics_data
       try {
         const user = await getCurrentUser()
         if (user) {
+          // First get current firmographics_data
+          const { data: currentData } = await supabase
+            .from('assessments')
+            .select('firmographics_data')
+            .eq('user_id', user.id)
+            .single()
+          
+          // Merge address fields into firmographics_data
+          const updatedFirmographics = {
+            ...(currentData?.firmographics_data || {}),
+            firstName: companyData.contactName.split(' ')[0] || '',
+            lastName: companyData.contactName.split(' ').slice(1).join(' ') || '',
+            title: companyData.title || '',
+            addressLine1: formData.addressLine1,
+            addressLine2: formData.addressLine2 || undefined,
+            city: formData.city,
+            state: formData.state,
+            zipCode: formData.zipCode,
+            country: formData.country,
+            poNumber: formData.poNumber || undefined
+          }
+          
           await supabase
             .from('assessments')
             .update({
               payment_completed: true,
               payment_method: 'invoice',
-              payment_date: new Date().toISOString()
+              payment_date: new Date().toISOString(),
+              firmographics_data: updatedFirmographics
             })
             .eq('user_id', user.id)
+          
+          console.log('✅ Payment and address info saved to Supabase')
         }
       } catch (error) {
         console.error('Error saving payment to database:', error)
