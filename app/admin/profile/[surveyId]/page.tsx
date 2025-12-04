@@ -364,7 +364,10 @@ export default function ProfilePage() {
   const general = assessment.general_benefits_data || {};
   const support = assessment.current_support_data || {};
   const cross = assessment.cross_dimensional_data || {};
-  const impact = assessment['employee_impact_data'] || {};  // ✅ CORRECT: underscore not dash
+  // Try both possible column names - underscore (Supabase) and dash (localStorage sync)
+  const impact = assessment['employee_impact_data'] 
+    || assessment['employee-impact-assessment_data'] 
+    || {};
   const employeeSurveyOptIn = assessment.employee_survey_opt_in;  // ✅ NEW: Employee survey preference
   
   // 🐛 DEBUG: Log Employee Impact data
@@ -385,6 +388,20 @@ export default function ProfilePage() {
     firstName: firm.firstName,
     lastName: firm.lastName
   })
+  
+  // 🐛 DEBUG: Log all dimension data to identify issues
+  console.log('📊 All Dimension Data Debug:')
+  for (let i = 1; i <= 13; i++) {
+    const dimData = assessment[`dimension${i}_data`]
+    console.log(`  Dimension ${i}:`, {
+      exists: !!dimData,
+      isEmpty: !dimData || Object.keys(dimData || {}).length === 0,
+      keys: dimData ? Object.keys(dimData) : [],
+      mainGridKey: `d${i}a`,
+      hasMainGrid: !!dimData?.[`d${i}a`],
+      mainGridItems: dimData?.[`d${i}a`] ? Object.keys(dimData[`d${i}a`]).length : 0
+    })
+  }
   
   // Calculate executive summary
   let totalCurrently = 0, totalPlanning = 0, totalAssessing = 0;
@@ -882,6 +899,20 @@ export default function ProfilePage() {
                   <button
                     onClick={async () => {
                       const firm = assessment.firmographics_data || {}
+                      
+                      // DEBUG: Log what we're reading from firmographics_data
+                      console.log('📋 Invoice Data Debug:', {
+                        firmographics_data: firm,
+                        firstName: firm.firstName,
+                        lastName: firm.lastName,
+                        title: firm.title,
+                        titleOther: firm.titleOther,
+                        addressLine1: firm.addressLine1,
+                        city: firm.city,
+                        state: firm.state,
+                        zipCode: firm.zipCode
+                      })
+                      
                       const invoiceData: InvoiceData = {
                         invoiceNumber: assessment.survey_id || assessment.app_id,
                         invoiceDate: assessment.payment_date ? new Date(assessment.payment_date).toLocaleDateString() : new Date().toLocaleDateString(),
@@ -898,6 +929,10 @@ export default function ProfilePage() {
                         poNumber: firm.poNumber || undefined,
                         isFoundingPartner: assessment.is_founding_partner || false
                       }
+                      
+                      // DEBUG: Log final invoice data
+                      console.log('📋 Final Invoice Data:', invoiceData)
+                      
                       await downloadInvoicePDF(invoiceData)
                     }}
                     className="w-full py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all font-semibold flex items-center justify-center gap-2"
