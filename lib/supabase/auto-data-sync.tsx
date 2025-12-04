@@ -1,9 +1,6 @@
 /**
- * AUTO DATA SYNC - Syncs ALL localStorage to Supabase automatically
- * 
- * FIXED: Maps localStorage keys to correct Supabase column names
- * - employee-impact-assessment_data -> employee_impact_data
- * - employee-impact-assessment_complete -> employee_impact_complete
+ * AUTO DATA SYNC - Syncs localStorage to Supabase automatically
+ * FIXED: Now MERGES data instead of replacing, won't overwrite complete data with incomplete
  */
 
 'use client'
@@ -12,21 +9,13 @@ import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { supabase } from './client'
 
-// Map localStorage keys to Supabase column names
-const KEY_MAP: Record<string, string> = {
-  'employee-impact-assessment_data': 'employee_impact_data',
-  'employee-impact-assessment_complete': 'employee_impact_complete',
-}
-
 /**
  * Collect all survey data from localStorage
  */
 function collectAllSurveyData() {
   const updateData: Record<string, any> = {}
   
-  console.log('[AUTO-SYNC] Scanning localStorage for survey data...')
-  
-  // List of all data keys we need to sync (localStorage key names)
+  // List of all data keys we need to sync
   const dataKeys = [
     'firmographics_data',
     'general_benefits_data',
@@ -36,7 +25,7 @@ function collectAllSurveyData() {
     ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
   ]
   
-  // List of all completion flags (localStorage key names)
+  // List of all completion flags
   const completeKeys = [
     'firmographics_complete',
     'auth_completed',
@@ -48,31 +37,25 @@ function collectAllSurveyData() {
   ]
   
   // Collect data
-  dataKeys.forEach(localKey => {
-    const value = localStorage.getItem(localKey)
+  dataKeys.forEach(key => {
+    const value = localStorage.getItem(key)
     if (value) {
       try {
         const parsed = JSON.parse(value)
         if (Object.keys(parsed).length > 0) {
-          // Map localStorage key to Supabase column name if needed
-          const dbKey = KEY_MAP[localKey] || localKey
-          updateData[dbKey] = parsed
-          console.log(`  [AUTO-SYNC] Found ${localKey} -> ${dbKey}: ${Object.keys(parsed).length} fields`)
+          updateData[key] = parsed
         }
       } catch (e) {
-        console.warn(`  [AUTO-SYNC] Could not parse ${localKey}`)
+        // Skip invalid JSON
       }
     }
   })
   
   // Collect completion flags
-  completeKeys.forEach(localKey => {
-    const value = localStorage.getItem(localKey)
+  completeKeys.forEach(key => {
+    const value = localStorage.getItem(key)
     if (value === 'true') {
-      // Map localStorage key to Supabase column name if needed
-      const dbKey = KEY_MAP[localKey] || localKey
-      updateData[dbKey] = true
-      console.log(`  [AUTO-SYNC] Found ${localKey} -> ${dbKey}: true`)
+      updateData[key] = true
     }
   })
   
@@ -80,21 +63,19 @@ function collectAllSurveyData() {
   const companyName = localStorage.getItem('login_company_name')
   if (companyName) {
     updateData.company_name = companyName
-    console.log(`  [AUTO-SYNC] Found company_name:`, companyName)
   }
   
   return updateData
 }
 
 /**
- * Sync all localStorage data to Supabase
+ * Sync localStorage data to Supabase - MERGES instead of replacing
  */
 async function syncToSupabase() {
   try {
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      console.log('[AUTO-SYNC] No Supabase user - skipping sync')
       return
     }
     
@@ -103,22 +84,90 @@ async function syncToSupabase() {
     try {
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       if (isFoundingPartner(surveyId)) {
-        console.log('[AUTO-SYNC] Founding Partner - skipping Supabase sync')
         return
       }
     } catch (e) {
       // Founding partners module not found, continue
     }
     
-    // Collect all data
-    const updateData = collectAllSurveyData()
+    // Collect all data from localStorage
+    const localData = collectAllSurveyData()
     
-    if (Object.keys(updateData).length === 0) {
-      console.log('[AUTO-SYNC] No data to sync')
+    if (Object.keys(localData).length === 0) {
       return
     }
     
-    console.log(`[AUTO-SYNC] Syncing ${Object.keys(updateData).length} items to Supabase...`)
+    // FETCH EXISTING DATA FROM DATABASE FIRST
+    const { data: existing, error: fetchError } = await supabase
+      .from('assessments')
+      .select('firmographics_data, general_benefits_data, current_support_data, cross_dimensional_data, employee_impact_data')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (fetchError) {
+      console.error('Fetch error:', fetchError.message)
+      return
+    }
+    
+    // SMART MERGE: Only update if localStorage has MORE data
+    const updateData: Record<string, any> = {}
+    
+    // For each data key, check if we should update
+    const dataKeys = ['firmographics_data', 'general_benefits_data', 'current_support_data', 'cross_dimensional_data']
+    
+    for (const key of dataKeys) {
+      const localValue = localData[key]
+      const dbValue = existing?.[key]
+      
+      if (localValue) {
+        const localKeyCount = Object.keys(localValue).length
+        const dbKeyCount = dbValue ? Object.keys(dbValue).length : 0
+        
+        // ONLY update if localStorage has MORE fields than database
+        // This prevents overwriting complete data with incomplete data
+        if (localKeyCount > dbKeyCount) {
+          // MERGE: Keep database data, add localStorage data on top
+          updateData[key] = { ...dbValue, ...localValue }
+          console.log(`📝 Merging ${key}: DB has ${dbKeyCount} keys, localStorage has ${localKeyCount} keys`)
+        } else if (dbKeyCount === 0) {
+          // Database is empty, use localStorage
+          updateData[key] = localValue
+        }
+        // If database has more or equal fields, DON'T overwrite
+      }
+    }
+    
+    // Dimension data - same logic
+    for (let i = 1; i <= 13; i++) {
+      const key = `dimension${i}_data`
+      const localValue = localData[key]
+      
+      if (localValue && Object.keys(localValue).length > 0) {
+        updateData[key] = localValue
+      }
+    }
+    
+    // Completion flags - only set to true, never to false
+    const completeKeys = [
+      'firmographics_complete', 'auth_completed', 'general_benefits_complete',
+      'current_support_complete', 'cross_dimensional_complete', 'employee-impact-assessment_complete',
+      ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
+    ]
+    
+    for (const key of completeKeys) {
+      if (localData[key] === true) {
+        updateData[key] = true
+      }
+    }
+    
+    // Company name
+    if (localData.company_name) {
+      updateData.company_name = localData.company_name
+    }
+    
+    if (Object.keys(updateData).length === 0) {
+      return
+    }
     
     // Add timestamp
     updateData.updated_at = new Date().toISOString()
@@ -130,18 +179,15 @@ async function syncToSupabase() {
       .eq('user_id', user.id)
     
     if (error) {
-      console.error('[AUTO-SYNC] Sync error:', error.message)
-    } else {
-      console.log('[AUTO-SYNC] ✅ Sync successful!')
+      console.error('Sync error:', error.message)
     }
   } catch (error) {
-    console.error('[AUTO-SYNC] Sync failed:', error)
+    console.error('Sync failed:', error)
   }
 }
 
 /**
  * Auto Data Sync Component
- * Add to root layout to enable automatic syncing
  */
 export default function AutoDataSync() {
   const pathname = usePathname()
@@ -151,7 +197,6 @@ export default function AutoDataSync() {
   // Sync when navigating between pages
   useEffect(() => {
     if (pathname !== lastPath.current && lastPath.current !== '') {
-      console.log('[AUTO-SYNC] Route changed - triggering sync')
       if (!syncInProgress.current) {
         syncInProgress.current = true
         syncToSupabase().finally(() => {
@@ -164,9 +209,7 @@ export default function AutoDataSync() {
   
   // Sync every 30 seconds
   useEffect(() => {
-    console.log('[AUTO-SYNC] Initialized - will sync every 30 seconds')
     const interval = setInterval(() => {
-      console.log('[AUTO-SYNC] Periodic sync triggered')
       if (!syncInProgress.current) {
         syncInProgress.current = true
         syncToSupabase().finally(() => {
@@ -181,11 +224,8 @@ export default function AutoDataSync() {
   // Sync before page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      console.log('[AUTO-SYNC] Page closing - final sync')
-      // Use sendBeacon for more reliable sync on page close
       const data = collectAllSurveyData()
       if (Object.keys(data).length > 0) {
-        // Fallback to regular sync
         syncToSupabase()
       }
     }
