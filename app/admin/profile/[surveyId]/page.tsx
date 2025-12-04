@@ -64,7 +64,7 @@ const DIM_TITLES: Record<number, string> = {
 };
 
 // ============================================
-// FIELD LABELS
+// FIELD LABELS - COMPLETE MAPPING
 // ============================================
 const FIELD_LABELS: Record<string, string> = {
   // Contact
@@ -129,6 +129,84 @@ const FIELD_LABELS: Record<string, string> = {
   ei3: 'Approximate ROI',
   ei4: 'Advice for Other HR Leaders',
   ei5: 'Survey Gaps Identified',
+  
+  // ============================================
+  // DIMENSION FOLLOW-UP QUESTIONS - PROPER LABELS
+  // ============================================
+  
+  // Dimension 1 - Medical Leave
+  d1aa: 'Geographic Availability',
+  d1b: 'Additional Benefits Not Listed',
+  d1_1: 'Additional Paid Leave (USA)',
+  'd1_1_usa': 'Additional Paid Leave (USA)',
+  'd1_1_non_usa': 'Additional Paid Leave (Non-USA)',
+  d1_2: 'Additional Intermittent Leave',
+  'd1_2_usa': 'Intermittent Leave (USA)',
+  'd1_2_non_usa': 'Intermittent Leave (Non-USA)',
+  d1_4a: 'Remote Work Duration',
+  'd1_4a_type': 'Duration Type',
+  d1_4b: 'Reduced Schedule with Full Benefits',
+  d1_5: 'Job Protection Beyond Legal',
+  'd1_5_usa': 'Job Protection (USA)',
+  'd1_5_non_usa': 'Job Protection (Non-USA)',
+  d1_6: 'Disability Pay Enhancement',
+  
+  // Dimension 2 - Insurance
+  d2aa: 'Geographic Availability',
+  d2b: 'Additional Benefits Not Listed',
+  
+  // Dimension 3 - Manager Training
+  d3aa: 'Geographic Availability',
+  d3b: 'Additional Initiatives Not Listed',
+  d3_1: 'Manager Training Completion Rate',
+  d3_1a: 'Training Requirement Type',
+  
+  // Dimension 4 - Navigation
+  d4aa: 'Geographic Availability',
+  d4b: 'Additional Resources Not Listed',
+  d4_1a: 'Navigation Provider Type',
+  d4_1b: 'Navigation Services Available',
+  
+  // Dimension 5 - Accommodations
+  d5aa: 'Geographic Availability',
+  d5b: 'Additional Accommodations Not Listed',
+  
+  // Dimension 6 - Culture
+  d6aa: 'Geographic Availability',
+  d6b: 'Additional Supports Not Listed',
+  d6_2: 'How Psychological Safety is Measured',
+  
+  // Dimension 7 - Career
+  d7aa: 'Geographic Availability',
+  d7b: 'Additional Supports Not Listed',
+  
+  // Dimension 8 - Work Continuation
+  d8aa: 'Geographic Availability',
+  d8b: 'Additional Supports Not Listed',
+  
+  // Dimension 9 - Executive
+  d9aa: 'Geographic Availability',
+  d9b: 'Additional Practices Not Listed',
+  
+  // Dimension 10 - Caregiver
+  d10aa: 'Geographic Availability',
+  d10b: 'Additional Benefits Not Listed',
+  
+  // Dimension 11 - Prevention
+  d11aa: 'Geographic Availability',
+  d11b: 'Additional Initiatives Not Listed',
+  d11_1: 'Early Detection Services at 100% Coverage',
+  
+  // Dimension 12 - Continuous Improvement
+  d12aa: 'Geographic Availability',
+  d12b: 'Additional Practices Not Listed',
+  d12_1: 'Individual Experience Review Process',
+  d12_2: 'Changes from Employee Feedback',
+  
+  // Dimension 13 - Communication
+  d13aa: 'Geographic Availability',
+  d13b: 'Additional Methods Not Listed',
+  d13_1: 'Communication Frequency',
 };
 
 // ============================================
@@ -136,14 +214,76 @@ const FIELD_LABELS: Record<string, string> = {
 // ============================================
 
 function getLabel(key: string): string {
-  const cleanKey = key.replace(/^[Qq]/, '').toLowerCase();
+  // Normalize key - remove Q prefix
+  let cleanKey = key.replace(/^[Qq]/, '');
   
-  // Direct lookup
+  // Build a normalized version for matching (lowercase, no underscores)
+  const normalizedKey = cleanKey.toLowerCase().replace(/_/g, '');
+  
+  // Direct lookup first
   if (FIELD_LABELS[cleanKey]) return FIELD_LABELS[cleanKey];
   if (FIELD_LABELS[key]) return FIELD_LABELS[key];
   
-  // Format nicely
-  return key
+  // Try lowercase version
+  if (FIELD_LABELS[cleanKey.toLowerCase()]) return FIELD_LABELS[cleanKey.toLowerCase()];
+  
+  // Check each field label key for a normalized match
+  for (const [labelKey, labelValue] of Object.entries(FIELD_LABELS)) {
+    const normalizedLabelKey = labelKey.toLowerCase().replace(/_/g, '');
+    if (normalizedLabelKey === normalizedKey) {
+      return labelValue;
+    }
+  }
+  
+  // Handle dimension follow-up patterns like "d3_1", "d3_1a", "d31", "d31a"
+  // Extract dimension number and sub-question
+  const dimMatch = cleanKey.match(/^d(\d+)[_]?(\d+)?([a-z])?$/i);
+  if (dimMatch) {
+    const dimNum = dimMatch[1];
+    const subQ = dimMatch[2] || '';
+    const subSub = dimMatch[3] || '';
+    
+    // Try to find in labels with various formats
+    const possibleKeys = [
+      `d${dimNum}_${subQ}${subSub}`,
+      `d${dimNum}_${subQ}_${subSub}`,
+      `d${dimNum}${subQ}${subSub}`,
+    ].filter(k => k.replace(/_+$/, ''));
+    
+    for (const pk of possibleKeys) {
+      if (FIELD_LABELS[pk]) return FIELD_LABELS[pk];
+      if (FIELD_LABELS[pk.toLowerCase()]) return FIELD_LABELS[pk.toLowerCase()];
+    }
+    
+    // Return a generic but readable label based on dimension
+    const dimTitles: Record<string, string> = {
+      '1': 'Medical Leave',
+      '2': 'Insurance',
+      '3': 'Manager Training',
+      '4': 'Navigation',
+      '5': 'Accommodations',
+      '6': 'Culture',
+      '7': 'Career',
+      '8': 'Work Continuation',
+      '9': 'Executive',
+      '10': 'Caregiver',
+      '11': 'Prevention',
+      '12': 'Improvement',
+      '13': 'Communication',
+    };
+    
+    if (subQ) {
+      return `${dimTitles[dimNum] || 'Dimension ' + dimNum} Details`;
+    }
+  }
+  
+  // Don't return raw keys like "D3 1" or "d3_1" - make them more readable
+  if (/^d\d+[_]?\d*[a-z]?$/i.test(cleanKey)) {
+    return 'Additional Details';
+  }
+  
+  // Final fallback - format nicely
+  return cleanKey
     .replace(/_/g, ' ')
     .replace(/([A-Z])/g, ' $1')
     .replace(/\s+/g, ' ')
@@ -180,11 +320,29 @@ function getOtherSpecifyValue(data: any, key: string): string | null {
     `${key}_specify`,
     `${key}Specify`,
     `${key.replace(/_type$/, '')}_other`,
+    `${key}other`,
+    `other_${key}`,
+    `${key.replace(/a$/, '')}_other`, // s4a -> s4_other
+    `other`,
   ];
   
+  // First try exact patterns
   for (const otherKey of otherKeys) {
     if (data[otherKey] && typeof data[otherKey] === 'string' && data[otherKey].trim()) {
       return data[otherKey].trim();
+    }
+  }
+  
+  // Search all keys for ones ending in _other or Other that might be related
+  const baseKey = key.replace(/_.*$/, ''); // s4a -> s4
+  for (const dataKey of Object.keys(data)) {
+    const lowerDataKey = dataKey.toLowerCase();
+    if ((lowerDataKey.includes('other') || lowerDataKey.includes('specify')) && 
+        (lowerDataKey.startsWith(baseKey.toLowerCase()) || lowerDataKey.startsWith(key.toLowerCase()))) {
+      const val = data[dataKey];
+      if (val && typeof val === 'string' && val.trim() && val.toLowerCase() !== 'other') {
+        return val.trim();
+      }
     }
   }
   
@@ -203,7 +361,7 @@ function formatDisplayValue(value: any, data?: any, key?: string): string | stri
         // Replace "Other (specify)" or just "Other" with actual typed value
         if (str.toLowerCase().includes('other')) {
           const otherVal = data ? getOtherSpecifyValue(data, key || '') : null;
-          if (otherVal) return `Other: ${otherVal}`;
+          if (otherVal) return otherVal;  // Return the typed value, NOT "Other: value"
           return null; // Skip if no other value specified
         }
         return str;
@@ -213,12 +371,17 @@ function formatDisplayValue(value: any, data?: any, key?: string): string | stri
     return formatted.length > 0 ? formatted as string[] : null;
   }
   
-  // Handle string "other"
+  // Handle string values that are "Other (specify):" or similar
   const strVal = String(value).trim();
-  if (strVal.toLowerCase() === 'other') {
+  
+  // Check for various "other" patterns
+  if (strVal.toLowerCase() === 'other' || 
+      strVal.toLowerCase().includes('other (specify)') ||
+      strVal.toLowerCase() === 'other:' ||
+      strVal.toLowerCase().startsWith('other (')) {
     const otherVal = data ? getOtherSpecifyValue(data, key || '') : null;
     if (otherVal) return otherVal;
-    return null; // Skip if no other value
+    return null; // Skip if no other value - don't show "Other (specify):"
   }
   
   return strVal;
@@ -636,6 +799,20 @@ export default function ProfilePage() {
   const cross = assessment.cross_dimensional_data || {};
   const impact = assessment.employee_impact_data || assessment['employee-impact-assessment_data'] || {};
 
+  // DEBUG LOGGING
+  console.log('📊 Profile Data Debug:', {
+    firmKeys: Object.keys(firm),
+    generalKeys: Object.keys(general),
+    supportKeys: Object.keys(support),
+    's4a (department)': firm.s4a,
+    's4a_other': firm.s4a_other,
+    's4aOther': firm.s4aOther,
+    'cb1 (current benefits)': general.cb1,
+    'cb2b (planned benefits)': general.cb2b,
+    'c4 (revenue)': firm.c4 || general.c4,
+    'c5 (revenue)': firm.c5 || general.c5,
+  });
+
   // ============================================
   // CONTACT & ROLE INFO - Check multiple places
   // ============================================
@@ -666,7 +843,7 @@ export default function ProfilePage() {
   const employees = formatDisplayValue(firm.s8, firm, 's8') as string;
   const headquarters = formatDisplayValue(firm.s9, firm, 's9') as string;
   const countries = formatDisplayValue(firm.s9a, firm, 's9a') as string;
-  const revenue = formatDisplayValue(firm.c4 || firm.c5, firm, 'c4') as string;
+  const revenue = formatDisplayValue(firm.c4 || firm.c5 || general.c4 || general.c5 || support.c4 || support.c5, firm, 'c4') as string;
   const remotePolicy = formatDisplayValue(firm.c6, firm, 'c6') as string;
 
   // ============================================
@@ -701,7 +878,28 @@ export default function ProfilePage() {
   // ============================================
   // CURRENT BENEFITS - Separate by status
   // ============================================
-  const currentBenefits = general.cb1 || [];
+  // ============================================
+  // CURRENT BENEFITS - Check multiple possible keys
+  // ============================================
+  // cb1 might be an array or might be nested under different keys
+  let currentBenefits: string[] = [];
+  if (general.cb1) {
+    if (Array.isArray(general.cb1)) {
+      currentBenefits = general.cb1;
+    } else if (typeof general.cb1 === 'object') {
+      // If it's an object, extract the values
+      currentBenefits = Object.values(general.cb1).filter(v => typeof v === 'string') as string[];
+    }
+  }
+  
+  // Also check for benefits in various category keys
+  const benefitCategories = ['cb1_standard', 'cb1_leave', 'cb1_wellness', 'cb1_financial', 'cb1_navigation'];
+  benefitCategories.forEach(cat => {
+    if (general[cat] && Array.isArray(general[cat])) {
+      currentBenefits = [...currentBenefits, ...general[cat]];
+    }
+  });
+  
   const plannedBenefits = general.cb2b || [];
 
   return (
@@ -929,20 +1127,133 @@ export default function ProfilePage() {
           {/* CURRENT SUPPORT APPROACH */}
           {Object.keys(support).length > 0 && (
             <SectionCard title="Current Support Approach" color={BRAND.primary}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(support).map(([key, value]) => {
-                  if (isSkippableValue(value, key)) return null;
-                  const formattedValue = formatDisplayValue(value, support, key);
-                  if (!formattedValue) return null;
-                  return (
-                    <DataField 
-                      key={key} 
-                      label={getLabel(key)} 
-                      value={formattedValue}
-                      fullWidth={Array.isArray(formattedValue) && formattedValue.length > 4}
-                    />
-                  );
-                })}
+              <div className="space-y-6">
+                {/* Top row - Approach and Barriers side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Current Approach */}
+                  {support.or1 && (
+                    <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                      <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.primary }}>
+                        Current Approach
+                      </p>
+                      <p className="text-sm font-medium" style={{ color: BRAND.gray[800] }}>
+                        {formatDisplayValue(support.or1, support, 'or1')}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Support Beyond Legal */}
+                  {support.cb3a && (
+                    <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                      <p className="text-xs font-bold uppercase tracking-wide mb-2 text-green-700">
+                        Support Beyond Legal Requirements
+                      </p>
+                      <p className="text-sm font-medium" style={{ color: BRAND.gray[800] }}>
+                        {formatDisplayValue(support.cb3a, support, 'cb3a')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Primary Barriers */}
+                {support.or3 && Array.isArray(support.or3) && support.or3.length > 0 && (
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-100">
+                    <p className="text-xs font-bold uppercase tracking-wide mb-3 text-red-700">
+                      Primary Barriers
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {support.or3.map((barrier: string, i: number) => (
+                        <span key={i} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          {barrier}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Effectiveness Monitoring */}
+                {support.or6 && Array.isArray(support.or6) && support.or6.length > 0 && (
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                    <p className="text-xs font-bold uppercase tracking-wide mb-3 text-blue-700">
+                      Effectiveness Monitoring
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {support.or6.map((method: string, i: number) => (
+                        <span key={i} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {method}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Program Structure */}
+                {support.cb3b && Array.isArray(support.cb3b) && support.cb3b.length > 0 && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.gray[500] }}>
+                      Program Structure
+                    </p>
+                    <ul className="space-y-1">
+                      {support.cb3b.map((item: string, i: number) => (
+                        <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
+                          <span className="mr-2 text-purple-600">•</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Health Conditions Covered */}
+                {support.cb3c && Array.isArray(support.cb3c) && support.cb3c.length > 0 && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.gray[500] }}>
+                      Health Conditions Covered ({support.cb3c.length})
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {support.cb3c.map((condition: string, i: number) => (
+                        <div key={i} className="flex items-center text-sm p-2 bg-gray-50 rounded" style={{ color: BRAND.gray[800] }}>
+                          <span className="mr-2 text-green-500">✓</span>
+                          {condition}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Program Development Method */}
+                {support.cb3d && Array.isArray(support.cb3d) && support.cb3d.length > 0 && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.gray[500] }}>
+                      Program Development Method
+                    </p>
+                    <ul className="space-y-1">
+                      {support.cb3d.map((method: string, i: number) => (
+                        <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
+                          <span className="mr-2 text-purple-600">•</span>
+                          {method}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Caregiver Support Types */}
+                {support.or5a && Array.isArray(support.or5a) && support.or5a.length > 0 && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.gray[500] }}>
+                      Caregiver Support Types ({support.or5a.length})
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {support.or5a.map((type: string, i: number) => (
+                        <div key={i} className="flex items-center text-sm p-2 bg-amber-50 rounded border border-amber-100" style={{ color: BRAND.gray[800] }}>
+                          <span className="mr-2 text-amber-600">•</span>
+                          {type}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </SectionCard>
           )}
