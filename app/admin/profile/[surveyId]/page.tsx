@@ -818,115 +818,32 @@ export default function ProfilePage() {
   const impact = assessment.employee_impact_data || assessment['employee-impact-assessment_data'] || {};
 
   // ============================================
-  // DEBUG - LOG EVERYTHING TO FIND THE DATA
+  // ALL DATA IS IN firmographics_data (firm)
+  // Keys: c2, c3, c4, c5, s1, s2, s4b, s5, s6, s7, s8, s9, s9a, au1, au2
   // ============================================
-  console.log('🔍 FULL ASSESSMENT OBJECT:', assessment);
-  console.log('🔍 FIRMOGRAPHICS_DATA:', firm);
-  console.log('🔍 GENERAL_BENEFITS_DATA:', general);
-  console.log('🔍 Looking for company fields:', {
-    // Check firmographics
-    'firm.s8': firm.s8,
-    'firm.s9': firm.s9,
-    'firm.c2': firm.c2,
-    'firm.c4': firm.c4,
-    'firm.c6': firm.c6,
-    'firm.industry': firm.industry,
-    'firm.employees': firm.employees,
-    'firm.totalEmployees': firm.totalEmployees,
-    // Check general
-    'general.s8': general.s8,
-    'general.s9': general.s9,
-    'general.c2': general.c2,
-    'general.c4': general.c4,
-    // Check assessment directly
-    'assessment.s8': assessment.s8,
-    'assessment.s9': assessment.s9,
-    'assessment.c2': assessment.c2,
-    'assessment.c4': assessment.c4,
-    'assessment.industry': assessment.industry,
-    'assessment.company_size': assessment.company_size,
-  });
+  
+  // CONTACT INFO
+  const contactName = [firm.firstName, firm.lastName].filter(Boolean).join(' ') || null;
+  const contactTitle = firm.title || null;
+  const contactEmail = assessment.email || null;
+  
+  // ROLE INFO - All from firmographics_data
+  const department = firm.s4b || firm.s4a || null;  // s4b is "Human Resources"
+  const level = firm.s5 || null;                     // s5 is "Senior Manager"
+  const responsibilities = firm.s6 || null;          // s6 is array of responsibilities
+  const influence = firm.s7 || null;                 // s7 is influence level
+  
+  // COMPANY INFO - All from firmographics_data
+  const industry = firm.c2 || null;                  // c2 is "Manufacturing"
+  const employees = firm.s8 || null;                 // s8 is "50,000+"
+  const headquarters = firm.s9 || null;              // s9 is "Switzerland"
+  const countries = firm.s9a || null;                // s9a is "50 or more countries"
+  const revenue = firm.c4 || firm.c5 || null;        // c4/c5 is "$1 billion or more"
+  const remotePolicy = firm.c6 || null;              // c6 is remote policy
+  const benefitsEligibility = firm.c3 || null;       // c3 is "Most employees (75-99%)"
 
-  // ============================================
-  // CONTACT INFO - These work fine
-  // ============================================
-  const contactFirstName = firm.firstName || assessment.firstName || '';
-  const contactLastName = firm.lastName || assessment.lastName || '';
-  const contactName = `${contactFirstName} ${contactLastName}`.trim() || null;
-  
-  let contactTitle: string | null = null;
-  if (firm.title && firm.title !== 'Other' && !firm.title.toLowerCase().includes('other')) {
-    contactTitle = firm.title;
-  } else if (firm.titleOther || firm.title_other) {
-    contactTitle = firm.titleOther || firm.title_other;
-  }
-  
-  const contactEmail = assessment.email || firm.email || null;
-  
-  // ============================================
-  // ROLE INFO - Check all possible locations
-  // ============================================
-  const getDeptValue = () => {
-    const dept = firm.s4a || firm.s4b || general.s4a || assessment.s4a;
-    if (!dept) return null;
-    if (dept.toLowerCase().includes('other')) {
-      return firm.s4a_other || firm.s4aOther || firm.s4b_other || general.s4a_other || dept;
-    }
-    return dept;
-  };
-  const department = getDeptValue();
-  const level = firm.s5 || general.s5 || assessment.s5 || null;
-  const responsibilities = firm.s6 || general.s6 || assessment.s6 || null;
-  const influence = firm.s7 || general.s7 || assessment.s7 || null;
-  
-  // ============================================
-  // COMPANY INFO - Search EVERYWHERE
-  // ============================================
-  const findValue = (...sources: any[]) => {
-    for (const val of sources) {
-      if (val && val !== '' && val !== 'null' && val !== 'undefined') {
-        return val;
-      }
-    }
-    return null;
-  };
-  
-  const industry = findValue(
-    firm.c2, firm.industry, firm.Industry,
-    general.c2, general.industry,
-    support.c2,
-    assessment.c2, assessment.industry
-  );
-  
-  const employees = findValue(
-    firm.s8, firm.employees, firm.totalEmployees, firm.total_employees, firm.employeeCount,
-    general.s8, general.employees,
-    assessment.s8, assessment.employees, assessment.company_size
-  );
-  
-  const headquarters = findValue(
-    firm.s9, firm.headquarters, firm.hq, firm.location, firm.country,
-    general.s9, 
-    assessment.s9, assessment.headquarters
-  );
-  
-  const countries = findValue(
-    firm.s9a, firm.countries, firm.numCountries, firm.countriesCount,
-    general.s9a,
-    assessment.s9a, assessment.countries
-  );
-  
-  const revenue = findValue(
-    firm.c4, firm.c5, firm.revenue, firm.annualRevenue, firm.annual_revenue,
-    general.c4, general.c5, general.revenue,
-    assessment.c4, assessment.c5, assessment.revenue
-  );
-  
-  const remotePolicy = findValue(
-    firm.c6, firm.remotePolicy, firm.remote_policy, firm.workPolicy,
-    general.c6,
-    assessment.c6, assessment.remote_policy
-  );
+  console.log('📊 firmographics_data keys:', Object.keys(firm));
+  console.log('📊 Extracted:', { industry, employees, headquarters, countries, revenue, department, level });
 
   // ============================================
   // CALCULATE SUMMARY STATS
