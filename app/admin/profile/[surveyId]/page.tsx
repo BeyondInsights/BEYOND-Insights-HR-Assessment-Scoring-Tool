@@ -657,7 +657,7 @@ export default function ProfilePage() {
           const s = status.toLowerCase();
           if (s.includes('currently') || s.includes('offer') || s.includes('provide')) totalCurrently++;
           else if (s.includes('planning') || s.includes('development')) totalPlanning++;
-          else if (s.includes('assessing')) assessingCount++;
+          else if (s.includes('assessing')) totalAssessing++;
         }
       });
     }
