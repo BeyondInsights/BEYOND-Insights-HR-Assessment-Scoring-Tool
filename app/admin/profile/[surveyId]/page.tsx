@@ -7,16 +7,16 @@ import Image from 'next/image';
 import { generateInvoicePDF, downloadInvoicePDF, type InvoiceData } from '@/lib/invoice-generator';
 
 // ============================================
-// BRAND COLORS - VIBRANT
+// BRAND COLORS - SUPER VIBRANT (BRIGHT!)
 // ============================================
 const BRAND = {
-  primary: '#7A34A3',      // Purple
-  secondary: '#00A896',    // Teal
-  accent: '#FF6B35',       // Orange
-  success: '#059669',      // Emerald green
-  warning: '#D97706',      // Amber
-  error: '#DC2626',        // Red
-  info: '#2563EB',         // Blue
+  primary: '#9333EA',      // BRIGHT PURPLE
+  secondary: '#EC4899',    // HOT PINK
+  accent: '#FB923C',       // BRIGHT ORANGE
+  success: '#22C55E',      // BRIGHT GREEN
+  warning: '#FBBF24',      // BRIGHT YELLOW
+  error: '#F87171',        // CORAL RED
+  info: '#38BDF8',         // SKY BLUE
   gray: {
     900: '#0F172A',
     800: '#1E293B',
@@ -31,20 +31,30 @@ const BRAND = {
   }
 };
 
-// VIBRANT status colors
+// SUPER VIBRANT status colors
 const STATUS_COLORS = {
-  current: { bg: '#10B981', text: '#FFFFFF' },      // Bright green
-  planning: { bg: '#F59E0B', text: '#FFFFFF' },     // Bright amber
-  assessing: { bg: '#3B82F6', text: '#FFFFFF' },    // Bright blue
-  notOffered: { bg: '#EF4444', text: '#FFFFFF' },   // Bright red
-  unsure: { bg: '#6B7280', text: '#FFFFFF' },       // Gray
+  current: { bg: '#22C55E', text: '#FFFFFF' },      // BRIGHT GREEN
+  planning: { bg: '#FBBF24', text: '#1E293B' },     // BRIGHT YELLOW with dark text
+  assessing: { bg: '#38BDF8', text: '#0F172A' },    // SKY BLUE with dark text
+  notOffered: { bg: '#F87171', text: '#FFFFFF' },   // CORAL RED
+  unsure: { bg: '#A78BFA', text: '#FFFFFF' },       // LIGHT PURPLE
 };
 
-// Dimension colors - vibrant rainbow
+// Dimension colors - NEON RAINBOW (Super vibrant!)
 const DIM_COLORS = [
-  '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16',
-  '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9',
-  '#3B82F6', '#6366F1', '#8B5CF6'
+  '#FF3B30', // Neon Red
+  '#FF6B00', // Neon Orange
+  '#FFD60A', // Neon Yellow
+  '#34C759', // Neon Green
+  '#00E676', // Neon Mint
+  '#00BCD4', // Neon Cyan
+  '#2196F3', // Neon Blue
+  '#3D5AFE', // Neon Indigo
+  '#7C4DFF', // Neon Violet
+  '#E040FB', // Neon Magenta
+  '#FF4081', // Neon Pink
+  '#FF1744', // Neon Crimson
+  '#9C27B0', // Deep Purple
 ];
 
 const DIM_TITLES: Record<number, string> = {
@@ -450,19 +460,25 @@ function SectionCard({ title, children, color = BRAND.primary }: {
   );
 }
 
-function DataField({ label, value, fullWidth = false }: { 
+function DataField({ label, value, fullWidth = false, showNA = false }: { 
   label: string; 
   value: string | string[] | null;
   fullWidth?: boolean;
+  showNA?: boolean;
 }) {
-  if (!value) return null;
+  // If showNA is true, show "N/A" for null values
+  // Otherwise hide the field entirely
+  if (!value && !showNA) return null;
+  
+  const displayValue = value || 'N/A';
+  const isNA = !value;
   
   return (
     <div className={fullWidth ? 'col-span-full' : ''}>
       <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>{label}</p>
-      {Array.isArray(value) ? (
+      {Array.isArray(displayValue) ? (
         <ul className="space-y-1">
-          {value.map((v, i) => (
+          {displayValue.map((v, i) => (
             <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
               <span className="mr-2 text-lg leading-none" style={{ color: BRAND.primary }}>•</span>
               {v}
@@ -470,7 +486,9 @@ function DataField({ label, value, fullWidth = false }: {
           ))}
         </ul>
       ) : (
-        <p className="text-sm" style={{ color: BRAND.gray[800] }}>{value}</p>
+        <p className={`text-sm ${isNA ? 'italic' : ''}`} style={{ color: isNA ? BRAND.gray[400] : BRAND.gray[800] }}>
+          {displayValue}
+        </p>
       )}
     </div>
   );
@@ -800,51 +818,114 @@ export default function ProfilePage() {
   const impact = assessment.employee_impact_data || assessment['employee-impact-assessment_data'] || {};
 
   // DEBUG LOGGING
+  // DEBUG LOGGING - COMPREHENSIVE
   console.log('📊 Profile Data Debug:', {
-    firmKeys: Object.keys(firm),
-    generalKeys: Object.keys(general),
-    supportKeys: Object.keys(support),
-    's4a (department)': firm.s4a,
-    's4a_other': firm.s4a_other,
-    's4aOther': firm.s4aOther,
-    'cb1 (current benefits)': general.cb1,
-    'cb2b (planned benefits)': general.cb2b,
-    'c4 (revenue)': firm.c4 || general.c4,
-    'c5 (revenue)': firm.c5 || general.c5,
+    // All keys at assessment level (excluding dimension data)
+    'ASSESSMENT direct keys': Object.keys(assessment).filter(k => !k.includes('dimension') && !k.includes('_data')),
+    'FIRMOGRAPHICS keys': Object.keys(firm),
+    'GENERAL keys': Object.keys(general),
+    'SUPPORT keys': Object.keys(support),
+    
+    // Contact info
+    'firstName sources': { firm: firm.firstName, assessment: assessment.firstName },
+    'lastName sources': { firm: firm.lastName, assessment: assessment.lastName },
+    'title sources': { firm: firm.title, titleOther: firm.titleOther },
+    
+    // Department - check all variations
+    's4a sources': { 
+      firm: firm.s4a, 
+      firmOther: firm.s4a_other || firm.s4aOther,
+      general: general.s4a, 
+      assessment: assessment.s4a 
+    },
+    
+    // Company Info - check all sources
+    'c2 (industry)': { firm: firm.c2, general: general.c2, assessment: assessment.c2 },
+    's8 (employees)': { firm: firm.s8, general: general.s8, assessment: assessment.s8 },
+    's9 (HQ)': { firm: firm.s9, assessment: assessment.s9 },
+    'c4/c5 (revenue)': { firm_c4: firm.c4, firm_c5: firm.c5, assessment_c4: assessment.c4 },
+    
+    // Benefits
+    'cb1 (current)': general.cb1,
+    'cb2b (planned)': general.cb2b,
+    
+    // Check raw firmographics object
+    'RAW firmographics_data': assessment.firmographics_data,
   });
 
   // ============================================
   // CONTACT & ROLE INFO - Check multiple places
   // ============================================
-  const contactFirstName = firm.firstName || '';
-  const contactLastName = firm.lastName || '';
-  const contactName = `${contactFirstName} ${contactLastName}`.trim() || 'Not provided';
+  const contactFirstName = firm.firstName || assessment.firstName || '';
+  const contactLastName = firm.lastName || assessment.lastName || '';
+  const contactName = `${contactFirstName} ${contactLastName}`.trim() || null;
   
   // TITLE - Check firm.title, firm.titleOther, and if "Other" look for the specify
-  let contactTitle = 'Not provided';
-  if (firm.title && firm.title !== 'Other') {
+  let contactTitle: string | null = null;
+  if (firm.title && firm.title !== 'Other' && firm.title.toLowerCase() !== 'other (specify)') {
     contactTitle = firm.title;
   } else if (firm.titleOther) {
     contactTitle = firm.titleOther;
-  } else if (firm.title === 'Other' && firm.title_other) {
+  } else if (firm.title_other) {
     contactTitle = firm.title_other;
+  } else if (assessment.title) {
+    contactTitle = assessment.title;
   }
   
-  const contactEmail = assessment.email || 'Not provided';
+  const contactEmail = assessment.email || null;
   
-  // Role & Responsibilities
-  const department = formatDisplayValue(firm.s4a, firm, 's4a') as string || formatDisplayValue(firm.s4b, firm, 's4b') as string;
-  const level = formatDisplayValue(firm.s5, firm, 's5') as string;
-  const responsibilities = formatDisplayValue(firm.s6, firm, 's6');
-  const influence = formatDisplayValue(firm.s7, firm, 's7') as string;
+  // Role & Responsibilities - check firm, general, support, AND raw assessment
+  const dept = firm.s4a || general.s4a || support.s4a || assessment.s4a;
+  const deptOther = firm.s4a_other || firm.s4aOther || general.s4a_other || assessment.s4a_other;
+  const department = (dept && dept.toLowerCase().includes('other')) 
+    ? (deptOther || dept) 
+    : formatDisplayValue(dept, firm, 's4a') as string || formatDisplayValue(firm.s4b || general.s4b || support.s4b || assessment.s4b, firm, 's4b') as string;
   
-  // Company Info
-  const industry = formatDisplayValue(firm.c2, firm, 'c2') as string;
-  const employees = formatDisplayValue(firm.s8, firm, 's8') as string;
-  const headquarters = formatDisplayValue(firm.s9, firm, 's9') as string;
-  const countries = formatDisplayValue(firm.s9a, firm, 's9a') as string;
-  const revenue = formatDisplayValue(firm.c4 || firm.c5 || general.c4 || general.c5 || support.c4 || support.c5, firm, 'c4') as string;
-  const remotePolicy = formatDisplayValue(firm.c6, firm, 'c6') as string;
+  const level = formatDisplayValue(firm.s5 || general.s5 || support.s5 || assessment.s5, firm, 's5') as string;
+  const responsibilities = formatDisplayValue(firm.s6 || general.s6 || support.s6 || assessment.s6, firm, 's6');
+  const influence = formatDisplayValue(firm.s7 || general.s7 || support.s7 || assessment.s7, firm, 's7') as string;
+  
+  // ============================================
+  // COMPANY INFO - Check ALL possible sources
+  // ============================================
+  // Data might be in firmographics_data, general_benefits_data, or directly on assessment
+  const allData = { ...assessment, ...firm, ...general, ...support };
+  
+  const industry = formatDisplayValue(
+    firm.c2 || general.c2 || support.c2 || assessment.c2 || 
+    allData.industry || allData.Industry, 
+    allData, 'c2'
+  ) as string;
+  
+  const employees = formatDisplayValue(
+    firm.s8 || general.s8 || support.s8 || assessment.s8 ||
+    allData.employees || allData.totalEmployees || allData.total_employees,
+    allData, 's8'
+  ) as string;
+  
+  const headquarters = formatDisplayValue(
+    firm.s9 || general.s9 || support.s9 || assessment.s9 ||
+    allData.headquarters || allData.hq || allData.location,
+    allData, 's9'
+  ) as string;
+  
+  const countries = formatDisplayValue(
+    firm.s9a || general.s9a || support.s9a || assessment.s9a ||
+    allData.countries || allData.numCountries,
+    allData, 's9a'
+  ) as string;
+  
+  const revenue = formatDisplayValue(
+    firm.c4 || firm.c5 || general.c4 || general.c5 || support.c4 || support.c5 ||
+    assessment.c4 || assessment.c5 || allData.revenue || allData.annualRevenue,
+    allData, 'c4'
+  ) as string;
+  
+  const remotePolicy = formatDisplayValue(
+    firm.c6 || general.c6 || support.c6 || assessment.c6 ||
+    allData.remotePolicy || allData.remote_policy || allData.workPolicy,
+    allData, 'c6'
+  ) as string;
 
   // ============================================
   // CALCULATE SUMMARY STATS
@@ -1000,32 +1081,30 @@ export default function ProfilePage() {
             </div>
           </section>
 
-          {/* COMPANY & RESPONDENT INFO */}
+          {/* COMPANY & CONTACT INFO */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* Company Information */}
             <SectionCard title="Company Information" color={BRAND.secondary}>
               <div className="grid grid-cols-2 gap-4">
-                <DataField label="Industry" value={industry} />
-                <DataField label="Total Employees" value={employees} />
-                <DataField label="Headquarters" value={headquarters} />
-                <DataField label="Countries of Operation" value={countries} />
-                <DataField label="Annual Revenue" value={revenue} />
-                <DataField label="Remote/Hybrid Policy" value={remotePolicy} />
+                <DataField label="Industry" value={industry} showNA />
+                <DataField label="Total Employees" value={employees} showNA />
+                <DataField label="Headquarters" value={headquarters} showNA />
+                <DataField label="Countries of Operation" value={countries} showNA />
+                <DataField label="Annual Revenue" value={revenue} showNA />
+                <DataField label="Remote/Hybrid Policy" value={remotePolicy} showNA />
               </div>
             </SectionCard>
 
-            {/* Respondent Information */}
-            <SectionCard title="Respondent Information" color={BRAND.accent}>
+            {/* Contact Information */}
+            <SectionCard title="Contact Information" color={BRAND.accent}>
               <div className="grid grid-cols-2 gap-4">
-                <DataField label="Name" value={contactName !== 'Not provided' ? contactName : null} />
-                <DataField label="Title" value={contactTitle !== 'Not provided' ? contactTitle : null} />
-                <DataField label="Email" value={contactEmail !== 'Not provided' ? contactEmail : null} />
-                <DataField label="Department" value={department} />
-                <DataField label="Level" value={level} />
-                <DataField label="Benefits Influence" value={influence} />
-                {responsibilities && (
-                  <DataField label="Areas of Responsibility" value={responsibilities} fullWidth />
-                )}
+                <DataField label="Name" value={contactName} showNA />
+                <DataField label="Title" value={contactTitle} showNA />
+                <DataField label="Email" value={contactEmail} showNA />
+                <DataField label="Department" value={department} showNA />
+                <DataField label="Level" value={level} showNA />
+                <DataField label="Benefits Influence" value={influence} showNA />
+                <DataField label="Areas of Responsibility" value={responsibilities} fullWidth />
               </div>
             </SectionCard>
           </div>
