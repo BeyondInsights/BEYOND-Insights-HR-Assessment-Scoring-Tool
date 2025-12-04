@@ -6,9 +6,16 @@ import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 import { generateInvoicePDF, downloadInvoicePDF, type InvoiceData } from '@/lib/invoice-generator';
 
+// ============================================
+// BRAND COLORS
+// ============================================
 const BRAND = {
-  primary: '#7A34A3',
-  orange: '#EA580C',
+  primary: '#7A34A3',      // Purple
+  secondary: '#00A896',    // Teal
+  accent: '#FF6B35',       // Orange
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
   gray: {
     900: '#0F172A',
     800: '#1E293B',
@@ -17,19 +24,20 @@ const BRAND = {
     500: '#64748B',
     400: '#94A3B8',
     300: '#CBD5E1',
-    200: '#E5E7EB',
-    100: '#F3F4F6',
-    50: '#F9FAFB',
+    200: '#E2E8F0',
+    100: '#F1F5F9',
+    50: '#F8FAFC',
   }
 };
 
+// Dimension colors - vibrant but professional
 const DIM_COLORS = [
-  '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1',
-  '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#06B6D4',
-  '#84CC16', '#A855F7', '#EAB308'
+  '#DC2626', '#EA580C', '#D97706', '#CA8A04', '#65A30D',
+  '#16A34A', '#059669', '#0D9488', '#0891B2', '#0284C7',
+  '#2563EB', '#4F46E5', '#7C3AED'
 ];
 
-const DIM_TITLE: Record<number, string> = {
+const DIM_TITLES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
   3: 'Manager Preparedness & Capability',
@@ -45,253 +53,516 @@ const DIM_TITLE: Record<number, string> = {
   13: 'Communication & Awareness'
 };
 
+// ============================================
+// FIELD LABELS - Comprehensive mapping
+// ============================================
 const FIELD_LABELS: Record<string, string> = {
+  // Authorization & Contact
   companyName: 'Company Name',
   firstName: 'First Name',
   lastName: 'Last Name',
   title: 'Title',
+  titleOther: 'Title',
+  
+  // Screener Questions
   s1: 'Birth Year',
   s2: 'Gender Identity',
+  s2_other: 'Gender Identity',
   s3: 'Employment Status',
   s4a: 'Department/Function',
-  s4a_other: 'Department/Function',
+  s4a_other: 'Department/Function (Other)',
   s4b: 'Primary Job Function',
-  s4b_other: 'Primary Job Function',
+  s4b_other: 'Primary Job Function (Other)',
   s5: 'Organization Level',
   s6: 'Areas of Responsibility',
   s7: 'Influence on Benefits Decisions',
   s8: 'Total Employees',
   s9: 'Headquarters Location',
   s9a: 'Countries with Operations',
+  
+  // Authorization
   au1: 'Authorization Confirmation',
   au2: 'Authorization Description',
+  
+  // Classification
   c2: 'Industry',
-  c3: 'Employee Groups Excluded',
+  c3: 'Benefits Eligibility',
   c3a: 'Employee Groups Excluded',
   c4: 'Annual Revenue',
   c5: 'Annual Revenue',
-  c6: 'Remote/Hybrid Work Policy',
-  cb1: 'Current Benefits Offered',
+  c6: 'Remote/Hybrid Work Approach',
+  
+  // General Benefits - CB1 Categories
+  cb1: 'Current Benefits',
   cb1_standard: 'Standard Benefits',
-  cb1_leave: 'Leave & Flexibility Benefits',
-  cb1_wellness: 'Wellness & Support Benefits',
-  cb1_financial: 'Financial & Legal Benefits',
-  cb1_navigation: 'Navigation & Support Services',
-  cb1a: '% Employees with National Healthcare',
-  cb2b: 'Benefits Planned (Next 2 Years)',
-  cb3a: 'Support Program Approach',
+  cb1_leave: 'Leave & Flexibility Programs',
+  cb1_wellness: 'Wellness & Support Programs',
+  cb1_financial: 'Financial & Legal Assistance',
+  cb1_navigation: 'Care Navigation & Support',
+  cb1a: 'Employees with National Healthcare Access',
+  cb2b: 'Benefits Planned for Next 2 Years',
+  
+  // Current Support - CB3
+  cb3a: 'Support Beyond Legal Requirements',
   cb3b: 'Program Structure',
-  cb3c: 'Conditions Covered',
+  cb3c: 'Health Conditions Covered',
   cb3d: 'Program Development Method',
-  or1: 'Organization Approach to Support',
+  
+  // Organization Approach - OR
+  or1: 'Current Approach to Support',
   or2a: 'What Triggered Enhanced Support',
   or2b: 'Most Impactful Change Made',
   or3: 'Primary Barriers to Support',
   or5a: 'Caregiver Support Provided',
   or6: 'How Effectiveness is Monitored',
   or6_other: 'Other Monitoring Methods',
-  cd1a: 'Top 3 Priority Dimensions',
-  cd1b: 'Lowest 3 Priority Dimensions',
+  
+  // Cross-Dimensional
+  cd1a: 'Top Priority Dimensions',
+  cd1b: 'Lowest Priority Dimensions',
   cd2: 'Biggest Implementation Challenges',
   cd2_other: 'Other Challenges',
+  
+  // Employee Impact
   ei1: 'Program Impact by Outcome',
   ei2: 'ROI Measurement Status',
   ei3: 'Approximate ROI',
   ei4: 'Advice for Other HR Leaders',
   ei5: 'Important Aspects Not Addressed',
-  ei4_none: 'No additional advice',
-  ei5_none: 'No additional aspects to report',
-  d1a: 'Leave & Flexibility Programs',
-  d1b: 'Other medical leave or flexibility benefits',
-  d1b_none: 'No other medical leave or flexibility benefits',
+  
+  // Dimension-specific labels
+  d1a: 'Medical Leave & Flexibility Programs',
   d1aa: 'Geographic Consistency',
-  d1_1: 'Additional Paid Medical Leave',
-  d1_1_usa: 'Paid medical leave (USA - beyond FMLA/state requirements)',
-  d1_1_non_usa: 'Paid medical leave (Non-USA - beyond statutory requirements)',
+  d1b: 'Additional Medical Leave Benefits',
+  d1_1: 'Additional Paid Medical Leave Duration',
+  d1_1_usa: 'Additional Paid Leave (USA)',
+  d1_1_non_usa: 'Additional Paid Leave (Non-USA)',
   d1_2: 'Additional Intermittent Leave',
-  d1_2_usa: 'Intermittent leave (USA - beyond FMLA/state requirements)',
-  d1_2_non_usa: 'Intermittent leave (Non-USA - beyond statutory requirements)',
+  d1_2_usa: 'Intermittent Leave (USA)',
+  d1_2_non_usa: 'Intermittent Leave (Non-USA)',
   d1_4a: 'Additional Remote Work Time',
-  d1_4a_type: 'Remote work duration type',
+  d1_4a_type: 'Remote Work Duration',
   d1_4b: 'Reduced Schedule Duration',
   d1_5: 'Job Protection Duration',
-  d1_5_usa: 'Job protection (USA - beyond FMLA/state requirements)',
-  d1_5_non_usa: 'Job protection (Non-USA - beyond statutory requirements)',
+  d1_5_usa: 'Job Protection (USA)',
+  d1_5_non_usa: 'Job Protection (Non-USA)',
   d1_6: 'Disability Pay Enhancement',
+  
   d2a: 'Insurance & Financial Programs',
-  d2b: 'Other insurance or financial protection benefits',
-  d2b_none: 'No other insurance or financial protection benefits',
   d2aa: 'Geographic Consistency',
+  d2b: 'Additional Insurance Benefits',
+  
   d3a: 'Manager Training Programs',
-  d3b: 'Other manager preparedness initiatives',
-  d3b_none: 'No other manager preparedness initiatives',
   d3aa: 'Geographic Consistency',
-  d3_1a: 'Manager Training Type',
+  d3b: 'Additional Manager Initiatives',
+  d3_1a: 'Training Requirement',
   d3_1: 'Manager Training Completion Rate',
+  
   d4a: 'Navigation & Expert Resources',
-  d4b: 'Other navigation or expert resources',
-  d4b_none: 'No other navigation or expert resources',
   d4aa: 'Geographic Consistency',
+  d4b: 'Additional Navigation Resources',
   d4_1a: 'Navigation Provider',
   d4_1b: 'Navigation Services Available',
-  d5a: 'Workplace Accommodations',
-  d5b: 'Other workplace accommodations and modifications',
-  d5b_none: 'No other workplace accommodations',
-  d5aa: 'Geographic Consistency',
-  d6a: 'Culture & Safety Programs',
-  d6b: 'Other culture and psychological safety supports',
-  d6b_none: 'No other culture and psychological safety supports',
-  d6aa: 'Geographic Consistency',
-  d6_2: 'How Psychological Safety is Measured',
-  d7a: 'Career Continuity Programs',
-  d7b: 'Other career continuity and advancement supports',
-  d7b_none: 'No other career continuity and advancement supports',
-  d7aa: 'Geographic Consistency',
-  d8a: 'Return to Work Programs',
-  d8b: 'Other work continuation or resumption supports',
-  d8b_none: 'No other work continuation or resumption supports',
-  d8aa: 'Geographic Consistency',
-  d9a: 'Executive Commitment',
-  d9b: 'Other executive commitment or resource allocation practices',
-  d9b_none: 'No other executive commitment practices',
-  d9aa: 'Geographic Consistency',
-  d10a: 'Caregiver & Family Support',
-  d10b: 'Other caregiver and family support benefits',
-  d10b_none: 'No other caregiver and family support benefits',
-  d10aa: 'Geographic Consistency',
-  d11a: 'Prevention & Wellness Programs',
-  d11b: 'Other prevention or wellness initiatives',
-  d11b_none: 'No other prevention or wellness initiatives',
-  d11aa: 'Geographic Consistency',
-  d11_1: 'Early Detection Services (100% Coverage)',
-  d12a: 'Continuous Improvement Metrics',
-  d12b: 'Other measurement or continuous improvement practices',
-  d12b_none: 'No other continuous improvement practices',
-  d12aa: 'Geographic Consistency',
-  d12_1: 'Individual Experience Review Process',
-  d12_2: 'Changes Based on Employee Experiences',
-  d13a: 'Communication Approaches',
-  d13b: 'Other communication or awareness approaches',
-  d13b_none: 'No other communication or awareness approaches',
-  d13aa: 'Geographic Consistency',
-  d13_1: 'Communication Frequency',
-  'Employee retention / tenure': 'Employee Retention & Tenure',
-  'Employee morale': 'Employee Morale',
-  'Job satisfaction scores': 'Job Satisfaction Scores',
-  'Productivity during treatment': 'Productivity During Treatment',
-  'Time to return to work': 'Time to Return to Work',
-  'Recruitment success': 'Recruitment Success',
-  'Team cohesion': 'Team Cohesion',
-  'Trust in leadership': 'Trust in Leadership',
-  'Willingness to disclose health issues': 'Willingness to Disclose Health Issues',
-  'Overall engagement scores': 'Overall Engagement Scores'
-};
-
-const formatLabel = (key: string) => {
-  const cleanKey = key.replace(/^[Qq]/, '');
-  if (FIELD_LABELS[cleanKey]) return FIELD_LABELS[cleanKey];
-  return cleanKey.replace(/_/g, ' ')
-     .replace(/([A-Z])/g, ' $1')
-     .replace(/\s+/g, ' ')
-     .trim()
-     .replace(/\b\w/g, l => l.toUpperCase());
-};
-
-function selectedOnly(value: any): string[] | string | null {
-  if (value == null) return null;
-  if (Array.isArray(value)) {
-    const out = value.map(v => String(v).trim()).filter(v => v !== '');
-    return out.length ? out : null;
-  }
-  if (typeof value === 'object') return value;
-  const s = String(value).trim();
-  if (s === '' || s.includes('Other (specify)') || s.includes('other (specify)')) return null;
-  return s;
-}
-
-function normalizeStatus(s: string) {
-  const x = s.toLowerCase();
-  if (x.includes('provide to managers')) return 'Currently provide to managers';
-  if (x.includes('measure') || x.includes('track')) {
-    return 'Currently measure / track';
-  }
-  if (x.includes('offer')) return 'Currently offer';
-  if (x.includes('use')) return 'Currently use';
-  if (x.includes('planning') || x.includes('development')) {
-    return 'In active planning / development';
-  }
-  if (x.includes('assessing') || x.includes('feasibility')) {
-    return 'Assessing feasibility';
-  }
-  if (x.includes('not able')) return 'Not able to offer';
-  if (x.includes('unsure')) return 'Unsure';
-  return s;
-}
-
-function DataRow({ label, value }: { label: string; value: any }) {
-  if (!value) return null;
   
-  const renderValue = () => {
-    if (Array.isArray(value)) {
-      return (
-        <ul className="list-disc list-inside space-y-1">
-          {value.map((v, i) => (
-            <li key={i} className="text-sm" style={{ color: BRAND.gray[700] }}>{v}</li>
-          ))}
-        </ul>
-      );
-    }
-    if (typeof value === 'object') {
-      return (
-        <div className="space-y-1">
-          {Object.entries(value).map(([k, v]) => (
-            <div key={k} className="text-sm" style={{ color: BRAND.gray[700] }}>
-              <span className="font-medium">{formatLabel(k)}:</span> {String(v)}
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return <span className="text-sm" style={{ color: BRAND.gray[700] }}>{String(value)}</span>;
-  };
+  d5a: 'Workplace Accommodations',
+  d5aa: 'Geographic Consistency',
+  d5b: 'Additional Accommodations',
+  
+  d6a: 'Culture & Psychological Safety',
+  d6aa: 'Geographic Consistency',
+  d6b: 'Additional Culture Supports',
+  d6_2: 'How Psychological Safety is Measured',
+  
+  d7a: 'Career Continuity Programs',
+  d7aa: 'Geographic Consistency',
+  d7b: 'Additional Career Supports',
+  
+  d8a: 'Work Continuation Programs',
+  d8aa: 'Geographic Consistency',
+  d8b: 'Additional Work Resumption Supports',
+  
+  d9a: 'Executive Commitment',
+  d9aa: 'Geographic Consistency',
+  d9b: 'Additional Executive Practices',
+  
+  d10a: 'Caregiver & Family Support',
+  d10aa: 'Geographic Consistency',
+  d10b: 'Additional Caregiver Benefits',
+  
+  d11a: 'Prevention & Wellness Programs',
+  d11aa: 'Geographic Consistency',
+  d11b: 'Additional Prevention Initiatives',
+  d11_1: 'Early Detection Services at 100% Coverage',
+  
+  d12a: 'Continuous Improvement Metrics',
+  d12aa: 'Geographic Consistency',
+  d12b: 'Additional Measurement Practices',
+  d12_1: 'Individual Experience Review Process',
+  d12_2: 'Changes from Employee Experiences',
+  
+  d13a: 'Communication Approaches',
+  d13aa: 'Geographic Consistency',
+  d13b: 'Additional Communication Methods',
+  d13_1: 'Communication Frequency',
+};
 
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+function getLabel(key: string): string {
+  // Clean up the key
+  const cleanKey = key.replace(/^[Qq]/, '');
+  
+  // Check direct mapping
+  if (FIELD_LABELS[cleanKey]) return FIELD_LABELS[cleanKey];
+  if (FIELD_LABELS[key]) return FIELD_LABELS[key];
+  
+  // Format as readable label
+  return cleanKey
+    .replace(/_/g, ' ')
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, l => l.toUpperCase());
+}
+
+// Get the "Other" value if it exists
+function getOtherValue(data: any, key: string): string | null {
+  if (!data) return null;
+  
+  // Check for _other suffix
+  const otherKey = `${key}_other`;
+  if (data[otherKey] && typeof data[otherKey] === 'string' && data[otherKey].trim()) {
+    return data[otherKey].trim();
+  }
+  
+  // Check for Other key
+  const otherKey2 = `${key}Other`;
+  if (data[otherKey2] && typeof data[otherKey2] === 'string' && data[otherKey2].trim()) {
+    return data[otherKey2].trim();
+  }
+  
+  return null;
+}
+
+// Format a value for display, handling "Other" cases
+function formatValue(value: any, data?: any, key?: string): string | string[] | null {
+  if (value === null || value === undefined) return null;
+  
+  // Handle arrays
+  if (Array.isArray(value)) {
+    const formatted = value.map(v => {
+      const str = String(v).trim();
+      // Replace "Other (specify)" with actual typed value if available
+      if (str.toLowerCase().includes('other') && data && key) {
+        const otherVal = getOtherValue(data, key);
+        if (otherVal) return otherVal;
+      }
+      return str;
+    }).filter(v => v !== '');
+    return formatted.length > 0 ? formatted : null;
+  }
+  
+  // Handle objects
+  if (typeof value === 'object') {
+    return null; // Will be handled separately
+  }
+  
+  // Handle strings
+  const str = String(value).trim();
+  if (str === '') return null;
+  
+  // If value is "Other", try to get the actual typed value
+  if (str.toLowerCase() === 'other' && data && key) {
+    const otherVal = getOtherValue(data, key);
+    if (otherVal) return otherVal;
+  }
+  
+  return str;
+}
+
+// Normalize status for display
+function normalizeStatus(status: string): { text: string; color: string; bg: string } {
+  const s = status.toLowerCase();
+  
+  if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use')) {
+    return { text: 'Currently Offering', color: '#166534', bg: '#DCFCE7' };
+  }
+  if (s.includes('planning') || s.includes('development')) {
+    return { text: 'In Development', color: '#9A3412', bg: '#FED7AA' };
+  }
+  if (s.includes('assessing') || s.includes('feasibility')) {
+    return { text: 'Under Assessment', color: '#A16207', bg: '#FEF3C7' };
+  }
+  if (s.includes('not able')) {
+    return { text: 'Not Currently Feasible', color: '#991B1B', bg: '#FEE2E2' };
+  }
+  if (s.includes('unsure')) {
+    return { text: 'Undetermined', color: '#6B7280', bg: '#F3F4F6' };
+  }
+  
+  return { text: status, color: BRAND.gray[700], bg: BRAND.gray[100] };
+}
+
+// ============================================
+// COMPONENTS
+// ============================================
+
+function StatCard({ label, value, color = BRAND.primary, subtext }: { 
+  label: string; 
+  value: string | number; 
+  color?: string; 
+  subtext?: string 
+}) {
   return (
-    <div className="grid grid-cols-3 gap-4 py-3 border-b" style={{ borderColor: BRAND.gray[200] }}>
-      <dt className="font-medium text-sm" style={{ color: BRAND.gray[900] }}>{label}</dt>
-      <dd className="col-span-2">{renderValue()}</dd>
+    <div className="bg-white rounded-xl border-2 p-5 text-center shadow-sm" style={{ borderColor: color }}>
+      <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.gray[500] }}>{label}</p>
+      <p className="text-4xl font-black" style={{ color }}>{value}</p>
+      {subtext && <p className="text-xs mt-1" style={{ color: BRAND.gray[600] }}>{subtext}</p>}
     </div>
   );
 }
 
-function processDimensionData(dimNumber: number, dimData: any) {
-  // dimData is already the dimension{X}_data object, don't look it up again
-  const mainDataKey = `d${dimNumber}a`;
-  const mainData = dimData[mainDataKey] || {};
-  
-  const programs: Array<{ status: string; items: Array<{ question: string; response: string }> }> = [];
-  
-  for (const [prog, stat] of Object.entries(mainData)) {
-    const status = normalizeStatus(String(stat));
-    const existing = programs.find(p => p.status === status);
-    if (existing) {
-      existing.items.push({ question: prog, response: '' });
-    } else {
-      programs.push({ status, items: [{ question: prog, response: '' }] });
-    }
-  }
-
-  const items: Array<{ question: string; response: any }> = [];
-  
-  const otherKeys = Object.keys(dimData).filter(k => k !== mainDataKey && k.startsWith(`d${dimNumber}`));
-  for (const k of otherKeys) {
-    const val = selectedOnly(dimData[k]);
-    if (val) {
-      items.push({ question: formatLabel(k), response: val });
-    }
-  }
-
-  return { programs, items };
+function InfoCard({ title, children, accent = BRAND.primary }: { 
+  title: string; 
+  children: React.ReactNode; 
+  accent?: string 
+}) {
+  return (
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: BRAND.gray[200] }}>
+      <div className="px-5 py-3 border-b" style={{ borderColor: BRAND.gray[200], backgroundColor: BRAND.gray[50] }}>
+        <h3 className="font-bold text-sm" style={{ color: BRAND.gray[900] }}>{title}</h3>
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
 }
+
+function DataField({ label, value, fullWidth = false }: { 
+  label: string; 
+  value: string | string[] | null; 
+  fullWidth?: boolean 
+}) {
+  if (!value) return null;
+  
+  return (
+    <div className={fullWidth ? 'col-span-full' : ''}>
+      <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>
+        {label}
+      </p>
+      {Array.isArray(value) ? (
+        <ul className="space-y-1">
+          {value.map((v, i) => (
+            <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
+              <span className="mr-2" style={{ color: BRAND.primary }}>•</span>
+              {v}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm" style={{ color: BRAND.gray[800] }}>{value}</p>
+      )}
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const { text, color, bg } = normalizeStatus(status);
+  return (
+    <span 
+      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+      style={{ backgroundColor: bg, color }}
+    >
+      {text}
+    </span>
+  );
+}
+
+// ============================================
+// DIMENSION COMPONENT
+// ============================================
+
+function DimensionSection({ 
+  dimNum, 
+  dimData, 
+  color,
+  isCollapsed,
+  onToggle 
+}: { 
+  dimNum: number; 
+  dimData: any; 
+  color: string;
+  isCollapsed: boolean;
+  onToggle: () => void;
+}) {
+  const title = DIM_TITLES[dimNum];
+  const mainGridKey = `d${dimNum}a`;
+  const mainGrid = dimData?.[mainGridKey] || {};
+  
+  // Count programs by status
+  let currentCount = 0, planningCount = 0, assessingCount = 0;
+  Object.values(mainGrid).forEach((status: any) => {
+    if (typeof status === 'string') {
+      const s = status.toLowerCase();
+      if (s.includes('currently') || s.includes('offer') || s.includes('provide')) currentCount++;
+      else if (s.includes('planning') || s.includes('development')) planningCount++;
+      else if (s.includes('assessing')) assessingCount++;
+    }
+  });
+  
+  const totalPrograms = Object.keys(mainGrid).length;
+  const hasData = totalPrograms > 0;
+  
+  // Get follow-up questions
+  const followUpItems: Array<{ label: string; value: any }> = [];
+  Object.keys(dimData || {}).forEach(key => {
+    if (key === mainGridKey) return;
+    if (!key.startsWith(`d${dimNum}`)) return;
+    
+    const value = dimData[key];
+    if (!value) return;
+    
+    // Skip empty strings and null
+    if (typeof value === 'string' && !value.trim()) return;
+    if (Array.isArray(value) && value.length === 0) return;
+    
+    // Skip "none" responses
+    const strVal = String(value).toLowerCase();
+    if (strVal.includes('no other') || strVal.includes('none')) return;
+    
+    // Get the label and format the value
+    const label = getLabel(key);
+    const formattedValue = formatValue(value, dimData, key);
+    
+    if (formattedValue) {
+      followUpItems.push({ label, value: formattedValue });
+    }
+  });
+
+  return (
+    <div 
+      className="bg-white rounded-xl border overflow-hidden shadow-sm mb-4"
+      style={{ borderColor: BRAND.gray[200], borderLeftWidth: '4px', borderLeftColor: color }}
+    >
+      {/* Header */}
+      <div 
+        className="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+        onClick={onToggle}
+      >
+        <div className="flex items-center gap-4">
+          <div 
+            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
+            style={{ backgroundColor: color }}
+          >
+            {dimNum}
+          </div>
+          <div>
+            <h3 className="font-bold text-base" style={{ color: BRAND.gray[900] }}>{title}</h3>
+            {hasData && (
+              <div className="flex items-center gap-3 mt-1">
+                {currentCount > 0 && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                    {currentCount} Currently Offered
+                  </span>
+                )}
+                {planningCount > 0 && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                    {planningCount} In Development
+                  </span>
+                )}
+                {assessingCount > 0 && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+                    {assessingCount} Under Assessment
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        <svg 
+          className={`w-5 h-5 transition-transform ${isCollapsed ? '' : 'rotate-180'}`}
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+          style={{ color: BRAND.gray[400] }}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+
+      {/* Content */}
+      {!isCollapsed && (
+        <div className="px-5 pb-5 border-t" style={{ borderColor: BRAND.gray[100] }}>
+          {!hasData ? (
+            <div className="text-center py-8">
+              <p className="text-sm italic" style={{ color: BRAND.gray[400] }}>
+                No responses recorded for this dimension
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Program Grid */}
+              <div className="mt-4">
+                <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.gray[500] }}>
+                  Program Status Overview
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr style={{ backgroundColor: BRAND.gray[50] }}>
+                        <th className="px-4 py-2 text-left text-xs font-bold" style={{ color: BRAND.gray[600] }}>Program / Initiative</th>
+                        <th className="px-4 py-2 text-left text-xs font-bold" style={{ color: BRAND.gray[600] }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(mainGrid).map(([program, status], idx) => (
+                        <tr 
+                          key={idx} 
+                          className="border-t"
+                          style={{ borderColor: BRAND.gray[100] }}
+                        >
+                          <td className="px-4 py-3 text-sm" style={{ color: BRAND.gray[800] }}>{program}</td>
+                          <td className="px-4 py-3">
+                            <StatusBadge status={String(status)} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Follow-up Questions */}
+              {followUpItems.length > 0 && (
+                <div className="mt-6 pt-4 border-t" style={{ borderColor: BRAND.gray[100] }}>
+                  <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{ color: BRAND.gray[500] }}>
+                    Additional Details
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {followUpItems.map((item, idx) => (
+                      <DataField 
+                        key={idx} 
+                        label={item.label} 
+                        value={item.value}
+                        fullWidth={Array.isArray(item.value) && item.value.length > 3}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
@@ -316,16 +587,20 @@ export default function ProfilePage() {
         .single();
 
       if (error) throw error;
+      
+      console.log('📊 Assessment loaded:', {
+        company: data?.company_name,
+        hasFirmographics: !!data?.firmographics_data,
+        hasGeneral: !!data?.general_benefits_data,
+        hasDimensions: !!data?.dimension1_data
+      });
+      
       setAssessment(data);
     } catch (error) {
       console.error('Error fetching assessment:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const downloadPDF = () => {
-    window.print();
   };
 
   if (loading) {
@@ -336,7 +611,7 @@ export default function ProfilePage() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <p style={{ color: BRAND.gray[600] }}>Loading assessment...</p>
+          <p style={{ color: BRAND.gray[600] }}>Loading company profile...</p>
         </div>
       </div>
     );
@@ -347,10 +622,10 @@ export default function ProfilePage() {
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: BRAND.gray[50] }}>
         <div className="text-center">
           <p className="text-xl font-bold mb-2" style={{ color: BRAND.gray[900] }}>Assessment Not Found</p>
-          <p style={{ color: BRAND.gray[600] }}>Survey ID: {surveyId}</p>
+          <p className="mb-4" style={{ color: BRAND.gray[600] }}>Survey ID: {surveyId}</p>
           <button
             onClick={() => router.push('/admin')}
-            className="mt-4 px-4 py-2 rounded-lg text-white"
+            className="px-6 py-2 rounded-lg text-white font-semibold"
             style={{ backgroundColor: BRAND.primary }}
           >
             Return to Dashboard
@@ -360,59 +635,29 @@ export default function ProfilePage() {
     );
   }
 
+  // Extract data
   const firm = assessment.firmographics_data || {};
   const general = assessment.general_benefits_data || {};
   const support = assessment.current_support_data || {};
   const cross = assessment.cross_dimensional_data || {};
-  // Try both possible column names - underscore (Supabase) and dash (localStorage sync)
-  const impact = assessment['employee_impact_data'] 
-    || assessment['employee-impact-assessment_data'] 
-    || {};
-  const employeeSurveyOptIn = assessment.employee_survey_opt_in;  // ✅ NEW: Employee survey preference
-  
-  // 🐛 DEBUG: Log Employee Impact data
-  console.log('📊 Employee Impact Debug:', {
-    hasImpactData: Object.keys(impact).length > 0,
-    impactKeys: Object.keys(impact),
-    ei1: impact.ei1,
-    ei2: impact.ei2,
-    ei3: impact.ei3,
-    ei4: impact.ei4,
-    ei5: impact.ei5
-  })
-  
-  // 🐛 DEBUG: Log Title data
-  console.log('👤 Title Debug:', {
-    title: firm.title,
-    titleOther: firm.titleOther,
-    firstName: firm.firstName,
-    lastName: firm.lastName
-  })
-  
-  // 🐛 DEBUG: Log all dimension data to identify issues
-  console.log('📊 All Dimension Data Debug:')
-  for (let i = 1; i <= 13; i++) {
-    const dimData = assessment[`dimension${i}_data`]
-    console.log(`  Dimension ${i}:`, {
-      exists: !!dimData,
-      isEmpty: !dimData || Object.keys(dimData || {}).length === 0,
-      keys: dimData ? Object.keys(dimData) : [],
-      mainGridKey: `d${i}a`,
-      hasMainGrid: !!dimData?.[`d${i}a`],
-      mainGridItems: dimData?.[`d${i}a`] ? Object.keys(dimData[`d${i}a`]).length : 0
-    })
-  }
-  
-  // Calculate executive summary
+  const impact = assessment.employee_impact_data || assessment['employee-impact-assessment_data'] || {};
+
+  // Get contact info - check multiple possible locations
+  const contactName = `${firm.firstName || ''} ${firm.lastName || ''}`.trim() || 'Not provided';
+  const contactTitle = firm.title || firm.titleOther || 'Not provided';
+  const contactEmail = assessment.email || 'Not provided';
+
+  // Calculate summary stats
   let totalCurrently = 0, totalPlanning = 0, totalAssessing = 0;
   for (let i = 1; i <= 13; i++) {
     const gridData = assessment[`dimension${i}_data`]?.[`d${i}a`];
     if (gridData && typeof gridData === 'object') {
       Object.values(gridData).forEach((status: any) => {
         if (typeof status === 'string') {
-          if (status.toLowerCase().includes('currently')) totalCurrently++;
-          else if (status.includes('planning') || status.includes('development')) totalPlanning++;
-          else if (status.includes('assessing')) totalAssessing++;
+          const s = status.toLowerCase();
+          if (s.includes('currently') || s.includes('offer') || s.includes('provide')) totalCurrently++;
+          else if (s.includes('planning') || s.includes('development')) totalPlanning++;
+          else if (s.includes('assessing')) assessingCount++;
         }
       });
     }
@@ -420,539 +665,415 @@ export default function ProfilePage() {
   
   const totalPrograms = totalCurrently + totalPlanning + totalAssessing;
   const maturityScore = totalPrograms > 0 ? Math.round((totalCurrently / totalPrograms) * 100) : 0;
-  
-  let consistent = 0, select = 0, vary = 0;
+
+  // Geographic consistency
+  let consistent = 0;
   for (let i = 1; i <= 13; i++) {
     const aa = assessment[`dimension${i}_data`]?.[`d${i}aa`];
-    if (aa?.includes('consistent')) consistent++;
-    else if (aa?.includes('select')) select++;
-    else if (aa?.includes('vary')) vary++;
+    if (aa?.toLowerCase().includes('consistent')) consistent++;
   }
 
   return (
     <>
       <style jsx global>{`
         @media print {
-          .no-print {
-            display: none !important;
-          }
-          body {
-            background: white;
-          }
-          #invoice-content {
-            padding: 20px;
-          }
+          .no-print { display: none !important; }
+          body { background: white; }
         }
       `}</style>
       
       <div className="min-h-screen" style={{ backgroundColor: BRAND.gray[50] }}>
         <main className="max-w-7xl mx-auto px-6 py-8">
-          <header className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <Image src="/BI_LOGO_FINAL.png" alt="Beyond Insights" width={200} height={60} />
+          
+          {/* HEADER */}
+          <header className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <Image src="/BI_LOGO_FINAL.png" alt="Beyond Insights" width={180} height={54} />
               <div className="flex gap-3 no-print">
                 <button
                   onClick={() => router.push('/admin')}
-                  className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all font-semibold flex items-center gap-2 shadow-lg"
+                  className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center gap-2"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                   </svg>
-                  Return to Dashboard
+                  Back to Dashboard
                 </button>
-                
                 <button
-                  onClick={downloadPDF}
-                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all font-semibold flex items-center gap-2 shadow-lg"
+                  onClick={() => window.print()}
+                  className="px-5 py-2.5 text-white rounded-lg font-medium flex items-center gap-2 shadow-sm"
+                  style={{ backgroundColor: BRAND.success }}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Download PDF Report
+                  Download PDF
                 </button>
               </div>
             </div>
             
-            <div className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>
-              Survey ID: {surveyId}
+            {/* Company Title Banner */}
+            <div 
+              className="rounded-2xl p-8 text-white shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${BRAND.primary} 0%, #5B21B6 100%)` }}
+            >
+              <p className="text-sm font-medium opacity-80 mb-1">Best Companies for Working with Cancer Index</p>
+              <h1 className="text-3xl md:text-4xl font-black mb-4">
+                {assessment.company_name || 'Company Profile'}
+              </h1>
+              <div className="flex flex-wrap gap-6 text-sm opacity-90">
+                <div>
+                  <span className="opacity-70">Survey ID:</span> {surveyId}
+                </div>
+                <div>
+                  <span className="opacity-70">Contact:</span> {contactName}
+                </div>
+                <div>
+                  <span className="opacity-70">Title:</span> {contactTitle}
+                </div>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold" style={{ color: BRAND.gray[900] }}>
-              {assessment.company_name || 'Company Profile'}
-            </h1>
           </header>
 
-          {/* COMPANY INFO & CONTACT */}
-          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Company Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Contact Person</p>
-                <p className="text-sm" style={{ color: BRAND.gray[800] }}>{firm.firstName || ''} {firm.lastName || ''}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Email</p>
-                <p className="text-sm" style={{ color: BRAND.gray[800] }}>{assessment.email || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Title</p>
-                <p className="text-sm" style={{ color: BRAND.gray[800] }}>{firm.title || firm.titleOther || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Industry</p>
-                <p className="text-sm" style={{ color: BRAND.gray[800] }}>{firm.c2 || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Employees</p>
-                <p className="text-sm" style={{ color: BRAND.gray[800] }}>{firm.s8 || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Headquarters</p>
-                <p className="text-sm" style={{ color: BRAND.gray[800] }}>{firm.s9 || 'N/A'}</p>
-              </div>
+          {/* EXECUTIVE SUMMARY */}
+          <section className="mb-8">
+            <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Executive Summary</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <StatCard 
+                label="Support Maturity" 
+                value={`${maturityScore}%`}
+                color={BRAND.primary}
+                subtext={`${totalCurrently} of ${totalPrograms} programs active`}
+              />
+              <StatCard 
+                label="Currently Offering" 
+                value={totalCurrently}
+                color={BRAND.success}
+                subtext="Programs in place"
+              />
+              <StatCard 
+                label="In Development" 
+                value={totalPlanning}
+                color={BRAND.warning}
+                subtext="Programs planned"
+              />
+              <StatCard 
+                label="Global Consistency" 
+                value={`${consistent}/13`}
+                color={BRAND.secondary}
+                subtext="Dimensions consistent"
+              />
             </div>
-          </div>
+          </section>
 
-          {/* EMPLOYEE SURVEY OPT-IN */}
-          {employeeSurveyOptIn !== null && employeeSurveyOptIn !== undefined && (
-            <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-              <h2 className="text-lg font-bold mb-3" style={{ color: BRAND.gray[900] }}>Employee Survey</h2>
-              <div className={`inline-flex items-center px-4 py-2 rounded-lg font-semibold text-sm ${
-                employeeSurveyOptIn 
-                  ? 'bg-green-100 text-green-800 border-2 border-green-300' 
-                  : 'bg-gray-100 text-gray-700 border-2 border-gray-300'
-              }`}>
-                {employeeSurveyOptIn ? (
-                  <>
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* COMPANY INFORMATION */}
+          <section className="mb-8">
+            <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Company Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoCard title="Contact Details">
+                <div className="grid grid-cols-2 gap-4">
+                  <DataField label="Contact Person" value={contactName} />
+                  <DataField label="Email" value={contactEmail} />
+                  <DataField label="Title" value={contactTitle} />
+                  <DataField label="Industry" value={formatValue(firm.c2, firm, 'c2') as string} />
+                </div>
+              </InfoCard>
+              <InfoCard title="Organization Profile">
+                <div className="grid grid-cols-2 gap-4">
+                  <DataField label="Total Employees" value={formatValue(firm.s8, firm, 's8') as string} />
+                  <DataField label="Headquarters" value={formatValue(firm.s9, firm, 's9') as string} />
+                  <DataField label="Countries of Operation" value={formatValue(firm.s9a, firm, 's9a') as string} />
+                  <DataField label="Annual Revenue" value={formatValue(firm.c4 || firm.c5, firm, 'c4') as string} />
+                </div>
+              </InfoCard>
+            </div>
+          </section>
+
+          {/* PAYMENT INFO - if invoice selected */}
+          {assessment.payment_completed && assessment.payment_method === 'invoice' && (
+            <section className="mb-8">
+              <div className="bg-white rounded-xl border p-5 flex items-center justify-between" style={{ borderColor: BRAND.gray[200] }}>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#DCFCE7' }}>
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    ✅ Opted In - Company wants employee survey
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Not Selected - Company declined employee survey
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* PAYMENT INFORMATION */}
-          {assessment.payment_completed && (
-            <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-              <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Payment Information</h2>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Payment Status</p>
-                    <p className="text-sm font-semibold text-green-600">
-                      {assessment.payment_method === 'invoice' ? 'Paid - Invoice' : 
-                       assessment.payment_method === 'zeffy' ? 'Paid - Online' : 'Paid'}
-                    </p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Payment Date</p>
-                    <p className="text-sm" style={{ color: BRAND.gray[800] }}>
-                      {assessment.payment_date ? new Date(assessment.payment_date).toLocaleDateString() : 'N/A'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>Amount</p>
-                    <p className="text-sm" style={{ color: BRAND.gray[800] }}>
-                      {assessment.is_founding_partner ? '$0.00' : '$1,250.00'}
+                    <p className="font-bold" style={{ color: BRAND.gray[900] }}>Payment: Invoice Selected</p>
+                    <p className="text-sm" style={{ color: BRAND.gray[600] }}>
+                      Date: {assessment.payment_date ? new Date(assessment.payment_date).toLocaleDateString() : 'N/A'}
+                      {assessment.is_founding_partner ? ' • Founding Partner (Fee Waived)' : ' • Amount: $1,250.00'}
                     </p>
                   </div>
                 </div>
-                
-                {assessment.payment_method === 'invoice' && (
-                  <button
-                    onClick={() => setShowInvoiceModal(true)}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-semibold flex items-center gap-2 shadow-lg"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    View Invoice
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowInvoiceModal(true)}
+                  className="px-5 py-2.5 text-white rounded-lg font-medium flex items-center gap-2 no-print"
+                  style={{ backgroundColor: BRAND.primary }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  View Invoice
+                </button>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* EXECUTIVE SUMMARY */}
-          <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 rounded-lg p-6 mb-6" style={{ borderColor: BRAND.primary }}>
-            <h2 className="text-xl font-bold mb-6" style={{ color: BRAND.gray[900] }}>Executive Summary</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-white rounded-lg p-4 border" style={{ borderColor: BRAND.gray[300] }}>
-                <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>Maturity Score</p>
-                <p className="text-4xl font-bold" style={{ color: BRAND.primary }}>{maturityScore}%</p>
-                <p className="text-xs mt-1" style={{ color: BRAND.gray[600] }}>{totalCurrently} of {totalPrograms} programs offered</p>
-              </div>
-              
-              <div className="bg-white rounded-lg p-4 border" style={{ borderColor: BRAND.gray[300] }}>
-                <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>Programs Currently Offered</p>
-                <p className="text-4xl font-bold text-green-600">{totalCurrently}</p>
-                <p className="text-xs mt-1" style={{ color: BRAND.gray[600] }}>Across all dimensions</p>
-              </div>
-              
-              <div className="bg-white rounded-lg p-4 border" style={{ borderColor: BRAND.gray[300] }}>
-                <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>Global Consistency</p>
-                <p className="text-4xl font-bold text-blue-600">{consistent}/13</p>
-                <p className="text-xs mt-1" style={{ color: BRAND.gray[600] }}>Dimensions globally consistent</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {totalPlanning > 0 && (
-                <div className="bg-white rounded-lg p-4 border" style={{ borderColor: BRAND.gray[300] }}>
-                  <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>In Development</p>
-                  <p className="text-2xl font-bold text-orange-600">{totalPlanning}</p>
-                  <p className="text-xs mt-1" style={{ color: BRAND.gray[600] }}>Programs being planned</p>
-                </div>
-              )}
-              
-              {totalAssessing > 0 && (
-                <div className="bg-white rounded-lg p-4 border" style={{ borderColor: BRAND.gray[300] }}>
-                  <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>Under Assessment</p>
-                  <p className="text-2xl font-bold text-yellow-600">{totalAssessing}</p>
-                  <p className="text-xs mt-1" style={{ color: BRAND.gray[600] }}>Programs being evaluated</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* FIRMOGRAPHICS */}
-          {Object.keys(firm).length > 0 && (
-            <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-              <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Company Firmographics</h2>
-              <div className="space-y-4">
-                {Object.entries(firm).map(([k, v]) => {
-                  const val = selectedOnly(v);
-                  if (!val) return null;
-                  return <DataRow key={k} label={formatLabel(k)} value={val} />;
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* GENERAL BENEFITS */}
+          {/* CURRENT BENEFITS LANDSCAPE */}
           {Object.keys(general).length > 0 && (
-            <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-              <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>General Benefits Landscape</h2>
-              <div className="space-y-4">
-                {Object.entries(general).map(([k, v]) => {
-                  const val = selectedOnly(v);
-                  if (!val) return null;
-                  return <DataRow key={k} label={formatLabel(k)} value={val} />;
-                })}
+            <section className="mb-8">
+              <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Current Benefits Landscape</h2>
+              <div className="bg-white rounded-xl border p-6" style={{ borderColor: BRAND.gray[200] }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {Object.entries(general).map(([key, value]) => {
+                    const formattedValue = formatValue(value, general, key);
+                    if (!formattedValue) return null;
+                    return (
+                      <DataField 
+                        key={key} 
+                        label={getLabel(key)} 
+                        value={formattedValue}
+                        fullWidth={Array.isArray(formattedValue) && formattedValue.length > 5}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* CURRENT SUPPORT */}
+          {/* CURRENT SUPPORT PROGRAMS */}
           {Object.keys(support).length > 0 && (
-            <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-              <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Current Support Programs</h2>
-              <div className="space-y-4">
-                {Object.entries(support).map(([k, v]) => {
-                  const val = selectedOnly(v);
-                  if (!val) return null;
-                  return <DataRow key={k} label={formatLabel(k)} value={val} />;
-                })}
+            <section className="mb-8">
+              <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Current Support Programs</h2>
+              <div className="bg-white rounded-xl border p-6" style={{ borderColor: BRAND.gray[200] }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {Object.entries(support).map(([key, value]) => {
+                    const formattedValue = formatValue(value, support, key);
+                    if (!formattedValue) return null;
+                    return (
+                      <DataField 
+                        key={key} 
+                        label={getLabel(key)} 
+                        value={formattedValue}
+                        fullWidth={Array.isArray(formattedValue) && formattedValue.length > 5}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            </section>
           )}
 
           {/* 13 DIMENSIONS */}
-          <div className="mb-4">
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>13 Dimensions of Support</h2>
+          <section className="mb-8">
+            <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>13 Dimensions of Support</h2>
+            {Array.from({ length: 13 }, (_, i) => i + 1).map(dimNum => (
+              <DimensionSection
+                key={dimNum}
+                dimNum={dimNum}
+                dimData={assessment[`dimension${dimNum}_data`] || {}}
+                color={DIM_COLORS[dimNum - 1]}
+                isCollapsed={collapsed[dimNum] ?? false}
+                onToggle={() => setCollapsed(prev => ({ ...prev, [dimNum]: !prev[dimNum] }))}
+              />
+            ))}
+          </section>
 
-            {Array.from({ length: 13 }, (_, i) => i + 1).map(dimNum => {
-              const dimData = assessment[`dimension${dimNum}_data`] || {};
-              const { programs, items } = processDimensionData(dimNum, dimData);
-              const isEmpty = programs.length === 0 && items.length === 0;
-              const isCollapsed = collapsed[dimNum];
-
-              return (
-                <div key={dimNum} className="mb-4 bg-white rounded-lg border-l-4 overflow-hidden" 
-                     style={{ borderColor: DIM_COLORS[dimNum - 1] }}>
-                  <div className="px-5 py-4 border-b flex items-center justify-between cursor-pointer hover:bg-gray-50 no-print"
-                       style={{ borderColor: BRAND.gray[200] }}
-                       onClick={() => setCollapsed(prev => ({ ...prev, [dimNum]: !prev[dimNum] }))}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                           style={{ backgroundColor: DIM_COLORS[dimNum - 1] }}>
-                        {dimNum}
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: BRAND.gray[500] }}>
-                          Dimension {dimNum}
-                        </div>
-                        <h3 className="text-base font-bold" style={{ color: BRAND.gray[900] }}>
-                          {DIM_TITLE[dimNum]}
-                        </h3>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {!isEmpty && (
-                        <div className="text-xs font-semibold" style={{ color: BRAND.gray[600] }}>
-                          {programs.length} programs • {items.length} details
-                        </div>
-                      )}
-                      <svg className={`w-5 h-5 transition-transform ${isCollapsed ? '' : 'rotate-180'}`} 
-                           fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: BRAND.gray[500] }}>
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {!isCollapsed && (
-                    <div className="p-5">
-                      {isEmpty ? (
-                        <div className="text-center py-6 text-sm italic" style={{ color: BRAND.gray[400] }}>
-                          No responses recorded for this dimension
-                        </div>
-                      ) : (
-                        <>
-                          {programs.length > 0 && (
-                            <div className="mb-6">
-                              <table className="w-full border" style={{ borderColor: BRAND.gray[200] }}>
-                                <thead style={{ backgroundColor: BRAND.gray[50] }}>
-                                  <tr>
-                                    <th className="px-4 py-2 text-left text-xs font-bold" style={{ color: BRAND.gray[700] }}>Program</th>
-                                    <th className="px-4 py-2 text-left text-xs font-bold" style={{ color: BRAND.gray[700] }}>Status</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {programs.flatMap(p => p.items).map((item, i) => {
-                                    const status = programs.find(p => p.items.includes(item))?.status || '';
-                                    return (
-                                      <tr key={i} className="border-t" style={{ borderColor: BRAND.gray[200] }}>
-                                        <td className="px-4 py-2 text-sm" style={{ color: BRAND.gray[800] }}>{item.question}</td>
-                                        <td className="px-4 py-2 text-sm font-medium" style={{ color: BRAND.gray[900] }}>{status}</td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
-                          {items.length > 0 && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
-                              {items.map((it, i) => <DataRow key={i} label={it.question} value={it.response} />)}
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* CROSS-DIMENSIONAL */}
+          {/* CROSS-DIMENSIONAL ASSESSMENT */}
           {Object.keys(cross).length > 0 && (
-            <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-              <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Cross-Dimensional Assessment</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="border rounded-lg p-4" style={{ borderColor: '#10B981', backgroundColor: '#F0FDF4' }}>
-                  <div className="text-sm font-bold mb-2" style={{ color: '#065F46' }}>Top 3 Priority Dimensions</div>
-                  {cross.cd1a && Array.isArray(cross.cd1a) ? (
-                    <ul className="space-y-1">
+            <section className="mb-8">
+              <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Cross-Dimensional Assessment</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {cross.cd1a && Array.isArray(cross.cd1a) && (
+                  <InfoCard title="Top Priority Dimensions" accent={BRAND.success}>
+                    <ul className="space-y-2">
                       {cross.cd1a.map((dim: string, i: number) => (
-                        <li key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {dim}</li>
+                        <li key={i} className="flex items-start text-sm" style={{ color: BRAND.gray[800] }}>
+                          <span className="mr-2 font-bold text-green-600">{i + 1}.</span>
+                          {dim}
+                        </li>
                       ))}
                     </ul>
-                  ) : (
-                    <div className="text-xs italic" style={{ color: BRAND.gray[400] }}>Not provided</div>
-                  )}
-                </div>
-                
-                <div className="border rounded-lg p-4" style={{ borderColor: '#F59E0B', backgroundColor: '#FFFBEB' }}>
-                  <div className="text-sm font-bold mb-2" style={{ color: '#92400E' }}>Lowest 3 Priority Dimensions</div>
-                  {cross.cd1b && Array.isArray(cross.cd1b) ? (
-                    <ul className="space-y-1">
+                  </InfoCard>
+                )}
+                {cross.cd1b && Array.isArray(cross.cd1b) && (
+                  <InfoCard title="Lowest Priority Dimensions" accent={BRAND.warning}>
+                    <ul className="space-y-2">
                       {cross.cd1b.map((dim: string, i: number) => (
-                        <li key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {dim}</li>
+                        <li key={i} className="flex items-start text-sm" style={{ color: BRAND.gray[800] }}>
+                          <span className="mr-2 font-bold text-orange-600">{i + 1}.</span>
+                          {dim}
+                        </li>
                       ))}
                     </ul>
-                  ) : (
-                    <div className="text-xs italic" style={{ color: BRAND.gray[400] }}>Not provided</div>
-                  )}
-                </div>
-                
-                <div className="border rounded-lg p-4" style={{ borderColor: '#EF4444', backgroundColor: '#FEF2F2' }}>
-                  <div className="text-sm font-bold mb-2" style={{ color: '#991B1B' }}>Implementation Challenges</div>
-                  {cross.cd2 && Array.isArray(cross.cd2) ? (
-                    <ul className="space-y-1">
+                  </InfoCard>
+                )}
+                {cross.cd2 && Array.isArray(cross.cd2) && (
+                  <InfoCard title="Implementation Challenges" accent={BRAND.error}>
+                    <ul className="space-y-2">
                       {cross.cd2.map((chal: string, i: number) => (
-                        <li key={i} className="text-sm" style={{ color: BRAND.gray[800] }}>• {chal}</li>
+                        <li key={i} className="flex items-start text-sm" style={{ color: BRAND.gray[800] }}>
+                          <span className="mr-2" style={{ color: BRAND.error }}>•</span>
+                          {chal}
+                        </li>
                       ))}
                     </ul>
-                  ) : (
-                    <div className="text-xs italic" style={{ color: BRAND.gray[400] }}>Not provided</div>
-                  )}
-                </div>
+                  </InfoCard>
+                )}
               </div>
-            </div>
+            </section>
           )}
 
-          {/* EMPLOYEE IMPACT */}
+          {/* EMPLOYEE IMPACT ASSESSMENT */}
           {Object.keys(impact).length > 0 && (
-            <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-              <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Employee Impact Assessment</h2>
-              
-              {impact.ei1 && typeof impact.ei1 === 'object' && Object.keys(impact.ei1).length > 0 && (
-                <div className="mb-6 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
-                  <div className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.primary }}>
-                    Program Impact by Outcome Area
+            <section className="mb-8">
+              <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Employee Impact Assessment</h2>
+              <div className="bg-white rounded-xl border p-6" style={{ borderColor: BRAND.gray[200] }}>
+                
+                {/* Impact Ratings Grid */}
+                {impact.ei1 && typeof impact.ei1 === 'object' && (
+                  <div className="mb-6">
+                    <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{ color: BRAND.gray[500] }}>
+                      Program Impact by Outcome Area
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {Object.entries(impact.ei1).map(([outcome, rating]) => {
+                        const ratingStr = String(rating).toLowerCase();
+                        let bgColor = BRAND.gray[100];
+                        let textColor = BRAND.gray[700];
+                        
+                        if (ratingStr.includes('significant')) {
+                          bgColor = '#DCFCE7'; textColor = '#166534';
+                        } else if (ratingStr.includes('moderate')) {
+                          bgColor = '#DBEAFE'; textColor = '#1E40AF';
+                        } else if (ratingStr.includes('minimal')) {
+                          bgColor = '#FEF3C7'; textColor = '#92400E';
+                        }
+                        
+                        return (
+                          <div 
+                            key={outcome}
+                            className="flex items-center justify-between p-3 rounded-lg"
+                            style={{ backgroundColor: BRAND.gray[50] }}
+                          >
+                            <span className="text-sm font-medium" style={{ color: BRAND.gray[800] }}>
+                              {getLabel(outcome)}
+                            </span>
+                            <span 
+                              className="text-xs font-semibold px-3 py-1 rounded-full"
+                              style={{ backgroundColor: bgColor, color: textColor }}
+                            >
+                              {String(rating).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                    {Object.entries(impact.ei1).map(([item, rating]) => {
-                      const ratingStr = String(rating);
-                      const bgColor = ratingStr.includes('significant') || ratingStr.includes('Significant') ? '#dcfce7' : 
-                                     ratingStr.includes('moderate') || ratingStr.includes('Moderate') ? '#dbeafe' : 
-                                     ratingStr.includes('minimal') || ratingStr.includes('Minimal') ? '#fef3c7' : BRAND.gray[100];
-                      
-                      return (
-                        <div key={item} className="flex items-center justify-between py-2.5 px-4 rounded border" 
-                             style={{ borderColor: BRAND.gray[200], backgroundColor: BRAND.gray[50] }}>
-                          <span className="text-sm font-medium" style={{ color: BRAND.gray[900] }}>
-                            {formatLabel(item)}
-                          </span>
-                          <span className="text-xs font-semibold px-3 py-1.5 rounded" style={{ backgroundColor: bgColor }}>
-                            {ratingStr.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                )}
+                
+                {/* Other impact fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {Object.entries(impact).map(([key, value]) => {
+                    if (key === 'ei1') return null;
+                    const formattedValue = formatValue(value, impact, key);
+                    if (!formattedValue) return null;
+                    
+                    // Skip "none" responses
+                    const strVal = String(formattedValue).toLowerCase();
+                    if (strVal.includes('no additional') || strVal.includes('none that')) return null;
+                    
+                    return (
+                      <DataField 
+                        key={key} 
+                        label={getLabel(key)} 
+                        value={formattedValue}
+                        fullWidth={true}
+                      />
+                    );
+                  })}
                 </div>
-              )}
-              
-              <div className="space-y-4">
-                {Object.entries(impact).map(([key, value]) => {
-                  // Skip ei1 (already rendered above) and empty values
-                  if (key === 'ei1') return null;
-                  
-                  const val = selectedOnly(value);
-                  if (!val) return null;
-                  
-                  // Skip "none" responses
-                  const valStr = String(val).toLowerCase();
-                  if (valStr.includes('no additional') || valStr.includes('none that i can think')) return null;
-                  
-                  return <DataRow key={key} label={formatLabel(key)} value={val} />;
-                })}
               </div>
-            </div>
+            </section>
           )}
 
-          <div className="mt-8 pt-4 border-t text-center text-[10px]" style={{ borderColor: BRAND.gray[200], color: BRAND.gray[500] }}>
-            Best Companies for Working with Cancer: Employer Index - Admin View
-          </div>
+          {/* FOOTER */}
+          <footer className="text-center py-8 border-t" style={{ borderColor: BRAND.gray[200] }}>
+            <p className="text-xs" style={{ color: BRAND.gray[500] }}>
+              Best Companies for Working with Cancer Index • Company Profile Report
+            </p>
+            <p className="text-xs mt-1" style={{ color: BRAND.gray[400] }}>
+              Generated {new Date().toLocaleDateString()} • Survey ID: {surveyId}
+            </p>
+          </footer>
+
         </main>
 
         {/* INVOICE MODAL */}
         {showInvoiceModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
-              <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Company Invoice</h2>
-                <button
-                  onClick={() => setShowInvoiceModal(false)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+              <div 
+                className="p-6 text-white"
+                style={{ background: `linear-gradient(135deg, ${BRAND.primary} 0%, #5B21B6 100%)` }}
+              >
+                <h2 className="text-xl font-bold">Company Invoice</h2>
+                <p className="text-sm opacity-80 mt-1">{assessment.company_name}</p>
               </div>
-
-              <div className="p-8">
+              
+              <div className="p-6">
                 <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ backgroundColor: '#F3E8FF' }}
+                  >
+                    <svg className="w-8 h-8" style={{ color: BRAND.primary }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Invoice Available</h3>
-                  <p className="text-gray-600 mb-1">
-                    {assessment.company_name}
-                  </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm" style={{ color: BRAND.gray[600] }}>
                     Invoice #{assessment.survey_id || assessment.app_id}
                   </p>
-                  {assessment.payment_date && (
-                    <p className="text-sm text-gray-500">
-                      Date: {new Date(assessment.payment_date).toLocaleDateString()}
-                    </p>
-                  )}
                 </div>
-
-                <div className="space-y-3">
-                  <button
-                    onClick={async () => {
-                      const firm = assessment.firmographics_data || {}
-                      
-                      // DEBUG: Log what we're reading from firmographics_data
-                      console.log('📋 Invoice Data Debug:', {
-                        firmographics_data: firm,
-                        firstName: firm.firstName,
-                        lastName: firm.lastName,
-                        title: firm.title,
-                        titleOther: firm.titleOther,
-                        addressLine1: firm.addressLine1,
-                        city: firm.city,
-                        state: firm.state,
-                        zipCode: firm.zipCode
-                      })
-                      
-                      const invoiceData: InvoiceData = {
-                        invoiceNumber: assessment.survey_id || assessment.app_id,
-                        invoiceDate: assessment.payment_date ? new Date(assessment.payment_date).toLocaleDateString() : new Date().toLocaleDateString(),
-                        dueDate: assessment.payment_date ? new Date(new Date(assessment.payment_date).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-                        companyName: assessment.company_name || 'Company',
-                        contactName: `${firm.firstName || ''} ${firm.lastName || ''}`.trim() || 'Contact',
-                        title: firm.title || firm.titleOther || undefined,
-                        addressLine1: firm.addressLine1 || '123 Main St',
-                        addressLine2: firm.addressLine2 || undefined,
-                        city: firm.city || 'City',
-                        state: firm.state || 'ST',
-                        zipCode: firm.zipCode || '00000',
-                        country: firm.country || 'United States',
-                        poNumber: firm.poNumber || undefined,
-                        isFoundingPartner: assessment.is_founding_partner || false
-                      }
-                      
-                      // DEBUG: Log final invoice data
-                      console.log('📋 Final Invoice Data:', invoiceData)
-                      
-                      await downloadInvoicePDF(invoiceData)
-                    }}
-                    className="w-full py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all font-semibold flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Download Invoice PDF
-                  </button>
-
-                  <p className="text-center text-sm text-gray-500">
-                    This is the same invoice that was generated for the company during payment.
-                  </p>
-                </div>
+                
+                <button
+                  onClick={async () => {
+                    const invoiceData: InvoiceData = {
+                      invoiceNumber: assessment.survey_id || assessment.app_id,
+                      invoiceDate: assessment.payment_date ? new Date(assessment.payment_date).toLocaleDateString() : new Date().toLocaleDateString(),
+                      dueDate: assessment.payment_date ? new Date(new Date(assessment.payment_date).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                      companyName: assessment.company_name || 'Company',
+                      contactName: contactName !== 'Not provided' ? contactName : 'Contact',
+                      title: contactTitle !== 'Not provided' ? contactTitle : undefined,
+                      addressLine1: firm.addressLine1 || '(Address not on file)',
+                      addressLine2: firm.addressLine2 || undefined,
+                      city: firm.city || '',
+                      state: firm.state || '',
+                      zipCode: firm.zipCode || '',
+                      country: firm.country || 'United States',
+                      poNumber: firm.poNumber || undefined,
+                      isFoundingPartner: assessment.is_founding_partner || false
+                    };
+                    await downloadInvoicePDF(invoiceData);
+                  }}
+                  className="w-full py-3 text-white rounded-lg font-semibold flex items-center justify-center gap-2"
+                  style={{ backgroundColor: BRAND.success }}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download Invoice PDF
+                </button>
               </div>
-
-              <div className="border-t p-4 bg-gray-50 flex justify-end" style={{ borderColor: BRAND.gray[200] }}>
+              
+              <div className="px-6 py-4 border-t flex justify-end" style={{ backgroundColor: BRAND.gray[50], borderColor: BRAND.gray[200] }}>
                 <button
                   onClick={() => setShowInvoiceModal(false)}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
+                  className="px-5 py-2 rounded-lg font-medium"
+                  style={{ backgroundColor: BRAND.gray[200], color: BRAND.gray[700] }}
                 >
                   Close
                 </button>
