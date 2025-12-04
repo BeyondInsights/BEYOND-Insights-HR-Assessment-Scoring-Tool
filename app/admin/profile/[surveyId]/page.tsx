@@ -824,11 +824,19 @@ export default function ProfilePage() {
   
   // CONTACT INFO
   const contactName = [firm.firstName, firm.lastName].filter(Boolean).join(' ') || null;
-  const contactTitle = firm.title || null;
+  // Handle title "Other" case
+  let contactTitle = firm.title || null;
+  if (contactTitle && contactTitle.toLowerCase() === 'other') {
+    contactTitle = firm.titleOther || firm.title_other || contactTitle;
+  }
   const contactEmail = assessment.email || null;
   
   // ROLE INFO - All from firmographics_data
-  const department = firm.s4b || firm.s4a || null;  // s4b is "Human Resources"
+  // Handle "Other (specify):" cases
+  let department = firm.s4b || firm.s4a || null;
+  if (department && department.toLowerCase().includes('other')) {
+    department = firm.s4b_other || firm.s4a_other || department;
+  }
   const level = firm.s5 || null;                     // s5 is "Senior Manager"
   const responsibilities = firm.s6 || null;          // s6 is array of responsibilities
   const influence = firm.s7 || null;                 // s7 is influence level
@@ -838,7 +846,8 @@ export default function ProfilePage() {
   const employees = firm.s8 || null;                 // s8 is "50,000+"
   const headquarters = firm.s9 || null;              // s9 is "Switzerland"
   const countries = firm.s9a || null;                // s9a is "50 or more countries"
-  const revenue = firm.c4 || firm.c5 || null;        // c4/c5 is "$1 billion or more"
+  // c4 can be empty array [] which is truthy, so check properly
+  const revenue = (firm.c4 && !Array.isArray(firm.c4) ? firm.c4 : null) || firm.c5 || null;
   const remotePolicy = firm.c6 || null;              // c6 is remote policy
   const benefitsEligibility = firm.c3 || null;       // c3 is "Most employees (75-99%)"
 
