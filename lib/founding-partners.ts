@@ -52,6 +52,8 @@ export const FOUNDING_PARTNER_IDS = [
   'FP-847632',
   'FP-219745',  // ✅ NEW - 37th Founding Partner ID
   'FP-421967',  // ✅ NEW - 38th Founding Partner ID
+  'FP-573841',  // assigned to snyder electronics  
+  'FP-692014',  // NEW - Another new partner
   'TEST-FP-001',
   'TEST-FP-002',
   'TEST-FP-003'
