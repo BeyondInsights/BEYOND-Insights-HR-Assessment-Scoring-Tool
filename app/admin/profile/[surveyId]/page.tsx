@@ -416,20 +416,22 @@ function getStatusStyle(status: string | number): { bg: string; text: string; la
   // Handle text-based statuses (from survey UI)
   const s = String(status).toLowerCase();
   
-  if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {
-    return { ...STATUS_COLORS.current, label: 'Currently Offering' };
-  }
-  if (s.includes('planning') || s.includes('development')) {
-    return { ...STATUS_COLORS.planning, label: 'In Development' };
-  }
-  if (s.includes('assessing') || s.includes('feasibility')) {
-    return { ...STATUS_COLORS.assessing, label: 'Assessing' };
-  }
+  // CHECK "NOT ABLE" FIRST - before "offer" check (since "Not able to offer" contains "offer")
   if (s.includes('not able')) {
     return { ...STATUS_COLORS.notOffered, label: 'Not Feasible' };
   }
   if (s.includes('unsure')) {
     return { ...STATUS_COLORS.unsure, label: 'Unsure' };
+  }
+  if (s.includes('assessing') || s.includes('feasibility')) {
+    return { ...STATUS_COLORS.assessing, label: 'Assessing' };
+  }
+  if (s.includes('planning') || s.includes('development')) {
+    return { ...STATUS_COLORS.planning, label: 'In Development' };
+  }
+  // NOW safe to check for "offer" since "not able" already handled
+  if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {
+    return { ...STATUS_COLORS.current, label: 'Currently Offering' };
   }
   
   return { bg: BRAND.gray[400], text: '#FFFFFF', label: String(status) };
@@ -576,11 +578,12 @@ function DimensionSection({
       else if (numStatus === 1) notFeasibleCount++;
     } else if (typeof status === 'string') {
       // Handle text-based statuses (from survey UI)
+      // CHECK "NOT ABLE" FIRST since "Not able to offer" contains "offer"
       const s = status.toLowerCase();
-      if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) currentCount++;
+      if (s.includes('not able')) notFeasibleCount++;
+      else if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) currentCount++;
       else if (s.includes('planning') || s.includes('development')) planningCount++;
       else if (s.includes('assessing')) assessingCount++;
-      else if (s.includes('not able')) notFeasibleCount++;
     }
   });
   
@@ -894,11 +897,12 @@ export default function ProfilePage() {
           else if (numStatus === 1) totalNotFeasible++;
         } else if (typeof status === 'string') {
           // Handle text-based statuses (from survey UI)
+          // CHECK "NOT ABLE" FIRST since "Not able to offer" contains "offer"
           const s = status.toLowerCase();
-          if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) totalCurrently++;
+          if (s.includes('not able')) totalNotFeasible++;
+          else if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) totalCurrently++;
           else if (s.includes('planning') || s.includes('development')) totalPlanning++;
           else if (s.includes('assessing')) totalAssessing++;
-          else if (s.includes('not able')) totalNotFeasible++;
         }
       });
     }
