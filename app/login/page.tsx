@@ -77,18 +77,91 @@ export default function LoginPage() {
       localStorage.setItem('last_user_email', email)
       localStorage.setItem('login_Survey_id', surveyId.trim())
       
-      // ✅ CHECK IF FOUNDING PARTNER HAS ALREADY COMPLETED AUTHORIZATION
-      // Look in localStorage first (founding partners don't use Supabase for auth)
-      const authCompleted = localStorage.getItem('auth_completed') === 'true'
-      
-      if (authCompleted) {
-        console.log('✅ Founding Partner has completed auth - going to dashboard')
-        setSuccessMessage('✅ Welcome back! Redirecting to your dashboard...')
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 1500)
-      } else {
-        console.log('📋 Founding Partner needs to complete auth - going to letter')
+      // ✅ QUERY SUPABASE FOR FOUNDING PARTNER DATA (by app_id)
+      try {
+        const { data: assessment } = await supabase
+          .from('assessments')
+          .select('*')
+          .eq('app_id', surveyId.trim())
+          .single()
+        
+        if (assessment && assessment.firmographics_complete) {
+          console.log('✅ Founding Partner data found in Supabase - restoring to localStorage')
+          
+          // ✅ RESTORE ALL DATA FROM SUPABASE TO LOCALSTORAGE (same as regular users)
+          localStorage.setItem('auth_completed', 'true')
+          localStorage.setItem('payment_completed', 'true') // FPs are pre-paid
+          
+          // Restore company info
+          if (assessment.company_name) localStorage.setItem('login_company_name', assessment.company_name)
+          
+          // Restore all survey data
+          if (assessment.firmographics_data) {
+            localStorage.setItem('firmographics_data', JSON.stringify(assessment.firmographics_data))
+          }
+          if (assessment.firmographics_complete) {
+            localStorage.setItem('firmographics_complete', 'true')
+          }
+          
+          if (assessment.general_benefits_data) {
+            localStorage.setItem('general_benefits_data', JSON.stringify(assessment.general_benefits_data))
+          }
+          if (assessment.general_benefits_complete) {
+            localStorage.setItem('general_benefits_complete', 'true')
+          }
+          
+          if (assessment.current_support_data) {
+            localStorage.setItem('current_support_data', JSON.stringify(assessment.current_support_data))
+          }
+          if (assessment.current_support_complete) {
+            localStorage.setItem('current_support_complete', 'true')
+          }
+          
+          // Restore all 13 dimensions
+          for (let i = 1; i <= 13; i++) {
+            const dataKey = `dimension${i}_data`
+            const completeKey = `dimension${i}_complete`
+            
+            if (assessment[dataKey]) {
+              localStorage.setItem(dataKey, JSON.stringify(assessment[dataKey]))
+            }
+            if (assessment[completeKey]) {
+              localStorage.setItem(completeKey, 'true')
+            }
+          }
+          
+          // Restore cross-dimensional and employee impact
+          if (assessment.cross_dimensional_data) {
+            localStorage.setItem('cross_dimensional_data', JSON.stringify(assessment.cross_dimensional_data))
+          }
+          if (assessment.cross_dimensional_complete) {
+            localStorage.setItem('cross_dimensional_complete', 'true')
+          }
+          
+          if (assessment.employee_impact_data) {
+            localStorage.setItem('employee-impact-assessment_data', JSON.stringify(assessment.employee_impact_data))
+          }
+          if (assessment.employee_impact_complete) {
+            localStorage.setItem('employee-impact-assessment_complete', 'true')
+          }
+          
+          console.log('✅ All Founding Partner data restored to localStorage')
+          
+          setSuccessMessage('✅ Welcome back! Redirecting to your dashboard...')
+          setTimeout(() => {
+            router.push('/dashboard')
+          }, 1500)
+        } else {
+          // FP exists but hasn't completed onboarding yet
+          console.log('📋 Founding Partner needs to complete onboarding - going to letter')
+          setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
+          setTimeout(() => {
+            router.push('/letter')
+          }, 1500)
+        }
+      } catch (error) {
+        console.error('Error loading FP data:', error)
+        // Fallback - go to letter if we can't load data
         setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
         setTimeout(() => {
           router.push('/letter')
@@ -202,10 +275,10 @@ export default function LoginPage() {
                 localStorage.setItem('cross_dimensional_complete', 'true')
               }
               
-              if (assessment['employee-impact-assessment_data']) {
-                localStorage.setItem('employee-impact-assessment_data', JSON.stringify(assessment['employee-impact-assessment_data']))
+              if (assessment.employee_impact_data) {
+                localStorage.setItem('employee-impact-assessment_data', JSON.stringify(assessment.employee_impact_data))
               }
-              if (assessment['employee-impact-assessment_complete']) {
+              if (assessment.employee_impact_complete) {
                 localStorage.setItem('employee-impact-assessment_complete', 'true')
               }
               
