@@ -398,8 +398,23 @@ function formatDisplayValue(value: any, data?: any, key?: string): string | stri
 }
 
 // Get status styling - VIBRANT colors
-function getStatusStyle(status: string): { bg: string; text: string; label: string } {
-  const s = status.toLowerCase();
+// Handles both text statuses AND numeric codes (1-5 from FP bulk data)
+function getStatusStyle(status: string | number): { bg: string; text: string; label: string } {
+  // Handle numeric status codes from Founding Partner data
+  // 1 = Not able to offer, 2 = Assessing, 3 = Planning, 4 = Currently offer, 5 = Unsure
+  const numStatus = typeof status === 'number' ? status : parseInt(String(status));
+  if (!isNaN(numStatus)) {
+    switch (numStatus) {
+      case 4: return { ...STATUS_COLORS.current, label: 'Currently Offering' };
+      case 3: return { ...STATUS_COLORS.planning, label: 'In Development' };
+      case 2: return { ...STATUS_COLORS.assessing, label: 'Assessing' };
+      case 1: return { ...STATUS_COLORS.notOffered, label: 'Not Feasible' };
+      case 5: return { ...STATUS_COLORS.unsure, label: 'Unsure' };
+    }
+  }
+  
+  // Handle text-based statuses (from survey UI)
+  const s = String(status).toLowerCase();
   
   if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {
     return { ...STATUS_COLORS.current, label: 'Currently Offering' };
@@ -417,7 +432,7 @@ function getStatusStyle(status: string): { bg: string; text: string; label: stri
     return { ...STATUS_COLORS.unsure, label: 'Unsure' };
   }
   
-  return { bg: BRAND.gray[400], text: '#FFFFFF', label: status };
+  return { bg: BRAND.gray[400], text: '#FFFFFF', label: String(status) };
 }
 
 // ============================================
@@ -549,10 +564,18 @@ function DimensionSection({
   const geoConsistencyKey = `d${dimNum}aa`;
   const geoConsistency = dimData?.[geoConsistencyKey];
   
-  // Count programs by status
+  // Count programs by status - handles both numeric (FP) and text (survey) formats
   let currentCount = 0, planningCount = 0, assessingCount = 0, notFeasibleCount = 0;
   Object.values(mainGrid).forEach((status: any) => {
-    if (typeof status === 'string') {
+    // Handle numeric status codes (FP data: 1=NotAble, 2=Assessing, 3=Planning, 4=Current, 5=Unsure)
+    const numStatus = typeof status === 'number' ? status : parseInt(String(status));
+    if (!isNaN(numStatus)) {
+      if (numStatus === 4) currentCount++;
+      else if (numStatus === 3) planningCount++;
+      else if (numStatus === 2) assessingCount++;
+      else if (numStatus === 1) notFeasibleCount++;
+    } else if (typeof status === 'string') {
+      // Handle text-based statuses (from survey UI)
       const s = status.toLowerCase();
       if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) currentCount++;
       else if (s.includes('planning') || s.includes('development')) planningCount++;
@@ -855,14 +878,22 @@ export default function ProfilePage() {
   console.log('📊 Extracted:', { industry, employees, headquarters, countries, revenue, department, level });
 
   // ============================================
-  // CALCULATE SUMMARY STATS
+  // CALCULATE SUMMARY STATS - handles both numeric (FP) and text (survey) formats
   // ============================================
   let totalCurrently = 0, totalPlanning = 0, totalAssessing = 0, totalNotFeasible = 0;
   for (let i = 1; i <= 13; i++) {
     const gridData = assessment[`dimension${i}_data`]?.[`d${i}a`];
     if (gridData && typeof gridData === 'object') {
       Object.values(gridData).forEach((status: any) => {
-        if (typeof status === 'string') {
+        // Handle numeric status codes (FP data: 1=NotAble, 2=Assessing, 3=Planning, 4=Current, 5=Unsure)
+        const numStatus = typeof status === 'number' ? status : parseInt(String(status));
+        if (!isNaN(numStatus)) {
+          if (numStatus === 4) totalCurrently++;
+          else if (numStatus === 3) totalPlanning++;
+          else if (numStatus === 2) totalAssessing++;
+          else if (numStatus === 1) totalNotFeasible++;
+        } else if (typeof status === 'string') {
+          // Handle text-based statuses (from survey UI)
           const s = status.toLowerCase();
           if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) totalCurrently++;
           else if (s.includes('planning') || s.includes('development')) totalPlanning++;
