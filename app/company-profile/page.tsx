@@ -387,8 +387,17 @@ function parseDimensionData(dimNumber: number, data: Record<string, any>): {
       return;
     }
     
+    // EXPLICIT: Handle d#b open-ended follow-up (Additional benefits/supports not listed)
+    if (lowerKey === `${prefix}b` && value && typeof value === 'string' && value.trim() !== '') {
+      items.push({
+        question: formatLabel(key) || 'Additional Items Not Listed',
+        response: String(value).trim()
+      });
+      return;
+    }
+    
     // Handle other follow-up questions
-    if (!key.endsWith('_none') && lowerKey !== `${prefix}a`) {
+    if (!key.endsWith('_none') && lowerKey !== `${prefix}a` && lowerKey !== `${prefix}b`) {
       const resp = selectedOnly(value);
       if (resp) {
         items.push({
