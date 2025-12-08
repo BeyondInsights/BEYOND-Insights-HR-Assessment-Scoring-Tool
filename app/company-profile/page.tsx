@@ -312,19 +312,43 @@ function normalizeStatus(s: string | number, dimNumber: number = 0): string {
   
   // Handle text-based statuses
   const x = String(s).toLowerCase();
+  
+  // Already dimension-specific
   if (x.includes('provide to managers')) return 'Currently provide to managers';
-  if (x.includes('measure') || x.includes('track')) {
-    if (x.includes('currently')) return 'Currently measure / track';
-    if (x.includes('not able')) return 'Not able to measure / track in foreseeable future';
-  }
+  if (x.includes('currently measure') || x.includes('currently track')) return 'Currently measure / track';
   if (x.includes('currently use')) return 'Currently use';
-  if (x.includes('currently') && !x.includes('provide') && !x.includes('use')) return 'Currently offer';
+  
+  // Generic "Currently offer" - APPLY DIMENSION-AWARE CONVERSION
+  if (x.includes('currently offer')) {
+    if (dimNumber === 3) return 'Currently provide to managers';
+    if (dimNumber === 12) return 'Currently measure / track';
+    if (dimNumber === 13) return 'Currently use';
+    return 'Currently offer';
+  }
+  
+  // Other "currently" variations (without "offer")
+  if (x.includes('currently') && !x.includes('provide') && !x.includes('use') && !x.includes('measure') && !x.includes('track')) {
+    if (dimNumber === 3) return 'Currently provide to managers';
+    if (dimNumber === 12) return 'Currently measure / track';
+    if (dimNumber === 13) return 'Currently use';
+    return 'Currently offer';
+  }
+  
   if (x.includes('active') || x.includes('development') || x.includes('planning')) return 'In active planning / development';
   if (x.includes('assessing') || x.includes('feasibility')) return 'Assessing feasibility';
   if (x.includes('unsure')) return 'Unsure';
+  
+  // "Not able to" variants - dimension-aware
+  if (x.includes('not able to measure') || x.includes('not able to track')) return 'Not able to measure / track in foreseeable future';
   if (x.includes('not able to provide')) return 'Not able to provide in foreseeable future';
   if (x.includes('not able to utilize')) return 'Not able to utilize in foreseeable future';
-  if (x.includes('not able')) return 'Not able to offer in foreseeable future';
+  if (x.includes('not able')) {
+    if (dimNumber === 3) return 'Not able to provide in foreseeable future';
+    if (dimNumber === 12) return 'Not able to measure / track in foreseeable future';
+    if (dimNumber === 13) return 'Not able to utilize in foreseeable future';
+    return 'Not able to offer in foreseeable future';
+  }
+  
   return 'Other';
 }
 
