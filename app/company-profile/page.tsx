@@ -142,8 +142,22 @@ function selectedOnly(value: any): string[] | string | null {
 
 const hasProgramStatusMap = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
 
-function normalizeStatus(s: string) {
-  const x = s.toLowerCase();
+function normalizeStatus(s: string | number) {
+  // Handle numeric status codes from Founding Partner data
+  // 1 = Not able to offer, 2 = Assessing, 3 = Planning, 4 = Currently offer, 5 = Unsure
+  const numStatus = typeof s === 'number' ? s : parseInt(String(s));
+  if (!isNaN(numStatus)) {
+    switch (numStatus) {
+      case 4: return 'Currently offer';
+      case 3: return 'In active planning / development';
+      case 2: return 'Assessing feasibility';
+      case 1: return 'Not able to offer in foreseeable future';
+      case 5: return 'Unsure';
+    }
+  }
+  
+  // Handle text-based statuses
+  const x = String(s).toLowerCase();
   if (x.includes('provide to managers')) return 'Currently provide to managers';
   if (x.includes('measure') || x.includes('track')) {
     if (x.includes('currently')) return 'Currently measure / track';
@@ -524,7 +538,57 @@ export default function CompanyProfilePage() {
 
   const fetchUserAssessment = async () => {
     try {
-      // Get current user
+      // ============================================
+      // CHECK FOR FOUNDING PARTNER FIRST
+      // ============================================
+      const surveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || '';
+      const { isFoundingPartner } = await import('@/lib/founding-partners');
+      
+      if (isFoundingPartner(surveyId)) {
+        console.log('Founding Partner detected - loading by app_id:', surveyId);
+        
+        // Fetch assessment by app_id for FPs
+        const { data: assessment, error } = await supabase
+          .from('assessments')
+          .select('*')
+          .eq('app_id', surveyId)
+          .single();
+        
+        if (error) throw error;
+        if (!assessment) throw new Error('Assessment not found for FP: ' + surveyId);
+        
+        // Transform and set data (same as regular user flow below)
+        const firmo = assessment.firmographics_data || {};
+        const general = assessment.general_benefits_data || {};
+        const current = assessment.current_support_data || {};
+        const cross = assessment.cross_dimensional_data || {};
+        const impact = assessment.employee_impact_data || {};
+
+        const dimensions = [];
+        for (let i = 1; i <= 13; i++) {
+          dimensions.push({
+            number: i,
+            data: assessment[`dimension${i}_data`] || {}
+          });
+        }
+
+        setData({
+          companyName: assessment.company_name || firmo.companyName || 'Company',
+          email: assessment.email,
+          surveyId: assessment.app_id || assessment.survey_id,
+          firmo,
+          general,
+          current,
+          dimensions,
+          cross,
+          impact
+        });
+        setLoading(false);
+        return;
+      }
+      // ============================================
+      
+      // REGULAR USERS - Get current user from Supabase auth
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user || !user.email) {
