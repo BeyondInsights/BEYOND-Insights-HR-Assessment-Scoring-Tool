@@ -281,23 +281,32 @@ function FPRegisterContent() {
             {/* Consent Section - Always visible when pending */}
             {consent === 'pending' && (
               <div className="mb-8">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6">
-                  <div className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <div>
-                      <p className="text-sm text-blue-900 font-semibold mb-2">
-                        Contact Information Request
-                      </p>
-                      <p className="text-sm text-blue-800">
-                        We would like to add your contact information to your Founding Partner record in our database. This will allow us to reach out to you regarding the Best Companies for Working with Cancer Initiative.
-                      </p>
-                      <p className="text-sm text-blue-800 mt-2">
-                        As this is sensitive information, we require your consent before collecting it.
-                      </p>
-                    </div>
+                    <p className="text-base text-blue-900 font-bold">
+                      Contact Information Request
+                    </p>
                   </div>
+                  
+                  <p className="text-sm text-gray-700 mb-4">
+                    We would like to add your contact information (<strong>name</strong>, <strong>email address</strong>, and <strong>title</strong>) to the Best Companies for Working with Cancer Initiative database.
+                  </p>
+                  
+                  <div className="flex items-start gap-2 mb-4 p-3 bg-white/60 rounded-lg border border-blue-100">
+                    <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-gray-700">
+                      This information will remain <strong>confidential</strong> and only be used to contact you regarding the Best Companies for Working with Cancer Initiative.
+                    </p>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 italic">
+                    As this is sensitive information, we ask that you consent to having this information added to the database.
+                  </p>
                 </div>
 
                 <p className="text-base font-semibold text-gray-900 mb-4 text-center">
