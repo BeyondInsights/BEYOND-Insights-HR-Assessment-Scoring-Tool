@@ -186,7 +186,7 @@ function FPRegisterContent() {
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
                 <p className="text-sm text-blue-800">
-                  <strong>Next Steps:</strong> Use this Survey ID along with your email address to log in and complete the Best Companies for Working with Cancer survey.
+                  <strong>Next Steps:</strong> You can review your completed submission by visiting the login page below and selecting "Returning User". Enter your email address and the Survey ID above.
                 </p>
               </div>
 
@@ -228,7 +228,7 @@ function FPRegisterContent() {
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
                 <p className="text-sm text-blue-800">
-                  <strong>To access the survey:</strong> Go to the login page and select "Returning User". Enter any email address and the Survey ID above to begin.
+                  <strong>To access your completed submission:</strong> Go to the login page and select "Returning User". Enter any email address and the Survey ID above.
                 </p>
               </div>
 
