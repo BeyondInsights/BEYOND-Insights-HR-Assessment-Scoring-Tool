@@ -14,6 +14,10 @@ export const FOUNDING_PARTNER_IDS = [
   'FP-HR-316326',  // Stellantis
   'FP-HR-385190',  // L'Oréal
   'FP-HR-394644',  // Ford Motor
+  'FP-HR-847263',  // Citi
+  'FP-HR-519842',  // Haleon
+  'FP-HR-376491',  // Mars
+  'FP-HR-628157',  // Renault
   'FP-748923',
   'FP-392847',
   'FP-856201',
