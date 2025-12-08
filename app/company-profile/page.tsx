@@ -85,49 +85,190 @@ const RESPONSE_OPTIONS_D13 = [
 ];
 
 /* =========================
-   FIELD LABELS
+   FIELD LABELS - COMPLETE MAPPING
 ========================= */
 const FIELD_LABELS: Record<string, string> = {
+  // Company Info
   companyName: 'Company Name',
-  s8: 'Total Employee Size',
+  firstName: 'First Name',
+  lastName: 'Last Name',
+  title: 'Title',
+  titleOther: 'Title',
+  
+  // Screener
+  s1: 'Birth Year',
+  s2: 'Gender Identity',
+  s3: 'Employment Status',
+  s4a: 'Department/Function',
+  s4b: 'Primary Job Function',
+  s5: 'Level in Organization',
+  s6: 'Areas of Responsibility',
+  s7: 'Influence on Benefits Decisions',
+  s8: 'Total Employees',
   s9: 'Headquarters Location',
-  s9a: 'Countries with Employee Presence',
+  s9a: 'Countries with Operations',
+  
+  // Classification
   c2: 'Industry',
+  c3: 'Benefits Eligibility',
+  c3a: 'Employee Groups Excluded',
+  c4: 'Annual Revenue',
   c5: 'Annual Revenue',
   c6: 'Remote/Hybrid Work Policy',
-  cb1: 'Standard Benefits Package Overview',
-  cb3a: 'Cancer Support Program Characterization',
-  cb3b: 'Key Cancer Support Program Features',
-  cb3c: 'Conditions Covered by Support Programs',
-  or1: 'Current Approach to Supporting Employees',
-  or2a: 'Triggers for Enhanced Support',
+  
+  // General Benefits
+  cb1: 'Current Benefits Offered',
+  cb1a: 'Employees with National Healthcare Access',
+  cb2b: 'Benefits Planned (Next 2 Years)',
+  
+  // Current Support
+  cb3a: 'Support Beyond Legal Requirements',
+  cb3b: 'Program Structure',
+  cb3c: 'Health Conditions Covered',
+  cb3d: 'Program Development Method',
+  
+  // Organization Approach
+  or1: 'Current Approach to Support',
+  or2a: 'What Triggered Enhanced Support',
   or2b: 'Most Impactful Change',
   or3: 'Primary Barriers',
+  or5a: 'Caregiver Support Types',
+  or6: 'Effectiveness Monitoring',
+  
+  // Cross-Dimensional
   cd1a: 'Top 3 Priority Dimensions',
   cd1b: 'Bottom 3 Priority Dimensions',
   cd2: 'Implementation Challenges',
+  
+  // Employee Impact
   ei1: 'Program Impact by Outcome Area',
   ei2: 'ROI Analysis Status',
   ei3: 'Approximate ROI',
-  ei4: 'Advice to Other HR Leaders',
+  ei4: 'Advice for Other HR Leaders',
+  ei5: 'Survey Gaps Identified',
+  
+  // Impact Levels
   'significant': 'Significant positive impact',
   'moderate': 'Moderate positive impact',
   'minimal': 'Minimal positive impact',
   'no_impact': 'No positive impact',
-  'unable': 'Unable to assess'
+  'unable': 'Unable to assess',
+  
+  // ============================================
+  // DIMENSION FOLLOW-UP QUESTIONS - ALL LABELS
+  // ============================================
+  
+  // Dimension 1 - Medical Leave
+  d1aa: 'Geographic Scope',
+  d1b: 'Additional Benefits Not Listed',
+  d1_1: 'Additional Paid Leave',
+  'd1_1_usa': 'Additional Paid Leave (USA)',
+  'd1_1_non_usa': 'Additional Paid Leave (Non-USA)',
+  d1_2: 'Additional Intermittent Leave',
+  'd1_2_usa': 'Intermittent Leave (USA)',
+  'd1_2_non_usa': 'Intermittent Leave (Non-USA)',
+  d1_4a: 'Remote Work Duration',
+  'd1_4a_type': 'Duration Type',
+  d1_4b: 'Reduced Schedule with Full Benefits',
+  d1_5: 'Job Protection Beyond Legal',
+  'd1_5_usa': 'Job Protection (USA)',
+  'd1_5_non_usa': 'Job Protection (Non-USA)',
+  d1_6: 'Disability Pay Enhancement',
+  
+  // Dimension 2 - Insurance
+  d2aa: 'Geographic Scope',
+  d2b: 'Additional Benefits Not Listed',
+  
+  // Dimension 3 - Manager Training
+  d3aa: 'Geographic Scope',
+  d3b: 'Additional Initiatives Not Listed',
+  d3_1: 'Manager Training Completion Rate',
+  d3_1a: 'Training Requirement Type',
+  
+  // Dimension 4 - Navigation
+  d4aa: 'Geographic Scope',
+  d4b: 'Additional Resources Not Listed',
+  d4_1a: 'Navigation Provider Type',
+  d4_1b: 'Navigation Services Available',
+  
+  // Dimension 5 - Accommodations
+  d5aa: 'Geographic Scope',
+  d5b: 'Additional Accommodations Not Listed',
+  
+  // Dimension 6 - Culture
+  d6aa: 'Geographic Scope',
+  d6b: 'Additional Supports Not Listed',
+  d6_2: 'How Psychological Safety is Measured',
+  
+  // Dimension 7 - Career
+  d7aa: 'Geographic Scope',
+  d7b: 'Additional Supports Not Listed',
+  
+  // Dimension 8 - Work Continuation
+  d8aa: 'Geographic Scope',
+  d8b: 'Additional Supports Not Listed',
+  
+  // Dimension 9 - Executive
+  d9aa: 'Geographic Scope',
+  d9b: 'Additional Practices Not Listed',
+  
+  // Dimension 10 - Caregiver
+  d10aa: 'Geographic Scope',
+  d10b: 'Additional Benefits Not Listed',
+  
+  // Dimension 11 - Prevention
+  d11aa: 'Geographic Scope',
+  d11b: 'Additional Initiatives Not Listed',
+  d11_1: 'Early Detection Services at 100% Coverage',
+  
+  // Dimension 12 - Continuous Improvement
+  d12aa: 'Geographic Scope',
+  d12b: 'Additional Practices Not Listed',
+  d12_1: 'Individual Experience Review Process',
+  d12_2: 'Changes from Employee Feedback',
+  
+  // Dimension 13 - Communication
+  d13aa: 'Geographic Scope',
+  d13b: 'Additional Methods Not Listed',
+  d13_1: 'Communication Frequency',
 };
 
 /* =========================
    HELPERS
 ========================= */
-const formatGenericLabel = (key: string) =>
-  key.replace(/_/g, ' ')
-     .replace(/([A-Z])/g, ' $1')
-     .replace(/\s+/g, ' ')
-     .trim()
-     .replace(/\b\w/g, l => l.toUpperCase());
+const formatGenericLabel = (key: string) => {
+  // Remove dimension prefix patterns like "d1_", "d12_", etc.
+  let clean = key.replace(/^d\d+[_]?/i, '');
+  
+  return clean
+    .replace(/_/g, ' ')
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, l => l.toUpperCase());
+};
 
-const formatLabel = (key: string) => FIELD_LABELS[key] ?? formatGenericLabel(key);
+const formatLabel = (key: string): string => {
+  // Normalize key
+  const cleanKey = key.replace(/^[Qq]/, '').toLowerCase();
+  
+  // Direct lookup
+  if (FIELD_LABELS[key]) return FIELD_LABELS[key];
+  if (FIELD_LABELS[cleanKey]) return FIELD_LABELS[cleanKey];
+  
+  // Try with underscores
+  const withUnderscores = cleanKey.replace(/([a-z])(\d)/g, '$1_$2');
+  if (FIELD_LABELS[withUnderscores]) return FIELD_LABELS[withUnderscores];
+  
+  // Check all keys for normalized match
+  for (const [labelKey, labelValue] of Object.entries(FIELD_LABELS)) {
+    if (labelKey.toLowerCase().replace(/_/g, '') === cleanKey.replace(/_/g, '')) {
+      return labelValue;
+    }
+  }
+  
+  return formatGenericLabel(key);
+};
 
 function selectedOnly(value: any): string[] | string | null {
   if (value == null) return null;
@@ -142,16 +283,29 @@ function selectedOnly(value: any): string[] | string | null {
 
 const hasProgramStatusMap = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
 
-function normalizeStatus(s: string | number) {
+/* =========================
+   DIMENSION-AWARE STATUS NORMALIZATION
+========================= */
+function normalizeStatus(s: string | number, dimNumber: number = 0): string {
   // Handle numeric status codes from Founding Partner data
   // 1 = Not able to offer, 2 = Assessing, 3 = Planning, 4 = Currently offer, 5 = Unsure
   const numStatus = typeof s === 'number' ? s : parseInt(String(s));
-  if (!isNaN(numStatus)) {
+  
+  if (!isNaN(numStatus) && numStatus >= 1 && numStatus <= 5) {
     switch (numStatus) {
-      case 4: return 'Currently offer';
+      case 4:
+        // Dimension-specific "Currently" labels
+        if (dimNumber === 3) return 'Currently provide to managers';
+        if (dimNumber === 12) return 'Currently measure / track';
+        if (dimNumber === 13) return 'Currently use';
+        return 'Currently offer';
       case 3: return 'In active planning / development';
       case 2: return 'Assessing feasibility';
-      case 1: return 'Not able to offer in foreseeable future';
+      case 1:
+        if (dimNumber === 3) return 'Not able to provide in foreseeable future';
+        if (dimNumber === 12) return 'Not able to measure / track in foreseeable future';
+        if (dimNumber === 13) return 'Not able to utilize in foreseeable future';
+        return 'Not able to offer in foreseeable future';
       case 5: return 'Unsure';
     }
   }
@@ -188,24 +342,29 @@ function parseDimensionData(dimNumber: number, data: Record<string, any>): {
   Object.entries(data || {}).forEach(([key, value]) => {
     const lowerKey = key.toLowerCase();
     
+    // Handle the main program status map (d1a, d2a, etc.)
     if (lowerKey === `${prefix}a` && hasProgramStatusMap(value)) {
       Object.entries(value).forEach(([program, status]) => {
         if (status != null && String(status).trim() !== '') {
-          programs.push({ program: String(program), status: String(status) });
+          // Normalize status with dimension awareness
+          const normalizedStatus = normalizeStatus(status, dimNumber);
+          programs.push({ program: String(program), status: normalizedStatus });
         }
       });
       return;
     }
     
+    // Handle geographic scope (d1aa, d2aa, etc.)
     if (lowerKey === `${prefix}aa` && value) {
       items.push({
-        question: 'Geographic consistency of support options',
+        question: 'Geographic Scope',
         response: String(value)
       });
       return;
     }
     
-    if (!key.endsWith('_none')) {
+    // Handle other follow-up questions
+    if (!key.endsWith('_none') && lowerKey !== `${prefix}a`) {
       const resp = selectedOnly(value);
       if (resp) {
         items.push({
@@ -238,9 +397,9 @@ function downloadHTML(data: any) {
     options.forEach(opt => (byStatus[opt] = []));
     
     programs.forEach(({ program, status }) => {
-      const normalized = normalizeStatus(String(status));
-      if (!byStatus[normalized]) byStatus[normalized] = [];
-      byStatus[normalized].push(program);
+      // Status is already normalized from parseDimensionData
+      if (!byStatus[status]) byStatus[status] = [];
+      byStatus[status].push(program);
     });
     
     const totalPrograms = programs.length;
@@ -303,13 +462,13 @@ function downloadHTML(data: any) {
           ` : ''}
           ${items.length > 0 ? `
             <div style="margin-top: 1rem;">
-              ${items.map(item => `
+              ${items.map(it => `
                 <div style="padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6;">
                   <div style="font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.25rem;">
-                    ${item.question}
+                    ${it.question}
                   </div>
                   <div style="font-size: 0.875rem; color: #0f172a;">
-                    ${item.response}
+                    ${it.response}
                   </div>
                 </div>
               `).join('')}
@@ -319,7 +478,7 @@ function downloadHTML(data: any) {
       </div>
     `;
   });
-  
+
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -357,55 +516,80 @@ function downloadHTML(data: any) {
       </div>
       <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">${data.companyName}</h1>
       <div style="color: #64748b; font-size: 0.875rem;">
-        ${data.generatedAt}${data.email ? ` • ${data.email}` : ''}
+        ${data.surveyId || ''} • ${data.email || ''}
       </div>
-      ${data.applicationId ? `
-        <div style="color: #64748b; font-size: 0.75rem; margin-top: 0.25rem;">
-          Application ID: <span style="font-family: monospace; font-weight: 600;">${data.applicationId}</span>
-        </div>
-      ` : ''}
     </div>
     
     <div class="grid-2">
       <div class="section">
         <h2 class="section-title">Point of Contact</h2>
-        ${Object.entries({
-          'Name': `${data.firstName} ${data.lastName}`.trim(),
-          'Email': data.email,
-          'Department': data.firmographics?.s4a,
-          'Function': data.firmographics?.s4b,
-          'Level': data.firmographics?.s5
-        }).filter(([k,v]) => v).map(([label, value]) => `
+        ${data.firmo?.firstName || data.firmo?.lastName ? `
           <div class="field">
-            <div class="field-label">${label}</div>
-            <div class="field-value">${Array.isArray(value) ? value.join(', ') : value}</div>
+            <div class="field-label">Name</div>
+            <div class="field-value">${data.firmo?.firstName || ''} ${data.firmo?.lastName || ''}</div>
           </div>
-        `).join('')}
+        ` : ''}
+        ${data.firmo?.title ? `
+          <div class="field">
+            <div class="field-label">Title</div>
+            <div class="field-value">${data.firmo?.title}</div>
+          </div>
+        ` : ''}
+        ${data.email ? `
+          <div class="field">
+            <div class="field-label">Email</div>
+            <div class="field-value">${data.email}</div>
+          </div>
+        ` : ''}
       </div>
       
       <div class="section">
         <h2 class="section-title">Company Profile</h2>
-        ${Object.entries({
-          'Industry': data.firmographics?.c2,
-          'Annual Revenue': data.firmographics?.c5,
-          'Total Employee Size': data.firmographics?.s8,
-          'HQ Location': data.firmographics?.s9,
-          'Countries with Presence': data.firmographics?.s9a,
-          'Remote/Hybrid Policy': data.firmographics?.c6
-        }).filter(([k,v]) => v).map(([label, value]) => `
+        ${data.firmo?.s8 ? `
           <div class="field">
-            <div class="field-label">${label}</div>
-            <div class="field-value">${Array.isArray(value) ? value.join(', ') : value}</div>
+            <div class="field-label">Total Employees</div>
+            <div class="field-value">${data.firmo.s8}</div>
           </div>
-        `).join('')}
+        ` : ''}
+        ${data.firmo?.s9 ? `
+          <div class="field">
+            <div class="field-label">Headquarters</div>
+            <div class="field-value">${data.firmo.s9}</div>
+          </div>
+        ` : ''}
+        ${data.firmo?.s9a ? `
+          <div class="field">
+            <div class="field-label">Countries of Operation</div>
+            <div class="field-value">${data.firmo.s9a}</div>
+          </div>
+        ` : ''}
+        ${data.firmo?.c2 ? `
+          <div class="field">
+            <div class="field-label">Industry</div>
+            <div class="field-value">${data.firmo.c2}</div>
+          </div>
+        ` : ''}
+        ${data.firmo?.c4 || data.firmo?.c5 ? `
+          <div class="field">
+            <div class="field-label">Annual Revenue</div>
+            <div class="field-value">${data.firmo.c4 || data.firmo.c5}</div>
+          </div>
+        ` : ''}
+        ${data.firmo?.c6 ? `
+          <div class="field">
+            <div class="field-label">Remote/Hybrid Policy</div>
+            <div class="field-value">${data.firmo.c6}</div>
+          </div>
+        ` : ''}
       </div>
     </div>
     
     <h2 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 1.5rem 0 1rem;">13 Dimensions of Support</h2>
     ${dimensionsHTML}
     
-    <div style="text-align: center; padding-top: 2rem; margin-top: 3rem; border-top: 1px solid #e5e7eb; color: #64748b; font-size: 0.75rem;">
-      Best Companies for Working with Cancer: Employer Index - Copyright ${new Date().getFullYear()} Cancer and Careers & CEW Foundation
+    <div style="text-align: center; padding-top: 2rem; border-top: 1px solid #e5e7eb; margin-top: 2rem; font-size: 0.75rem; color: #64748b;">
+      Best Companies for Working with Cancer Index • Company Profile Report<br>
+      Generated ${new Date().toLocaleDateString()} • Survey ID: ${data.surveyId || 'N/A'}
     </div>
   </div>
 </body>
@@ -460,10 +644,10 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
   const byStatus: Record<string, Array<string>> = {};
   options.forEach(opt => (byStatus[opt] = []));
   
+  // Programs already have normalized statuses from parseDimensionData
   programs.forEach(({ program, status }) => {
-    const normalized = normalizeStatus(String(status));
-    if (!byStatus[normalized]) byStatus[normalized] = [];
-    byStatus[normalized].push(program);
+    if (!byStatus[status]) byStatus[status] = [];
+    byStatus[status].push(program);
   });
 
   const totalPrograms = programs.length;
@@ -557,7 +741,7 @@ export default function CompanyProfilePage() {
         if (error) throw error;
         if (!assessment) throw new Error('Assessment not found for FP: ' + surveyId);
         
-        // Transform and set data (same as regular user flow below)
+        // Transform and set data
         const firmo = assessment.firmographics_data || {};
         const general = assessment.general_benefits_data || {};
         const current = assessment.current_support_data || {};
@@ -612,6 +796,11 @@ export default function CompanyProfilePage() {
 
       // Transform data
       const firmo = assessment.firmographics_data || {};
+      const general = assessment.general_benefits_data || {};
+      const current = assessment.current_support_data || {};
+      const cross = assessment.cross_dimensional_data || {};
+      const impact = assessment.employee_impact_data || {};
+
       const dimensions = [];
       for (let i = 1; i <= 13; i++) {
         dimensions.push({
@@ -621,18 +810,15 @@ export default function CompanyProfilePage() {
       }
 
       setData({
-        companyName: assessment.company_name || firmo.companyName || 'Organization',
-        email: assessment.email || user.email || '',
-        applicationId: assessment.app_id || '',
-        firstName: firmo.firstName || '',
-        lastName: firmo.lastName || '',
-        generatedAt: new Date().toLocaleDateString(),
-        firmographics: firmo,
-        general: assessment.general_benefits_data || {},
-        current: assessment.current_support_data || {},
-        cross: assessment.cross_dimensional_data || {},
-        impact: assessment.employee_impact_data || {},
-        dimensions
+        companyName: assessment.company_name || firmo.companyName || 'Company',
+        email: user.email,
+        surveyId: assessment.app_id || assessment.survey_id,
+        firmo,
+        general,
+        current,
+        dimensions,
+        cross,
+        impact
       });
     } catch (err: any) {
       console.error('Error fetching assessment:', err);
@@ -644,140 +830,90 @@ export default function CompanyProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen grid place-items-center" style={{ backgroundColor: BRAND.gray[50] }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: BRAND.gray[100] }}>
         <div className="text-center">
           <svg className="animate-spin h-12 w-12 mx-auto mb-4" style={{ color: BRAND.primary }} viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <div className="text-sm" style={{ color: BRAND.gray[600] }}>Loading your profile...</div>
+          <p style={{ color: BRAND.gray[600] }}>Loading your company profile...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !data) {
     return (
-      <div className="min-h-screen grid place-items-center" style={{ backgroundColor: BRAND.gray[50] }}>
-        <div className="text-center max-w-md">
-          <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Profile</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: BRAND.gray[100] }}>
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+          <svg className="w-16 h-16 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h2 className="text-xl font-bold mb-2" style={{ color: BRAND.gray[900] }}>Unable to Load Profile</h2>
+          <p className="mb-4" style={{ color: BRAND.gray[600] }}>{error || 'No data found'}</p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="px-6 py-2 rounded-lg text-white font-semibold"
+            style={{ backgroundColor: BRAND.primary }}
           >
-            ← Back to Dashboard
+            Return to Dashboard
           </button>
         </div>
       </div>
     );
   }
 
-  if (!data) return null;
-
-  const firmo = data.firmographics || {};
-  const poc = {
-    name: `${data.firstName} ${data.lastName}`.trim(),
-    email: data.email,
-    dept: firmo?.s4a || firmo?.s3,
-    function: firmo?.s4b,
-    level: firmo?.s5,
-    areas: firmo?.s6,
-    influence: firmo?.s7
-  };
-
   return (
-    <div className="min-h-screen" style={{ backgroundColor: BRAND.gray[50] }}>
-      {/* HEADER */}
-      <header className="bg-white border-b" style={{ borderColor: BRAND.gray[200] }}>
-        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
-          <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-24 w-auto" />
-          <div className="text-2xl font-black tracking-wide" style={{ color: BRAND.primary }}>
-           • Company Profile & Assessment Survey Summary • 
-          </div>
-          <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-16 w-auto" />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 pb-4">
-          <h1 className="text-3xl font-black" style={{ color: BRAND.gray[900] }}>{data.companyName}</h1>
-          <p className="text-sm mt-1" style={{ color: BRAND.gray[600] }}>
-            {data.generatedAt}
-            {data.email && ` • ${data.email}`}
-            {data.applicationId && (
-              <span className="font-mono font-semibold"> • App ID: {data.applicationId}</span>
-            )}
-          </p>
-   
-          <div className="mt-4 print:hidden">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-              <p className="text-xs text-blue-900 font-medium mb-1">📄 Download Option:</p>
-              <p className="text-xs text-blue-800">
-                Click "Download HTML" to save a clean version of this profile that can be opened in any browser.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-2 flex-wrap">
-              <a href="/dashboard" className="px-4 py-2 text-sm font-semibold border rounded hover:bg-gray-50"
-                 style={{ borderColor: BRAND.gray[300], color: BRAND.gray[900] }}>
-                ← Back to Dashboard
-              </a>
-              
-              <button 
-                onClick={() => downloadHTML(data)} 
-                className="px-5 py-2 text-sm font-semibold rounded text-white hover:opacity-90 flex items-center gap-2"
-                style={{ backgroundColor: '#2563eb' }}
+    <div className="min-h-screen" style={{ backgroundColor: BRAND.gray[100] }}>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* HEADER */}
+        <div className="bg-white rounded-xl shadow-lg mb-6 overflow-hidden">
+          <div className="px-8 py-6" style={{ backgroundColor: BRAND.primary }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/80 text-sm font-medium mb-1">Company Profile</p>
+                <h1 className="text-3xl font-bold text-white">{data.companyName}</h1>
+                <p className="text-white/70 text-sm mt-1">{data.surveyId} • {data.email}</p>
+              </div>
+              <button
+                onClick={() => downloadHTML(data)}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Download HTML
+                Download Report
               </button>
             </div>
           </div>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-6">
-        {/* POC + COMPANY PROFILE */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        {/* COMPANY INFO */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
           <div className="bg-white border rounded-lg p-5" style={{ borderColor: BRAND.gray[200] }}>
-            <div className="flex items-center gap-3 mb-4">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: BRAND.primary }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <h2 className="text-lg font-bold" style={{ color: BRAND.gray[900] }}>Point of Contact</h2>
-            </div>
-             
-            <Field label="Name" value={poc.name} />
-            <Field label="Email" value={poc.email} />
-            <Field label="Department" value={poc.dept} />
-            <Field label="Primary Job Function" value={poc.function} />
-            <Field label="Current Level" value={poc.level} />
-            <Field label="Areas of Responsibility" value={poc.areas} />
-            <Field label="Level of Influence on Benefits" value={poc.influence} />
+            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Contact Information</h2>
+            <Field label="Name" value={`${data.firmo?.firstName || ''} ${data.firmo?.lastName || ''}`.trim() || 'N/A'} />
+            <Field label="Title" value={data.firmo?.title || data.firmo?.s4b} />
+            <Field label="Email" value={data.email} />
+            <Field label="Level" value={data.firmo?.s5} />
+            <Field label="Benefits Influence" value={data.firmo?.s7} />
           </div>
 
           <div className="bg-white border rounded-lg p-5" style={{ borderColor: BRAND.gray[200] }}>
-            <div className="flex items-center gap-3 mb-4">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: BRAND.primary }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <h2 className="text-lg font-bold" style={{ color: BRAND.gray[900] }}>Company Profile</h2>
-            </div>
-            <Field label="Industry" value={firmo.c2} />
-            <Field label="Annual Revenue" value={firmo.c5} />
-            <Field label="Total Employee Size" value={firmo.s8} />
-            <Field label="HQ Location" value={firmo.s9} />
-            <Field label="Countries with Presence" value={firmo.s9a} />
-            <Field label="Remote/Hybrid Policy" value={firmo.c6} />
+            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Company Profile</h2>
+            <Field label="Industry" value={data.firmo?.c2} />
+            <Field label="Total Employees" value={data.firmo?.s8} />
+            <Field label="Headquarters" value={data.firmo?.s9} />
+            <Field label="Countries of Operation" value={data.firmo?.s9a} />
+            <Field label="Annual Revenue" value={data.firmo?.c4 || data.firmo?.c5} />
+            <Field label="Remote/Hybrid Policy" value={data.firmo?.c6} />
           </div>
         </div>
 
         {/* GENERAL BENEFITS */}
         {Object.keys(data.general || {}).length > 0 && (
           <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>General Employee Benefits</h2>
+            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Benefits Landscape</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
               {Object.entries(data.general).map(([k, v]) => (
                 <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
