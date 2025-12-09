@@ -6,6 +6,7 @@ import { authenticateUser, getCurrentUser } from '@/lib/supabase/auth'
 import { formatAppId } from '@/lib/supabase/utils'
 import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
+import { isSharedFP, loadSharedFPData } from '@/lib/supabase/fp-shared-storage'
 import Footer from '@/components/Footer'
 
 export default function LoginPage() {
@@ -64,110 +65,57 @@ export default function LoginPage() {
     }
     // ============================================
 
+    const trimmedSurveyId = surveyId.trim().toUpperCase()
+
     // ============================================
-    // CHECK FOR FOUNDING PARTNER ID FIRST
+    // CHECK FOR SHARED FP (Best Buy) FIRST
     // ============================================
-    if (!isNewUser && isFoundingPartner(surveyId.trim())) {
-      console.log('Founding Partner ID detected:', surveyId.trim())
+    if (!isNewUser && isSharedFP(trimmedSurveyId)) {
+      console.log('🏪 Shared FP (Best Buy) detected:', trimmedSurveyId)
+      
+      // Store login info
+      localStorage.setItem('login_email', email)
+      localStorage.setItem('auth_email', email)
+      localStorage.setItem('survey_id', trimmedSurveyId)
+      localStorage.setItem('user_authenticated', 'true')
+      localStorage.setItem('last_user_email', email)
+      localStorage.setItem('login_Survey_id', trimmedSurveyId)
+      
+      // Load shared data from Supabase
+      setSuccessMessage('Loading your team\'s progress...')
+      const loaded = await loadSharedFPData(trimmedSurveyId)
+      
+      if (loaded) {
+        setSuccessMessage('✅ Found existing progress! Redirecting...')
+      } else {
+        setSuccessMessage('✅ Access confirmed! Redirecting...')
+      }
+      
+      setTimeout(() => {
+        router.push('/letter')
+      }, 1500)
+      setLoading(false)
+      return
+    }
+    // ============================================
+
+    // ============================================
+    // CHECK FOR REGULAR FOUNDING PARTNER
+    // ============================================
+    if (!isNewUser && isFoundingPartner(trimmedSurveyId)) {
+      console.log('Founding Partner ID detected:', trimmedSurveyId)
       
       localStorage.setItem('login_email', email)
       localStorage.setItem('auth_email', email)
-      localStorage.setItem('survey_id', surveyId.trim())
+      localStorage.setItem('survey_id', trimmedSurveyId)
       localStorage.setItem('user_authenticated', 'true')
       localStorage.setItem('last_user_email', email)
-      localStorage.setItem('login_Survey_id', surveyId.trim())
+      localStorage.setItem('login_Survey_id', trimmedSurveyId)
       
-      // ✅ QUERY SUPABASE FOR FOUNDING PARTNER DATA (by app_id)
-      try {
-        const { data: assessment } = await supabase
-          .from('assessments')
-          .select('*')
-          .eq('app_id', surveyId.trim())
-          .single()
-        
-        if (assessment && assessment.firmographics_complete) {
-          console.log('✅ Founding Partner data found in Supabase - restoring to localStorage')
-          
-          // ✅ RESTORE ALL DATA FROM SUPABASE TO LOCALSTORAGE (same as regular users)
-          localStorage.setItem('auth_completed', 'true')
-          localStorage.setItem('payment_completed', 'true') // FPs are pre-paid
-          
-          // Restore company info
-          if (assessment.company_name) localStorage.setItem('login_company_name', assessment.company_name)
-          
-          // Restore all survey data
-          if (assessment.firmographics_data) {
-            localStorage.setItem('firmographics_data', JSON.stringify(assessment.firmographics_data))
-          }
-          if (assessment.firmographics_complete) {
-            localStorage.setItem('firmographics_complete', 'true')
-          }
-          
-          if (assessment.general_benefits_data) {
-            localStorage.setItem('general_benefits_data', JSON.stringify(assessment.general_benefits_data))
-          }
-          if (assessment.general_benefits_complete) {
-            localStorage.setItem('general_benefits_complete', 'true')
-          }
-          
-          if (assessment.current_support_data) {
-            localStorage.setItem('current_support_data', JSON.stringify(assessment.current_support_data))
-          }
-          if (assessment.current_support_complete) {
-            localStorage.setItem('current_support_complete', 'true')
-          }
-          
-          // Restore all 13 dimensions
-          for (let i = 1; i <= 13; i++) {
-            const dataKey = `dimension${i}_data`
-            const completeKey = `dimension${i}_complete`
-            
-            if (assessment[dataKey]) {
-              localStorage.setItem(dataKey, JSON.stringify(assessment[dataKey]))
-            }
-            if (assessment[completeKey]) {
-              localStorage.setItem(completeKey, 'true')
-            }
-          }
-          
-          // Restore cross-dimensional and employee impact
-          if (assessment.cross_dimensional_data) {
-            localStorage.setItem('cross_dimensional_data', JSON.stringify(assessment.cross_dimensional_data))
-          }
-          if (assessment.cross_dimensional_complete) {
-            localStorage.setItem('cross_dimensional_complete', 'true')
-          }
-          
-          if (assessment.employee_impact_data) {
-            localStorage.setItem('employee-impact-assessment_data', JSON.stringify(assessment.employee_impact_data))
-          }
-          if (assessment.employee_impact_complete) {
-            localStorage.setItem('employee-impact-assessment_complete', 'true')
-          }
-          
-          console.log('✅ All Founding Partner data restored to localStorage')
-          
-          setSuccessMessage('✅ Welcome back! Redirecting to your dashboard...')
-          setTimeout(() => {
-            router.push('/dashboard')
-          }, 1500)
-        } else {
-          // FP exists but hasn't completed onboarding yet
-          console.log('📋 Founding Partner needs to complete onboarding - going to letter')
-          setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
-          setTimeout(() => {
-            router.push('/letter')
-          }, 1500)
-        }
-      } catch (error) {
-        console.error('Error loading FP data:', error)
-        // Fallback - go to letter if we can't load data
-        setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
-        setTimeout(() => {
-          router.push('/letter')
-        }, 1500)
-      }
-      
+      setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
+      setTimeout(() => {
+        router.push('/letter')
+      }, 1500)
       setLoading(false)
       return
     }
@@ -186,8 +134,11 @@ export default function LoginPage() {
         // CLEAR OLD DATA FOR NEW USERS
         // ============================================
         if (result.mode === 'new') {
-          console.log('New user account created')
-          // DON'T clear localStorage - it contains the Supabase session!
+          console.log('New user account - clearing any old localStorage data')
+          const emailToKeep = currentEmail
+          localStorage.clear()
+          localStorage.setItem('auth_email', emailToKeep)
+          localStorage.setItem('login_email', email)
         }
         // ============================================
         
@@ -201,92 +152,22 @@ export default function LoginPage() {
           localStorage.setItem('login_Survey_id', surveyId)
         }
         
-        // ✅ FOR EXISTING/RETURNING USERS - RESTORE ALL DATA AND GO TO DASHBOARD
+        // For existing/returning users
         if (result.mode === 'existing' && !result.needsVerification) {
           const user = await getCurrentUser()
           if (user) {
-            // ✅ CRITICAL: Restore ALL survey data from Supabase to localStorage
             const { data: assessment } = await supabase
               .from('assessments')
-              .select('*')
+              .select('auth_completed')
               .eq('user_id', user.id)
               .single()
             
-            if (assessment) {
-              console.log('🔄 Restoring all survey data to localStorage...')
-              
-              // Restore completion flags
-              if (assessment.auth_completed) localStorage.setItem('auth_completed', 'true')
-              if (assessment.payment_completed) localStorage.setItem('payment_completed', 'true')
-              if (assessment.payment_method) localStorage.setItem('payment_method', assessment.payment_method)
-              
-              // ✅ RESTORE SURVEY SUBMISSION FLAGS
-              if (assessment.survey_submitted) {
-                localStorage.setItem('assessment_completion_shown', 'true')
-                localStorage.setItem('survey_fully_submitted', 'true')
-              }
-              if (assessment.employee_survey_opt_in !== null && assessment.employee_survey_opt_in !== undefined) {
-                localStorage.setItem('employee_survey_opt_in', assessment.employee_survey_opt_in.toString())
-              }
-              
-              // Restore company info
-              if (assessment.company_name) localStorage.setItem('login_company_name', assessment.company_name)
-              
-              // Restore all survey data
-              if (assessment.firmographics_data) {
-                localStorage.setItem('firmographics_data', JSON.stringify(assessment.firmographics_data))
-              }
-              if (assessment.firmographics_complete) {
-                localStorage.setItem('firmographics_complete', 'true')
-              }
-              
-              if (assessment.general_benefits_data) {
-                localStorage.setItem('general_benefits_data', JSON.stringify(assessment.general_benefits_data))
-              }
-              if (assessment.general_benefits_complete) {
-                localStorage.setItem('general_benefits_complete', 'true')
-              }
-              
-              if (assessment.current_support_data) {
-                localStorage.setItem('current_support_data', JSON.stringify(assessment.current_support_data))
-              }
-              if (assessment.current_support_complete) {
-                localStorage.setItem('current_support_complete', 'true')
-              }
-              
-              // Restore all 13 dimensions
-              for (let i = 1; i <= 13; i++) {
-                const dataKey = `dimension${i}_data`
-                const completeKey = `dimension${i}_complete`
-                
-                if (assessment[dataKey]) {
-                  localStorage.setItem(dataKey, JSON.stringify(assessment[dataKey]))
-                }
-                if (assessment[completeKey]) {
-                  localStorage.setItem(completeKey, 'true')
-                }
-              }
-              
-              // Restore cross-dimensional and employee impact
-              if (assessment['cross_dimensional_data']) {
-                localStorage.setItem('cross_dimensional_data', JSON.stringify(assessment['cross_dimensional_data']))
-              }
-              if (assessment['cross_dimensional_complete']) {
-                localStorage.setItem('cross_dimensional_complete', 'true')
-              }
-              
-              if (assessment.employee_impact_data) {
-                localStorage.setItem('employee-impact-assessment_data', JSON.stringify(assessment.employee_impact_data))
-              }
-              if (assessment.employee_impact_complete) {
-                localStorage.setItem('employee-impact-assessment_complete', 'true')
-              }
-              
-              console.log('✅ All survey data restored to localStorage')
-            }
-            
-            setSuccessMessage('✅ Welcome back! Redirecting to your dashboard...')
+            setSuccessMessage(result.message)
             setTimeout(() => {
+              if (!assessment?.auth_completed) {
+                router.push('/letter')
+                return
+              }
               router.push('/dashboard')
             }, 1000)
           }
@@ -309,13 +190,10 @@ export default function LoginPage() {
     }
   }
 
-  const handleProceedToSurvey = () => {
-    // Keep all authentication flags set for new user
-    localStorage.setItem('user_authenticated', 'true')
-    localStorage.setItem('new_user_just_created', 'true')  // Keep this flag
-    console.log('🚀 New user proceeding to survey')
-    router.push('/letter')
-  }
+const handleProceedToSurvey = () => {
+  localStorage.setItem('user_authenticated', 'true')
+  router.push('/authorization')
+}
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
@@ -365,7 +243,7 @@ export default function LoginPage() {
                     
                     <div className="mb-4 p-4 border-2 rounded-lg" style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}>
                       <p className="text-sm text-slate-900 font-semibold mb-2">
-                        🔑 Important - Save This ID!
+                        🔐 Important - Save This ID!
                       </p>
                       <p className="text-sm text-slate-800">
                         You can start your Survey right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
@@ -480,7 +358,7 @@ export default function LoginPage() {
                         onChange={(e) => setSurveyId(e.target.value.toUpperCase())}
                         className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg font-mono text-lg focus:border-[#F37021] focus:ring-2 focus:ring-orange-100 outline-none transition-all"
                         placeholder="CAC-251027-001AB"
-                        maxLength={25}
+                        maxLength={20}
                       />
                       <p className="text-xs text-slate-600 mt-2">
                         Enter your Survey ID (with or without dashes)
