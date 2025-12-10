@@ -111,7 +111,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Company Revenue</p>
-                <p className="font-semibold text-gray-900">{firmographics.c5 || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">{firmographics.c4 || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Headquarters</p>
@@ -140,7 +140,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Title</p>
-                <p className="font-semibold text-gray-900">{firmographics.s5 || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">{firmographics.title || 'N/A'}</p>
               </div>
             </div>
           </div>
