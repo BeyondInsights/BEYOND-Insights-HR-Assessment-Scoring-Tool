@@ -239,6 +239,23 @@ export default function InvoicePaymentPage() {
             .eq('user_id', user.id)
           
           console.log('✅ Payment, address, and email saved to Supabase')
+        } else {
+          // FALLBACK: Update by email if no Supabase session
+          const userEmailFallback = localStorage.getItem('auth_email') || ''
+          if (userEmailFallback) {
+            console.log('No Supabase user - updating by email:', userEmailFallback)
+            
+            await supabase
+              .from('assessments')
+              .update({
+                payment_completed: true,
+                payment_method: 'invoice',
+                payment_date: new Date().toISOString()
+              })
+              .eq('email', userEmailFallback.toLowerCase())
+            
+            console.log('✅ Payment saved via email fallback')
+          }
         }
       } catch (error) {
         console.error('Error saving payment to database:', error)
