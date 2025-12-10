@@ -11,8 +11,8 @@ export default function InvoicePaymentPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [scriptLoaded, setScriptLoaded] = useState(false)
-  const emailSentRef = useRef(false)  // Prevents duplicate emails
-  
+  const emailSentRef = useRef(false)
+
   const [companyData, setCompanyData] = useState({
     companyName: '',
     contactName: '',
@@ -36,8 +36,8 @@ export default function InvoicePaymentPage() {
       const lastName = localStorage.getItem('login_last_name') || ''
       const title = localStorage.getItem('login_title') || ''
       const applicationId = localStorage.getItem('login_application_id') || ''
-      
-    console.log('firstName:', firstName, 'lastName:', lastName, 'contactName:', `${firstName} ${lastName}`)
+
+      console.log('firstName:', firstName, 'lastName:', lastName, 'contactName:', `${firstName} ${lastName}`)
 
       setCompanyData({
         companyName,
@@ -46,7 +46,6 @@ export default function InvoicePaymentPage() {
         applicationId
       })
 
-      // Load jsPDF library
       if (!document.querySelector('script[src*="jspdf"]')) {
         const script = document.createElement('script')
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
@@ -79,10 +78,8 @@ export default function InvoicePaymentPage() {
     setLoading(true)
 
     try {
-      // Get the email from localStorage
       const userEmail = localStorage.getItem('login_email') || localStorage.getItem('auth_email') || ''
-      
-      // Save invoice data
+
       const invoiceData = {
         ...companyData,
         ...formData,
@@ -92,21 +89,18 @@ export default function InvoicePaymentPage() {
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         amount: 1250
       }
-      
-      // Store invoice data for viewing
+
       localStorage.setItem('invoice_data', JSON.stringify(invoiceData))
       localStorage.setItem('current_invoice_number', invoiceData.invoiceNumber)
 
-      // Generate PDF with base64 for email
       const pdfBase64 = await generateInvoicePDF(invoiceData)
       console.log('PDF generated, base64 length:', pdfBase64?.length)
 
-      // Send email ONLY ONCE - check the ref to prevent duplicates
       if (!emailSentRef.current) {
         try {
           const contactEmail = localStorage.getItem('login_email') || ''
           console.log('SENDING EMAIL to:', contactEmail)
-          
+
           const emailResponse = await fetch('/api/send-invoice-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -118,9 +112,9 @@ export default function InvoicePaymentPage() {
               invoicePdfBase64: pdfBase64,
             }),
           })
-          
-          emailSentRef.current = true  // Mark as sent
-          
+
+          emailSentRef.current = true
+
           if (!emailResponse.ok) {
             console.error('Email send failed:', await emailResponse.text())
           } else {
@@ -130,31 +124,28 @@ export default function InvoicePaymentPage() {
           console.error('Error sending email:', emailError)
         }
       }
-      
-     // Grant immediate access
-      localStorage.removeItem('new_user_bypass')  // ← ADD THIS LINE
+
+      localStorage.removeItem('new_user_bypass')
       localStorage.setItem('payment_method', 'invoice')
       localStorage.setItem('payment_completed', 'true')
       localStorage.setItem('payment_date', new Date().toISOString())
 
-     // Save to database - including address AND email in firmographics_data
+      // Save to database
       try {
         const user = await getCurrentUser()
         const userEmailFallback = localStorage.getItem('auth_email') || ''
-        
+
         if (user) {
-          // First get current firmographics_data and email
           const { data: currentData } = await supabase
             .from('assessments')
             .select('firmographics_data, email')
             .eq('user_id', user.id)
             .single()
-          
-          // Merge address fields into firmographics_data
+
           const existingFirst = currentData?.firmographics_data?.firstName
           const existingLast = currentData?.firmographics_data?.lastName
           const existingTitle = currentData?.firmographics_data?.title
-          
+
           const updatedFirmographics = {
             ...(currentData?.firmographics_data || {}),
             firstName: existingFirst || companyData.contactName.split(' ')[0] || '',
@@ -169,7 +160,7 @@ export default function InvoicePaymentPage() {
             country: formData.country,
             poNumber: formData.poNumber || undefined
           }
-          
+
           await supabase
             .from('assessments')
             .update({
@@ -179,12 +170,11 @@ export default function InvoicePaymentPage() {
               firmographics_data: updatedFirmographics
             })
             .eq('user_id', user.id)
-          
+
           console.log('✅ Payment saved via user_id')
         } else if (userEmailFallback) {
-          // FALLBACK: Update by email if no Supabase session
           console.log('No Supabase user - updating by email:', userEmailFallback)
-          
+
           await supabase
             .from('assessments')
             .update({
@@ -193,82 +183,19 @@ export default function InvoicePaymentPage() {
               payment_date: new Date().toISOString()
             })
             .eq('email', userEmailFallback.toLowerCase())
-          
+
           console.log('✅ Payment saved via email fallback')
         }
       } catch (error) {
         console.error('Error saving payment to database:', error)
       }
-          // First get current firmographics_data and email
-          const { data: currentData } = await supabase
-            .from('assessments')
-            .select('firmographics_data, email')
-            .eq('user_id', user.id)
-            .single()
-          
-          // Merge address fields into firmographics_data
-          // IMPORTANT: Don't overwrite existing names if they're already set
-          const existingFirst = currentData?.firmographics_data?.firstName;
-          const existingLast = currentData?.firmographics_data?.lastName;
-          const existingTitle = currentData?.firmographics_data?.title;
-          
-          const updatedFirmographics = {
-            ...(currentData?.firmographics_data || {}),
-            // Only set names if not already in database
-            firstName: existingFirst || companyData.contactName.split(' ')[0] || '',
-            lastName: existingLast || companyData.contactName.split(' ').slice(1).join(' ') || '',
-            title: existingTitle || companyData.title || '',
-            email: currentData?.email || userEmail,
-            addressLine1: formData.addressLine1,
-            addressLine2: formData.addressLine2 || undefined,
-            city: formData.city,
-            state: formData.state,
-            zipCode: formData.zipCode,
-            country: formData.country,
-            poNumber: formData.poNumber || undefined
-          }
-          
-          await supabase
-            .from('assessments')
-            .update({
-              payment_completed: true,
-              payment_method: 'invoice',
-              payment_date: new Date().toISOString(),
-              firmographics_data: updatedFirmographics
-            })
-            .eq('user_id', user.id)
-          
-          console.log('✅ Payment, address, and email saved to Supabase')
-        } else {
-          // FALLBACK: Update by email if no Supabase session
-          const userEmailFallback = localStorage.getItem('auth_email') || ''
-          if (userEmailFallback) {
-            console.log('No Supabase user - updating by email:', userEmailFallback)
-            
-            await supabase
-              .from('assessments')
-              .update({
-                payment_completed: true,
-                payment_method: 'invoice',
-                payment_date: new Date().toISOString()
-              })
-              .eq('email', userEmailFallback.toLowerCase())
-            
-            console.log('✅ Payment saved via email fallback')
-          }
-        }
-      } catch (error) {
-        console.error('Error saving payment to database:', error)
-      }
-      
+
       setLoading(false)
-      
-      // Reset email sent flag for next time
+
       setTimeout(() => {
         emailSentRef.current = false
       }, 3000)
-      
-      // Redirect to dashboard
+
       setTimeout(() => {
         router.push('/dashboard')
       }, 1500)
@@ -286,18 +213,17 @@ export default function InvoicePaymentPage() {
       const pageWidth = doc.internal.pageSize.getWidth()
       let yPos = 20
 
-      // Try to add the Cancer + Careers logo
       try {
         const cacImg = new Image()
         cacImg.crossOrigin = 'anonymous'
         cacImg.src = '/cancer-careers-logo.png'
-        
+
         await new Promise((resolve, reject) => {
           cacImg.onload = resolve
           cacImg.onerror = reject
           setTimeout(reject, 500)
         })
-        
+
         if (cacImg.complete && cacImg.naturalWidth > 0) {
           doc.addImage(cacImg, 'PNG', 20, yPos, 45, 16, undefined, 'FAST')
         }
@@ -308,11 +234,10 @@ export default function InvoicePaymentPage() {
         doc.text('CANCER + CAREERS', 20, yPos + 10)
       }
 
-      // Invoice header (right side)
       doc.setFontSize(28)
       doc.setTextColor(255, 107, 53)
       doc.text('INVOICE', pageWidth - 20, yPos + 5, { align: 'right' })
-      
+
       doc.setFontSize(10)
       doc.setTextColor(0, 0, 0)
       yPos += 15
@@ -324,13 +249,11 @@ export default function InvoicePaymentPage() {
       yPos += 6
       doc.text('Payment Terms: Net 30', pageWidth - 20, yPos, { align: 'right' })
 
-      // Line separator
       yPos = 60
       doc.setDrawColor(255, 107, 53)
       doc.setLineWidth(1)
       doc.line(20, yPos, pageWidth - 20, yPos)
 
-      // From section (left)
       yPos += 10
       doc.setFontSize(11)
       doc.setFont(undefined, 'bold')
@@ -348,7 +271,6 @@ export default function InvoicePaymentPage() {
       yPos += 5
       doc.text('Email: cacbestcompanies@cew.org', 20, yPos)
 
-      // Bill To section (right)
       let rightYPos = 70
       doc.setFontSize(11)
       doc.setFont(undefined, 'bold')
@@ -377,7 +299,7 @@ export default function InvoicePaymentPage() {
       doc.text(`${data.city}, ${data.state} ${data.zipCode}`, pageWidth / 2 + 10, rightYPos)
       rightYPos += 5
       doc.text(data.country, pageWidth / 2 + 10, rightYPos)
-      
+
       if (data.poNumber) {
         rightYPos += 5
         doc.setFont(undefined, 'bold')
@@ -385,7 +307,6 @@ export default function InvoicePaymentPage() {
         doc.setFont(undefined, 'normal')
       }
 
-      // Table header
       yPos = Math.max(yPos, rightYPos) + 15
       doc.setFillColor(51, 51, 51)
       doc.rect(20, yPos, pageWidth - 40, 10, 'F')
@@ -394,7 +315,6 @@ export default function InvoicePaymentPage() {
       doc.text('Description', 25, yPos + 7)
       doc.text('Amount', pageWidth - 25, yPos + 7, { align: 'right' })
 
-      // Table content
       yPos += 15
       doc.setTextColor(0, 0, 0)
       doc.setFont(undefined, 'bold')
@@ -404,12 +324,11 @@ export default function InvoicePaymentPage() {
       doc.setTextColor(100, 100, 100)
       yPos += 5
       doc.text('Best Companies for Working with Cancer Initiative', 25, yPos)
-      
+
       doc.setFontSize(10)
       doc.setTextColor(0, 0, 0)
       doc.text('$1,250.00', pageWidth - 25, yPos - 5, { align: 'right' })
 
-      // Total row
       yPos += 10
       doc.setDrawColor(200, 200, 200)
       doc.line(20, yPos, pageWidth - 20, yPos)
@@ -421,24 +340,23 @@ export default function InvoicePaymentPage() {
       doc.text('TOTAL DUE:', pageWidth / 2, yPos + 2, { align: 'right' })
       doc.text('$1,250.00', pageWidth - 25, yPos + 2, { align: 'right' })
 
-      // Payment Terms box
       yPos += 20
       doc.setDrawColor(255, 107, 53)
       doc.setLineWidth(0.5)
       doc.rect(20, yPos, pageWidth - 40, 92)
-      
+
       doc.setFontSize(11)
       doc.setTextColor(255, 107, 53)
       doc.setFont(undefined, 'bold')
       yPos += 7
       doc.text('Payment Terms & Instructions', 25, yPos)
-      
+
       doc.setFontSize(10)
       doc.setTextColor(0, 0, 0)
       doc.setFont(undefined, 'bold')
       yPos += 7
       doc.text('Payment is due within 30 days of invoice date.', 25, yPos)
-      
+
       doc.setFont(undefined, 'normal')
       yPos += 7
       doc.text('Payment Methods:', 25, yPos)
@@ -449,8 +367,7 @@ export default function InvoicePaymentPage() {
       doc.setFontSize(8)
       doc.setTextColor(100, 100, 100)
       doc.text('  Mail to: 250 W. 57th Street, Suite 918, New York, NY 10107', 30, yPos)
-      
-      // ACH Transfer Details
+
       yPos += 6
       doc.setFontSize(9)
       doc.setTextColor(0, 0, 0)
@@ -467,8 +384,7 @@ export default function InvoicePaymentPage() {
       doc.text('Account Number: 483043533766', 35, yPos)
       yPos += 4
       doc.text(`Reference: ${data.invoiceNumber}`, 35, yPos)
-      
-      // Wire Transfer Details - UPDATED with Account Number
+
       yPos += 6
       doc.setFont(undefined, 'bold')
       doc.text('• Wire Transfer (Domestic & International):', 30, yPos)
@@ -483,13 +399,12 @@ export default function InvoicePaymentPage() {
       doc.text('Bank Address: One Bryant Park, 36th Floor, New York, NY 10036', 35, yPos)
       yPos += 4
       doc.text(`Reference: ${data.invoiceNumber}`, 35, yPos)
-      
+
       yPos += 5
       doc.setFontSize(8)
       doc.setTextColor(100, 100, 100)
       doc.text('Please include the invoice number in your payment reference. Questions: cacbestcompanies@cew.org', 30, yPos)
 
-      // Footer
       yPos = doc.internal.pageSize.getHeight() - 20
       doc.setDrawColor(200, 200, 200)
       doc.line(20, yPos, pageWidth - 20, yPos)
@@ -500,13 +415,8 @@ export default function InvoicePaymentPage() {
       yPos += 5
       doc.text('Cancer and Careers | www.cancerandcareers.org | cacbestcompanies@cew.org', pageWidth / 2, yPos, { align: 'center' })
 
-      // Get base64 with compression
       const pdfBase64 = doc.output('datauristring', { compress: true }).split(',')[1]
-
-      // Save the PDF
       doc.save(`Invoice-${data.invoiceNumber}.pdf`)
-
-      // Return base64 for email
       return pdfBase64
     } catch (error) {
       console.error('Error in PDF generation:', error)
