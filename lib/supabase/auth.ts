@@ -23,14 +23,97 @@ export async function authenticateUser(
       }
     }
 
+    const normalizedEmail = email.toLowerCase().trim()
+
     // NEW USER - No survey ID provided
     if (!surveyId) {
+      // ============================================
+      // CHECK FOR EXISTING FP RECORD FIRST
+      // ============================================
+      console.log('[AUTH] Checking for existing FP record with email:', normalizedEmail)
+      
+      const { data: existingFP } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('email', normalizedEmail)
+        .eq('is_founding_partner', true)
+        .single()
+
+      if (existingFP) {
+        console.log('[AUTH] Found existing FP record! Linking auth user to it...')
+        
+        // Create auth user with FP's survey ID as password
+        const fpSurveyId = existingFP.app_id || existingFP.survey_id
+        
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password: fpSurveyId.replace(/-/g, ''),
+          options: {
+            data: {
+              app_id: fpSurveyId
+            }
+          }
+        })
+
+        if (signUpError) {
+          console.error('[AUTH] FP signup error:', signUpError)
+          // If user already exists, try to sign in
+          if (signUpError.message.includes('already registered')) {
+            return {
+              mode: 'error',
+              needsVerification: false,
+              message: 'This email is already registered. Please use "Returning User" with your Survey ID.',
+              error: signUpError.message
+            }
+          }
+          return {
+            mode: 'error',
+            needsVerification: false,
+            message: 'Unable to create account. Please try again.',
+            error: signUpError.message
+          }
+        }
+
+        if (authData.user) {
+          // UPDATE the existing FP record with the new auth user_id
+          const { error: updateError } = await supabase
+            .from('assessments')
+            .update({
+              user_id: authData.user.id,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingFP.id)
+
+          if (updateError) {
+            console.error('[AUTH] Error linking FP record:', updateError)
+          } else {
+            console.log('[AUTH] Successfully linked auth user to FP record!')
+          }
+
+          // Sign in to establish session
+          await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password: fpSurveyId.replace(/-/g, '')
+          })
+
+          return {
+            mode: 'new',
+            needsVerification: false,
+            message: 'Founding Partner account activated!',
+            appId: fpSurveyId
+          }
+        }
+      }
+      // ============================================
+      // END FP CHECK - Continue with normal new user flow
+      // ============================================
+
       const appId = generateAppId()
 
       console.log('[AUTH] Creating new user account...')
       
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password: appId,  // USE SURVEY ID AS PASSWORD
         options: {
           data: {
@@ -54,7 +137,7 @@ export async function authenticateUser(
           .from('assessments')
           .insert({
             user_id: authData.user.id,
-            email,
+            email: normalizedEmail,
             app_id: appId,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
@@ -67,7 +150,7 @@ export async function authenticateUser(
         console.log('[AUTH] Signing in new user to establish session...')
         
         const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
+          email: normalizedEmail,
           password: appId  // USE SURVEY ID AS PASSWORD
         })
 
