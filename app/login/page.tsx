@@ -7,6 +7,7 @@ import { formatAppId } from '@/lib/supabase/utils'
 import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
 import { isSharedFP, loadSharedFPData } from '@/lib/supabase/fp-shared-storage'
+import { loadUserDataFromSupabase } from '@/lib/supabase/load-data-from-supabase'
 import Footer from '@/components/Footer'
 
 // Helper function to clear localStorage but preserve Supabase auth tokens
@@ -175,6 +176,10 @@ export default function LoginPage() {
         if (result.mode === 'existing' && !result.needsVerification) {
           const user = await getCurrentUser()
           if (user) {
+            // CRITICAL: Load all user data from Supabase into localStorage
+            console.log('[LOGIN] Loading returning user data from Supabase...')
+            await loadUserDataFromSupabase()
+            
             const { data: assessment } = await supabase
               .from('assessments')
               .select('auth_completed')
