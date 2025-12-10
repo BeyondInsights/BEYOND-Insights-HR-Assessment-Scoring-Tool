@@ -9,6 +9,27 @@ import { isFoundingPartner } from '@/lib/founding-partners'
 import { isSharedFP, loadSharedFPData } from '@/lib/supabase/fp-shared-storage'
 import Footer from '@/components/Footer'
 
+// Helper function to clear localStorage but preserve Supabase auth tokens
+const clearLocalStoragePreserveAuth = () => {
+  const supabaseKeys: string[] = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key && (key.startsWith('sb-') || key.startsWith('supabase'))) {
+      supabaseKeys.push(key)
+    }
+  }
+  const preserved: Record<string, string> = {}
+  supabaseKeys.forEach(key => {
+    const value = localStorage.getItem(key)
+    if (value) preserved[key] = value
+  })
+  localStorage.clear()
+  Object.entries(preserved).forEach(([key, value]) => {
+    localStorage.setItem(key, value)
+  })
+  console.log('Cleared localStorage but preserved', supabaseKeys.length, 'Supabase auth keys')
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -53,10 +74,9 @@ export default function LoginPage() {
 
     if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
       console.log('Different user logging in - clearing old data')
-      const emailToKeep = currentEmail
-      localStorage.clear()
-      localStorage.setItem('auth_email', emailToKeep)
-      localStorage.setItem('last_user_email', emailToKeep)
+      clearLocalStoragePreserveAuth()
+      localStorage.setItem('auth_email', currentEmail)
+      localStorage.setItem('last_user_email', currentEmail)
     } else if (currentEmail && !lastUserEmail) {
       localStorage.setItem('last_user_email', currentEmail)
       console.log('First login - setting last_user_email')
@@ -131,13 +151,12 @@ export default function LoginPage() {
         setErrors(result.message)
       } else {
         // ============================================
-        // CLEAR OLD DATA FOR NEW USERS
+        // CLEAR OLD DATA FOR NEW USERS (preserve Supabase auth)
         // ============================================
         if (result.mode === 'new') {
-          console.log('New user account - clearing any old localStorage data')
-          const emailToKeep = currentEmail
-          localStorage.clear()
-          localStorage.setItem('auth_email', emailToKeep)
+          console.log('New user account - clearing old localStorage data (preserving auth)')
+          clearLocalStoragePreserveAuth()
+          localStorage.setItem('auth_email', currentEmail)
           localStorage.setItem('login_email', email)
         }
         // ============================================
@@ -190,10 +209,10 @@ export default function LoginPage() {
     }
   }
 
-const handleProceedToSurvey = () => {
-  localStorage.setItem('user_authenticated', 'true')
-  router.push('/letter')
-}
+  const handleProceedToSurvey = () => {
+    localStorage.setItem('user_authenticated', 'true')
+    router.push('/letter')
+  }
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
