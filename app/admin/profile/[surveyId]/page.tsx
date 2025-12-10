@@ -883,7 +883,7 @@ export default function ProfilePage() {
   // ============================================
   // CALCULATE SUMMARY STATS - handles both numeric (FP) and text (survey) formats
   // ============================================
-  let totalCurrently = 0, totalPlanning = 0, totalAssessing = 0, totalNotFeasible = 0;
+  let totalCurrently = 0, totalPlanning = 0, totalAssessing = 0, totalNotFeasible = 0, totalUnsure = 0;
   for (let i = 1; i <= 13; i++) {
     const gridData = assessment[`dimension${i}_data`]?.[`d${i}a`];
     if (gridData && typeof gridData === 'object') {
@@ -895,11 +895,13 @@ export default function ProfilePage() {
           else if (numStatus === 3) totalPlanning++;
           else if (numStatus === 2) totalAssessing++;
           else if (numStatus === 1) totalNotFeasible++;
+          else if (numStatus === 5) totalUnsure++;
         } else if (typeof status === 'string') {
           // Handle text-based statuses (from survey UI)
           // CHECK "NOT ABLE" FIRST since "Not able to offer" contains "offer"
           const s = status.toLowerCase();
           if (s.includes('not able')) totalNotFeasible++;
+          else if (s === 'unsure') totalUnsure++;
           else if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) totalCurrently++;
           else if (s.includes('planning') || s.includes('development')) totalPlanning++;
           else if (s.includes('assessing')) totalAssessing++;
@@ -908,8 +910,12 @@ export default function ProfilePage() {
     }
   }
   
+  // Total answered = all responses INCLUDING Unsure
+  const totalAnswered = totalCurrently + totalPlanning + totalAssessing + totalNotFeasible + totalUnsure;
+  // Total programs = responses excluding Unsure (for "programs in place" count)
   const totalPrograms = totalCurrently + totalPlanning + totalAssessing + totalNotFeasible;
-  const maturityScore = totalPrograms > 0 ? Math.round((totalCurrently / totalPrograms) * 100) : 0;
+  // Maturity score = Currently offer / Total answered (including Unsure in denominator)
+  const maturityScore = totalAnswered > 0 ? Math.round((totalCurrently / totalAnswered) * 100) : 0;
 
   // Geographic consistency count
   let consistentCount = 0;
@@ -1020,7 +1026,7 @@ export default function ProfilePage() {
                 label="Support Maturity" 
                 value={`${maturityScore}%`}
                 color={BRAND.primary}
-                subtext={`${totalCurrently} of ${totalPrograms} active`}
+                subtext={`${totalCurrently} of ${totalAnswered} answered`}
               />
               <StatCard 
                 label="Currently Offering" 
@@ -1041,6 +1047,11 @@ export default function ProfilePage() {
                 subtext="dimensions consistent"
               />
             </div>
+            {totalUnsure > 0 && (
+              <p className="text-sm text-amber-600 mt-2">
+                ⚠️ {totalUnsure} items marked as "Unsure" - respondent may not have complete visibility into all programs
+              </p>
+            )}
           </section>
 
           {/* COMPANY & CONTACT INFO */}
