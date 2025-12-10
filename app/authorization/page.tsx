@@ -7,6 +7,27 @@ import { supabase } from '@/lib/supabase/client'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 
+// Helper function to clear localStorage but preserve Supabase auth tokens
+const clearLocalStoragePreserveAuth = () => {
+  const supabaseKeys: string[] = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key && (key.startsWith('sb-') || key.startsWith('supabase'))) {
+      supabaseKeys.push(key)
+    }
+  }
+  const preserved: Record<string, string> = {}
+  supabaseKeys.forEach(key => {
+    const value = localStorage.getItem(key)
+    if (value) preserved[key] = value
+  })
+  localStorage.clear()
+  Object.entries(preserved).forEach(([key, value]) => {
+    localStorage.setItem(key, value)
+  })
+  console.log('Cleared localStorage but preserved', supabaseKeys.length, 'Supabase auth keys')
+}
+
 function Card({
   selected,
   children,
@@ -127,10 +148,9 @@ function AuthorizationContent() {
       
       if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
         console.log('Different user logging in - clearing old data')
-        const emailToKeep = currentEmail
-        localStorage.clear()
-        localStorage.setItem('auth_email', emailToKeep || '')
-        localStorage.setItem('last_user_email', emailToKeep || '')
+        clearLocalStoragePreserveAuth()
+        localStorage.setItem('auth_email', currentEmail || '')
+        localStorage.setItem('last_user_email', currentEmail || '')
       } else if (currentEmail && !lastUserEmail) {
         localStorage.setItem('last_user_email', currentEmail)
         console.log('First login - setting last_user_email')
