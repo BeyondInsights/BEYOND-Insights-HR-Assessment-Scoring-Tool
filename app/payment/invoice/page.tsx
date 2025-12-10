@@ -137,22 +137,23 @@ export default function InvoicePaymentPage() {
       localStorage.setItem('payment_completed', 'true')
       localStorage.setItem('payment_date', new Date().toISOString())
 
-      // Save to database - including address AND email in firmographics_data
-     try {
+     // Save to database - including address AND email in firmographics_data
+      try {
         const user = await getCurrentUser()
-        const userEmail = localStorage.getItem('auth_email') || ''
+        const userEmailFallback = localStorage.getItem('auth_email') || ''
         
         if (user) {
-          // Update by user_id
+          // First get current firmographics_data and email
           const { data: currentData } = await supabase
             .from('assessments')
             .select('firmographics_data, email')
             .eq('user_id', user.id)
             .single()
           
-          const existingFirst = currentData?.firmographics_data?.firstName;
-          const existingLast = currentData?.firmographics_data?.lastName;
-          const existingTitle = currentData?.firmographics_data?.title;
+          // Merge address fields into firmographics_data
+          const existingFirst = currentData?.firmographics_data?.firstName
+          const existingLast = currentData?.firmographics_data?.lastName
+          const existingTitle = currentData?.firmographics_data?.title
           
           const updatedFirmographics = {
             ...(currentData?.firmographics_data || {}),
@@ -180,9 +181,9 @@ export default function InvoicePaymentPage() {
             .eq('user_id', user.id)
           
           console.log('✅ Payment saved via user_id')
-        } else if (userEmail) {
+        } else if (userEmailFallback) {
           // FALLBACK: Update by email if no Supabase session
-          console.log('No Supabase user - updating by email:', userEmail)
+          console.log('No Supabase user - updating by email:', userEmailFallback)
           
           await supabase
             .from('assessments')
@@ -191,10 +192,13 @@ export default function InvoicePaymentPage() {
               payment_method: 'invoice',
               payment_date: new Date().toISOString()
             })
-            .eq('email', userEmail.toLowerCase())
+            .eq('email', userEmailFallback.toLowerCase())
           
           console.log('✅ Payment saved via email fallback')
         }
+      } catch (error) {
+        console.error('Error saving payment to database:', error)
+      }
           // First get current firmographics_data and email
           const { data: currentData } = await supabase
             .from('assessments')
