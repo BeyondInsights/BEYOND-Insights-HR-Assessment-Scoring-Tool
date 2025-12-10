@@ -74,21 +74,34 @@ function FPRegisterContent() {
         .single()
 
       if (existing) {
-        // Update existing record with contact info
+        // First, fetch existing firmographics data to preserve it
+        const { data: existingRecord } = await supabase
+          .from('assessments')
+          .select('firmographics_data')
+          .eq('survey_id', code)
+          .single()
+        
+        // Merge existing firmographics with new contact info
+        const existingFirmographics = existingRecord?.firmographics_data || {}
+        const mergedFirmographics = {
+          ...existingFirmographics, // Keep ALL existing data (s8, s9, c2, c4, etc.)
+          // Add/update contact info
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          title: formData.title.trim(),
+          companyName: companyName,
+          contactConsent: true,
+          consentDate: new Date().toISOString(),
+          registeredAt: new Date().toISOString(),
+        }
+        
+        // Update existing record with MERGED data
         const { error: updateError } = await supabase
           .from('assessments')
           .update({
             email: formData.email.toLowerCase().trim(),
             company_name: companyName,
-            firmographics_data: {
-              firstName: formData.firstName.trim(),
-              lastName: formData.lastName.trim(),
-              title: formData.title.trim(),
-              companyName: companyName,
-              contactConsent: true,
-              consentDate: new Date().toISOString(),
-              registeredAt: new Date().toISOString(),
-            },
+            firmographics_data: mergedFirmographics,
             is_founding_partner: true,
             updated_at: new Date().toISOString(),
           })
