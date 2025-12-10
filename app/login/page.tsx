@@ -192,7 +192,7 @@ export default function LoginPage() {
 
 const handleProceedToSurvey = () => {
   localStorage.setItem('user_authenticated', 'true')
-  router.push('/authorization')
+  router.push('/letter')
 }
     
   return (
