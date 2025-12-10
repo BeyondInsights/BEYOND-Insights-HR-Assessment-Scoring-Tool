@@ -71,12 +71,21 @@ export default function LetterPage() {
       // ============================================
       const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
       const justCreated = localStorage.getItem('new_user_just_created') === 'true'
+      const authCompleted = localStorage.getItem('auth_completed') === 'true'
       
-      if (hasAuthFlag || justCreated) {
+      // Only redirect to authorization if auth is NOT already completed
+      if ((hasAuthFlag || justCreated) && !authCompleted) {
         console.log('New user with bypass - proceeding to authorization')
         router.push('/authorization')
         return
       }
+      
+      // If auth is completed, user shouldn't be on letter page - send to dashboard
+      if (authCompleted) {
+        console.log('Auth already completed - going to dashboard')
+        router.push('/dashboard')
+        return
+      }      
       // ============================================
       
       // REGULAR RETURNING USERS - Update Supabase
