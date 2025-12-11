@@ -773,6 +773,10 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  // ============================================
+  // NEW: PDF Export state
+  // ============================================
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!surveyId) return;
@@ -801,6 +805,76 @@ export default function ProfilePage() {
       console.error('Error fetching assessment:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ============================================
+  // NEW: PDF Export Function using html2pdf.js
+  // ============================================
+  const handleExportPDF = async () => {
+    try {
+      setExporting(true);
+
+      // Load html2pdf library dynamically from CDN
+      if (!(window as any).html2pdf) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+          script.async = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Failed to load PDF library'));
+          document.head.appendChild(script);
+        });
+      }
+
+      const html2pdf = (window as any).html2pdf;
+      const element = document.getElementById('profile-content');
+
+      if (!element) {
+        alert('Content not found');
+        return;
+      }
+
+      // Clone element to avoid modifying original
+      const clone = element.cloneNode(true) as HTMLElement;
+      
+      // Remove buttons and no-print elements from clone
+      clone.querySelectorAll('button, .no-print, [class*="no-print"]').forEach(el => el.remove());
+      
+      // Expand all collapsed sections in clone for PDF
+      clone.querySelectorAll('[style*="display: none"]').forEach(el => {
+        (el as HTMLElement).style.display = 'block';
+      });
+
+      // PDF options
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `${assessment?.company_name?.replace(/[^a-zA-Z0-9]/g, '-') || surveyId}-profile-${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          letterRendering: true,
+          scrollY: -window.scrollY
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'letter',
+          orientation: 'portrait' as const
+        },
+        pagebreak: {
+          mode: ['avoid-all', 'css', 'legacy']
+        }
+      };
+
+      await html2pdf().set(opt).from(clone).save();
+
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      alert('Failed to export PDF. Please try again.');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -961,7 +1035,10 @@ export default function ProfilePage() {
       `}</style>
       
       <div className="min-h-screen" style={{ backgroundColor: BRAND.gray[100] }}>
-        <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* ============================================
+            MAIN CONTENT - Add id="profile-content" for PDF export
+            ============================================ */}
+        <main id="profile-content" className="max-w-7xl mx-auto px-6 py-8">
           
           {/* HEADER */}
           <header className="mb-8">
@@ -977,15 +1054,33 @@ export default function ProfilePage() {
                   </svg>
                   Back
                 </button>
+                {/* ============================================
+                    UPDATED: PDF Export Button with loading state
+                    ============================================ */}
                 <button
-                  onClick={() => window.print()}
-                  className="px-5 py-2.5 text-white rounded-lg font-medium flex items-center gap-2 shadow-md"
+                  onClick={handleExportPDF}
+                  disabled={exporting}
+                  className={`px-5 py-2.5 text-white rounded-lg font-medium flex items-center gap-2 shadow-md ${
+                    exporting ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
+                  }`}
                   style={{ backgroundColor: BRAND.success }}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Export PDF
+                  {exporting ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Generating PDF...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Export PDF
+                    </>
+                  )}
                 </button>
               </div>
             </div>
