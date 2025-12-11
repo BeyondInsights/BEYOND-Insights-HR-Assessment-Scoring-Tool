@@ -814,49 +814,76 @@ export default function ProfilePage() {
   const handleExportPDF = async () => {
     try {
       setExporting(true);
+      console.log('📄 Starting PDF export...');
 
       // Load html2pdf library dynamically from CDN
       if (!(window as any).html2pdf) {
+        console.log('📦 Loading html2pdf library...');
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement('script');
           script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
           script.async = true;
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error('Failed to load PDF library'));
+          script.onload = () => {
+            console.log('✅ html2pdf library loaded');
+            resolve();
+          };
+          script.onerror = (e) => {
+            console.error('❌ Failed to load html2pdf:', e);
+            reject(new Error('Failed to load PDF library'));
+          };
           document.head.appendChild(script);
         });
+      } else {
+        console.log('✅ html2pdf already loaded');
       }
 
       const html2pdf = (window as any).html2pdf;
+      if (!html2pdf) {
+        throw new Error('html2pdf not available after loading');
+      }
+
       const element = document.getElementById('profile-content');
+      console.log('🔍 Found element:', !!element);
 
       if (!element) {
-        alert('Content not found');
+        alert('Content not found - please refresh the page and try again.');
         return;
       }
 
+      // Create a wrapper div for the clone
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'absolute';
+      wrapper.style.left = '-9999px';
+      wrapper.style.top = '0';
+      wrapper.style.width = '1100px'; // Fixed width for consistent rendering
+      wrapper.style.backgroundColor = '#f3f4f6';
+      
       // Clone element to avoid modifying original
       const clone = element.cloneNode(true) as HTMLElement;
       
       // Remove buttons and no-print elements from clone
       clone.querySelectorAll('button, .no-print, [class*="no-print"]').forEach(el => el.remove());
       
-      // Expand all collapsed sections in clone for PDF
-      clone.querySelectorAll('[style*="display: none"]').forEach(el => {
-        (el as HTMLElement).style.display = 'block';
-      });
+      // Remove the id to avoid duplicate IDs
+      clone.removeAttribute('id');
+      
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+      
+      console.log('📄 Generating PDF...');
 
       // PDF options
       const opt = {
         margin: [10, 10, 10, 10],
         filename: `${assessment?.company_name?.replace(/[^a-zA-Z0-9]/g, '-') || surveyId}-profile-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
+        image: { type: 'jpeg', quality: 0.92 },
         html2canvas: {
           scale: 2,
           useCORS: true,
-          logging: false,
+          logging: true, // Enable logging for debugging
           letterRendering: true,
-          scrollY: -window.scrollY
+          allowTaint: true,
+          backgroundColor: '#f3f4f6'
         },
         jsPDF: {
           unit: 'mm',
@@ -869,10 +896,16 @@ export default function ProfilePage() {
       };
 
       await html2pdf().set(opt).from(clone).save();
+      
+      // Clean up
+      document.body.removeChild(wrapper);
+      
+      console.log('✅ PDF export complete!');
 
-    } catch (err) {
-      console.error('PDF export failed:', err);
-      alert('Failed to export PDF. Please try again.');
+    } catch (err: any) {
+      console.error('❌ PDF export failed:', err);
+      console.error('Error details:', err?.message, err?.stack);
+      alert(`Failed to export PDF: ${err?.message || 'Unknown error'}. Check browser console for details.`);
     } finally {
       setExporting(false);
     }
