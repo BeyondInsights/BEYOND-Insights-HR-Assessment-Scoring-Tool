@@ -809,64 +809,8 @@ export default function ProfilePage() {
   };
 
   // ============================================
-  // Helper: Convert modern CSS colors (oklab, oklch, etc.) to RGB
-  // ============================================
-  const convertColorsToRGB = (element: HTMLElement) => {
-    const allElements = element.querySelectorAll('*');
-    
-    const convertColor = (color: string): string => {
-      // If it's already a standard format, return as-is
-      if (!color || color === 'transparent' || color === 'inherit' || color === 'initial') {
-        return color;
-      }
-      // Check for modern color functions that html2canvas doesn't support
-      if (color.includes('oklab') || color.includes('oklch') || color.includes('lab(') || color.includes('lch(')) {
-        // Create a temporary element to convert the color
-        const temp = document.createElement('div');
-        temp.style.color = color;
-        document.body.appendChild(temp);
-        const computed = getComputedStyle(temp).color;
-        document.body.removeChild(temp);
-        return computed || '#000000';
-      }
-      return color;
-    };
-    
-    // Process the element itself
-    const processElement = (el: Element) => {
-      const htmlEl = el as HTMLElement;
-      if (!htmlEl.style) return;
-      
-      const computed = getComputedStyle(htmlEl);
-      
-      // Convert and set color properties
-      const colorProps = ['color', 'backgroundColor', 'borderColor', 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor', 'outlineColor'];
-      
-      colorProps.forEach(prop => {
-        const camelProp = prop as keyof CSSStyleDeclaration;
-        const value = computed[camelProp];
-        if (value && typeof value === 'string') {
-          const converted = convertColor(value);
-          if (converted !== value) {
-            (htmlEl.style as any)[prop] = converted;
-          }
-        }
-      });
-      
-      // Handle background (which might have gradients with modern colors)
-      const bg = computed.background;
-      if (bg && (bg.includes('oklab') || bg.includes('oklch'))) {
-        // Fall back to background-color only
-        htmlEl.style.background = convertColor(computed.backgroundColor);
-      }
-    };
-    
-    processElement(element);
-    allElements.forEach(processElement);
-  };
-
-  // ============================================
   // NEW: PDF Export Function using html2pdf.js
+  // Creates a clean HTML string with inline RGB styles to avoid oklab issues
   // ============================================
   const handleExportPDF = async () => {
     try {
@@ -899,52 +843,172 @@ export default function ProfilePage() {
         throw new Error('html2pdf not available after loading');
       }
 
-      const element = document.getElementById('profile-content');
-      console.log('🔍 Found element:', !!element);
+      console.log('📄 Building PDF content...');
 
-      if (!element) {
-        alert('Content not found - please refresh the page and try again.');
-        return;
+      // Extract data for PDF
+      const firm = assessment?.firmographics_data || {};
+      const contactName = [firm.firstName, firm.lastName].filter(Boolean).join(' ') || 'N/A';
+      let contactTitle = firm.title || 'N/A';
+      if (contactTitle.toLowerCase() === 'other') {
+        contactTitle = firm.titleOther || firm.title_other || contactTitle;
       }
+      const contactEmail = assessment?.email || 'N/A';
 
-      // Create a wrapper div for the clone
-      const wrapper = document.createElement('div');
-      wrapper.style.position = 'absolute';
-      wrapper.style.left = '-9999px';
-      wrapper.style.top = '0';
-      wrapper.style.width = '1100px';
-      wrapper.style.backgroundColor = '#f3f4f6';
-      
-      // Clone element to avoid modifying original
-      const clone = element.cloneNode(true) as HTMLElement;
-      
-      // Remove buttons and no-print elements from clone
-      clone.querySelectorAll('button, .no-print, [class*="no-print"]').forEach(el => el.remove());
-      
-      // Remove the id to avoid duplicate IDs
-      clone.removeAttribute('id');
-      
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
-      
-      // FIX: Convert modern CSS colors (oklab, oklch) to RGB before rendering
-      console.log('🎨 Converting colors to RGB...');
-      convertColorsToRGB(clone);
-      
+      // Build clean HTML with inline styles (NO Tailwind, NO oklab)
+      const pdfHTML = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; color: #1f2937;">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #7C3AED, #4C1D95); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px;">
+            <p style="font-size: 12px; margin: 0 0 5px 0; opacity: 0.8;">Best Companies for Working with Cancer Index</p>
+            <h1 style="font-size: 28px; font-weight: bold; margin: 0 0 15px 0;">${assessment?.company_name || 'Company Profile'}</h1>
+            <div style="font-size: 13px;">
+              <span style="opacity: 0.7;">Survey ID:</span> ${surveyId} &nbsp;&nbsp;
+              <span style="opacity: 0.7;">Contact:</span> ${contactName} &nbsp;&nbsp;
+              <span style="opacity: 0.7;">Email:</span> ${contactEmail}
+            </div>
+          </div>
+
+          <!-- Executive Summary -->
+          <h2 style="font-size: 18px; font-weight: bold; margin: 20px 0 15px 0; color: #111827;">Executive Summary</h2>
+          <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+            <div style="flex: 1; background: white; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <div style="height: 4px; background: #1E3A5F; border-radius: 4px 4px 0 0; margin: -15px -15px 15px -15px;"></div>
+              <p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0;">Support Maturity</p>
+              <p style="font-size: 32px; font-weight: bold; color: #1E3A5F; margin: 5px 0;">${maturityScore}%</p>
+              <p style="font-size: 11px; color: #6B7280; margin: 0;">${totalCurrently} of ${totalAnswered} answered</p>
+            </div>
+            <div style="flex: 1; background: white; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <div style="height: 4px; background: #166534; border-radius: 4px 4px 0 0; margin: -15px -15px 15px -15px;"></div>
+              <p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0;">Currently Offering</p>
+              <p style="font-size: 32px; font-weight: bold; color: #166534; margin: 5px 0;">${totalCurrently}</p>
+              <p style="font-size: 11px; color: #6B7280; margin: 0;">programs in place</p>
+            </div>
+            <div style="flex: 1; background: white; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <div style="height: 4px; background: #B45309; border-radius: 4px 4px 0 0; margin: -15px -15px 15px -15px;"></div>
+              <p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0;">In Development</p>
+              <p style="font-size: 32px; font-weight: bold; color: #B45309; margin: 5px 0;">${totalPlanning}</p>
+              <p style="font-size: 11px; color: #6B7280; margin: 0;">programs planned</p>
+            </div>
+            <div style="flex: 1; background: white; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <div style="height: 4px; background: #2D5016; border-radius: 4px 4px 0 0; margin: -15px -15px 15px -15px;"></div>
+              <p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0;">Global Consistency</p>
+              <p style="font-size: 32px; font-weight: bold; color: #2D5016; margin: 5px 0;">${consistentCount}/13</p>
+              <p style="font-size: 11px; color: #6B7280; margin: 0;">dimensions consistent</p>
+            </div>
+          </div>
+
+          <!-- Company & Contact Info -->
+          <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+            <div style="flex: 1; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <div style="padding: 12px 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 10px;">
+                <div style="width: 4px; height: 20px; background: #2D5016; border-radius: 2px;"></div>
+                <h3 style="font-size: 14px; font-weight: bold; margin: 0; color: #111827;">Company Information</h3>
+              </div>
+              <div style="padding: 15px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Industry</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.c2 || 'N/A'}</p></div>
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Total Employees</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s8 || 'N/A'}</p></div>
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Headquarters</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s9 || 'N/A'}</p></div>
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Countries</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s9a || 'N/A'}</p></div>
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Annual Revenue</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${(firm.c4 && !Array.isArray(firm.c4) ? firm.c4 : null) || firm.c5 || 'N/A'}</p></div>
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Remote/Hybrid Policy</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.c6 || 'N/A'}</p></div>
+                </div>
+              </div>
+            </div>
+            <div style="flex: 1; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <div style="padding: 12px 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 10px;">
+                <div style="width: 4px; height: 20px; background: #8B4513; border-radius: 2px;"></div>
+                <h3 style="font-size: 14px; font-weight: bold; margin: 0; color: #111827;">Contact Information</h3>
+              </div>
+              <div style="padding: 15px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Name</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${contactName}</p></div>
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Title</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${contactTitle}</p></div>
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Email</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${contactEmail}</p></div>
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Department</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s4b || firm.s4a || 'N/A'}</p></div>
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Level</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s5 || 'N/A'}</p></div>
+                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Benefits Influence</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s7 || 'N/A'}</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 13 Dimensions Summary -->
+          <h2 style="font-size: 18px; font-weight: bold; margin: 25px 0 15px 0; color: #111827;">13 Dimensions of Support</h2>
+          ${Array.from({ length: 13 }, (_, i) => {
+            const dimNum = i + 1;
+            const dimData = assessment?.[`dimension${dimNum}_data`] || {};
+            const mainGrid = dimData[`d${dimNum}a`] || {};
+            const dimColors = ['#7C2D12', '#854D0E', '#365314', '#166534', '#115E59', '#164E63', '#1E3A8A', '#312E81', '#581C87', '#831843', '#881337', '#7F1D1D', '#44403C'];
+            
+            let current = 0, planning = 0, assessing = 0, notFeasible = 0;
+            Object.values(mainGrid).forEach((status: any) => {
+              const numStatus = typeof status === 'number' ? status : parseInt(String(status));
+              if (!isNaN(numStatus)) {
+                if (numStatus === 4) current++;
+                else if (numStatus === 3) planning++;
+                else if (numStatus === 2) assessing++;
+                else if (numStatus === 1) notFeasible++;
+              } else if (typeof status === 'string') {
+                const s = status.toLowerCase();
+                if (s.includes('not able')) notFeasible++;
+                else if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) current++;
+                else if (s.includes('planning') || s.includes('development')) planning++;
+                else if (s.includes('assessing')) assessing++;
+              }
+            });
+            
+            const total = Object.keys(mainGrid).length;
+            
+            return `
+              <div style="background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${dimColors[i]}; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <div style="padding: 12px 15px; display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 36px; height: 36px; background: ${dimColors[i]}; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;">${dimNum}</div>
+                  <div style="flex: 1;">
+                    <p style="font-size: 13px; font-weight: bold; margin: 0; color: #111827;">${DIM_TITLES[dimNum]}</p>
+                    <div style="display: flex; gap: 8px; margin-top: 5px;">
+                      ${current > 0 ? `<span style="font-size: 10px; background: #166534; color: white; padding: 2px 8px; border-radius: 10px;">${current} Offering</span>` : ''}
+                      ${planning > 0 ? `<span style="font-size: 10px; background: #B45309; color: white; padding: 2px 8px; border-radius: 10px;">${planning} Planning</span>` : ''}
+                      ${assessing > 0 ? `<span style="font-size: 10px; background: #1E40AF; color: white; padding: 2px 8px; border-radius: 10px;">${assessing} Assessing</span>` : ''}
+                      ${notFeasible > 0 ? `<span style="font-size: 10px; background: #991B1B; color: white; padding: 2px 8px; border-radius: 10px;">${notFeasible} Not Feasible</span>` : ''}
+                      ${total === 0 ? `<span style="font-size: 10px; color: #9CA3AF; font-style: italic;">No responses</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+
+          <!-- Footer -->
+          <div style="text-align: center; padding: 20px 0; margin-top: 20px; border-top: 1px solid #e5e7eb;">
+            <p style="font-size: 11px; color: #6B7280; margin: 0;">Best Companies for Working with Cancer Index • Company Profile Report</p>
+            <p style="font-size: 10px; color: #9CA3AF; margin: 5px 0 0 0;">Generated ${new Date().toLocaleDateString()} • Survey ID: ${surveyId}</p>
+          </div>
+        </div>
+      `;
+
+      // Create container for PDF generation
+      const container = document.createElement('div');
+      container.innerHTML = pdfHTML;
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = '800px';
+      document.body.appendChild(container);
+
       console.log('📄 Generating PDF...');
 
       // PDF options
       const opt = {
         margin: [10, 10, 10, 10],
         filename: `${assessment?.company_name?.replace(/[^a-zA-Z0-9]/g, '-') || surveyId}-profile-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.92 },
+        image: { type: 'jpeg', quality: 0.95 },
         html2canvas: {
           scale: 2,
           useCORS: true,
           logging: false,
           letterRendering: true,
-          allowTaint: true,
-          backgroundColor: '#f3f4f6'
+          backgroundColor: '#f5f5f5'
         },
         jsPDF: {
           unit: 'mm',
@@ -956,10 +1020,10 @@ export default function ProfilePage() {
         }
       };
 
-      await html2pdf().set(opt).from(clone).save();
+      await html2pdf().set(opt).from(container).save();
       
       // Clean up
-      document.body.removeChild(wrapper);
+      document.body.removeChild(container);
       
       console.log('✅ PDF export complete!');
 
