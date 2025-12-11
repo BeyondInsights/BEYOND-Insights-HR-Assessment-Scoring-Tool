@@ -1362,10 +1362,11 @@ export default function ProfilePage() {
         filename: `${assessment?.company_name?.replace(/[^a-zA-Z0-9]/g, '-') || surveyId}-full-report-${new Date().toISOString().split('T')[0]}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
-          scale: 2,
+          scale: 1,
           useCORS: true,
           logging: false,
-          backgroundColor: '#F9FAFB'
+          backgroundColor: '#F9FAFB',
+          windowWidth: 800
         },
         jsPDF: {
           unit: 'mm',
