@@ -809,342 +809,573 @@ export default function ProfilePage() {
   };
 
   // ============================================
-  // PDF Export - Using jsPDF directly (no html2canvas)
-  // Builds PDF programmatically for reliable output
+  // FULL PDF EXPORT - Using html2pdf with inline hex colors
+  // Generates complete 18+ page detailed report
   // ============================================
   const handleExportPDF = async () => {
     try {
       setExporting(true);
-      console.log('📄 Starting PDF export with jsPDF...');
+      console.log('📄 Starting FULL PDF export...');
 
-      // Load jsPDF library dynamically
-      if (!(window as any).jspdf) {
-        console.log('📦 Loading jsPDF library...');
+      // Load html2pdf library
+      if (!(window as any).html2pdf) {
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement('script');
-          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-          script.async = true;
-          script.onload = () => {
-            console.log('✅ jsPDF library loaded');
-            resolve();
-          };
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+          script.onload = () => resolve();
           script.onerror = reject;
           document.head.appendChild(script);
         });
       }
 
-      const { jsPDF } = (window as any).jspdf;
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-      
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 15;
-      let y = margin;
-
-      // Helper function to add text with word wrap
-      const addText = (text: string, x: number, yPos: number, options: any = {}) => {
-        const { fontSize = 10, fontStyle = 'normal', color = [0, 0, 0], maxWidth = pageWidth - 2 * margin } = options;
-        doc.setFontSize(fontSize);
-        doc.setFont('helvetica', fontStyle);
-        doc.setTextColor(color[0], color[1], color[2]);
-        const lines = doc.splitTextToSize(text, maxWidth);
-        doc.text(lines, x, yPos);
-        return lines.length * fontSize * 0.4;
-      };
-
-      // Helper to draw rounded rectangle
-      const drawRoundedRect = (x: number, y: number, w: number, h: number, r: number, fillColor: number[]) => {
-        doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
-        doc.roundedRect(x, y, w, h, r, r, 'F');
-      };
-
-      // Extract data
+      const html2pdf = (window as any).html2pdf;
       const firm = assessment?.firmographics_data || {};
-      const contactName = [firm.firstName, firm.lastName].filter(Boolean).join(' ') || 'N/A';
-      let contactTitle = firm.title || 'N/A';
-      if (contactTitle.toLowerCase() === 'other') {
-        contactTitle = firm.titleOther || firm.title_other || contactTitle;
+      const generalBenefits = assessment?.general_benefits_data || {};
+      const currentSupport = assessment?.current_support_data || {};
+      const crossDim = assessment?.cross_dimensional_data || {};
+      const empImpact = assessment?.['employee-impact-assessment_data'] || {};
+
+      // Contact info
+      const pdfContactName = [firm.firstName, firm.lastName].filter(Boolean).join(' ') || 'N/A';
+      let pdfContactTitle = firm.title || 'N/A';
+      if (pdfContactTitle.toLowerCase() === 'other') {
+        pdfContactTitle = firm.titleOther || firm.title_other || pdfContactTitle;
       }
-      const contactEmail = assessment?.email || 'N/A';
-      const companyName = assessment?.company_name || 'Company Profile';
+      const pdfContactEmail = assessment?.email || 'N/A';
+
+      // Status colors (hex only)
+      const STATUS = {
+        current: { bg: '#166534', text: '#FFFFFF', label: 'Currently Offering' },
+        planning: { bg: '#B45309', text: '#FFFFFF', label: 'In Development' },
+        assessing: { bg: '#1E40AF', text: '#FFFFFF', label: 'Assessing' },
+        notFeasible: { bg: '#991B1B', text: '#FFFFFF', label: 'Not Feasible' },
+        unsure: { bg: '#4B5563', text: '#FFFFFF', label: 'Unsure' },
+      };
+
+      // Dimension colors
+      const PDF_DIM_COLORS = ['#7C2D12', '#854D0E', '#365314', '#166534', '#115E59', '#164E63', '#1E3A8A', '#312E81', '#581C87', '#831843', '#881337', '#7F1D1D', '#44403C'];
+
+      // Helper: Get status style
+      const getStatusPDF = (status: any) => {
+        const num = typeof status === 'number' ? status : parseInt(String(status));
+        if (!isNaN(num)) {
+          if (num === 4) return STATUS.current;
+          if (num === 3) return STATUS.planning;
+          if (num === 2) return STATUS.assessing;
+          if (num === 1) return STATUS.notFeasible;
+          if (num === 5) return STATUS.unsure;
+        }
+        const s = String(status).toLowerCase();
+        if (s.includes('not able')) return STATUS.notFeasible;
+        if (s.includes('unsure')) return STATUS.unsure;
+        if (s.includes('assessing')) return STATUS.assessing;
+        if (s.includes('planning') || s.includes('development')) return STATUS.planning;
+        if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) return STATUS.current;
+        return { bg: '#6B7280', text: '#FFFFFF', label: String(status) };
+      };
+
+      // ========== BUILD FULL HTML ==========
+      let html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; color: #1F2937; line-height: 1.4; background: #F9FAFB; }
+    .header { background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; position: relative; }
+    .header h1 { font-size: 28px; margin: 8px 0; font-weight: 800; }
+    .header p { opacity: 0.9; font-size: 12px; }
+    .status-badge { position: absolute; right: 25px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 8px; }
+    .section { background: white; border-radius: 12px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+    .section-header { padding: 14px 20px; border-bottom: 1px solid #E5E7EB; background: #F9FAFB; display: flex; align-items: center; gap: 10px; }
+    .section-bar { width: 4px; height: 24px; border-radius: 2px; }
+    .section-title { font-size: 16px; font-weight: 700; color: #111827; }
+    .section-body { padding: 20px; }
+    .stat-grid { display: flex; gap: 12px; margin-bottom: 20px; }
+    .stat-box { flex: 1; background: #F9FAFB; border-radius: 10px; padding: 16px; text-align: center; }
+    .stat-label { font-size: 9px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .stat-value { font-size: 32px; font-weight: 800; margin: 6px 0; }
+    .stat-sub { font-size: 10px; color: #6B7280; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .info-card { background: #F9FAFB; border-radius: 10px; padding: 16px; }
+    .info-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #E5E7EB; color: #111827; }
+    .info-row { display: flex; margin-bottom: 8px; }
+    .info-label { width: 140px; font-size: 9px; color: #6B7280; text-transform: uppercase; font-weight: 600; }
+    .info-value { flex: 1; font-size: 11px; color: #374151; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 600; margin: 2px 4px 2px 0; }
+    .dim-section { background: white; border-radius: 12px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+    .dim-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #E5E7EB; }
+    .dim-num { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 800; }
+    .dim-title { font-size: 15px; font-weight: 700; color: #111827; }
+    .dim-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .dim-body { padding: 20px; }
+    .geo-box { background: #F3F4F6; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 11px; }
+    .geo-label { font-size: 9px; color: #6B7280; text-transform: uppercase; font-weight: 600; }
+    .program-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .program-table th { background: #F3F4F6; padding: 10px 14px; text-align: left; font-size: 9px; text-transform: uppercase; color: #6B7280; font-weight: 600; }
+    .program-table td { padding: 12px 14px; border-bottom: 1px solid #E5E7EB; font-size: 11px; }
+    .program-table tr:nth-child(even) { background: #F9FAFB; }
+    .followup { margin-top: 20px; padding-top: 16px; border-top: 1px solid #E5E7EB; }
+    .followup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+    .followup-item label { display: block; font-size: 9px; color: #6B7280; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+    .followup-item p { font-size: 11px; color: #374151; }
+    .openend { background: linear-gradient(135deg, #EDE9FE, #DBEAFE); padding: 14px; border-radius: 8px; margin-top: 16px; }
+    .openend-label { font-size: 9px; color: #1E3A5F; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+    .openend-text { font-size: 11px; color: #374151; font-style: italic; }
+    .warning-box { background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px; padding: 12px 16px; margin: 12px 0; display: flex; align-items: center; gap: 10px; }
+    .warning-text { color: #92400E; font-size: 11px; }
+    .footer { text-align: center; padding: 20px; border-top: 1px solid #E5E7EB; margin-top: 30px; }
+    .footer p { font-size: 10px; color: #6B7280; }
+    .check-item { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0; }
+    .priority-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .priority-box { padding: 16px; border-radius: 10px; }
+    .priority-title { font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; }
+    .impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .impact-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #F9FAFB; border-radius: 8px; }
+    .impact-label { font-size: 11px; color: #374151; }
+    .impact-value { font-size: 10px; padding: 4px 10px; border-radius: 12px; }
+  </style>
+</head>
+<body>
+`;
 
       // ========== HEADER ==========
-      drawRoundedRect(margin, y, pageWidth - 2 * margin, 35, 3, [124, 58, 237]); // Purple header
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Best Companies for Working with Cancer Index', margin + 5, y + 8);
-      
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text(companyName.substring(0, 50), margin + 5, y + 18);
-      
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Survey ID: ${surveyId}  |  Contact: ${contactName}  |  Email: ${contactEmail}`, margin + 5, y + 28);
-      
-      y += 45;
+      html += `
+<div class="header">
+  <p style="font-size:11px;margin-bottom:4px;">Best Companies for Working with Cancer Index</p>
+  <h1>${assessment?.company_name || 'Company Profile'}</h1>
+  <p>Survey ID: ${surveyId} &nbsp;|&nbsp; Contact: ${pdfContactName} &nbsp;|&nbsp; Email: ${pdfContactEmail}</p>
+  <div class="status-badge">
+    <p style="font-size:10px;opacity:0.8;">Status</p>
+    <p style="font-size:14px;font-weight:700;">✓ ${assessment?.survey_completed ? 'Completed' : 'In Progress'}</p>
+  </div>
+</div>
+`;
 
       // ========== EXECUTIVE SUMMARY ==========
-      doc.setTextColor(17, 24, 39);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Executive Summary', margin, y);
-      y += 8;
-
-      // Stats boxes
-      const boxWidth = (pageWidth - 2 * margin - 15) / 4;
-      const boxHeight = 25;
-      const statsData = [
-        { label: 'Support Maturity', value: `${maturityScore}%`, sub: `${totalCurrently} of ${totalAnswered}`, color: [30, 58, 95] },
-        { label: 'Currently Offering', value: String(totalCurrently), sub: 'programs in place', color: [22, 101, 52] },
-        { label: 'In Development', value: String(totalPlanning), sub: 'programs planned', color: [180, 83, 9] },
-        { label: 'Global Consistency', value: `${consistentCount}/13`, sub: 'dimensions', color: [45, 80, 22] },
-      ];
-
-      statsData.forEach((stat, i) => {
-        const boxX = margin + i * (boxWidth + 5);
-        
-        // Box background
-        doc.setFillColor(249, 250, 251);
-        doc.roundedRect(boxX, y, boxWidth, boxHeight, 2, 2, 'F');
-        
-        // Top border
-        doc.setFillColor(stat.color[0], stat.color[1], stat.color[2]);
-        doc.rect(boxX, y, boxWidth, 2, 'F');
-        
-        // Label
-        doc.setTextColor(107, 114, 128);
-        doc.setFontSize(7);
-        doc.setFont('helvetica', 'normal');
-        doc.text(stat.label.toUpperCase(), boxX + boxWidth / 2, y + 7, { align: 'center' });
-        
-        // Value
-        doc.setTextColor(stat.color[0], stat.color[1], stat.color[2]);
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text(stat.value, boxX + boxWidth / 2, y + 16, { align: 'center' });
-        
-        // Sub text
-        doc.setTextColor(107, 114, 128);
-        doc.setFontSize(6);
-        doc.setFont('helvetica', 'normal');
-        doc.text(stat.sub, boxX + boxWidth / 2, y + 22, { align: 'center' });
-      });
-
-      y += boxHeight + 10;
+      html += `
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar" style="background:#1E3A5F;"></div>
+    <div class="section-title">Executive Summary</div>
+  </div>
+  <div class="section-body">
+    <div class="stat-grid">
+      <div class="stat-box" style="border-top:4px solid #1E3A5F;">
+        <div class="stat-label">Support Maturity</div>
+        <div class="stat-value" style="color:#1E3A5F;">${maturityScore}%</div>
+        <div class="stat-sub">${totalCurrently} of ${totalAnswered} answered</div>
+      </div>
+      <div class="stat-box" style="border-top:4px solid #166534;">
+        <div class="stat-label">Currently Offering</div>
+        <div class="stat-value" style="color:#166534;">${totalCurrently}</div>
+        <div class="stat-sub">programs in place</div>
+      </div>
+      <div class="stat-box" style="border-top:4px solid #B45309;">
+        <div class="stat-label">In Development</div>
+        <div class="stat-value" style="color:#B45309;">${totalPlanning}</div>
+        <div class="stat-sub">programs planned</div>
+      </div>
+      <div class="stat-box" style="border-top:4px solid #2D5016;">
+        <div class="stat-label">Global Consistency</div>
+        <div class="stat-value" style="color:#2D5016;">${consistentCount}/13</div>
+        <div class="stat-sub">dimensions consistent</div>
+      </div>
+    </div>
+    ${totalUnsure > 10 ? `
+    <div class="warning-box">
+      <span style="color:#D97706;font-size:16px;">⚠️</span>
+      <span class="warning-text">${totalUnsure} items marked as "Unsure" - respondent may not have complete visibility into all programs</span>
+    </div>
+    ` : ''}
+  </div>
+</div>
+`;
 
       // ========== COMPANY & CONTACT INFO ==========
-      const infoBoxWidth = (pageWidth - 2 * margin - 10) / 2;
-      const infoBoxHeight = 45;
-
-      // Company Info Box
-      doc.setFillColor(249, 250, 251);
-      doc.roundedRect(margin, y, infoBoxWidth, infoBoxHeight, 2, 2, 'F');
+      const areasOfResp = firm.s6 ? (Array.isArray(firm.s6) ? firm.s6 : [firm.s6]) : [];
       
-      doc.setTextColor(17, 24, 39);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Company Information', margin + 5, y + 7);
+      html += `
+<div class="section">
+  <div class="section-body">
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>Company Information</h3>
+        <div class="info-row"><span class="info-label">Industry</span><span class="info-value">${firm.c2 || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Total Employees</span><span class="info-value">${firm.s8 || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Headquarters</span><span class="info-value">${firm.s9 || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Countries of Operation</span><span class="info-value">${firm.s9a || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Annual Revenue</span><span class="info-value">${(firm.c4 && !Array.isArray(firm.c4) ? firm.c4 : null) || firm.c5 || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Remote/Hybrid Policy</span><span class="info-value">${firm.c6 || 'N/A'}</span></div>
+      </div>
+      <div class="info-card">
+        <h3>Contact Information</h3>
+        <div class="info-row"><span class="info-label">Name</span><span class="info-value">${pdfContactName}</span></div>
+        <div class="info-row"><span class="info-label">Title</span><span class="info-value">${pdfContactTitle}</span></div>
+        <div class="info-row"><span class="info-label">Email</span><span class="info-value">${pdfContactEmail}</span></div>
+        <div class="info-row"><span class="info-label">Department</span><span class="info-value">${firm.s4b || firm.s4a || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Level</span><span class="info-value">${firm.s5 || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Benefits Influence</span><span class="info-value">${firm.s7 || 'N/A'}</span></div>
+        ${areasOfResp.length > 0 ? `
+        <div style="margin-top:12px;">
+          <span class="info-label">Areas of Responsibility</span>
+          <ul style="margin-top:6px;padding-left:16px;">
+            ${areasOfResp.map((a: string) => `<li style="font-size:10px;color:#374151;margin:3px 0;">• ${a}</li>`).join('')}
+          </ul>
+        </div>
+        ` : ''}
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+      // ========== PAYMENT STATUS ==========
+      const paymentMethod = assessment?.payment_method || 'N/A';
+      const isFP = surveyId?.startsWith('FP-');
+      html += `
+<div style="background:#ECFDF5;border:1px solid #10B981;border-radius:10px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+  <div style="width:36px;height:36px;background:#D1FAE5;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+    <span style="color:#059669;font-size:18px;">✓</span>
+  </div>
+  <div>
+    <p style="font-weight:700;color:#065F46;">Payment: ${isFP ? 'Paid Online (Founding Partner - Fee Waived)' : paymentMethod}</p>
+    <p style="font-size:10px;color:#047857;">${assessment?.payment_date ? `Paid on ${new Date(assessment.payment_date).toLocaleDateString()}` : 'Date not recorded'}</p>
+  </div>
+</div>
+`;
+
+      // ========== BENEFITS LANDSCAPE ==========
+      const cb1 = generalBenefits?.cb1 || [];
+      const cb1Array = Array.isArray(cb1) ? cb1 : [];
+      const cb1a = generalBenefits?.cb1a;
       
-      doc.setDrawColor(229, 231, 235);
-      doc.line(margin + 5, y + 10, margin + infoBoxWidth - 5, y + 10);
+      if (cb1Array.length > 0) {
+        html += `
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar" style="background:#B45309;"></div>
+    <div class="section-title">Benefits Landscape</div>
+  </div>
+  <div class="section-body">
+    <p style="font-size:12px;font-weight:700;color:#166534;margin-bottom:12px;">● CURRENTLY OFFERED (${cb1Array.length})</p>
+    <div style="background:#F9FAFB;border-radius:8px;padding:16px;">
+      ${cb1Array.map((b: string) => `<div class="check-item"><span style="color:#166534;font-size:14px;">✓</span><span style="font-size:11px;color:#374151;">${b}</span></div>`).join('')}
+    </div>
+    ${cb1a ? `
+    <div style="background:#F3F4F6;padding:12px 16px;border-radius:8px;margin-top:16px;">
+      <span style="font-size:9px;color:#6B7280;text-transform:uppercase;font-weight:600;">EMPLOYEES WITH NATIONAL HEALTHCARE ACCESS:</span>
+      <span style="font-size:13px;font-weight:700;color:#1F2937;margin-left:8px;">${cb1a}%</span>
+    </div>
+    ` : ''}
+  </div>
+</div>
+`;
+      }
 
-      const companyFields = [
-        ['Industry', firm.c2 || 'N/A'],
-        ['Total Employees', firm.s8 || 'N/A'],
-        ['Headquarters', firm.s9 || 'N/A'],
-        ['Countries', firm.s9a || 'N/A'],
-        ['Revenue', (firm.c4 && !Array.isArray(firm.c4) ? firm.c4 : null) || firm.c5 || 'N/A'],
-        ['Remote Policy', firm.c6 || 'N/A'],
-      ];
-
-      let fieldY = y + 16;
-      companyFields.forEach(([label, value]) => {
-        doc.setTextColor(107, 114, 128);
-        doc.setFontSize(7);
-        doc.setFont('helvetica', 'normal');
-        doc.text(label.toUpperCase(), margin + 5, fieldY);
-        
-        doc.setTextColor(17, 24, 39);
-        doc.setFontSize(8);
-        doc.text(String(value).substring(0, 35), margin + 35, fieldY);
-        fieldY += 5;
-      });
-
-      // Contact Info Box
-      const contactBoxX = margin + infoBoxWidth + 10;
-      doc.setFillColor(249, 250, 251);
-      doc.roundedRect(contactBoxX, y, infoBoxWidth, infoBoxHeight, 2, 2, 'F');
-      
-      doc.setTextColor(17, 24, 39);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Contact Information', contactBoxX + 5, y + 7);
-      
-      doc.line(contactBoxX + 5, y + 10, contactBoxX + infoBoxWidth - 5, y + 10);
-
-      const contactFields = [
-        ['Name', contactName],
-        ['Title', contactTitle],
-        ['Email', contactEmail],
-        ['Department', firm.s4b || firm.s4a || 'N/A'],
-        ['Level', firm.s5 || 'N/A'],
-        ['Influence', firm.s7 || 'N/A'],
-      ];
-
-      fieldY = y + 16;
-      contactFields.forEach(([label, value]) => {
-        doc.setTextColor(107, 114, 128);
-        doc.setFontSize(7);
-        doc.setFont('helvetica', 'normal');
-        doc.text(label.toUpperCase(), contactBoxX + 5, fieldY);
-        
-        doc.setTextColor(17, 24, 39);
-        doc.setFontSize(8);
-        doc.text(String(value).substring(0, 35), contactBoxX + 35, fieldY);
-        fieldY += 5;
-      });
-
-      y += infoBoxHeight + 10;
+      // ========== CURRENT SUPPORT APPROACH ==========
+      if (currentSupport && Object.keys(currentSupport).length > 0) {
+        html += `
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar" style="background:#581C87;"></div>
+    <div class="section-title">Current Support Approach</div>
+  </div>
+  <div class="section-body">
+    ${currentSupport.or1 ? `
+    <div style="margin-bottom:16px;">
+      <p style="font-size:9px;color:#6B7280;text-transform:uppercase;font-weight:600;">CURRENT APPROACH</p>
+      <p style="font-size:12px;color:#1F2937;margin-top:4px;">${currentSupport.or1}</p>
+    </div>
+    ` : ''}
+    ${currentSupport.or6 && Array.isArray(currentSupport.or6) ? `
+    <div style="background:#FEF3C7;padding:14px;border-radius:8px;margin-bottom:16px;">
+      <p style="font-size:9px;color:#92400E;text-transform:uppercase;font-weight:600;margin-bottom:8px;">EFFECTIVENESS MONITORING</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${currentSupport.or6.map((m: string) => `<span style="background:white;border:1px solid #FCD34D;padding:4px 10px;border-radius:6px;font-size:10px;color:#78350F;">${m}</span>`).join('')}
+      </div>
+    </div>
+    ` : ''}
+    ${currentSupport.or5a && Array.isArray(currentSupport.or5a) ? `
+    <div>
+      <p style="font-size:9px;color:#6B7280;text-transform:uppercase;font-weight:600;margin-bottom:8px;">CAREGIVER SUPPORT TYPES (${currentSupport.or5a.length})</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        ${currentSupport.or5a.map((s: string) => `<div style="background:#FFF7ED;padding:10px;border-radius:6px;font-size:10px;color:#9A3412;">• ${s}</div>`).join('')}
+      </div>
+    </div>
+    ` : ''}
+  </div>
+</div>
+`;
+      }
 
       // ========== 13 DIMENSIONS ==========
-      doc.setTextColor(17, 24, 39);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('13 Dimensions of Support', margin, y);
-      y += 8;
-
-      // Table header
-      doc.setFillColor(243, 244, 246);
-      doc.rect(margin, y, pageWidth - 2 * margin, 7, 'F');
-      
-      doc.setTextColor(107, 114, 128);
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'bold');
-      doc.text('#', margin + 3, y + 5);
-      doc.text('DIMENSION', margin + 15, y + 5);
-      doc.text('STATUS', margin + 90, y + 5);
-      y += 9;
-
-      const dimColors = [
-        [124, 45, 18], [133, 77, 14], [54, 83, 20], [22, 101, 52], [17, 94, 89],
-        [22, 78, 99], [30, 58, 138], [49, 46, 129], [88, 28, 135], [131, 24, 67],
-        [136, 19, 55], [127, 29, 29], [68, 64, 60]
-      ];
+      html += `
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar" style="background:#7C3AED;"></div>
+    <div class="section-title">13 Dimensions of Support</div>
+  </div>
+</div>
+`;
 
       for (let i = 1; i <= 13; i++) {
-        // Check if we need a new page
-        if (y > pageHeight - 25) {
-          doc.addPage();
-          y = margin;
-        }
-
         const dimData = assessment?.[`dimension${i}_data`] || {};
         const mainGrid = dimData[`d${i}a`] || {};
-        
-        let current = 0, planning = 0, assessing = 0, notFeasible = 0, unsure = 0;
+        const geoScope = dimData[`d${i}aa`];
+        const openEnd = dimData[`d${i}b`];
+        const color = PDF_DIM_COLORS[i - 1];
+
+        // Count statuses
+        let counts = { current: 0, planning: 0, assessing: 0, notFeasible: 0, unsure: 0 };
         Object.values(mainGrid).forEach((status: any) => {
-          const numStatus = typeof status === 'number' ? status : parseInt(String(status));
-          if (!isNaN(numStatus)) {
-            if (numStatus === 4) current++;
-            else if (numStatus === 3) planning++;
-            else if (numStatus === 2) assessing++;
-            else if (numStatus === 1) notFeasible++;
-            else if (numStatus === 5) unsure++;
-          } else if (typeof status === 'string') {
-            const s = status.toLowerCase();
-            if (s.includes('not able')) notFeasible++;
-            else if (s === 'unsure') unsure++;
-            else if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) current++;
-            else if (s.includes('planning') || s.includes('development')) planning++;
-            else if (s.includes('assessing')) assessing++;
-          }
+          const st = getStatusPDF(status);
+          if (st.label === 'Currently Offering') counts.current++;
+          else if (st.label === 'In Development') counts.planning++;
+          else if (st.label === 'Assessing') counts.assessing++;
+          else if (st.label === 'Not Feasible') counts.notFeasible++;
+          else if (st.label === 'Unsure') counts.unsure++;
         });
 
-        // Number badge
-        const color = dimColors[i - 1];
-        doc.setFillColor(color[0], color[1], color[2]);
-        doc.roundedRect(margin + 2, y, 8, 8, 1, 1, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.text(String(i), margin + 6, y + 5.5, { align: 'center' });
+        const totalItems = Object.keys(mainGrid).length;
+        const hasData = totalItems > 0;
 
-        // Dimension name
-        doc.setTextColor(17, 24, 39);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.text(DIM_TITLES[i].substring(0, 40), margin + 15, y + 5.5);
+        html += `
+<div class="dim-section" style="border-left:4px solid ${color};">
+  <div class="dim-header">
+    <div class="dim-num" style="background:${color};">${i}</div>
+    <div>
+      <div class="dim-title">${DIM_TITLES[i]}</div>
+      ${hasData ? `
+      <div class="dim-badges">
+        ${counts.current > 0 ? `<span class="badge" style="background:${STATUS.current.bg};color:white;">${counts.current} Offering</span>` : ''}
+        ${counts.planning > 0 ? `<span class="badge" style="background:${STATUS.planning.bg};color:white;">${counts.planning} Planning</span>` : ''}
+        ${counts.assessing > 0 ? `<span class="badge" style="background:${STATUS.assessing.bg};color:white;">${counts.assessing} Assessing</span>` : ''}
+        ${counts.notFeasible > 0 ? `<span class="badge" style="background:${STATUS.notFeasible.bg};color:white;">${counts.notFeasible} Not Feasible</span>` : ''}
+        ${counts.unsure > 0 ? `<span class="badge" style="background:${STATUS.unsure.bg};color:white;">${counts.unsure} Unsure</span>` : ''}
+      </div>
+      ` : ''}
+    </div>
+  </div>
+  <div class="dim-body">
+`;
 
-        // Status badges
-        let badgeX = margin + 90;
-        const badgeHeight = 5;
-        
-        if (current > 0) {
-          doc.setFillColor(22, 101, 52);
-          doc.roundedRect(badgeX, y + 1.5, 18, badgeHeight, 1, 1, 'F');
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(6);
-          doc.text(`${current} Offering`, badgeX + 9, y + 5, { align: 'center' });
-          badgeX += 20;
-        }
-        if (planning > 0) {
-          doc.setFillColor(180, 83, 9);
-          doc.roundedRect(badgeX, y + 1.5, 18, badgeHeight, 1, 1, 'F');
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(6);
-          doc.text(`${planning} Planning`, badgeX + 9, y + 5, { align: 'center' });
-          badgeX += 20;
-        }
-        if (assessing > 0) {
-          doc.setFillColor(30, 64, 175);
-          doc.roundedRect(badgeX, y + 1.5, 18, badgeHeight, 1, 1, 'F');
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(6);
-          doc.text(`${assessing} Assessing`, badgeX + 9, y + 5, { align: 'center' });
-          badgeX += 20;
-        }
-        if (notFeasible > 0) {
-          doc.setFillColor(153, 27, 27);
-          doc.roundedRect(badgeX, y + 1.5, 18, badgeHeight, 1, 1, 'F');
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(6);
-          doc.text(`${notFeasible} Not Feasible`, badgeX + 9, y + 5, { align: 'center' });
-          badgeX += 20;
-        }
-        if (unsure > 0) {
-          doc.setFillColor(75, 85, 99);
-          doc.roundedRect(badgeX, y + 1.5, 14, badgeHeight, 1, 1, 'F');
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(6);
-          doc.text(`${unsure} Unsure`, badgeX + 7, y + 5, { align: 'center' });
+        if (!hasData) {
+          html += `<p style="text-align:center;color:#9CA3AF;font-style:italic;padding:20px;">No responses recorded for this dimension</p>`;
+        } else {
+          // Geographic scope
+          if (geoScope) {
+            html += `
+    <div class="geo-box">
+      <span class="geo-label">GEOGRAPHIC SCOPE:</span>
+      <span style="margin-left:8px;color:#374151;">${geoScope}</span>
+    </div>
+`;
+          }
+
+          // Program table
+          html += `
+    <p style="font-size:9px;color:#6B7280;text-transform:uppercase;font-weight:600;margin-bottom:8px;">PROGRAM STATUS (${totalItems} ITEMS)</p>
+    <table class="program-table">
+      <thead>
+        <tr>
+          <th>Program / Initiative</th>
+          <th style="width:140px;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+`;
+          Object.entries(mainGrid).forEach(([program, status]) => {
+            const st = getStatusPDF(status);
+            html += `
+        <tr>
+          <td>${program}</td>
+          <td><span class="badge" style="background:${st.bg};color:${st.text};">${st.label}</span></td>
+        </tr>
+`;
+          });
+
+          html += `
+      </tbody>
+    </table>
+`;
+
+          // Follow-up details
+          const followups: Array<{label: string; value: string}> = [];
+          Object.keys(dimData).forEach(key => {
+            if (key === `d${i}a` || key === `d${i}aa` || key === `d${i}b`) return;
+            if (!key.startsWith(`d${i}`)) return;
+            const val = dimData[key];
+            if (!val || val === 'true' || val === 'false' || (typeof val === 'string' && val.toLowerCase().includes('none'))) return;
+            
+            const label = FIELD_LABELS[key] || key.toUpperCase();
+            const formatted = Array.isArray(val) ? val.filter(Boolean).join(', ') : String(val);
+            if (formatted && formatted !== 'undefined') {
+              followups.push({ label, value: formatted });
+            }
+          });
+
+          if (followups.length > 0) {
+            html += `
+    <div class="followup">
+      <p style="font-size:9px;color:#6B7280;text-transform:uppercase;font-weight:600;">FOLLOW-UP DETAILS</p>
+      <div class="followup-grid">
+        ${followups.map(f => `
+        <div class="followup-item">
+          <label>${f.label}</label>
+          <p>${f.value}</p>
+        </div>
+        `).join('')}
+      </div>
+    </div>
+`;
+          }
+
+          // Open-end response
+          const hasOpenEnd = openEnd && typeof openEnd === 'string' && openEnd.trim() && !openEnd.toLowerCase().includes('no other') && openEnd !== 'true';
+          html += `
+    <div class="openend">
+      <p class="openend-label">Additional Comments / Other Programs Not Listed</p>
+      <p class="openend-text">${hasOpenEnd ? `"${openEnd}"` : 'No additional response provided'}</p>
+    </div>
+`;
         }
 
-        // Divider line
-        doc.setDrawColor(229, 231, 235);
-        doc.line(margin, y + 9, pageWidth - margin, y + 9);
-        
-        y += 11;
+        html += `
+  </div>
+</div>
+`;
+      }
+
+      // ========== CROSS-DIMENSIONAL ASSESSMENT ==========
+      if (crossDim && Object.keys(crossDim).length > 0) {
+        const topPriorities = crossDim.cd1a || [];
+        const lowPriorities = crossDim.cd1b || [];
+        const challenges = crossDim.cd2 || [];
+
+        html += `
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar" style="background:#059669;"></div>
+    <div class="section-title">Cross-Dimensional Assessment</div>
+  </div>
+  <div class="section-body">
+    <div class="priority-grid">
+      <div class="priority-box" style="background:#DCFCE7;">
+        <p class="priority-title" style="color:#166534;">Top 3 Priorities</p>
+        ${Array.isArray(topPriorities) && topPriorities.length > 0 
+          ? topPriorities.map((p: string, idx: number) => `<p style="font-size:11px;color:#14532D;margin:6px 0;"><strong>${idx+1}.</strong> ${p}</p>`).join('')
+          : '<p style="font-size:11px;color:#6B7280;font-style:italic;">Not specified</p>'
+        }
+      </div>
+      <div class="priority-box" style="background:#FEF9C3;">
+        <p class="priority-title" style="color:#A16207;">Lowest Priorities</p>
+        ${Array.isArray(lowPriorities) && lowPriorities.length > 0 
+          ? lowPriorities.map((p: string, idx: number) => `<p style="font-size:11px;color:#78350F;margin:6px 0;"><strong>${idx+1}.</strong> ${p}</p>`).join('')
+          : '<p style="font-size:11px;color:#6B7280;font-style:italic;">Not specified</p>'
+        }
+      </div>
+      <div class="priority-box" style="background:#FEE2E2;">
+        <p class="priority-title" style="color:#991B1B;">Biggest Challenges</p>
+        ${Array.isArray(challenges) && challenges.length > 0 
+          ? challenges.map((c: string) => `<p style="font-size:11px;color:#7F1D1D;margin:6px 0;">• ${c}</p>`).join('')
+          : '<p style="font-size:11px;color:#6B7280;font-style:italic;">Not specified</p>'
+        }
+      </div>
+    </div>
+  </div>
+</div>
+`;
+      }
+
+      // ========== EMPLOYEE IMPACT ASSESSMENT ==========
+      if (empImpact && Object.keys(empImpact).length > 0) {
+        const ei1 = empImpact.ei1 || {};
+        const ei2 = empImpact.ei2;
+        const ei4 = empImpact.ei4;
+        const ei5 = empImpact.ei5;
+
+        html += `
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar" style="background:#DC2626;"></div>
+    <div class="section-title">Employee Impact Assessment</div>
+  </div>
+  <div class="section-body">
+    ${Object.keys(ei1).length > 0 ? `
+    <p style="font-size:9px;color:#6B7280;text-transform:uppercase;font-weight:600;margin-bottom:12px;">PROGRAM IMPACT BY OUTCOME AREA</p>
+    <div class="impact-grid">
+      ${Object.entries(ei1).map(([area, impact]) => {
+        const impactStr = String(impact);
+        let impactColor = '#6B7280';
+        let impactBg = '#F3F4F6';
+        if (impactStr.toLowerCase().includes('significant')) { impactColor = '#166534'; impactBg = '#DCFCE7'; }
+        else if (impactStr.toLowerCase().includes('moderate')) { impactColor = '#B45309'; impactBg = '#FEF3C7'; }
+        return `
+      <div class="impact-row">
+        <span class="impact-label">${area}</span>
+        <span class="impact-value" style="background:${impactBg};color:${impactColor};">${impactStr}</span>
+      </div>
+        `;
+      }).join('')}
+    </div>
+    ` : ''}
+    ${ei2 ? `
+    <div style="margin-top:20px;">
+      <p style="font-size:9px;color:#6B7280;text-transform:uppercase;font-weight:600;">ROI MEASUREMENT STATUS</p>
+      <p style="font-size:12px;color:#1F2937;margin-top:4px;">${ei2}</p>
+    </div>
+    ` : ''}
+    ${ei4 ? `
+    <div class="openend" style="margin-top:16px;">
+      <p class="openend-label">Advice for Other HR Leaders (EI4)</p>
+      <p class="openend-text">${ei4 && ei4 !== 'true' && !String(ei4).toLowerCase().includes('no additional') ? `"${ei4}"` : 'No additional response provided'}</p>
+    </div>
+    ` : ''}
+    ${ei5 ? `
+    <div class="openend" style="margin-top:12px;">
+      <p class="openend-label">Survey Gaps / Important Aspects Not Addressed (EI5)</p>
+      <p class="openend-text">${ei5 && ei5 !== 'true' && !String(ei5).toLowerCase().includes('none') ? `"${ei5}"` : 'No additional response provided'}</p>
+    </div>
+    ` : ''}
+  </div>
+</div>
+`;
       }
 
       // ========== FOOTER ==========
-      y = pageHeight - 15;
-      doc.setDrawColor(229, 231, 235);
-      doc.line(margin, y - 5, pageWidth - margin, y - 5);
-      
-      doc.setTextColor(107, 114, 128);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Best Companies for Working with Cancer Index • Company Profile Report', pageWidth / 2, y, { align: 'center' });
-      doc.setFontSize(7);
-      doc.text(`Generated ${new Date().toLocaleDateString()} • Survey ID: ${surveyId}`, pageWidth / 2, y + 4, { align: 'center' });
+      html += `
+<div class="footer">
+  <p style="font-weight:600;">Best Companies for Working with Cancer Index • Company Profile Report</p>
+  <p style="color:#9CA3AF;margin-top:4px;">Generated ${new Date().toLocaleDateString()} • Survey ID: ${surveyId}</p>
+</div>
+</body>
+</html>
+`;
 
-      // Save the PDF
-      const filename = `${companyName.replace(/[^a-zA-Z0-9]/g, '-')}-profile-${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(filename);
+      // ========== GENERATE PDF ==========
+      console.log('📄 HTML built, generating PDF...');
       
+      const opt = {
+        margin: [8, 8, 8, 8],
+        filename: `${assessment?.company_name?.replace(/[^a-zA-Z0-9]/g, '-') || surveyId}-full-report-${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#F9FAFB'
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'letter',
+          orientation: 'portrait' as const
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      await html2pdf().set(opt).from(html).save();
       console.log('✅ PDF export complete!');
 
     } catch (err: any) {
@@ -1332,7 +1563,7 @@ export default function ProfilePage() {
                   Back
                 </button>
                 {/* ============================================
-                    PDF Export Button - uses jsPDF directly
+                    PDF Export Button - Generates FULL detailed report
                     ============================================ */}
                 <button
                   onClick={handleExportPDF}
@@ -1348,7 +1579,16 @@ export default function ProfilePage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Generating...
+                      Generating Full Report...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Export Full PDF Report
+                    </>
+                  )}
                     </>
                   ) : (
                     <>
