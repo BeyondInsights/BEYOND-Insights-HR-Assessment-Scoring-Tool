@@ -809,6 +809,63 @@ export default function ProfilePage() {
   };
 
   // ============================================
+  // Helper: Convert modern CSS colors (oklab, oklch, etc.) to RGB
+  // ============================================
+  const convertColorsToRGB = (element: HTMLElement) => {
+    const allElements = element.querySelectorAll('*');
+    
+    const convertColor = (color: string): string => {
+      // If it's already a standard format, return as-is
+      if (!color || color === 'transparent' || color === 'inherit' || color === 'initial') {
+        return color;
+      }
+      // Check for modern color functions that html2canvas doesn't support
+      if (color.includes('oklab') || color.includes('oklch') || color.includes('lab(') || color.includes('lch(')) {
+        // Create a temporary element to convert the color
+        const temp = document.createElement('div');
+        temp.style.color = color;
+        document.body.appendChild(temp);
+        const computed = getComputedStyle(temp).color;
+        document.body.removeChild(temp);
+        return computed || '#000000';
+      }
+      return color;
+    };
+    
+    // Process the element itself
+    const processElement = (el: Element) => {
+      const htmlEl = el as HTMLElement;
+      if (!htmlEl.style) return;
+      
+      const computed = getComputedStyle(htmlEl);
+      
+      // Convert and set color properties
+      const colorProps = ['color', 'backgroundColor', 'borderColor', 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor', 'outlineColor'];
+      
+      colorProps.forEach(prop => {
+        const camelProp = prop as keyof CSSStyleDeclaration;
+        const value = computed[camelProp];
+        if (value && typeof value === 'string') {
+          const converted = convertColor(value);
+          if (converted !== value) {
+            (htmlEl.style as any)[prop] = converted;
+          }
+        }
+      });
+      
+      // Handle background (which might have gradients with modern colors)
+      const bg = computed.background;
+      if (bg && (bg.includes('oklab') || bg.includes('oklch'))) {
+        // Fall back to background-color only
+        htmlEl.style.background = convertColor(computed.backgroundColor);
+      }
+    };
+    
+    processElement(element);
+    allElements.forEach(processElement);
+  };
+
+  // ============================================
   // NEW: PDF Export Function using html2pdf.js
   // ============================================
   const handleExportPDF = async () => {
@@ -855,7 +912,7 @@ export default function ProfilePage() {
       wrapper.style.position = 'absolute';
       wrapper.style.left = '-9999px';
       wrapper.style.top = '0';
-      wrapper.style.width = '1100px'; // Fixed width for consistent rendering
+      wrapper.style.width = '1100px';
       wrapper.style.backgroundColor = '#f3f4f6';
       
       // Clone element to avoid modifying original
@@ -870,6 +927,10 @@ export default function ProfilePage() {
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
       
+      // FIX: Convert modern CSS colors (oklab, oklch) to RGB before rendering
+      console.log('🎨 Converting colors to RGB...');
+      convertColorsToRGB(clone);
+      
       console.log('📄 Generating PDF...');
 
       // PDF options
@@ -880,7 +941,7 @@ export default function ProfilePage() {
         html2canvas: {
           scale: 2,
           useCORS: true,
-          logging: true, // Enable logging for debugging
+          logging: false,
           letterRendering: true,
           allowTaint: true,
           backgroundColor: '#f3f4f6'
