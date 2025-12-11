@@ -809,43 +809,56 @@ export default function ProfilePage() {
   };
 
   // ============================================
-  // NEW: PDF Export Function using html2pdf.js
-  // Uses simple table-based HTML that html2canvas renders reliably
+  // PDF Export - Using jsPDF directly (no html2canvas)
+  // Builds PDF programmatically for reliable output
   // ============================================
   const handleExportPDF = async () => {
     try {
       setExporting(true);
-      console.log('📄 Starting PDF export...');
+      console.log('📄 Starting PDF export with jsPDF...');
 
-      // Load html2pdf library dynamically from CDN
-      if (!(window as any).html2pdf) {
-        console.log('📦 Loading html2pdf library...');
+      // Load jsPDF library dynamically
+      if (!(window as any).jspdf) {
+        console.log('📦 Loading jsPDF library...');
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement('script');
-          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
           script.async = true;
           script.onload = () => {
-            console.log('✅ html2pdf library loaded');
+            console.log('✅ jsPDF library loaded');
             resolve();
           };
-          script.onerror = (e) => {
-            console.error('❌ Failed to load html2pdf:', e);
-            reject(new Error('Failed to load PDF library'));
-          };
+          script.onerror = reject;
           document.head.appendChild(script);
         });
-      } else {
-        console.log('✅ html2pdf already loaded');
       }
 
-      const html2pdf = (window as any).html2pdf;
-      if (!html2pdf) {
-        throw new Error('html2pdf not available after loading');
-      }
+      const { jsPDF } = (window as any).jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      let y = margin;
 
-      console.log('📄 Building PDF content...');
+      // Helper function to add text with word wrap
+      const addText = (text: string, x: number, yPos: number, options: any = {}) => {
+        const { fontSize = 10, fontStyle = 'normal', color = [0, 0, 0], maxWidth = pageWidth - 2 * margin } = options;
+        doc.setFontSize(fontSize);
+        doc.setFont('helvetica', fontStyle);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(text, maxWidth);
+        doc.text(lines, x, yPos);
+        return lines.length * fontSize * 0.4;
+      };
 
-      // Extract data for PDF
+      // Helper to draw rounded rectangle
+      const drawRoundedRect = (x: number, y: number, w: number, h: number, r: number, fillColor: number[]) => {
+        doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
+        doc.roundedRect(x, y, w, h, r, r, 'F');
+      };
+
+      // Extract data
       const firm = assessment?.firmographics_data || {};
       const contactName = [firm.firstName, firm.lastName].filter(Boolean).join(' ') || 'N/A';
       let contactTitle = firm.title || 'N/A';
@@ -853,16 +866,185 @@ export default function ProfilePage() {
         contactTitle = firm.titleOther || firm.title_other || contactTitle;
       }
       const contactEmail = assessment?.email || 'N/A';
+      const companyName = assessment?.company_name || 'Company Profile';
 
-      // Build dimension rows
-      const dimColors = ['#7C2D12', '#854D0E', '#365314', '#166534', '#115E59', '#164E63', '#1E3A8A', '#312E81', '#581C87', '#831843', '#881337', '#7F1D1D', '#44403C'];
-      let dimensionRows = '';
+      // ========== HEADER ==========
+      drawRoundedRect(margin, y, pageWidth - 2 * margin, 35, 3, [124, 58, 237]); // Purple header
       
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Best Companies for Working with Cancer Index', margin + 5, y + 8);
+      
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text(companyName.substring(0, 50), margin + 5, y + 18);
+      
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Survey ID: ${surveyId}  |  Contact: ${contactName}  |  Email: ${contactEmail}`, margin + 5, y + 28);
+      
+      y += 45;
+
+      // ========== EXECUTIVE SUMMARY ==========
+      doc.setTextColor(17, 24, 39);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Executive Summary', margin, y);
+      y += 8;
+
+      // Stats boxes
+      const boxWidth = (pageWidth - 2 * margin - 15) / 4;
+      const boxHeight = 25;
+      const statsData = [
+        { label: 'Support Maturity', value: `${maturityScore}%`, sub: `${totalCurrently} of ${totalAnswered}`, color: [30, 58, 95] },
+        { label: 'Currently Offering', value: String(totalCurrently), sub: 'programs in place', color: [22, 101, 52] },
+        { label: 'In Development', value: String(totalPlanning), sub: 'programs planned', color: [180, 83, 9] },
+        { label: 'Global Consistency', value: `${consistentCount}/13`, sub: 'dimensions', color: [45, 80, 22] },
+      ];
+
+      statsData.forEach((stat, i) => {
+        const boxX = margin + i * (boxWidth + 5);
+        
+        // Box background
+        doc.setFillColor(249, 250, 251);
+        doc.roundedRect(boxX, y, boxWidth, boxHeight, 2, 2, 'F');
+        
+        // Top border
+        doc.setFillColor(stat.color[0], stat.color[1], stat.color[2]);
+        doc.rect(boxX, y, boxWidth, 2, 'F');
+        
+        // Label
+        doc.setTextColor(107, 114, 128);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(stat.label.toUpperCase(), boxX + boxWidth / 2, y + 7, { align: 'center' });
+        
+        // Value
+        doc.setTextColor(stat.color[0], stat.color[1], stat.color[2]);
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text(stat.value, boxX + boxWidth / 2, y + 16, { align: 'center' });
+        
+        // Sub text
+        doc.setTextColor(107, 114, 128);
+        doc.setFontSize(6);
+        doc.setFont('helvetica', 'normal');
+        doc.text(stat.sub, boxX + boxWidth / 2, y + 22, { align: 'center' });
+      });
+
+      y += boxHeight + 10;
+
+      // ========== COMPANY & CONTACT INFO ==========
+      const infoBoxWidth = (pageWidth - 2 * margin - 10) / 2;
+      const infoBoxHeight = 45;
+
+      // Company Info Box
+      doc.setFillColor(249, 250, 251);
+      doc.roundedRect(margin, y, infoBoxWidth, infoBoxHeight, 2, 2, 'F');
+      
+      doc.setTextColor(17, 24, 39);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Company Information', margin + 5, y + 7);
+      
+      doc.setDrawColor(229, 231, 235);
+      doc.line(margin + 5, y + 10, margin + infoBoxWidth - 5, y + 10);
+
+      const companyFields = [
+        ['Industry', firm.c2 || 'N/A'],
+        ['Total Employees', firm.s8 || 'N/A'],
+        ['Headquarters', firm.s9 || 'N/A'],
+        ['Countries', firm.s9a || 'N/A'],
+        ['Revenue', (firm.c4 && !Array.isArray(firm.c4) ? firm.c4 : null) || firm.c5 || 'N/A'],
+        ['Remote Policy', firm.c6 || 'N/A'],
+      ];
+
+      let fieldY = y + 16;
+      companyFields.forEach(([label, value]) => {
+        doc.setTextColor(107, 114, 128);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(label.toUpperCase(), margin + 5, fieldY);
+        
+        doc.setTextColor(17, 24, 39);
+        doc.setFontSize(8);
+        doc.text(String(value).substring(0, 35), margin + 35, fieldY);
+        fieldY += 5;
+      });
+
+      // Contact Info Box
+      const contactBoxX = margin + infoBoxWidth + 10;
+      doc.setFillColor(249, 250, 251);
+      doc.roundedRect(contactBoxX, y, infoBoxWidth, infoBoxHeight, 2, 2, 'F');
+      
+      doc.setTextColor(17, 24, 39);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Contact Information', contactBoxX + 5, y + 7);
+      
+      doc.line(contactBoxX + 5, y + 10, contactBoxX + infoBoxWidth - 5, y + 10);
+
+      const contactFields = [
+        ['Name', contactName],
+        ['Title', contactTitle],
+        ['Email', contactEmail],
+        ['Department', firm.s4b || firm.s4a || 'N/A'],
+        ['Level', firm.s5 || 'N/A'],
+        ['Influence', firm.s7 || 'N/A'],
+      ];
+
+      fieldY = y + 16;
+      contactFields.forEach(([label, value]) => {
+        doc.setTextColor(107, 114, 128);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(label.toUpperCase(), contactBoxX + 5, fieldY);
+        
+        doc.setTextColor(17, 24, 39);
+        doc.setFontSize(8);
+        doc.text(String(value).substring(0, 35), contactBoxX + 35, fieldY);
+        fieldY += 5;
+      });
+
+      y += infoBoxHeight + 10;
+
+      // ========== 13 DIMENSIONS ==========
+      doc.setTextColor(17, 24, 39);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('13 Dimensions of Support', margin, y);
+      y += 8;
+
+      // Table header
+      doc.setFillColor(243, 244, 246);
+      doc.rect(margin, y, pageWidth - 2 * margin, 7, 'F');
+      
+      doc.setTextColor(107, 114, 128);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.text('#', margin + 3, y + 5);
+      doc.text('DIMENSION', margin + 15, y + 5);
+      doc.text('STATUS', margin + 90, y + 5);
+      y += 9;
+
+      const dimColors = [
+        [124, 45, 18], [133, 77, 14], [54, 83, 20], [22, 101, 52], [17, 94, 89],
+        [22, 78, 99], [30, 58, 138], [49, 46, 129], [88, 28, 135], [131, 24, 67],
+        [136, 19, 55], [127, 29, 29], [68, 64, 60]
+      ];
+
       for (let i = 1; i <= 13; i++) {
+        // Check if we need a new page
+        if (y > pageHeight - 25) {
+          doc.addPage();
+          y = margin;
+        }
+
         const dimData = assessment?.[`dimension${i}_data`] || {};
         const mainGrid = dimData[`d${i}a`] || {};
         
-        let current = 0, planning = 0, assessing = 0, notFeasible = 0;
+        let current = 0, planning = 0, assessing = 0, notFeasible = 0, unsure = 0;
         Object.values(mainGrid).forEach((status: any) => {
           const numStatus = typeof status === 'number' ? status : parseInt(String(status));
           if (!isNaN(numStatus)) {
@@ -870,233 +1052,104 @@ export default function ProfilePage() {
             else if (numStatus === 3) planning++;
             else if (numStatus === 2) assessing++;
             else if (numStatus === 1) notFeasible++;
+            else if (numStatus === 5) unsure++;
           } else if (typeof status === 'string') {
             const s = status.toLowerCase();
             if (s.includes('not able')) notFeasible++;
+            else if (s === 'unsure') unsure++;
             else if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) current++;
             else if (s.includes('planning') || s.includes('development')) planning++;
             else if (s.includes('assessing')) assessing++;
           }
         });
+
+        // Number badge
+        const color = dimColors[i - 1];
+        doc.setFillColor(color[0], color[1], color[2]);
+        doc.roundedRect(margin + 2, y, 8, 8, 1, 1, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(i), margin + 6, y + 5.5, { align: 'center' });
+
+        // Dimension name
+        doc.setTextColor(17, 24, 39);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text(DIM_TITLES[i].substring(0, 40), margin + 15, y + 5.5);
+
+        // Status badges
+        let badgeX = margin + 90;
+        const badgeHeight = 5;
         
-        const total = Object.keys(mainGrid).length;
-        let statusText = '';
-        if (current > 0) statusText += `<span style="background:#166534;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-right:4px;">${current} Offering</span>`;
-        if (planning > 0) statusText += `<span style="background:#B45309;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-right:4px;">${planning} Planning</span>`;
-        if (assessing > 0) statusText += `<span style="background:#1E40AF;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-right:4px;">${assessing} Assessing</span>`;
-        if (notFeasible > 0) statusText += `<span style="background:#991B1B;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-right:4px;">${notFeasible} Not Feasible</span>`;
-        if (total === 0) statusText = '<span style="color:#999;font-style:italic;font-size:11px;">No responses</span>';
-
-        dimensionRows += `
-          <tr>
-            <td style="padding:8px;border-bottom:1px solid #e5e7eb;width:30px;text-align:center;">
-              <div style="width:28px;height:28px;background:${dimColors[i-1]};color:white;border-radius:6px;line-height:28px;text-align:center;font-weight:bold;font-size:12px;">${i}</div>
-            </td>
-            <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:600;color:#111827;">${DIM_TITLES[i]}</td>
-            <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${statusText}</td>
-          </tr>
-        `;
-      }
-
-      // Build simple HTML with tables (more reliable for html2canvas)
-      const pdfHTML = `
-        <html>
-        <head>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #1f2937; background: #f5f5f5; }
-            table { border-collapse: collapse; width: 100%; }
-            .header { background: linear-gradient(135deg, #7C3AED, #4C1D95); color: white; padding: 25px; margin-bottom: 15px; }
-            .card { background: white; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-            .card-header { background: #f9fafb; padding: 10px 15px; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size: 13px; }
-            .card-body { padding: 15px; }
-            .label { font-size: 9px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; }
-            .value { font-size: 12px; color: #1f2937; margin-top: 2px; }
-            .stat-box { text-align: center; padding: 12px; background: white; border-radius: 8px; }
-            .stat-value { font-size: 28px; font-weight: bold; }
-            .stat-label { font-size: 9px; color: #6B7280; text-transform: uppercase; }
-          </style>
-        </head>
-        <body style="padding: 15px;">
-          
-          <!-- Header -->
-          <div class="header">
-            <div style="font-size: 11px; opacity: 0.8; margin-bottom: 5px;">Best Companies for Working with Cancer Index</div>
-            <div style="font-size: 24px; font-weight: bold; margin-bottom: 12px;">${assessment?.company_name || 'Company Profile'}</div>
-            <div style="font-size: 11px;">
-              Survey ID: ${surveyId} &nbsp;|&nbsp; 
-              Contact: ${contactName} &nbsp;|&nbsp; 
-              Email: ${contactEmail}
-            </div>
-          </div>
-
-          <!-- Executive Summary -->
-          <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #111827;">Executive Summary</div>
-          <table style="margin-bottom: 15px;">
-            <tr>
-              <td style="padding-right: 10px; width: 25%;">
-                <div class="stat-box" style="border-top: 3px solid #1E3A5F;">
-                  <div class="stat-label">Support Maturity</div>
-                  <div class="stat-value" style="color: #1E3A5F;">${maturityScore}%</div>
-                  <div style="font-size: 10px; color: #6B7280;">${totalCurrently} of ${totalAnswered} answered</div>
-                </div>
-              </td>
-              <td style="padding-right: 10px; width: 25%;">
-                <div class="stat-box" style="border-top: 3px solid #166534;">
-                  <div class="stat-label">Currently Offering</div>
-                  <div class="stat-value" style="color: #166534;">${totalCurrently}</div>
-                  <div style="font-size: 10px; color: #6B7280;">programs in place</div>
-                </div>
-              </td>
-              <td style="padding-right: 10px; width: 25%;">
-                <div class="stat-box" style="border-top: 3px solid #B45309;">
-                  <div class="stat-label">In Development</div>
-                  <div class="stat-value" style="color: #B45309;">${totalPlanning}</div>
-                  <div style="font-size: 10px; color: #6B7280;">programs planned</div>
-                </div>
-              </td>
-              <td style="width: 25%;">
-                <div class="stat-box" style="border-top: 3px solid #2D5016;">
-                  <div class="stat-label">Global Consistency</div>
-                  <div class="stat-value" style="color: #2D5016;">${consistentCount}/13</div>
-                  <div style="font-size: 10px; color: #6B7280;">dimensions consistent</div>
-                </div>
-              </td>
-            </tr>
-          </table>
-
-          <!-- Company & Contact Info -->
-          <table style="margin-bottom: 15px;">
-            <tr>
-              <td style="width: 50%; padding-right: 8px; vertical-align: top;">
-                <div class="card">
-                  <div class="card-header" style="border-left: 3px solid #2D5016;">Company Information</div>
-                  <div class="card-body">
-                    <table>
-                      <tr>
-                        <td style="width:50%;padding:5px 10px 5px 0;"><div class="label">Industry</div><div class="value">${firm.c2 || 'N/A'}</div></td>
-                        <td style="width:50%;padding:5px 0;"><div class="label">Total Employees</div><div class="value">${firm.s8 || 'N/A'}</div></td>
-                      </tr>
-                      <tr>
-                        <td style="padding:5px 10px 5px 0;"><div class="label">Headquarters</div><div class="value">${firm.s9 || 'N/A'}</div></td>
-                        <td style="padding:5px 0;"><div class="label">Countries</div><div class="value">${firm.s9a || 'N/A'}</div></td>
-                      </tr>
-                      <tr>
-                        <td style="padding:5px 10px 5px 0;"><div class="label">Annual Revenue</div><div class="value">${(firm.c4 && !Array.isArray(firm.c4) ? firm.c4 : null) || firm.c5 || 'N/A'}</div></td>
-                        <td style="padding:5px 0;"><div class="label">Remote/Hybrid Policy</div><div class="value">${firm.c6 || 'N/A'}</div></td>
-                      </tr>
-                    </table>
-                  </div>
-                </div>
-              </td>
-              <td style="width: 50%; padding-left: 8px; vertical-align: top;">
-                <div class="card">
-                  <div class="card-header" style="border-left: 3px solid #8B4513;">Contact Information</div>
-                  <div class="card-body">
-                    <table>
-                      <tr>
-                        <td style="width:50%;padding:5px 10px 5px 0;"><div class="label">Name</div><div class="value">${contactName}</div></td>
-                        <td style="width:50%;padding:5px 0;"><div class="label">Title</div><div class="value">${contactTitle}</div></td>
-                      </tr>
-                      <tr>
-                        <td style="padding:5px 10px 5px 0;"><div class="label">Email</div><div class="value">${contactEmail}</div></td>
-                        <td style="padding:5px 0;"><div class="label">Department</div><div class="value">${firm.s4b || firm.s4a || 'N/A'}</div></td>
-                      </tr>
-                      <tr>
-                        <td style="padding:5px 10px 5px 0;"><div class="label">Level</div><div class="value">${firm.s5 || 'N/A'}</div></td>
-                        <td style="padding:5px 0;"><div class="label">Benefits Influence</div><div class="value">${firm.s7 || 'N/A'}</div></td>
-                      </tr>
-                    </table>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </table>
-
-          <!-- 13 Dimensions -->
-          <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #111827;">13 Dimensions of Support</div>
-          <div class="card">
-            <table>
-              <thead>
-                <tr style="background: #f3f4f6;">
-                  <th style="padding: 8px; text-align: left; font-size: 10px; color: #6B7280; text-transform: uppercase; width: 30px;">#</th>
-                  <th style="padding: 8px; text-align: left; font-size: 10px; color: #6B7280; text-transform: uppercase;">Dimension</th>
-                  <th style="padding: 8px; text-align: left; font-size: 10px; color: #6B7280; text-transform: uppercase;">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${dimensionRows}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Footer -->
-          <div style="text-align: center; padding: 15px 0; margin-top: 15px; border-top: 1px solid #e5e7eb;">
-            <div style="font-size: 10px; color: #6B7280;">Best Companies for Working with Cancer Index • Company Profile Report</div>
-            <div style="font-size: 9px; color: #9CA3AF; margin-top: 3px;">Generated ${new Date().toLocaleDateString()} • Survey ID: ${surveyId}</div>
-          </div>
-
-        </body>
-        </html>
-      `;
-
-      // Create an iframe for isolated rendering (more reliable than div)
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.left = '-9999px';
-      iframe.style.top = '0';
-      iframe.style.width = '850px';
-      iframe.style.height = '1200px';
-      iframe.style.border = 'none';
-      document.body.appendChild(iframe);
-      
-      // Write content to iframe
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (!iframeDoc) {
-        throw new Error('Could not access iframe document');
-      }
-      iframeDoc.open();
-      iframeDoc.write(pdfHTML);
-      iframeDoc.close();
-
-      // Wait for content to render
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      console.log('📄 Generating PDF...');
-
-      // PDF options
-      const opt = {
-        margin: [5, 5, 5, 5],
-        filename: `${assessment?.company_name?.replace(/[^a-zA-Z0-9]/g, '-') || surveyId}-profile-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#f5f5f5',
-          windowWidth: 850
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'letter',
-          orientation: 'portrait' as const
-        },
-        pagebreak: {
-          mode: ['avoid-all', 'css', 'legacy']
+        if (current > 0) {
+          doc.setFillColor(22, 101, 52);
+          doc.roundedRect(badgeX, y + 1.5, 18, badgeHeight, 1, 1, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(6);
+          doc.text(`${current} Offering`, badgeX + 9, y + 5, { align: 'center' });
+          badgeX += 20;
         }
-      };
+        if (planning > 0) {
+          doc.setFillColor(180, 83, 9);
+          doc.roundedRect(badgeX, y + 1.5, 18, badgeHeight, 1, 1, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(6);
+          doc.text(`${planning} Planning`, badgeX + 9, y + 5, { align: 'center' });
+          badgeX += 20;
+        }
+        if (assessing > 0) {
+          doc.setFillColor(30, 64, 175);
+          doc.roundedRect(badgeX, y + 1.5, 18, badgeHeight, 1, 1, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(6);
+          doc.text(`${assessing} Assessing`, badgeX + 9, y + 5, { align: 'center' });
+          badgeX += 20;
+        }
+        if (notFeasible > 0) {
+          doc.setFillColor(153, 27, 27);
+          doc.roundedRect(badgeX, y + 1.5, 18, badgeHeight, 1, 1, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(6);
+          doc.text(`${notFeasible} Not Feasible`, badgeX + 9, y + 5, { align: 'center' });
+          badgeX += 20;
+        }
+        if (unsure > 0) {
+          doc.setFillColor(75, 85, 99);
+          doc.roundedRect(badgeX, y + 1.5, 14, badgeHeight, 1, 1, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(6);
+          doc.text(`${unsure} Unsure`, badgeX + 7, y + 5, { align: 'center' });
+        }
 
-      await html2pdf().set(opt).from(iframeDoc.body).save();
+        // Divider line
+        doc.setDrawColor(229, 231, 235);
+        doc.line(margin, y + 9, pageWidth - margin, y + 9);
+        
+        y += 11;
+      }
+
+      // ========== FOOTER ==========
+      y = pageHeight - 15;
+      doc.setDrawColor(229, 231, 235);
+      doc.line(margin, y - 5, pageWidth - margin, y - 5);
       
-      // Clean up
-      document.body.removeChild(iframe);
+      doc.setTextColor(107, 114, 128);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Best Companies for Working with Cancer Index • Company Profile Report', pageWidth / 2, y, { align: 'center' });
+      doc.setFontSize(7);
+      doc.text(`Generated ${new Date().toLocaleDateString()} • Survey ID: ${surveyId}`, pageWidth / 2, y + 4, { align: 'center' });
+
+      // Save the PDF
+      const filename = `${companyName.replace(/[^a-zA-Z0-9]/g, '-')}-profile-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
       
       console.log('✅ PDF export complete!');
 
     } catch (err: any) {
       console.error('❌ PDF export failed:', err);
-      console.error('Error details:', err?.message, err?.stack);
-      alert(`Failed to export PDF: ${err?.message || 'Unknown error'}. Check browser console for details.`);
+      alert(`Failed to export PDF: ${err?.message || 'Unknown error'}`);
     } finally {
       setExporting(false);
     }
@@ -1279,7 +1332,7 @@ export default function ProfilePage() {
                   Back
                 </button>
                 {/* ============================================
-                    UPDATED: PDF Export Button with loading state
+                    PDF Export Button - uses jsPDF directly
                     ============================================ */}
                 <button
                   onClick={handleExportPDF}
@@ -1295,7 +1348,7 @@ export default function ProfilePage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Generating PDF...
+                      Generating...
                     </>
                   ) : (
                     <>
