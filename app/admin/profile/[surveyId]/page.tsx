@@ -810,7 +810,7 @@ export default function ProfilePage() {
 
   // ============================================
   // NEW: PDF Export Function using html2pdf.js
-  // Creates a clean HTML string with inline RGB styles to avoid oklab issues
+  // Uses simple table-based HTML that html2canvas renders reliably
   // ============================================
   const handleExportPDF = async () => {
     try {
@@ -854,161 +854,227 @@ export default function ProfilePage() {
       }
       const contactEmail = assessment?.email || 'N/A';
 
-      // Build clean HTML with inline styles (NO Tailwind, NO oklab)
+      // Build dimension rows
+      const dimColors = ['#7C2D12', '#854D0E', '#365314', '#166534', '#115E59', '#164E63', '#1E3A8A', '#312E81', '#581C87', '#831843', '#881337', '#7F1D1D', '#44403C'];
+      let dimensionRows = '';
+      
+      for (let i = 1; i <= 13; i++) {
+        const dimData = assessment?.[`dimension${i}_data`] || {};
+        const mainGrid = dimData[`d${i}a`] || {};
+        
+        let current = 0, planning = 0, assessing = 0, notFeasible = 0;
+        Object.values(mainGrid).forEach((status: any) => {
+          const numStatus = typeof status === 'number' ? status : parseInt(String(status));
+          if (!isNaN(numStatus)) {
+            if (numStatus === 4) current++;
+            else if (numStatus === 3) planning++;
+            else if (numStatus === 2) assessing++;
+            else if (numStatus === 1) notFeasible++;
+          } else if (typeof status === 'string') {
+            const s = status.toLowerCase();
+            if (s.includes('not able')) notFeasible++;
+            else if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) current++;
+            else if (s.includes('planning') || s.includes('development')) planning++;
+            else if (s.includes('assessing')) assessing++;
+          }
+        });
+        
+        const total = Object.keys(mainGrid).length;
+        let statusText = '';
+        if (current > 0) statusText += `<span style="background:#166534;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-right:4px;">${current} Offering</span>`;
+        if (planning > 0) statusText += `<span style="background:#B45309;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-right:4px;">${planning} Planning</span>`;
+        if (assessing > 0) statusText += `<span style="background:#1E40AF;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-right:4px;">${assessing} Assessing</span>`;
+        if (notFeasible > 0) statusText += `<span style="background:#991B1B;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-right:4px;">${notFeasible} Not Feasible</span>`;
+        if (total === 0) statusText = '<span style="color:#999;font-style:italic;font-size:11px;">No responses</span>';
+
+        dimensionRows += `
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid #e5e7eb;width:30px;text-align:center;">
+              <div style="width:28px;height:28px;background:${dimColors[i-1]};color:white;border-radius:6px;line-height:28px;text-align:center;font-weight:bold;font-size:12px;">${i}</div>
+            </td>
+            <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:600;color:#111827;">${DIM_TITLES[i]}</td>
+            <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${statusText}</td>
+          </tr>
+        `;
+      }
+
+      // Build simple HTML with tables (more reliable for html2canvas)
       const pdfHTML = `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; color: #1f2937;">
+        <html>
+        <head>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #1f2937; background: #f5f5f5; }
+            table { border-collapse: collapse; width: 100%; }
+            .header { background: linear-gradient(135deg, #7C3AED, #4C1D95); color: white; padding: 25px; margin-bottom: 15px; }
+            .card { background: white; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+            .card-header { background: #f9fafb; padding: 10px 15px; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size: 13px; }
+            .card-body { padding: 15px; }
+            .label { font-size: 9px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; }
+            .value { font-size: 12px; color: #1f2937; margin-top: 2px; }
+            .stat-box { text-align: center; padding: 12px; background: white; border-radius: 8px; }
+            .stat-value { font-size: 28px; font-weight: bold; }
+            .stat-label { font-size: 9px; color: #6B7280; text-transform: uppercase; }
+          </style>
+        </head>
+        <body style="padding: 15px;">
+          
           <!-- Header -->
-          <div style="background: linear-gradient(135deg, #7C3AED, #4C1D95); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px;">
-            <p style="font-size: 12px; margin: 0 0 5px 0; opacity: 0.8;">Best Companies for Working with Cancer Index</p>
-            <h1 style="font-size: 28px; font-weight: bold; margin: 0 0 15px 0;">${assessment?.company_name || 'Company Profile'}</h1>
-            <div style="font-size: 13px;">
-              <span style="opacity: 0.7;">Survey ID:</span> ${surveyId} &nbsp;&nbsp;
-              <span style="opacity: 0.7;">Contact:</span> ${contactName} &nbsp;&nbsp;
-              <span style="opacity: 0.7;">Email:</span> ${contactEmail}
+          <div class="header">
+            <div style="font-size: 11px; opacity: 0.8; margin-bottom: 5px;">Best Companies for Working with Cancer Index</div>
+            <div style="font-size: 24px; font-weight: bold; margin-bottom: 12px;">${assessment?.company_name || 'Company Profile'}</div>
+            <div style="font-size: 11px;">
+              Survey ID: ${surveyId} &nbsp;|&nbsp; 
+              Contact: ${contactName} &nbsp;|&nbsp; 
+              Email: ${contactEmail}
             </div>
           </div>
 
           <!-- Executive Summary -->
-          <h2 style="font-size: 18px; font-weight: bold; margin: 20px 0 15px 0; color: #111827;">Executive Summary</h2>
-          <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-            <div style="flex: 1; background: white; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-              <div style="height: 4px; background: #1E3A5F; border-radius: 4px 4px 0 0; margin: -15px -15px 15px -15px;"></div>
-              <p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0;">Support Maturity</p>
-              <p style="font-size: 32px; font-weight: bold; color: #1E3A5F; margin: 5px 0;">${maturityScore}%</p>
-              <p style="font-size: 11px; color: #6B7280; margin: 0;">${totalCurrently} of ${totalAnswered} answered</p>
-            </div>
-            <div style="flex: 1; background: white; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-              <div style="height: 4px; background: #166534; border-radius: 4px 4px 0 0; margin: -15px -15px 15px -15px;"></div>
-              <p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0;">Currently Offering</p>
-              <p style="font-size: 32px; font-weight: bold; color: #166534; margin: 5px 0;">${totalCurrently}</p>
-              <p style="font-size: 11px; color: #6B7280; margin: 0;">programs in place</p>
-            </div>
-            <div style="flex: 1; background: white; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-              <div style="height: 4px; background: #B45309; border-radius: 4px 4px 0 0; margin: -15px -15px 15px -15px;"></div>
-              <p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0;">In Development</p>
-              <p style="font-size: 32px; font-weight: bold; color: #B45309; margin: 5px 0;">${totalPlanning}</p>
-              <p style="font-size: 11px; color: #6B7280; margin: 0;">programs planned</p>
-            </div>
-            <div style="flex: 1; background: white; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-              <div style="height: 4px; background: #2D5016; border-radius: 4px 4px 0 0; margin: -15px -15px 15px -15px;"></div>
-              <p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0;">Global Consistency</p>
-              <p style="font-size: 32px; font-weight: bold; color: #2D5016; margin: 5px 0;">${consistentCount}/13</p>
-              <p style="font-size: 11px; color: #6B7280; margin: 0;">dimensions consistent</p>
-            </div>
-          </div>
+          <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #111827;">Executive Summary</div>
+          <table style="margin-bottom: 15px;">
+            <tr>
+              <td style="padding-right: 10px; width: 25%;">
+                <div class="stat-box" style="border-top: 3px solid #1E3A5F;">
+                  <div class="stat-label">Support Maturity</div>
+                  <div class="stat-value" style="color: #1E3A5F;">${maturityScore}%</div>
+                  <div style="font-size: 10px; color: #6B7280;">${totalCurrently} of ${totalAnswered} answered</div>
+                </div>
+              </td>
+              <td style="padding-right: 10px; width: 25%;">
+                <div class="stat-box" style="border-top: 3px solid #166534;">
+                  <div class="stat-label">Currently Offering</div>
+                  <div class="stat-value" style="color: #166534;">${totalCurrently}</div>
+                  <div style="font-size: 10px; color: #6B7280;">programs in place</div>
+                </div>
+              </td>
+              <td style="padding-right: 10px; width: 25%;">
+                <div class="stat-box" style="border-top: 3px solid #B45309;">
+                  <div class="stat-label">In Development</div>
+                  <div class="stat-value" style="color: #B45309;">${totalPlanning}</div>
+                  <div style="font-size: 10px; color: #6B7280;">programs planned</div>
+                </div>
+              </td>
+              <td style="width: 25%;">
+                <div class="stat-box" style="border-top: 3px solid #2D5016;">
+                  <div class="stat-label">Global Consistency</div>
+                  <div class="stat-value" style="color: #2D5016;">${consistentCount}/13</div>
+                  <div style="font-size: 10px; color: #6B7280;">dimensions consistent</div>
+                </div>
+              </td>
+            </tr>
+          </table>
 
           <!-- Company & Contact Info -->
-          <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-            <div style="flex: 1; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-              <div style="padding: 12px 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 10px;">
-                <div style="width: 4px; height: 20px; background: #2D5016; border-radius: 2px;"></div>
-                <h3 style="font-size: 14px; font-weight: bold; margin: 0; color: #111827;">Company Information</h3>
-              </div>
-              <div style="padding: 15px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Industry</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.c2 || 'N/A'}</p></div>
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Total Employees</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s8 || 'N/A'}</p></div>
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Headquarters</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s9 || 'N/A'}</p></div>
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Countries</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s9a || 'N/A'}</p></div>
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Annual Revenue</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${(firm.c4 && !Array.isArray(firm.c4) ? firm.c4 : null) || firm.c5 || 'N/A'}</p></div>
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Remote/Hybrid Policy</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.c6 || 'N/A'}</p></div>
-                </div>
-              </div>
-            </div>
-            <div style="flex: 1; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-              <div style="padding: 12px 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 10px;">
-                <div style="width: 4px; height: 20px; background: #8B4513; border-radius: 2px;"></div>
-                <h3 style="font-size: 14px; font-weight: bold; margin: 0; color: #111827;">Contact Information</h3>
-              </div>
-              <div style="padding: 15px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Name</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${contactName}</p></div>
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Title</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${contactTitle}</p></div>
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Email</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${contactEmail}</p></div>
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Department</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s4b || firm.s4a || 'N/A'}</p></div>
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Level</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s5 || 'N/A'}</p></div>
-                  <div><p style="font-size: 10px; color: #6B7280; text-transform: uppercase; margin: 0 0 3px 0;">Benefits Influence</p><p style="font-size: 13px; color: #1f2937; margin: 0;">${firm.s7 || 'N/A'}</p></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 13 Dimensions Summary -->
-          <h2 style="font-size: 18px; font-weight: bold; margin: 25px 0 15px 0; color: #111827;">13 Dimensions of Support</h2>
-          ${Array.from({ length: 13 }, (_, i) => {
-            const dimNum = i + 1;
-            const dimData = assessment?.[`dimension${dimNum}_data`] || {};
-            const mainGrid = dimData[`d${dimNum}a`] || {};
-            const dimColors = ['#7C2D12', '#854D0E', '#365314', '#166534', '#115E59', '#164E63', '#1E3A8A', '#312E81', '#581C87', '#831843', '#881337', '#7F1D1D', '#44403C'];
-            
-            let current = 0, planning = 0, assessing = 0, notFeasible = 0;
-            Object.values(mainGrid).forEach((status: any) => {
-              const numStatus = typeof status === 'number' ? status : parseInt(String(status));
-              if (!isNaN(numStatus)) {
-                if (numStatus === 4) current++;
-                else if (numStatus === 3) planning++;
-                else if (numStatus === 2) assessing++;
-                else if (numStatus === 1) notFeasible++;
-              } else if (typeof status === 'string') {
-                const s = status.toLowerCase();
-                if (s.includes('not able')) notFeasible++;
-                else if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) current++;
-                else if (s.includes('planning') || s.includes('development')) planning++;
-                else if (s.includes('assessing')) assessing++;
-              }
-            });
-            
-            const total = Object.keys(mainGrid).length;
-            
-            return `
-              <div style="background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${dimColors[i]}; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <div style="padding: 12px 15px; display: flex; align-items: center; gap: 12px;">
-                  <div style="width: 36px; height: 36px; background: ${dimColors[i]}; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;">${dimNum}</div>
-                  <div style="flex: 1;">
-                    <p style="font-size: 13px; font-weight: bold; margin: 0; color: #111827;">${DIM_TITLES[dimNum]}</p>
-                    <div style="display: flex; gap: 8px; margin-top: 5px;">
-                      ${current > 0 ? `<span style="font-size: 10px; background: #166534; color: white; padding: 2px 8px; border-radius: 10px;">${current} Offering</span>` : ''}
-                      ${planning > 0 ? `<span style="font-size: 10px; background: #B45309; color: white; padding: 2px 8px; border-radius: 10px;">${planning} Planning</span>` : ''}
-                      ${assessing > 0 ? `<span style="font-size: 10px; background: #1E40AF; color: white; padding: 2px 8px; border-radius: 10px;">${assessing} Assessing</span>` : ''}
-                      ${notFeasible > 0 ? `<span style="font-size: 10px; background: #991B1B; color: white; padding: 2px 8px; border-radius: 10px;">${notFeasible} Not Feasible</span>` : ''}
-                      ${total === 0 ? `<span style="font-size: 10px; color: #9CA3AF; font-style: italic;">No responses</span>` : ''}
-                    </div>
+          <table style="margin-bottom: 15px;">
+            <tr>
+              <td style="width: 50%; padding-right: 8px; vertical-align: top;">
+                <div class="card">
+                  <div class="card-header" style="border-left: 3px solid #2D5016;">Company Information</div>
+                  <div class="card-body">
+                    <table>
+                      <tr>
+                        <td style="width:50%;padding:5px 10px 5px 0;"><div class="label">Industry</div><div class="value">${firm.c2 || 'N/A'}</div></td>
+                        <td style="width:50%;padding:5px 0;"><div class="label">Total Employees</div><div class="value">${firm.s8 || 'N/A'}</div></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:5px 10px 5px 0;"><div class="label">Headquarters</div><div class="value">${firm.s9 || 'N/A'}</div></td>
+                        <td style="padding:5px 0;"><div class="label">Countries</div><div class="value">${firm.s9a || 'N/A'}</div></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:5px 10px 5px 0;"><div class="label">Annual Revenue</div><div class="value">${(firm.c4 && !Array.isArray(firm.c4) ? firm.c4 : null) || firm.c5 || 'N/A'}</div></td>
+                        <td style="padding:5px 0;"><div class="label">Remote/Hybrid Policy</div><div class="value">${firm.c6 || 'N/A'}</div></td>
+                      </tr>
+                    </table>
                   </div>
                 </div>
-              </div>
-            `;
-          }).join('')}
+              </td>
+              <td style="width: 50%; padding-left: 8px; vertical-align: top;">
+                <div class="card">
+                  <div class="card-header" style="border-left: 3px solid #8B4513;">Contact Information</div>
+                  <div class="card-body">
+                    <table>
+                      <tr>
+                        <td style="width:50%;padding:5px 10px 5px 0;"><div class="label">Name</div><div class="value">${contactName}</div></td>
+                        <td style="width:50%;padding:5px 0;"><div class="label">Title</div><div class="value">${contactTitle}</div></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:5px 10px 5px 0;"><div class="label">Email</div><div class="value">${contactEmail}</div></td>
+                        <td style="padding:5px 0;"><div class="label">Department</div><div class="value">${firm.s4b || firm.s4a || 'N/A'}</div></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:5px 10px 5px 0;"><div class="label">Level</div><div class="value">${firm.s5 || 'N/A'}</div></td>
+                        <td style="padding:5px 0;"><div class="label">Benefits Influence</div><div class="value">${firm.s7 || 'N/A'}</div></td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <!-- 13 Dimensions -->
+          <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #111827;">13 Dimensions of Support</div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr style="background: #f3f4f6;">
+                  <th style="padding: 8px; text-align: left; font-size: 10px; color: #6B7280; text-transform: uppercase; width: 30px;">#</th>
+                  <th style="padding: 8px; text-align: left; font-size: 10px; color: #6B7280; text-transform: uppercase;">Dimension</th>
+                  <th style="padding: 8px; text-align: left; font-size: 10px; color: #6B7280; text-transform: uppercase;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${dimensionRows}
+              </tbody>
+            </table>
+          </div>
 
           <!-- Footer -->
-          <div style="text-align: center; padding: 20px 0; margin-top: 20px; border-top: 1px solid #e5e7eb;">
-            <p style="font-size: 11px; color: #6B7280; margin: 0;">Best Companies for Working with Cancer Index • Company Profile Report</p>
-            <p style="font-size: 10px; color: #9CA3AF; margin: 5px 0 0 0;">Generated ${new Date().toLocaleDateString()} • Survey ID: ${surveyId}</p>
+          <div style="text-align: center; padding: 15px 0; margin-top: 15px; border-top: 1px solid #e5e7eb;">
+            <div style="font-size: 10px; color: #6B7280;">Best Companies for Working with Cancer Index • Company Profile Report</div>
+            <div style="font-size: 9px; color: #9CA3AF; margin-top: 3px;">Generated ${new Date().toLocaleDateString()} • Survey ID: ${surveyId}</div>
           </div>
-        </div>
+
+        </body>
+        </html>
       `;
 
-      // Create container for PDF generation
-      const container = document.createElement('div');
-      container.innerHTML = pdfHTML;
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.top = '0';
-      container.style.width = '800px';
-      document.body.appendChild(container);
+      // Create an iframe for isolated rendering (more reliable than div)
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.left = '-9999px';
+      iframe.style.top = '0';
+      iframe.style.width = '850px';
+      iframe.style.height = '1200px';
+      iframe.style.border = 'none';
+      document.body.appendChild(iframe);
+      
+      // Write content to iframe
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) {
+        throw new Error('Could not access iframe document');
+      }
+      iframeDoc.open();
+      iframeDoc.write(pdfHTML);
+      iframeDoc.close();
+
+      // Wait for content to render
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       console.log('📄 Generating PDF...');
 
       // PDF options
       const opt = {
-        margin: [10, 10, 10, 10],
+        margin: [5, 5, 5, 5],
         filename: `${assessment?.company_name?.replace(/[^a-zA-Z0-9]/g, '-') || surveyId}-profile-${new Date().toISOString().split('T')[0]}.pdf`,
         image: { type: 'jpeg', quality: 0.95 },
         html2canvas: {
           scale: 2,
           useCORS: true,
           logging: false,
-          letterRendering: true,
-          backgroundColor: '#f5f5f5'
+          backgroundColor: '#f5f5f5',
+          windowWidth: 850
         },
         jsPDF: {
           unit: 'mm',
@@ -1020,10 +1086,10 @@ export default function ProfilePage() {
         }
       };
 
-      await html2pdf().set(opt).from(container).save();
+      await html2pdf().set(opt).from(iframeDoc.body).save();
       
       // Clean up
-      document.body.removeChild(container);
+      document.body.removeChild(iframe);
       
       console.log('✅ PDF export complete!');
 
