@@ -1535,13 +1535,6 @@ export default function ProfilePage() {
 
   return (
     <>
-      <style jsx global>{`
-        @media print {
-          .no-print { display: none !important; }
-          body { background: white; }
-        }
-      `}</style>
-      
       <div className="min-h-screen" style={{ backgroundColor: BRAND.gray[100] }}>
         {/* ============================================
             MAIN CONTENT - Add id="profile-content" for PDF export
