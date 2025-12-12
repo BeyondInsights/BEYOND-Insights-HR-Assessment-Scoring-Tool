@@ -24,6 +24,7 @@ const FP_COMPANY_MAP: Record<string, string> = {
   'FP-HR-519842': 'Haleon',
   'FP-HR-376491': 'Mars',
   'FP-HR-628157': 'Renault',
+  'FP-HR-493582': 'Cancer@Work',
   // Test accounts - remove after testing
   'TEST-FP-001': 'Test Company (Internal Review)',
   'TEST-FP-002': 'Test Company (Client Review)',
