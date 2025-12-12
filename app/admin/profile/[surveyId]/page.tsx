@@ -817,18 +817,6 @@ export default function ProfilePage() {
       setExporting(true);
       console.log('📄 Starting FULL PDF export...');
 
-      // Load html2pdf library
-      if (!(window as any).html2pdf) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-          script.onload = () => resolve();
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-
-      const html2pdf = (window as any).html2pdf;
       const firm = assessment?.firmographics_data || {};
       const generalBenefits = assessment?.general_benefits_data || {};
       const currentSupport = assessment?.current_support_data || {};
@@ -880,9 +868,10 @@ export default function ProfilePage() {
 <html>
 <head>
   <meta charset="UTF-8">
+  <title>${assessment?.company_name || 'Company'} - Full Report</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; color: #1F2937; line-height: 1.4; background: #F9FAFB; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; color: #1F2937; line-height: 1.4; background: #F9FAFB; max-width: 850px; margin: 0 auto; padding: 20px; }
     .header { background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; position: relative; }
     .header h1 { font-size: 28px; margin: 8px 0; font-weight: 800; }
     .header p { opacity: 0.9; font-size: 12px; }
@@ -935,6 +924,10 @@ export default function ProfilePage() {
     .impact-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #F9FAFB; border-radius: 8px; }
     .impact-label { font-size: 11px; color: #374151; }
     .impact-value { font-size: 10px; padding: 4px 10px; border-radius: 12px; }
+    @media print {
+      body { background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .section, .dim-section { break-inside: avoid; page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
@@ -1354,30 +1347,23 @@ export default function ProfilePage() {
 </html>
 `;
 
-      // ========== GENERATE PDF ==========
-      console.log('📄 HTML built, generating PDF...');
+      // ========== OPEN IN NEW WINDOW FOR PRINT ==========
+      console.log('📄 Opening report in new window...');
       
-      const opt = {
-        margin: [8, 8, 8, 8],
-        filename: `${assessment?.company_name?.replace(/[^a-zA-Z0-9]/g, '-') || surveyId}-full-report-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 1,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#F9FAFB',
-          windowWidth: 800
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'letter',
-          orientation: 'portrait' as const
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
-      await html2pdf().set(opt).from(html).save();
-      console.log('✅ PDF export complete!');
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(html);
+        printWindow.document.close();
+        
+        // Auto-trigger print dialog after a short delay
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
+      } else {
+        alert('Please allow popups to export the PDF report.');
+      }
+      
+      console.log('✅ Report opened - use browser Print > Save as PDF');
 
     } catch (err: any) {
       console.error('❌ PDF export failed:', err);
@@ -1573,14 +1559,14 @@ export default function ProfilePage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Generating Full Report...
+                      Generating Report...
                     </>
                   ) : (
                     <>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      Export Full PDF Report
+                      Export Full Report
                     </>
                   )}
                 </button>
