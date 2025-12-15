@@ -18,6 +18,7 @@ export const FOUNDING_PARTNER_IDS = [
   'FP-HR-519842',  // Haleon
   'FP-HR-376491',  // Mars
   'FP-HR-628157',  // Renault
+  'FP-HR-493582',  // Cancer@Work
   'FP-748923',
   'FP-392847',
   'FP-856201',
