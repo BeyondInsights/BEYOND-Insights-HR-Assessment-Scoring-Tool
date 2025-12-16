@@ -762,17 +762,41 @@ export default function CompanyProfilePage() {
       const { isFoundingPartner } = await import('@/lib/founding-partners');
       
       if (isFoundingPartner(surveyId)) {
-        console.log('Founding Partner detected - loading by app_id:', surveyId);
+        console.log('Founding Partner detected - loading by survey_id:', surveyId);
         
-        // Fetch assessment by app_id for FPs
-        const { data: assessment, error } = await supabase
+        // Try BOTH survey_id AND app_id columns for FPs
+        let assessment = null;
+        
+        // First try survey_id
+        const { data: bySurveyId } = await supabase
           .from('assessments')
           .select('*')
-          .eq('app_id', surveyId)
-          .single();
+          .eq('survey_id', surveyId)
+          .maybeSingle();
         
-        if (error) throw error;
-        if (!assessment) throw new Error('Assessment not found for FP: ' + surveyId);
+        if (bySurveyId) {
+          assessment = bySurveyId;
+          console.log('Found FP record by survey_id');
+        } else {
+          // Try app_id as fallback
+          const { data: byAppId } = await supabase
+            .from('assessments')
+            .select('*')
+            .eq('app_id', surveyId)
+            .maybeSingle();
+          
+          if (byAppId) {
+            assessment = byAppId;
+            console.log('Found FP record by app_id');
+          }
+        }
+        
+        if (!assessment) {
+          console.log('No FP record found for:', surveyId);
+          setError('No survey data found yet. Please complete some survey sections first.');
+          setLoading(false);
+          return;
+        }
         
         // Transform and set data
         const firmo = assessment.firmographics_data || {};
@@ -792,7 +816,7 @@ export default function CompanyProfilePage() {
         setData({
           companyName: assessment.company_name || firmo.companyName || 'Company',
           email: assessment.email,
-          surveyId: assessment.app_id || assessment.survey_id,
+          surveyId: assessment.survey_id || assessment.app_id,
           firmo,
           general,
           current,
@@ -820,12 +844,16 @@ export default function CompanyProfilePage() {
         .from('assessments')
         .select('*')
         .eq('email', user.email.toLowerCase())
-        .single();
+        .maybeSingle();
 
       console.log('Assessment result:', assessment, error);
 
       if (error) throw error;
-      if (!assessment) throw new Error('Assessment not found for ' + user.email);
+      if (!assessment) {
+        setError('No survey data found. Please complete some survey sections first.');
+        setLoading(false);
+        return;
+      }
 
       // Transform data
       const firmo = assessment.firmographics_data || {};
