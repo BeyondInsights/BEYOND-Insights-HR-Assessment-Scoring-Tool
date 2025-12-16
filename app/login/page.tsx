@@ -6,9 +6,33 @@ import { authenticateUser, getCurrentUser } from '@/lib/supabase/auth'
 import { formatAppId } from '@/lib/supabase/utils'
 import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
-import { isSharedFP, loadSharedFPData } from '@/lib/supabase/fp-shared-storage'
 import { loadUserDataFromSupabase } from '@/lib/supabase/load-data-from-supabase'
 import Footer from '@/components/Footer'
+
+// Map FP codes to company names
+const FP_COMPANY_MAP: Record<string, string> = {
+  'FP-HR-410734': 'Google (Alphabet)',
+  'FP-HR-554736': 'Haymarket',
+  'FP-HR-267233': 'ICBC-AXA Life',
+  'FP-HR-602569': 'Lloyds Bank (Group)',
+  'FP-HR-708691': 'Memorial',
+  'FP-HR-982631': 'Merck',
+  'FP-HR-405810': 'Nestlé',
+  'FP-HR-532408': 'Pfizer',
+  'FP-HR-087371': 'Publicis',
+  'FP-HR-740095': 'Sanofi',
+  'FP-HR-316326': 'Stellantis',
+  'FP-HR-385190': "L'Oréal",
+  'FP-HR-394644': 'Ford Motor',
+  'FP-HR-847263': 'Citi',
+  'FP-HR-519842': 'Haleon',
+  'FP-HR-376491': 'Mars',
+  'FP-HR-628157': 'Renault',
+  'FP-HR-493582': 'Cancer@Work',
+  'FP-573841': 'Snyder Electronics',
+  'TEST-FP-001': 'Test Company (Internal Review)',
+  'TEST-FP-002': 'Test Company (Client Review)',
+}
 
 // Helper function to clear localStorage but preserve Supabase auth tokens
 const clearLocalStoragePreserveAuth = () => {
@@ -29,6 +53,103 @@ const clearLocalStoragePreserveAuth = () => {
     localStorage.setItem(key, value)
   })
   console.log('Cleared localStorage but preserved', supabaseKeys.length, 'Supabase auth keys')
+}
+
+/**
+ * Create or get existing FP assessment record in Supabase
+ */
+async function ensureFPRecord(surveyId: string, email: string): Promise<boolean> {
+  try {
+    console.log('🔍 Checking for existing FP record:', surveyId)
+    
+    // Check if record exists
+    const { data: existing, error: fetchError } = await supabase
+      .from('assessments')
+      .select('*')
+      .eq('survey_id', surveyId)
+      .single()
+    
+    if (existing) {
+      console.log('✅ Found existing FP record - loading data to localStorage')
+      
+      // Populate localStorage with data from Supabase
+      const dataFields = [
+        'firmographics_data',
+        'general_benefits_data',
+        'current_support_data',
+        'cross_dimensional_data',
+        'employee_impact_data',
+        ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
+      ]
+      
+      dataFields.forEach(field => {
+        const value = existing[field]
+        if (value && typeof value === 'object' && Object.keys(value).length > 0) {
+          const localKey = field === 'employee_impact_data' 
+            ? 'employee-impact-assessment_data' 
+            : field
+          localStorage.setItem(localKey, JSON.stringify(value))
+          console.log(`  ✓ Loaded ${localKey}`)
+        }
+      })
+      
+      // Populate completion flags
+      const completeFields = [
+        'firmographics_complete',
+        'auth_completed',
+        'general_benefits_complete',
+        'current_support_complete',
+        'cross_dimensional_complete',
+        ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
+      ]
+      
+      completeFields.forEach(field => {
+        if (existing[field] === true) {
+          localStorage.setItem(field, 'true')
+        }
+      })
+      
+      // Set company name
+      if (existing.company_name) {
+        localStorage.setItem('login_company_name', existing.company_name)
+      }
+      
+      return true
+    }
+    
+    // No existing record - create new one
+    console.log('📝 Creating new FP record in Supabase')
+    
+    const companyName = FP_COMPANY_MAP[surveyId] || 'Founding Partner'
+    
+    const { error: insertError } = await supabase
+      .from('assessments')
+      .insert({
+        email: email.toLowerCase().trim(),
+        survey_id: surveyId,
+        app_id: surveyId,
+        company_name: companyName,
+        is_founding_partner: true,
+        payment_completed: true,
+        payment_method: 'FP Comp',
+        payment_amount: 1250.00,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+    
+    if (insertError) {
+      console.error('❌ Error creating FP record:', insertError)
+      return false
+    }
+    
+    console.log('✅ FP record created successfully')
+    localStorage.setItem('login_company_name', companyName)
+    return true
+    
+  } catch (error) {
+    console.error('❌ Error in ensureFPRecord:', error)
+    return false
+  }
 }
 
 export default function LoginPage() {
@@ -89,10 +210,10 @@ export default function LoginPage() {
     const trimmedSurveyId = surveyId.trim().toUpperCase()
 
     // ============================================
-    // CHECK FOR SHARED FP (Best Buy) FIRST
+    // CHECK FOR FOUNDING PARTNER
     // ============================================
-    if (!isNewUser && isSharedFP(trimmedSurveyId)) {
-      console.log('🏪 Shared FP (Best Buy) detected:', trimmedSurveyId)
+    if (!isNewUser && isFoundingPartner(trimmedSurveyId)) {
+      console.log('Founding Partner ID detected:', trimmedSurveyId)
       
       // Store login info
       localStorage.setItem('login_email', email)
@@ -102,38 +223,16 @@ export default function LoginPage() {
       localStorage.setItem('last_user_email', email)
       localStorage.setItem('login_Survey_id', trimmedSurveyId)
       
-      // Load shared data from Supabase
-      setSuccessMessage('Loading your team\'s progress...')
-      const loaded = await loadSharedFPData(trimmedSurveyId)
+      // Create or load FP record from Supabase
+      setSuccessMessage('Loading your progress...')
+      const success = await ensureFPRecord(trimmedSurveyId, email)
       
-      if (loaded) {
-        setSuccessMessage('✅ Found existing progress! Redirecting...')
+      if (success) {
+        setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
       } else {
         setSuccessMessage('✅ Access confirmed! Redirecting...')
       }
       
-      setTimeout(() => {
-        router.push('/letter')
-      }, 1500)
-      setLoading(false)
-      return
-    }
-    // ============================================
-
-    // ============================================
-    // CHECK FOR REGULAR FOUNDING PARTNER
-    // ============================================
-    if (!isNewUser && isFoundingPartner(trimmedSurveyId)) {
-      console.log('Founding Partner ID detected:', trimmedSurveyId)
-      
-      localStorage.setItem('login_email', email)
-      localStorage.setItem('auth_email', email)
-      localStorage.setItem('survey_id', trimmedSurveyId)
-      localStorage.setItem('user_authenticated', 'true')
-      localStorage.setItem('last_user_email', email)
-      localStorage.setItem('login_Survey_id', trimmedSurveyId)
-      
-      setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
       setTimeout(() => {
         router.push('/letter')
       }, 1500)
@@ -176,8 +275,7 @@ export default function LoginPage() {
         if (result.mode === 'existing' && !result.needsVerification) {
           const user = await getCurrentUser()
           if (user) {
-            // CRITICAL: Load all user data from Supabase into localStorage
-            console.log('[LOGIN] Loading returning user data from Supabase...')
+            // Load user data from Supabase to localStorage
             await loadUserDataFromSupabase()
             
             const { data: assessment } = await supabase
@@ -214,10 +312,10 @@ export default function LoginPage() {
     }
   }
 
-  const handleProceedToSurvey = () => {
-    localStorage.setItem('user_authenticated', 'true')
-    router.push('/letter')
-  }
+const handleProceedToSurvey = () => {
+  localStorage.setItem('user_authenticated', 'true')
+  router.push('/authorization')
+}
     
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
@@ -267,7 +365,7 @@ export default function LoginPage() {
                     
                     <div className="mb-4 p-4 border-2 rounded-lg" style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}>
                       <p className="text-sm text-slate-900 font-semibold mb-2">
-                        🔐 Important - Save This ID!
+                        🔑 Important - Save This ID!
                       </p>
                       <p className="text-sm text-slate-800">
                         You can start your Survey right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
