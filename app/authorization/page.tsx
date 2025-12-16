@@ -288,13 +288,59 @@ function AuthorizationContent() {
       localStorage.setItem('last_user_email', currentEmail || '')
 
       // ============================================
-      // CHECK IF FOUNDING PARTNER
+      // CHECK IF FOUNDING PARTNER - SAVE TO SUPABASE
       // ============================================
       const surveyId = localStorage.getItem('survey_id') || ''
       const { isFoundingPartner } = await import('@/lib/founding-partners')
       
       if (isFoundingPartner(surveyId)) {
-        console.log('Founding Partner - going straight to dashboard')
+        console.log('Founding Partner - saving to Supabase then going to dashboard')
+        
+        // Save FP data to Supabase
+        const authorizationData = {
+          companyName: companyInfo.companyName,
+          firstName: companyInfo.firstName,
+          lastName: companyInfo.lastName,
+          title: titleToStore,
+          au1,
+          au2,
+          other
+        }
+        
+        // Also save to firmographics_data localStorage for consistency
+        const existingFirmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
+        const updatedFirmo = {
+          ...existingFirmo,
+          companyName: companyInfo.companyName,
+          firstName: companyInfo.firstName,
+          lastName: companyInfo.lastName,
+          title: titleToStore,
+          au1,
+          au2,
+          au2Other: other
+        }
+        localStorage.setItem('firmographics_data', JSON.stringify(updatedFirmo))
+        
+        try {
+          const { error } = await supabase
+            .from('assessments')
+            .update({
+              company_name: companyInfo.companyName,
+              firmographics_data: updatedFirmo,
+              auth_completed: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq('survey_id', surveyId)
+          
+          if (error) {
+            console.error('Error saving FP authorization:', error)
+          } else {
+            console.log('FP authorization saved to Supabase')
+          }
+        } catch (err) {
+          console.error('Error saving FP data:', err)
+        }
+        
         router.push('/dashboard')
         return
       }
