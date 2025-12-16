@@ -162,7 +162,20 @@ export default function LoginPage() {
             if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData))
           }
           if (existing.company_name) localStorage.setItem('login_company_name', existing.company_name)
-          setSuccessMessage('✅ Found your progress! Redirecting...')
+          if (existing.auth_completed) localStorage.setItem('auth_completed', 'true')
+          
+          // Route based on whether they've completed authorization
+          if (existing.auth_completed) {
+            setSuccessMessage('✅ Welcome back! Redirecting to dashboard...')
+            setTimeout(() => {
+              router.push('/dashboard')
+            }, 1500)
+          } else {
+            setSuccessMessage('✅ Found your progress! Redirecting...')
+            setTimeout(() => {
+              router.push('/letter')
+            }, 1500)
+          }
         } else {
           // Create new FP record
           console.log('Creating new FP record in Supabase')
@@ -187,15 +200,18 @@ export default function LoginPage() {
           }
           if (companyName) localStorage.setItem('login_company_name', companyName)
           setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
+          setTimeout(() => {
+            router.push('/letter')
+          }, 1500)
         }
       } catch (err) {
         console.error('Error handling FP login:', err)
         setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
+        setTimeout(() => {
+          router.push('/letter')
+        }, 1500)
       }
       
-      setTimeout(() => {
-        router.push('/letter')
-      }, 1500)
       setLoading(false)
       return
     }
