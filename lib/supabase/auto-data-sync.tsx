@@ -4,7 +4,7 @@
  * This component monitors localStorage and automatically syncs survey data to Supabase.
  * NO CHANGES to survey pages required - it works with existing localStorage keys.
  * 
- * UPDATED: Now handles shared FP storage for Best Buy (FP-392847)
+ * FIXED: Now syncs ALL Founding Partners to Supabase (not just shared ones)
  */
 
 'use client'
@@ -12,7 +12,6 @@
 import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { supabase } from './client'
-import { isSharedFP, saveSharedFPData } from './fp-shared-storage'
 
 /**
  * Collect all survey data from localStorage
@@ -83,34 +82,10 @@ function collectAllSurveyData() {
  */
 async function syncToSupabase() {
   try {
-    // ============================================
-    // CHECK FOR SHARED FP FIRST (Best Buy)
-    // ============================================
     const surveyId = localStorage.getItem('survey_id') || ''
     
-    if (isSharedFP(surveyId)) {
-      console.log('🏪 Shared FP detected - syncing to fp_shared_assessments')
-      const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email')
-      await saveSharedFPData(surveyId, email || undefined)
-      return
-    }
-    // ============================================
-    
-    // Check if this is a regular Founding Partner (skip Supabase for them)
-    try {
-      const { isFoundingPartner } = await import('@/lib/founding-partners')
-      if (isFoundingPartner(surveyId)) {
-        console.log('⏭️ Regular Founding Partner - skipping Supabase sync')
-        return
-      }
-    } catch (e) {
-      // Founding partners module not found, continue
-    }
-    
-    // Check if user is authenticated with Supabase
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      console.log('⏭️ No Supabase user - skipping sync')
+    if (!surveyId) {
+      console.log('⏭️ No survey_id in localStorage - skipping sync')
       return
     }
     
@@ -122,21 +97,58 @@ async function syncToSupabase() {
       return
     }
     
-    console.log(`💾 Syncing ${Object.keys(updateData).length} items to Supabase...`)
-    
     // Add timestamp
     updateData.updated_at = new Date().toISOString()
     
-    // Update Supabase
-    const { error } = await supabase
-      .from('assessments')
-      .update(updateData)
-      .eq('user_id', user.id)
+    // ============================================
+    // CHECK IF FOUNDING PARTNER
+    // ============================================
+    let isFP = false
+    try {
+      const { isFoundingPartner } = await import('@/lib/founding-partners')
+      isFP = isFoundingPartner(surveyId)
+    } catch (e) {
+      // Module not found, continue
+    }
     
-    if (error) {
-      console.error('❌ Sync error:', error.message)
+    if (isFP) {
+      // ============================================
+      // FOUNDING PARTNER - Sync by survey_id
+      // ============================================
+      console.log(`💾 FP Sync: ${Object.keys(updateData).length} items to assessments (survey_id: ${surveyId})...`)
+      
+      const { error } = await supabase
+        .from('assessments')
+        .update(updateData)
+        .eq('survey_id', surveyId)
+      
+      if (error) {
+        console.error('❌ FP Sync error:', error.message)
+      } else {
+        console.log('✅ FP Sync successful!')
+      }
     } else {
-      console.log('✅ Sync successful!')
+      // ============================================
+      // REGULAR USER - Sync by user_id
+      // ============================================
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.log('⏭️ No Supabase user - skipping sync')
+        return
+      }
+      
+      console.log(`💾 Syncing ${Object.keys(updateData).length} items to Supabase (user_id)...`)
+      
+      const { error } = await supabase
+        .from('assessments')
+        .update(updateData)
+        .eq('user_id', user.id)
+      
+      if (error) {
+        console.error('❌ Sync error:', error.message)
+      } else {
+        console.log('✅ Sync successful!')
+      }
     }
   } catch (error) {
     console.error('❌ Sync failed:', error)
