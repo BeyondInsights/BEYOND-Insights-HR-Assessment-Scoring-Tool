@@ -60,7 +60,7 @@ export const FP_COMPANY_MAP: Record<string, string> = {
   'FP-847632': '',
   'FP-219745': '',
   'FP-421967': '',
-  'FP-573841': 'Snyder Electronics',
+  'FP-573841': 'Schneider Electronics',
   'FP-692014': '',
   'TEST-FP-001': 'Test Company 1',
   'TEST-FP-002': 'Test Company 2',
