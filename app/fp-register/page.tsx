@@ -3,32 +3,8 @@
 import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
+import { FP_COMPANY_MAP, isFoundingPartner } from '@/lib/founding-partners'
 import Footer from '@/components/Footer'
-
-// Map FP codes to company names
-const FP_COMPANY_MAP: Record<string, string> = {
-  'FP-HR-410734': 'Google (Alphabet)',
-  'FP-HR-554736': 'Haymarket',
-  'FP-HR-267233': 'ICBC-AXA Life',
-  'FP-HR-602569': 'Lloyds Bank (Group)',
-  'FP-HR-708691': 'Memorial',
-  'FP-HR-982631': 'Merck',
-  'FP-HR-405810': 'Nestlé',
-  'FP-HR-532408': 'Pfizer',
-  'FP-HR-087371': 'Publicis',
-  'FP-HR-740095': 'Sanofi',
-  'FP-HR-316326': 'Stellantis',
-  'FP-HR-385190': "L'Oréal",
-  'FP-HR-394644': 'Ford Motor',
-  'FP-HR-847263': 'Citi',
-  'FP-HR-519842': 'Haleon',
-  'FP-HR-376491': 'Mars',
-  'FP-HR-628157': 'Renault',
-  'FP-HR-493582': 'Cancer@Work',
-  // Test accounts - remove after testing
-  'TEST-FP-001': 'Test Company (Internal Review)',
-  'TEST-FP-002': 'Test Company (Client Review)',
-}
 
 function FPRegisterContent() {
   const searchParams = useSearchParams()
@@ -46,7 +22,8 @@ function FPRegisterContent() {
   const [error, setError] = useState('')
   
   const companyName = FP_COMPANY_MAP[code] || ''
-  const isValidCode = !!companyName
+  // Valid if it's a known FP code (even if company name is not yet assigned)
+  const isValidCode = isFoundingPartner(code)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,13 +61,14 @@ function FPRegisterContent() {
         
         // Merge existing firmographics with new contact info
         const existingFirmographics = existingRecord?.firmographics_data || {}
+        const displayCompanyName = companyName || 'Founding Partner'
         const mergedFirmographics = {
           ...existingFirmographics, // Keep ALL existing data (s8, s9, c2, c4, etc.)
           // Add/update contact info
           firstName: formData.firstName.trim(),
           lastName: formData.lastName.trim(),
           title: formData.title.trim(),
-          companyName: companyName,
+          companyName: displayCompanyName,
           contactConsent: true,
           consentDate: new Date().toISOString(),
           registeredAt: new Date().toISOString(),
@@ -101,7 +79,7 @@ function FPRegisterContent() {
           .from('assessments')
           .update({
             email: formData.email.toLowerCase().trim(),
-            company_name: companyName,
+            company_name: displayCompanyName,
             firmographics_data: mergedFirmographics,
             is_founding_partner: true,
             updated_at: new Date().toISOString(),
@@ -111,13 +89,14 @@ function FPRegisterContent() {
         if (updateError) throw updateError
       } else {
         // Create new record
+        const displayCompanyName = companyName || 'Founding Partner'
         const { error: insertError } = await supabase
           .from('assessments')
           .insert({
             email: formData.email.toLowerCase().trim(),
             survey_id: code,
             app_id: code,
-            company_name: companyName,
+            company_name: displayCompanyName,
             is_founding_partner: true,
             payment_completed: true,
             payment_method: 'Founding Partner - Fee Waived',
@@ -125,7 +104,7 @@ function FPRegisterContent() {
               firstName: formData.firstName.trim(),
               lastName: formData.lastName.trim(),
               title: formData.title.trim(),
-              companyName: companyName,
+              companyName: displayCompanyName,
               contactConsent: true,
               consentDate: new Date().toISOString(),
               registeredAt: new Date().toISOString(),
