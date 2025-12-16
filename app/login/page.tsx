@@ -183,6 +183,7 @@ export default function LoginPage() {
             .from('assessments')
             .insert({
               survey_id: trimmedSurveyId,
+              app_id: trimmedSurveyId,
               email: email.toLowerCase(),
               company_name: companyName || 'Founding Partner',
               is_founding_partner: true,
