@@ -151,7 +151,9 @@ export default function LoginPage() {
         
         if (existing) {
           // Load existing data to localStorage
-          console.log('Found existing FP record - loading data')
+          console.log('Found existing FP record - loading ALL data and completion flags')
+          
+          // Load DATA fields
           if (existing.firmographics_data) localStorage.setItem('firmographics_data', JSON.stringify(existing.firmographics_data))
           if (existing.general_benefits_data) localStorage.setItem('general_benefits_data', JSON.stringify(existing.general_benefits_data))
           if (existing.current_support_data) localStorage.setItem('current_support_data', JSON.stringify(existing.current_support_data))
@@ -162,7 +164,19 @@ export default function LoginPage() {
             if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData))
           }
           if (existing.company_name) localStorage.setItem('login_company_name', existing.company_name)
+          
+          // Load COMPLETION FLAGS - THIS WAS MISSING!
           if (existing.auth_completed) localStorage.setItem('auth_completed', 'true')
+          if (existing.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
+          if (existing.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
+          if (existing.current_support_complete) localStorage.setItem('current_support_complete', 'true')
+          if (existing.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
+          if (existing.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
+          for (let i = 1; i <= 13; i++) {
+            if (existing[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true')
+          }
+          
+          console.log('✅ Loaded all FP data and completion flags from Supabase')
           
           // Route based on whether they've completed authorization
           if (existing.auth_completed) {
