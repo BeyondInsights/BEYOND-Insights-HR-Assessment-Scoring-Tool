@@ -301,14 +301,18 @@ export default function AutoDataSync() {
     }
   }, [])
   
-  // IMMEDIATE sync on mount and on key pages
+  // IMMEDIATE sync on mount - critical for users like Snyder with existing localStorage data
   useEffect(() => {
     if (!initialSyncDone.current) {
       initialSyncDone.current = true
-      // Wait a moment for localStorage to be populated
+      // Sync immediately, don't wait
+      console.log('🚀 AUTO-SYNC: Immediate sync on mount')
+      doSync('Initial page load - immediate')
+      
+      // Also sync again after a moment in case localStorage wasn't ready
       setTimeout(() => {
-        doSync('Initial page load')
-      }, 1000)
+        doSync('Initial page load - delayed check')
+      }, 2000)
     }
   }, [doSync])
   
@@ -330,6 +334,35 @@ export default function AutoDataSync() {
       }
     }
   }, [pathname, doSync])
+  
+  // INTERCEPT localStorage writes - sync immediately on any survey data change
+  useEffect(() => {
+    const originalSetItem = localStorage.setItem.bind(localStorage)
+    let syncTimeout: ReturnType<typeof setTimeout> | null = null
+    
+    localStorage.setItem = (key: string, value: string) => {
+      // Call original first
+      originalSetItem(key, value)
+      
+      // If it's survey data, debounce and sync immediately
+      if (key.includes('_data') || key.includes('_complete')) {
+        console.log(`📝 AUTO-SYNC: localStorage write detected: ${key}`)
+        
+        // Debounce to avoid hammering Supabase on rapid changes
+        if (syncTimeout) clearTimeout(syncTimeout)
+        syncTimeout = setTimeout(() => {
+          doSync(`localStorage write: ${key}`)
+        }, 500)
+      }
+    }
+    
+    console.log('🔌 AUTO-SYNC: localStorage intercept installed')
+    
+    return () => {
+      localStorage.setItem = originalSetItem
+      if (syncTimeout) clearTimeout(syncTimeout)
+    }
+  }, [doSync])
   
   // Periodic sync every 15 seconds (was 30)
   useEffect(() => {
