@@ -1591,61 +1591,84 @@ function DimensionSection({
   const dimensionData = countDimensionResponses(assessments, config)
   const dimNum = dimKey.replace('d', '')
   
-  // Get follow-up data based on dimension
-  const followups = DIMENSION_FOLLOWUPS[dimKey as keyof typeof DIMENSION_FOLLOWUPS]
-  
-  // Collect follow-up responses
-  const followupData: Record<string, Record<string, number>> = {}
-  
-  if (dimKey === 'd1') {
-    // D1 has USA/non-USA variants for some questions
-    followupData['d1aa'] = countResponses(assessments, 'dimension1_data', 'd1aa', DIMENSION_FOLLOWUPS.d1.d1aa)
-    followupData['d1_1_usa'] = countResponses(assessments, 'dimension1_data', 'd1_1_usa', DIMENSION_FOLLOWUPS.d1.d1_1)
-    followupData['d1_1_non_usa'] = countResponses(assessments, 'dimension1_data', 'd1_1_non_usa', DIMENSION_FOLLOWUPS.d1.d1_1)
-    followupData['d1_2_usa'] = countResponses(assessments, 'dimension1_data', 'd1_2_usa', DIMENSION_FOLLOWUPS.d1.d1_2)
-    followupData['d1_2_non_usa'] = countResponses(assessments, 'dimension1_data', 'd1_2_non_usa', DIMENSION_FOLLOWUPS.d1.d1_2)
-    followupData['d1_4b'] = countResponses(assessments, 'dimension1_data', 'd1_4b', DIMENSION_FOLLOWUPS.d1.d1_4b)
-    followupData['d1_5_usa'] = countResponses(assessments, 'dimension1_data', 'd1_5_usa', DIMENSION_FOLLOWUPS.d1.d1_5)
-    followupData['d1_5_non_usa'] = countResponses(assessments, 'dimension1_data', 'd1_5_non_usa', DIMENSION_FOLLOWUPS.d1.d1_5)
-    followupData['d1_6'] = countMultiSelect(assessments, 'dimension1_data', 'd1_6', DIMENSION_FOLLOWUPS.d1.d1_6)
-  } else if (dimKey === 'd3') {
-    followupData['d3_1a'] = countResponses(assessments, 'dimension3_data', 'd3_1a', DIMENSION_FOLLOWUPS.d3.d3_1a)
-    // Also check d31a variant
-    const d31aData = countResponses(assessments, 'dimension3_data', 'd31a', DIMENSION_FOLLOWUPS.d3.d3_1a)
-    Object.entries(d31aData).forEach(([k, v]) => {
-      followupData['d3_1a'][k] = (followupData['d3_1a'][k] || 0) + v
+  // Helper to count responses from multiple field variants without double-counting
+  const countWithVariants = (dataKey: string, fields: string[], options: string[], isMulti = false) => {
+    const counts: Record<string, number> = {}
+    options.forEach(opt => counts[opt] = 0)
+    if (!isMulti) counts['Other'] = 0
+    
+    let respondentCount = 0
+    
+    assessments.forEach(a => {
+      const data = (a as any)[dataKey]
+      let foundValue = false
+      
+      // Check all field variants
+      for (const field of fields) {
+        if (isMulti) {
+          const values = parseJsonArray(data, field)
+          if (values.length > 0) {
+            foundValue = true
+            values.forEach(v => {
+              const vNorm = normalizeForMatch(String(v))
+              const matched = options.find(opt => 
+                normalizeForMatch(opt) === vNorm || vNorm.includes(normalizeForMatch(opt).slice(0, 25))
+              )
+              if (matched) counts[matched]++
+            })
+            break // Found in this variant, don't check others
+          }
+        } else {
+          const value = parseJsonField(data, field)
+          if (value && value !== 'Not provided') {
+            foundValue = true
+            const valueNorm = normalizeForMatch(value)
+            const matched = options.find(opt => 
+              normalizeForMatch(opt) === valueNorm || valueNorm.includes(normalizeForMatch(opt).slice(0, 25))
+            )
+            if (matched) counts[matched]++
+            else counts['Other']++
+            break // Found in this variant, don't check others
+          }
+        }
+      }
+      
+      if (foundValue) respondentCount++
     })
-    followupData['d3_1'] = countResponses(assessments, 'dimension3_data', 'd3_1', DIMENSION_FOLLOWUPS.d3.d3_1)
-    const d31Data = countResponses(assessments, 'dimension3_data', 'd31', DIMENSION_FOLLOWUPS.d3.d3_1)
-    Object.entries(d31Data).forEach(([k, v]) => {
-      followupData['d3_1'][k] = (followupData['d3_1'][k] || 0) + v
-    })
-  } else if (dimKey === 'd4') {
-    followupData['d4_1a'] = countMultiSelect(assessments, 'dimension4_data', 'd4_1a', DIMENSION_FOLLOWUPS.d4.d4_1a)
-    const d41aData = countMultiSelect(assessments, 'dimension4_data', 'd41a', DIMENSION_FOLLOWUPS.d4.d4_1a)
-    Object.entries(d41aData).forEach(([k, v]) => {
-      followupData['d4_1a'][k] = (followupData['d4_1a'][k] || 0) + v
-    })
-    followupData['d4_1b'] = countMultiSelect(assessments, 'dimension4_data', 'd4_1b', DIMENSION_FOLLOWUPS.d4.d4_1b)
-    const d41bData = countMultiSelect(assessments, 'dimension4_data', 'd41b', DIMENSION_FOLLOWUPS.d4.d4_1b)
-    Object.entries(d41bData).forEach(([k, v]) => {
-      followupData['d4_1b'][k] = (followupData['d4_1b'][k] || 0) + v
-    })
-  } else if (dimKey === 'd6') {
-    followupData['d6_2'] = countMultiSelect(assessments, 'dimension6_data', 'd6_2', DIMENSION_FOLLOWUPS.d6.d6_2)
-  } else if (dimKey === 'd13') {
-    followupData['d13_1'] = countResponses(assessments, 'dimension13_data', 'd13_1', DIMENSION_FOLLOWUPS.d13.d13_1)
+    
+    counts['No response'] = totalRespondents - respondentCount
+    return { counts, respondentCount }
   }
   
-  // Geographic consistency for all dimensions (dXaa)
+  // Get follow-up data based on dimension
+  const followupData: Record<string, { counts: Record<string, number>, respondentCount: number }> = {}
+  
+  if (dimKey === 'd1') {
+    followupData['d1aa'] = countWithVariants('dimension1_data', ['d1aa', 'D1aa'], 
+      ['Generally consistent across all locations', 'Vary across locations', 'Only available in select locations'])
+    followupData['d1_1_usa'] = countWithVariants('dimension1_data', ['d1_1_usa'], ORDINAL_OPTIONS.paidLeaveDuration)
+    followupData['d1_1_non_usa'] = countWithVariants('dimension1_data', ['d1_1_non_usa'], ORDINAL_OPTIONS.paidLeaveDuration)
+    followupData['d1_2_usa'] = countWithVariants('dimension1_data', ['d1_2_usa'], ORDINAL_OPTIONS.intermittentLeaveDuration)
+    followupData['d1_2_non_usa'] = countWithVariants('dimension1_data', ['d1_2_non_usa'], ORDINAL_OPTIONS.intermittentLeaveDuration)
+    followupData['d1_4b'] = countWithVariants('dimension1_data', ['d1_4b'], ORDINAL_OPTIONS.partTimeDuration)
+    followupData['d1_5_usa'] = countWithVariants('dimension1_data', ['d1_5_usa'], ORDINAL_OPTIONS.jobProtectionDuration)
+    followupData['d1_5_non_usa'] = countWithVariants('dimension1_data', ['d1_5_non_usa'], ORDINAL_OPTIONS.jobProtectionDuration)
+    followupData['d1_6'] = countWithVariants('dimension1_data', ['d1_6'], DIMENSION_FOLLOWUPS.d1.d1_6, true)
+  } else if (dimKey === 'd3') {
+    followupData['d3_1a'] = countWithVariants('dimension3_data', ['d3_1a', 'd31a', 'D3_1a'], DIMENSION_FOLLOWUPS.d3.d3_1a)
+    followupData['d3_1'] = countWithVariants('dimension3_data', ['d3_1', 'd31', 'D3_1'], ORDINAL_OPTIONS.trainingCompletion)
+  } else if (dimKey === 'd4') {
+    followupData['d4_1a'] = countWithVariants('dimension4_data', ['d4_1a', 'd41a', 'D4_1a'], DIMENSION_FOLLOWUPS.d4.d4_1a, true)
+    followupData['d4_1b'] = countWithVariants('dimension4_data', ['d4_1b', 'd41b', 'D4_1b'], DIMENSION_FOLLOWUPS.d4.d4_1b, true)
+  } else if (dimKey === 'd6') {
+    followupData['d6_2'] = countWithVariants('dimension6_data', ['d6_2', 'd62', 'D6_2'], DIMENSION_FOLLOWUPS.d6.d6_2, true)
+  } else if (dimKey === 'd13') {
+    followupData['d13_1'] = countWithVariants('dimension13_data', ['d13_1', 'd131', 'D13_1'], ORDINAL_OPTIONS.communicationFrequency)
+  }
+  
+  // Geographic consistency for all dimensions (dXaa) - check multiple variants
   const geoConsistencyOptions = ['Generally consistent across all locations', 'Vary across locations', 'Only available in select locations']
-  const geoField = `d${dimNum}aa`
-  const geoData = countResponses(assessments, config.dataKey, geoField, geoConsistencyOptions)
-  // Also check capitalized variant
-  const geoDataCap = countResponses(assessments, config.dataKey, `D${dimNum}aa`, geoConsistencyOptions)
-  Object.entries(geoDataCap).forEach(([k, v]) => {
-    geoData[k] = (geoData[k] || 0) + v
-  })
+  const geoResult = countWithVariants(config.dataKey, [`d${dimNum}aa`, `D${dimNum}aa`, `d${dimNum}_aa`], geoConsistencyOptions)
   
   return (
     <div className="space-y-6">
@@ -1694,120 +1717,176 @@ function DimensionSection({
         <div className="p-5 border-t border-gray-200 space-y-4">
           <h4 className="font-semibold text-gray-800">Follow-up Questions</h4>
           
-          {/* Geographic Consistency */}
-          <DataTable 
-            title={`D${dimNum}.aa: Geographic Consistency`} 
-            data={geoData} 
-            total={totalRespondents} 
-          />
+          {/* Geographic Consistency - only for multi-country orgs */}
+          {geoResult.respondentCount > 0 && (
+            <DataTable 
+              title={`D${dimNum}.aa: Geographic Consistency (n=${geoResult.respondentCount})`} 
+              data={geoResult.counts} 
+              total={geoResult.respondentCount}
+              excludeNoResponse
+            />
+          )}
+          {geoResult.respondentCount === 0 && (
+            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500">
+              D{dimNum}.aa: No respondents answered geographic consistency question (only asked for multi-country operations)
+            </div>
+          )}
           
           {/* D1 Follow-ups */}
           {dimKey === 'd1' && (
             <div className="grid md:grid-cols-2 gap-4">
-              <DataTable 
-                title="D1.1: Additional Paid Medical Leave (USA)" 
-                data={followupData['d1_1_usa'] || {}} 
-                total={totalRespondents}
-                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_1}
-              />
-              <DataTable 
-                title="D1.1: Additional Paid Medical Leave (Non-USA)" 
-                data={followupData['d1_1_non_usa'] || {}} 
-                total={totalRespondents}
-                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_1}
-              />
-              <DataTable 
-                title="D1.2: Additional Intermittent Leave (USA)" 
-                data={followupData['d1_2_usa'] || {}} 
-                total={totalRespondents}
-                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_2}
-              />
-              <DataTable 
-                title="D1.2: Additional Intermittent Leave (Non-USA)" 
-                data={followupData['d1_2_non_usa'] || {}} 
-                total={totalRespondents}
-                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_2}
-              />
-              <DataTable 
-                title="D1.4b: Part-Time with Full Benefits Duration" 
-                data={followupData['d1_4b'] || {}} 
-                total={totalRespondents}
-                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_4b}
-              />
-              <DataTable 
-                title="D1.5: Job Protection Beyond Legal (USA)" 
-                data={followupData['d1_5_usa'] || {}} 
-                total={totalRespondents}
-                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_5}
-              />
-              <DataTable 
-                title="D1.5: Job Protection Beyond Legal (Non-USA)" 
-                data={followupData['d1_5_non_usa'] || {}} 
-                total={totalRespondents}
-                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_5}
-              />
-              <DataTable 
-                title="D1.6: Disability Pay Enhancement" 
-                data={followupData['d1_6'] || {}} 
-                total={totalRespondents}
-                isMultiSelect
-              />
+              {followupData['d1_1_usa']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D1.1: Additional Paid Medical Leave - USA (n=${followupData['d1_1_usa'].respondentCount})`}
+                  data={followupData['d1_1_usa'].counts} 
+                  total={followupData['d1_1_usa'].respondentCount}
+                  orderedOptions={ORDINAL_OPTIONS.paidLeaveDuration}
+                  excludeNoResponse
+                />
+              )}
+              {followupData['d1_1_non_usa']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D1.1: Additional Paid Medical Leave - Non-USA (n=${followupData['d1_1_non_usa'].respondentCount})`}
+                  data={followupData['d1_1_non_usa'].counts} 
+                  total={followupData['d1_1_non_usa'].respondentCount}
+                  orderedOptions={ORDINAL_OPTIONS.paidLeaveDuration}
+                  excludeNoResponse
+                />
+              )}
+              {followupData['d1_2_usa']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D1.2: Additional Intermittent Leave - USA (n=${followupData['d1_2_usa'].respondentCount})`}
+                  data={followupData['d1_2_usa'].counts} 
+                  total={followupData['d1_2_usa'].respondentCount}
+                  orderedOptions={ORDINAL_OPTIONS.intermittentLeaveDuration}
+                  excludeNoResponse
+                />
+              )}
+              {followupData['d1_2_non_usa']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D1.2: Additional Intermittent Leave - Non-USA (n=${followupData['d1_2_non_usa'].respondentCount})`}
+                  data={followupData['d1_2_non_usa'].counts} 
+                  total={followupData['d1_2_non_usa'].respondentCount}
+                  orderedOptions={ORDINAL_OPTIONS.intermittentLeaveDuration}
+                  excludeNoResponse
+                />
+              )}
+              {followupData['d1_4b']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D1.4b: Part-Time with Full Benefits Duration (n=${followupData['d1_4b'].respondentCount})`}
+                  data={followupData['d1_4b'].counts} 
+                  total={followupData['d1_4b'].respondentCount}
+                  orderedOptions={ORDINAL_OPTIONS.partTimeDuration}
+                  excludeNoResponse
+                />
+              )}
+              {followupData['d1_5_usa']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D1.5: Job Protection Beyond Legal - USA (n=${followupData['d1_5_usa'].respondentCount})`}
+                  data={followupData['d1_5_usa'].counts} 
+                  total={followupData['d1_5_usa'].respondentCount}
+                  orderedOptions={ORDINAL_OPTIONS.jobProtectionDuration}
+                  excludeNoResponse
+                />
+              )}
+              {followupData['d1_5_non_usa']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D1.5: Job Protection Beyond Legal - Non-USA (n=${followupData['d1_5_non_usa'].respondentCount})`}
+                  data={followupData['d1_5_non_usa'].counts} 
+                  total={followupData['d1_5_non_usa'].respondentCount}
+                  orderedOptions={ORDINAL_OPTIONS.jobProtectionDuration}
+                  excludeNoResponse
+                />
+              )}
+              {followupData['d1_6']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D1.6: Disability Pay Enhancement (n=${followupData['d1_6'].respondentCount})`}
+                  data={followupData['d1_6'].counts} 
+                  total={followupData['d1_6'].respondentCount}
+                  isMultiSelect
+                  excludeNoResponse
+                />
+              )}
             </div>
           )}
           
           {/* D3 Follow-ups */}
           {dimKey === 'd3' && (
             <div className="grid md:grid-cols-2 gap-4">
-              <DataTable 
-                title="D3.1a: Is Manager Training Mandatory?" 
-                data={followupData['d3_1a'] || {}} 
-                total={totalRespondents}
-              />
-              <DataTable 
-                title="D3.1: Manager Training Completion Rate" 
-                data={followupData['d3_1'] || {}} 
-                total={totalRespondents}
-                orderedOptions={ORDINAL_OPTIONS.trainingCompletion}
-              />
+              {followupData['d3_1a']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D3.1a: Is Manager Training Mandatory? (n=${followupData['d3_1a'].respondentCount})`}
+                  data={followupData['d3_1a'].counts} 
+                  total={followupData['d3_1a'].respondentCount}
+                  excludeNoResponse
+                />
+              )}
+              {followupData['d3_1']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D3.1: Manager Training Completion Rate (n=${followupData['d3_1'].respondentCount})`}
+                  data={followupData['d3_1'].counts} 
+                  total={followupData['d3_1'].respondentCount}
+                  orderedOptions={ORDINAL_OPTIONS.trainingCompletion}
+                  excludeNoResponse
+                />
+              )}
             </div>
           )}
           
           {/* D4 Follow-ups */}
           {dimKey === 'd4' && (
             <div className="grid md:grid-cols-2 gap-4">
-              <DataTable 
-                title="D4.1a: Who Provides Navigation Support?" 
-                data={followupData['d4_1a'] || {}} 
-                total={totalRespondents}
-                isMultiSelect
-              />
-              <DataTable 
-                title="D4.1b: Navigation Services Available" 
-                data={followupData['d4_1b'] || {}} 
-                total={totalRespondents}
-                isMultiSelect
-              />
+              {followupData['d4_1a']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D4.1a: Who Provides Navigation Support? (n=${followupData['d4_1a'].respondentCount})`}
+                  data={followupData['d4_1a'].counts} 
+                  total={followupData['d4_1a'].respondentCount}
+                  isMultiSelect
+                  excludeNoResponse
+                />
+              )}
+              {followupData['d4_1b']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D4.1b: Navigation Services Available (n=${followupData['d4_1b'].respondentCount})`}
+                  data={followupData['d4_1b'].counts} 
+                  total={followupData['d4_1b'].respondentCount}
+                  isMultiSelect
+                  excludeNoResponse
+                />
+              )}
             </div>
           )}
           
           {/* D6 Follow-ups */}
-          {dimKey === 'd6' && (
+          {dimKey === 'd6' && followupData['d6_2']?.respondentCount > 0 && (
             <DataTable 
-              title="D6.2: How Do You Measure Psychological Safety?" 
-              data={followupData['d6_2'] || {}} 
-              total={totalRespondents}
+              title={`D6.2: How Do You Measure Psychological Safety? (n=${followupData['d6_2'].respondentCount})`}
+              data={followupData['d6_2'].counts} 
+              total={followupData['d6_2'].respondentCount}
               isMultiSelect
+              excludeNoResponse
             />
+          )}
+          {dimKey === 'd6' && (!followupData['d6_2'] || followupData['d6_2'].respondentCount === 0) && (
+            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500">
+              D6.2: No respondents answered this follow-up question
+            </div>
           )}
           
           {/* D13 Follow-ups */}
-          {dimKey === 'd13' && (
+          {dimKey === 'd13' && followupData['d13_1']?.respondentCount > 0 && (
             <DataTable 
-              title="D13.1: Communication Frequency" 
-              data={followupData['d13_1'] || {}} 
-              total={totalRespondents}
+              title={`D13.1: Communication Frequency (n=${followupData['d13_1'].respondentCount})`}
+              data={followupData['d13_1'].counts} 
+              total={followupData['d13_1'].respondentCount}
               orderedOptions={ORDINAL_OPTIONS.communicationFrequency}
+              excludeNoResponse
             />
+          )}
+          {dimKey === 'd13' && (!followupData['d13_1'] || followupData['d13_1'].respondentCount === 0) && (
+            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500">
+              D13.1: No respondents answered this follow-up question
+            </div>
           )}
         </div>
       </div>
@@ -2003,13 +2082,23 @@ function EmployeeImpactSection({ assessments }: { assessments: ProcessedAssessme
 // ============================================
 function AnalyticsTab({ assessments }: { assessments: ProcessedAssessment[] }) {
   const [completedOnly, setCompletedOnly] = useState(false)
+  const [typeFilter, setTypeFilter] = useState('all')
   const [activeSection, setActiveSection] = useState<string>('overview')
   
-  const filteredAssessments = completedOnly 
-    ? assessments.filter(a => a.completionPercentage >= 100)
-    : assessments
+  const filteredAssessments = assessments.filter(a => {
+    // Completion filter
+    if (completedOnly && a.completionPercentage < 100) return false
+    // Type filter
+    if (typeFilter === 'founding' && !a.isFoundingPartner) return false
+    if (typeFilter === 'standard' && a.isFoundingPartner) return false
+    return true
+  })
   
   const totalRespondents = filteredAssessments.length
+  
+  // Count by type for display
+  const fpCount = assessments.filter(a => a.isFoundingPartner).length
+  const standardCount = assessments.filter(a => !a.isFoundingPartner).length
   
   const sections = [
     { id: 'overview', name: 'Overview' },
@@ -2035,15 +2124,31 @@ function AnalyticsTab({ assessments }: { assessments: ProcessedAssessment[] }) {
               Full response distributions for all survey questions ({totalRespondents} respondents)
             </p>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={completedOnly}
+          <div className="flex items-center gap-4">
+            {/* Type Filter */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Company Type</label>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">Both ({fpCount + standardCount})</option>
+                <option value="founding">Founding Partners ({fpCount})</option>
+                <option value="standard">Standard ({standardCount})</option>
+              </select>
+            </div>
+            {/* Completion Filter */}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={completedOnly}
               onChange={(e) => setCompletedOnly(e.target.checked)}
               className="w-4 h-4 rounded text-orange-500 focus:ring-orange-500"
             />
-            <span className="text-sm text-gray-700">Completed surveys only (100%)</span>
+            <span className="text-sm text-gray-700">Completed surveys only</span>
           </label>
+          </div>
         </div>
         
         {/* Section Navigation */}
@@ -2410,15 +2515,15 @@ export default function AdminDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">TYPE</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">COMPANY TYPE</label>
                   <select
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">All Types</option>
-                    <option value="founding">Founding Partners</option>
-                    <option value="standard">Standard Participants</option>
+                    <option value="all">Both (All Companies)</option>
+                    <option value="founding">Founding Partners Only</option>
+                    <option value="standard">Standard Companies Only</option>
                   </select>
                 </div>
               </div>
