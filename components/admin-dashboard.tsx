@@ -75,7 +75,7 @@ const DIMENSION_CONFIG = {
   d1: {
     name: 'Medical Leave & Flexibility',
     dataKey: 'dimension1_data',
-    gridField: 'd1aGrid',
+    gridField: 'd1a',
     items: [
       'Paid medical leave beyond local / legal requirements',
       'Intermittent leave beyond local / legal requirements',
@@ -93,7 +93,7 @@ const DIMENSION_CONFIG = {
   d2: {
     name: 'Insurance & Financial Protection',
     dataKey: 'dimension2_data',
-    gridField: 'd2aGrid',
+    gridField: 'd2a',
     items: [
       'Coverage for clinical trials and experimental treatments not covered by standard health insurance',
       'Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance',
@@ -117,7 +117,7 @@ const DIMENSION_CONFIG = {
   d3: {
     name: 'Manager Preparedness & Capability',
     dataKey: 'dimension3_data',
-    gridField: 'd3aGrid',
+    gridField: 'd3a',
     items: [
       'Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams',
       'Clear escalation protocol for manager response',
@@ -134,7 +134,7 @@ const DIMENSION_CONFIG = {
   d4: {
     name: 'Navigation & Expert Resources',
     dataKey: 'dimension4_data',
-    gridField: 'd4aGrid',
+    gridField: 'd4a',
     items: [
       'Dedicated navigation support to help employees understand benefits and access medical care',
       'Benefits optimization assistance (maximizing coverage, minimizing costs)',
@@ -151,7 +151,7 @@ const DIMENSION_CONFIG = {
   d5: {
     name: 'Workplace Accommodations & Modifications',
     dataKey: 'dimension5_data',
-    gridField: 'd5aGrid',
+    gridField: 'd5a',
     items: [
       'Physical workspace modifications',
       'Cognitive / fatigue support tools',
@@ -169,7 +169,7 @@ const DIMENSION_CONFIG = {
   d6: {
     name: 'Culture & Psychological Safety',
     dataKey: 'dimension6_data',
-    gridField: 'd6aGrid',
+    gridField: 'd6a',
     items: [
       'Strong anti-discrimination policies specific to health conditions',
       'Clear process for confidential health disclosures',
@@ -188,7 +188,7 @@ const DIMENSION_CONFIG = {
   d7: {
     name: 'Career Continuity & Advancement',
     dataKey: 'dimension7_data',
-    gridField: 'd7aGrid',
+    gridField: 'd7a',
     items: [
       'Continued access to training/development',
       'Structured reintegration programs',
@@ -204,7 +204,7 @@ const DIMENSION_CONFIG = {
   d8: {
     name: 'Work Continuation & Resumption',
     dataKey: 'dimension8_data',
-    gridField: 'd8aGrid',
+    gridField: 'd8a',
     items: [
       'Flexible work arrangements during treatment',
       'Phased return-to-work plans',
@@ -223,7 +223,7 @@ const DIMENSION_CONFIG = {
   d9: {
     name: 'Executive Commitment & Resources',
     dataKey: 'dimension9_data',
-    gridField: 'd9aGrid',
+    gridField: 'd9a',
     items: [
       'Executive accountability metrics',
       'Public success story celebrations',
@@ -241,7 +241,7 @@ const DIMENSION_CONFIG = {
   d10: {
     name: 'Caregiver & Family Support',
     dataKey: 'dimension10_data',
-    gridField: 'd10aGrid',
+    gridField: 'd10a',
     items: [
       'Paid caregiver leave with expanded eligibility (beyond local legal requirements)',
       'Flexible work arrangements for caregivers',
@@ -267,7 +267,7 @@ const DIMENSION_CONFIG = {
   d11: {
     name: 'Prevention, Wellness & Legal Compliance',
     dataKey: 'dimension11_data',
-    gridField: 'd11aGrid',
+    gridField: 'd11a',
     items: [
       'At least 70% coverage for regionally / locally recommended screenings',
       'Full or partial coverage for annual health screenings/checkups',
@@ -287,7 +287,7 @@ const DIMENSION_CONFIG = {
   d12: {
     name: 'Continuous Improvement & Outcomes',
     dataKey: 'dimension12_data',
-    gridField: 'd12aGrid',
+    gridField: 'd12a',
     items: [
       'Return-to-work success metrics',
       'Employee satisfaction tracking',
@@ -302,7 +302,7 @@ const DIMENSION_CONFIG = {
   d13: {
     name: 'Communication & Awareness',
     dataKey: 'dimension13_data',
-    gridField: 'd13aGrid',
+    gridField: 'd13a',
     items: [
       'Proactive communication at point of diagnosis disclosure',
       'Dedicated program website or portal',
@@ -695,7 +695,13 @@ function parseJsonField(data: any, field: string): string {
   if (!data) return 'Not provided'
   try {
     const parsed = typeof data === 'string' ? JSON.parse(data) : data
-    return parsed[field] || 'Not provided'
+    const value = parsed[field]
+    if (value === null || value === undefined) return 'Not provided'
+    if (typeof value === 'string') return value
+    if (typeof value === 'number') return String(value)
+    if (Array.isArray(value)) return value.join(', ')
+    if (typeof value === 'object') return JSON.stringify(value)
+    return String(value)
   } catch {
     return 'Not provided'
   }
@@ -705,7 +711,11 @@ function parseJsonArray(data: any, field: string): string[] {
   if (!data) return []
   try {
     const parsed = typeof data === 'string' ? JSON.parse(data) : data
-    return Array.isArray(parsed[field]) ? parsed[field] : []
+    const value = parsed[field]
+    if (Array.isArray(value)) {
+      return value.map(v => typeof v === 'string' ? v : String(v))
+    }
+    return []
   } catch {
     return []
   }
@@ -715,8 +725,15 @@ function getGridData(data: any, gridField: string): Record<string, string> {
   if (!data) return {}
   try {
     const parsed = typeof data === 'string' ? JSON.parse(data) : data
+    if (!parsed || typeof parsed !== 'object') return {}
     const grid = parsed[gridField]
-    return typeof grid === 'object' && grid !== null ? grid : {}
+    if (!grid || typeof grid !== 'object' || Array.isArray(grid)) return {}
+    // Ensure all values are strings
+    const result: Record<string, string> = {}
+    Object.entries(grid).forEach(([key, value]) => {
+      result[key] = typeof value === 'string' ? value : String(value || '')
+    })
+    return result
   } catch {
     return {}
   }
@@ -735,11 +752,13 @@ function countResponses(assessments: ProcessedAssessment[], dataKey: string, fie
     } else if (counts[value] !== undefined) {
       counts[value]++
     } else {
-      // Try partial match
-      const matchedOpt = options.find(opt => 
-        value.toLowerCase().includes(opt.toLowerCase().slice(0, 20)) ||
-        opt.toLowerCase().includes(value.toLowerCase().slice(0, 20))
-      )
+      // Try partial match - ensure both are strings
+      const valueLower = String(value).toLowerCase()
+      const matchedOpt = options.find(opt => {
+        const optLower = String(opt).toLowerCase()
+        return valueLower.includes(optLower.slice(0, 20)) ||
+               optLower.includes(valueLower.slice(0, 20))
+      })
       if (matchedOpt) {
         counts[matchedOpt]++
       } else {
@@ -758,14 +777,17 @@ function countMultiSelect(assessments: ProcessedAssessment[], dataKey: string, f
   assessments.forEach(a => {
     const values = parseJsonArray((a as any)[dataKey], field)
     values.forEach(v => {
-      if (counts[v] !== undefined) {
-        counts[v]++
+      const vStr = String(v)
+      if (counts[vStr] !== undefined) {
+        counts[vStr]++
       } else {
-        // Try partial match
-        const matchedOpt = options.find(opt => 
-          v.toLowerCase().includes(opt.toLowerCase().slice(0, 20)) ||
-          opt.toLowerCase().includes(v.toLowerCase().slice(0, 20))
-        )
+        // Try partial match - ensure both are strings
+        const vLower = vStr.toLowerCase()
+        const matchedOpt = options.find(opt => {
+          const optLower = String(opt).toLowerCase()
+          return vLower.includes(optLower.slice(0, 20)) ||
+                 optLower.includes(vLower.slice(0, 20))
+        })
         if (matchedOpt) {
           counts[matchedOpt]++
         }
@@ -797,17 +819,21 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
       const response = gridData[item]
       if (!response) {
         results[item]['No response']++
-      } else if (results[item][response] !== undefined) {
-        results[item][response]++
       } else {
-        // Try partial match for response
-        const matchedResponse = Object.keys(results[item]).find(r => 
-          response.toLowerCase().includes(r.toLowerCase().slice(0, 15))
-        )
-        if (matchedResponse) {
-          results[item][matchedResponse]++
+        const responseStr = String(response)
+        if (results[item][responseStr] !== undefined) {
+          results[item][responseStr]++
         } else {
-          results[item]['No response']++
+          // Try partial match for response
+          const responseLower = responseStr.toLowerCase()
+          const matchedResponse = Object.keys(results[item]).find(r => 
+            responseLower.includes(r.toLowerCase().slice(0, 15))
+          )
+          if (matchedResponse) {
+            results[item][matchedResponse]++
+          } else {
+            results[item]['No response']++
+          }
         }
       }
     })
@@ -881,19 +907,19 @@ function DataTable({
           <p className="text-xs text-gray-500">Multi-select - percentages may exceed 100%</p>
         )}
       </div>
-      <div className="p-3 space-y-2 max-h-64 overflow-y-auto">
+      <div className="p-3 space-y-2">
         {sorted.map(([key, count]) => {
           const pct = total > 0 ? Math.round((count / total) * 100) : 0
           return (
             <div key={key} className="flex items-center gap-3">
-              <div className="flex-1 text-xs text-gray-700 truncate" title={key}>{key}</div>
-              <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="flex-1 text-xs text-gray-700" title={key}>{key}</div>
+              <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
                 <div 
                   className="h-full bg-orange-500 rounded-full"
                   style={{ width: `${Math.min(pct, 100)}%` }}
                 />
               </div>
-              <div className="w-16 text-right">
+              <div className="w-20 text-right flex-shrink-0">
                 <span className="font-bold text-gray-800 text-sm">{count}</span>
                 <span className="text-gray-500 text-xs ml-1">({pct}%)</span>
               </div>
@@ -902,14 +928,14 @@ function DataTable({
         })}
         {otherCount > 0 && (
           <div className="flex items-center gap-3 pt-2 border-t">
-            <div className="flex-1 text-xs text-gray-500 truncate">Other</div>
-            <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="flex-1 text-xs text-gray-500">Other</div>
+            <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
               <div 
                 className="h-full bg-gray-400 rounded-full"
                 style={{ width: `${Math.min(Math.round((otherCount / total) * 100), 100)}%` }}
               />
             </div>
-            <div className="w-16 text-right">
+            <div className="w-20 text-right flex-shrink-0">
               <span className="font-bold text-gray-500 text-sm">{otherCount}</span>
               <span className="text-gray-400 text-xs ml-1">({total > 0 ? Math.round((otherCount / total) * 100) : 0}%)</span>
             </div>
@@ -917,14 +943,14 @@ function DataTable({
         )}
         {noResponseCount > 0 && (
           <div className="flex items-center gap-3 pt-2 border-t">
-            <div className="flex-1 text-xs text-gray-400 truncate">No response</div>
-            <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="flex-1 text-xs text-gray-400">No response</div>
+            <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
               <div 
                 className="h-full bg-gray-300 rounded-full"
                 style={{ width: `${Math.min(Math.round((noResponseCount / total) * 100), 100)}%` }}
               />
             </div>
-            <div className="w-16 text-right">
+            <div className="w-20 text-right flex-shrink-0">
               <span className="font-bold text-gray-400 text-sm">{noResponseCount}</span>
               <span className="text-gray-300 text-xs ml-1">({total > 0 ? Math.round((noResponseCount / total) * 100) : 0}%)</span>
             </div>
@@ -937,6 +963,9 @@ function DataTable({
     </div>
   )
 }
+
+// Alias for consistency
+const DataTableFull = DataTable
 
 function CellWithPct({ count, total, color }: { count: number; total: number; color: string }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0
@@ -1022,7 +1051,7 @@ function OverviewSection({ assessments }: { assessments: ProcessedAssessment[] }
           </div>
           <div>
             <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3">13 Dimensions</h4>
-            <div className="max-h-64 overflow-y-auto pr-2">
+            <div className="pr-2">
               {dimensionNames.map((name, idx) => (
                 <AnalyticsProgressBar 
                   key={idx}
@@ -1106,7 +1135,31 @@ function GeneralBenefitsSection({ assessments }: { assessments: ProcessedAssessm
 function CurrentSupportSection({ assessments }: { assessments: ProcessedAssessment[] }) {
   const totalRespondents = assessments.length
   
-  const cb3aData = countResponses(assessments, 'current_support_data', 'cb3a', CURRENT_SUPPORT_OPTIONS.cb3a)
+  // cb3a is in general_benefits_data for most respondents, current_support_data for some
+  const cb3aCounts: Record<string, number> = {}
+  CURRENT_SUPPORT_OPTIONS.cb3a.forEach(opt => cb3aCounts[opt] = 0)
+  cb3aCounts['No response'] = 0
+  
+  assessments.forEach(a => {
+    // Try general_benefits_data first, then current_support_data
+    let value = parseJsonField(a.general_benefits_data, 'cb3a')
+    if (value === 'Not provided') {
+      value = parseJsonField(a.current_support_data, 'cb3a')
+    }
+    if (value === 'Not provided' || !value) {
+      cb3aCounts['No response']++
+    } else if (cb3aCounts[value] !== undefined) {
+      cb3aCounts[value]++
+    } else {
+      // Partial match
+      const matched = CURRENT_SUPPORT_OPTIONS.cb3a.find(opt => 
+        String(value).toLowerCase().includes(opt.toLowerCase().slice(0, 20))
+      )
+      if (matched) cb3aCounts[matched]++
+      else cb3aCounts['No response']++
+    }
+  })
+  
   const cb3bData = countMultiSelect(assessments, 'current_support_data', 'cb3b', CURRENT_SUPPORT_OPTIONS.cb3b)
   const cb3cData = countMultiSelect(assessments, 'current_support_data', 'cb3c', CURRENT_SUPPORT_OPTIONS.cb3c)
   const cb3dData = countMultiSelect(assessments, 'current_support_data', 'cb3d', CURRENT_SUPPORT_OPTIONS.cb3d)
@@ -1125,7 +1178,7 @@ function CurrentSupportSection({ assessments }: { assessments: ProcessedAssessme
         </div>
         
         <div className="p-5 space-y-6">
-          <DataTable title="CB3a: Support Beyond Legal Requirements" data={cb3aData} total={totalRespondents} />
+          <DataTable title="CB3a: Support Beyond Legal Requirements" data={cb3aCounts} total={totalRespondents} />
           <DataTable title="CB3b: How Programs Are Structured" data={cb3bData} total={totalRespondents} isMultiSelect />
           <DataTable title="CB3c: Health Conditions Addressed" data={cb3cData} total={totalRespondents} isMultiSelect />
           <DataTable title="CB3d: How Programs Were Developed" data={cb3dData} total={totalRespondents} isMultiSelect />
@@ -1201,9 +1254,71 @@ function DimensionSection({
 function CrossDimensionalSection({ assessments }: { assessments: ProcessedAssessment[] }) {
   const totalRespondents = assessments.length
   
-  const cd1aData = countMultiSelect(assessments, 'cross_dimensional_data', 'cd1a', CROSS_DIMENSIONAL_OPTIONS.dimensions)
-  const cd1bData = countMultiSelect(assessments, 'cross_dimensional_data', 'cd1b', CROSS_DIMENSIONAL_OPTIONS.dimensions)
-  const cd2Data = countMultiSelect(assessments, 'cross_dimensional_data', 'cd2', CROSS_DIMENSIONAL_OPTIONS.cd2Challenges)
+  // CD data can be in cross_dimensional_data or employee_impact_data
+  // Count cd1a from both sources
+  const cd1aCounts: Record<string, number> = {}
+  CROSS_DIMENSIONAL_OPTIONS.dimensions.forEach(d => cd1aCounts[d] = 0)
+  
+  const cd1bCounts: Record<string, number> = {}
+  CROSS_DIMENSIONAL_OPTIONS.dimensions.forEach(d => cd1bCounts[d] = 0)
+  
+  const cd2Counts: Record<string, number> = {}
+  CROSS_DIMENSIONAL_OPTIONS.cd2Challenges.forEach(c => cd2Counts[c] = 0)
+  
+  assessments.forEach(a => {
+    // Try cross_dimensional_data first, then employee_impact_data
+    let cd1aValues = parseJsonArray(a.cross_dimensional_data, 'cd1a')
+    if (cd1aValues.length === 0) {
+      cd1aValues = parseJsonArray(a.employee_impact_data, 'cd1a')
+    }
+    cd1aValues.forEach(v => {
+      const vStr = String(v)
+      if (cd1aCounts[vStr] !== undefined) {
+        cd1aCounts[vStr]++
+      } else {
+        // Partial match
+        const matched = CROSS_DIMENSIONAL_OPTIONS.dimensions.find(d => 
+          vStr.toLowerCase().includes(d.toLowerCase().slice(0, 15)) ||
+          d.toLowerCase().includes(vStr.toLowerCase().slice(0, 15))
+        )
+        if (matched) cd1aCounts[matched]++
+      }
+    })
+    
+    let cd1bValues = parseJsonArray(a.cross_dimensional_data, 'cd1b')
+    if (cd1bValues.length === 0) {
+      cd1bValues = parseJsonArray(a.employee_impact_data, 'cd1b')
+    }
+    cd1bValues.forEach(v => {
+      const vStr = String(v)
+      if (cd1bCounts[vStr] !== undefined) {
+        cd1bCounts[vStr]++
+      } else {
+        const matched = CROSS_DIMENSIONAL_OPTIONS.dimensions.find(d => 
+          vStr.toLowerCase().includes(d.toLowerCase().slice(0, 15)) ||
+          d.toLowerCase().includes(vStr.toLowerCase().slice(0, 15))
+        )
+        if (matched) cd1bCounts[matched]++
+      }
+    })
+    
+    let cd2Values = parseJsonArray(a.cross_dimensional_data, 'cd2')
+    if (cd2Values.length === 0) {
+      cd2Values = parseJsonArray(a.employee_impact_data, 'cd2')
+    }
+    cd2Values.forEach(v => {
+      const vStr = String(v)
+      if (cd2Counts[vStr] !== undefined) {
+        cd2Counts[vStr]++
+      } else {
+        const matched = CROSS_DIMENSIONAL_OPTIONS.cd2Challenges.find(c => 
+          vStr.toLowerCase().includes(c.toLowerCase().slice(0, 15)) ||
+          c.toLowerCase().includes(vStr.toLowerCase().slice(0, 15))
+        )
+        if (matched) cd2Counts[matched]++
+      }
+    })
+  })
   
   return (
     <div className="space-y-6">
@@ -1214,9 +1329,9 @@ function CrossDimensionalSection({ assessments }: { assessments: ProcessedAssess
         </div>
         
         <div className="p-5 space-y-6">
-          <DataTable title="CD1a: TOP 3 Dimensions for Best Outcomes" data={cd1aData} total={totalRespondents} isMultiSelect />
-          <DataTable title="CD1b: BOTTOM 3 Dimensions (Lowest Priority)" data={cd1bData} total={totalRespondents} isMultiSelect />
-          <DataTable title="CD2: Biggest Challenges (Top 3)" data={cd2Data} total={totalRespondents} isMultiSelect />
+          <DataTable title="CD1a: TOP 3 Dimensions for Best Outcomes (Select 3)" data={cd1aCounts} total={totalRespondents} isMultiSelect />
+          <DataTable title="CD1b: BOTTOM 3 Dimensions / Lowest Priority (Select 3)" data={cd1bCounts} total={totalRespondents} isMultiSelect />
+          <DataTable title="CD2: Biggest Challenges (Select up to 3)" data={cd2Counts} total={totalRespondents} isMultiSelect />
         </div>
       </div>
     </div>
@@ -1226,10 +1341,11 @@ function CrossDimensionalSection({ assessments }: { assessments: ProcessedAssess
 function EmployeeImpactSection({ assessments }: { assessments: ProcessedAssessment[] }) {
   const totalRespondents = assessments.length
   
+  // EI data is in employee_impact_data (or cross_dimensional_data as fallback)
   const ei2Data = countResponses(assessments, 'employee_impact_data', 'ei2', EMPLOYEE_IMPACT_OPTIONS.ei2)
   const ei3Data = countResponses(assessments, 'employee_impact_data', 'ei3', EMPLOYEE_IMPACT_OPTIONS.ei3)
   
-  // EI1 is a grid - need special handling
+  // EI1 is a grid stored as 'ei1' in employee_impact_data
   const ei1Data: Record<string, Record<string, number>> = {}
   EMPLOYEE_IMPACT_OPTIONS.ei1Areas.forEach(area => {
     ei1Data[area] = {}
@@ -1238,7 +1354,11 @@ function EmployeeImpactSection({ assessments }: { assessments: ProcessedAssessme
   })
   
   assessments.forEach(a => {
-    const gridData = getGridData(a.employee_impact_data, 'ei1Grid')
+    // Try employee_impact_data first, then cross_dimensional_data as fallback
+    let gridData = getGridData(a.employee_impact_data, 'ei1')
+    if (Object.keys(gridData).length === 0) {
+      gridData = getGridData(a.cross_dimensional_data, 'ei1')
+    }
     EMPLOYEE_IMPACT_OPTIONS.ei1Areas.forEach(area => {
       const response = gridData[area]
       if (!response) {
@@ -1299,8 +1419,8 @@ function EmployeeImpactSection({ assessments }: { assessments: ProcessedAssessme
             </div>
           </div>
           
-          <DataTable title="EI2: Have You Measured ROI?" data={ei2Data} total={totalRespondents} />
-          <DataTable title="EI3: Approximate ROI Level" data={ei3Data} total={totalRespondents} />
+          <DataTableFull title="EI2: Have You Measured ROI?" data={ei2Data} total={totalRespondents} />
+          <DataTableFull title="EI3: Approximate ROI Level" data={ei3Data} total={totalRespondents} />
         </div>
       </div>
     </div>
