@@ -689,6 +689,171 @@ const FIRMOGRAPHICS_OPTIONS = {
 }
 
 // ============================================
+// ORDINAL OPTIONS - Keep in natural order, don't rank
+// ============================================
+const ORDINAL_OPTIONS = {
+  // Company size
+  s8Size: [
+    '500-999',
+    '1,000-2,499',
+    '2,500-4,999',
+    '5,000-9,999',
+    '10,000-24,999',
+    '25,000-49,999',
+    '50,000+'
+  ],
+  // Revenue
+  c4Revenue: [
+    'Less than $10 million',
+    '$10-49 million',
+    '$50-99 million',
+    '$100-499 million',
+    '$500-999 million',
+    '$1 billion or more',
+    'Not applicable (non-profit/government)'
+  ],
+  // Job level (hierarchical)
+  s5Level: [
+    'C-level executive (CHRO, CPO)',
+    'Executive/Senior Vice President',
+    'Vice President',
+    'Director',
+    'Senior Manager',
+    'Manager',
+    'HR Generalist',
+    'Benefits Specialist / Coordinator',
+    'HR Specialist / Coordinator',
+    'HR Assistant / Administrative',
+    'Other'
+  ],
+  // Influence (hierarchical)
+  s7Influence: [
+    'Primary decision maker',
+    'Part of decision-making team',
+    'Make recommendations that are usually adopted',
+    'Provide input but limited influence',
+    'No influence'
+  ],
+  // Leave duration options (various)
+  paidLeaveDuration: [
+    '1 to less than 3 weeks',
+    '3 to less than 5 weeks',
+    '5 to less than 9 weeks',
+    '9 to less than 13 weeks',
+    '13 or more weeks',
+    'Does not apply'
+  ],
+  intermittentLeaveDuration: [
+    'No additional leave',
+    '1 to 4 additional weeks',
+    '5 to 11 additional weeks',
+    '12 to 23 additional weeks',
+    '24 or more additional weeks',
+    'Unlimited based on medical need',
+    'Does not apply'
+  ],
+  jobProtectionDuration: [
+    '1 to less than 4 weeks',
+    '4 to less than 12 weeks',
+    '12 to less than 26 weeks',
+    '26 to less than 52 weeks',
+    '52 weeks or more',
+    'Does not apply'
+  ],
+  partTimeDuration: [
+    'Up to 4 weeks',
+    '5 to less than 13 weeks',
+    '13 to less than 26 weeks',
+    '26 weeks or more',
+    'As long as requested by healthcare provider',
+    'As long as medically necessary',
+    'Case-by-case basis',
+    'No additional time beyond legal requirements'
+  ],
+  // Manager training completion
+  trainingCompletion: [
+    'Less than 10%',
+    '10 to less than 25%',
+    '25 to less than 50%',
+    '50 to less than 75%',
+    '75 to less than 100%',
+    '100%',
+    'Unsure',
+    'Do not track this information',
+    'Not able to provide this information'
+  ],
+  // Communication frequency
+  communicationFrequency: [
+    'Monthly or more often',
+    'Quarterly',
+    'Twice per year',
+    'Annually (typically during enrollment or on World Cancer Day)',
+    'Only when asked/reactive only',
+    'No regular communication schedule'
+  ]
+}
+
+// ============================================
+// DIMENSION FOLLOW-UP OPTIONS
+// ============================================
+const DIMENSION_FOLLOWUPS = {
+  d1: {
+    d1aa: ['Generally consistent across all locations', 'Vary across locations', 'Only available in select locations'],
+    d1_1: ORDINAL_OPTIONS.paidLeaveDuration,
+    d1_2: ORDINAL_OPTIONS.intermittentLeaveDuration,
+    d1_4b: ORDINAL_OPTIONS.partTimeDuration,
+    d1_5: ORDINAL_OPTIONS.jobProtectionDuration,
+    d1_6: [
+      'Enhance short-term disability (higher % of salary)',
+      'Enhance long-term disability (higher % of salary)',
+      'Extend duration of benefits',
+      'Reduce/waive waiting periods',
+      'No enhancement - same as standard',
+      'Not applicable - government disability only'
+    ]
+  },
+  d3: {
+    d3_1a: ['Mandatory for all managers', 'Mandatory for new managers only', 'Voluntary', 'Varies by training type'],
+    d3_1: ORDINAL_OPTIONS.trainingCompletion
+  },
+  d4: {
+    d4_1a: [
+      'Credentialed internal staff dedicated to employee navigation',
+      'External vendor / service (contracted)',
+      'Through health insurance carrier',
+      'Through specialized medical provider',
+      'Partnership with specialized health organization',
+      'Other approach'
+    ],
+    d4_1b: [
+      'Clinical guidance from a licensed medical/healthcare professional',
+      'Insurance navigation',
+      'Mental health support',
+      'Caregiver resources',
+      'Financial planning',
+      'Return-to-work planning',
+      'Treatment decision support / second opinion',
+      'Company-sponsored peer support networks',
+      'Some other service'
+    ]
+  },
+  d6: {
+    d6_2: [
+      'Regular pulse surveys',
+      'Focus groups',
+      'Exit interview data',
+      'Manager feedback',
+      'One-on-One discussion with employee',
+      'Some other way',
+      "Don't formally measure"
+    ]
+  },
+  d13: {
+    d13_1: ORDINAL_OPTIONS.communicationFrequency
+  }
+}
+
+// ============================================
 // ANALYTICS HELPER FUNCTIONS
 // ============================================
 function parseJsonField(data: any, field: string): string {
@@ -885,16 +1050,34 @@ function DataTable({
   title, 
   data, 
   total, 
-  isMultiSelect = false 
+  isMultiSelect = false,
+  orderedOptions = null  // If provided, display in this order instead of ranking
 }: { 
   title: string
   data: Record<string, number>
   total: number
-  isMultiSelect?: boolean 
+  isMultiSelect?: boolean
+  orderedOptions?: string[] | null
 }) {
-  const sorted = Object.entries(data)
-    .filter(([key]) => key !== 'No response' && key !== 'Other')
-    .sort((a, b) => b[1] - a[1])
+  // If orderedOptions provided, use that order; otherwise sort by count (ranked)
+  let displayItems: [string, number][]
+  
+  if (orderedOptions) {
+    // Use the natural order from orderedOptions
+    displayItems = orderedOptions
+      .filter(opt => data[opt] !== undefined)
+      .map(opt => [opt, data[opt] || 0] as [string, number])
+    
+    // Add any items in data that weren't in orderedOptions
+    Object.entries(data)
+      .filter(([key]) => !orderedOptions.includes(key) && key !== 'No response' && key !== 'Other')
+      .forEach(([key, count]) => displayItems.push([key, count]))
+  } else {
+    // Sort by count (ranked)
+    displayItems = Object.entries(data)
+      .filter(([key]) => key !== 'No response' && key !== 'Other')
+      .sort((a, b) => b[1] - a[1])
+  }
   
   const noResponseCount = data['No response'] || 0
   const otherCount = data['Other'] || 0
@@ -908,7 +1091,7 @@ function DataTable({
         )}
       </div>
       <div className="p-3 space-y-2">
-        {sorted.map(([key, count]) => {
+        {displayItems.map(([key, count]) => {
           const pct = total > 0 ? Math.round((count / total) * 100) : 0
           return (
             <div key={key} className="flex items-center gap-3">
@@ -956,7 +1139,7 @@ function DataTable({
             </div>
           </div>
         )}
-        {sorted.length === 0 && noResponseCount === 0 && (
+        {displayItems.length === 0 && noResponseCount === 0 && (
           <p className="text-gray-400 text-xs">No data</p>
         )}
       </div>
@@ -1072,11 +1255,11 @@ function FirmographicsSection({ assessments }: { assessments: ProcessedAssessmen
   const totalRespondents = assessments.length
   
   const industryData = countResponses(assessments, 'firmographics_data', 'c2', FIRMOGRAPHICS_OPTIONS.c2Industry)
-  const sizeData = countResponses(assessments, 'firmographics_data', 's8', FIRMOGRAPHICS_OPTIONS.s8Size)
-  const revenueData = countResponses(assessments, 'firmographics_data', 'c4', FIRMOGRAPHICS_OPTIONS.c4Revenue)
-  const levelData = countResponses(assessments, 'firmographics_data', 's5', FIRMOGRAPHICS_OPTIONS.s5Level)
+  const sizeData = countResponses(assessments, 'firmographics_data', 's8', ORDINAL_OPTIONS.s8Size)
+  const revenueData = countResponses(assessments, 'firmographics_data', 'c4', ORDINAL_OPTIONS.c4Revenue)
+  const levelData = countResponses(assessments, 'firmographics_data', 's5', ORDINAL_OPTIONS.s5Level)
   const functionData = countResponses(assessments, 'firmographics_data', 's4b', FIRMOGRAPHICS_OPTIONS.s4bFunction)
-  const influenceData = countResponses(assessments, 'firmographics_data', 's7', FIRMOGRAPHICS_OPTIONS.s7Influence)
+  const influenceData = countResponses(assessments, 'firmographics_data', 's7', ORDINAL_OPTIONS.s7Influence)
   const countryData = countResponses(assessments, 'firmographics_data', 's9', FIRMOGRAPHICS_OPTIONS.s9Country)
   const remoteData = countResponses(assessments, 'firmographics_data', 'c6', FIRMOGRAPHICS_OPTIONS.c6RemoteWork)
   
@@ -1090,11 +1273,11 @@ function FirmographicsSection({ assessments }: { assessments: ProcessedAssessmen
         
         <div className="p-5 grid md:grid-cols-2 gap-6">
           <DataTable title="Industry (C2)" data={industryData} total={totalRespondents} />
-          <DataTable title="Company Size (S8)" data={sizeData} total={totalRespondents} />
-          <DataTable title="Annual Revenue (C4)" data={revenueData} total={totalRespondents} />
-          <DataTable title="Respondent Level (S5)" data={levelData} total={totalRespondents} />
+          <DataTable title="Company Size (S8)" data={sizeData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s8Size} />
+          <DataTable title="Annual Revenue (C4)" data={revenueData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.c4Revenue} />
+          <DataTable title="Respondent Level (S5)" data={levelData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s5Level} />
           <DataTable title="Primary Function (S4b)" data={functionData} total={totalRespondents} />
-          <DataTable title="Benefits Influence (S7)" data={influenceData} total={totalRespondents} />
+          <DataTable title="Benefits Influence (S7)" data={influenceData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s7Influence} />
           <DataTable title="HQ Country (S9)" data={countryData} total={totalRespondents} />
           <DataTable title="Remote/Hybrid Work (C6)" data={remoteData} total={totalRespondents} />
         </div>
@@ -1178,11 +1361,23 @@ function CurrentSupportSection({ assessments }: { assessments: ProcessedAssessme
         </div>
         
         <div className="p-5 space-y-6">
-          <DataTable title="CB3a: Support Beyond Legal Requirements" data={cb3aCounts} total={totalRespondents} />
+          <DataTable title="CB3a: Support Beyond Legal Requirements" data={cb3aCounts} total={totalRespondents} orderedOptions={[
+            'Yes, we offer additional support beyond legal requirements',
+            'Currently developing enhanced support offerings',
+            'Not yet, but actively exploring options',
+            'At this time, we primarily focus on meeting legal compliance requirements'
+          ]} />
           <DataTable title="CB3b: How Programs Are Structured" data={cb3bData} total={totalRespondents} isMultiSelect />
           <DataTable title="CB3c: Health Conditions Addressed" data={cb3cData} total={totalRespondents} isMultiSelect />
           <DataTable title="CB3d: How Programs Were Developed" data={cb3dData} total={totalRespondents} isMultiSelect />
-          <DataTable title="OR1: Current Approach to Supporting Employees" data={or1Data} total={totalRespondents} />
+          <DataTable title="OR1: Current Approach to Supporting Employees" data={or1Data} total={totalRespondents} orderedOptions={[
+            'No formal approach: Handle case-by-case',
+            'Developing approach: Currently building our programs',
+            'Legal minimum only: Meet legal requirements only (FMLA, ADA)',
+            'Moderate support: Some programs beyond legal requirements',
+            'Enhanced support: Meaningful programs beyond legal minimums',
+            'Comprehensive support: Extensive programs well beyond legal requirements'
+          ]} />
           <DataTable title="OR2a: Triggers for Developing Support" data={or2aData} total={totalRespondents} isMultiSelect />
           <DataTable title="OR3: Primary Barriers to Comprehensive Support" data={or3Data} total={totalRespondents} isMultiSelect />
           <DataTable title="OR5a: Caregiver Support Types" data={or5aData} total={totalRespondents} isMultiSelect />
@@ -1204,17 +1399,75 @@ function DimensionSection({
 }) {
   const totalRespondents = assessments.length
   const dimensionData = countDimensionResponses(assessments, config)
+  const dimNum = dimKey.replace('d', '')
+  
+  // Get follow-up data based on dimension
+  const followups = DIMENSION_FOLLOWUPS[dimKey as keyof typeof DIMENSION_FOLLOWUPS]
+  
+  // Collect follow-up responses
+  const followupData: Record<string, Record<string, number>> = {}
+  
+  if (dimKey === 'd1') {
+    // D1 has USA/non-USA variants for some questions
+    followupData['d1aa'] = countResponses(assessments, 'dimension1_data', 'd1aa', DIMENSION_FOLLOWUPS.d1.d1aa)
+    followupData['d1_1_usa'] = countResponses(assessments, 'dimension1_data', 'd1_1_usa', DIMENSION_FOLLOWUPS.d1.d1_1)
+    followupData['d1_1_non_usa'] = countResponses(assessments, 'dimension1_data', 'd1_1_non_usa', DIMENSION_FOLLOWUPS.d1.d1_1)
+    followupData['d1_2_usa'] = countResponses(assessments, 'dimension1_data', 'd1_2_usa', DIMENSION_FOLLOWUPS.d1.d1_2)
+    followupData['d1_2_non_usa'] = countResponses(assessments, 'dimension1_data', 'd1_2_non_usa', DIMENSION_FOLLOWUPS.d1.d1_2)
+    followupData['d1_4b'] = countResponses(assessments, 'dimension1_data', 'd1_4b', DIMENSION_FOLLOWUPS.d1.d1_4b)
+    followupData['d1_5_usa'] = countResponses(assessments, 'dimension1_data', 'd1_5_usa', DIMENSION_FOLLOWUPS.d1.d1_5)
+    followupData['d1_5_non_usa'] = countResponses(assessments, 'dimension1_data', 'd1_5_non_usa', DIMENSION_FOLLOWUPS.d1.d1_5)
+    followupData['d1_6'] = countMultiSelect(assessments, 'dimension1_data', 'd1_6', DIMENSION_FOLLOWUPS.d1.d1_6)
+  } else if (dimKey === 'd3') {
+    followupData['d3_1a'] = countResponses(assessments, 'dimension3_data', 'd3_1a', DIMENSION_FOLLOWUPS.d3.d3_1a)
+    // Also check d31a variant
+    const d31aData = countResponses(assessments, 'dimension3_data', 'd31a', DIMENSION_FOLLOWUPS.d3.d3_1a)
+    Object.entries(d31aData).forEach(([k, v]) => {
+      followupData['d3_1a'][k] = (followupData['d3_1a'][k] || 0) + v
+    })
+    followupData['d3_1'] = countResponses(assessments, 'dimension3_data', 'd3_1', DIMENSION_FOLLOWUPS.d3.d3_1)
+    const d31Data = countResponses(assessments, 'dimension3_data', 'd31', DIMENSION_FOLLOWUPS.d3.d3_1)
+    Object.entries(d31Data).forEach(([k, v]) => {
+      followupData['d3_1'][k] = (followupData['d3_1'][k] || 0) + v
+    })
+  } else if (dimKey === 'd4') {
+    followupData['d4_1a'] = countMultiSelect(assessments, 'dimension4_data', 'd4_1a', DIMENSION_FOLLOWUPS.d4.d4_1a)
+    const d41aData = countMultiSelect(assessments, 'dimension4_data', 'd41a', DIMENSION_FOLLOWUPS.d4.d4_1a)
+    Object.entries(d41aData).forEach(([k, v]) => {
+      followupData['d4_1a'][k] = (followupData['d4_1a'][k] || 0) + v
+    })
+    followupData['d4_1b'] = countMultiSelect(assessments, 'dimension4_data', 'd4_1b', DIMENSION_FOLLOWUPS.d4.d4_1b)
+    const d41bData = countMultiSelect(assessments, 'dimension4_data', 'd41b', DIMENSION_FOLLOWUPS.d4.d4_1b)
+    Object.entries(d41bData).forEach(([k, v]) => {
+      followupData['d4_1b'][k] = (followupData['d4_1b'][k] || 0) + v
+    })
+  } else if (dimKey === 'd6') {
+    followupData['d6_2'] = countMultiSelect(assessments, 'dimension6_data', 'd6_2', DIMENSION_FOLLOWUPS.d6.d6_2)
+  } else if (dimKey === 'd13') {
+    followupData['d13_1'] = countResponses(assessments, 'dimension13_data', 'd13_1', DIMENSION_FOLLOWUPS.d13.d13_1)
+  }
+  
+  // Geographic consistency for all dimensions (dXaa)
+  const geoConsistencyOptions = ['Generally consistent across all locations', 'Vary across locations', 'Only available in select locations']
+  const geoField = `d${dimNum}aa`
+  const geoData = countResponses(assessments, config.dataKey, geoField, geoConsistencyOptions)
+  // Also check capitalized variant
+  const geoDataCap = countResponses(assessments, config.dataKey, `D${dimNum}aa`, geoConsistencyOptions)
+  Object.entries(geoDataCap).forEach(([k, v]) => {
+    geoData[k] = (geoData[k] || 0) + v
+  })
   
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-4 py-3">
           <h3 className="text-white font-bold">
-            {dimKey.toUpperCase().replace('D', 'Dimension ')}: {config.name}
+            Dimension {dimNum}: {config.name}
           </h3>
           <p className="text-orange-200 text-xs">{totalRespondents} respondents</p>
         </div>
         
+        {/* Main Grid */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
@@ -1245,6 +1498,127 @@ function DimensionSection({
               })}
             </tbody>
           </table>
+        </div>
+        
+        {/* Follow-up Questions */}
+        <div className="p-5 border-t border-gray-200 space-y-4">
+          <h4 className="font-semibold text-gray-800">Follow-up Questions</h4>
+          
+          {/* Geographic Consistency */}
+          <DataTable 
+            title={`D${dimNum}.aa: Geographic Consistency`} 
+            data={geoData} 
+            total={totalRespondents} 
+          />
+          
+          {/* D1 Follow-ups */}
+          {dimKey === 'd1' && (
+            <div className="grid md:grid-cols-2 gap-4">
+              <DataTable 
+                title="D1.1: Additional Paid Medical Leave (USA)" 
+                data={followupData['d1_1_usa'] || {}} 
+                total={totalRespondents}
+                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_1}
+              />
+              <DataTable 
+                title="D1.1: Additional Paid Medical Leave (Non-USA)" 
+                data={followupData['d1_1_non_usa'] || {}} 
+                total={totalRespondents}
+                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_1}
+              />
+              <DataTable 
+                title="D1.2: Additional Intermittent Leave (USA)" 
+                data={followupData['d1_2_usa'] || {}} 
+                total={totalRespondents}
+                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_2}
+              />
+              <DataTable 
+                title="D1.2: Additional Intermittent Leave (Non-USA)" 
+                data={followupData['d1_2_non_usa'] || {}} 
+                total={totalRespondents}
+                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_2}
+              />
+              <DataTable 
+                title="D1.4b: Part-Time with Full Benefits Duration" 
+                data={followupData['d1_4b'] || {}} 
+                total={totalRespondents}
+                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_4b}
+              />
+              <DataTable 
+                title="D1.5: Job Protection Beyond Legal (USA)" 
+                data={followupData['d1_5_usa'] || {}} 
+                total={totalRespondents}
+                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_5}
+              />
+              <DataTable 
+                title="D1.5: Job Protection Beyond Legal (Non-USA)" 
+                data={followupData['d1_5_non_usa'] || {}} 
+                total={totalRespondents}
+                orderedOptions={DIMENSION_FOLLOWUPS.d1.d1_5}
+              />
+              <DataTable 
+                title="D1.6: Disability Pay Enhancement" 
+                data={followupData['d1_6'] || {}} 
+                total={totalRespondents}
+                isMultiSelect
+              />
+            </div>
+          )}
+          
+          {/* D3 Follow-ups */}
+          {dimKey === 'd3' && (
+            <div className="grid md:grid-cols-2 gap-4">
+              <DataTable 
+                title="D3.1a: Is Manager Training Mandatory?" 
+                data={followupData['d3_1a'] || {}} 
+                total={totalRespondents}
+              />
+              <DataTable 
+                title="D3.1: Manager Training Completion Rate" 
+                data={followupData['d3_1'] || {}} 
+                total={totalRespondents}
+                orderedOptions={ORDINAL_OPTIONS.trainingCompletion}
+              />
+            </div>
+          )}
+          
+          {/* D4 Follow-ups */}
+          {dimKey === 'd4' && (
+            <div className="grid md:grid-cols-2 gap-4">
+              <DataTable 
+                title="D4.1a: Who Provides Navigation Support?" 
+                data={followupData['d4_1a'] || {}} 
+                total={totalRespondents}
+                isMultiSelect
+              />
+              <DataTable 
+                title="D4.1b: Navigation Services Available" 
+                data={followupData['d4_1b'] || {}} 
+                total={totalRespondents}
+                isMultiSelect
+              />
+            </div>
+          )}
+          
+          {/* D6 Follow-ups */}
+          {dimKey === 'd6' && (
+            <DataTable 
+              title="D6.2: How Do You Measure Psychological Safety?" 
+              data={followupData['d6_2'] || {}} 
+              total={totalRespondents}
+              isMultiSelect
+            />
+          )}
+          
+          {/* D13 Follow-ups */}
+          {dimKey === 'd13' && (
+            <DataTable 
+              title="D13.1: Communication Frequency" 
+              data={followupData['d13_1'] || {}} 
+              total={totalRespondents}
+              orderedOptions={ORDINAL_OPTIONS.communicationFrequency}
+            />
+          )}
         </div>
       </div>
     </div>
@@ -1420,7 +1794,14 @@ function EmployeeImpactSection({ assessments }: { assessments: ProcessedAssessme
           </div>
           
           <DataTableFull title="EI2: Have You Measured ROI?" data={ei2Data} total={totalRespondents} />
-          <DataTableFull title="EI3: Approximate ROI Level" data={ei3Data} total={totalRespondents} />
+          <DataTableFull title="EI3: Approximate ROI Level" data={ei3Data} total={totalRespondents} orderedOptions={[
+            'Negative ROI (costs exceed benefits by more than 100%)',
+            'Break-even (costs and benefits are roughly equal)',
+            '1.1 - 2.0x ROI (benefits are 10-100% more than costs)',
+            '2.1 - 3.0x ROI (benefits are 2-3 times the costs)',
+            '3.1 - 5.0x ROI (benefits are 3-5 times the costs)',
+            'Greater than 5.0x ROI (benefits exceed 5 times the costs)'
+          ]} />
         </div>
       </div>
     </div>
