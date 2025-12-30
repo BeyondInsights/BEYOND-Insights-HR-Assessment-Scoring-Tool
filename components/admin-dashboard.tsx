@@ -372,8 +372,8 @@ const CURRENT_SUPPORT_OPTIONS = {
   cb3a: [
     'Yes, we offer additional support beyond legal requirements',
     'Currently developing enhanced support offerings',
-    'At this time, we primarily focus on meeting legal compliance requirements',
-    'Not yet, but actively exploring options'
+    'Not yet, but actively exploring options',
+    'At this time, we primarily focus on meeting legal compliance requirements'
   ],
   cb3b: [
     'Individual benefits or policies (e.g., extended leave, flexible work options)',
@@ -381,6 +381,7 @@ const CURRENT_SUPPORT_OPTIONS = {
     'Internally developed formal program with a specific name (e.g., "We Care at Work")',
     'Participation in external initiatives, certifications, or pledges (e.g., Working with Cancer pledge, CEO Cancer Gold Standard)',
     'Comprehensive framework that integrates multiple support elements',
+    'Ad hoc / case-by-case support as needs arise',
     'Ad hoc/case-by-case support as needs arise',
     'Other (specify)'
   ],
@@ -398,6 +399,7 @@ const CURRENT_SUPPORT_OPTIONS = {
     'Organ transplant (pre and post)',
     'Respiratory conditions (e.g., COPD, cystic fibrosis)',
     'Stroke',
+    'Some other condition meeting severity/duration criteria',
     'Some other condition meeting severity/duration criteria (specify)'
   ],
   cb3d: [
@@ -406,16 +408,19 @@ const CURRENT_SUPPORT_OPTIONS = {
     'With specialized consultant support',
     'Adopted from parent/acquiring company',
     'Benchmarked from peer companies',
+    'Employee / union driven',
     'Employee/union driven',
     'Some other way (specify)'
   ],
   or1: [
     'No formal approach: Handle case-by-case',
+    'Developing approach: Currently building programs and policies',
     'Developing approach: Currently building our programs',
     'Legal minimum only: Meet legal requirements only (FMLA, ADA)',
     'Moderate support: Some programs beyond legal requirements',
     'Enhanced support: Meaningful programs beyond legal minimums',
-    'Comprehensive support: Extensive programs well beyond legal requirements'
+    'Comprehensive support: Extensive programs well beyond legal requirements',
+    'Leading-edge support: Extensive, innovative programs'
   ],
   or2a: [
     'Employee(s) diagnosed with cancer or other serious health conditions highlighted gaps',
@@ -423,41 +428,59 @@ const CURRENT_SUPPORT_OPTIONS = {
     'Keep up with industry standards and peer company practices',
     'Employee survey feedback',
     'Recruitment/retention goals or challenges',
+    'Recruitment / retention goals or challenges',
     'Legal case or compliance issue',
     'Union negotiations',
     'ESG/corporate responsibility commitments',
+    'ESG / corporate responsibility commitments',
     'Inspired by Working with Cancer Initiative or similar programs',
+    'Health trend data',
+    'Our company mission',
+    'Our purpose',
+    'Supporting Cancer and other serious health conditions is a business priority.',
     'Other (specify)'
   ],
   or3: [
     'Budget constraints',
+    'Budget / resource constraints',
     'Lack of executive support',
     'Small number of cases doesn\'t justify investment',
+    'Small employee population',
     'Concerns about setting precedent',
     'Limited HR and/or Benefits team bandwidth',
+    'Limited HR and / or Benefits team bandwidth',
     'Lack of expertise/knowledge',
     'Other priorities take precedence',
     'Concerns about fairness across conditions',
     'Uncertainty about ROI',
     'Data privacy concerns (HIPAA, GDPR, other regulations)',
     'Complex/varying legal requirements across markets',
+    'Complex / varying legal requirements across markets',
     'Global consistency challenges',
     'Some other reason (specify)'
   ],
   or5a: [
     'Flexible work schedules',
+    'Flexible work arrangements',
     'Remote work options',
     'Paid caregiver leave',
+    'Caregiver leave (paid)',
     'Unpaid leave with job protection',
+    'Caregiver leave (unpaid)',
     'Employee assistance program (EAP) counseling',
     'Caregiver support groups',
     'Referrals to eldercare/dependent care resources',
+    'Referrals to eldercare / dependent care resources',
     'Financial assistance or subsidies',
     'Respite care coverage',
     'Modified job duties/reduced workload',
+    'Modified job duties / reduced workload',
     'Manager training on supporting caregivers',
     'Emergency dependent care when regular arrangements unavailable',
     'Legal/financial planning resources',
+    'Legal / financial planning resources',
+    'Concierge caregiving support through Wellthy',
+    'Concierge caregiving support through a 3rd party provider (e.g., Wellthy, Cleo, Bright Horizons, Maven, etc.)',
     'Some other support (specify)',
     'Not able to provide caregiver support at this time'
   ],
@@ -466,6 +489,7 @@ const CURRENT_SUPPORT_OPTIONS = {
     'De-identified case tracking',
     'General program utilization data',
     'Voluntary employee feedback/surveys',
+    'Voluntary employee feedback / surveys',
     'Some other approach (specify)',
     'No systematic monitoring'
   ]
@@ -550,7 +574,7 @@ const EMPLOYEE_IMPACT_OPTIONS = {
 }
 
 // ============================================
-// FIRMOGRAPHICS OPTIONS - FULL TEXT
+// FIRMOGRAPHICS OPTIONS - EXACT VALUES FROM DATABASE
 // ============================================
 const FIRMOGRAPHICS_OPTIONS = {
   s5Level: [
@@ -571,6 +595,7 @@ const FIRMOGRAPHICS_OPTIONS = {
     'Benefits / Compensation',
     'People & Culture',
     'Talent Management',
+    'Some other function (specify):',
     'Some other function (specify)',
     'Other'
   ],
@@ -582,6 +607,9 @@ const FIRMOGRAPHICS_OPTIONS = {
     'No influence'
   ],
   s8Size: [
+    'Fewer than 100',
+    '100-249',
+    '250-499',
     '500-999',
     '1,000-2,499',
     '2,500-4,999',
@@ -605,7 +633,9 @@ const FIRMOGRAPHICS_OPTIONS = {
     'Finance and Insurance',
     'Healthcare, Pharmaceuticals & Life Sciences',
     'Hospitality & Tourism',
+    'Media & Publishing',
     'Media & Publishing (TV, Radio, Digital, News, Streaming)',
+    'Professional & Business Services',
     'Professional & Business Services (Legal, Consulting, Accounting, Marketing)',
     'Real Estate and Rental and Leasing',
     'Scientific & Technical Services (Engineering, R&D, Architecture, Labs)',
@@ -614,17 +644,25 @@ const FIRMOGRAPHICS_OPTIONS = {
     'Social Media & Digital Platforms',
     'Telecommunications & Internet Services',
     'Government / Public Administration',
+    'Non-profit / NGO',
     'Non-profit/NGO',
+    'Consumer Products / Cosmetics',
     'Other industry / Services (specify)'
   ],
   c4Revenue: [
     'Less than $10 million',
+    '$10 million - $49.9 million',
     '$10-49 million',
     '$50-99 million',
+    '$50 million - $99.9 million',
     '$100-499 million',
+    '$100 million - $499.9 million',
+    '$250 million - $499.9 million',
     '$500-999 million',
+    '$500 million - $999.9 million',
     '$1 billion or more',
-    'Not applicable (non-profit/government)'
+    'Not applicable (non-profit/government)',
+    'Not provided'
   ],
   s9Country: [
     'United States',
@@ -663,6 +701,7 @@ const FIRMOGRAPHICS_OPTIONS = {
   ],
   c6RemoteWork: [
     'Fully flexible - Most roles can be remote/hybrid by employee choice',
+    'Fully flexible - Most roles can be remote / hybrid by employee choice',
     'Selectively flexible - Many roles eligible based on job requirements',
     'Limited flexibility - Some roles eligible but most require on-site presence',
     'Minimal flexibility - Very few roles eligible for remote/hybrid',
@@ -680,6 +719,7 @@ const FIRMOGRAPHICS_OPTIONS = {
   c3aExcludedGroups: [
     'Part-time employees',
     'Contract/temporary workers',
+    'Contract / temporary workers',
     'Employees in certain countries/regions',
     'Employees below certain tenure',
     'Certain job levels/categories',
@@ -904,28 +944,48 @@ function getGridData(data: any, gridField: string): Record<string, string> {
   }
 }
 
+// Normalize text for comparison - handles space/slash variations
+function normalizeForMatch(text: string): string {
+  return String(text)
+    .toLowerCase()
+    .replace(/\s*\/\s*/g, '/')  // normalize spaces around slashes
+    .replace(/\s+/g, ' ')       // normalize multiple spaces
+    .replace(/['']/g, "'")      // normalize quotes
+    .trim()
+}
+
 function countResponses(assessments: ProcessedAssessment[], dataKey: string, field: string, options: string[]): Record<string, number> {
   const counts: Record<string, number> = {}
   options.forEach(opt => counts[opt] = 0)
   counts['Other'] = 0
   counts['No response'] = 0
   
+  // Pre-normalize all options for faster matching
+  const normalizedOptions = options.map(opt => ({
+    original: opt,
+    normalized: normalizeForMatch(opt)
+  }))
+  
   assessments.forEach(a => {
     const value = parseJsonField((a as any)[dataKey], field)
     if (value === 'Not provided' || !value) {
       counts['No response']++
-    } else if (counts[value] !== undefined) {
-      counts[value]++
     } else {
-      // Try partial match - ensure both are strings
-      const valueLower = String(value).toLowerCase()
-      const matchedOpt = options.find(opt => {
-        const optLower = String(opt).toLowerCase()
-        return valueLower.includes(optLower.slice(0, 20)) ||
-               optLower.includes(valueLower.slice(0, 20))
-      })
-      if (matchedOpt) {
-        counts[matchedOpt]++
+      const valueNorm = normalizeForMatch(value)
+      
+      // Try exact match first (normalized)
+      let matched = normalizedOptions.find(o => o.normalized === valueNorm)
+      
+      // If no exact match, try partial match
+      if (!matched) {
+        matched = normalizedOptions.find(o => 
+          valueNorm.includes(o.normalized.slice(0, 25)) ||
+          o.normalized.includes(valueNorm.slice(0, 25))
+        )
+      }
+      
+      if (matched) {
+        counts[matched.original]++
       } else {
         counts['Other']++
       }
@@ -938,24 +998,38 @@ function countResponses(assessments: ProcessedAssessment[], dataKey: string, fie
 function countMultiSelect(assessments: ProcessedAssessment[], dataKey: string, field: string, options: string[]): Record<string, number> {
   const counts: Record<string, number> = {}
   options.forEach(opt => counts[opt] = 0)
+  counts['No response'] = 0
+  
+  // Pre-normalize all options for faster matching
+  const normalizedOptions = options.map(opt => ({
+    original: opt,
+    normalized: normalizeForMatch(opt)
+  }))
   
   assessments.forEach(a => {
     const values = parseJsonArray((a as any)[dataKey], field)
+    
+    if (values.length === 0) {
+      counts['No response']++
+      return
+    }
+    
     values.forEach(v => {
-      const vStr = String(v)
-      if (counts[vStr] !== undefined) {
-        counts[vStr]++
-      } else {
-        // Try partial match - ensure both are strings
-        const vLower = vStr.toLowerCase()
-        const matchedOpt = options.find(opt => {
-          const optLower = String(opt).toLowerCase()
-          return vLower.includes(optLower.slice(0, 20)) ||
-                 optLower.includes(vLower.slice(0, 20))
-        })
-        if (matchedOpt) {
-          counts[matchedOpt]++
-        }
+      const vNorm = normalizeForMatch(String(v))
+      
+      // Try exact match first (normalized)
+      let matched = normalizedOptions.find(o => o.normalized === vNorm)
+      
+      // If no exact match, try partial match
+      if (!matched) {
+        matched = normalizedOptions.find(o => 
+          vNorm.includes(o.normalized.slice(0, 25)) ||
+          o.normalized.includes(vNorm.slice(0, 25))
+        )
+      }
+      
+      if (matched) {
+        counts[matched.original]++
       }
     })
   })
@@ -966,15 +1040,24 @@ function countMultiSelect(assessments: ProcessedAssessment[], dataKey: string, f
 function countDimensionResponses(assessments: ProcessedAssessment[], config: typeof DIMENSION_CONFIG.d1): Record<string, Record<string, number>> {
   const results: Record<string, Record<string, number>> = {}
   
+  const responseOptions = [
+    'Currently offer',
+    'In active planning / development',
+    'Assessing feasibility',
+    'Not able to offer in foreseeable future',
+    'Unsure',
+    'No response'
+  ]
+  
+  // Pre-normalize response options
+  const normalizedResponseOpts = responseOptions.map(r => ({
+    original: r,
+    normalized: normalizeForMatch(r)
+  }))
+  
   config.items.forEach(item => {
-    results[item] = {
-      'Currently offer': 0,
-      'In active planning / development': 0,
-      'Assessing feasibility': 0,
-      'Not able to offer in foreseeable future': 0,
-      'Unsure': 0,
-      'No response': 0
-    }
+    results[item] = {}
+    responseOptions.forEach(r => results[item][r] = 0)
   })
   
   assessments.forEach(a => {
@@ -985,20 +1068,21 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
       if (!response) {
         results[item]['No response']++
       } else {
-        const responseStr = String(response)
-        if (results[item][responseStr] !== undefined) {
-          results[item][responseStr]++
-        } else {
-          // Try partial match for response
-          const responseLower = responseStr.toLowerCase()
-          const matchedResponse = Object.keys(results[item]).find(r => 
-            responseLower.includes(r.toLowerCase().slice(0, 15))
+        const responseNorm = normalizeForMatch(String(response))
+        
+        // Find matching response option
+        let matched = normalizedResponseOpts.find(o => o.normalized === responseNorm)
+        if (!matched) {
+          matched = normalizedResponseOpts.find(o => 
+            responseNorm.includes(o.normalized.slice(0, 15)) ||
+            o.normalized.includes(responseNorm.slice(0, 15))
           )
-          if (matchedResponse) {
-            results[item][matchedResponse]++
-          } else {
-            results[item]['No response']++
-          }
+        }
+        
+        if (matched) {
+          results[item][matched.original]++
+        } else {
+          results[item]['No response']++
         }
       }
     })
@@ -1179,7 +1263,10 @@ function OverviewSection({ assessments }: { assessments: ProcessedAssessment[] }
   const completedCount = assessments.filter(a => a.completionPercentage >= 100).length
   const inProgressCount = assessments.filter(a => a.completionPercentage > 0 && a.completionPercentage < 100).length
   const notStartedCount = assessments.filter(a => a.completionPercentage === 0).length
-  const paidCount = assessments.filter(a => a.payment_completed).length
+  // Only count non-FP users who paid (FPs don't pay through normal flow)
+  const paidNonFpCount = assessments.filter(a => !a.isFoundingPartner && a.payment_completed).length
+  // Revenue = FPs (sponsored) + Paid non-FPs
+  const totalRevenue = (fpCount + paidNonFpCount) * 1250
   
   const dimensionNames = Object.values(DIMENSION_CONFIG).map(d => d.name)
   
@@ -1216,8 +1303,8 @@ function OverviewSection({ assessments }: { assessments: ProcessedAssessment[] }
         <StatCard label="Completed (100%)" value={completedCount} color="green" />
         <StatCard label="In Progress" value={inProgressCount} color="orange" />
         <StatCard label="Not Started" value={notStartedCount} color="gray" />
-        <StatCard label="Payment Completed" value={paidCount} color="green" />
-        <StatCard label="Revenue Collected" value={`$${((paidCount + fpCount) * 1250).toLocaleString()}`} color="green" />
+        <StatCard label="Paid (Non-FP)" value={paidNonFpCount} color="green" />
+        <StatCard label="Revenue Collected" value={`$${totalRevenue.toLocaleString()}`} color="green" />
       </div>
       
       {/* Section Completion */}
