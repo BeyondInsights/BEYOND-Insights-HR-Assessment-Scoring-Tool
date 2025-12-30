@@ -928,6 +928,47 @@ const DIMENSION_FOLLOWUPS = {
       "Don't formally measure"
     ]
   },
+  d11: {
+    d11_1: [
+      'Cervical cancer screening (Pap smear/HPV test)',
+      'Colonoscopy (colorectal cancer)',
+      'Dense breast tissue screening (ultrasound/MRI)',
+      'Gastric / stomach cancer screening',
+      'H. pylori testing',
+      'Liver cancer screening (AFP test + ultrasound)',
+      'Lung cancer screening (low-dose CT for high risk)',
+      'Mammograms (breast cancer)',
+      'Oral cancer screening',
+      'Prostate cancer screening (PSA test)',
+      'Skin cancer screening/full body exam',
+      'Tuberculosis screening',
+      'Other screening',
+      'BRCA testing (breast/ovarian cancer risk)',
+      'Lynch syndrome testing (colorectal cancer risk)',
+      'Multi-gene panel testing',
+      'Genetic counseling services',
+      'Other genetic testing',
+      'HPV vaccines (cervical cancer prevention)',
+      'Hepatitis B vaccines (liver cancer prevention)',
+      'COVID-19 vaccines',
+      'Influenza vaccines',
+      'Pneumonia vaccines',
+      'Shingles vaccines',
+      'Other preventive vaccines'
+    ]
+  },
+  d12: {
+    d12_1: [
+      'Yes, using a systematic case review process',
+      'Yes, using ad hoc case reviews',
+      'No, we only review aggregate metrics'
+    ],
+    d12_2: [
+      'Yes, several changes implemented',
+      'Yes, a few changes implemented',
+      'No'
+    ]
+  },
   d13: {
     d13_1: ORDINAL_OPTIONS.communicationFrequency
   }
@@ -1393,6 +1434,8 @@ function FirmographicsSection({ assessments }: { assessments: ProcessedAssessmen
   const countryData = countResponses(assessments, 'firmographics_data', 's9', FIRMOGRAPHICS_OPTIONS.s9Country)
   const countryPresenceData = countResponses(assessments, 'firmographics_data', 's9a', ORDINAL_OPTIONS.s9aCountryPresence)
   const remoteData = countResponses(assessments, 'firmographics_data', 'c6', FIRMOGRAPHICS_OPTIONS.c6RemoteWork)
+  const benefitsEligibilityData = countResponses(assessments, 'firmographics_data', 'c3', FIRMOGRAPHICS_OPTIONS.c3BenefitsEligibility)
+  const excludedGroupsData = countMultiSelect(assessments, 'firmographics_data', 'c3a', FIRMOGRAPHICS_OPTIONS.c3aExcludedGroups)
   
   return (
     <div className="space-y-6">
@@ -1411,6 +1454,8 @@ function FirmographicsSection({ assessments }: { assessments: ProcessedAssessmen
           <DataTable title="S7: Benefits Decision Influence" data={influenceData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s7Influence} />
           <DataTable title="S9: HQ Country" data={countryData} total={totalRespondents} />
           <DataTable title="S9a: International Presence" data={countryPresenceData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s9aCountryPresence} />
+          <DataTable title="C3: Benefits Eligibility %" data={benefitsEligibilityData} total={totalRespondents} />
+          <DataTable title="C3a: Employee Groups Excluded from Benefits" data={excludedGroupsData} total={totalRespondents} isMultiSelect />
           <DataTable title="C6: Remote/Hybrid Work Policy" data={remoteData} total={totalRespondents} />
         </div>
       </div>
@@ -1427,6 +1472,24 @@ function GeneralBenefitsSection({ assessments }: { assessments: ProcessedAssessm
   const financialLegal = countMultiSelect(assessments, 'general_benefits_data', 'cb1', CB1_OPTIONS.financialLegal)
   const careNavigation = countMultiSelect(assessments, 'general_benefits_data', 'cb1', CB1_OPTIONS.careNavigation)
   
+  // CB2b - Programs planned for next 2 years (uses same options as CB1)
+  const allCb1Options = [
+    ...CB1_OPTIONS.standardBenefits,
+    ...CB1_OPTIONS.leaveFlexibility,
+    ...CB1_OPTIONS.wellnessSupport,
+    ...CB1_OPTIONS.financialLegal,
+    ...CB1_OPTIONS.careNavigation,
+    'None of these'
+  ]
+  const cb2bData = countMultiSelect(assessments, 'general_benefits_data', 'cb2b', allCb1Options)
+  
+  // Count how many respondents have CB2b data
+  let cb2bRespondents = 0
+  assessments.forEach(a => {
+    const arr = parseJsonArray(a.general_benefits_data, 'cb2b')
+    if (arr.length > 0) cb2bRespondents++
+  })
+  
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -1441,6 +1504,29 @@ function GeneralBenefitsSection({ assessments }: { assessments: ProcessedAssessm
           <DataTable title="Wellness & Support Programs" data={wellnessSupport} total={totalRespondents} isMultiSelect />
           <DataTable title="Financial & Legal Assistance" data={financialLegal} total={totalRespondents} isMultiSelect />
           <DataTable title="Care Navigation & Support Services" data={careNavigation} total={totalRespondents} isMultiSelect />
+        </div>
+      </div>
+      
+      {/* CB2b - Programs Planned */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-4 py-3">
+          <h3 className="text-white font-bold">CB2b: Programs Planned to Roll Out (Next 2 Years)</h3>
+          <p className="text-indigo-200 text-xs">{cb2bRespondents} respondents with data - Multi-select</p>
+        </div>
+        
+        <div className="p-5">
+          {cb2bRespondents > 0 ? (
+            <DataTable 
+              title="Programs Planned for Rollout" 
+              data={cb2bData} 
+              total={cb2bRespondents} 
+              isMultiSelect 
+            />
+          ) : (
+            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500">
+              No respondents have CB2b data
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1662,6 +1748,11 @@ function DimensionSection({
     followupData['d4_1b'] = countWithVariants('dimension4_data', ['d4_1b', 'd41b', 'D4_1b'], DIMENSION_FOLLOWUPS.d4.d4_1b, true)
   } else if (dimKey === 'd6') {
     followupData['d6_2'] = countWithVariants('dimension6_data', ['d6_2', 'd62', 'D6_2'], DIMENSION_FOLLOWUPS.d6.d6_2, true)
+  } else if (dimKey === 'd11') {
+    followupData['d11_1'] = countWithVariants('dimension11_data', ['d11_1', 'd111', 'D11_1'], DIMENSION_FOLLOWUPS.d11.d11_1, true)
+  } else if (dimKey === 'd12') {
+    followupData['d12_1'] = countWithVariants('dimension12_data', ['d12_1', 'd121', 'D12_1'], DIMENSION_FOLLOWUPS.d12.d12_1)
+    followupData['d12_2'] = countWithVariants('dimension12_data', ['d12_2', 'd122', 'D12_2'], DIMENSION_FOLLOWUPS.d12.d12_2)
   } else if (dimKey === 'd13') {
     followupData['d13_1'] = countWithVariants('dimension13_data', ['d13_1', 'd131', 'D13_1'], ORDINAL_OPTIONS.communicationFrequency)
   }
@@ -1870,6 +1961,50 @@ function DimensionSection({
           {dimKey === 'd6' && (!followupData['d6_2'] || followupData['d6_2'].respondentCount === 0) && (
             <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500">
               D6.2: No respondents answered this follow-up question
+            </div>
+          )}
+          
+          {/* D11 Follow-ups - Screening Services */}
+          {dimKey === 'd11' && followupData['d11_1']?.respondentCount > 0 && (
+            <DataTable 
+              title={`D11.1: Screening/Preventive Services Covered at 100% (n=${followupData['d11_1'].respondentCount})`}
+              data={followupData['d11_1'].counts} 
+              total={followupData['d11_1'].respondentCount}
+              isMultiSelect
+              excludeNoResponse
+            />
+          )}
+          {dimKey === 'd11' && (!followupData['d11_1'] || followupData['d11_1'].respondentCount === 0) && (
+            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500">
+              D11.1: No respondents answered this follow-up question (asked only if 70%+ coverage selected)
+            </div>
+          )}
+          
+          {/* D12 Follow-ups - Continuous Improvement */}
+          {dimKey === 'd12' && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {followupData['d12_1']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D12.1: Review Individual Employee Experiences? (n=${followupData['d12_1'].respondentCount})`}
+                  data={followupData['d12_1'].counts} 
+                  total={followupData['d12_1'].respondentCount}
+                  excludeNoResponse
+                />
+              )}
+              {followupData['d12_2']?.respondentCount > 0 && (
+                <DataTable 
+                  title={`D12.2: Have Experiences Led to Changes? (n=${followupData['d12_2'].respondentCount})`}
+                  data={followupData['d12_2'].counts} 
+                  total={followupData['d12_2'].respondentCount}
+                  excludeNoResponse
+                />
+              )}
+              {(!followupData['d12_1'] || followupData['d12_1'].respondentCount === 0) && 
+               (!followupData['d12_2'] || followupData['d12_2'].respondentCount === 0) && (
+                <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500 md:col-span-2">
+                  D12.1-2: No respondents answered these follow-up questions (asked only if metrics tracked)
+                </div>
+              )}
             </div>
           )}
           
