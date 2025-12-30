@@ -699,6 +699,15 @@ const FIRMOGRAPHICS_OPTIONS = {
     'South Korea',
     'Other Asia Pacific country'
   ],
+  s9aCountryPresence: [
+    'No other countries - headquarters only',
+    '1 to 2 other countries',
+    '3 to 4 other countries',
+    '5 to 9 other countries',
+    '10 to 19 other countries',
+    '20 to 49 other countries',
+    '50 or more countries'
+  ],
   c6RemoteWork: [
     'Fully flexible - Most roles can be remote/hybrid by employee choice',
     'Fully flexible - Most roles can be remote / hybrid by employee choice',
@@ -734,6 +743,9 @@ const FIRMOGRAPHICS_OPTIONS = {
 const ORDINAL_OPTIONS = {
   // Company size
   s8Size: [
+    'Fewer than 100',
+    '100-249',
+    '250-499',
     '500-999',
     '1,000-2,499',
     '2,500-4,999',
@@ -741,6 +753,16 @@ const ORDINAL_OPTIONS = {
     '10,000-24,999',
     '25,000-49,999',
     '50,000+'
+  ],
+  // Country presence
+  s9aCountryPresence: [
+    'No other countries - headquarters only',
+    '1 to 2 other countries',
+    '3 to 4 other countries',
+    '5 to 9 other countries',
+    '10 to 19 other countries',
+    '20 to 49 other countries',
+    '50 or more countries'
   ],
   // Revenue
   c4Revenue: [
@@ -830,6 +852,24 @@ const ORDINAL_OPTIONS = {
     'Annually (typically during enrollment or on World Cancer Day)',
     'Only when asked/reactive only',
     'No regular communication schedule'
+  ],
+  // CB3a: Support beyond legal requirements
+  cb3a: [
+    'Yes, we offer additional support beyond legal requirements',
+    'Currently developing enhanced support offerings',
+    'Not yet, but actively exploring options',
+    'At this time, we primarily focus on meeting legal compliance requirements'
+  ],
+  // OR1: Current approach (ordinal from least to most comprehensive)
+  or1: [
+    'No formal approach: Handle case-by-case',
+    'Developing approach: Currently building programs and policies',
+    'Developing approach: Currently building our programs',
+    'Legal minimum only: Meet legal requirements only (FMLA, ADA)',
+    'Moderate support: Some programs beyond legal requirements',
+    'Enhanced support: Meaningful programs beyond legal minimums',
+    'Comprehensive support: Extensive programs well beyond legal requirements',
+    'Leading-edge support: Extensive, innovative programs'
   ]
 }
 
@@ -968,7 +1008,8 @@ function countResponses(assessments: ProcessedAssessment[], dataKey: string, fie
   
   assessments.forEach(a => {
     const value = parseJsonField((a as any)[dataKey], field)
-    if (value === 'Not provided' || !value) {
+    // Treat 'Not provided', empty, null, 'NOT SET' as no response
+    if (!value || value === 'Not provided' || value === 'NOT SET' || value === 'null' || value === 'undefined') {
       counts['No response']++
     } else {
       const valueNorm = normalizeForMatch(value)
@@ -1135,13 +1176,15 @@ function DataTable({
   data, 
   total, 
   isMultiSelect = false,
-  orderedOptions = null  // If provided, display in this order instead of ranking
+  orderedOptions = null,  // If provided, display in this order instead of ranking
+  excludeNoResponse = false  // For conditional questions where "No response" means "not asked"
 }: { 
   title: string
   data: Record<string, number>
   total: number
   isMultiSelect?: boolean
   orderedOptions?: string[] | null
+  excludeNoResponse?: boolean
 }) {
   // If orderedOptions provided, use that order; otherwise sort by count (ranked)
   let displayItems: [string, number][]
@@ -1163,7 +1206,7 @@ function DataTable({
       .sort((a, b) => b[1] - a[1])
   }
   
-  const noResponseCount = data['No response'] || 0
+  const noResponseCount = excludeNoResponse ? 0 : (data['No response'] || 0)
   const otherCount = data['Other'] || 0
   
   return (
@@ -1348,6 +1391,7 @@ function FirmographicsSection({ assessments }: { assessments: ProcessedAssessmen
   const functionData = countResponses(assessments, 'firmographics_data', 's4b', FIRMOGRAPHICS_OPTIONS.s4bFunction)
   const influenceData = countResponses(assessments, 'firmographics_data', 's7', ORDINAL_OPTIONS.s7Influence)
   const countryData = countResponses(assessments, 'firmographics_data', 's9', FIRMOGRAPHICS_OPTIONS.s9Country)
+  const countryPresenceData = countResponses(assessments, 'firmographics_data', 's9a', ORDINAL_OPTIONS.s9aCountryPresence)
   const remoteData = countResponses(assessments, 'firmographics_data', 'c6', FIRMOGRAPHICS_OPTIONS.c6RemoteWork)
   
   return (
@@ -1359,14 +1403,15 @@ function FirmographicsSection({ assessments }: { assessments: ProcessedAssessmen
         </div>
         
         <div className="p-5 grid md:grid-cols-2 gap-6">
-          <DataTable title="Industry (C2)" data={industryData} total={totalRespondents} />
-          <DataTable title="Company Size (S8)" data={sizeData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s8Size} />
-          <DataTable title="Annual Revenue (C4)" data={revenueData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.c4Revenue} />
-          <DataTable title="Respondent Level (S5)" data={levelData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s5Level} />
-          <DataTable title="Primary Function (S4b)" data={functionData} total={totalRespondents} />
-          <DataTable title="Benefits Influence (S7)" data={influenceData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s7Influence} />
-          <DataTable title="HQ Country (S9)" data={countryData} total={totalRespondents} />
-          <DataTable title="Remote/Hybrid Work (C6)" data={remoteData} total={totalRespondents} />
+          <DataTable title="C2: Industry" data={industryData} total={totalRespondents} />
+          <DataTable title="S8: Company Size (Total Employees)" data={sizeData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s8Size} />
+          <DataTable title="C4: Annual Revenue" data={revenueData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.c4Revenue} />
+          <DataTable title="S5: Respondent Level" data={levelData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s5Level} />
+          <DataTable title="S4b: Primary Job Function" data={functionData} total={totalRespondents} />
+          <DataTable title="S7: Benefits Decision Influence" data={influenceData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s7Influence} />
+          <DataTable title="S9: HQ Country" data={countryData} total={totalRespondents} />
+          <DataTable title="S9a: International Presence" data={countryPresenceData} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.s9aCountryPresence} />
+          <DataTable title="C6: Remote/Hybrid Work Policy" data={remoteData} total={totalRespondents} />
         </div>
       </div>
     </div>
@@ -1410,6 +1455,9 @@ function CurrentSupportSection({ assessments }: { assessments: ProcessedAssessme
   CURRENT_SUPPORT_OPTIONS.cb3a.forEach(opt => cb3aCounts[opt] = 0)
   cb3aCounts['No response'] = 0
   
+  // Track who answered CB3A = "Yes" for conditional questions
+  let cb3aYesCount = 0
+  
   assessments.forEach(a => {
     // Try general_benefits_data first, then current_support_data
     let value = parseJsonField(a.general_benefits_data, 'cb3a')
@@ -1418,53 +1466,108 @@ function CurrentSupportSection({ assessments }: { assessments: ProcessedAssessme
     }
     if (value === 'Not provided' || !value) {
       cb3aCounts['No response']++
-    } else if (cb3aCounts[value] !== undefined) {
-      cb3aCounts[value]++
     } else {
-      // Partial match
+      const valueNorm = normalizeForMatch(value)
       const matched = CURRENT_SUPPORT_OPTIONS.cb3a.find(opt => 
-        String(value).toLowerCase().includes(opt.toLowerCase().slice(0, 20))
+        normalizeForMatch(opt) === valueNorm || 
+        valueNorm.includes(normalizeForMatch(opt).slice(0, 25))
       )
-      if (matched) cb3aCounts[matched]++
-      else cb3aCounts['No response']++
+      if (matched) {
+        cb3aCounts[matched]++
+        if (matched.includes('Yes')) cb3aYesCount++
+      } else {
+        cb3aCounts['No response']++
+      }
     }
   })
   
-  const cb3bData = countMultiSelect(assessments, 'current_support_data', 'cb3b', CURRENT_SUPPORT_OPTIONS.cb3b)
-  const cb3cData = countMultiSelect(assessments, 'current_support_data', 'cb3c', CURRENT_SUPPORT_OPTIONS.cb3c)
-  const cb3dData = countMultiSelect(assessments, 'current_support_data', 'cb3d', CURRENT_SUPPORT_OPTIONS.cb3d)
+  // CB3B/CB3C/CB3D are CONDITIONAL - only asked if CB3A = "Yes"
+  // Only count respondents who actually have data for these fields
+  const cb3bCounts: Record<string, number> = {}
+  const cb3cCounts: Record<string, number> = {}
+  const cb3dCounts: Record<string, number> = {}
+  CURRENT_SUPPORT_OPTIONS.cb3b.forEach(opt => cb3bCounts[opt] = 0)
+  CURRENT_SUPPORT_OPTIONS.cb3c.forEach(opt => cb3cCounts[opt] = 0)
+  CURRENT_SUPPORT_OPTIONS.cb3d.forEach(opt => cb3dCounts[opt] = 0)
+  
+  let cb3bRespondents = 0
+  let cb3cRespondents = 0
+  let cb3dRespondents = 0
+  
+  assessments.forEach(a => {
+    const cb3bValues = parseJsonArray(a.current_support_data, 'cb3b')
+    const cb3cValues = parseJsonArray(a.current_support_data, 'cb3c')
+    const cb3dValues = parseJsonArray(a.current_support_data, 'cb3d')
+    
+    if (cb3bValues.length > 0) {
+      cb3bRespondents++
+      cb3bValues.forEach(v => {
+        const vNorm = normalizeForMatch(String(v))
+        const matched = CURRENT_SUPPORT_OPTIONS.cb3b.find(opt => 
+          normalizeForMatch(opt) === vNorm || vNorm.includes(normalizeForMatch(opt).slice(0, 25))
+        )
+        if (matched) cb3bCounts[matched]++
+      })
+    }
+    
+    if (cb3cValues.length > 0) {
+      cb3cRespondents++
+      cb3cValues.forEach(v => {
+        const vNorm = normalizeForMatch(String(v))
+        const matched = CURRENT_SUPPORT_OPTIONS.cb3c.find(opt => 
+          normalizeForMatch(opt) === vNorm || vNorm.includes(normalizeForMatch(opt).slice(0, 25))
+        )
+        if (matched) cb3cCounts[matched]++
+      })
+    }
+    
+    if (cb3dValues.length > 0) {
+      cb3dRespondents++
+      cb3dValues.forEach(v => {
+        const vNorm = normalizeForMatch(String(v))
+        const matched = CURRENT_SUPPORT_OPTIONS.cb3d.find(opt => 
+          normalizeForMatch(opt) === vNorm || vNorm.includes(normalizeForMatch(opt).slice(0, 25))
+        )
+        if (matched) cb3dCounts[matched]++
+      })
+    }
+  })
+  
   const or1Data = countResponses(assessments, 'current_support_data', 'or1', CURRENT_SUPPORT_OPTIONS.or1)
   const or2aData = countMultiSelect(assessments, 'current_support_data', 'or2a', CURRENT_SUPPORT_OPTIONS.or2a)
   const or3Data = countMultiSelect(assessments, 'current_support_data', 'or3', CURRENT_SUPPORT_OPTIONS.or3)
   const or5aData = countMultiSelect(assessments, 'current_support_data', 'or5a', CURRENT_SUPPORT_OPTIONS.or5a)
   const or6Data = countMultiSelect(assessments, 'current_support_data', 'or6', CURRENT_SUPPORT_OPTIONS.or6)
   
+  // Count OR1 respondents (those who have data)
+  const or1Respondents = totalRespondents - (or1Data['No response'] || 0)
+  
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-teal-600 to-teal-700 px-4 py-3">
           <h3 className="text-white font-bold">Current Support Landscape</h3>
-          <p className="text-teal-200 text-xs">{totalRespondents} respondents</p>
+          <p className="text-teal-200 text-xs">{totalRespondents} total respondents</p>
         </div>
         
         <div className="p-5 space-y-6">
-          <DataTable title="CB3a: Support Beyond Legal Requirements" data={cb3aCounts} total={totalRespondents} orderedOptions={[
-            'Yes, we offer additional support beyond legal requirements',
-            'Currently developing enhanced support offerings',
-            'Not yet, but actively exploring options',
-            'At this time, we primarily focus on meeting legal compliance requirements'
-          ]} />
-          <DataTable title="CB3b: How Programs Are Structured" data={cb3bData} total={totalRespondents} isMultiSelect />
-          <DataTable title="CB3c: Health Conditions Addressed" data={cb3cData} total={totalRespondents} isMultiSelect />
-          <DataTable title="CB3d: How Programs Were Developed" data={cb3dData} total={totalRespondents} isMultiSelect />
-          <DataTable title="OR1: Current Approach to Supporting Employees" data={or1Data} total={totalRespondents} orderedOptions={[
-            'No formal approach: Handle case-by-case',
-            'Developing approach: Currently building our programs',
-            'Legal minimum only: Meet legal requirements only (FMLA, ADA)',
-            'Moderate support: Some programs beyond legal requirements',
-            'Enhanced support: Meaningful programs beyond legal minimums',
-            'Comprehensive support: Extensive programs well beyond legal requirements'
-          ]} />
+          <DataTable title="CB3a: Support Beyond Legal Requirements" data={cb3aCounts} total={totalRespondents} orderedOptions={ORDINAL_OPTIONS.cb3a} />
+          
+          {/* Conditional questions - only show respondents who were asked */}
+          {cb3bRespondents > 0 && (
+            <div>
+              <p className="text-xs text-gray-500 mb-1 italic">CB3b-d: Asked only if CB3a = "Yes" ({cb3aYesCount} eligible)</p>
+              <DataTable title={`CB3b: How Programs Are Structured (n=${cb3bRespondents})`} data={cb3bCounts} total={cb3bRespondents} isMultiSelect />
+            </div>
+          )}
+          {cb3cRespondents > 0 && (
+            <DataTable title={`CB3c: Health Conditions Addressed (n=${cb3cRespondents})`} data={cb3cCounts} total={cb3cRespondents} isMultiSelect />
+          )}
+          {cb3dRespondents > 0 && (
+            <DataTable title={`CB3d: How Programs Were Developed (n=${cb3dRespondents})`} data={cb3dCounts} total={cb3dRespondents} isMultiSelect />
+          )}
+          
+          <DataTable title={`OR1: Current Approach to Supporting Employees (n=${or1Respondents})`} data={or1Data} total={or1Respondents} orderedOptions={ORDINAL_OPTIONS.or1} />
           <DataTable title="OR2a: Triggers for Developing Support" data={or2aData} total={totalRespondents} isMultiSelect />
           <DataTable title="OR3: Primary Barriers to Comprehensive Support" data={or3Data} total={totalRespondents} isMultiSelect />
           <DataTable title="OR5a: Caregiver Support Types" data={or5aData} total={totalRespondents} isMultiSelect />
