@@ -312,8 +312,10 @@ const DIMENSION_CONFIG = {
       'Employee testimonials/success stories',
       'Multi-channel communication strategy',
       'Family/caregiver communication inclusion',
-      'Anonymous information access options'
-    ]
+      'Ability to access program information and resources anonymously',
+      'Cancer awareness month campaigns with resources *'
+    ],
+    footnote: '* Added after original Founding Partner survey - FP responses will show as "No Response"'
   }
 }
 
@@ -1301,7 +1303,9 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
     const gridData = getGridData((a as any)[config.dataKey], config.gridField)
     
     config.items.forEach(item => {
-      const response = gridData[item]
+      // Strip asterisk from item for data lookup (asterisk is for display only)
+      const lookupKey = item.replace(/ \*$/, '')
+      const response = gridData[item] || gridData[lookupKey]
       if (!response) {
         results[item]['No response']++
       } else {
@@ -2002,6 +2006,10 @@ function DimensionSection({
               })}
             </tbody>
           </table>
+          {/* Footnote if present */}
+          {(config as any).footnote && (
+            <p className="text-xs text-gray-500 italic mt-2 px-3">{(config as any).footnote}</p>
+          )}
         </div>
         
         {/* Follow-up Questions */}
