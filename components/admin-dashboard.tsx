@@ -1025,6 +1025,83 @@ function getGridData(data: any, gridField: string): Record<string, string> {
   }
 }
 
+// Get CB1 values - handles both FP format (cb1) and Standard/App format (cb1_standard, cb1_leave, etc.)
+function getCb1Values(data: any): string[] {
+  if (!data) return []
+  try {
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data
+    if (!parsed || typeof parsed !== 'object') return []
+    
+    // FP format: single cb1 array
+    if (Array.isArray(parsed.cb1) && parsed.cb1.length > 0) {
+      return parsed.cb1.map((v: any) => typeof v === 'string' ? v : String(v))
+    }
+    
+    // Standard/App format: split into cb1_standard, cb1_leave, cb1_wellness, cb1_financial, cb1_navigation
+    const splitFields = ['cb1_standard', 'cb1_leave', 'cb1_wellness', 'cb1_financial', 'cb1_navigation']
+    const combined: string[] = []
+    
+    splitFields.forEach(field => {
+      const arr = parsed[field]
+      if (Array.isArray(arr)) {
+        arr.forEach((v: any) => {
+          const str = typeof v === 'string' ? v : String(v)
+          if (str && !combined.includes(str)) {
+            combined.push(str)
+          }
+        })
+      }
+    })
+    
+    return combined
+  } catch {
+    return []
+  }
+}
+
+// Count CB1 multi-select with support for both formats
+function countCb1MultiSelect(assessments: ProcessedAssessment[], options: string[]): Record<string, number> {
+  const counts: Record<string, number> = {}
+  options.forEach(opt => counts[opt] = 0)
+  counts['No response'] = 0
+  
+  // Pre-normalize all options for faster matching
+  const normalizedOptions = options.map(opt => ({
+    original: opt,
+    normalized: normalizeForMatch(opt)
+  }))
+  
+  assessments.forEach(a => {
+    const values = getCb1Values(a.general_benefits_data)
+    
+    if (values.length === 0) {
+      counts['No response']++
+      return
+    }
+    
+    values.forEach(v => {
+      const vNorm = normalizeForMatch(String(v))
+      
+      // Try exact match first (normalized)
+      let matched = normalizedOptions.find(o => o.normalized === vNorm)
+      
+      // If no exact match, try partial match
+      if (!matched) {
+        matched = normalizedOptions.find(o => 
+          vNorm.includes(o.normalized.slice(0, 25)) ||
+          o.normalized.includes(vNorm.slice(0, 25))
+        )
+      }
+      
+      if (matched) {
+        counts[matched.original]++
+      }
+    })
+  })
+  
+  return counts
+}
+
 // Normalize text for comparison - handles space/slash variations
 function normalizeForMatch(text: string): string {
   return String(text)
@@ -1073,6 +1150,85 @@ function countResponses(assessments: ProcessedAssessment[], dataKey: string, fie
         counts['Other']++
       }
     }
+  })
+  
+  return counts
+}
+
+// Count C3a with conditional logic: if c3 = "All employees (100%)" and c3a is empty, auto-fill as "None - all employees eligible"
+function countC3aWithCondition(assessments: ProcessedAssessment[], options: string[]): Record<string, number> {
+  const counts: Record<string, number> = {}
+  options.forEach(opt => counts[opt] = 0)
+  counts['No response'] = 0
+  
+  // Pre-normalize all options for faster matching
+  const normalizedOptions = options.map(opt => ({
+    original: opt,
+    normalized: normalizeForMatch(opt)
+  }))
+  
+  assessments.forEach(a => {
+    const firmData = typeof a.firmographics_data === 'string' 
+      ? JSON.parse(a.firmographics_data || '{}') 
+      : (a.firmographics_data || {})
+    
+    const c3Value = firmData.c3 || ''
+    const c3aNorm = normalizeForMatch(c3Value)
+    const isAllEmployees = c3aNorm.includes('all') && c3aNorm.includes('100')
+    
+    // Get c3a values
+    let c3aValues: string[] = []
+    if (Array.isArray(firmData.c3a) && firmData.c3a.length > 0) {
+      c3aValues = firmData.c3a.map((v: any) => typeof v === 'string' ? v : String(v))
+    }
+    
+    // If c3a is empty but c3 = "All employees (100%)", auto-fill as "None - all employees eligible"
+    if (c3aValues.length === 0) {
+      if (isAllEmployees) {
+        // Find the "None - all employees eligible" option
+        const noneOption = options.find(o => normalizeForMatch(o).includes('none') && normalizeForMatch(o).includes('all employees eligible'))
+        if (noneOption) {
+          counts[noneOption]++
+        } else {
+          // Fallback to first option that contains "None"
+          const fallback = options.find(o => normalizeForMatch(o).includes('none'))
+          if (fallback) {
+            counts[fallback]++
+          } else {
+            counts['No response']++
+          }
+        }
+      } else {
+        // c3 is not "All employees" but c3a is empty - this is a genuine no response
+        counts['No response']++
+      }
+      return
+    }
+    
+    // Count actual c3a values
+    c3aValues.forEach(v => {
+      const vNorm = normalizeForMatch(String(v))
+      
+      // Try exact match first (normalized)
+      let matched = normalizedOptions.find(o => o.normalized === vNorm)
+      
+      // If no exact match, try partial match
+      if (!matched) {
+        matched = normalizedOptions.find(o => 
+          vNorm.includes(o.normalized.slice(0, 25)) ||
+          o.normalized.includes(vNorm.slice(0, 25))
+        )
+      }
+      
+      // Special case: "Other" value should match "Some other employee group"
+      if (!matched && (vNorm === 'other' || vNorm.includes('other employee'))) {
+        matched = normalizedOptions.find(o => o.normalized.includes('other employee group'))
+      }
+      
+      if (matched) {
+        counts[matched.original]++
+      }
+    })
   })
   
   return counts
@@ -1440,12 +1596,13 @@ function FirmographicsSection({ assessments }: { assessments: ProcessedAssessmen
       : (a.firmographics_data || {})
     
     // Try c4 first, then c5
+    // Skip c4 if it's an array (corrupted data - should be string), null, empty, or 'Not provided'
     let value = firm.c4
-    if (!value || value === 'Not provided' || (Array.isArray(value) && value.length === 0)) {
+    if (!value || value === 'Not provided' || Array.isArray(value)) {
       value = firm.c5
     }
     
-    if (!value || value === 'Not provided' || (Array.isArray(value) && value.length === 0)) {
+    if (!value || value === 'Not provided' || Array.isArray(value)) {
       revenueData['No response']++
     } else {
       const valueStr = String(value)
@@ -1469,7 +1626,8 @@ function FirmographicsSection({ assessments }: { assessments: ProcessedAssessmen
   const countryPresenceData = countResponses(assessments, 'firmographics_data', 's9a', ORDINAL_OPTIONS.s9aCountryPresence)
   const remoteData = countResponses(assessments, 'firmographics_data', 'c6', FIRMOGRAPHICS_OPTIONS.c6RemoteWork)
   const benefitsEligibilityData = countResponses(assessments, 'firmographics_data', 'c3', FIRMOGRAPHICS_OPTIONS.c3BenefitsEligibility)
-  const excludedGroupsData = countMultiSelect(assessments, 'firmographics_data', 'c3a', FIRMOGRAPHICS_OPTIONS.c3aExcludedGroups)
+  // C3a: Use conditional logic - if c3 = "All employees (100%)" and c3a is empty, auto-fill as "None - all employees eligible"
+  const excludedGroupsData = countC3aWithCondition(assessments, FIRMOGRAPHICS_OPTIONS.c3aExcludedGroups)
   
   return (
     <div className="space-y-6">
@@ -1500,11 +1658,12 @@ function FirmographicsSection({ assessments }: { assessments: ProcessedAssessmen
 function GeneralBenefitsSection({ assessments }: { assessments: ProcessedAssessment[] }) {
   const totalRespondents = assessments.length
   
-  const standardBenefits = countMultiSelect(assessments, 'general_benefits_data', 'cb1', CB1_OPTIONS.standardBenefits)
-  const leaveFlexibility = countMultiSelect(assessments, 'general_benefits_data', 'cb1', CB1_OPTIONS.leaveFlexibility)
-  const wellnessSupport = countMultiSelect(assessments, 'general_benefits_data', 'cb1', CB1_OPTIONS.wellnessSupport)
-  const financialLegal = countMultiSelect(assessments, 'general_benefits_data', 'cb1', CB1_OPTIONS.financialLegal)
-  const careNavigation = countMultiSelect(assessments, 'general_benefits_data', 'cb1', CB1_OPTIONS.careNavigation)
+  // CB1: Use combined function that handles both FP format (cb1) and Standard format (cb1_standard, cb1_leave, etc.)
+  const standardBenefits = countCb1MultiSelect(assessments, CB1_OPTIONS.standardBenefits)
+  const leaveFlexibility = countCb1MultiSelect(assessments, CB1_OPTIONS.leaveFlexibility)
+  const wellnessSupport = countCb1MultiSelect(assessments, CB1_OPTIONS.wellnessSupport)
+  const financialLegal = countCb1MultiSelect(assessments, CB1_OPTIONS.financialLegal)
+  const careNavigation = countCb1MultiSelect(assessments, CB1_OPTIONS.careNavigation)
   
   // CB2b - Programs planned for next 2 years (uses same options as CB1)
   const allCb1Options = [
@@ -2171,14 +2330,37 @@ function EmployeeImpactSection({ assessments }: { assessments: ProcessedAssessme
     if (Object.keys(gridData).length === 0) {
       gridData = getGridData(a.cross_dimensional_data, 'ei1')
     }
+    
+    // Normalize gridData keys for matching (handles "Employee retention / tenure" vs "Employee retention/tenure")
+    const normalizedGridData: Record<string, string> = {}
+    Object.entries(gridData).forEach(([key, value]) => {
+      normalizedGridData[normalizeForMatch(key)] = value
+    })
+    
     EMPLOYEE_IMPACT_OPTIONS.ei1Areas.forEach(area => {
-      const response = gridData[area]
+      // Use normalized area name to look up response
+      const areaNorm = normalizeForMatch(area)
+      const response = normalizedGridData[areaNorm]
+      
       if (!response) {
         ei1Data[area]['No response']++
-      } else if (ei1Data[area][response] !== undefined) {
-        ei1Data[area][response]++
       } else {
-        ei1Data[area]['No response']++
+        // Normalize response to handle abbreviated values (e.g., "minimal" -> "Minimal positive impact")
+        const responseNorm = normalizeForMatch(response)
+        
+        // Find matching response option
+        const matchedResp = EMPLOYEE_IMPACT_OPTIONS.ei1Responses.find(r => {
+          const rNorm = normalizeForMatch(r)
+          return rNorm === responseNorm || 
+                 rNorm.includes(responseNorm) || 
+                 responseNorm.includes(rNorm.split(' ')[0]) // Match first word (e.g., "minimal" matches "minimal positive impact")
+        })
+        
+        if (matchedResp && ei1Data[area][matchedResp] !== undefined) {
+          ei1Data[area][matchedResp]++
+        } else {
+          ei1Data[area]['No response']++
+        }
       }
     })
   })
