@@ -2496,24 +2496,42 @@ function AnalyticsTab({ assessments }: { assessments: ProcessedAssessment[] }) {
   const fpCount = assessments.filter(a => a.isFoundingPartner).length
   const standardCount = assessments.filter(a => !a.isFoundingPartner).length
   
-  const sections = [
+  // Grouped sections
+  const foundationSections = [
     { id: 'overview', name: 'Overview' },
     { id: 'firmographics', name: 'Firmographics' },
     { id: 'general-benefits', name: 'General Benefits (CB1)' },
     { id: 'current-support', name: 'Current Support' },
-    ...Object.entries(DIMENSION_CONFIG).map(([key, config]) => ({
-      id: key,
-      name: `D${key.slice(1)}: ${config.name}`
-    })),
+  ]
+  
+  const dimensionSections = Object.entries(DIMENSION_CONFIG).map(([key, config]) => ({
+    id: key,
+    name: `D${key.slice(1)}: ${config.name}`
+  }))
+  
+  const outcomeSections = [
     { id: 'cross-dimensional', name: 'Cross-Dimensional' },
     { id: 'employee-impact', name: 'Employee Impact' }
   ]
+  
+  const SectionButton = ({ section }: { section: { id: string, name: string } }) => (
+    <button
+      onClick={() => setActiveSection(section.id)}
+      className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+        activeSection === section.id
+          ? 'bg-orange-500 text-white shadow-sm'
+          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+      }`}
+    >
+      {section.name}
+    </button>
+  )
   
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Aggregate Data Tables</h2>
             <p className="text-sm text-gray-600">
@@ -2547,21 +2565,52 @@ function AnalyticsTab({ assessments }: { assessments: ProcessedAssessment[] }) {
           </div>
         </div>
         
-        {/* Section Navigation */}
-        <div className="flex flex-wrap gap-2">
-          {sections.map(section => (
-            <button
-              key={section.id}
-              onClick={() => setActiveSection(section.id)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                activeSection === section.id
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {section.name}
-            </button>
-          ))}
+        {/* Section Navigation - Organized */}
+        <div className="space-y-3">
+          {/* Survey Foundation */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Survey Foundation</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {foundationSections.map(section => (
+                <SectionButton key={section.id} section={section} />
+              ))}
+            </div>
+          </div>
+          
+          {/* 13 Dimensions */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">13 Dimensions of Support</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {dimensionSections.map(section => (
+                <SectionButton key={section.id} section={section} />
+              ))}
+            </div>
+          </div>
+          
+          {/* Assessment & Outcomes */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Assessment & Outcomes</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {outcomeSections.map(section => (
+                <SectionButton key={section.id} section={section} />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
       
@@ -2861,23 +2910,29 @@ export default function AdminDashboard() {
           <div className="flex border-b">
             <button
               onClick={() => setActiveTab('responses')}
-              className={`flex-1 py-4 text-center font-semibold transition-colors ${
+              className={`flex-1 py-4 text-center font-semibold transition-colors flex items-center justify-center gap-2 ${
                 activeTab === 'responses'
                   ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              📋 Responses ({filteredAssessments.length})
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              Company Profiles ({filteredAssessments.length})
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`flex-1 py-4 text-center font-semibold transition-colors ${
+              className={`flex-1 py-4 text-center font-semibold transition-colors flex items-center justify-center gap-2 ${
                 activeTab === 'analytics'
                   ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              📊 Analytics (Full Data Tables)
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Aggregate Summaries
             </button>
           </div>
         </div>
