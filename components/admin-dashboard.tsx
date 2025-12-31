@@ -1373,7 +1373,8 @@ function DataTable({
   total, 
   isMultiSelect = false,
   orderedOptions = null,  // If provided, display in this order instead of ranking
-  excludeNoResponse = false  // For conditional questions where "No response" means "not asked"
+  excludeNoResponse = false,  // For conditional questions where "No response" means "not asked"
+  filterNote = ''  // Notation for conditional questions (e.g., "Asked if OR1 = No formal approach")
 }: { 
   title: string
   data: Record<string, number>
@@ -1381,6 +1382,7 @@ function DataTable({
   isMultiSelect?: boolean
   orderedOptions?: string[] | null
   excludeNoResponse?: boolean
+  filterNote?: string
 }) {
   // If orderedOptions provided, use that order; otherwise sort by count (ranked)
   let displayItems: [string, number][]
@@ -1402,8 +1404,12 @@ function DataTable({
       .sort((a, b) => b[1] - a[1])
   }
   
-  const noResponseCount = excludeNoResponse ? 0 : (data['No response'] || 0)
+  const noResponseCount = data['No response'] || 0
   const otherCount = data['Other'] || 0
+  
+  // Calculate actual respondents (exclude "No response" from percentage denominator)
+  const actualRespondents = total - noResponseCount
+  const pctBase = actualRespondents > 0 ? actualRespondents : total
   
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -1412,10 +1418,16 @@ function DataTable({
         {isMultiSelect && (
           <p className="text-xs text-gray-500">Multi-select - percentages may exceed 100%</p>
         )}
+        {filterNote && (
+          <p className="text-xs text-blue-600 italic">Filter: {filterNote}</p>
+        )}
+        {noResponseCount > 0 && !excludeNoResponse && (
+          <p className="text-xs text-gray-400">Percentages based on {actualRespondents} respondents (excludes {noResponseCount} no response)</p>
+        )}
       </div>
       <div className="p-3 space-y-2">
         {displayItems.map(([key, count]) => {
-          const pct = total > 0 ? Math.round((count / total) * 100) : 0
+          const pct = pctBase > 0 ? Math.round((count / pctBase) * 100) : 0
           return (
             <div key={key} className="flex items-center gap-3">
               <div className="flex-1 text-xs text-gray-700" title={key}>{key}</div>
@@ -1438,16 +1450,16 @@ function DataTable({
             <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
               <div 
                 className="h-full bg-gray-400 rounded-full"
-                style={{ width: `${Math.min(Math.round((otherCount / total) * 100), 100)}%` }}
+                style={{ width: `${Math.min(Math.round((otherCount / pctBase) * 100), 100)}%` }}
               />
             </div>
             <div className="w-20 text-right flex-shrink-0">
               <span className="font-bold text-gray-500 text-sm">{otherCount}</span>
-              <span className="text-gray-400 text-xs ml-1">({total > 0 ? Math.round((otherCount / total) * 100) : 0}%)</span>
+              <span className="text-gray-400 text-xs ml-1">({pctBase > 0 ? Math.round((otherCount / pctBase) * 100) : 0}%)</span>
             </div>
           </div>
         )}
-        {noResponseCount > 0 && (
+        {!excludeNoResponse && noResponseCount > 0 && (
           <div className="flex items-center gap-3 pt-2 border-t">
             <div className="flex-1 text-xs text-gray-400">No response</div>
             <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
@@ -1832,21 +1844,18 @@ function CurrentSupportSection({ assessments }: { assessments: ProcessedAssessme
           
           {/* Conditional questions - only show respondents who were asked */}
           {cb3bRespondents > 0 && (
-            <div>
-              <p className="text-xs text-gray-500 mb-1 italic">CB3b-d: Asked only if CB3a = "Yes" ({cb3aYesCount} eligible)</p>
-              <DataTable title={`CB3b: How Programs Are Structured (n=${cb3bRespondents})`} data={cb3bCounts} total={cb3bRespondents} isMultiSelect />
-            </div>
+              <DataTable title={`CB3b: How Programs Are Structured (n=${cb3bRespondents})`} data={cb3bCounts} total={cb3bRespondents} isMultiSelect filterNote="Asked if CB3a = Yes or Currently developing" />
           )}
           {cb3cRespondents > 0 && (
-            <DataTable title={`CB3c: Health Conditions Addressed (n=${cb3cRespondents})`} data={cb3cCounts} total={cb3cRespondents} isMultiSelect />
+            <DataTable title={`CB3c: Health Conditions Addressed (n=${cb3cRespondents})`} data={cb3cCounts} total={cb3cRespondents} isMultiSelect filterNote="Asked if CB3a = Yes or Currently developing" />
           )}
           {cb3dRespondents > 0 && (
-            <DataTable title={`CB3d: How Programs Were Developed (n=${cb3dRespondents})`} data={cb3dCounts} total={cb3dRespondents} isMultiSelect />
+            <DataTable title={`CB3d: How Programs Were Developed (n=${cb3dRespondents})`} data={cb3dCounts} total={cb3dRespondents} isMultiSelect filterNote="Asked if CB3a = Yes or Currently developing" />
           )}
           
           <DataTable title={`OR1: Current Approach to Supporting Employees (n=${or1Respondents})`} data={or1Data} total={or1Respondents} orderedOptions={ORDINAL_OPTIONS.or1} />
-          <DataTable title="OR2a: Triggers for Developing Support" data={or2aData} total={totalRespondents} isMultiSelect />
-          <DataTable title="OR3: Primary Barriers to Comprehensive Support" data={or3Data} total={totalRespondents} isMultiSelect />
+          <DataTable title="OR2a: Triggers for Developing Support" data={or2aData} total={totalRespondents} isMultiSelect filterNote="Asked if OR1 = Moderate/Enhanced/Comprehensive support" />
+          <DataTable title="OR3: Primary Barriers to Comprehensive Support" data={or3Data} total={totalRespondents} isMultiSelect filterNote="Asked if OR1 = No formal approach, Developing, or Legal minimum only" />
           <DataTable title="OR5a: Caregiver Support Types" data={or5aData} total={totalRespondents} isMultiSelect />
           <DataTable title="OR6: Monitoring Effectiveness" data={or6Data} total={totalRespondents} isMultiSelect />
         </div>
@@ -2024,6 +2033,7 @@ function DimensionSection({
                   total={followupData['d1_1_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.paidLeaveDuration}
                   excludeNoResponse
+                  filterNote="Asked if D1.a = Currently offer Paid medical leave"
                 />
               )}
               {followupData['d1_1_non_usa']?.respondentCount > 0 && (
@@ -2033,6 +2043,7 @@ function DimensionSection({
                   total={followupData['d1_1_non_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.paidLeaveDuration}
                   excludeNoResponse
+                  filterNote="Asked if D1.a = Currently offer Paid medical leave"
                 />
               )}
               {followupData['d1_2_usa']?.respondentCount > 0 && (
@@ -2042,6 +2053,7 @@ function DimensionSection({
                   total={followupData['d1_2_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.intermittentLeaveDuration}
                   excludeNoResponse
+                  filterNote="Asked if D1.a = Currently offer Intermittent leave"
                 />
               )}
               {followupData['d1_2_non_usa']?.respondentCount > 0 && (
@@ -2051,6 +2063,7 @@ function DimensionSection({
                   total={followupData['d1_2_non_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.intermittentLeaveDuration}
                   excludeNoResponse
+                  filterNote="Asked if D1.a = Currently offer Intermittent leave"
                 />
               )}
               {followupData['d1_4b']?.respondentCount > 0 && (
@@ -2060,6 +2073,7 @@ function DimensionSection({
                   total={followupData['d1_4b'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.partTimeDuration}
                   excludeNoResponse
+                  filterNote="Asked if D1.a = Currently offer Reduced schedule/part-time"
                 />
               )}
               {followupData['d1_5_usa']?.respondentCount > 0 && (
@@ -2069,6 +2083,7 @@ function DimensionSection({
                   total={followupData['d1_5_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.jobProtectionDuration}
                   excludeNoResponse
+                  filterNote="Asked if D1.a = Currently offer Job protection"
                 />
               )}
               {followupData['d1_5_non_usa']?.respondentCount > 0 && (
@@ -2078,6 +2093,7 @@ function DimensionSection({
                   total={followupData['d1_5_non_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.jobProtectionDuration}
                   excludeNoResponse
+                  filterNote="Asked if D1.a = Currently offer Job protection"
                 />
               )}
               {followupData['d1_6']?.respondentCount > 0 && (
@@ -2087,6 +2103,7 @@ function DimensionSection({
                   total={followupData['d1_6'].respondentCount}
                   isMultiSelect
                   excludeNoResponse
+                  filterNote="Asked if D1.a = Currently offer Disability pay top-up"
                 />
               )}
             </div>
@@ -2101,6 +2118,7 @@ function DimensionSection({
                   data={followupData['d3_1a'].counts} 
                   total={followupData['d3_1a'].respondentCount}
                   excludeNoResponse
+                  filterNote="Asked if any training selected in D3.a"
                 />
               )}
               {followupData['d3_1']?.respondentCount > 0 && (
@@ -2110,6 +2128,7 @@ function DimensionSection({
                   total={followupData['d3_1'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.trainingCompletion}
                   excludeNoResponse
+                  filterNote="Asked if any training selected in D3.a"
                 />
               )}
             </div>
@@ -2125,6 +2144,7 @@ function DimensionSection({
                   total={followupData['d4_1a'].respondentCount}
                   isMultiSelect
                   excludeNoResponse
+                  filterNote="Asked if D4.a = Currently offer Navigation support"
                 />
               )}
               {followupData['d4_1b']?.respondentCount > 0 && (
@@ -2134,6 +2154,7 @@ function DimensionSection({
                   total={followupData['d4_1b'].respondentCount}
                   isMultiSelect
                   excludeNoResponse
+                  filterNote="Asked if D4.a = Currently offer Navigation support"
                 />
               )}
             </div>
@@ -2147,6 +2168,7 @@ function DimensionSection({
               total={followupData['d6_2'].respondentCount}
               isMultiSelect
               excludeNoResponse
+              filterNote="Asked if any culture initiative selected in D6.a"
             />
           )}
           {dimKey === 'd6' && (!followupData['d6_2'] || followupData['d6_2'].respondentCount === 0) && (
@@ -2163,6 +2185,7 @@ function DimensionSection({
               total={followupData['d11_1'].respondentCount}
               isMultiSelect
               excludeNoResponse
+              filterNote="Asked if D11.a = Currently offer 70%+ coverage for screenings"
             />
           )}
           {dimKey === 'd11' && (!followupData['d11_1'] || followupData['d11_1'].respondentCount === 0) && (
@@ -2180,6 +2203,7 @@ function DimensionSection({
                   data={followupData['d12_1'].counts} 
                   total={followupData['d12_1'].respondentCount}
                   excludeNoResponse
+                  filterNote="Asked if any metric tracked in D12.a"
                 />
               )}
               {followupData['d12_2']?.respondentCount > 0 && (
@@ -2188,6 +2212,7 @@ function DimensionSection({
                   data={followupData['d12_2'].counts} 
                   total={followupData['d12_2'].respondentCount}
                   excludeNoResponse
+                  filterNote="Asked if any metric tracked in D12.a"
                 />
               )}
               {(!followupData['d12_1'] || followupData['d12_1'].respondentCount === 0) && 
@@ -2419,7 +2444,7 @@ function EmployeeImpactSection({ assessments }: { assessments: ProcessedAssessme
             '2.1 - 3.0x ROI (benefits are 2-3 times the costs)',
             '3.1 - 5.0x ROI (benefits are 3-5 times the costs)',
             'Greater than 5.0x ROI (benefits exceed 5 times the costs)'
-          ]} />
+          ]} filterNote="Asked if EI2 = Yes (comprehensive or basic ROI analysis completed)" />
         </div>
       </div>
     </div>
