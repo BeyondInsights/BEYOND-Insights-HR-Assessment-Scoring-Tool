@@ -1029,6 +1029,7 @@ function getGridData(data: any, gridField: string): Record<string, string> {
 function normalizeForMatch(text: string): string {
   return String(text)
     .toLowerCase()
+    .replace(/_/g, ' ')         // convert underscores to spaces (app stores "no_impact" but we expect "no positive impact")
     .replace(/\s*\/\s*/g, '/')  // normalize spaces around slashes
     .replace(/\s+/g, ' ')       // normalize multiple spaces
     .replace(/['']/g, "'")      // normalize quotes
