@@ -661,6 +661,7 @@ const FIRMOGRAPHICS_OPTIONS = {
     '$500-999 million',
     '$500 million - $999.9 million',
     '$1 billion or more',
+    '$10 billion or more',
     'Not applicable (non-profit/government)',
     'Not provided'
   ],
@@ -772,6 +773,7 @@ const ORDINAL_OPTIONS = {
     '$100-499 million',
     '$500-999 million',
     '$1 billion or more',
+    '$10 billion or more',
     'Not applicable (non-profit/government)'
   ],
   // Job level (hierarchical)
