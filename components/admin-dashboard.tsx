@@ -381,7 +381,6 @@ const CURRENT_SUPPORT_OPTIONS = {
     'Internally developed formal program with a specific name (e.g., "We Care at Work")',
     'Participation in external initiatives, certifications, or pledges (e.g., Working with Cancer pledge, CEO Cancer Gold Standard)',
     'Comprehensive framework that integrates multiple support elements',
-    'Ad hoc / case-by-case support as needs arise',
     'Ad hoc/case-by-case support as needs arise',
     'Other (specify)'
   ],
@@ -399,7 +398,6 @@ const CURRENT_SUPPORT_OPTIONS = {
     'Organ transplant (pre and post)',
     'Respiratory conditions (e.g., COPD, cystic fibrosis)',
     'Stroke',
-    'Some other condition meeting severity/duration criteria',
     'Some other condition meeting severity/duration criteria (specify)'
   ],
   cb3d: [
@@ -408,14 +406,12 @@ const CURRENT_SUPPORT_OPTIONS = {
     'With specialized consultant support',
     'Adopted from parent/acquiring company',
     'Benchmarked from peer companies',
-    'Employee / union driven',
     'Employee/union driven',
     'Some other way (specify)'
   ],
   or1: [
     'No formal approach: Handle case-by-case',
     'Developing approach: Currently building programs and policies',
-    'Developing approach: Currently building our programs',
     'Legal minimum only: Meet legal requirements only (FMLA, ADA)',
     'Moderate support: Some programs beyond legal requirements',
     'Enhanced support: Meaningful programs beyond legal minimums',
@@ -428,11 +424,9 @@ const CURRENT_SUPPORT_OPTIONS = {
     'Keep up with industry standards and peer company practices',
     'Employee survey feedback',
     'Recruitment/retention goals or challenges',
-    'Recruitment / retention goals or challenges',
     'Legal case or compliance issue',
     'Union negotiations',
     'ESG/corporate responsibility commitments',
-    'ESG / corporate responsibility commitments',
     'Inspired by Working with Cancer Initiative or similar programs',
     'Health trend data',
     'Our company mission',
@@ -441,21 +435,18 @@ const CURRENT_SUPPORT_OPTIONS = {
     'Other (specify)'
   ],
   or3: [
-    'Budget constraints',
-    'Budget / resource constraints',
+    'Budget/resource constraints',
     'Lack of executive support',
     'Small number of cases doesn\'t justify investment',
     'Small employee population',
     'Concerns about setting precedent',
     'Limited HR and/or Benefits team bandwidth',
-    'Limited HR and / or Benefits team bandwidth',
     'Lack of expertise/knowledge',
     'Other priorities take precedence',
     'Concerns about fairness across conditions',
     'Uncertainty about ROI',
     'Data privacy concerns (HIPAA, GDPR, other regulations)',
     'Complex/varying legal requirements across markets',
-    'Complex / varying legal requirements across markets',
     'Global consistency challenges',
     'Some other reason (specify)'
   ],
@@ -470,15 +461,12 @@ const CURRENT_SUPPORT_OPTIONS = {
     'Employee assistance program (EAP) counseling',
     'Caregiver support groups',
     'Referrals to eldercare/dependent care resources',
-    'Referrals to eldercare / dependent care resources',
     'Financial assistance or subsidies',
     'Respite care coverage',
     'Modified job duties/reduced workload',
-    'Modified job duties / reduced workload',
     'Manager training on supporting caregivers',
     'Emergency dependent care when regular arrangements unavailable',
     'Legal/financial planning resources',
-    'Legal / financial planning resources',
     'Concierge caregiving support through Wellthy',
     'Concierge caregiving support through a 3rd party provider (e.g., Wellthy, Cleo, Bright Horizons, Maven, etc.)',
     'Some other support (specify)',
@@ -489,7 +477,6 @@ const CURRENT_SUPPORT_OPTIONS = {
     'De-identified case tracking',
     'General program utilization data',
     'Voluntary employee feedback/surveys',
-    'Voluntary employee feedback / surveys',
     'Some other approach (specify)',
     'No systematic monitoring'
   ]
@@ -866,7 +853,6 @@ const ORDINAL_OPTIONS = {
   or1: [
     'No formal approach: Handle case-by-case',
     'Developing approach: Currently building programs and policies',
-    'Developing approach: Currently building our programs',
     'Legal minimum only: Meet legal requirements only (FMLA, ADA)',
     'Moderate support: Some programs beyond legal requirements',
     'Enhanced support: Meaningful programs beyond legal minimums',
