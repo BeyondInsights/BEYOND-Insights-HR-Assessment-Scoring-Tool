@@ -564,7 +564,8 @@ function DimensionSection({
   const openEndKey = `d${dimNum}b`;
   const openEndValue = dimData?.[openEndKey];
   const geoConsistencyKey = `d${dimNum}aa`;
-  const geoConsistency = dimData?.[geoConsistencyKey];
+  // Handle case-insensitive lookup for geoConsistency (some data has D2aa, some has d2aa)
+  const geoConsistency = dimData?.[geoConsistencyKey] || dimData?.[`D${dimNum}aa`] || dimData?.[geoConsistencyKey.toUpperCase()];
   
   // Count programs by status - handles both numeric (FP) and text (survey) formats
   let currentCount = 0, planningCount = 0, assessingCount = 0, notFeasibleCount = 0;
@@ -593,9 +594,10 @@ function DimensionSection({
   // Get follow-up questions (excluding main grid, open-end, and geo)
   const followUpItems: Array<{ key: string; label: string; value: any }> = [];
   Object.keys(dimData || {}).forEach(key => {
-    // Skip main grid, open-end, geo consistency
+    // Skip main grid, open-end, geo consistency (both cases)
     if (key === mainGridKey || key === openEndKey || key === geoConsistencyKey) return;
-    if (!key.startsWith(`d${dimNum}`)) return;
+    if (key.toLowerCase() === `d${dimNum}aa`) return;  // Handle case-insensitive geo key
+    if (!key.toLowerCase().startsWith(`d${dimNum}`)) return;
     
     const value = dimData[key];
     
@@ -825,10 +827,15 @@ export default function ProfilePage() {
 
       // Contact info
       const pdfContactName = [firm.firstName, firm.lastName].filter(Boolean).join(' ') || 'N/A';
-      let pdfContactTitle = firm.title || 'N/A';
-      if (pdfContactTitle.toLowerCase() === 'other') {
+      let pdfContactTitle = firm.title || null;
+      if (pdfContactTitle && pdfContactTitle.toLowerCase() === 'other') {
         pdfContactTitle = firm.titleOther || firm.title_other || pdfContactTitle;
       }
+      // Fallback to s5 (level) for FPs who don't have title
+      if (!pdfContactTitle && firm.s5) {
+        pdfContactTitle = firm.s5;
+      }
+      pdfContactTitle = pdfContactTitle || 'N/A';
       const pdfContactEmail = assessment?.email || 'N/A';
 
       // Status colors (hex only)
@@ -1125,7 +1132,8 @@ export default function ProfilePage() {
       for (let i = 1; i <= 13; i++) {
         const dimData = assessment?.[`dimension${i}_data`] || {};
         const mainGrid = dimData[`d${i}a`] || {};
-        const geoScope = dimData[`d${i}aa`];
+        // Handle case-insensitive lookup (some data has D2aa, some has d2aa)
+        const geoScope = dimData[`d${i}aa`] || dimData[`D${i}aa`];
         const openEnd = dimData[`d${i}b`];
         const color = PDF_DIM_COLORS[i - 1];
 
@@ -1206,8 +1214,10 @@ export default function ProfilePage() {
           // Follow-up details
           const followups: Array<{label: string; value: string}> = [];
           Object.keys(dimData).forEach(key => {
-            if (key === `d${i}a` || key === `d${i}aa` || key === `d${i}b`) return;
-            if (!key.startsWith(`d${i}`)) return;
+            // Skip main grid, geo scope (both cases), and open-end
+            if (key === `d${i}a` || key === `d${i}b`) return;
+            if (key.toLowerCase() === `d${i}aa`) return;  // Handle case-insensitive geo key
+            if (!key.toLowerCase().startsWith(`d${i}`)) return;
             const val = dimData[key];
             if (!val || val === 'true' || val === 'false' || (typeof val === 'string' && val.toLowerCase().includes('none'))) return;
             
@@ -1428,10 +1438,14 @@ export default function ProfilePage() {
   
   // CONTACT INFO
   const contactName = [firm.firstName, firm.lastName].filter(Boolean).join(' ') || null;
-  // Handle title "Other" case
+  // Handle title "Other" case and fallback to s5 (level) for FPs
   let contactTitle = firm.title || null;
   if (contactTitle && contactTitle.toLowerCase() === 'other') {
     contactTitle = firm.titleOther || firm.title_other || contactTitle;
+  }
+  // If no title, use s5 (level) as fallback - common for Founding Partners
+  if (!contactTitle && firm.s5) {
+    contactTitle = firm.s5;
   }
   const contactEmail = assessment.email || null;
   
@@ -1499,7 +1513,9 @@ export default function ProfilePage() {
   // Geographic consistency count
   let consistentCount = 0;
   for (let i = 1; i <= 13; i++) {
-    const aa = assessment[`dimension${i}_data`]?.[`d${i}aa`];
+    // Handle case-insensitive lookup (some data has D2aa, some has d2aa)
+    const dimData = assessment[`dimension${i}_data`] || {};
+    const aa = dimData[`d${i}aa`] || dimData[`D${i}aa`];
     if (aa && aa.toLowerCase().includes('consistent')) consistentCount++;
   }
 
