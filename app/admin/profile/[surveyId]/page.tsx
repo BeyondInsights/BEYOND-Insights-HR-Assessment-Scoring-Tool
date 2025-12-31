@@ -1001,6 +1001,15 @@ export default function ProfilePage() {
         <div class="info-row"><span class="info-label">Countries of Operation</span><span class="info-value">${firm.s9a || 'N/A'}</span></div>
         <div class="info-row"><span class="info-label">Annual Revenue</span><span class="info-value">${(firm.c4 && !Array.isArray(firm.c4) ? firm.c4 : null) || firm.c5 || 'N/A'}</span></div>
         <div class="info-row"><span class="info-label">Remote/Hybrid Policy</span><span class="info-value">${firm.c6 || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Benefits Eligibility</span><span class="info-value">${firm.c3 || 'N/A'}</span></div>
+        ${firm.c3a && Array.isArray(firm.c3a) && firm.c3a.length > 0 ? `
+        <div style="margin-top:8px;">
+          <span class="info-label">Employee Groups Excluded</span>
+          <ul style="margin-top:4px;padding-left:16px;">
+            ${firm.c3a.map((g: string) => `<li style="font-size:10px;color:#374151;margin:2px 0;">• ${g}</li>`).join('')}
+          </ul>
+        </div>
+        ` : ''}
       </div>
       <div class="info-card">
         <h3>Contact Information</h3>
@@ -1445,6 +1454,7 @@ export default function ProfilePage() {
   const revenue = (firm.c4 && !Array.isArray(firm.c4) ? firm.c4 : null) || firm.c5 || null;
   const remotePolicy = firm.c6 || null;              // c6 is remote policy
   const benefitsEligibility = firm.c3 || null;       // c3 is "Most employees (75-99%)"
+  const excludedGroups = firm.c3a || null;           // c3a is employee groups excluded from benefits
 
   console.log('📊 firmographics_data keys:', Object.keys(firm));
   console.log('📊 Extracted:', { industry, employees, headquarters, countries, revenue, department, level });
@@ -1648,6 +1658,8 @@ export default function ProfilePage() {
                 <DataField label="Countries of Operation" value={countries} showNA />
                 <DataField label="Annual Revenue" value={revenue} showNA />
                 <DataField label="Remote/Hybrid Policy" value={remotePolicy} showNA />
+                <DataField label="Benefits Eligibility" value={benefitsEligibility} showNA />
+                <DataField label="Employee Groups Excluded" value={excludedGroups} fullWidth />
               </div>
             </SectionCard>
 
