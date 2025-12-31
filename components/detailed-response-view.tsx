@@ -138,7 +138,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
           {/* Contact Information Section */}
           <div className="mb-6 bg-blue-50 rounded-lg p-5 border border-blue-200">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Contact Information</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Contact Person</p>
                 <p className="font-semibold text-gray-900">
@@ -152,6 +152,10 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Title</p>
                 <p className="font-semibold text-gray-900">{firmographics.title || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Level</p>
+                <p className="font-semibold text-gray-900">{firmographics.s5 || 'N/A'}</p>
               </div>
             </div>
           </div>
