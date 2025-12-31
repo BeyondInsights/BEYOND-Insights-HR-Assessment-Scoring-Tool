@@ -1427,7 +1427,40 @@ function FirmographicsSection({ assessments }: { assessments: ProcessedAssessmen
   
   const industryData = countResponses(assessments, 'firmographics_data', 'c2', FIRMOGRAPHICS_OPTIONS.c2Industry)
   const sizeData = countResponses(assessments, 'firmographics_data', 's8', ORDINAL_OPTIONS.s8Size)
-  const revenueData = countResponses(assessments, 'firmographics_data', 'c4', ORDINAL_OPTIONS.c4Revenue)
+  
+  // Revenue: Check both c4 (Excel import) and c5 (app version) fields
+  const revenueData: Record<string, number> = {}
+  ORDINAL_OPTIONS.c4Revenue.forEach(opt => revenueData[opt] = 0)
+  revenueData['No response'] = 0
+  
+  assessments.forEach(a => {
+    const firm = typeof a.firmographics_data === 'string' 
+      ? JSON.parse(a.firmographics_data || '{}') 
+      : (a.firmographics_data || {})
+    
+    // Try c4 first, then c5
+    let value = firm.c4
+    if (!value || value === 'Not provided' || (Array.isArray(value) && value.length === 0)) {
+      value = firm.c5
+    }
+    
+    if (!value || value === 'Not provided' || (Array.isArray(value) && value.length === 0)) {
+      revenueData['No response']++
+    } else {
+      const valueStr = String(value)
+      const valueNorm = normalizeForMatch(valueStr)
+      const matched = ORDINAL_OPTIONS.c4Revenue.find(opt => 
+        normalizeForMatch(opt) === valueNorm || 
+        valueNorm.includes(normalizeForMatch(opt).slice(0, 15))
+      )
+      if (matched) {
+        revenueData[matched]++
+      } else {
+        revenueData['No response']++
+      }
+    }
+  })
+  
   const levelData = countResponses(assessments, 'firmographics_data', 's5', ORDINAL_OPTIONS.s5Level)
   const functionData = countResponses(assessments, 'firmographics_data', 's4b', FIRMOGRAPHICS_OPTIONS.s4bFunction)
   const influenceData = countResponses(assessments, 'firmographics_data', 's7', ORDINAL_OPTIONS.s7Influence)
