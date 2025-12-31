@@ -1288,6 +1288,14 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
     'No response'
   ]
   
+  // Aliases for response options (e.g., "Currently use" → "Currently offer")
+  const responseAliases: Record<string, string> = {
+    'currently use': 'Currently offer',
+    'currently utilize': 'Currently offer',
+    'not able to offer': 'Not able to offer in foreseeable future',
+    'not able': 'Not able to offer in foreseeable future'
+  }
+  
   // Pre-normalize response options
   const normalizedResponseOpts = responseOptions.map(r => ({
     original: r,
@@ -1311,19 +1319,25 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
       } else {
         const responseNorm = normalizeForMatch(String(response))
         
-        // Find matching response option
-        let matched = normalizedResponseOpts.find(o => o.normalized === responseNorm)
-        if (!matched) {
-          matched = normalizedResponseOpts.find(o => 
-            responseNorm.includes(o.normalized.slice(0, 15)) ||
-            o.normalized.includes(responseNorm.slice(0, 15))
-          )
-        }
-        
-        if (matched) {
-          results[item][matched.original]++
+        // Check aliases first (e.g., "Currently use" → "Currently offer")
+        const aliasMatch = responseAliases[responseNorm]
+        if (aliasMatch) {
+          results[item][aliasMatch]++
         } else {
-          results[item]['No response']++
+          // Find matching response option
+          let matched = normalizedResponseOpts.find(o => o.normalized === responseNorm)
+          if (!matched) {
+            matched = normalizedResponseOpts.find(o => 
+              responseNorm.includes(o.normalized.slice(0, 15)) ||
+              o.normalized.includes(responseNorm.slice(0, 15))
+            )
+          }
+          
+          if (matched) {
+            results[item][matched.original]++
+          } else {
+            results[item]['No response']++
+          }
         }
       }
     })
