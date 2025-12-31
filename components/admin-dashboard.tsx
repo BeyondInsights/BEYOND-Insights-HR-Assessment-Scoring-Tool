@@ -643,13 +643,17 @@ const FIRMOGRAPHICS_OPTIONS = {
     '$50-99 million',
     '$50 million - $99.9 million',
     '$100-499 million',
+    '$100 million - $249.9 million',
     '$100 million - $499.9 million',
     '$250 million - $499.9 million',
     '$500-999 million',
     '$500 million - $999.9 million',
     '$1 billion or more',
+    '$1 billion - $4.9 billion',
+    '$5 billion - $9.9 billion',
     '$10 billion or more',
     'Not applicable (non-profit/government)',
+    'Prefer not to disclose',
     'Not provided'
   ],
   s9Country: [
@@ -755,13 +759,21 @@ const ORDINAL_OPTIONS = {
   // Revenue
   c4Revenue: [
     'Less than $10 million',
+    '$10 million - $49.9 million',
     '$10-49 million',
     '$50-99 million',
+    '$50 million - $99.9 million',
     '$100-499 million',
+    '$100 million - $249.9 million',
+    '$250 million - $499.9 million',
     '$500-999 million',
+    '$500 million - $999.9 million',
     '$1 billion or more',
+    '$1 billion - $4.9 billion',
+    '$5 billion - $9.9 billion',
     '$10 billion or more',
-    'Not applicable (non-profit/government)'
+    'Not applicable (non-profit/government)',
+    'Prefer not to disclose'
   ],
   // Job level (hierarchical)
   s5Level: [
