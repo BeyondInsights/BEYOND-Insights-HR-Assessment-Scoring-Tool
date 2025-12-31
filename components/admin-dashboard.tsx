@@ -2366,6 +2366,8 @@ export default function AdminDashboard() {
       const authData = sessionStorage.getItem('adminAuth')
       const adminEmail = authData ? JSON.parse(authData).email : null
       
+      console.log('🔍 Fetching assessments with admin email:', adminEmail)
+      
       // Use secure API route with service role (bypasses RLS)
       const response = await fetch('/api/admin/assessments', {
         method: 'POST',
@@ -2373,12 +2375,19 @@ export default function AdminDashboard() {
         body: JSON.stringify({ adminEmail })
       })
       
+      console.log('📡 API Response status:', response.status)
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch assessments')
+        const errorText = await response.text()
+        console.error('❌ API Error:', errorText)
+        throw new Error(`Failed to fetch assessments: ${response.status}`)
       }
       
-      const { assessments: data, error } = await response.json()
-      if (error) throw new Error(error)
+      const result = await response.json()
+      console.log('📦 API Result:', result)
+      
+      const data = result.assessments || result.data || result
+      if (result.error) throw new Error(result.error)
 
       const processed = (data || []).map((assessment: Assessment) => {
         const isFP = isFoundingPartner(assessment.survey_id)
