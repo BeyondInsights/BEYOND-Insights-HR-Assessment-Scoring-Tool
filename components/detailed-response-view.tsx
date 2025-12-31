@@ -124,6 +124,14 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                 <p className="text-xs text-gray-500 uppercase tracking-wide"># Countries w/ Presence</p>
                 <p className="font-semibold text-gray-900">{firmographics.s9a || 'N/A'}</p>
               </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Total Employees</p>
+                <p className="font-semibold text-gray-900">{firmographics.s8 || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Benefits Eligibility</p>
+                <p className="font-semibold text-gray-900">{firmographics.c3 || 'N/A'}</p>
+              </div>
             </div>
           </div>
 
