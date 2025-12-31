@@ -2474,6 +2474,246 @@ function EmployeeImpactSection({ assessments }: { assessments: ProcessedAssessme
 }
 
 // ============================================
+// VERBATIM COMMENTS TAB COMPONENT
+// ============================================
+const VERBATIM_QUESTIONS = [
+  { 
+    id: 'or2b', 
+    name: 'OR2b: Most Impactful Change',
+    description: 'What has been the single most impactful change your organization has made?',
+    dataKey: 'current_support_data',
+    field: 'or2b'
+  },
+  { 
+    id: 'ei4', 
+    name: 'EI4: Advice to HR Leaders',
+    description: 'What advice would you give to other HR leaders?',
+    dataKey: 'cross_dimensional_data',
+    field: 'ei4'
+  },
+  { 
+    id: 'ei5', 
+    name: 'EI5: Aspects Not Addressed',
+    description: 'Are there important aspects this survey did not address?',
+    dataKey: 'employee-impact-assessment_data',
+    field: 'ei5'
+  },
+  { id: 'd1b', name: 'D1b: Medical Leave & Flexibility - Other', dataKey: 'dimension1_data', field: 'd1b' },
+  { id: 'd2b', name: 'D2b: Insurance & Financial Protection - Other', dataKey: 'dimension2_data', field: 'd2b' },
+  { id: 'd3b', name: 'D3b: Manager Preparedness - Other', dataKey: 'dimension3_data', field: 'd3b' },
+  { id: 'd4b', name: 'D4b: Navigation & Expert Resources - Other', dataKey: 'dimension4_data', field: 'd4b' },
+  { id: 'd5b', name: 'D5b: Workplace Accommodations - Other', dataKey: 'dimension5_data', field: 'd5b' },
+  { id: 'd6b', name: 'D6b: Culture & Psychological Safety - Other', dataKey: 'dimension6_data', field: 'd6b' },
+  { id: 'd7b', name: 'D7b: Career Continuity - Other', dataKey: 'dimension7_data', field: 'd7b' },
+  { id: 'd8b', name: 'D8b: Work Continuation & Resumption - Other', dataKey: 'dimension8_data', field: 'd8b' },
+  { id: 'd9b', name: 'D9b: Executive Commitment - Other', dataKey: 'dimension9_data', field: 'd9b' },
+  { id: 'd10b', name: 'D10b: Caregiver & Family Support - Other', dataKey: 'dimension10_data', field: 'd10b' },
+  { id: 'd11b', name: 'D11b: Prevention & Wellness - Other', dataKey: 'dimension11_data', field: 'd11b' },
+  { id: 'd12b', name: 'D12b: Continuous Improvement - Other', dataKey: 'dimension12_data', field: 'd12b' },
+  { id: 'd13b', name: 'D13b: Communication & Awareness - Other', dataKey: 'dimension13_data', field: 'd13b' },
+]
+
+function VerbatimCommentsTab({ assessments }: { assessments: ProcessedAssessment[] }) {
+  const [selectedQuestion, setSelectedQuestion] = useState<string>('or2b')
+  
+  // Get comments for selected question
+  const getComments = () => {
+    const question = VERBATIM_QUESTIONS.find(q => q.id === selectedQuestion)
+    if (!question) return []
+    
+    const comments: { text: string; companyType: string; companyName: string }[] = []
+    
+    assessments.forEach(a => {
+      const data = (a as any)[question.dataKey]
+      if (!data) return
+      
+      let parsed: any = {}
+      try {
+        parsed = typeof data === 'string' ? JSON.parse(data) : data
+      } catch {
+        return
+      }
+      
+      // Try different field variations
+      const fieldVariations = [question.field, question.field.toUpperCase(), question.field.replace('b', '_b')]
+      let value = ''
+      for (const f of fieldVariations) {
+        if (parsed[f]) {
+          value = String(parsed[f])
+          break
+        }
+      }
+      
+      // Skip empty, "none", checkbox responses, etc.
+      if (!value || 
+          value.toLowerCase() === 'none' || 
+          value.toLowerCase() === 'n/a' ||
+          value.toLowerCase() === 'na' ||
+          value === 'true' ||
+          value === 'false' ||
+          value.length < 5) {
+        return
+      }
+      
+      comments.push({
+        text: value,
+        companyType: a.isFoundingPartner ? 'Founding Partner' : 'Standard',
+        companyName: a.company_name || 'Unknown'
+      })
+    })
+    
+    return comments
+  }
+  
+  const comments = getComments()
+  const selectedQuestionData = VERBATIM_QUESTIONS.find(q => q.id === selectedQuestion)
+  
+  // Group questions
+  const keyQuestions = VERBATIM_QUESTIONS.slice(0, 3)
+  const dimensionQuestions = VERBATIM_QUESTIONS.slice(3)
+  
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="mb-5">
+          <h2 className="text-xl font-bold text-gray-900">Verbatim Comments</h2>
+          <p className="text-sm text-gray-600">
+            Open-ended responses from survey participants
+          </p>
+        </div>
+        
+        {/* Question Selection */}
+        <div className="space-y-4">
+          {/* Key Questions */}
+          <div className="pb-3 border-b border-gray-100">
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Key Open-Ended Questions</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {keyQuestions.map(q => {
+                const count = assessments.filter(a => {
+                  const data = (a as any)[q.dataKey]
+                  if (!data) return false
+                  try {
+                    const parsed = typeof data === 'string' ? JSON.parse(data) : data
+                    const val = parsed[q.field] || parsed[q.field.toUpperCase()]
+                    return val && String(val).length > 5 && !['none', 'n/a', 'na', 'true', 'false'].includes(String(val).toLowerCase())
+                  } catch { return false }
+                }).length
+                
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => setSelectedQuestion(q.id)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                      selectedQuestion === q.id
+                        ? 'bg-orange-500 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {q.name} ({count})
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          
+          {/* Dimension Questions */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Dimension "Other" Responses</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {dimensionQuestions.map(q => {
+                const count = assessments.filter(a => {
+                  const data = (a as any)[q.dataKey]
+                  if (!data) return false
+                  try {
+                    const parsed = typeof data === 'string' ? JSON.parse(data) : data
+                    const val = parsed[q.field] || parsed[q.field.toUpperCase()]
+                    return val && String(val).length > 5 && !['none', 'n/a', 'na', 'true', 'false'].includes(String(val).toLowerCase())
+                  } catch { return false }
+                }).length
+                
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => setSelectedQuestion(q.id)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                      selectedQuestion === q.id
+                        ? 'bg-orange-500 text-white shadow-sm'
+                        : count > 0
+                          ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-gray-50 text-gray-400'
+                    }`}
+                  >
+                    {q.id.toUpperCase()} ({count})
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Comments Display */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-4">
+          <h3 className="text-lg font-bold text-white">{selectedQuestionData?.name}</h3>
+          {selectedQuestionData?.description && (
+            <p className="text-sm text-orange-100 mt-1">{selectedQuestionData.description}</p>
+          )}
+          <p className="text-sm text-orange-200 mt-2">{comments.length} response{comments.length !== 1 ? 's' : ''}</p>
+        </div>
+        
+        <div className="divide-y divide-gray-100">
+          {comments.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <p>No responses for this question</p>
+            </div>
+          ) : (
+            comments.map((comment, idx) => (
+              <div key={idx} className="p-5 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start gap-4">
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold ${
+                    comment.companyType === 'Founding Partner' ? 'bg-purple-600' : 'bg-blue-600'
+                  }`}>
+                    {comment.companyName.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-800 whitespace-pre-wrap">{comment.text}</p>
+                    <p className="mt-2 text-sm text-gray-500">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                        comment.companyType === 'Founding Partner' 
+                          ? 'bg-purple-100 text-purple-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {comment.companyType}
+                      </span>
+                      <span className="ml-2 font-medium text-gray-700">{comment.companyName}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
 // ANALYTICS TAB COMPONENT
 // ============================================
 function AnalyticsTab({ assessments }: { assessments: ProcessedAssessment[] }) {
@@ -2566,9 +2806,9 @@ function AnalyticsTab({ assessments }: { assessments: ProcessedAssessment[] }) {
         </div>
         
         {/* Section Navigation - Organized */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {/* Survey Foundation */}
-          <div>
+          <div className="pb-3 border-b border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -2583,7 +2823,7 @@ function AnalyticsTab({ assessments }: { assessments: ProcessedAssessment[] }) {
           </div>
           
           {/* 13 Dimensions */}
-          <div>
+          <div className="pb-3 border-b border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -2660,7 +2900,7 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
   const [selectedAssessment, setSelectedAssessment] = useState<ProcessedAssessment | null>(null)
-  const [activeTab, setActiveTab] = useState<'responses' | 'analytics'>('responses')
+  const [activeTab, setActiveTab] = useState<'responses' | 'analytics' | 'verbatim'>('responses')
   
   // Invoice modal state
   const [showInvoiceModal, setShowInvoiceModal] = useState(false)
@@ -2934,6 +3174,19 @@ export default function AdminDashboard() {
               </svg>
               Aggregate Summaries
             </button>
+            <button
+              onClick={() => setActiveTab('verbatim')}
+              className={`flex-1 py-4 text-center font-semibold transition-colors flex items-center justify-center gap-2 ${
+                activeTab === 'verbatim'
+                  ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+              Verbatim Comments
+            </button>
           </div>
         </div>
 
@@ -3132,6 +3385,11 @@ export default function AdminDashboard() {
         {/* ANALYTICS TAB */}
         {activeTab === 'analytics' && (
           <AnalyticsTab assessments={assessments} />
+        )}
+
+        {/* VERBATIM COMMENTS TAB */}
+        {activeTab === 'verbatim' && (
+          <VerbatimCommentsTab assessments={assessments} />
         )}
       </div>
 
