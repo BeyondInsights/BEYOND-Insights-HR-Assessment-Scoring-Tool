@@ -2362,12 +2362,23 @@ export default function AdminDashboard() {
 
   const fetchAssessments = async () => {
     try {
-      const { data, error } = await supabase
-        .from('assessments')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
+      // Get admin email from session
+      const authData = sessionStorage.getItem('adminAuth')
+      const adminEmail = authData ? JSON.parse(authData).email : null
+      
+      // Use secure API route with service role (bypasses RLS)
+      const response = await fetch('/api/admin/assessments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminEmail })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch assessments')
+      }
+      
+      const { assessments: data, error } = await response.json()
+      if (error) throw new Error(error)
 
       const processed = (data || []).map((assessment: Assessment) => {
         const isFP = isFoundingPartner(assessment.survey_id)
