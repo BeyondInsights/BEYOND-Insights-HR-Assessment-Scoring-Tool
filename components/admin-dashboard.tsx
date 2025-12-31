@@ -2939,7 +2939,12 @@ export default function AdminDashboard() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate">{assessment.company_name || 'N/A'}</p>
-                            <p className="text-xs text-gray-600 truncate">{assessment.firmographics_data?.firstName} {assessment.firmographics_data?.lastName}</p>
+                            <p className="text-xs text-gray-600 truncate">
+                              {assessment.firmographics_data?.firstName} {assessment.firmographics_data?.lastName}
+                              {(assessment.firmographics_data?.title || assessment.firmographics_data?.s5) && (
+                                <span className="text-gray-400"> • {assessment.firmographics_data?.title || assessment.firmographics_data?.s5}</span>
+                              )}
+                            </p>
                             <p className="text-xs text-gray-500 truncate">{assessment.email}</p>
                             <p className="text-xs text-gray-400 font-mono truncate">{assessment.survey_id}</p>
                           </div>
