@@ -825,6 +825,19 @@ export default function ProfilePage() {
       const crossDim = assessment?.cross_dimensional_data || {};
       const empImpact = assessment?.['employee-impact-assessment_data'] || {};
 
+      // Calculate survey completion for PDF
+      const pdfSectionKeys = [
+        'firmographics_complete', 'general_benefits_complete', 'current_support_complete',
+        'dimension1_complete', 'dimension2_complete', 'dimension3_complete', 'dimension4_complete',
+        'dimension5_complete', 'dimension6_complete', 'dimension7_complete', 'dimension8_complete',
+        'dimension9_complete', 'dimension10_complete', 'dimension11_complete', 'dimension12_complete',
+        'dimension13_complete', 'cross_dimensional_complete', 'employee-impact-assessment_complete'
+      ];
+      const pdfCompletedSections = pdfSectionKeys.filter(key => assessment?.[key] === true).length;
+      const pdfCompletionPct = Math.round((pdfCompletedSections / pdfSectionKeys.length) * 100);
+      const pdfIsComplete = assessment?.survey_completed || pdfCompletionPct >= 100;
+      const pdfStatusText = pdfIsComplete ? '✓ Completed' : `In Progress (${pdfCompletionPct}%)`;
+
       // Contact info
       const pdfContactName = [firm.firstName, firm.lastName].filter(Boolean).join(' ') || 'N/A';
       let pdfContactTitle = firm.title || null;
@@ -948,7 +961,7 @@ export default function ProfilePage() {
   <p>Survey ID: ${surveyId} &nbsp;|&nbsp; Contact: ${pdfContactName} &nbsp;|&nbsp; Email: ${pdfContactEmail}</p>
   <div class="status-badge">
     <p style="font-size:10px;opacity:0.8;">Status</p>
-    <p style="font-size:14px;font-weight:700;">✓ ${assessment?.survey_completed ? 'Completed' : 'In Progress'}</p>
+    <p style="font-size:14px;font-weight:700;">${pdfStatusText}</p>
   </div>
 </div>
 `;
@@ -1617,12 +1630,28 @@ export default function ProfilePage() {
                     <div><span className="opacity-70">Email:</span> <span className="font-medium">{contactEmail}</span></div>
                   </div>
                 </div>
-                {assessment.payment_completed && (
-                  <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2 text-center">
-                    <p className="text-xs opacity-80">Status</p>
-                    <p className="font-bold">✓ Completed</p>
-                  </div>
-                )}
+                {/* Status Badge - Calculate from section completion */}
+                {(() => {
+                  const sectionKeys = [
+                    'firmographics_complete', 'general_benefits_complete', 'current_support_complete',
+                    'dimension1_complete', 'dimension2_complete', 'dimension3_complete', 'dimension4_complete',
+                    'dimension5_complete', 'dimension6_complete', 'dimension7_complete', 'dimension8_complete',
+                    'dimension9_complete', 'dimension10_complete', 'dimension11_complete', 'dimension12_complete',
+                    'dimension13_complete', 'cross_dimensional_complete', 'employee-impact-assessment_complete'
+                  ];
+                  const completedSections = sectionKeys.filter(key => assessment[key] === true).length;
+                  const completionPct = Math.round((completedSections / sectionKeys.length) * 100);
+                  const isComplete = assessment.survey_completed || completionPct >= 100;
+                  
+                  return (
+                    <div className={`backdrop-blur rounded-lg px-4 py-2 text-center ${isComplete ? 'bg-white/20' : 'bg-amber-500/30'}`}>
+                      <p className="text-xs opacity-80">Status</p>
+                      <p className="font-bold">
+                        {isComplete ? '✓ Completed' : `In Progress (${completionPct}%)`}
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </header>
