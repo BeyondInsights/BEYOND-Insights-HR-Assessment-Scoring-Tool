@@ -10,6 +10,72 @@ import { isSharedFP, loadSharedFPData } from '@/lib/supabase/fp-shared-storage'
 import { loadUserDataFromSupabase } from '@/lib/supabase/load-data-from-supabase'
 import Footer from '@/components/Footer'
 
+// ============================================
+// COMP'D USERS - Skip Supabase auth, load from assessments table
+// These are users who had issues and need special handling
+// ============================================
+const COMPD_USER_IDS = [
+  'CAC26010292641OB',  // Best Buy - Melanie Moriarty
+]
+
+function isCompdUser(surveyId: string): boolean {
+  const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
+  return COMPD_USER_IDS.some(id => id.replace(/-/g, '').toUpperCase() === normalized)
+}
+
+async function loadCompdUserData(surveyId: string): Promise<boolean> {
+  const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
+  
+  try {
+    console.log('📥 Loading comp\'d user data for:', normalized)
+    
+    // Try to find by app_id (most reliable for standard users)
+    const { data, error } = await supabase
+      .from('assessments')
+      .select('*')
+      .eq('app_id', normalized)
+      .single()
+    
+    if (error || !data) {
+      console.error('Error loading comp\'d user data:', error)
+      return false
+    }
+    
+    console.log('✅ Found comp\'d user record, populating localStorage...')
+    
+    // Load DATA fields
+    if (data.firmographics_data) localStorage.setItem('firmographics_data', JSON.stringify(data.firmographics_data))
+    if (data.general_benefits_data) localStorage.setItem('general_benefits_data', JSON.stringify(data.general_benefits_data))
+    if (data.current_support_data) localStorage.setItem('current_support_data', JSON.stringify(data.current_support_data))
+    if (data.cross_dimensional_data) localStorage.setItem('cross_dimensional_data', JSON.stringify(data.cross_dimensional_data))
+    if (data.employee_impact_data) localStorage.setItem('employee-impact-assessment_data', JSON.stringify(data.employee_impact_data))
+    for (let i = 1; i <= 13; i++) {
+      const dimData = data[`dimension${i}_data`]
+      if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData))
+    }
+    if (data.company_name) localStorage.setItem('login_company_name', data.company_name)
+    
+    // Load COMPLETION FLAGS
+    if (data.auth_completed) localStorage.setItem('auth_completed', 'true')
+    if (data.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
+    if (data.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
+    if (data.current_support_complete) localStorage.setItem('current_support_complete', 'true')
+    if (data.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
+    if (data.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
+    for (let i = 1; i <= 13; i++) {
+      if (data[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true')
+    }
+    
+    console.log('✅ Comp\'d user data loaded successfully')
+    return true
+    
+  } catch (error) {
+    console.error('Error in loadCompdUserData:', error)
+    return false
+  }
+}
+// ============================================
+
 // Helper function to clear localStorage but preserve Supabase auth tokens
 const clearLocalStoragePreserveAuth = () => {
   const supabaseKeys: string[] = []
@@ -89,10 +155,51 @@ export default function LoginPage() {
     const trimmedSurveyId = surveyId.trim().toUpperCase()
 
     // ============================================
-    // CHECK FOR SHARED FP (Best Buy) FIRST
+    // CHECK FOR COMP'D USERS FIRST (Best Buy, etc.)
+    // These users bypass Supabase auth entirely
+    // ============================================
+    if (!isNewUser && isCompdUser(trimmedSurveyId)) {
+      console.log('🎫 Comp\'d user detected:', trimmedSurveyId)
+      
+      // Store login info
+      localStorage.setItem('login_email', email)
+      localStorage.setItem('auth_email', email)
+      localStorage.setItem('survey_id', trimmedSurveyId.replace(/-/g, ''))
+      localStorage.setItem('user_authenticated', 'true')
+      localStorage.setItem('last_user_email', email)
+      localStorage.setItem('login_Survey_id', trimmedSurveyId)
+      localStorage.setItem('payment_completed', 'true')
+      localStorage.setItem('payment_method', 'Comp')
+      
+      // Load data from Supabase
+      setSuccessMessage('Loading your progress...')
+      const loaded = await loadCompdUserData(trimmedSurveyId)
+      
+      if (loaded) {
+        // Check if auth already completed
+        const authDone = localStorage.getItem('auth_completed') === 'true'
+        if (authDone) {
+          setSuccessMessage('✅ Welcome back! Redirecting to dashboard...')
+          setTimeout(() => router.push('/dashboard'), 1500)
+        } else {
+          setSuccessMessage('✅ Found your progress! Redirecting...')
+          setTimeout(() => router.push('/letter'), 1500)
+        }
+      } else {
+        setSuccessMessage('✅ Access confirmed! Redirecting...')
+        setTimeout(() => router.push('/letter'), 1500)
+      }
+      
+      setLoading(false)
+      return
+    }
+    // ============================================
+
+    // ============================================
+    // CHECK FOR SHARED FP (uses fp_shared_assessments table)
     // ============================================
     if (!isNewUser && isSharedFP(trimmedSurveyId)) {
-      console.log('🏪 Shared FP (Best Buy) detected:', trimmedSurveyId)
+      console.log('🏪 Shared FP detected:', trimmedSurveyId)
       
       // Store login info
       localStorage.setItem('login_email', email)
@@ -165,7 +272,7 @@ export default function LoginPage() {
           }
           if (existing.company_name) localStorage.setItem('login_company_name', existing.company_name)
           
-          // Load COMPLETION FLAGS - THIS WAS MISSING!
+          // Load COMPLETION FLAGS
           if (existing.auth_completed) localStorage.setItem('auth_completed', 'true')
           if (existing.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
           if (existing.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
@@ -258,9 +365,16 @@ export default function LoginPage() {
         localStorage.setItem('user_authenticated', 'true')
         localStorage.setItem('last_user_email', email)
         
+        // ============================================
+        // FIX: SET BOTH survey_id AND login_Survey_id FOR ALL USERS
+        // ============================================
         if (!isNewUser) {
-          localStorage.setItem('login_Survey_id', surveyId)
+          const cleanSurveyId = surveyId.trim().replace(/-/g, '').toUpperCase()
+          localStorage.setItem('survey_id', cleanSurveyId)
+          localStorage.setItem('login_Survey_id', cleanSurveyId)
+          console.log('[LOGIN] Set survey_id for returning user:', cleanSurveyId)
         }
+        // ============================================
         
         // For existing/returning users
         if (result.mode === 'existing' && !result.needsVerification) {
@@ -291,8 +405,10 @@ export default function LoginPage() {
           if (result.appId) {
             setGeneratedAppId(result.appId)
             setShowAppId(true)
+            localStorage.setItem('survey_id', result.appId)
             localStorage.setItem('login_Survey_id', result.appId)
             localStorage.setItem('new_user_just_created', 'true')
+            console.log('[LOGIN] Set survey_id for new user:', result.appId)
           }
         }
       }
