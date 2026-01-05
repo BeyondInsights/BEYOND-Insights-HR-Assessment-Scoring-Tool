@@ -23,7 +23,7 @@ export const FP_COMPANY_MAP: Record<string, string> = {
   'FP-HR-628157': 'Renault',
   'FP-HR-493582': 'Cancer@Work',
   'FP-748923': '',
-  'FP-392847': '',
+  'FP-392847': 'Best Buy',
   'FP-856201': '',
   'FP-203948': '',
   'FP-674531': '',
