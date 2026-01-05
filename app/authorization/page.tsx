@@ -296,37 +296,46 @@ function AuthorizationContent() {
       if (isFoundingPartner(surveyId)) {
         console.log('Founding Partner - saving to Supabase then going to dashboard')
         
-        // Save FP data to Supabase
-        const authorizationData = {
-          companyName: companyInfo.companyName,
-          firstName: companyInfo.firstName,
-          lastName: companyInfo.lastName,
-          title: titleToStore,
-          au1,
-          au2,
-          other
-        }
-        
-        // Also save to firmographics_data localStorage for consistency
-        const existingFirmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
-        const updatedFirmo = {
-          ...existingFirmo,
-          companyName: companyInfo.companyName,
-          firstName: companyInfo.firstName,
-          lastName: companyInfo.lastName,
-          title: titleToStore,
-          au1,
-          au2,
-          au2Other: other
-        }
-        localStorage.setItem('firmographics_data', JSON.stringify(updatedFirmo))
-        
         try {
+          // =====================================================
+          // CRITICAL: First get EXISTING firmographics from DATABASE
+          // (This has the Excel-imported data: c2, s8, s9, s9a, etc.)
+          // =====================================================
+          const { data: existingData, error: fetchError } = await supabase
+            .from('assessments')
+            .select('firmographics_data')
+            .eq('survey_id', surveyId)
+            .single()
+          
+          if (fetchError) {
+            console.error('Error fetching existing FP data:', fetchError)
+          }
+          
+          const existingFirmographics = (existingData?.firmographics_data as Record<string, any>) || {}
+          console.log('📊 Existing FP firmographics from DB:', Object.keys(existingFirmographics))
+          
+          // =====================================================
+          // MERGE: Keep ALL existing Excel data + add new auth data
+          // =====================================================
+          const mergedFirmographics = {
+            ...existingFirmographics,  // Preserve: c2, s8, s9, s9a, etc.
+            companyName: companyInfo.companyName,
+            firstName: companyInfo.firstName,
+            lastName: companyInfo.lastName,
+            title: titleToStore,
+            au1,
+            au2,
+            au2Other: other
+          }
+          
+          // Also update localStorage for consistency with survey pages
+          localStorage.setItem('firmographics_data', JSON.stringify(mergedFirmographics))
+          
           const { error } = await supabase
             .from('assessments')
             .update({
               company_name: companyInfo.companyName,
-              firmographics_data: updatedFirmo,
+              firmographics_data: mergedFirmographics,
               auth_completed: true,
               updated_at: new Date().toISOString()
             })
@@ -335,7 +344,7 @@ function AuthorizationContent() {
           if (error) {
             console.error('Error saving FP authorization:', error)
           } else {
-            console.log('FP authorization saved to Supabase')
+            console.log('✅ FP authorization saved to Supabase (merged with existing Excel data)')
           }
         } catch (err) {
           console.error('Error saving FP data:', err)
