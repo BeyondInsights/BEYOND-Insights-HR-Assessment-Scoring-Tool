@@ -138,7 +138,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
           {/* Contact Information Section */}
           <div className="mb-6 bg-blue-50 rounded-lg p-5 border border-blue-200">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Contact Information</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 2fr 1fr' }}>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Contact Person</p>
                 <p className="font-semibold text-gray-900">
