@@ -1,11 +1,11 @@
 /**
  * AUTO DATA SYNC - FIXED VERSION
  * 
- * CRITICAL FIX: Ensures FP data ACTUALLY writes to Supabase
- * - Verifies updates succeeded
- * - Uses upsert as fallback
- * - Better error logging
- * - Immediate sync on key pages
+ * Handles:
+ * - Founding Partners (by survey_id)
+ * - Shared FPs (by survey_id to fp_shared_assessments)
+ * - Comp'd Users (by app_id to assessments - no Supabase auth)
+ * - Regular Users (by user_id)
  */
 
 'use client'
@@ -13,6 +13,19 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 import { supabase } from './client'
+
+// ============================================
+// COMP'D USERS - Same list as in login page
+// ============================================
+const COMPD_USER_IDS = [
+  'CAC26010292641OB',  // Best Buy - Melanie Moriarty
+]
+
+function isCompdUser(surveyId: string): boolean {
+  const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
+  return COMPD_USER_IDS.some(id => id.replace(/-/g, '').toUpperCase() === normalized)
+}
+// ============================================
 
 /**
  * Collect all survey data from localStorage
@@ -104,6 +117,48 @@ async function checkIsFoundingPartner(surveyId: string): Promise<boolean> {
     return isFoundingPartner(surveyId)
   } catch {
     return surveyId.startsWith('FP-')
+  }
+}
+
+/**
+ * Sync Comp'd User data to Supabase (by app_id)
+ */
+async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
+  const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
+  console.log('🎫 AUTO-SYNC: Syncing comp\'d user data for:', normalized)
+  
+  const updateData = collectAllSurveyData()
+  
+  if (Object.keys(updateData).length === 0) {
+    console.log('⏭️ AUTO-SYNC: No data to sync')
+    return true
+  }
+  
+  updateData.updated_at = new Date().toISOString()
+  
+  try {
+    const { data: updateResult, error: updateError } = await supabase
+      .from('assessments')
+      .update(updateData)
+      .eq('app_id', normalized)
+      .select('id')
+    
+    if (updateError) {
+      console.error('❌ AUTO-SYNC: Comp\'d user sync failed:', updateError.message)
+      return false
+    }
+    
+    if (!updateResult || updateResult.length === 0) {
+      console.warn('⚠️ AUTO-SYNC: No rows updated for comp\'d user - record may not exist')
+      return false
+    }
+    
+    console.log('✅ AUTO-SYNC: Comp\'d user sync successful!')
+    return true
+    
+  } catch (error) {
+    console.error('❌ AUTO-SYNC: Exception during comp\'d user sync:', error)
+    return false
   }
 }
 
@@ -244,7 +299,16 @@ async function syncToSupabase(force: boolean = false): Promise<boolean> {
   
   console.log('🔄 AUTO-SYNC: Starting sync...', force ? '(FORCED)' : '', 'Survey ID:', surveyId || 'none')
   
-  // Check for Shared FP (Best Buy)
+  // ============================================
+  // CHECK FOR COMP'D USERS FIRST
+  // ============================================
+  if (isCompdUser(surveyId)) {
+    console.log('🎫 AUTO-SYNC: Comp\'d user detected')
+    return await syncCompdUserToSupabase(surveyId)
+  }
+  // ============================================
+  
+  // Check for Shared FP
   try {
     const { isSharedFP, saveSharedFPData } = await import('./fp-shared-storage')
     if (isSharedFP(surveyId)) {
@@ -301,11 +365,10 @@ export default function AutoDataSync() {
     }
   }, [])
   
-  // IMMEDIATE sync on mount - critical for users like Snyder with existing localStorage data
+  // IMMEDIATE sync on mount
   useEffect(() => {
     if (!initialSyncDone.current) {
       initialSyncDone.current = true
-      // Sync immediately, don't wait
       console.log('🚀 AUTO-SYNC: Immediate sync on mount')
       doSync('Initial page load - immediate')
       
@@ -364,7 +427,7 @@ export default function AutoDataSync() {
     }
   }, [doSync])
   
-  // Periodic sync every 15 seconds (was 30)
+  // Periodic sync every 15 seconds
   useEffect(() => {
     console.log('⏰ AUTO-SYNC: Initialized - syncing every 15 seconds')
     
@@ -391,27 +454,7 @@ export default function AutoDataSync() {
   useEffect(() => {
     const handleBeforeUnload = () => {
       console.log('👋 AUTO-SYNC: Page closing - final sync')
-      // Use synchronous approach for reliability
-      const surveyId = localStorage.getItem('survey_id') || ''
-      const data = collectAllSurveyData()
-      
-      if (Object.keys(data).length > 0 && surveyId) {
-        // Try to send beacon for more reliable delivery
-        const payload = JSON.stringify({
-          survey_id: surveyId,
-          ...data,
-          updated_at: new Date().toISOString()
-        })
-        
-        // Beacon API for reliable delivery on page close
-        if (navigator.sendBeacon) {
-          // Note: This would need a dedicated endpoint
-          console.log('📤 AUTO-SYNC: Sending beacon...')
-        }
-        
-        // Also try regular sync
-        syncToSupabase()
-      }
+      syncToSupabase()
     }
     
     window.addEventListener('beforeunload', handleBeforeUnload)
