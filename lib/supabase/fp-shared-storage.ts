@@ -4,16 +4,21 @@
  * Handles shared assessment storage for Founding Partners who need
  * multiple people to collaborate on the same survey.
  * 
- * Currently enabled for: Best Buy (FP-392847)
+ * NOTE: This feature is currently DISABLED. All FPs now use the main
+ * assessments table. Keeping this file for potential future use.
+ * 
+ * Best Buy was migrated to the main assessments table on 2026-01-05.
  */
 
 import { supabase } from './client'
 
 // Survey IDs that use shared storage
-const SHARED_FP_IDS = ['FP-392847']  // Best Buy
+// EMPTY - No FPs currently use shared storage
+const SHARED_FP_IDS: string[] = []
 
 /**
  * Check if this survey ID uses shared storage
+ * Currently always returns false - shared storage disabled
  */
 export function isSharedFP(surveyId: string): boolean {
   return SHARED_FP_IDS.includes(surveyId?.toUpperCase?.() || surveyId)
