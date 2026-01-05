@@ -145,13 +145,20 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                   {firmographics.firstName || ''} {firmographics.lastName || ''}
                 </p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Email</p>
-                <p className="font-semibold text-gray-900">{assessment.email || 'N/A'}</p>
+                <p className="font-semibold text-gray-900 break-all">{assessment.email || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Title</p>
-                <p className="font-semibold text-gray-900">{firmographics.title || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">
+                  {/* Check title, titleOther for "Other" case, then s5 as fallback for FPs */}
+                  {(firmographics.title && firmographics.title.toLowerCase() !== 'other' 
+                    ? firmographics.title 
+                    : firmographics.titleOther || firmographics.title_other || firmographics.title) 
+                    || firmographics.s5 
+                    || 'N/A'}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Level</p>
