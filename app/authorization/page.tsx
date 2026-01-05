@@ -299,7 +299,8 @@ function AuthorizationContent() {
         try {
           // =====================================================
           // CRITICAL: First get EXISTING firmographics from DATABASE
-          // (This has the Excel-imported data: c2, s8, s9, s9a, etc.)
+          // This preserves Excel-imported data: c2, s8, s9, s9a, etc.
+          // Without this, we would OVERWRITE the imported data!
           // =====================================================
           const { data: existingData, error: fetchError } = await supabase
             .from('assessments')
@@ -318,7 +319,7 @@ function AuthorizationContent() {
           // MERGE: Keep ALL existing Excel data + add new auth data
           // =====================================================
           const mergedFirmographics = {
-            ...existingFirmographics,  // Preserve: c2, s8, s9, s9a, etc.
+            ...existingFirmographics,  // Preserve: c2, s8, s9, s9a, email, etc.
             companyName: companyInfo.companyName,
             firstName: companyInfo.firstName,
             lastName: companyInfo.lastName,
