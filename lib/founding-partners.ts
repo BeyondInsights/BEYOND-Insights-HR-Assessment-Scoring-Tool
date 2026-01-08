@@ -8,7 +8,7 @@ export const FP_COMPANY_MAP: Record<string, string> = {
   'FP-HR-554736': 'Haymarket',
   'FP-HR-267233': 'ICBC-AXA Life',
   'FP-HR-602569': 'Lloyds Bank (Group)',
-  'FP-HR-708691': 'Memorial',
+  'FP-HR-708691': 'Memorial Sloan Kettering',  // UPDATED from "Memorial"
   'FP-HR-982631': 'Merck',
   'FP-HR-405810': 'Nestlé',
   'FP-HR-532408': 'Pfizer',
@@ -60,14 +60,14 @@ export const FP_COMPANY_MAP: Record<string, string> = {
   'FP-847632': '',
   'FP-219745': '',
   'FP-421967': '',
-  'FP-573841': 'Schneider Electronics',
+  'FP-573841': 'Schneider Electric',  // UPDATED from "Snyder Electronics"
   'FP-692014': '',
-  'TEST-FP-001': 'Test Company 1',
-  'TEST-FP-002': 'Test Company 2',
+  'TEST-FP-001': 'Test Company (Internal Review)',
+  'TEST-FP-002': 'Test Company (Client Review)',
   'TEST-FP-003': 'Test Company 3',
 };
 
-// Array of all valid FP IDs (derived from map keys - single source of truth)
+// Array of all valid FP IDs (derived from the map keys)
 export const FOUNDING_PARTNER_IDS = Object.keys(FP_COMPANY_MAP);
 
 /**
@@ -79,10 +79,10 @@ export function isFoundingPartner(surveyId: string): boolean {
 
 /**
  * Get company name for a Founding Partner ID
- * Returns the company name or empty string if unassigned
+ * Returns the company name or 'Founding Partner' if not assigned
  */
 export function getFPCompanyName(surveyId: string): string {
-  return FP_COMPANY_MAP[surveyId] || '';
+  return FP_COMPANY_MAP[surveyId] || 'Founding Partner';
 }
 
 /**
