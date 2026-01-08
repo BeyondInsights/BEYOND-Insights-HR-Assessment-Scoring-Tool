@@ -65,6 +65,10 @@ export const FP_COMPANY_MAP: Record<string, string> = {
   'TEST-FP-001': 'Test Company (Internal Review)',
   'TEST-FP-002': 'Test Company (Client Review)',
   'TEST-FP-003': 'Test Company 3',
+  'TEST-LOREAL-001': "L'Oréal (Test 1)",
+  'TEST-LOREAL-002': "L'Oréal (Test 2)",
+  'TEST-LOREAL-003': "L'Oréal (Test 3)",
+ 
 };
 
 // Array of all valid FP IDs (derived from the map keys)
