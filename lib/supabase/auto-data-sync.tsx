@@ -90,12 +90,6 @@ function collectAllSurveyData(): Record<string, any> {
     }
   })
   
-  // Company name
-  const companyName = localStorage.getItem('login_company_name')
-  if (companyName) {
-    updateData.company_name = companyName
-    itemCount++
-  }
   
   console.log(`📊 AUTO-SYNC: Collected ${itemCount} items to sync`)
   
