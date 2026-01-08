@@ -69,8 +69,6 @@ export const FP_COMPANY_MAP: Record<string, string> = {
   'TEST-LOREAL-002': "L'Oréal (Test 2)",
   'TEST-LOREAL-003': "L'Oréal (Test 3)",
  
-};
-
 // Array of all valid FP IDs (derived from the map keys)
 export const FOUNDING_PARTNER_IDS = Object.keys(FP_COMPANY_MAP);
 
