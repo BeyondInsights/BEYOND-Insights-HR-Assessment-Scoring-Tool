@@ -25,7 +25,7 @@ export const FP_COMPANY_MAP: Record<string, string> = {
   'FP-748923': '',
   'FP-392847': 'Best Buy',
   'FP-856201': '',
-  'FP-203948': '',
+  'FP-203948': 'Inspire Brands',
   'FP-674531': '',
   'FP-945872': '',
   'FP-128463': '',
