@@ -3253,6 +3253,7 @@ export default function AdminDashboard() {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Payment</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Progress</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Started</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Last Updated</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Action</th>
                   </tr>
                 </thead>
@@ -3338,6 +3339,18 @@ export default function AdminDashboard() {
                             {new Date(assessment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </p>
                           <p className="text-xs text-gray-500">{assessment.daysInProgress}d ago</p>
+                        </div>
+                      </td>
+
+                      {/* Last Updated */}
+                      <td className="px-4 py-3">
+                        <div>
+                          <p className="text-sm text-gray-900">
+                            {new Date(assessment.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(assessment.updated_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                          </p>
                         </div>
                       </td>
 
