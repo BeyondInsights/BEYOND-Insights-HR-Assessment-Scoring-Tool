@@ -294,7 +294,7 @@ export default function CompletionPage() {
                     1
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">Survey Close: January 23, 2026</h3>
+                    <h3 className="font-semibold text-gray-900 mb-1">Survey Close: February 15, 2026</h3>
                     <p className="text-sm text-gray-700">
                       BEYOND Insights will conduct and finalize analysis following the close of the survey.
                     </p>
@@ -309,7 +309,7 @@ export default function CompletionPage() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 mb-1">Initiative Release</h3>
                     <p className="text-sm text-gray-700">
-                      The Cancer and Careers 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in early March, 2026.
+                      The Cancer and Careers 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in late March, 2026.
                     </p>
                   </div>
                 </div>

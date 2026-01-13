@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
                           </td>
                           <td style="padding-left: 15px;">
                             <p style="color: #1a1a1a; font-size: 15px; font-weight: 600; margin: 0 0 5px 0;">
-                              Survey Close: January 23, 2026
+                              Survey Close: February 15, 2026
                             </p>
                             <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.5;">
                               BEYOND Insights will conduct and finalize analysis following the close of the survey.
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
                               Initiative Release
                             </p>
                             <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.5;">
-                              The Cancer and Careers 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in early March, 2026.
+                              The Cancer and Careers 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in late March, 2026.
                             </p>
                           </td>
                         </tr>

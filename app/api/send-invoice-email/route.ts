@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
                                     Access Survey Dashboard
                                   </a>
                                   <p style="color: #991b1b; font-size: 13px; margin: 15px 0 0 0; font-weight: 500;">
-                                    Submission Deadline: January 23, 2026
+                                    Submission Deadline: February 15, 2026
                                   </p>
                                 </td>
                               </tr>
