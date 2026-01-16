@@ -265,7 +265,8 @@ const DIMENSION_ORDER = [4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12];
 // Column width constants for sticky positioning
 const COL1_WIDTH = 300; // Dimension name column
 const COL2_WIDTH = 56;  // Weight column
-const COL3_WIDTH = 56;  // AVG column
+const COL_AVG_WIDTH = 56; // Each AVG column (TOTAL, FP, STD)
+// Total sticky width = COL1_WIDTH + COL2_WIDTH + (3 * COL_AVG_WIDTH) = 300 + 56 + 168 = 524
 
 // ============================================
 // SCORING FUNCTIONS
@@ -343,6 +344,8 @@ function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | 
     
     if (isUnsure) {
       result.unsureCount++;
+      result.answeredItems++; // Unsure counts in denominator with 0 points
+      // earnedPoints += 0 (implicit)
     } else if (points !== null) {
       result.answeredItems++;
       earnedPoints += points;
@@ -352,6 +355,8 @@ function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | 
   result.unsurePercent = result.totalItems > 0 ? result.unsureCount / result.totalItems : 0;
   result.isInsufficientData = result.unsurePercent > INSUFFICIENT_DATA_THRESHOLD;
   
+  // Unsure items ARE in denominator - so max score is reduced by unsure %
+  // e.g., 40% unsure = max possible score is 60%
   const maxPoints = result.answeredItems * POINTS.CURRENTLY_OFFER;
   if (maxPoints > 0) {
     result.rawScore = Math.round((earnedPoints / maxPoints) * 100);
@@ -374,33 +379,53 @@ interface CompanyScores {
   weightedScore: number;
   insufficientDataCount: number;
   isProvisional: boolean;
+  isComplete: boolean; // All 13 dimensions have data
+  isFoundingPartner: boolean;
+  completedDimCount: number;
 }
 
 function calculateCompanyScores(assessment: Record<string, any>, weights: Record<number, number>): CompanyScores {
   const dimensions: Record<number, DimensionScore> = {};
+  let completedDimCount = 0;
   
   for (let i = 1; i <= 13; i++) {
     const dimData = assessment[`dimension${i}_data`];
     dimensions[i] = calculateDimensionScore(i, dimData);
+    if (dimensions[i].totalItems > 0) {
+      completedDimCount++;
+    }
   }
   
+  const isComplete = completedDimCount === 13;
   const insufficientDataCount = Object.values(dimensions).filter(d => d.isInsufficientData).length;
   const isProvisional = insufficientDataCount >= PROVISIONAL_FLAG_COUNT;
   
-  const dimsWithData = Object.values(dimensions).filter(d => d.totalItems > 0);
-  const unweightedScore = dimsWithData.length > 0
-    ? Math.round(dimsWithData.reduce((sum, d) => sum + d.adjustedScore, 0) / dimsWithData.length)
-    : 0;
+  // Determine if Founding Partner
+  const appId = assessment.app_id || assessment.survey_id || '';
+  const isFoundingPartner = appId.startsWith('FP-') || 
+    assessment.is_founding_partner === true ||
+    assessment.payment_method === 'founding_partner';
   
-  const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+  // Only calculate composite if complete
+  let unweightedScore = 0;
   let weightedScore = 0;
   
-  if (totalWeight > 0) {
-    for (let i = 1; i <= 13; i++) {
-      const dim = dimensions[i];
-      const weight = weights[i] || 0;
-      weightedScore += dim.adjustedScore * (weight / totalWeight);
+  if (isComplete) {
+    const dimsWithData = Object.values(dimensions).filter(d => d.totalItems > 0);
+    unweightedScore = dimsWithData.length > 0
+      ? Math.round(dimsWithData.reduce((sum, d) => sum + d.adjustedScore, 0) / dimsWithData.length)
+      : 0;
+    
+    const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+    
+    if (totalWeight > 0) {
+      for (let i = 1; i <= 13; i++) {
+        const dim = dimensions[i];
+        const weight = weights[i] || 0;
+        weightedScore += dim.adjustedScore * (weight / totalWeight);
+      }
     }
+    weightedScore = Math.round(weightedScore);
   }
   
   return {
@@ -408,9 +433,12 @@ function calculateCompanyScores(assessment: Record<string, any>, weights: Record
     surveyId: assessment.app_id || assessment.survey_id || 'N/A',
     dimensions,
     unweightedScore,
-    weightedScore: Math.round(weightedScore),
+    weightedScore,
     insufficientDataCount,
     isProvisional,
+    isComplete,
+    isFoundingPartner,
+    completedDimCount,
   };
 }
 
@@ -421,13 +449,21 @@ function getScoreColor(score: number): string {
   return '#C62828';
 }
 
-function getPerformanceTier(score: number, isProvisional: boolean): { name: string; color: string; bg: string } {
-  if (isProvisional) return { name: 'Provisional', color: '#6B7280', bg: '#F3F4F6' };
-  if (score >= 90) return { name: 'Exemplary', color: '#1B5E20', bg: '#E8F5E9' };
-  if (score >= 75) return { name: 'Leading', color: '#0D47A1', bg: '#E3F2FD' };
-  if (score >= 60) return { name: 'Progressing', color: '#E65100', bg: '#FFF8E1' };
-  if (score >= 40) return { name: 'Emerging', color: '#BF360C', bg: '#FFF3E0' };
-  return { name: 'Beginning', color: '#37474F', bg: '#ECEFF1' };
+function getPerformanceTier(score: number, isProvisional: boolean): { name: string; color: string; bg: string; isProvisional: boolean } {
+  // Always calculate actual tier based on score
+  let tier: { name: string; color: string; bg: string };
+  if (score >= 90) {
+    tier = { name: 'Exemplary', color: '#1B5E20', bg: '#E8F5E9' };
+  } else if (score >= 75) {
+    tier = { name: 'Leading', color: '#0D47A1', bg: '#E3F2FD' };
+  } else if (score >= 60) {
+    tier = { name: 'Progressing', color: '#E65100', bg: '#FFF8E1' };
+  } else if (score >= 40) {
+    tier = { name: 'Emerging', color: '#BF360C', bg: '#FFF3E0' };
+  } else {
+    tier = { name: 'Beginning', color: '#37474F', bg: '#ECEFF1' };
+  }
+  return { ...tier, isProvisional };
 }
 
 // ============================================
@@ -575,22 +611,56 @@ export default function AggregateScoringReport() {
   }, [companyScores, sortBy, sortDir]);
 
   const dimensionAverages = useMemo(() => {
-    const averages: Record<number, { avg: number; count: number }> = {};
+    const averages: Record<number, { 
+      total: { avg: number; count: number };
+      fp: { avg: number; count: number };
+      standard: { avg: number; count: number };
+    }> = {};
     
     for (let i = 1; i <= 13; i++) {
-      const validScores = companyScores
-        .map(c => c.dimensions[i])
-        .filter(d => d.totalItems > 0);
+      const allScores = companyScores.filter(c => c.dimensions[i].totalItems > 0);
+      const fpScores = allScores.filter(c => c.isFoundingPartner);
+      const stdScores = allScores.filter(c => !c.isFoundingPartner);
       
-      if (validScores.length > 0) {
-        const sum = validScores.reduce((s, d) => s + d.adjustedScore, 0);
-        averages[i] = { avg: Math.round(sum / validScores.length), count: validScores.length };
-      } else {
-        averages[i] = { avg: 0, count: 0 };
-      }
+      averages[i] = {
+        total: allScores.length > 0 
+          ? { avg: Math.round(allScores.reduce((s, c) => s + c.dimensions[i].adjustedScore, 0) / allScores.length), count: allScores.length }
+          : { avg: 0, count: 0 },
+        fp: fpScores.length > 0
+          ? { avg: Math.round(fpScores.reduce((s, c) => s + c.dimensions[i].adjustedScore, 0) / fpScores.length), count: fpScores.length }
+          : { avg: 0, count: 0 },
+        standard: stdScores.length > 0
+          ? { avg: Math.round(stdScores.reduce((s, c) => s + c.dimensions[i].adjustedScore, 0) / stdScores.length), count: stdScores.length }
+          : { avg: 0, count: 0 },
+      };
     }
     
     return averages;
+  }, [companyScores]);
+
+  // Calculate composite averages
+  const compositeAverages = useMemo(() => {
+    const completeCompanies = companyScores.filter(c => c.isComplete);
+    const completeFP = completeCompanies.filter(c => c.isFoundingPartner);
+    const completeStd = completeCompanies.filter(c => !c.isFoundingPartner);
+    
+    return {
+      unweighted: {
+        total: completeCompanies.length > 0 ? Math.round(completeCompanies.reduce((s, c) => s + c.unweightedScore, 0) / completeCompanies.length) : null,
+        fp: completeFP.length > 0 ? Math.round(completeFP.reduce((s, c) => s + c.unweightedScore, 0) / completeFP.length) : null,
+        standard: completeStd.length > 0 ? Math.round(completeStd.reduce((s, c) => s + c.unweightedScore, 0) / completeStd.length) : null,
+      },
+      weighted: {
+        total: completeCompanies.length > 0 ? Math.round(completeCompanies.reduce((s, c) => s + c.weightedScore, 0) / completeCompanies.length) : null,
+        fp: completeFP.length > 0 ? Math.round(completeFP.reduce((s, c) => s + c.weightedScore, 0) / completeFP.length) : null,
+        standard: completeStd.length > 0 ? Math.round(completeStd.reduce((s, c) => s + c.weightedScore, 0) / completeStd.length) : null,
+      },
+      counts: {
+        total: completeCompanies.length,
+        fp: completeFP.length,
+        standard: completeStd.length,
+      }
+    };
   }, [companyScores]);
 
   const totalWeight = useMemo(() => Object.values(weights).reduce((sum, w) => sum + w, 0), [weights]);
@@ -811,8 +881,20 @@ export default function AggregateScoringReport() {
           </div>
         ) : (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          {/* Weight Error Banner */}
+          {totalWeight !== 100 && (
+            <div className="bg-red-50 border-b border-red-200 px-6 py-3 flex items-center gap-2">
+              <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span className="text-red-800 font-medium">
+                Weights must sum to 100% for weighted scores. Current total: {totalWeight}%
+              </span>
+            </div>
+          )}
+          
           <div className="overflow-x-auto">
-            <table className="text-sm border-collapse" style={{ minWidth: `${COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + (sortedCompanies.length * 110)}px` }}>
+            <table className="text-sm border-collapse" style={{ minWidth: `${COL1_WIDTH + COL2_WIDTH + (3 * COL_AVG_WIDTH) + (sortedCompanies.length * 110)}px` }}>
               <thead>
                 <tr className="bg-indigo-900 text-white">
                   {/* Sticky Column 1: Dimension */}
@@ -829,18 +911,38 @@ export default function AggregateScoringReport() {
                   >
                     Wt%
                   </th>
-                  {/* Sticky Column 3: AVG */}
+                  {/* Sticky Column 3: TOTAL AVG */}
                   <th 
                     className="px-2 py-3 text-center font-semibold bg-indigo-800 z-30 border-r border-indigo-600"
-                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL3_WIDTH }}
+                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL_AVG_WIDTH }}
+                    title="Average across all companies"
                   >
+                    <span className="text-[10px] block text-indigo-300">ALL</span>
+                    AVG
+                  </th>
+                  {/* Sticky Column 4: FP AVG */}
+                  <th 
+                    className="px-2 py-3 text-center font-semibold bg-orange-600 z-30 border-r border-orange-500"
+                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, width: COL_AVG_WIDTH }}
+                    title="Founding Partners average"
+                  >
+                    <span className="text-[10px] block text-orange-200">FP</span>
+                    AVG
+                  </th>
+                  {/* Sticky Column 5: Standard AVG */}
+                  <th 
+                    className="px-2 py-3 text-center font-semibold bg-teal-600 z-30 border-r border-teal-500"
+                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), width: COL_AVG_WIDTH }}
+                    title="Standard participants average"
+                  >
+                    <span className="text-[10px] block text-teal-200">STD</span>
                     AVG
                   </th>
                   {/* Company Columns */}
                   {sortedCompanies.map(company => (
                     <th 
                       key={company.surveyId} 
-                      className="px-3 py-3 text-center font-medium border-r border-indigo-700 last:border-r-0"
+                      className="px-3 py-2 text-center font-medium border-r border-indigo-700 last:border-r-0"
                       style={{ minWidth: 110 }}
                     >
                       <Link 
@@ -853,8 +955,11 @@ export default function AggregateScoringReport() {
                           : company.companyName
                         }
                       </Link>
-                      {company.isProvisional && (
-                        <span className="text-[10px] text-yellow-300 block">PROV</span>
+                      <span className={`text-[10px] block ${company.isFoundingPartner ? 'text-orange-300' : 'text-teal-300'}`}>
+                        {company.isFoundingPartner ? 'FP' : 'STD'}
+                      </span>
+                      {!company.isComplete && (
+                        <span className="text-[9px] text-yellow-300 block">{company.completedDimCount}/13</span>
                       )}
                     </th>
                   ))}
@@ -905,12 +1010,26 @@ export default function AggregateScoringReport() {
                           title="Edit weight"
                         />
                       </td>
-                      {/* Sticky Column 3: AVG */}
+                      {/* Sticky Column 3: TOTAL AVG */}
                       <td 
                         className="px-2 py-2 text-center z-10 bg-indigo-50 font-bold border-r border-gray-200" 
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, color: dimAvg.count > 0 ? getScoreColor(dimAvg.avg) : '#9CA3AF', width: COL3_WIDTH }}
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, color: dimAvg.total.count > 0 ? getScoreColor(dimAvg.total.avg) : '#9CA3AF', width: COL_AVG_WIDTH }}
                       >
-                        {dimAvg.count > 0 ? dimAvg.avg : '—'}
+                        {dimAvg.total.count > 0 ? dimAvg.total.avg : '—'}
+                      </td>
+                      {/* Sticky Column 4: FP AVG */}
+                      <td 
+                        className="px-2 py-2 text-center z-10 bg-orange-50 font-bold border-r border-gray-200" 
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, color: dimAvg.fp.count > 0 ? getScoreColor(dimAvg.fp.avg) : '#9CA3AF', width: COL_AVG_WIDTH }}
+                      >
+                        {dimAvg.fp.count > 0 ? dimAvg.fp.avg : '—'}
+                      </td>
+                      {/* Sticky Column 5: Standard AVG */}
+                      <td 
+                        className="px-2 py-2 text-center z-10 bg-teal-50 font-bold border-r border-gray-200" 
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), color: dimAvg.standard.count > 0 ? getScoreColor(dimAvg.standard.avg) : '#9CA3AF', width: COL_AVG_WIDTH }}
+                      >
+                        {dimAvg.standard.count > 0 ? dimAvg.standard.avg : '—'}
                       </td>
                       {/* Company Score Columns */}
                       {sortedCompanies.map(company => {
@@ -963,16 +1082,14 @@ export default function AggregateScoringReport() {
                       Insufficient Data Dims
                     </span>
                   </td>
-                  <td 
-                    className="px-2 py-2 text-center text-xs text-yellow-700 bg-yellow-100 z-10 border-r border-yellow-200"
-                    style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}
-                  >
-                    &gt;40%
-                  </td>
-                  <td 
-                    className="px-2 py-2 text-center bg-yellow-200 z-10 border-r border-yellow-200"
-                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL3_WIDTH }}
-                  ></td>
+                  <td className="px-2 py-2 text-center text-xs text-yellow-700 bg-yellow-100 z-10 border-r border-yellow-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}>&gt;40%</td>
+                  <td className="px-2 py-2 text-center bg-yellow-200 z-10 border-r border-yellow-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL_AVG_WIDTH }}></td>
+                  <td className="px-2 py-2 text-center bg-yellow-200 z-10 border-r border-yellow-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, width: COL_AVG_WIDTH }}></td>
+                  <td className="px-2 py-2 text-center bg-yellow-200 z-10 border-r border-yellow-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), width: COL_AVG_WIDTH }}></td>
                   {sortedCompanies.map(company => (
                     <td key={company.surveyId} className="px-3 py-2 text-center border-r border-yellow-200 last:border-r-0" style={{ minWidth: 110 }}>
                       <span className={`font-bold ${company.insufficientDataCount >= PROVISIONAL_FLAG_COUNT ? 'text-red-600' : company.insufficientDataCount > 0 ? 'text-yellow-700' : 'text-green-600'}`}>
@@ -984,7 +1101,7 @@ export default function AggregateScoringReport() {
 
                 {/* Separator */}
                 <tr className="bg-gray-300">
-                  <td colSpan={3 + sortedCompanies.length} className="py-0.5"></td>
+                  <td colSpan={5 + sortedCompanies.length} className="py-0.5"></td>
                 </tr>
 
                 {/* Unweighted Score Row */}
@@ -998,24 +1115,29 @@ export default function AggregateScoringReport() {
                       {sortBy === 'unweighted' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                     </button>
                   </td>
-                  <td 
-                    className="px-2 py-3 text-center text-xs text-gray-500 bg-gray-100 z-10 border-r border-gray-200"
-                    style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}
-                  >avg</td>
-                  <td 
-                    className="px-2 py-3 text-center bg-gray-200 z-10 font-bold border-r border-gray-200"
-                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL3_WIDTH }}
-                  >
-                    {companyScores.length > 0 
-                      ? Math.round(companyScores.reduce((s, c) => s + c.unweightedScore, 0) / companyScores.length)
-                      : '—'
-                    }
+                  <td className="px-2 py-3 text-center text-xs text-gray-500 bg-gray-100 z-10 border-r border-gray-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}>avg</td>
+                  <td className="px-2 py-3 text-center bg-gray-200 z-10 font-bold border-r border-gray-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL_AVG_WIDTH }}>
+                    {compositeAverages.unweighted.total ?? '—'}
+                  </td>
+                  <td className="px-2 py-3 text-center bg-orange-100 z-10 font-bold border-r border-gray-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, width: COL_AVG_WIDTH }}>
+                    {compositeAverages.unweighted.fp ?? '—'}
+                  </td>
+                  <td className="px-2 py-3 text-center bg-teal-100 z-10 font-bold border-r border-gray-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), width: COL_AVG_WIDTH }}>
+                    {compositeAverages.unweighted.standard ?? '—'}
                   </td>
                   {sortedCompanies.map(company => (
                     <td key={company.surveyId} className="px-3 py-3 text-center border-r border-gray-100 last:border-r-0" style={{ minWidth: 110 }}>
-                      <span className="font-bold text-lg" style={{ color: getScoreColor(company.unweightedScore) }}>
-                        {company.unweightedScore}
-                      </span>
+                      {company.isComplete ? (
+                        <span className="font-bold text-lg" style={{ color: getScoreColor(company.unweightedScore) }}>
+                          {company.unweightedScore}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Incomplete</span>
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -1031,24 +1153,33 @@ export default function AggregateScoringReport() {
                       {sortBy === 'weighted' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                     </button>
                   </td>
-                  <td 
-                    className="px-2 py-3 text-center text-xs text-indigo-600 bg-indigo-100 z-10 border-r border-indigo-200"
-                    style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}
-                  >wgt</td>
-                  <td 
-                    className="px-2 py-3 text-center bg-indigo-200 z-10 font-bold text-indigo-900 border-r border-indigo-200"
-                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL3_WIDTH }}
-                  >
-                    {companyScores.length > 0 
-                      ? Math.round(companyScores.reduce((s, c) => s + c.weightedScore, 0) / companyScores.length)
-                      : '—'
-                    }
+                  <td className="px-2 py-3 text-center text-xs text-indigo-600 bg-indigo-100 z-10 border-r border-indigo-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}>
+                    {totalWeight === 100 ? 'wgt' : <span className="text-red-600">ERR</span>}
+                  </td>
+                  <td className="px-2 py-3 text-center bg-indigo-200 z-10 font-bold text-indigo-900 border-r border-indigo-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL_AVG_WIDTH }}>
+                    {totalWeight === 100 ? (compositeAverages.weighted.total ?? '—') : '—'}
+                  </td>
+                  <td className="px-2 py-3 text-center bg-orange-200 z-10 font-bold border-r border-indigo-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, width: COL_AVG_WIDTH }}>
+                    {totalWeight === 100 ? (compositeAverages.weighted.fp ?? '—') : '—'}
+                  </td>
+                  <td className="px-2 py-3 text-center bg-teal-200 z-10 font-bold border-r border-indigo-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), width: COL_AVG_WIDTH }}>
+                    {totalWeight === 100 ? (compositeAverages.weighted.standard ?? '—') : '—'}
                   </td>
                   {sortedCompanies.map(company => (
                     <td key={company.surveyId} className="px-3 py-3 text-center border-r border-indigo-100 last:border-r-0" style={{ minWidth: 110 }}>
-                      <span className="font-black text-xl text-indigo-900">
-                        {company.weightedScore}
-                      </span>
+                      {!company.isComplete ? (
+                        <span className="text-xs text-gray-400 italic">Incomplete</span>
+                      ) : totalWeight !== 100 ? (
+                        <span className="text-xs text-red-500">Wt≠100%</span>
+                      ) : (
+                        <span className="font-black text-xl text-indigo-900">
+                          {company.weightedScore}
+                        </span>
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -1061,15 +1192,29 @@ export default function AggregateScoringReport() {
                   >
                     <span className="text-sm font-bold text-gray-800">Performance Tier</span>
                   </td>
-                  <td 
-                    className="px-2 py-3 text-center bg-white z-10 border-r border-gray-200"
-                    style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}
-                  ></td>
-                  <td 
-                    className="px-2 py-3 text-center bg-white z-10 border-r border-gray-200"
-                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL3_WIDTH }}
-                  ></td>
+                  <td className="px-2 py-3 text-center bg-white z-10 border-r border-gray-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}></td>
+                  <td className="px-2 py-3 text-center bg-white z-10 border-r border-gray-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL_AVG_WIDTH }}></td>
+                  <td className="px-2 py-3 text-center bg-white z-10 border-r border-gray-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, width: COL_AVG_WIDTH }}></td>
+                  <td className="px-2 py-3 text-center bg-white z-10 border-r border-gray-200"
+                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), width: COL_AVG_WIDTH }}></td>
                   {sortedCompanies.map(company => {
+                    if (!company.isComplete) {
+                      return (
+                        <td key={company.surveyId} className="px-2 py-2 text-center border-r border-gray-100 last:border-r-0" style={{ minWidth: 110 }}>
+                          <span className="text-xs text-gray-400 italic">Incomplete</span>
+                        </td>
+                      );
+                    }
+                    if (totalWeight !== 100) {
+                      return (
+                        <td key={company.surveyId} className="px-2 py-2 text-center border-r border-gray-100 last:border-r-0" style={{ minWidth: 110 }}>
+                          <span className="text-xs text-red-500">—</span>
+                        </td>
+                      );
+                    }
                     const tier = getPerformanceTier(company.weightedScore, company.isProvisional);
                     return (
                       <td key={company.surveyId} className="px-2 py-2 text-center border-r border-gray-100 last:border-r-0" style={{ minWidth: 110 }}>
@@ -1079,6 +1224,9 @@ export default function AggregateScoringReport() {
                         >
                           {tier.name}
                         </span>
+                        {tier.isProvisional && (
+                          <span className="block text-[9px] text-yellow-600 mt-0.5">*Provisional</span>
+                        )}
                       </td>
                     );
                   })}
@@ -1090,30 +1238,30 @@ export default function AggregateScoringReport() {
         )}
 
         {/* Legend */}
-        <div className="mt-6 bg-white rounded-xl shadow p-6 print:mt-4">
-          <h3 className="font-bold text-gray-900 mb-4">Scoring Legend</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+        <div className="mt-6 bg-white rounded-xl shadow p-4 print:mt-4">
+          <h3 className="font-bold text-gray-900 mb-3 text-sm">Scoring Legend</h3>
+          <div className="flex flex-wrap gap-x-8 gap-y-3 text-xs">
             <div>
-              <h4 className="font-semibold text-gray-700 mb-2">Point Values</h4>
-              <ul className="space-y-1 text-gray-600">
+              <h4 className="font-semibold text-gray-700 mb-1">Point Values</h4>
+              <ul className="space-y-0.5 text-gray-600">
                 <li>Currently Offer = 5 pts</li>
                 <li>Planning = 3 pts</li>
                 <li>Assessing = 2 pts</li>
                 <li>Not Able = 0 pts</li>
-                <li>Unsure = 0 pts (excluded from denom)</li>
+                <li>Unsure = 0 pts (in denom)</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-700 mb-2">Geographic Multiplier</h4>
-              <ul className="space-y-1 text-gray-600">
+              <h4 className="font-semibold text-gray-700 mb-1">Geographic Multiplier</h4>
+              <ul className="space-y-0.5 text-gray-600">
                 <li>Consistent = 1.00x</li>
                 <li>Varies = 0.90x</li>
                 <li>Select Only = 0.75x</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-700 mb-2">Performance Tiers</h4>
-              <ul className="space-y-1 text-gray-600">
+              <h4 className="font-semibold text-gray-700 mb-1">Performance Tiers</h4>
+              <ul className="space-y-0.5 text-gray-600">
                 <li><span className="text-green-700">Exemplary</span>: 90-100</li>
                 <li><span className="text-blue-700">Leading</span>: 75-89</li>
                 <li><span className="text-orange-600">Progressing</span>: 60-74</li>
@@ -1122,21 +1270,29 @@ export default function AggregateScoringReport() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-700 mb-2">Data Quality Flags</h4>
-              <ul className="space-y-1 text-gray-600">
+              <h4 className="font-semibold text-gray-700 mb-1">Data Quality</h4>
+              <ul className="space-y-0.5 text-gray-600">
                 <li className="flex items-center gap-1">
-                  <svg className="w-3 h-3 text-yellow-600 inline" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3 h-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  <span>= &gt;40% Unsure responses</span>
+                  = &gt;40% Unsure
                 </li>
-                <li><span className="text-red-600 font-bold">Provisional</span> = 4+ dims flagged</li>
-                <li>All-unsure dim = 0 score</li>
+                <li><span className="text-red-600 font-bold">Provisional</span> = 4+ flagged</li>
+                <li>Max score if 40% unsure ≈ 60</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-700 mb-1">AVG Columns</h4>
+              <ul className="space-y-0.5 text-gray-600">
+                <li><span className="bg-indigo-100 px-1 rounded">ALL</span> = All companies</li>
+                <li><span className="bg-orange-100 px-1 rounded">FP</span> = Founding Partners</li>
+                <li><span className="bg-teal-100 px-1 rounded">STD</span> = Standard</li>
               </ul>
             </div>
           </div>
-          <p className="mt-4 text-xs text-gray-500">
-            Click on any dimension name to view all assessed items. Edit weights directly in the Wt% column or use the Weight Config panel.
+          <p className="mt-3 text-[10px] text-gray-400">
+            Click dimension names to view items. Edit weights in Wt% column. Composites only shown for complete surveys (13/13 dimensions) when weights = 100%.
           </p>
         </div>
       </main>
