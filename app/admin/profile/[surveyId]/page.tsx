@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 import { generateInvoicePDF, downloadInvoicePDF, type InvoiceData } from '@/lib/invoice-generator';
-import InteractiveScoring from '@/components/InteractiveScoring';
 
 // ============================================
 // EXECUTIVE PROFESSIONAL COLORS
@@ -73,6 +72,120 @@ const DIM_TITLES: Record<number, string> = {
   12: 'Continuous Improvement & Outcomes',
   13: 'Communication & Awareness'
 };
+
+// ============================================
+// CORRECT SCORING LOGIC - FROM detailed-response-view.tsx
+// ============================================
+
+const DIMENSION_NAMES_SCORING: Record<number, string> = {
+  1: 'Medical Leave & Flexibility',
+  2: 'Insurance & Financial Protection',
+  3: 'Manager Preparedness & Capability',
+  4: 'Navigation & Expert Resources',
+  5: 'Workplace Accommodations & Modifications',
+  6: 'Culture & Psychological Safety',
+  7: 'Career Continuity & Advancement',
+  8: 'Work Continuation & Resumption',
+  9: 'Executive Commitment & Resources',
+  10: 'Caregiver & Family Support',
+  11: 'Prevention, Wellness & Legal Compliance',
+  12: 'Continuous Improvement & Outcomes',
+  13: 'Communication & Awareness',
+};
+
+const DEFAULT_WEIGHTS: Record<number, number> = {
+  4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3,
+};
+
+const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
+const INSUFFICIENT_DATA_THRESHOLD = 0.40;
+
+function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean } {
+  if (typeof status === 'number') {
+    switch (status) {
+      case 4: return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
+      case 3: return { points: POINTS.PLANNING, isUnsure: false };
+      case 2: return { points: POINTS.ASSESSING, isUnsure: false };
+      case 1: return { points: POINTS.NOT_ABLE, isUnsure: false };
+      case 5: return { points: null, isUnsure: true };
+      default: return { points: null, isUnsure: false };
+    }
+  }
+  if (typeof status === 'string') {
+    const s = status.toLowerCase().trim();
+    if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false };
+    if (s === 'unsure' || s.includes('unsure')) return { points: null, isUnsure: true };
+    if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
+    if (s.includes('planning') || s.includes('development')) return { points: POINTS.PLANNING, isUnsure: false };
+    if (s.includes('assessing') || s.includes('feasibility')) return { points: POINTS.ASSESSING, isUnsure: false };
+    if (s.length > 0) return { points: POINTS.NOT_ABLE, isUnsure: false };
+  }
+  return { points: null, isUnsure: false };
+}
+
+function getGeoMultiplier(geoResponse: string | undefined | null): number {
+  if (!geoResponse) return 1.0;
+  const s = geoResponse.toLowerCase();
+  if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
+  if (s.includes('vary') || s.includes('varies')) return 0.90;
+  if (s.includes('select') || s.includes('only available in select')) return 0.75;
+  return 1.0;
+}
+
+interface DimensionScore {
+  rawScore: number; adjustedScore: number; geoMultiplier: number; totalItems: number;
+  answeredItems: number; unsureCount: number; unsurePercent: number; isInsufficientData: boolean;
+  breakdown: { currentlyOffer: number; planning: number; assessing: number; notAble: number; unsure: number; };
+}
+
+function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | null): DimensionScore {
+  const result: DimensionScore = {
+    rawScore: 0, adjustedScore: 0, geoMultiplier: 1.0, totalItems: 0, answeredItems: 0,
+    unsureCount: 0, unsurePercent: 0, isInsufficientData: false,
+    breakdown: { currentlyOffer: 0, planning: 0, assessing: 0, notAble: 0, unsure: 0 }
+  };
+  if (!dimData) return result;
+  const mainGrid = dimData[`d${dimNum}a`];
+  if (!mainGrid || typeof mainGrid !== 'object') return result;
+  let earnedPoints = 0;
+  Object.values(mainGrid).forEach((status: any) => {
+    result.totalItems++;
+    const { points, isUnsure } = statusToPoints(status);
+    if (isUnsure) { result.unsureCount++; result.answeredItems++; result.breakdown.unsure++; }
+    else if (points !== null) {
+      result.answeredItems++; earnedPoints += points;
+      if (points === POINTS.CURRENTLY_OFFER) result.breakdown.currentlyOffer++;
+      else if (points === POINTS.PLANNING) result.breakdown.planning++;
+      else if (points === POINTS.ASSESSING) result.breakdown.assessing++;
+      else result.breakdown.notAble++;
+    }
+  });
+  result.unsurePercent = result.totalItems > 0 ? result.unsureCount / result.totalItems : 0;
+  result.isInsufficientData = result.unsurePercent > INSUFFICIENT_DATA_THRESHOLD;
+  const maxPoints = result.answeredItems * POINTS.CURRENTLY_OFFER;
+  if (maxPoints > 0) result.rawScore = Math.round((earnedPoints / maxPoints) * 100);
+  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
+  result.geoMultiplier = getGeoMultiplier(geoResponse);
+  result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier);
+  return result;
+}
+
+function getScoreColor(score: number): string {
+  if (score >= 80) return '#2E7D32';
+  if (score >= 60) return '#1565C0';
+  if (score >= 40) return '#EF6C00';
+  return '#C62828';
+}
+
+function getPerformanceTier(score: number, isProvisional: boolean): { name: string; color: string; bg: string; isProvisional: boolean } {
+  let tier: { name: string; color: string; bg: string };
+  if (score >= 90) tier = { name: 'Exemplary', color: '#1B5E20', bg: '#E8F5E9' };
+  else if (score >= 75) tier = { name: 'Leading', color: '#0D47A1', bg: '#E3F2FD' };
+  else if (score >= 60) tier = { name: 'Progressing', color: '#E65100', bg: '#FFF8E1' };
+  else if (score >= 40) tier = { name: 'Emerging', color: '#BF360C', bg: '#FFF3E0' };
+  else tier = { name: 'Beginning', color: '#37474F', bg: '#ECEFF1' };
+  return { ...tier, isProvisional };
+}
 
 // ============================================
 // FIELD LABELS - COMPLETE MAPPING
@@ -1660,13 +1773,7 @@ export default function ProfilePage() {
           {/* EXECUTIVE SUMMARY */}
           <section className="mb-8">
             <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Executive Summary</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard 
-                label="Support Maturity" 
-                value={`${maturityScore}%`}
-                color={BRAND.primary}
-                subtext={`${totalCurrently} of ${totalAnswered} answered`}
-              />
+            <div className="grid grid-cols-3 gap-4">
               <StatCard 
                 label="Currently Offering" 
                 value={totalCurrently}
