@@ -275,14 +275,30 @@ export default function AggregateScoringReport() {
   useEffect(() => {
     const loadAssessments = async () => {
       try {
+        // Get all assessments that have at least one dimension completed
         const { data, error } = await supabase
           .from('assessments')
           .select('*')
-          .eq('survey_completed', true)
           .order('company_name', { ascending: true });
 
         if (error) throw error;
-        setAssessments(data || []);
+        
+        // Filter to only include assessments that have dimension data
+        const assessmentsWithData = (data || []).filter(a => {
+          // Check if any dimension has data
+          for (let i = 1; i <= 13; i++) {
+            const dimData = a[`dimension${i}_data`];
+            if (dimData && typeof dimData === 'object') {
+              const gridData = dimData[`d${i}a`];
+              if (gridData && Object.keys(gridData).length > 0) {
+                return true;
+              }
+            }
+          }
+          return false;
+        });
+        
+        setAssessments(assessmentsWithData);
       } catch (err) {
         console.error('Error loading assessments:', err);
       } finally {
@@ -456,13 +472,30 @@ export default function AggregateScoringReport() {
 
       {/* Main Content */}
       <main className="p-6">
+        {sortedCompanies.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+            <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No Assessments with Dimension Data</h3>
+            <p className="text-gray-600 mb-4">
+              No companies have completed any dimension sections yet.
+            </p>
+            <button
+              onClick={() => router.push('/admin')}
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        ) : (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
+            <table className="text-sm border-collapse">
               <thead>
                 {/* Company Names Header */}
                 <tr className="bg-indigo-900 text-white">
-                  <th className="px-3 py-3 text-left font-semibold sticky left-0 bg-indigo-900 z-20 min-w-[200px] border-r border-indigo-700">
+                  <th className="px-3 py-3 text-left font-semibold sticky left-0 bg-indigo-900 z-20 w-52 min-w-[200px] max-w-[220px] border-r border-indigo-700">
                     Dimension
                   </th>
                   <th className="px-2 py-3 text-center font-semibold w-14 border-r border-indigo-700">Wt%</th>
@@ -498,7 +531,7 @@ export default function AggregateScoringReport() {
                   return (
                     <tr key={dimNum} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td 
-                        className="px-3 py-2 sticky left-0 z-10 border-r border-gray-200" 
+                        className="px-3 py-2 sticky left-0 z-10 border-r border-gray-200 w-52 min-w-[200px] max-w-[220px]" 
                         style={{ backgroundColor: idx % 2 === 0 ? 'white' : '#F9FAFB' }}
                       >
                         <div className="flex items-center gap-2">
@@ -557,7 +590,7 @@ export default function AggregateScoringReport() {
                 
                 {/* Insufficient Data Count Row */}
                 <tr className="bg-yellow-100 border-t-2 border-yellow-300">
-                  <td className="px-3 py-2 sticky left-0 bg-yellow-100 z-10 border-r border-yellow-200">
+                  <td className="px-3 py-2 sticky left-0 bg-yellow-100 z-10 border-r border-yellow-200 w-52 min-w-[200px] max-w-[220px]">
                     <span className="text-sm font-bold text-yellow-800 flex items-center gap-1.5">
                       <svg className="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -585,7 +618,7 @@ export default function AggregateScoringReport() {
 
                 {/* Unweighted Score Row */}
                 <tr className="bg-gray-100">
-                  <td className="px-3 py-3 sticky left-0 bg-gray-100 z-10 border-r border-gray-200">
+                  <td className="px-3 py-3 sticky left-0 bg-gray-100 z-10 border-r border-gray-200 w-52 min-w-[200px] max-w-[220px]">
                     <button onClick={() => handleSort('unweighted')} className="text-sm font-bold text-gray-800 hover:text-indigo-600 flex items-center gap-1">
                       Unweighted Composite
                       {sortBy === 'unweighted' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
@@ -609,7 +642,7 @@ export default function AggregateScoringReport() {
 
                 {/* Weighted Score Row */}
                 <tr className="bg-indigo-100">
-                  <td className="px-3 py-3 sticky left-0 bg-indigo-100 z-10 border-r border-indigo-200">
+                  <td className="px-3 py-3 sticky left-0 bg-indigo-100 z-10 border-r border-indigo-200 w-52 min-w-[200px] max-w-[220px]">
                     <button onClick={() => handleSort('weighted')} className="text-sm font-bold text-indigo-900 hover:text-indigo-600 flex items-center gap-1">
                       Weighted Composite
                       {sortBy === 'weighted' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
@@ -633,7 +666,7 @@ export default function AggregateScoringReport() {
 
                 {/* Performance Tier Row */}
                 <tr className="bg-white border-t-2 border-indigo-300">
-                  <td className="px-3 py-3 sticky left-0 bg-white z-10 border-r border-gray-200">
+                  <td className="px-3 py-3 sticky left-0 bg-white z-10 border-r border-gray-200 w-52 min-w-[200px] max-w-[220px]">
                     <span className="text-sm font-bold text-gray-800">Performance Tier</span>
                   </td>
                   <td className="px-2 py-3 text-center border-r border-gray-200"></td>
@@ -656,6 +689,7 @@ export default function AggregateScoringReport() {
             </table>
           </div>
         </div>
+        )}
 
         {/* Legend */}
         <div className="mt-6 bg-white rounded-xl shadow p-6 print:mt-4">
