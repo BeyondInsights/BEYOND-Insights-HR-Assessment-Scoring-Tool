@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 import { generateInvoicePDF, downloadInvoicePDF, type InvoiceData } from '@/lib/invoice-generator';
+import InteractiveScoring from '@/components/InteractiveScoring';
 
 // ============================================
 // EXECUTIVE PROFESSIONAL COLORS
@@ -1692,6 +1693,9 @@ export default function ProfilePage() {
             )}
           </section>
 
+          {/* INTERACTIVE SCORING - ADD THIS */}
+          <InteractiveScoring assessment={assessment} />
+          
           {/* COMPANY & CONTACT INFO */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* Company Information */}
