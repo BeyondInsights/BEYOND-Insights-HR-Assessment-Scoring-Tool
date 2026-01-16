@@ -30,8 +30,9 @@ const sectionNames: Record<string, string> = {
 }
 
 // ============================================
-// SCORING CONSTANTS & HELPERS
+// SCORING LOGIC - COPIED EXACTLY FROM SCORING PAGE
 // ============================================
+
 const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
@@ -45,48 +46,82 @@ const DIMENSION_NAMES: Record<number, string> = {
   10: 'Caregiver & Family Support',
   11: 'Prevention, Wellness & Legal Compliance',
   12: 'Continuous Improvement & Outcomes',
-  13: 'Communication & Awareness'
+  13: 'Communication & Awareness',
+}
+
+// Default weights - same as scoring page
+const DEFAULT_WEIGHTS: Record<number, number> = {
+  4: 14,   // D4: Navigation
+  8: 13,   // D8: Return-to-Work
+  3: 12,   // D3: Manager Preparedness
+  2: 11,   // D2: Insurance & Financial
+  13: 10,  // D13: Communication
+  6: 8,    // D6: Culture
+  1: 7,    // D1: Medical Leave
+  5: 7,    // D5: Accommodations
+  7: 4,    // D7: Career Continuity
+  9: 4,    // D9: Executive Commitment
+  10: 4,   // D10: Caregiver & Family
+  11: 3,   // D11: Prevention & Wellness
+  12: 3,   // D12: Continuous Improvement
 }
 
 const POINTS = {
   CURRENTLY_OFFER: 5,
   PLANNING: 3,
   ASSESSING: 2,
-  NOT_ABLE: 0,   // 0 pts, IN denominator
-  UNSURE: 0      // 0 pts, IN denominator (NOT excluded!)
+  NOT_ABLE: 0,
 }
 
-function statusToPoints(status: string): { points: number; isUnsure: boolean } {
-  if (!status) return { points: 0, isUnsure: false }
-  
-  const normalized = status.toLowerCase().trim()
-  
-  if (normalized.includes('unsure') || normalized === '?') {
-    return { points: 0, isUnsure: true }  // 0 pts, IN denominator
-  }
-  if (normalized.includes('currently') || normalized.includes('offer') || normalized === 'yes') {
-    return { points: POINTS.CURRENTLY_OFFER, isUnsure: false }
-  }
-  if (normalized.includes('planning') || normalized.includes('development') || normalized.includes('active')) {
-    return { points: POINTS.PLANNING, isUnsure: false }
-  }
-  if (normalized.includes('assessing') || normalized.includes('feasibility')) {
-    return { points: POINTS.ASSESSING, isUnsure: false }
-  }
-  if (normalized.includes('not able') || normalized.includes('foreseeable') || normalized === 'no') {
-    return { points: POINTS.NOT_ABLE, isUnsure: false }
+const INSUFFICIENT_DATA_THRESHOLD = 0.40
+
+// EXACT copy of statusToPoints from scoring page
+function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean } {
+  if (typeof status === 'number') {
+    switch (status) {
+      case 4: return { points: POINTS.CURRENTLY_OFFER, isUnsure: false }
+      case 3: return { points: POINTS.PLANNING, isUnsure: false }
+      case 2: return { points: POINTS.ASSESSING, isUnsure: false }
+      case 1: return { points: POINTS.NOT_ABLE, isUnsure: false }
+      case 5: return { points: null, isUnsure: true }
+      default: return { points: null, isUnsure: false }
+    }
   }
   
-  return { points: 0, isUnsure: false }
+  if (typeof status === 'string') {
+    const s = status.toLowerCase().trim()
+    if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false }
+    if (s === 'unsure' || s.includes('unsure')) return { points: null, isUnsure: true }
+    if (s.includes('currently') || s.includes('offer') || s.includes('provide') || 
+        s.includes('use') || s.includes('track') || s.includes('measure')) {
+      return { points: POINTS.CURRENTLY_OFFER, isUnsure: false }
+    }
+    if (s.includes('planning') || s.includes('development')) return { points: POINTS.PLANNING, isUnsure: false }
+    if (s.includes('assessing') || s.includes('feasibility')) return { points: POINTS.ASSESSING, isUnsure: false }
+    if (s.length > 0) return { points: POINTS.NOT_ABLE, isUnsure: false }
+  }
+  return { points: null, isUnsure: false }
+}
+
+// EXACT copy of getGeoMultiplier from scoring page
+function getGeoMultiplier(geoResponse: string | undefined | null): number {
+  if (!geoResponse) return 1.0
+  const s = geoResponse.toLowerCase()
+  if (s.includes('consistent') || s.includes('generally consistent')) return 1.0
+  if (s.includes('vary') || s.includes('varies')) return 0.90
+  if (s.includes('select') || s.includes('only available in select')) return 0.75
+  return 1.0
 }
 
 interface DimensionScore {
   rawScore: number
-  maxPossible: number
-  percentage: number
+  adjustedScore: number
+  geoMultiplier: number
+  totalItems: number
   answeredItems: number
   unsureCount: number
   unsurePercent: number
+  isInsufficientData: boolean
   breakdown: {
     currentlyOffer: number
     planning: number
@@ -96,14 +131,17 @@ interface DimensionScore {
   }
 }
 
-function calculateDimensionScore(dimNum: number, assessment: any): DimensionScore {
+// EXACT copy of calculateDimensionScore from scoring page (with breakdown added)
+function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | null): DimensionScore {
   const result: DimensionScore = {
     rawScore: 0,
-    maxPossible: 0,
-    percentage: 0,
+    adjustedScore: 0,
+    geoMultiplier: 1.0,
+    totalItems: 0,
     answeredItems: 0,
     unsureCount: 0,
     unsurePercent: 0,
+    isInsufficientData: false,
     breakdown: {
       currentlyOffer: 0,
       planning: 0,
@@ -113,43 +151,79 @@ function calculateDimensionScore(dimNum: number, assessment: any): DimensionScor
     }
   }
   
-  const dimData = assessment[`dimension${dimNum}_data`]
   if (!dimData) return result
   
   const mainGrid = dimData[`d${dimNum}a`]
   if (!mainGrid || typeof mainGrid !== 'object') return result
   
   let earnedPoints = 0
-  let totalItems = 0
   
   Object.values(mainGrid).forEach((status: any) => {
-    totalItems++
+    result.totalItems++
     const { points, isUnsure } = statusToPoints(status)
-    
-    // ALL responses count in denominator (including Unsure!)
-    earnedPoints += points
     
     if (isUnsure) {
       result.unsureCount++
+      result.answeredItems++ // Unsure counts in denominator with 0 points
       result.breakdown.unsure++
-    } else if (points === POINTS.CURRENTLY_OFFER) {
-      result.breakdown.currentlyOffer++
-    } else if (points === POINTS.PLANNING) {
-      result.breakdown.planning++
-    } else if (points === POINTS.ASSESSING) {
-      result.breakdown.assessing++
-    } else {
-      result.breakdown.notAble++
+      // earnedPoints += 0 (implicit)
+    } else if (points !== null) {
+      result.answeredItems++
+      earnedPoints += points
+      
+      // Track breakdown
+      if (points === POINTS.CURRENTLY_OFFER) {
+        result.breakdown.currentlyOffer++
+      } else if (points === POINTS.PLANNING) {
+        result.breakdown.planning++
+      } else if (points === POINTS.ASSESSING) {
+        result.breakdown.assessing++
+      } else {
+        result.breakdown.notAble++
+      }
     }
   })
   
-  result.answeredItems = totalItems
-  result.rawScore = earnedPoints
-  result.maxPossible = totalItems * POINTS.CURRENTLY_OFFER
-  result.percentage = result.maxPossible > 0 ? Math.round((earnedPoints / result.maxPossible) * 100) : 0
-  result.unsurePercent = totalItems > 0 ? Math.round((result.unsureCount / totalItems) * 100) : 0
+  result.unsurePercent = result.totalItems > 0 ? result.unsureCount / result.totalItems : 0
+  result.isInsufficientData = result.unsurePercent > INSUFFICIENT_DATA_THRESHOLD
+  
+  // Raw score calculation - EXACT same as scoring page
+  const maxPoints = result.answeredItems * POINTS.CURRENTLY_OFFER
+  if (maxPoints > 0) {
+    result.rawScore = Math.round((earnedPoints / maxPoints) * 100)
+  } else {
+    result.rawScore = 0
+  }
+  
+  // Apply geo multiplier - EXACT same as scoring page
+  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`]
+  result.geoMultiplier = getGeoMultiplier(geoResponse)
+  result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier)
   
   return result
+}
+
+function getScoreColor(score: number): string {
+  if (score >= 80) return '#2E7D32'
+  if (score >= 60) return '#1565C0'
+  if (score >= 40) return '#EF6C00'
+  return '#C62828'
+}
+
+function getPerformanceTier(score: number, isProvisional: boolean): { name: string; color: string; bg: string; isProvisional: boolean } {
+  let tier: { name: string; color: string; bg: string }
+  if (score >= 90) {
+    tier = { name: 'Exemplary', color: '#1B5E20', bg: '#E8F5E9' }
+  } else if (score >= 75) {
+    tier = { name: 'Leading', color: '#0D47A1', bg: '#E3F2FD' }
+  } else if (score >= 60) {
+    tier = { name: 'Progressing', color: '#E65100', bg: '#FFF8E1' }
+  } else if (score >= 40) {
+    tier = { name: 'Emerging', color: '#BF360C', bg: '#FFF3E0' }
+  } else {
+    tier = { name: 'Beginning', color: '#37474F', bg: '#ECEFF1' }
+  }
+  return { ...tier, isProvisional }
 }
 
 export default function DetailedResponseView({ assessment, onClose }: DetailedViewProps) {
@@ -176,22 +250,57 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
   }
 
   // ============================================
-  // CALCULATE DIMENSION SCORES
+  // CALCULATE DIMENSION SCORES - EXACT SAME LOGIC AS SCORING PAGE
   // ============================================
   const dimensionScores = useMemo(() => {
     const scores: Record<number, DimensionScore> = {}
     for (let i = 1; i <= 13; i++) {
-      scores[i] = calculateDimensionScore(i, assessment)
+      const dimData = assessment[`dimension${i}_data`]
+      scores[i] = calculateDimensionScore(i, dimData)
     }
     return scores
   }, [assessment])
 
-  // Calculate composite scores
+  // Calculate composite scores - EXACT SAME LOGIC AS SCORING PAGE
   const compositeScores = useMemo(() => {
-    let totalEarned = 0
-    let totalMax = 0
-    let dimensionsWithData = 0
+    let completedDimCount = 0
+    let insufficientDataCount = 0
     
+    for (let i = 1; i <= 13; i++) {
+      if (dimensionScores[i].totalItems > 0) {
+        completedDimCount++
+      }
+      if (dimensionScores[i].isInsufficientData) {
+        insufficientDataCount++
+      }
+    }
+    
+    const isComplete = completedDimCount === 13
+    const isProvisional = insufficientDataCount >= 4
+    
+    let unweightedScore = 0
+    let weightedScore = 0
+    
+    if (completedDimCount > 0) {
+      // Unweighted = average of adjusted scores
+      const dimsWithData = Object.values(dimensionScores).filter(d => d.totalItems > 0)
+      unweightedScore = dimsWithData.length > 0
+        ? Math.round(dimsWithData.reduce((sum, d) => sum + d.adjustedScore, 0) / dimsWithData.length)
+        : 0
+      
+      // Weighted score using default weights
+      const totalWeight = Object.values(DEFAULT_WEIGHTS).reduce((sum, w) => sum + w, 0)
+      if (totalWeight > 0) {
+        for (let i = 1; i <= 13; i++) {
+          const dim = dimensionScores[i]
+          const weight = DEFAULT_WEIGHTS[i] || 0
+          weightedScore += dim.adjustedScore * (weight / totalWeight)
+        }
+      }
+      weightedScore = Math.round(weightedScore)
+    }
+    
+    // Aggregate breakdown
     let totalCurrentlyOffer = 0
     let totalPlanning = 0
     let totalAssessing = 0
@@ -200,31 +309,23 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
     
     for (let i = 1; i <= 13; i++) {
       const score = dimensionScores[i]
-      if (score.answeredItems > 0) {
-        dimensionsWithData++
-        totalEarned += score.rawScore
-        totalMax += score.maxPossible
-        
-        totalCurrentlyOffer += score.breakdown.currentlyOffer
-        totalPlanning += score.breakdown.planning
-        totalAssessing += score.breakdown.assessing
-        totalNotAble += score.breakdown.notAble
-        totalUnsure += score.breakdown.unsure
-      }
+      totalCurrentlyOffer += score.breakdown.currentlyOffer
+      totalPlanning += score.breakdown.planning
+      totalAssessing += score.breakdown.assessing
+      totalNotAble += score.breakdown.notAble
+      totalUnsure += score.breakdown.unsure
     }
     
-    const unweighted = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0
+    const tier = completedDimCount > 0 ? getPerformanceTier(weightedScore, isProvisional) : null
     
-    // Index: 100 = benchmark (using 50 as default benchmark for single company view)
-    const benchmark = 50
-    const index = benchmark > 0 ? Math.round((unweighted / benchmark) * 100) : 0
-    
-    return { 
-      unweighted, 
-      index,
-      dimensionsWithData,
-      totalEarned,
-      totalMax,
+    return {
+      unweightedScore,
+      weightedScore,
+      completedDimCount,
+      isComplete,
+      isProvisional,
+      insufficientDataCount,
+      tier,
       breakdown: {
         currentlyOffer: totalCurrentlyOffer,
         planning: totalPlanning,
@@ -236,7 +337,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
   }, [dimensionScores])
 
   // Check if any dimension has data
-  const hasAnyDimensionData = compositeScores.dimensionsWithData > 0
+  const hasAnyDimensionData = compositeScores.completedDimCount > 0
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -426,11 +527,56 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
           )}
 
           {/* ============================================ */}
-          {/* NEW: ASSESSMENT SCORING SECTION */}
+          {/* ASSESSMENT SCORING SECTION */}
           {/* ============================================ */}
           {hasAnyDimensionData && (
             <div className="mb-6 bg-indigo-50 rounded-lg p-5 border border-indigo-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Assessment Scoring</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-900">Assessment Scoring</h3>
+                {compositeScores.tier && (
+                  <span 
+                    className="px-3 py-1.5 rounded-lg text-sm font-bold"
+                    style={{ backgroundColor: compositeScores.tier.bg, color: compositeScores.tier.color }}
+                  >
+                    {compositeScores.tier.name}
+                    {compositeScores.tier.isProvisional && ' *'}
+                  </span>
+                )}
+              </div>
+              
+              {/* Summary Cards */}
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="bg-white rounded-lg p-3 border border-indigo-200">
+                  <p className="text-xs text-gray-500 uppercase">Weighted Score</p>
+                  <p className="text-2xl font-bold" style={{ color: getScoreColor(compositeScores.weightedScore) }}>
+                    {compositeScores.completedDimCount > 0 ? compositeScores.weightedScore : '—'}
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-indigo-200">
+                  <p className="text-xs text-gray-500 uppercase">Unweighted Avg</p>
+                  <p className="text-2xl font-bold text-gray-700">
+                    {compositeScores.completedDimCount > 0 ? compositeScores.unweightedScore : '—'}
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-indigo-200">
+                  <p className="text-xs text-gray-500 uppercase">Dimensions</p>
+                  <p className="text-2xl font-bold text-gray-700">
+                    {compositeScores.completedDimCount}/13
+                  </p>
+                </div>
+              </div>
+
+              {/* Warnings */}
+              {compositeScores.isProvisional && (
+                <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg flex items-center gap-2">
+                  <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-yellow-800 text-sm font-medium">
+                    Provisional Classification: {compositeScores.insufficientDataCount} dimensions have &gt;40% "Unsure" responses
+                  </span>
+                </div>
+              )}
               
               {/* Scoring Table */}
               <div className="bg-white rounded-lg overflow-hidden border border-indigo-200">
@@ -438,38 +584,53 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                   <thead>
                     <tr className="bg-indigo-800 text-white">
                       <th className="px-3 py-2 text-left font-semibold">Dimension</th>
-                      <th className="px-2 py-2 text-center font-semibold w-16">Score</th>
-                      <th className="px-2 py-2 text-center font-semibold w-20">Points</th>
+                      <th className="px-2 py-2 text-center font-semibold w-12">Wt%</th>
+                      <th className="px-2 py-2 text-center font-semibold w-16">Raw</th>
+                      <th className="px-2 py-2 text-center font-semibold w-12">Geo</th>
+                      <th className="px-2 py-2 text-center font-semibold w-16">Adj</th>
                       <th className="px-3 py-2 text-left font-semibold">Breakdown</th>
-                      <th className="px-2 py-2 text-center font-semibold w-20">Unsure</th>
+                      <th className="px-2 py-2 text-center font-semibold w-16">Unsure</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {[1,2,3,4,5,6,7,8,9,10,11,12,13].map((dim) => {
+                    {[4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12].map((dim) => {
                       const score = dimensionScores[dim]
-                      const hasData = score.answeredItems > 0
-                      const isHighUnsure = score.unsurePercent > 40
+                      const hasData = score.totalItems > 0
+                      const isHighUnsure = score.isInsufficientData
+                      const weight = DEFAULT_WEIGHTS[dim]
                       
                       return (
                         <tr key={dim} className={`border-b ${isHighUnsure ? 'bg-amber-50' : 'hover:bg-gray-50'}`}>
                           <td className="px-3 py-2 font-medium text-gray-900">
                             D{dim}: {DIMENSION_NAMES[dim]}
                           </td>
+                          <td className="px-2 py-2 text-center text-gray-500 text-xs">
+                            {weight}%
+                          </td>
                           <td className="px-2 py-2 text-center">
                             {hasData ? (
-                              <span className={`font-bold ${
-                                score.percentage >= 80 ? 'text-green-600' :
-                                score.percentage >= 60 ? 'text-blue-600' :
-                                score.percentage >= 40 ? 'text-amber-600' : 'text-gray-600'
-                              }`}>
-                                {score.percentage}%
-                              </span>
+                              <span className="text-gray-600">{score.rawScore}</span>
                             ) : (
                               <span className="text-gray-400">—</span>
                             )}
                           </td>
-                          <td className="px-2 py-2 text-center text-gray-600">
-                            {hasData ? `${score.rawScore}/${score.maxPossible}` : '—'}
+                          <td className="px-2 py-2 text-center text-xs">
+                            {hasData && score.geoMultiplier < 1 ? (
+                              <span className="text-orange-600">{score.geoMultiplier}x</span>
+                            ) : hasData ? (
+                              <span className="text-gray-400">1.0x</span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="px-2 py-2 text-center">
+                            {hasData ? (
+                              <span className={`font-bold`} style={{ color: getScoreColor(score.adjustedScore) }}>
+                                {score.adjustedScore}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
                           </td>
                           <td className="px-3 py-2">
                             {hasData ? (
@@ -479,7 +640,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                                 <span className="text-orange-500 font-medium" title="Assessing (2 pts)">○{score.breakdown.assessing}</span>
                                 <span className="text-red-500 font-medium" title="Not Able (0 pts)">✗{score.breakdown.notAble}</span>
                                 {score.breakdown.unsure > 0 && (
-                                  <span className="text-gray-400 font-medium" title="Unsure (0 pts)">?{score.breakdown.unsure}</span>
+                                  <span className="text-gray-400 font-medium" title="Unsure (0 pts, in denominator)">?{score.breakdown.unsure}</span>
                                 )}
                               </div>
                             ) : (
@@ -487,9 +648,9 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                             )}
                           </td>
                           <td className="px-2 py-2 text-center">
-                            {hasData && score.unsurePercent > 0 ? (
+                            {hasData && score.unsureCount > 0 ? (
                               <span className={isHighUnsure ? 'text-amber-600 font-semibold' : 'text-gray-500'}>
-                                {isHighUnsure && '⚠️'}{score.unsurePercent}%
+                                {isHighUnsure && '⚠️'}{Math.round(score.unsurePercent * 100)}%
                               </span>
                             ) : (
                               <span className="text-gray-400">—</span>
@@ -499,14 +660,18 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                       )
                     })}
                     
-                    {/* TOTAL ROW with INDEX */}
+                    {/* TOTAL ROW */}
                     <tr className="bg-indigo-100 font-bold border-t-2 border-indigo-300">
-                      <td className="px-3 py-3 text-indigo-900">TOTAL</td>
-                      <td className="px-2 py-3 text-center text-indigo-900 text-lg">
-                        {compositeScores.unweighted}%
-                      </td>
+                      <td className="px-3 py-3 text-indigo-900">WEIGHTED TOTAL</td>
+                      <td className="px-2 py-3 text-center text-indigo-600 text-xs">100%</td>
                       <td className="px-2 py-3 text-center text-indigo-700">
-                        {compositeScores.totalEarned}/{compositeScores.totalMax}
+                        {compositeScores.unweightedScore}
+                      </td>
+                      <td className="px-2 py-3 text-center text-indigo-600 text-xs">—</td>
+                      <td className="px-2 py-3 text-center">
+                        <span className="text-xl" style={{ color: getScoreColor(compositeScores.weightedScore) }}>
+                          {compositeScores.weightedScore}
+                        </span>
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2 text-xs">
@@ -520,14 +685,9 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                         </div>
                       </td>
                       <td className="px-2 py-3 text-center">
-                        <div className="flex flex-col items-center">
-                          <span className={`text-lg font-bold ${
-                            compositeScores.index >= 100 ? 'text-green-600' : 'text-amber-600'
-                          }`}>
-                            {compositeScores.index}
-                          </span>
-                          <span className="text-[10px] text-indigo-600 font-normal">Index</span>
-                        </div>
+                        {compositeScores.insufficientDataCount > 0 && (
+                          <span className="text-amber-600 text-xs">{compositeScores.insufficientDataCount} dims</span>
+                        )}
                       </td>
                     </tr>
                   </tbody>
@@ -541,8 +701,12 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                 <span><span className="text-blue-600 font-bold">●</span> Planning (3pts)</span>
                 <span><span className="text-orange-500 font-bold">○</span> Assessing (2pts)</span>
                 <span><span className="text-red-500 font-bold">✗</span> Not Able (0pts)</span>
-                <span><span className="text-gray-400 font-bold">?</span> Unsure (0pts)</span>
-                <span className="text-gray-500 ml-2">| Index: 100 = benchmark</span>
+                <span><span className="text-gray-400 font-bold">?</span> Unsure (0pts, in denominator)</span>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                <span><strong>Geo:</strong> Consistent=1.0x, Varies=0.9x, Select=0.75x</span>
+                <span>|</span>
+                <span><strong>⚠️</strong> = &gt;40% Unsure (Insufficient Data)</span>
               </div>
             </div>
           )}
