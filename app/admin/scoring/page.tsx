@@ -1030,13 +1030,13 @@ export default function AggregateScoringReport() {
                     className="px-4 py-1.5 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500"
                     style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 30, width: 3 * COL_AVG_WIDTH }}
                   >
-                    📊 AVERAGES
+                    AVERAGES
                   </th>
                   <th 
                     colSpan={sortedCompanies.length}
                     className="px-4 py-1.5 text-center text-xs font-medium bg-slate-700"
                   >
-                    🏢 COMPANIES ({sortedCompanies.length})
+                    COMPANIES ({sortedCompanies.length})
                   </th>
                 </tr>
                 <tr className="bg-indigo-900 text-white">
