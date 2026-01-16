@@ -1,32 +1,37 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import Image from 'next/image'
+import { useMemo } from 'react'
 
 interface DetailedViewProps {
   assessment: any
   onClose: () => void
 }
 
-// ============================================
-// BRAND COLORS
-// ============================================
-const BRAND = {
-  orange: '#F37021',
-  lightBlue: '#C7EAFB',
-  gray: { 900: '#757E84', 700: '#9CA3AF', 500: '#D1D5DB' }
+const sectionNames: Record<string, string> = {
+  firmographics_complete: 'Company Firmographics',
+  general_benefits_complete: 'General Benefits',
+  current_support_complete: 'Current Support Programs',
+  dimension1_complete: 'Medical Leave & Flexibility',
+  dimension2_complete: 'Insurance & Financial Protection',
+  dimension3_complete: 'Manager Preparedness & Capability',
+  dimension4_complete: 'Navigation & Expert Resources',
+  dimension5_complete: 'Workplace Accommodations',
+  dimension6_complete: 'Culture & Psychological Safety',
+  dimension7_complete: 'Career Continuity & Advancement',
+  dimension8_complete: 'Work Continuation & Resumption',
+  dimension9_complete: 'Executive Commitment & Resources',
+  dimension10_complete: 'Caregiver & Family Support',
+  dimension11_complete: 'Prevention, Wellness & Legal Compliance',
+  dimension12_complete: 'Continuous Improvement & Outcomes',
+  dimension13_complete: 'Communication & Awareness',
+  cross_dimensional_complete: 'Cross-Dimensional Assessment',
+  'employee-impact-assessment_complete': 'Employee Impact Assessment'
 }
 
 // ============================================
-// SCORING CONSTANTS
+// SCORING CONSTANTS & HELPERS
 // ============================================
-const POINTS = {
-  CURRENTLY_OFFER: 5,
-  PLANNING: 3,
-  ASSESSING: 2,
-  NOT_ABLE: 0,   // 0 pts, IN denominator
-  UNSURE: 0      // 0 pts, IN denominator (NOT excluded!)
-}
-
 const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
@@ -43,50 +48,21 @@ const DIMENSION_NAMES: Record<number, string> = {
   13: 'Communication & Awareness'
 }
 
-const DIMENSION_ITEM_COUNTS: Record<number, number> = {
-  1: 11, 2: 17, 3: 10, 4: 10, 5: 11, 6: 12, 7: 9, 8: 12, 9: 11, 10: 19, 11: 13, 12: 8, 13: 9
+const POINTS = {
+  CURRENTLY_OFFER: 5,
+  PLANNING: 3,
+  ASSESSING: 2,
+  NOT_ABLE: 0,   // 0 pts, IN denominator
+  UNSURE: 0      // 0 pts, IN denominator (NOT excluded!)
 }
 
-// Default weights (sum to 100%)
-const DEFAULT_WEIGHTS: Record<number, number> = {
-  1: 10, 2: 10, 3: 8, 4: 8, 5: 7, 6: 8, 7: 6, 8: 7, 9: 6, 10: 8, 11: 6, 12: 8, 13: 8
-}
-
-// ============================================
-// SECTION CONFIGURATION
-// ============================================
-const sectionNames: Record<string, string> = {
-  firmographics_complete: 'Company Firmographics',
-  general_benefits_complete: 'General Benefits',
-  current_support_complete: 'Current Support Programs',
-  dimension1_complete: 'D1: Medical Leave & Flexibility',
-  dimension2_complete: 'D2: Insurance & Financial Protection',
-  dimension3_complete: 'D3: Manager Preparedness',
-  dimension4_complete: 'D4: Navigation & Expert Resources',
-  dimension5_complete: 'D5: Workplace Accommodations',
-  dimension6_complete: 'D6: Culture & Psychological Safety',
-  dimension7_complete: 'D7: Career Continuity',
-  dimension8_complete: 'D8: Work Continuation',
-  dimension9_complete: 'D9: Executive Commitment',
-  dimension10_complete: 'D10: Caregiver & Family Support',
-  dimension11_complete: 'D11: Prevention & Wellness',
-  dimension12_complete: 'D12: Continuous Improvement',
-  dimension13_complete: 'D13: Communication & Awareness',
-  cross_dimensional_complete: 'Cross-Dimensional Assessment',
-  employee_impact_complete: 'Employee Impact Assessment'
-}
-
-// ============================================
-// SCORING HELPER FUNCTIONS
-// ============================================
 function statusToPoints(status: string): { points: number; isUnsure: boolean } {
   if (!status) return { points: 0, isUnsure: false }
   
   const normalized = status.toLowerCase().trim()
   
-  // UNSURE = 0 points, but STILL COUNTS in denominator
   if (normalized.includes('unsure') || normalized === '?') {
-    return { points: 0, isUnsure: true }
+    return { points: 0, isUnsure: true }  // 0 pts, IN denominator
   }
   if (normalized.includes('currently') || normalized.includes('offer') || normalized === 'yes') {
     return { points: POINTS.CURRENTLY_OFFER, isUnsure: false }
@@ -108,7 +84,6 @@ interface DimensionScore {
   rawScore: number
   maxPossible: number
   percentage: number
-  totalItems: number
   answeredItems: number
   unsureCount: number
   unsurePercent: number
@@ -118,7 +93,6 @@ interface DimensionScore {
     assessing: number
     notAble: number
     unsure: number
-    noResponse: number
   }
 }
 
@@ -127,7 +101,6 @@ function calculateDimensionScore(dimNum: number, assessment: any): DimensionScor
     rawScore: 0,
     maxPossible: 0,
     percentage: 0,
-    totalItems: 0,
     answeredItems: 0,
     unsureCount: 0,
     unsurePercent: 0,
@@ -136,8 +109,7 @@ function calculateDimensionScore(dimNum: number, assessment: any): DimensionScor
       planning: 0,
       assessing: 0,
       notAble: 0,
-      unsure: 0,
-      noResponse: 0
+      unsure: 0
     }
   }
   
@@ -148,17 +120,15 @@ function calculateDimensionScore(dimNum: number, assessment: any): DimensionScor
   if (!mainGrid || typeof mainGrid !== 'object') return result
   
   let earnedPoints = 0
-  let itemsInDenominator = 0
+  let totalItems = 0
   
   Object.values(mainGrid).forEach((status: any) => {
-    result.totalItems++
+    totalItems++
     const { points, isUnsure } = statusToPoints(status)
     
     // ALL responses count in denominator (including Unsure!)
-    itemsInDenominator++
     earnedPoints += points
     
-    // Track breakdown
     if (isUnsure) {
       result.unsureCount++
       result.breakdown.unsure++
@@ -168,29 +138,46 @@ function calculateDimensionScore(dimNum: number, assessment: any): DimensionScor
       result.breakdown.planning++
     } else if (points === POINTS.ASSESSING) {
       result.breakdown.assessing++
-    } else if (points === POINTS.NOT_ABLE) {
-      result.breakdown.notAble++
     } else {
-      result.breakdown.noResponse++
+      result.breakdown.notAble++
     }
   })
   
-  result.answeredItems = itemsInDenominator
+  result.answeredItems = totalItems
   result.rawScore = earnedPoints
-  result.maxPossible = itemsInDenominator * POINTS.CURRENTLY_OFFER
+  result.maxPossible = totalItems * POINTS.CURRENTLY_OFFER
   result.percentage = result.maxPossible > 0 ? Math.round((earnedPoints / result.maxPossible) * 100) : 0
-  result.unsurePercent = result.totalItems > 0 ? Math.round((result.unsureCount / result.totalItems) * 100) : 0
+  result.unsurePercent = totalItems > 0 ? Math.round((result.unsureCount / totalItems) * 100) : 0
   
   return result
 }
 
-// ============================================
-// MAIN COMPONENT
-// ============================================
 export default function DetailedResponseView({ assessment, onClose }: DetailedViewProps) {
-  const [activeSection, setActiveSection] = useState<string>('overview')
-  
-  // Calculate all dimension scores
+  const sections = Object.entries(sectionNames).map(([key, name]) => ({
+    key,
+    name,
+    completed: assessment[key as keyof typeof assessment] === true
+  }))
+
+  const completedSections = sections.filter(s => s.completed).length
+  const totalSections = sections.length
+  const completionPercentage = Math.round((completedSections / totalSections) * 100)
+
+  // Get firmographics data
+  const firmographics = assessment.firmographics_data || {}
+
+  // Get the survey ID for profile link
+  const surveyId = assessment.app_id || assessment.survey_id || ''
+
+  // Open company profile in new tab (admin version)
+  const openProfile = () => {
+    const profileUrl = `/admin/profile/${surveyId}`
+    window.open(profileUrl, '_blank')
+  }
+
+  // ============================================
+  // CALCULATE DIMENSION SCORES
+  // ============================================
   const dimensionScores = useMemo(() => {
     const scores: Record<number, DimensionScore> = {}
     for (let i = 1; i <= 13; i++) {
@@ -198,16 +185,13 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
     }
     return scores
   }, [assessment])
-  
+
   // Calculate composite scores
   const compositeScores = useMemo(() => {
     let totalEarned = 0
     let totalMax = 0
-    let weightedSum = 0
-    let totalWeight = 0
-    let dimensionsCompleted = 0
+    let dimensionsWithData = 0
     
-    // Totals for breakdown
     let totalCurrentlyOffer = 0
     let totalPlanning = 0
     let totalAssessing = 0
@@ -217,7 +201,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
     for (let i = 1; i <= 13; i++) {
       const score = dimensionScores[i]
       if (score.answeredItems > 0) {
-        dimensionsCompleted++
+        dimensionsWithData++
         totalEarned += score.rawScore
         totalMax += score.maxPossible
         
@@ -226,26 +210,19 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
         totalAssessing += score.breakdown.assessing
         totalNotAble += score.breakdown.notAble
         totalUnsure += score.breakdown.unsure
-        
-        const weight = DEFAULT_WEIGHTS[i]
-        weightedSum += (score.percentage / 100) * weight
-        totalWeight += weight
       }
     }
     
     const unweighted = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0
-    const weighted = totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 100) : 0
     
-    // Index: 100 = benchmark (using average of all companies, defaulting to 50 for single company view)
+    // Index: 100 = benchmark (using 50 as default benchmark for single company view)
     const benchmark = 50
     const index = benchmark > 0 ? Math.round((unweighted / benchmark) * 100) : 0
     
     return { 
       unweighted, 
-      weighted, 
       index,
-      dimensionsCompleted,
-      totalDimensions: 13,
+      dimensionsWithData,
       totalEarned,
       totalMax,
       breakdown: {
@@ -257,72 +234,31 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
       }
     }
   }, [dimensionScores])
-  
-  // Get section completion status
-  const getSectionStatus = (key: string): 'complete' | 'incomplete' | 'not_started' => {
-    const completeKey = key.includes('_complete') ? key : `${key}_complete`
-    const dataKey = key.replace('_complete', '_data')
-    
-    if (assessment[completeKey]) return 'complete'
-    
-    const data = assessment[dataKey] || assessment[key.replace('_complete', '_data')]
-    if (data && Object.keys(data).length > 0) return 'incomplete'
-    
-    return 'not_started'
-  }
 
-  // Format data for display
-  const formatValue = (value: any): string => {
-    if (value === null || value === undefined) return '—'
-    if (typeof value === 'boolean') return value ? 'Yes' : 'No'
-    if (Array.isArray(value)) return value.join(', ') || '—'
-    if (typeof value === 'object') return JSON.stringify(value, null, 2)
-    return String(value)
-  }
-
-  // Render data section
-  const renderDataSection = (data: any, title: string) => {
-    if (!data || Object.keys(data).length === 0) {
-      return (
-        <div className="text-gray-500 italic py-4">No data recorded for this section</div>
-      )
-    }
-    
-    return (
-      <div className="space-y-3">
-        {Object.entries(data).map(([key, value]) => (
-          <div key={key} className="flex border-b border-gray-100 pb-2">
-            <div className="w-1/3 text-sm font-medium text-gray-600">{key}</div>
-            <div className="w-2/3 text-sm text-gray-900">{formatValue(value)}</div>
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  // Performance tier based on unweighted score
-  const getPerformanceTier = (score: number): { tier: string; color: string; bgColor: string } => {
-    if (score >= 80) return { tier: 'Exceptional', color: 'text-green-700', bgColor: 'bg-green-100' }
-    if (score >= 60) return { tier: 'Strong', color: 'text-blue-700', bgColor: 'bg-blue-100' }
-    if (score >= 40) return { tier: 'Developing', color: 'text-amber-700', bgColor: 'bg-amber-100' }
-    return { tier: 'Emerging', color: 'text-gray-700', bgColor: 'bg-gray-100' }
-  }
-
-  const performanceTier = getPerformanceTier(compositeScores.unweighted)
+  // Check if any dimension has data
+  const hasAnyDimensionData = compositeScores.dimensionsWithData > 0
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-        
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#F37021] to-orange-600 text-white p-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">{assessment.company_name || 'Company Profile'}</h2>
-            <p className="text-orange-100 text-sm mt-1">
-              Survey ID: {assessment.survey_id} • {assessment.email}
-            </p>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header with BI Logo */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-white rounded-lg p-2">
+              <Image 
+                src="/BI_LOGO_FINAL.png" 
+                alt="Beyond Insights" 
+                width={140} 
+                height={42}
+                className="h-8 w-auto"
+              />
+            </div>
+            <div className="border-l border-white/30 pl-4">
+              <p className="text-blue-100 text-sm">Survey ID</p>
+              <p className="font-semibold">{surveyId || 'N/A'}</p>
+            </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-white/20 rounded-lg transition-colors"
           >
@@ -335,315 +271,341 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           
-          {/* ============================================ */}
-          {/* ASSESSMENT SCORING SECTION */}
-          {/* ============================================ */}
-          <section className="mb-8">
+          {/* Company Information Section */}
+          <div className="mb-6 bg-gray-50 rounded-lg p-5 border border-gray-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-900">Assessment Scoring</h3>
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${performanceTier.bgColor} ${performanceTier.color}`}>
-                {performanceTier.tier}
-              </span>
+              <h3 className="text-lg font-bold text-gray-900">Company Information</h3>
+              {surveyId && (
+                <button
+                  onClick={openProfile}
+                  className="px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  View Full Profile
+                </button>
+              )}
             </div>
-            
-            {/* Scoring Table */}
-            <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-800 text-white">
-                    <th className="px-4 py-3 text-left font-semibold">Dimension</th>
-                    <th className="px-3 py-3 text-center font-semibold">Score</th>
-                    <th className="px-3 py-3 text-center font-semibold">Items</th>
-                    <th className="px-4 py-3 text-left font-semibold">Breakdown</th>
-                    <th className="px-3 py-3 text-center font-semibold">Unsure %</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(dimensionScores).map(([dimNum, score]) => {
-                    const dim = parseInt(dimNum)
-                    const hasData = score.answeredItems > 0
-                    const isHighUnsure = score.unsurePercent > 40
-                    
-                    return (
-                      <tr key={dim} className={`border-b ${isHighUnsure ? 'bg-amber-50' : 'hover:bg-gray-50'}`}>
-                        <td className="px-4 py-3">
-                          <span className="font-medium text-gray-900">D{dim}: {DIMENSION_NAMES[dim]}</span>
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          {hasData ? (
-                            <span className={`font-bold ${
-                              score.percentage >= 80 ? 'text-green-600' :
-                              score.percentage >= 60 ? 'text-blue-600' :
-                              score.percentage >= 40 ? 'text-amber-600' : 'text-gray-600'
-                            }`}>
-                              {score.percentage}%
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-3 text-center text-gray-600">
-                          {hasData ? `${score.rawScore}/${score.maxPossible}` : '—'}
-                        </td>
-                        <td className="px-4 py-3">
-                          {hasData ? (
-                            <div className="flex items-center gap-3 text-xs">
-                              <span className="text-green-600 font-medium" title="Currently Offer (5 pts)">
-                                ✓{score.breakdown.currentlyOffer}
-                              </span>
-                              <span className="text-blue-600 font-medium" title="Planning (3 pts)">
-                                ●{score.breakdown.planning}
-                              </span>
-                              <span className="text-orange-500 font-medium" title="Assessing (2 pts)">
-                                ○{score.breakdown.assessing}
-                              </span>
-                              <span className="text-red-500 font-medium" title="Not Able (0 pts)">
-                                ✗{score.breakdown.notAble}
-                              </span>
-                              {score.breakdown.unsure > 0 && (
-                                <span className="text-gray-400 font-medium" title="Unsure (0 pts)">
-                                  ?{score.breakdown.unsure}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          {hasData && score.unsurePercent > 0 ? (
-                            <span className={`${isHighUnsure ? 'text-amber-600 font-semibold' : 'text-gray-500'}`}>
-                              {isHighUnsure && '⚠️ '}{score.unsurePercent}%
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                  
-                  {/* TOTALS ROW with INDEX */}
-                  <tr className="bg-gray-100 font-bold border-t-2 border-gray-300">
-                    <td className="px-4 py-4 text-gray-900">TOTAL</td>
-                    <td className="px-3 py-4 text-center">
-                      <div className="flex flex-col items-center">
-                        <span className="text-lg text-gray-900">{compositeScores.unweighted}%</span>
-                        <span className="text-xs text-gray-500 font-normal">unweighted</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-4 text-center text-gray-700">
-                      {compositeScores.totalEarned}/{compositeScores.totalMax}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className="text-green-600">✓{compositeScores.breakdown.currentlyOffer}</span>
-                        <span className="text-blue-600">●{compositeScores.breakdown.planning}</span>
-                        <span className="text-orange-500">○{compositeScores.breakdown.assessing}</span>
-                        <span className="text-red-500">✗{compositeScores.breakdown.notAble}</span>
-                        {compositeScores.breakdown.unsure > 0 && (
-                          <span className="text-gray-400">?{compositeScores.breakdown.unsure}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-4 text-center">
-                      {/* INDEX SCORE */}
-                      <div className="flex flex-col items-center">
-                        <span className={`text-lg ${
-                          compositeScores.index >= 100 ? 'text-green-600' : 'text-amber-600'
-                        }`}>
-                          {compositeScores.index}
-                        </span>
-                        <span className="text-xs text-gray-500 font-normal">Index</span>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Legend */}
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-                <span className="font-semibold text-gray-700">Breakdown Legend:</span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="text-green-600 font-bold">✓</span> Currently Offer (5 pts)
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="text-blue-600 font-bold">●</span> Planning (3 pts)
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="text-orange-500 font-bold">○</span> Assessing (2 pts)
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="text-red-500 font-bold">✗</span> Not Able (0 pts)
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="text-gray-400 font-bold">?</span> Unsure (0 pts)
-                </span>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Company Name</p>
+                <p className="font-semibold text-gray-900">{assessment.company_name || firmographics.companyName || 'N/A'}</p>
               </div>
-              <p className="mt-2 text-xs text-gray-600">
-                <strong>Note:</strong> All responses including "Unsure" and "Not Able" are included in the denominator. 
-                Index score uses 100 as benchmark (average of all participants).
-              </p>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Industry</p>
+                <p className="font-semibold text-gray-900">{firmographics.c2 || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Company Revenue</p>
+                <p className="font-semibold text-gray-900">
+                  {(firmographics.c4 && !Array.isArray(firmographics.c4) ? firmographics.c4 : null) || firmographics.c5 || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Headquarters</p>
+                <p className="font-semibold text-gray-900">{firmographics.s9 || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide"># Countries w/ Presence</p>
+                <p className="font-semibold text-gray-900">{firmographics.s9a || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Total Employees</p>
+                <p className="font-semibold text-gray-900">{firmographics.s8 || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Benefits Eligibility</p>
+                <p className="font-semibold text-gray-900">{firmographics.c3 || 'N/A'}</p>
+              </div>
             </div>
-          </section>
+          </div>
 
-          {/* ============================================ */}
-          {/* SECTION COMPLETION STATUS */}
-          {/* ============================================ */}
-          <section className="mb-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Section Completion Status</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {Object.entries(sectionNames).map(([key, name]) => {
-                const status = getSectionStatus(key)
-                return (
-                  <div 
-                    key={key}
-                    className={`p-3 rounded-lg border-2 ${
-                      status === 'complete' ? 'border-green-500 bg-green-50' :
-                      status === 'incomplete' ? 'border-amber-500 bg-amber-50' :
-                      'border-gray-200 bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {status === 'complete' && (
-                        <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                      {status === 'incomplete' && (
-                        <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                      {status === 'not_started' && (
-                        <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                      <span className={`text-sm font-medium ${
-                        status === 'complete' ? 'text-green-800' :
-                        status === 'incomplete' ? 'text-amber-800' :
-                        'text-gray-500'
-                      }`}>
-                        {name}
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-
-          {/* ============================================ */}
-          {/* DETAILED DATA SECTIONS */}
-          {/* ============================================ */}
-          
-          {/* Company Info */}
-          <section className="mb-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">Company Information</h3>
-            <div className="grid grid-cols-2 gap-4">
+          {/* Contact Information Section */}
+          <div className="mb-6 bg-blue-50 rounded-lg p-5 border border-blue-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Contact Information</h3>
+            <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 2fr 1fr' }}>
               <div>
-                <p className="text-sm text-gray-500">Company Name</p>
-                <p className="font-medium">{assessment.company_name || '—'}</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Contact Person</p>
+                <p className="font-semibold text-gray-900">
+                  {firmographics.firstName || ''} {firmographics.lastName || ''}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Email</p>
-                <p className="font-medium">{assessment.email}</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Email</p>
+                <p className="font-semibold text-gray-900">{assessment.email || 'N/A'}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Survey ID</p>
-                <p className="font-medium font-mono">{assessment.survey_id}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Started</p>
-                <p className="font-medium">{new Date(assessment.created_at).toLocaleDateString()}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Last Updated</p>
-                <p className="font-medium">{new Date(assessment.updated_at).toLocaleDateString()}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Payment Status</p>
-                <p className={`font-medium ${assessment.payment_completed ? 'text-green-600' : 'text-amber-600'}`}>
-                  {assessment.payment_completed ? '✓ Paid' : 'Pending'}
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Title</p>
+                <p className="font-semibold text-gray-900">
+                  {(firmographics.title && firmographics.title.toLowerCase() !== 'other' 
+                    ? firmographics.title 
+                    : firmographics.titleOther || firmographics.title_other || firmographics.title) 
+                    || firmographics.s5 
+                    || 'N/A'}
                 </p>
               </div>
             </div>
-          </section>
+          </div>
 
-          {/* Firmographics Data */}
-          {assessment.firmographics_data && Object.keys(assessment.firmographics_data).length > 0 && (
-            <section className="mb-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">Firmographics Data</h3>
-              {renderDataSection(assessment.firmographics_data, 'Firmographics')}
-            </section>
+          {/* Status Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+              <h3 className="text-sm font-semibold text-green-900 mb-1">Completion Status</h3>
+              <div className="flex items-baseline gap-2">
+                <p className="text-3xl font-bold text-green-700">{completionPercentage}%</p>
+                <p className="text-sm text-green-600">Complete</p>
+              </div>
+              <p className="text-sm text-green-600 mt-1">
+                {completedSections} of {totalSections} sections
+              </p>
+            </div>
+
+            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+              <h3 className="text-sm font-semibold text-purple-900 mb-1">Timeline</h3>
+              <p className="text-sm text-purple-700">
+                Started: {new Date(assessment.created_at).toLocaleDateString()}
+              </p>
+              <p className="text-sm text-purple-700 mt-1">
+                Last Active: {new Date(assessment.updated_at).toLocaleDateString()}
+              </p>
+              <p className="text-sm text-purple-600 mt-1">
+                {assessment.daysInProgress} days in progress
+              </p>
+            </div>
+
+            {/* User Type Badge */}
+            <div className={`rounded-lg p-4 border ${
+              assessment.isFoundingPartner 
+                ? 'bg-purple-50 border-purple-300' 
+                : 'bg-blue-50 border-blue-200'
+            }`}>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">Participant Type</h3>
+              {assessment.isFoundingPartner ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">⭐</span>
+                  <div>
+                    <p className="font-bold text-purple-700">Founding Partner</p>
+                    <p className="text-sm text-purple-600">No payment required</p>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="font-bold text-blue-700">Standard Participant</p>
+                  <p className="text-sm text-blue-600">$1,250 fee</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Payment Info - Only for Non-Founding Partners */}
+          {!assessment.isFoundingPartner && (
+            <div className="mb-6 bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">Payment Information</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Status</p>
+                  <p className={`font-semibold ${assessment.payment_completed ? 'text-green-600' : 'text-red-600'}`}>
+                    {assessment.payment_completed ? '✓ Paid' : '✗ Unpaid'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Method</p>
+                  <p className="font-semibold text-gray-900">
+                    {assessment.payment_method || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Amount</p>
+                  <p className="font-semibold text-gray-900">
+                    ${(assessment.payment_amount || 1250).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
 
-          {/* General Benefits Data */}
-          {assessment.general_benefits_data && Object.keys(assessment.general_benefits_data).length > 0 && (
-            <section className="mb-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">General Benefits</h3>
-              {renderDataSection(assessment.general_benefits_data, 'General Benefits')}
-            </section>
+          {/* ============================================ */}
+          {/* NEW: ASSESSMENT SCORING SECTION */}
+          {/* ============================================ */}
+          {hasAnyDimensionData && (
+            <div className="mb-6 bg-indigo-50 rounded-lg p-5 border border-indigo-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Assessment Scoring</h3>
+              
+              {/* Scoring Table */}
+              <div className="bg-white rounded-lg overflow-hidden border border-indigo-200">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-indigo-800 text-white">
+                      <th className="px-3 py-2 text-left font-semibold">Dimension</th>
+                      <th className="px-2 py-2 text-center font-semibold w-16">Score</th>
+                      <th className="px-2 py-2 text-center font-semibold w-20">Points</th>
+                      <th className="px-3 py-2 text-left font-semibold">Breakdown</th>
+                      <th className="px-2 py-2 text-center font-semibold w-20">Unsure</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[1,2,3,4,5,6,7,8,9,10,11,12,13].map((dim) => {
+                      const score = dimensionScores[dim]
+                      const hasData = score.answeredItems > 0
+                      const isHighUnsure = score.unsurePercent > 40
+                      
+                      return (
+                        <tr key={dim} className={`border-b ${isHighUnsure ? 'bg-amber-50' : 'hover:bg-gray-50'}`}>
+                          <td className="px-3 py-2 font-medium text-gray-900">
+                            D{dim}: {DIMENSION_NAMES[dim]}
+                          </td>
+                          <td className="px-2 py-2 text-center">
+                            {hasData ? (
+                              <span className={`font-bold ${
+                                score.percentage >= 80 ? 'text-green-600' :
+                                score.percentage >= 60 ? 'text-blue-600' :
+                                score.percentage >= 40 ? 'text-amber-600' : 'text-gray-600'
+                              }`}>
+                                {score.percentage}%
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="px-2 py-2 text-center text-gray-600">
+                            {hasData ? `${score.rawScore}/${score.maxPossible}` : '—'}
+                          </td>
+                          <td className="px-3 py-2">
+                            {hasData ? (
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="text-green-600 font-medium" title="Currently Offer (5 pts)">✓{score.breakdown.currentlyOffer}</span>
+                                <span className="text-blue-600 font-medium" title="Planning (3 pts)">●{score.breakdown.planning}</span>
+                                <span className="text-orange-500 font-medium" title="Assessing (2 pts)">○{score.breakdown.assessing}</span>
+                                <span className="text-red-500 font-medium" title="Not Able (0 pts)">✗{score.breakdown.notAble}</span>
+                                {score.breakdown.unsure > 0 && (
+                                  <span className="text-gray-400 font-medium" title="Unsure (0 pts)">?{score.breakdown.unsure}</span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="px-2 py-2 text-center">
+                            {hasData && score.unsurePercent > 0 ? (
+                              <span className={isHighUnsure ? 'text-amber-600 font-semibold' : 'text-gray-500'}>
+                                {isHighUnsure && '⚠️'}{score.unsurePercent}%
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                    
+                    {/* TOTAL ROW with INDEX */}
+                    <tr className="bg-indigo-100 font-bold border-t-2 border-indigo-300">
+                      <td className="px-3 py-3 text-indigo-900">TOTAL</td>
+                      <td className="px-2 py-3 text-center text-indigo-900 text-lg">
+                        {compositeScores.unweighted}%
+                      </td>
+                      <td className="px-2 py-3 text-center text-indigo-700">
+                        {compositeScores.totalEarned}/{compositeScores.totalMax}
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-green-600">✓{compositeScores.breakdown.currentlyOffer}</span>
+                          <span className="text-blue-600">●{compositeScores.breakdown.planning}</span>
+                          <span className="text-orange-500">○{compositeScores.breakdown.assessing}</span>
+                          <span className="text-red-500">✗{compositeScores.breakdown.notAble}</span>
+                          {compositeScores.breakdown.unsure > 0 && (
+                            <span className="text-gray-400">?{compositeScores.breakdown.unsure}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-2 py-3 text-center">
+                        <div className="flex flex-col items-center">
+                          <span className={`text-lg font-bold ${
+                            compositeScores.index >= 100 ? 'text-green-600' : 'text-amber-600'
+                          }`}>
+                            {compositeScores.index}
+                          </span>
+                          <span className="text-[10px] text-indigo-600 font-normal">Index</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Legend */}
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-gray-600">
+                <span className="font-semibold">Legend:</span>
+                <span><span className="text-green-600 font-bold">✓</span> Currently Offer (5pts)</span>
+                <span><span className="text-blue-600 font-bold">●</span> Planning (3pts)</span>
+                <span><span className="text-orange-500 font-bold">○</span> Assessing (2pts)</span>
+                <span><span className="text-red-500 font-bold">✗</span> Not Able (0pts)</span>
+                <span><span className="text-gray-400 font-bold">?</span> Unsure (0pts)</span>
+                <span className="text-gray-500 ml-2">| Index: 100 = benchmark</span>
+              </div>
+            </div>
           )}
 
-          {/* Current Support Data */}
-          {assessment.current_support_data && Object.keys(assessment.current_support_data).length > 0 && (
-            <section className="mb-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">Current Support Programs</h3>
-              {renderDataSection(assessment.current_support_data, 'Current Support')}
-            </section>
-          )}
-
-          {/* Dimension Data Sections */}
-          {[1,2,3,4,5,6,7,8,9,10,11,12,13].map(dim => {
-            const dimData = assessment[`dimension${dim}_data`]
-            if (!dimData || Object.keys(dimData).length === 0) return null
-            
-            return (
-              <section key={dim} className="mb-8">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">
-                  D{dim}: {DIMENSION_NAMES[dim]}
-                </h3>
-                {renderDataSection(dimData, `Dimension ${dim}`)}
-              </section>
-            )
-          })}
-
-          {/* Cross-Dimensional Data */}
-          {assessment.cross_dimensional_data && Object.keys(assessment.cross_dimensional_data).length > 0 && (
-            <section className="mb-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">Cross-Dimensional Assessment</h3>
-              {renderDataSection(assessment.cross_dimensional_data, 'Cross-Dimensional')}
-            </section>
-          )}
-
-          {/* Employee Impact Data */}
-          {assessment.employee_impact_data && Object.keys(assessment.employee_impact_data).length > 0 && (
-            <section className="mb-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">Employee Impact Assessment</h3>
-              {renderDataSection(assessment.employee_impact_data, 'Employee Impact')}
-            </section>
-          )}
-
+          {/* Section Completion Status */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Survey Section Status</h3>
+            <div className="space-y-2">
+              {sections.map(section => (
+                <div
+                  key={section.key}
+                  className={`flex items-center justify-between p-3 rounded-lg border-2 ${
+                    section.completed
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      section.completed
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-300 text-gray-600'
+                    }`}>
+                      {section.completed ? (
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <span className="text-xs font-bold">—</span>
+                      )}
+                    </div>
+                    <span className={`font-medium ${
+                      section.completed ? 'text-green-900' : 'text-gray-700'
+                    }`}>
+                      {section.name}
+                    </span>
+                  </div>
+                  <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                    section.completed
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {section.completed ? 'Completed' : 'Incomplete'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="border-t p-4 bg-gray-50 flex justify-end gap-3">
-          <button
-            onClick={() => window.print()}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            Print
-          </button>
+        <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-end gap-3">
+          {surveyId && (
+            <button
+              onClick={openProfile}
+              className="px-6 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors font-semibold"
+            >
+              View Full Profile
+            </button>
+          )}
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-semibold"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
           >
             Close
           </button>
