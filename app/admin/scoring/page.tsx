@@ -556,6 +556,9 @@ export default function AggregateScoringReport() {
   const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'unweighted'>('weighted');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [selectedDimension, setSelectedDimension] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<'score' | 'index'>('score');
+  const [filterComplete, setFilterComplete] = useState(false);
+  const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard'>('all');
 
   // Load assessments
   useEffect(() => {
@@ -597,7 +600,21 @@ export default function AggregateScoringReport() {
   }, [assessments, weights]);
 
   const sortedCompanies = useMemo(() => {
-    return [...companyScores].sort((a, b) => {
+    // First filter by type
+    let filtered = companyScores;
+    if (filterType === 'fp') {
+      filtered = companyScores.filter(c => c.isFoundingPartner);
+    } else if (filterType === 'standard') {
+      filtered = companyScores.filter(c => !c.isFoundingPartner);
+    }
+    
+    // Filter by completeness
+    if (filterComplete) {
+      filtered = filtered.filter(c => c.isComplete);
+    }
+    
+    // Then sort
+    return [...filtered].sort((a, b) => {
       let comparison = 0;
       if (sortBy === 'name') {
         comparison = a.companyName.localeCompare(b.companyName);
@@ -608,7 +625,23 @@ export default function AggregateScoringReport() {
       }
       return sortDir === 'desc' ? -comparison : comparison;
     });
-  }, [companyScores, sortBy, sortDir]);
+  }, [companyScores, sortBy, sortDir, filterType, filterComplete]);
+
+  // Helper function to calculate index (score relative to average)
+  const calculateIndex = (score: number, avg: number | null): number | null => {
+    if (avg === null || avg === 0) return null;
+    return Math.round((score / avg) * 100);
+  };
+
+  // Get index color based on value
+  const getIndexColor = (index: number | null): string => {
+    if (index === null) return '#9CA3AF';
+    if (index >= 115) return '#1B5E20'; // Dark green - significantly above
+    if (index >= 105) return '#2E7D32'; // Green - above average
+    if (index >= 95) return '#1565C0';  // Blue - around average
+    if (index >= 85) return '#EF6C00';  // Orange - below average
+    return '#C62828'; // Red - significantly below
+  };
 
   const dimensionAverages = useMemo(() => {
     const averages: Record<number, { 
@@ -705,62 +738,143 @@ export default function AggregateScoringReport() {
       )}
 
       {/* Header */}
-      <header className="bg-gradient-to-r from-indigo-900 to-indigo-800 text-white py-6 px-8 shadow-lg print:hidden">
-        <div className="max-w-full mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Aggregate Scoring Comparison</h1>
-            <p className="text-indigo-200 mt-1">
-              {companyScores.length} companies - Dimensions as rows - Interactive weights (editable in Wt% column)
-            </p>
+      <header className="bg-gradient-to-r from-indigo-900 to-indigo-800 text-white py-4 px-8 shadow-lg print:hidden">
+        <div className="max-w-full mx-auto">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h1 className="text-2xl font-bold">Best Companies Scoring Report</h1>
+              <p className="text-indigo-200 text-sm">
+                Workplace Support Excellence Index - {new Date().toLocaleDateString()}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowWeightConfig(!showWeightConfig)}
+                className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-400 text-gray-900 rounded font-bold text-sm transition-colors flex items-center gap-1.5"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                Weights
+              </button>
+              <button
+                onClick={resetWeights}
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors"
+                title="Reset to default weights"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors flex items-center gap-1.5"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print
+              </button>
+              <button
+                onClick={() => router.push('/admin')}
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors"
+              >
+                Back
+              </button>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowWeightConfig(!showWeightConfig)}
-              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-gray-900 rounded-lg font-bold transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-              </svg>
-              {showWeightConfig ? 'Hide Weights' : 'Weight Config'}
-            </button>
-            <button
-              onClick={resetWeights}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-colors"
-              title="Reset to default weights"
-            >
-              Reset
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Print
-            </button>
-            <button
-              onClick={() => router.push('/admin')}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-colors"
-            >
-              Back
-            </button>
+          
+          {/* Stats Bar & Controls */}
+          <div className="flex items-center justify-between bg-white/10 rounded-lg px-4 py-2">
+            {/* Company Stats */}
+            <div className="flex items-center gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-indigo-200">Total:</span>
+                <span className="font-bold">{companyScores.length}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-amber-400"></span>
+                <span className="text-amber-200">FP:</span>
+                <span className="font-bold">{companyScores.filter(c => c.isFoundingPartner).length}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-cyan-400"></span>
+                <span className="text-cyan-200">Standard:</span>
+                <span className="font-bold">{companyScores.filter(c => !c.isFoundingPartner).length}</span>
+              </div>
+              <div className="border-l border-white/20 pl-4 flex items-center gap-2">
+                <span className="text-green-200">Complete:</span>
+                <span className="font-bold">{companyScores.filter(c => c.isComplete).length}</span>
+              </div>
+            </div>
+            
+            {/* View Toggle & Filters */}
+            <div className="flex items-center gap-4">
+              {/* Score/Index Toggle */}
+              <div className="flex bg-white/10 rounded-lg p-0.5">
+                <button
+                  onClick={() => setViewMode('score')}
+                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                    viewMode === 'score' ? 'bg-white text-indigo-900' : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  Scores
+                </button>
+                <button
+                  onClick={() => setViewMode('index')}
+                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                    viewMode === 'index' ? 'bg-white text-indigo-900' : 'text-white hover:bg-white/10'
+                  }`}
+                  title="Index: 100 = Average. Shows performance relative to benchmark."
+                >
+                  Index
+                </button>
+              </div>
+              
+              {/* Company Type Filter */}
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value as 'all' | 'fp' | 'standard')}
+                className="bg-white/10 text-white border-0 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-white/30"
+              >
+                <option value="all" className="text-gray-900">All Companies</option>
+                <option value="fp" className="text-gray-900">Founding Partners</option>
+                <option value="standard" className="text-gray-900">Standard Only</option>
+              </select>
+              
+              {/* Complete Filter */}
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filterComplete}
+                  onChange={(e) => setFilterComplete(e.target.checked)}
+                  className="rounded border-white/30 bg-white/10 text-indigo-400 focus:ring-white/30"
+                />
+                <span>Complete Only</span>
+              </label>
+              
+              {/* Weight Status */}
+              <div className={`px-2 py-0.5 rounded text-xs font-bold ${
+                totalWeight === 100 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+              }`}>
+                Wt: {totalWeight}%
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Weight Total Indicator */}
-      <div className="bg-white border-b border-gray-200 px-8 py-2 print:hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">
-            Total Weight: <span className={`font-bold ${totalWeight === 100 ? 'text-green-600' : 'text-red-600'}`}>
-              {totalWeight}%
-            </span>
-            {totalWeight !== 100 && <span className="text-gray-400 ml-2">(will be normalized)</span>}
-          </span>
-          <span className="text-xs text-gray-400">Click dimension names to view items - Edit weights directly in Wt% column</span>
+      {/* View Mode Explanation */}
+      {viewMode === 'index' && (
+        <div className="bg-blue-50 border-b border-blue-200 px-8 py-2 print:hidden">
+          <p className="text-sm text-blue-800">
+            <strong>Index View:</strong> 100 = Average benchmark. 
+            <span className="text-green-700 ml-2">≥120 = Excellent</span>
+            <span className="text-green-600 ml-2">≥110 = Strong</span>
+            <span className="text-blue-600 ml-2">≥100 = At/Above Avg</span>
+            <span className="text-orange-600 ml-2">≥90 = Below</span>
+            <span className="text-red-600 ml-2">&lt;90 = Significant Gap</span>
+          </p>
         </div>
-      </div>
+      )}
 
       {/* Weight Configuration Panel - Full Names */}
       {showWeightConfig && (
@@ -918,36 +1032,40 @@ export default function AggregateScoringReport() {
                     title="Average across all companies"
                   >
                     <span className="text-[10px] block text-indigo-300">ALL</span>
-                    AVG
+                    {viewMode === 'index' ? '=100' : 'AVG'}
                   </th>
                   {/* Sticky Column 4: FP AVG */}
                   <th 
-                    className="px-2 py-3 text-center font-semibold bg-orange-600 z-30 border-r border-orange-500"
+                    className="px-2 py-3 text-center font-semibold bg-amber-500 z-30 border-r border-amber-400"
                     style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, width: COL_AVG_WIDTH }}
                     title="Founding Partners average"
                   >
-                    <span className="text-[10px] block text-orange-200">FP</span>
-                    AVG
+                    <span className="text-[10px] block text-amber-900">FP</span>
+                    {viewMode === 'index' ? 'IDX' : 'AVG'}
                   </th>
                   {/* Sticky Column 5: Standard AVG */}
                   <th 
-                    className="px-2 py-3 text-center font-semibold bg-teal-600 z-30 border-r border-teal-500"
+                    className="px-2 py-3 text-center font-semibold bg-cyan-600 z-30 border-r border-cyan-500"
                     style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), width: COL_AVG_WIDTH }}
                     title="Standard participants average"
                   >
-                    <span className="text-[10px] block text-teal-200">STD</span>
-                    AVG
+                    <span className="text-[10px] block text-cyan-200">STD</span>
+                    {viewMode === 'index' ? 'IDX' : 'AVG'}
                   </th>
                   {/* Company Columns */}
                   {sortedCompanies.map(company => (
                     <th 
                       key={company.surveyId} 
-                      className="px-3 py-2 text-center font-medium border-r border-indigo-700 last:border-r-0"
+                      className={`px-3 py-2 text-center font-medium border-r last:border-r-0 ${
+                        company.isFoundingPartner 
+                          ? 'bg-amber-600 border-amber-500' 
+                          : 'bg-cyan-700 border-cyan-600'
+                      }`}
                       style={{ minWidth: 110 }}
                     >
                       <Link 
                         href={`/admin/profile/${company.surveyId}`}
-                        className="text-xs hover:underline block truncate"
+                        className="text-xs hover:underline block truncate text-white"
                         title={company.companyName}
                       >
                         {company.companyName.length > 14 
@@ -955,7 +1073,7 @@ export default function AggregateScoringReport() {
                           : company.companyName
                         }
                       </Link>
-                      <span className={`text-[10px] block ${company.isFoundingPartner ? 'text-orange-300' : 'text-teal-300'}`}>
+                      <span className={`text-[10px] font-bold block ${company.isFoundingPartner ? 'text-amber-200' : 'text-cyan-200'}`}>
                         {company.isFoundingPartner ? 'FP' : 'STD'}
                       </span>
                       {!company.isComplete && (
@@ -1015,48 +1133,74 @@ export default function AggregateScoringReport() {
                         className="px-2 py-2 text-center z-10 bg-indigo-50 font-bold border-r border-gray-200" 
                         style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, color: dimAvg.total.count > 0 ? getScoreColor(dimAvg.total.avg) : '#9CA3AF', width: COL_AVG_WIDTH }}
                       >
-                        {dimAvg.total.count > 0 ? dimAvg.total.avg : '—'}
+                        {dimAvg.total.count > 0 ? (viewMode === 'index' ? '100' : dimAvg.total.avg) : '—'}
                       </td>
                       {/* Sticky Column 4: FP AVG */}
                       <td 
-                        className="px-2 py-2 text-center z-10 bg-orange-50 font-bold border-r border-gray-200" 
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, color: dimAvg.fp.count > 0 ? getScoreColor(dimAvg.fp.avg) : '#9CA3AF', width: COL_AVG_WIDTH }}
+                        className="px-2 py-2 text-center z-10 bg-amber-50 font-bold border-r border-gray-200" 
+                        style={{ 
+                          position: 'sticky', 
+                          left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, 
+                          color: viewMode === 'index' 
+                            ? getIndexColor(calculateIndex(dimAvg.fp.avg, dimAvg.total.avg))
+                            : (dimAvg.fp.count > 0 ? getScoreColor(dimAvg.fp.avg) : '#9CA3AF'), 
+                          width: COL_AVG_WIDTH 
+                        }}
                       >
-                        {dimAvg.fp.count > 0 ? dimAvg.fp.avg : '—'}
+                        {dimAvg.fp.count > 0 
+                          ? (viewMode === 'index' ? calculateIndex(dimAvg.fp.avg, dimAvg.total.avg) : dimAvg.fp.avg) 
+                          : '—'}
                       </td>
                       {/* Sticky Column 5: Standard AVG */}
                       <td 
-                        className="px-2 py-2 text-center z-10 bg-teal-50 font-bold border-r border-gray-200" 
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), color: dimAvg.standard.count > 0 ? getScoreColor(dimAvg.standard.avg) : '#9CA3AF', width: COL_AVG_WIDTH }}
+                        className="px-2 py-2 text-center z-10 bg-cyan-50 font-bold border-r border-gray-200" 
+                        style={{ 
+                          position: 'sticky', 
+                          left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), 
+                          color: viewMode === 'index'
+                            ? getIndexColor(calculateIndex(dimAvg.standard.avg, dimAvg.total.avg))
+                            : (dimAvg.standard.count > 0 ? getScoreColor(dimAvg.standard.avg) : '#9CA3AF'), 
+                          width: COL_AVG_WIDTH 
+                        }}
                       >
-                        {dimAvg.standard.count > 0 ? dimAvg.standard.avg : '—'}
+                        {dimAvg.standard.count > 0 
+                          ? (viewMode === 'index' ? calculateIndex(dimAvg.standard.avg, dimAvg.total.avg) : dimAvg.standard.avg)
+                          : '—'}
                       </td>
                       {/* Company Score Columns */}
                       {sortedCompanies.map(company => {
                         const dim = company.dimensions[dimNum];
                         const isInsufficient = dim.isInsufficientData;
+                        const score = dim.adjustedScore;
+                        const index = calculateIndex(score, dimAvg.total.avg);
+                        const displayValue = viewMode === 'index' ? index : score;
+                        const displayColor = viewMode === 'index' 
+                          ? getIndexColor(index) 
+                          : (isInsufficient ? '#D97706' : getScoreColor(score));
                         
                         return (
                           <td 
                             key={company.surveyId} 
-                            className={`px-3 py-2 text-center border-r border-gray-100 last:border-r-0 ${isInsufficient ? 'bg-yellow-50' : ''}`}
+                            className={`px-3 py-2 text-center border-r border-gray-100 last:border-r-0 ${
+                              isInsufficient ? 'bg-yellow-50' : (company.isFoundingPartner ? 'bg-amber-50/30' : 'bg-cyan-50/30')
+                            }`}
                             style={{ minWidth: 110 }}
                             title={isInsufficient ? `${Math.round(dim.unsurePercent * 100)}% Unsure - Insufficient Data` : undefined}
                           >
                             {dim.totalItems > 0 ? (
                               <span 
                                 className={`font-semibold ${isInsufficient ? 'text-xs' : ''}`}
-                                style={{ color: isInsufficient ? '#D97706' : getScoreColor(dim.adjustedScore) }}
+                                style={{ color: displayColor }}
                               >
                                 {isInsufficient ? (
                                   <span className="inline-flex items-center gap-0.5">
                                     <svg className="w-3 h-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                     </svg>
-                                    {dim.adjustedScore}
+                                    {displayValue ?? '—'}
                                   </span>
                                 ) : (
-                                  dim.adjustedScore
+                                  displayValue ?? '—'
                                 )}
                               </span>
                             ) : (
@@ -1119,27 +1263,50 @@ export default function AggregateScoringReport() {
                       style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}>avg</td>
                   <td className="px-2 py-3 text-center bg-gray-200 z-10 font-bold border-r border-gray-200"
                       style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL_AVG_WIDTH }}>
-                    {compositeAverages.unweighted.total ?? '—'}
+                    {viewMode === 'index' ? '100' : (compositeAverages.unweighted.total ?? '—')}
                   </td>
-                  <td className="px-2 py-3 text-center bg-orange-100 z-10 font-bold border-r border-gray-200"
-                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, width: COL_AVG_WIDTH }}>
-                    {compositeAverages.unweighted.fp ?? '—'}
+                  <td className="px-2 py-3 text-center bg-amber-100 z-10 font-bold border-r border-gray-200"
+                      style={{ 
+                        position: 'sticky', 
+                        left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, 
+                        width: COL_AVG_WIDTH,
+                        color: viewMode === 'index' ? getIndexColor(calculateIndex(compositeAverages.unweighted.fp ?? 0, compositeAverages.unweighted.total ?? 0)) : undefined
+                      }}>
+                    {viewMode === 'index' 
+                      ? calculateIndex(compositeAverages.unweighted.fp ?? 0, compositeAverages.unweighted.total ?? 0) ?? '—'
+                      : compositeAverages.unweighted.fp ?? '—'}
                   </td>
-                  <td className="px-2 py-3 text-center bg-teal-100 z-10 font-bold border-r border-gray-200"
-                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), width: COL_AVG_WIDTH }}>
-                    {compositeAverages.unweighted.standard ?? '—'}
+                  <td className="px-2 py-3 text-center bg-cyan-100 z-10 font-bold border-r border-gray-200"
+                      style={{ 
+                        position: 'sticky', 
+                        left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), 
+                        width: COL_AVG_WIDTH,
+                        color: viewMode === 'index' ? getIndexColor(calculateIndex(compositeAverages.unweighted.standard ?? 0, compositeAverages.unweighted.total ?? 0)) : undefined
+                      }}>
+                    {viewMode === 'index'
+                      ? calculateIndex(compositeAverages.unweighted.standard ?? 0, compositeAverages.unweighted.total ?? 0) ?? '—'
+                      : compositeAverages.unweighted.standard ?? '—'}
                   </td>
-                  {sortedCompanies.map(company => (
-                    <td key={company.surveyId} className="px-3 py-3 text-center border-r border-gray-100 last:border-r-0" style={{ minWidth: 110 }}>
-                      {company.isComplete ? (
-                        <span className="font-bold text-lg" style={{ color: getScoreColor(company.unweightedScore) }}>
-                          {company.unweightedScore}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-400 italic">Incomplete</span>
-                      )}
-                    </td>
-                  ))}
+                  {sortedCompanies.map(company => {
+                    const score = company.unweightedScore;
+                    const index = calculateIndex(score, compositeAverages.unweighted.total ?? 0);
+                    const displayValue = viewMode === 'index' ? index : score;
+                    const displayColor = viewMode === 'index' ? getIndexColor(index) : getScoreColor(score);
+                    
+                    return (
+                      <td key={company.surveyId} 
+                          className={`px-3 py-3 text-center border-r border-gray-100 last:border-r-0 ${company.isFoundingPartner ? 'bg-amber-50/50' : 'bg-cyan-50/50'}`} 
+                          style={{ minWidth: 110 }}>
+                        {company.isComplete ? (
+                          <span className="font-bold text-lg" style={{ color: displayColor }}>
+                            {displayValue ?? '—'}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">Incomplete</span>
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
 
                 {/* Weighted Score Row */}
@@ -1159,29 +1326,60 @@ export default function AggregateScoringReport() {
                   </td>
                   <td className="px-2 py-3 text-center bg-indigo-200 z-10 font-bold text-indigo-900 border-r border-indigo-200"
                       style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL_AVG_WIDTH }}>
-                    {totalWeight === 100 ? (compositeAverages.weighted.total ?? '—') : '—'}
+                    {totalWeight === 100 ? (viewMode === 'index' ? '100' : (compositeAverages.weighted.total ?? '—')) : '—'}
                   </td>
-                  <td className="px-2 py-3 text-center bg-orange-200 z-10 font-bold border-r border-indigo-200"
-                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, width: COL_AVG_WIDTH }}>
-                    {totalWeight === 100 ? (compositeAverages.weighted.fp ?? '—') : '—'}
+                  <td className="px-2 py-3 text-center bg-amber-200 z-10 font-bold border-r border-indigo-200"
+                      style={{ 
+                        position: 'sticky', 
+                        left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, 
+                        width: COL_AVG_WIDTH,
+                        color: viewMode === 'index' && totalWeight === 100 
+                          ? getIndexColor(calculateIndex(compositeAverages.weighted.fp ?? 0, compositeAverages.weighted.total ?? 0)) 
+                          : undefined
+                      }}>
+                    {totalWeight === 100 
+                      ? (viewMode === 'index' 
+                          ? calculateIndex(compositeAverages.weighted.fp ?? 0, compositeAverages.weighted.total ?? 0) ?? '—'
+                          : compositeAverages.weighted.fp ?? '—') 
+                      : '—'}
                   </td>
-                  <td className="px-2 py-3 text-center bg-teal-200 z-10 font-bold border-r border-indigo-200"
-                      style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), width: COL_AVG_WIDTH }}>
-                    {totalWeight === 100 ? (compositeAverages.weighted.standard ?? '—') : '—'}
+                  <td className="px-2 py-3 text-center bg-cyan-200 z-10 font-bold border-r border-indigo-200"
+                      style={{ 
+                        position: 'sticky', 
+                        left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), 
+                        width: COL_AVG_WIDTH,
+                        color: viewMode === 'index' && totalWeight === 100
+                          ? getIndexColor(calculateIndex(compositeAverages.weighted.standard ?? 0, compositeAverages.weighted.total ?? 0))
+                          : undefined
+                      }}>
+                    {totalWeight === 100 
+                      ? (viewMode === 'index'
+                          ? calculateIndex(compositeAverages.weighted.standard ?? 0, compositeAverages.weighted.total ?? 0) ?? '—'
+                          : compositeAverages.weighted.standard ?? '—')
+                      : '—'}
                   </td>
-                  {sortedCompanies.map(company => (
-                    <td key={company.surveyId} className="px-3 py-3 text-center border-r border-indigo-100 last:border-r-0" style={{ minWidth: 110 }}>
-                      {!company.isComplete ? (
-                        <span className="text-xs text-gray-400 italic">Incomplete</span>
-                      ) : totalWeight !== 100 ? (
-                        <span className="text-xs text-red-500">Wt≠100%</span>
-                      ) : (
-                        <span className="font-black text-xl text-indigo-900">
-                          {company.weightedScore}
-                        </span>
-                      )}
-                    </td>
-                  ))}
+                  {sortedCompanies.map(company => {
+                    const score = company.weightedScore;
+                    const index = calculateIndex(score, compositeAverages.weighted.total ?? 0);
+                    const displayValue = viewMode === 'index' ? index : score;
+                    const displayColor = viewMode === 'index' ? getIndexColor(index) : undefined;
+                    
+                    return (
+                      <td key={company.surveyId} 
+                          className={`px-3 py-3 text-center border-r border-indigo-100 last:border-r-0 ${company.isFoundingPartner ? 'bg-amber-100/50' : 'bg-cyan-100/50'}`} 
+                          style={{ minWidth: 110 }}>
+                        {!company.isComplete ? (
+                          <span className="text-xs text-gray-400 italic">Incomplete</span>
+                        ) : totalWeight !== 100 ? (
+                          <span className="text-xs text-red-500">Wt≠100%</span>
+                        ) : (
+                          <span className="font-black text-xl" style={{ color: displayColor ?? '#312E81' }}>
+                            {displayValue ?? '—'}
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
 
                 {/* Performance Tier Row */}
@@ -1203,21 +1401,27 @@ export default function AggregateScoringReport() {
                   {sortedCompanies.map(company => {
                     if (!company.isComplete) {
                       return (
-                        <td key={company.surveyId} className="px-2 py-2 text-center border-r border-gray-100 last:border-r-0" style={{ minWidth: 110 }}>
+                        <td key={company.surveyId} 
+                            className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${company.isFoundingPartner ? 'bg-amber-50/30' : 'bg-cyan-50/30'}`} 
+                            style={{ minWidth: 110 }}>
                           <span className="text-xs text-gray-400 italic">Incomplete</span>
                         </td>
                       );
                     }
                     if (totalWeight !== 100) {
                       return (
-                        <td key={company.surveyId} className="px-2 py-2 text-center border-r border-gray-100 last:border-r-0" style={{ minWidth: 110 }}>
+                        <td key={company.surveyId} 
+                            className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${company.isFoundingPartner ? 'bg-amber-50/30' : 'bg-cyan-50/30'}`}
+                            style={{ minWidth: 110 }}>
                           <span className="text-xs text-red-500">—</span>
                         </td>
                       );
                     }
                     const tier = getPerformanceTier(company.weightedScore, company.isProvisional);
                     return (
-                      <td key={company.surveyId} className="px-2 py-2 text-center border-r border-gray-100 last:border-r-0" style={{ minWidth: 110 }}>
+                      <td key={company.surveyId} 
+                          className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${company.isFoundingPartner ? 'bg-amber-50/30' : 'bg-cyan-50/30'}`}
+                          style={{ minWidth: 110 }}>
                         <span 
                           className="inline-block px-2 py-1 rounded text-xs font-bold whitespace-nowrap"
                           style={{ backgroundColor: tier.bg, color: tier.color }}
@@ -1240,19 +1444,18 @@ export default function AggregateScoringReport() {
         {/* Legend */}
         <div className="mt-6 bg-white rounded-xl shadow p-4 print:mt-4">
           <h3 className="font-bold text-gray-900 mb-3 text-sm">Scoring Legend</h3>
-          <div className="flex flex-wrap gap-x-8 gap-y-3 text-xs">
+          <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs">
             <div>
               <h4 className="font-semibold text-gray-700 mb-1">Point Values</h4>
               <ul className="space-y-0.5 text-gray-600">
                 <li>Currently Offer = 5 pts</li>
                 <li>Planning = 3 pts</li>
                 <li>Assessing = 2 pts</li>
-                <li>Not Able = 0 pts</li>
-                <li>Unsure = 0 pts (in denom)</li>
+                <li>Not Able / Unsure = 0 pts</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-700 mb-1">Geographic Multiplier</h4>
+              <h4 className="font-semibold text-gray-700 mb-1">Geo Multiplier</h4>
               <ul className="space-y-0.5 text-gray-600">
                 <li>Consistent = 1.00x</li>
                 <li>Varies = 0.90x</li>
@@ -1270,6 +1473,16 @@ export default function AggregateScoringReport() {
               </ul>
             </div>
             <div>
+              <h4 className="font-semibold text-gray-700 mb-1">Index Mode (100=Avg)</h4>
+              <ul className="space-y-0.5 text-gray-600">
+                <li><span className="text-green-800">≥120</span> = Excellent</li>
+                <li><span className="text-green-600">≥110</span> = Strong</li>
+                <li><span className="text-blue-600">≥100</span> = At/Above Avg</li>
+                <li><span className="text-orange-600">≥90</span> = Below Avg</li>
+                <li><span className="text-red-600">&lt;90</span> = Gap</li>
+              </ul>
+            </div>
+            <div>
               <h4 className="font-semibold text-gray-700 mb-1">Data Quality</h4>
               <ul className="space-y-0.5 text-gray-600">
                 <li className="flex items-center gap-1">
@@ -1278,21 +1491,20 @@ export default function AggregateScoringReport() {
                   </svg>
                   = &gt;40% Unsure
                 </li>
-                <li><span className="text-red-600 font-bold">Provisional</span> = 4+ flagged</li>
-                <li>Max score if 40% unsure ≈ 60</li>
+                <li><span className="text-red-600 font-bold">Provisional</span> = 4+ dims</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-700 mb-1">AVG Columns</h4>
+              <h4 className="font-semibold text-gray-700 mb-1">Company Types</h4>
               <ul className="space-y-0.5 text-gray-600">
-                <li><span className="bg-indigo-100 px-1 rounded">ALL</span> = All companies</li>
-                <li><span className="bg-orange-100 px-1 rounded">FP</span> = Founding Partners</li>
-                <li><span className="bg-teal-100 px-1 rounded">STD</span> = Standard</li>
+                <li><span className="bg-indigo-100 px-1 rounded">ALL</span> = All (benchmark)</li>
+                <li><span className="bg-amber-200 px-1 rounded text-amber-900">FP</span> = Founding Partners</li>
+                <li><span className="bg-cyan-200 px-1 rounded text-cyan-900">STD</span> = Standard</li>
               </ul>
             </div>
           </div>
           <p className="mt-3 text-[10px] text-gray-400">
-            Click dimension names to view items. Edit weights in Wt% column. Composites only shown for complete surveys (13/13 dimensions) when weights = 100%.
+            Toggle Scores/Index view in header. Click dimensions to view items. Company count updates live as participants complete assessments.
           </p>
         </div>
       </main>
