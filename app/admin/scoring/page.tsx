@@ -1,17 +1,12 @@
 /**
  * AGGREGATE SCORING COMPARISON REPORT
  * 
- * Layout:
- * - ROWS = Dimensions (1-13) with adjustable weights
- * - COLUMNS = Each company that completed the survey
- * - Additional rows: Insufficient Data count, Unweighted composite, Weighted composite, Performance Tier
- * 
- * Scoring Rules:
- * - If ALL items in a dimension are "Unsure", score = 0 (no points earned, nothing in denominator)
- * - If dimension has >40% Unsure responses, flag as "Insufficient Data"
- * - If company has 4+ dimensions flagged as Insufficient Data, classify as "Provisional"
- * 
- * Add to: app/admin/scoring/page.tsx
+ * Features:
+ * - Dimensions as rows with inline editable weights (column 2)
+ * - Companies as columns with scores
+ * - First 3 columns (Dimension, Wt%, AVG) sticky on horizontal scroll
+ * - Clickable dimension names show popup with all items
+ * - Insufficient Data flags and Provisional classification
  */
 
 'use client';
@@ -43,17 +38,201 @@ const DEFAULT_WEIGHTS: Record<number, number> = {
 const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
-  3: 'Manager Preparedness',
+  3: 'Manager Preparedness & Capability',
   4: 'Navigation & Expert Resources',
-  5: 'Workplace Accommodations',
+  5: 'Workplace Accommodations & Modifications',
   6: 'Culture & Psychological Safety',
-  7: 'Career Continuity',
+  7: 'Career Continuity & Advancement',
   8: 'Work Continuation & Resumption',
-  9: 'Executive Commitment',
+  9: 'Executive Commitment & Resources',
   10: 'Caregiver & Family Support',
-  11: 'Prevention & Wellness',
-  12: 'Continuous Improvement',
+  11: 'Prevention, Wellness & Legal Compliance',
+  12: 'Continuous Improvement & Outcomes',
   13: 'Communication & Awareness',
+};
+
+// ============================================
+// DIMENSION ITEMS - All items for each dimension
+// ============================================
+const DIMENSION_ITEMS: Record<number, string[]> = {
+  1: [
+    'Paid medical leave beyond local/legal requirements',
+    'Intermittent leave beyond local/legal requirements',
+    'Flexible work hours during treatment',
+    'Remote work options for on-site employees',
+    'Reduced schedule/part-time with full benefits',
+    'Job protection beyond local/legal requirements',
+    'Emergency leave within 24 hours',
+    'Leave donation bank',
+    'Disability pay top-up',
+    'PTO accrual during leave',
+    'Paid micro-breaks for side effects'
+  ],
+  2: [
+    'Coverage for clinical trials and experimental treatments',
+    'Coverage for advanced therapies (CAR-T, proton, immunotherapy)',
+    'Paid time off for clinical trial participation',
+    'Set out-of-pocket maximums',
+    'Travel/lodging reimbursement for specialized care',
+    'Financial counseling services',
+    'Voluntary supplemental illness insurance',
+    'Real-time cost estimator tools',
+    'Insurance advocacy/pre-authorization support',
+    '$0 copay for specialty drugs',
+    'Hardship grants program',
+    'Tax/estate planning assistance',
+    'Short-term disability covering 60%+ of salary',
+    'Long-term disability covering 60%+ of salary',
+    'Employer-paid disability insurance supplements',
+    'Guaranteed job protection',
+    'Accelerated life insurance benefits'
+  ],
+  3: [
+    'Manager training on supporting employees with serious conditions',
+    'Clear escalation protocol for manager response',
+    'Dedicated manager resource hub',
+    'Empathy/communication skills training',
+    'Legal compliance training',
+    'Senior leader coaching',
+    'Manager evaluations include support metrics',
+    'Manager peer support/community building',
+    'AI-powered guidance tools',
+    'Privacy protection and confidentiality management'
+  ],
+  4: [
+    'Dedicated navigation support for benefits and medical care',
+    'Benefits optimization assistance',
+    'Insurance advocacy/appeals support',
+    'Clinical trial matching service',
+    'Care coordination concierge',
+    'Online tools, apps, or portals for health/benefits',
+    'Survivorship planning assistance',
+    'Nutrition coaching',
+    'Physical rehabilitation support',
+    'Occupational therapy/vocational rehabilitation'
+  ],
+  5: [
+    'Physical workspace modifications',
+    'Cognitive/fatigue support tools',
+    'Ergonomic equipment funding',
+    'Flexible scheduling options',
+    'Remote work capability',
+    'Rest areas/quiet spaces',
+    'Priority parking',
+    'Temporary role redesigns',
+    'Assistive technology catalog',
+    'Transportation reimbursement',
+    'Policy accommodations (dress code, headphones, etc.)'
+  ],
+  6: [
+    'Strong anti-discrimination policies for health conditions',
+    'Clear process for confidential health disclosures',
+    'Manager training on sensitive health information',
+    'Written anti-retaliation policies',
+    'Employee peer support groups',
+    'Professional-led support groups',
+    'Stigma-reduction initiatives',
+    'Specialized emotional counseling',
+    'Optional open health dialogue forums',
+    'Inclusive communication guidelines',
+    'Confidential HR channel for health questions',
+    'Anonymous benefits navigation tool'
+  ],
+  7: [
+    'Continued access to training/development',
+    'Structured reintegration programs',
+    'Peer mentorship program',
+    'Professional coach/mentor',
+    'Adjusted performance goals during treatment',
+    'Career coaching',
+    'Succession planning protections',
+    'Project continuity protocols',
+    'Optional stay-connected program'
+  ],
+  8: [
+    'Flexible work arrangements during treatment',
+    'Phased return-to-work plans',
+    'Workload adjustments during treatment',
+    'Flexibility for medical setbacks',
+    'Buddy/mentor pairing for support',
+    'Structured progress reviews',
+    'Contingency planning for treatment schedules',
+    'Long-term success tracking',
+    'Access to occupational therapy/vocational rehab',
+    'Online peer support forums',
+    'Access to specialized work resumption professionals',
+    'Manager training on supporting during treatment/return'
+  ],
+  9: [
+    'Executive accountability metrics',
+    'Public success story celebrations',
+    'Compensation tied to support outcomes',
+    'ESG/CSR reporting inclusion',
+    'Year-over-year budget growth',
+    'Executive sponsors communicate regularly',
+    'Dedicated budget allocation',
+    'C-suite executive serves as champion/sponsor',
+    'Support programs in investor communications',
+    'Cross-functional executive steering committee',
+    'Support metrics in annual/sustainability reporting'
+  ],
+  10: [
+    'Paid caregiver leave with expanded eligibility',
+    'Flexible work arrangements for caregivers',
+    'Dependent care subsidies',
+    'Emergency caregiver funds',
+    'Dependent care account matching',
+    'Family navigation support',
+    'Caregiver peer support groups',
+    'Mental health support for caregivers',
+    'Manager training for supervising caregivers',
+    'Practical support for managing caregiving and work',
+    'Emergency dependent care',
+    'Respite care funding',
+    'Caregiver resource navigator/concierge',
+    'Legal/financial planning for caregivers',
+    'Modified job duties during peak caregiving',
+    'Unpaid leave job protection beyond legal',
+    'Eldercare consultation and referral',
+    'Paid time off for care coordination',
+    'Expanded caregiver leave eligibility'
+  ],
+  11: [
+    'At least 70% coverage for recommended screenings',
+    'Full/partial coverage for annual health screenings',
+    'Targeted risk-reduction programs',
+    'Paid time off for preventive care',
+    'Legal protections beyond requirements',
+    'Workplace safety assessments',
+    'Regular health education sessions',
+    'Individual health assessments',
+    'Genetic screening/counseling',
+    'On-site vaccinations',
+    'Lifestyle coaching programs',
+    'Risk factor tracking/reporting',
+    'Policies for immuno-compromised colleagues'
+  ],
+  12: [
+    'Return-to-work success metrics',
+    'Employee satisfaction tracking',
+    'Business impact/ROI assessment',
+    'Regular program enhancements',
+    'External benchmarking',
+    'Innovation pilots',
+    'Employee confidence in employer support',
+    'Program utilization analytics'
+  ],
+  13: [
+    'Proactive communication at diagnosis disclosure',
+    'Dedicated program website or portal',
+    'Regular company-wide awareness campaigns',
+    'New hire orientation coverage',
+    'Manager toolkit for cascade communications',
+    'Employee testimonials/success stories',
+    'Multi-channel communication strategy',
+    'Family/caregiver communication inclusion',
+    'Anonymous information access options'
+  ]
 };
 
 const TIER_INFO: Record<number, { tier: number; color: string; bg: string }> = {
@@ -72,7 +251,6 @@ const TIER_INFO: Record<number, { tier: number; color: string; bg: string }> = {
   12: { tier: 3, color: '#546E7A', bg: '#ECEFF1' },
 };
 
-// Point values
 const POINTS = {
   CURRENTLY_OFFER: 5,
   PLANNING: 3,
@@ -80,12 +258,14 @@ const POINTS = {
   NOT_ABLE: 0,
 };
 
-// Insufficient data threshold
-const INSUFFICIENT_DATA_THRESHOLD = 0.40; // 40%
-const PROVISIONAL_FLAG_COUNT = 4; // 4+ dimensions flagged = Provisional
-
-// Dimension order (by tier then weight)
+const INSUFFICIENT_DATA_THRESHOLD = 0.40;
+const PROVISIONAL_FLAG_COUNT = 4;
 const DIMENSION_ORDER = [4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12];
+
+// Column width constants for sticky positioning
+const COL1_WIDTH = 300; // Dimension name column
+const COL2_WIDTH = 56;  // Weight column
+const COL3_WIDTH = 56;  // AVG column
 
 // ============================================
 // SCORING FUNCTIONS
@@ -169,20 +349,16 @@ function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | 
     }
   });
   
-  // Calculate unsure percentage
   result.unsurePercent = result.totalItems > 0 ? result.unsureCount / result.totalItems : 0;
   result.isInsufficientData = result.unsurePercent > INSUFFICIENT_DATA_THRESHOLD;
   
-  // Calculate raw score
-  // If ALL items are unsure (answeredItems = 0), score is 0
   const maxPoints = result.answeredItems * POINTS.CURRENTLY_OFFER;
   if (maxPoints > 0) {
     result.rawScore = Math.round((earnedPoints / maxPoints) * 100);
   } else {
-    result.rawScore = 0; // No data or all unsure = 0 score
+    result.rawScore = 0;
   }
   
-  // Get geo multiplier
   const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
   result.geoMultiplier = getGeoMultiplier(geoResponse);
   result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier);
@@ -203,23 +379,19 @@ interface CompanyScores {
 function calculateCompanyScores(assessment: Record<string, any>, weights: Record<number, number>): CompanyScores {
   const dimensions: Record<number, DimensionScore> = {};
   
-  // Calculate each dimension
   for (let i = 1; i <= 13; i++) {
     const dimData = assessment[`dimension${i}_data`];
     dimensions[i] = calculateDimensionScore(i, dimData);
   }
   
-  // Count insufficient data dimensions
   const insufficientDataCount = Object.values(dimensions).filter(d => d.isInsufficientData).length;
   const isProvisional = insufficientDataCount >= PROVISIONAL_FLAG_COUNT;
   
-  // Calculate unweighted score (simple average of ALL dimensions with data)
   const dimsWithData = Object.values(dimensions).filter(d => d.totalItems > 0);
   const unweightedScore = dimsWithData.length > 0
     ? Math.round(dimsWithData.reduce((sum, d) => sum + d.adjustedScore, 0) / dimsWithData.length)
     : 0;
   
-  // Calculate weighted score
   const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
   let weightedScore = 0;
   
@@ -259,6 +431,83 @@ function getPerformanceTier(score: number, isProvisional: boolean): { name: stri
 }
 
 // ============================================
+// DIMENSION ITEMS MODAL
+// ============================================
+function DimensionModal({ 
+  dimNum, 
+  onClose 
+}: { 
+  dimNum: number; 
+  onClose: () => void;
+}) {
+  const items = DIMENSION_ITEMS[dimNum] || [];
+  const tierInfo = TIER_INFO[dimNum];
+  
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div 
+        className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div 
+          className="px-6 py-4 flex items-center justify-between"
+          style={{ backgroundColor: tierInfo.color }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/20 text-white text-lg font-bold">
+              {dimNum}
+            </span>
+            <div>
+              <h2 className="text-xl font-bold text-white">{DIMENSION_NAMES[dimNum]}</h2>
+              <p className="text-white/80 text-sm">Tier {tierInfo.tier} - {items.length} items assessed</p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+          >
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        {/* Items List */}
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <p className="text-sm text-gray-500 mb-4">
+            These are the items assessed in this dimension:
+          </p>
+          <ol className="space-y-2">
+            {items.map((item, idx) => (
+              <li key={idx} className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-0">
+                <span 
+                  className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                  style={{ backgroundColor: tierInfo.color }}
+                >
+                  {idx + 1}
+                </span>
+                <span className="text-gray-700">{item}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        
+        {/* Footer */}
+        <div className="px-6 py-4 bg-gray-50 border-t flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 
@@ -270,12 +519,12 @@ export default function AggregateScoringReport() {
   const [showWeightConfig, setShowWeightConfig] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'unweighted'>('weighted');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [selectedDimension, setSelectedDimension] = useState<number | null>(null);
 
   // Load assessments
   useEffect(() => {
     const loadAssessments = async () => {
       try {
-        // Get all assessments that have at least one dimension completed
         const { data, error } = await supabase
           .from('assessments')
           .select('*')
@@ -283,9 +532,7 @@ export default function AggregateScoringReport() {
 
         if (error) throw error;
         
-        // Filter to only include assessments that have dimension data
         const assessmentsWithData = (data || []).filter(a => {
-          // Check if any dimension has data
           for (let i = 1; i <= 13; i++) {
             const dimData = a[`dimension${i}_data`];
             if (dimData && typeof dimData === 'object') {
@@ -309,12 +556,10 @@ export default function AggregateScoringReport() {
     loadAssessments();
   }, []);
 
-  // Calculate all company scores
   const companyScores = useMemo(() => {
     return assessments.map(a => calculateCompanyScores(a, weights));
   }, [assessments, weights]);
 
-  // Sort companies
   const sortedCompanies = useMemo(() => {
     return [...companyScores].sort((a, b) => {
       let comparison = 0;
@@ -329,7 +574,6 @@ export default function AggregateScoringReport() {
     });
   }, [companyScores, sortBy, sortDir]);
 
-  // Calculate averages per dimension
   const dimensionAverages = useMemo(() => {
     const averages: Record<number, { avg: number; count: number }> = {};
     
@@ -349,11 +593,11 @@ export default function AggregateScoringReport() {
     return averages;
   }, [companyScores]);
 
-  // Total weight
   const totalWeight = useMemo(() => Object.values(weights).reduce((sum, w) => sum + w, 0), [weights]);
 
   const handleWeightChange = useCallback((dim: number, value: number) => {
-    setWeights(prev => ({ ...prev, [dim]: value }));
+    const numValue = Math.max(0, Math.min(50, value));
+    setWeights(prev => ({ ...prev, [dim]: numValue }));
   }, []);
 
   const resetWeights = useCallback(() => {
@@ -382,13 +626,21 @@ export default function AggregateScoringReport() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Dimension Modal */}
+      {selectedDimension && (
+        <DimensionModal 
+          dimNum={selectedDimension} 
+          onClose={() => setSelectedDimension(null)} 
+        />
+      )}
+
       {/* Header */}
       <header className="bg-gradient-to-r from-indigo-900 to-indigo-800 text-white py-6 px-8 shadow-lg print:hidden">
         <div className="max-w-full mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Aggregate Scoring Comparison</h1>
             <p className="text-indigo-200 mt-1">
-              {companyScores.length} companies • Dimensions as rows • Interactive weights
+              {companyScores.length} companies - Dimensions as rows - Interactive weights (editable in Wt% column)
             </p>
           </div>
           <div className="flex gap-3">
@@ -399,13 +651,20 @@ export default function AggregateScoringReport() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
               </svg>
-              {showWeightConfig ? 'Hide Weights' : 'Adjust Weights'}
+              {showWeightConfig ? 'Hide Weights' : 'Weight Config'}
+            </button>
+            <button
+              onClick={resetWeights}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-colors"
+              title="Reset to default weights"
+            >
+              Reset
             </button>
             <button
               onClick={() => window.print()}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-colors"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-colors flex items-center gap-2"
             >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
               Print
@@ -414,57 +673,119 @@ export default function AggregateScoringReport() {
               onClick={() => router.push('/admin')}
               className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-colors"
             >
-              ← Back
+              Back
             </button>
           </div>
         </div>
       </header>
 
-      {/* Weight Configuration Panel */}
+      {/* Weight Total Indicator */}
+      <div className="bg-white border-b border-gray-200 px-8 py-2 print:hidden">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">
+            Total Weight: <span className={`font-bold ${totalWeight === 100 ? 'text-green-600' : 'text-red-600'}`}>
+              {totalWeight}%
+            </span>
+            {totalWeight !== 100 && <span className="text-gray-400 ml-2">(will be normalized)</span>}
+          </span>
+          <span className="text-xs text-gray-400">Click dimension names to view items - Edit weights directly in Wt% column</span>
+        </div>
+      </div>
+
+      {/* Weight Configuration Panel - Full Names */}
       {showWeightConfig && (
         <div className="bg-white border-b border-gray-200 shadow-sm print:hidden">
           <div className="max-w-full mx-auto px-8 py-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="font-bold text-gray-900">Dimension Weights</h3>
-                <p className="text-sm text-gray-500">
-                  Total: <span className={totalWeight === 100 ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-                    {totalWeight}%
-                  </span>
-                  {totalWeight !== 100 && ' (will be normalized)'}
-                </p>
-              </div>
-              <button
-                onClick={resetWeights}
-                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
-              >
-                Reset to Defaults
-              </button>
-            </div>
+            <h3 className="font-bold text-gray-900 mb-4">Weight Configuration by Tier</h3>
             
-            <div className="grid grid-cols-13 gap-2">
-              {DIMENSION_ORDER.map(dim => {
-                const tierInfo = TIER_INFO[dim];
-                return (
-                  <div key={dim} className="text-center">
-                    <div 
-                      className="text-xs font-bold mb-1 px-1 py-0.5 rounded"
-                      style={{ backgroundColor: tierInfo.bg, color: tierInfo.color }}
-                    >
-                      D{dim}
+            {/* Three-column layout by tier */}
+            <div className="grid grid-cols-3 gap-6">
+              {/* Tier 1 */}
+              <div className="bg-indigo-50 rounded-lg p-4">
+                <h4 className="font-bold text-indigo-900 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded bg-indigo-900 text-white text-xs flex items-center justify-center">T1</span>
+                  Tier 1 - Highest Impact (50%)
+                </h4>
+                <div className="space-y-3">
+                  {[4, 8, 3, 2].map(dim => (
+                    <div key={dim} className="flex items-center gap-3">
+                      <span className="w-8 h-8 rounded bg-indigo-900 text-white text-sm font-bold flex items-center justify-center flex-shrink-0">
+                        {dim}
+                      </span>
+                      <span className="flex-1 text-sm text-gray-700" title={DIMENSION_NAMES[dim]}>
+                        {DIMENSION_NAMES[dim]}
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={weights[dim]}
+                        onChange={(e) => handleWeightChange(dim, parseInt(e.target.value) || 0)}
+                        className="w-14 text-center text-sm border rounded px-1 py-1 focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <span className="text-xs text-gray-400 w-4">%</span>
                     </div>
-                    <input
-                      type="number"
-                      min="0"
-                      max="25"
-                      value={weights[dim]}
-                      onChange={(e) => handleWeightChange(dim, parseInt(e.target.value) || 0)}
-                      className="w-full text-center text-sm border rounded px-1 py-1 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                    <div className="text-xs text-gray-400 mt-0.5">%</div>
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              </div>
+              
+              {/* Tier 2 */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded bg-blue-800 text-white text-xs flex items-center justify-center">T2</span>
+                  Tier 2 - Critical Enablers (25%)
+                </h4>
+                <div className="space-y-3">
+                  {[13, 6, 1].map(dim => (
+                    <div key={dim} className="flex items-center gap-3">
+                      <span className="w-8 h-8 rounded bg-blue-800 text-white text-sm font-bold flex items-center justify-center flex-shrink-0">
+                        {dim}
+                      </span>
+                      <span className="flex-1 text-sm text-gray-700" title={DIMENSION_NAMES[dim]}>
+                        {DIMENSION_NAMES[dim]}
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={weights[dim]}
+                        onChange={(e) => handleWeightChange(dim, parseInt(e.target.value) || 0)}
+                        className="w-14 text-center text-sm border rounded px-1 py-1 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-xs text-gray-400 w-4">%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Tier 3 */}
+              <div className="bg-gray-100 rounded-lg p-4">
+                <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded bg-gray-600 text-white text-xs flex items-center justify-center">T3</span>
+                  Tier 3 - Foundation (25%)
+                </h4>
+                <div className="space-y-2">
+                  {[5, 7, 9, 10, 11, 12].map(dim => (
+                    <div key={dim} className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded bg-gray-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                        {dim}
+                      </span>
+                      <span className="flex-1 text-xs text-gray-700 truncate" title={DIMENSION_NAMES[dim]}>
+                        {DIMENSION_NAMES[dim]}
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={weights[dim]}
+                        onChange={(e) => handleWeightChange(dim, parseInt(e.target.value) || 0)}
+                        className="w-12 text-center text-xs border rounded px-1 py-0.5 focus:ring-2 focus:ring-gray-500"
+                      />
+                      <span className="text-xs text-gray-400">%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -491,27 +812,44 @@ export default function AggregateScoringReport() {
         ) : (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="text-sm border-collapse">
+            <table className="text-sm border-collapse" style={{ minWidth: `${COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + (sortedCompanies.length * 110)}px` }}>
               <thead>
-                {/* Company Names Header */}
                 <tr className="bg-indigo-900 text-white">
-                  <th className="px-3 py-3 text-left font-semibold sticky left-0 bg-indigo-900 z-20 w-52 min-w-[200px] max-w-[220px] border-r border-indigo-700">
+                  {/* Sticky Column 1: Dimension */}
+                  <th 
+                    className="px-4 py-3 text-left font-semibold bg-indigo-900 z-30 border-r border-indigo-700"
+                    style={{ position: 'sticky', left: 0, minWidth: COL1_WIDTH, width: COL1_WIDTH }}
+                  >
                     Dimension
                   </th>
-                  <th className="px-2 py-3 text-center font-semibold w-14 border-r border-indigo-700">Wt%</th>
-                  <th className="px-2 py-3 text-center font-semibold w-14 bg-indigo-800 border-r border-indigo-600">AVG</th>
+                  {/* Sticky Column 2: Weight */}
+                  <th 
+                    className="px-2 py-3 text-center font-semibold bg-indigo-900 z-30 border-r border-indigo-700"
+                    style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}
+                  >
+                    Wt%
+                  </th>
+                  {/* Sticky Column 3: AVG */}
+                  <th 
+                    className="px-2 py-3 text-center font-semibold bg-indigo-800 z-30 border-r border-indigo-600"
+                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL3_WIDTH }}
+                  >
+                    AVG
+                  </th>
+                  {/* Company Columns */}
                   {sortedCompanies.map(company => (
                     <th 
                       key={company.surveyId} 
-                      className="px-2 py-3 text-center font-medium min-w-[80px] border-r border-indigo-700 last:border-r-0"
+                      className="px-3 py-3 text-center font-medium border-r border-indigo-700 last:border-r-0"
+                      style={{ minWidth: 110 }}
                     >
                       <Link 
                         href={`/admin/profile/${company.surveyId}`}
                         className="text-xs hover:underline block truncate"
                         title={company.companyName}
                       >
-                        {company.companyName.length > 12 
-                          ? company.companyName.substring(0, 12) + '...'
+                        {company.companyName.length > 14 
+                          ? company.companyName.substring(0, 14) + '...'
                           : company.companyName
                         }
                       </Link>
@@ -527,31 +865,54 @@ export default function AggregateScoringReport() {
                 {DIMENSION_ORDER.map((dimNum, idx) => {
                   const tierInfo = TIER_INFO[dimNum];
                   const dimAvg = dimensionAverages[dimNum];
+                  const rowBg = idx % 2 === 0 ? '#ffffff' : '#F9FAFB';
                   
                   return (
-                    <tr key={dimNum} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <tr key={dimNum} style={{ backgroundColor: rowBg }}>
+                      {/* Sticky Column 1: Dimension Name (Clickable) */}
                       <td 
-                        className="px-3 py-2 sticky left-0 z-10 border-r border-gray-200 w-52 min-w-[200px] max-w-[220px]" 
-                        style={{ backgroundColor: idx % 2 === 0 ? 'white' : '#F9FAFB' }}
+                        className="px-4 py-2.5 z-10 border-r border-gray-200 cursor-pointer hover:bg-blue-50 transition-colors" 
+                        style={{ position: 'sticky', left: 0, backgroundColor: rowBg, minWidth: COL1_WIDTH, width: COL1_WIDTH }}
+                        onClick={() => setSelectedDimension(dimNum)}
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <span 
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-xs font-bold text-white flex-shrink-0"
+                            className="inline-flex items-center justify-center w-8 h-8 rounded text-sm font-bold text-white flex-shrink-0"
                             style={{ backgroundColor: tierInfo.color }}
                           >
                             {dimNum}
                           </span>
-                          <span className="text-sm font-medium text-gray-900 truncate" title={DIMENSION_NAMES[dimNum]}>
+                          <span className="text-sm font-medium text-gray-900 hover:text-indigo-600">
                             {DIMENSION_NAMES[dimNum]}
                           </span>
+                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
                         </div>
                       </td>
-                      <td className="px-2 py-2 text-center font-semibold text-gray-600 border-r border-gray-200">
-                        {weights[dimNum]}%
+                      {/* Sticky Column 2: Editable Weight */}
+                      <td 
+                        className="px-1 py-2 text-center z-10 border-r border-gray-200"
+                        style={{ position: 'sticky', left: COL1_WIDTH, backgroundColor: rowBg, width: COL2_WIDTH }}
+                      >
+                        <input
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={weights[dimNum]}
+                          onChange={(e) => handleWeightChange(dimNum, parseInt(e.target.value) || 0)}
+                          className="w-12 text-center text-sm font-semibold border border-gray-300 rounded px-1 py-1 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-400"
+                          title="Edit weight"
+                        />
                       </td>
-                      <td className="px-2 py-2 text-center bg-indigo-50 font-bold border-r border-gray-200" style={{ color: dimAvg.count > 0 ? getScoreColor(dimAvg.avg) : '#9CA3AF' }}>
+                      {/* Sticky Column 3: AVG */}
+                      <td 
+                        className="px-2 py-2 text-center z-10 bg-indigo-50 font-bold border-r border-gray-200" 
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, color: dimAvg.count > 0 ? getScoreColor(dimAvg.avg) : '#9CA3AF', width: COL3_WIDTH }}
+                      >
                         {dimAvg.count > 0 ? dimAvg.avg : '—'}
                       </td>
+                      {/* Company Score Columns */}
                       {sortedCompanies.map(company => {
                         const dim = company.dimensions[dimNum];
                         const isInsufficient = dim.isInsufficientData;
@@ -559,7 +920,8 @@ export default function AggregateScoringReport() {
                         return (
                           <td 
                             key={company.surveyId} 
-                            className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${isInsufficient ? 'bg-yellow-50' : ''}`}
+                            className={`px-3 py-2 text-center border-r border-gray-100 last:border-r-0 ${isInsufficient ? 'bg-yellow-50' : ''}`}
+                            style={{ minWidth: 110 }}
                             title={isInsufficient ? `${Math.round(dim.unsurePercent * 100)}% Unsure - Insufficient Data` : undefined}
                           >
                             {dim.totalItems > 0 ? (
@@ -590,7 +952,10 @@ export default function AggregateScoringReport() {
                 
                 {/* Insufficient Data Count Row */}
                 <tr className="bg-yellow-100 border-t-2 border-yellow-300">
-                  <td className="px-3 py-2 sticky left-0 bg-yellow-100 z-10 border-r border-yellow-200 w-52 min-w-[200px] max-w-[220px]">
+                  <td 
+                    className="px-4 py-2 bg-yellow-100 z-10 border-r border-yellow-200"
+                    style={{ position: 'sticky', left: 0, minWidth: COL1_WIDTH, width: COL1_WIDTH }}
+                  >
                     <span className="text-sm font-bold text-yellow-800 flex items-center gap-1.5">
                       <svg className="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -598,12 +963,18 @@ export default function AggregateScoringReport() {
                       Insufficient Data Dims
                     </span>
                   </td>
-                  <td className="px-2 py-2 text-center text-xs text-yellow-700 border-r border-yellow-200">
+                  <td 
+                    className="px-2 py-2 text-center text-xs text-yellow-700 bg-yellow-100 z-10 border-r border-yellow-200"
+                    style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}
+                  >
                     &gt;40%
                   </td>
-                  <td className="px-2 py-2 text-center bg-yellow-200 border-r border-yellow-200"></td>
+                  <td 
+                    className="px-2 py-2 text-center bg-yellow-200 z-10 border-r border-yellow-200"
+                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL3_WIDTH }}
+                  ></td>
                   {sortedCompanies.map(company => (
-                    <td key={company.surveyId} className="px-2 py-2 text-center border-r border-yellow-200 last:border-r-0">
+                    <td key={company.surveyId} className="px-3 py-2 text-center border-r border-yellow-200 last:border-r-0" style={{ minWidth: 110 }}>
                       <span className={`font-bold ${company.insufficientDataCount >= PROVISIONAL_FLAG_COUNT ? 'text-red-600' : company.insufficientDataCount > 0 ? 'text-yellow-700' : 'text-green-600'}`}>
                         {company.insufficientDataCount}
                       </span>
@@ -618,21 +989,30 @@ export default function AggregateScoringReport() {
 
                 {/* Unweighted Score Row */}
                 <tr className="bg-gray-100">
-                  <td className="px-3 py-3 sticky left-0 bg-gray-100 z-10 border-r border-gray-200 w-52 min-w-[200px] max-w-[220px]">
+                  <td 
+                    className="px-4 py-3 bg-gray-100 z-10 border-r border-gray-200"
+                    style={{ position: 'sticky', left: 0, minWidth: COL1_WIDTH, width: COL1_WIDTH }}
+                  >
                     <button onClick={() => handleSort('unweighted')} className="text-sm font-bold text-gray-800 hover:text-indigo-600 flex items-center gap-1">
                       Unweighted Composite
                       {sortBy === 'unweighted' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                     </button>
                   </td>
-                  <td className="px-2 py-3 text-center text-xs text-gray-500 border-r border-gray-200">avg</td>
-                  <td className="px-2 py-3 text-center bg-gray-200 font-bold border-r border-gray-200">
+                  <td 
+                    className="px-2 py-3 text-center text-xs text-gray-500 bg-gray-100 z-10 border-r border-gray-200"
+                    style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}
+                  >avg</td>
+                  <td 
+                    className="px-2 py-3 text-center bg-gray-200 z-10 font-bold border-r border-gray-200"
+                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL3_WIDTH }}
+                  >
                     {companyScores.length > 0 
                       ? Math.round(companyScores.reduce((s, c) => s + c.unweightedScore, 0) / companyScores.length)
                       : '—'
                     }
                   </td>
                   {sortedCompanies.map(company => (
-                    <td key={company.surveyId} className="px-2 py-3 text-center border-r border-gray-100 last:border-r-0">
+                    <td key={company.surveyId} className="px-3 py-3 text-center border-r border-gray-100 last:border-r-0" style={{ minWidth: 110 }}>
                       <span className="font-bold text-lg" style={{ color: getScoreColor(company.unweightedScore) }}>
                         {company.unweightedScore}
                       </span>
@@ -642,21 +1022,30 @@ export default function AggregateScoringReport() {
 
                 {/* Weighted Score Row */}
                 <tr className="bg-indigo-100">
-                  <td className="px-3 py-3 sticky left-0 bg-indigo-100 z-10 border-r border-indigo-200 w-52 min-w-[200px] max-w-[220px]">
+                  <td 
+                    className="px-4 py-3 bg-indigo-100 z-10 border-r border-indigo-200"
+                    style={{ position: 'sticky', left: 0, minWidth: COL1_WIDTH, width: COL1_WIDTH }}
+                  >
                     <button onClick={() => handleSort('weighted')} className="text-sm font-bold text-indigo-900 hover:text-indigo-600 flex items-center gap-1">
                       Weighted Composite
                       {sortBy === 'weighted' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                     </button>
                   </td>
-                  <td className="px-2 py-3 text-center text-xs text-indigo-600 border-r border-indigo-200">wgt</td>
-                  <td className="px-2 py-3 text-center bg-indigo-200 font-bold text-indigo-900 border-r border-indigo-200">
+                  <td 
+                    className="px-2 py-3 text-center text-xs text-indigo-600 bg-indigo-100 z-10 border-r border-indigo-200"
+                    style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}
+                  >wgt</td>
+                  <td 
+                    className="px-2 py-3 text-center bg-indigo-200 z-10 font-bold text-indigo-900 border-r border-indigo-200"
+                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL3_WIDTH }}
+                  >
                     {companyScores.length > 0 
                       ? Math.round(companyScores.reduce((s, c) => s + c.weightedScore, 0) / companyScores.length)
                       : '—'
                     }
                   </td>
                   {sortedCompanies.map(company => (
-                    <td key={company.surveyId} className="px-2 py-3 text-center border-r border-indigo-100 last:border-r-0">
+                    <td key={company.surveyId} className="px-3 py-3 text-center border-r border-indigo-100 last:border-r-0" style={{ minWidth: 110 }}>
                       <span className="font-black text-xl text-indigo-900">
                         {company.weightedScore}
                       </span>
@@ -666,17 +1055,26 @@ export default function AggregateScoringReport() {
 
                 {/* Performance Tier Row */}
                 <tr className="bg-white border-t-2 border-indigo-300">
-                  <td className="px-3 py-3 sticky left-0 bg-white z-10 border-r border-gray-200 w-52 min-w-[200px] max-w-[220px]">
+                  <td 
+                    className="px-4 py-3 bg-white z-10 border-r border-gray-200"
+                    style={{ position: 'sticky', left: 0, minWidth: COL1_WIDTH, width: COL1_WIDTH }}
+                  >
                     <span className="text-sm font-bold text-gray-800">Performance Tier</span>
                   </td>
-                  <td className="px-2 py-3 text-center border-r border-gray-200"></td>
-                  <td className="px-2 py-3 text-center border-r border-gray-200"></td>
+                  <td 
+                    className="px-2 py-3 text-center bg-white z-10 border-r border-gray-200"
+                    style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}
+                  ></td>
+                  <td 
+                    className="px-2 py-3 text-center bg-white z-10 border-r border-gray-200"
+                    style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL3_WIDTH }}
+                  ></td>
                   {sortedCompanies.map(company => {
                     const tier = getPerformanceTier(company.weightedScore, company.isProvisional);
                     return (
-                      <td key={company.surveyId} className="px-1 py-2 text-center border-r border-gray-100 last:border-r-0">
+                      <td key={company.surveyId} className="px-2 py-2 text-center border-r border-gray-100 last:border-r-0" style={{ minWidth: 110 }}>
                         <span 
-                          className="inline-block px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap"
+                          className="inline-block px-2 py-1 rounded text-xs font-bold whitespace-nowrap"
                           style={{ backgroundColor: tier.bg, color: tier.color }}
                         >
                           {tier.name}
@@ -698,46 +1096,48 @@ export default function AggregateScoringReport() {
             <div>
               <h4 className="font-semibold text-gray-700 mb-2">Point Values</h4>
               <ul className="space-y-1 text-gray-600">
-                <li>• Currently Offer = 5 pts</li>
-                <li>• Planning = 3 pts</li>
-                <li>• Assessing = 2 pts</li>
-                <li>• Not Able = 0 pts</li>
-                <li>• Unsure = 0 pts (excluded from denom)</li>
+                <li>Currently Offer = 5 pts</li>
+                <li>Planning = 3 pts</li>
+                <li>Assessing = 2 pts</li>
+                <li>Not Able = 0 pts</li>
+                <li>Unsure = 0 pts (excluded from denom)</li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold text-gray-700 mb-2">Geographic Multiplier</h4>
               <ul className="space-y-1 text-gray-600">
-                <li>• Consistent = 1.00×</li>
-                <li>• Varies = 0.90×</li>
-                <li>• Select Only = 0.75×</li>
+                <li>Consistent = 1.00x</li>
+                <li>Varies = 0.90x</li>
+                <li>Select Only = 0.75x</li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold text-gray-700 mb-2">Performance Tiers</h4>
               <ul className="space-y-1 text-gray-600">
-                <li>• <span className="text-green-700">Exemplary</span>: 90-100</li>
-                <li>• <span className="text-blue-700">Leading</span>: 75-89</li>
-                <li>• <span className="text-orange-600">Progressing</span>: 60-74</li>
-                <li>• <span className="text-red-700">Emerging</span>: 40-59</li>
-                <li>• <span className="text-gray-600">Beginning</span>: 0-39</li>
+                <li><span className="text-green-700">Exemplary</span>: 90-100</li>
+                <li><span className="text-blue-700">Leading</span>: 75-89</li>
+                <li><span className="text-orange-600">Progressing</span>: 60-74</li>
+                <li><span className="text-red-700">Emerging</span>: 40-59</li>
+                <li><span className="text-gray-600">Beginning</span>: 0-39</li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold text-gray-700 mb-2">Data Quality Flags</h4>
               <ul className="space-y-1 text-gray-600">
-                                <li className="flex items-center gap-1">
-                  <span>•</span>
+                <li className="flex items-center gap-1">
                   <svg className="w-3 h-3 text-yellow-600 inline" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   <span>= &gt;40% Unsure responses</span>
                 </li>
-                <li>• <span className="text-red-600 font-bold">Provisional</span> = 4+ dims flagged</li>
-                <li>• All-unsure dim = 0 score</li>
+                <li><span className="text-red-600 font-bold">Provisional</span> = 4+ dims flagged</li>
+                <li>All-unsure dim = 0 score</li>
               </ul>
             </div>
           </div>
+          <p className="mt-4 text-xs text-gray-500">
+            Click on any dimension name to view all assessed items. Edit weights directly in the Wt% column or use the Weight Config panel.
+          </p>
         </div>
       </main>
 
