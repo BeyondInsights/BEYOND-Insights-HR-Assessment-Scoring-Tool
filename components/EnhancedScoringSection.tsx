@@ -147,7 +147,7 @@ function ComponentBar({
                   />
                 </div>
                 <span className="text-gray-700 font-medium text-xs w-12 text-right">
-                  {detail.value}/{detail.maxValue}
+                  {Number(detail.value.toFixed(1))}/{detail.maxValue}
                 </span>
               </div>
             </div>
