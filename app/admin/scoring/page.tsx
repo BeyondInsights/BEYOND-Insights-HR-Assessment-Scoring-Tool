@@ -615,21 +615,24 @@ function TierBadge({ score, isComplete, isProvisional = false, size = 'normal' }
   
   if (isProvisional) {
     return (
-      <span className="inline-flex flex-col items-center gap-0.5">
+      <span className="inline-flex flex-col items-center" style={{ gap: '6px' }}>
         <span 
           className={`inline-block font-bold border rounded-full ${
             size === 'small' ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-xs'
-          } ring-2 ring-amber-400 ring-offset-1`}
+          }`}
           style={{ 
             backgroundColor: tier.bg, 
             color: tier.color,
             borderColor: tier.border,
+            boxShadow: '0 0 0 2px #fbbf24, 0 0 0 4px white',
           }}
           title="Provisional: >40% Unsure responses in 4+ dimensions"
         >
           {tier.name}
         </span>
-        <span className="text-[9px] text-amber-600 font-semibold uppercase tracking-wide">Provisional</span>
+        <span className="text-[7px] text-amber-700 font-bold uppercase tracking-widest bg-amber-100 px-2 py-0.5 rounded-sm border border-amber-300" style={{ letterSpacing: '0.1em' }}>
+          Provisional
+        </span>
       </span>
     );
   }
@@ -659,7 +662,6 @@ export default function AggregateScoringReport() {
   const [assessments, setAssessments] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(true);
   const [weights, setWeights] = useState<Record<number, number>>({ ...DEFAULT_WEIGHTS });
-  const [showWeights, setShowWeights] = useState(false);
   const [showDimensionModal, setShowDimensionModal] = useState(false);
   const [showEnhancedModal, setShowEnhancedModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'enhanced'>('weighted');
@@ -667,6 +669,10 @@ export default function AggregateScoringReport() {
   const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard'>('all');
   const [filterComplete, setFilterComplete] = useState(false);
   const [viewMode, setViewMode] = useState<'score' | 'index'>('score');
+  
+  // Calculate weights sum for validation
+  const weightsSum = Object.values(weights).reduce((a, b) => a + b, 0);
+  const weightsValid = weightsSum === 100;
 
   useEffect(() => {
     const loadAssessments = async () => {
@@ -859,99 +865,25 @@ export default function AggregateScoringReport() {
                 </button>
               </div>
               
-              <button
-                onClick={() => setShowWeights(!showWeights)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  showWeights ? 'bg-amber-500 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-                Adjust Weights
-              </button>
-            </div>
-          </div>
-          
-          {/* Weight Adjustment Panel */}
-          {showWeights && (
-            <div className="mt-4 bg-slate-800 rounded-xl p-5 border border-slate-600">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-white flex items-center gap-2">
-                  <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
-                  Dimension Weights
-                  <span className={`ml-2 px-2 py-0.5 rounded text-xs font-bold ${
-                    Object.values(weights).reduce((a, b) => a + b, 0) === 100 
-                      ? 'bg-green-500/20 text-green-300' 
-                      : 'bg-red-500/20 text-red-300'
-                  }`}>
-                    Total: {Object.values(weights).reduce((a, b) => a + b, 0)}%
-                  </span>
-                </h3>
-                <button
-                  onClick={() => setWeights({ ...DEFAULT_WEIGHTS })}
-                  className="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-white border border-slate-500"
-                >
-                  Reset to Default
-                </button>
-              </div>
-              
-              {/* Row 1: D4, D8, D3, D2, D13, D6, D1 (7 items) */}
-              <div className="grid grid-cols-7 gap-2 mb-2">
-                {[4, 8, 3, 2, 13, 6, 1].map(dim => (
-                  <div key={dim} className="bg-slate-700/50 rounded-lg p-2 border border-slate-600">
-                    <label className="block text-[10px] text-slate-300 mb-1 font-medium">
-                      D{dim}: {DIMENSION_NAMES[dim].split(' ')[0]}
-                    </label>
-                    <div className="flex items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={weights[dim]}
-                        onChange={(e) => setWeights(prev => ({ ...prev, [dim]: parseInt(e.target.value) || 0 }))}
-                        className="w-full px-2 py-1.5 bg-slate-900 border border-slate-500 rounded text-white text-sm text-center focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
-                      />
-                      <span className="text-xs text-slate-400 ml-1">%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Row 2: D5, D7, D9, D10, D11, D12 (6 items) */}
-              <div className="grid grid-cols-6 gap-2">
-                {[5, 7, 9, 10, 11, 12].map(dim => (
-                  <div key={dim} className="bg-slate-700/50 rounded-lg p-2 border border-slate-600">
-                    <label className="block text-[10px] text-slate-300 mb-1 font-medium">
-                      D{dim}: {DIMENSION_NAMES[dim].split(' ')[0]}
-                    </label>
-                    <div className="flex items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={weights[dim]}
-                        onChange={(e) => setWeights(prev => ({ ...prev, [dim]: parseInt(e.target.value) || 0 }))}
-                        className="w-full px-2 py-1.5 bg-slate-900 border border-slate-500 rounded text-white text-sm text-center focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
-                      />
-                      <span className="text-xs text-slate-400 ml-1">%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
+              {/* Weight Status Indicator */}
               {Object.values(weights).reduce((a, b) => a + b, 0) !== 100 && (
-                <p className="mt-3 text-amber-300 text-xs flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 border border-red-400/50 rounded-lg">
+                  <svg className="w-4 h-4 text-red-300" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  Weights should sum to 100% for accurate scoring
-                </p>
+                  <span className="text-xs text-red-200 font-medium">
+                    Weights = {Object.values(weights).reduce((a, b) => a + b, 0)}% (must be 100%)
+                  </span>
+                  <button
+                    onClick={() => setWeights({ ...DEFAULT_WEIGHTS })}
+                    className="text-xs px-2 py-0.5 bg-red-500/30 hover:bg-red-500/50 rounded text-red-100 ml-1"
+                  >
+                    Reset
+                  </button>
+                </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </header>
 
@@ -1066,9 +998,16 @@ export default function AggregateScoringReport() {
                           <span className="text-blue-600 font-bold">D{dim}:</span> {DIMENSION_NAMES[dim]}
                         </span>
                       </td>
-                      <td className={`px-2 py-2.5 text-center text-xs text-gray-500 border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                      <td className={`px-1 py-1 text-center border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                           style={{ position: 'sticky', left: COL1_WIDTH, zIndex: 10 }}>
-                        {weights[dim]}%
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={weights[dim]}
+                          onChange={(e) => setWeights(prev => ({ ...prev, [dim]: parseInt(e.target.value) || 0 }))}
+                          className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-400 focus:border-blue-400 bg-white"
+                        />
                       </td>
                       <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
                           style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 10 }}>
@@ -1135,73 +1074,100 @@ export default function AggregateScoringReport() {
                   </tr>
                   
                   {/* Weighted Composite Row */}
-                  <tr className="bg-gradient-to-r from-blue-100 to-indigo-100">
-                    <td className="px-4 py-3 bg-gradient-to-r from-blue-100 to-indigo-100 border-r border-blue-200"
+                  <tr className={`${weightsValid ? 'bg-gradient-to-r from-blue-100 to-indigo-100' : 'bg-red-50'}`}>
+                    <td className={`px-4 py-3 border-r ${weightsValid ? 'bg-gradient-to-r from-blue-100 to-indigo-100 border-blue-200' : 'bg-red-50 border-red-200'}`}
                         style={{ position: 'sticky', left: 0, zIndex: 10 }}>
-                      <button onClick={() => handleSort('weighted')} className="font-bold text-blue-900 flex items-center gap-2 hover:text-blue-700">
-                        <span className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">W</span>
+                      <button onClick={() => handleSort('weighted')} className={`font-bold flex items-center gap-2 ${weightsValid ? 'text-blue-900 hover:text-blue-700' : 'text-red-700'}`}>
+                        <span className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${weightsValid ? 'bg-blue-600' : 'bg-red-500'}`}>W</span>
                         Weighted Composite
                         {sortBy === 'weighted' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                       </button>
                     </td>
-                    <td className="px-2 py-3 text-center text-xs text-blue-600 bg-gradient-to-r from-blue-100 to-indigo-100 border-r border-blue-200"
-                        style={{ position: 'sticky', left: COL1_WIDTH, zIndex: 10 }}>wgt</td>
-                    <td className="px-2 py-3 text-center bg-blue-200 border-r border-blue-300 font-black text-xl"
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 10, color: getScoreColor(averages.weighted.total ?? 0) }}>
-                      {averages.weighted.total ?? '—'}
+                    <td className={`px-2 py-3 text-center text-xs border-r ${weightsValid ? 'text-blue-600 bg-gradient-to-r from-blue-100 to-indigo-100 border-blue-200' : 'bg-red-50 border-red-200'}`}
+                        style={{ position: 'sticky', left: COL1_WIDTH, zIndex: 10 }}>
+                      {weightsValid ? (
+                        <span className="text-blue-600">wgt</span>
+                      ) : (
+                        <span className="text-red-600 font-bold">{weightsSum}%</span>
+                      )}
                     </td>
-                    <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-xl"
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, zIndex: 10, color: getScoreColor(averages.weighted.fp ?? 0) }}>
-                      {averages.weighted.fp ?? '—'}
-                    </td>
-                    <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-xl"
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), zIndex: 10, color: getScoreColor(averages.weighted.std ?? 0) }}>
-                      {averages.weighted.std ?? '—'}
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-blue-200 last:border-r-0 ${
-                        company.isFoundingPartner ? 'bg-violet-100/70' : 'bg-blue-50'
-                      }`}>
-                        <ScoreCell score={company.weightedScore} isComplete={company.isComplete} size="large" viewMode={viewMode} benchmark={averages.weighted.total} />
+                    {weightsValid ? (
+                      <>
+                        <td className="px-2 py-3 text-center bg-blue-200 border-r border-blue-300 font-black text-xl"
+                            style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 10, color: getScoreColor(averages.weighted.total ?? 0) }}>
+                          {averages.weighted.total ?? '—'}
+                        </td>
+                        <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-xl"
+                            style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, zIndex: 10, color: getScoreColor(averages.weighted.fp ?? 0) }}>
+                          {averages.weighted.fp ?? '—'}
+                        </td>
+                        <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-xl"
+                            style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), zIndex: 10, color: getScoreColor(averages.weighted.std ?? 0) }}>
+                          {averages.weighted.std ?? '—'}
+                        </td>
+                        {sortedCompanies.map(company => (
+                          <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-blue-200 last:border-r-0 ${
+                            company.isFoundingPartner ? 'bg-violet-100/70' : 'bg-blue-50'
+                          }`}>
+                            <ScoreCell score={company.weightedScore} isComplete={company.isComplete} size="large" viewMode={viewMode} benchmark={averages.weighted.total} />
+                          </td>
+                        ))}
+                      </>
+                    ) : (
+                      <td colSpan={3 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
+                        <div className="flex items-center gap-2 text-red-700">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <span className="font-medium">Weights must sum to 100% to display weighted scores (currently {weightsSum}%)</span>
+                          <button
+                            onClick={() => setWeights({ ...DEFAULT_WEIGHTS })}
+                            className="ml-2 px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                          >
+                            Reset Weights
+                          </button>
+                        </div>
                       </td>
-                    ))}
+                    )}
                   </tr>
                   
-                  {/* Performance Tier Row (Weighted) */}
-                  <tr className="bg-white border-b-4 border-indigo-300">
-                    <td className="px-4 py-3 bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: 0, zIndex: 10 }}>
-                      <span className="font-semibold text-gray-700 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-yellow-500 rounded flex items-center justify-center text-white">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-1.17a3 3 0 01-5.66 0H8.83a3 3 0 01-5.66 0H2a2 2 0 110-4h1.17A3 3 0 015 5zm5 8a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-4 1a1 1 0 100 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                          </svg>
+                  {/* Performance Tier Row (Weighted) - only show if weights valid */}
+                  {weightsValid && (
+                    <tr className="bg-white border-b-4 border-indigo-300">
+                      <td className="px-4 py-3 bg-white border-r border-gray-200"
+                          style={{ position: 'sticky', left: 0, zIndex: 10 }}>
+                        <span className="font-semibold text-gray-700 flex items-center gap-2">
+                          <span className="w-6 h-6 bg-yellow-500 rounded flex items-center justify-center text-white">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-1.17a3 3 0 01-5.66 0H8.83a3 3 0 01-5.66 0H2a2 2 0 110-4h1.17A3 3 0 015 5zm5 8a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-4 1a1 1 0 100 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                            </svg>
+                          </span>
+                          Performance Tier
                         </span>
-                        Performance Tier
-                      </span>
-                    </td>
-                    <td className="px-2 py-3 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: COL1_WIDTH, zIndex: 10 }}></td>
-                    <td className="px-2 py-3 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 10 }}>
-                      {averages.weighted.total !== null && <TierBadge score={averages.weighted.total} isComplete={true} size="small" />}
-                    </td>
-                    <td className="px-2 py-3 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, zIndex: 10 }}>
-                      {averages.weighted.fp !== null && <TierBadge score={averages.weighted.fp} isComplete={true} size="small" />}
-                    </td>
-                    <td className="px-2 py-3 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), zIndex: 10 }}>
-                      {averages.weighted.std !== null && <TierBadge score={averages.weighted.std} isComplete={true} size="small" />}
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-gray-100 last:border-r-0 ${
-                        company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                      }`}>
-                        <TierBadge score={company.weightedScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="small" />
                       </td>
-                    ))}
-                  </tr>
+                      <td className="px-2 py-3 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
+                          style={{ position: 'sticky', left: COL1_WIDTH, zIndex: 10 }}></td>
+                      <td className="px-2 py-3 text-center bg-indigo-50 border-r border-indigo-100"
+                          style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 10 }}>
+                        {averages.weighted.total !== null && <TierBadge score={averages.weighted.total} isComplete={true} size="small" />}
+                      </td>
+                      <td className="px-2 py-3 text-center bg-violet-50 border-r border-violet-100"
+                          style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, zIndex: 10 }}>
+                        {averages.weighted.fp !== null && <TierBadge score={averages.weighted.fp} isComplete={true} size="small" />}
+                      </td>
+                      <td className="px-2 py-3 text-center bg-slate-50 border-r border-slate-100"
+                          style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), zIndex: 10 }}>
+                        {averages.weighted.std !== null && <TierBadge score={averages.weighted.std} isComplete={true} size="small" />}
+                      </td>
+                      {sortedCompanies.map(company => (
+                        <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-gray-100 last:border-r-0 ${
+                          company.isFoundingPartner ? 'bg-violet-50/30' : ''
+                        }`}>
+                          <TierBadge score={company.weightedScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="small" />
+                        </td>
+                      ))}
+                    </tr>
+                  )}
                   
                   {/* ============================================ */}
                   {/* SECTION 2: ENHANCEMENT FACTORS */}
