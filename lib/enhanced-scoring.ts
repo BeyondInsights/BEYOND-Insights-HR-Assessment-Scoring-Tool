@@ -2,13 +2,30 @@
  * ENHANCED SCORING TOOL
  * Best Companies for Working with Cancer Index
  * 
- * This scoring model goes beyond the basic grid responses to incorporate:
- * - Base Score: Main D#a grid items (70% weight)
- * - Depth Score: Follow-up question quality (15% weight)
- * - Maturity Score: Current support approach & monitoring (10% weight)
- * - Breadth Score: Conditions covered & program structure (5% weight)
+ * ADDITIVE BONUS MODEL:
+ * Enhancement factors ADD bonus points on top of the base score.
+ * They can ONLY boost scores, never lower them.
  * 
- * Total Composite = (Base × 0.70) + (Depth × 0.15) + (Maturity × 0.10) + (Breadth × 0.05)
+ * Formula:
+ * Enhanced Composite = Base Score + Depth Bonus + Maturity Bonus + Breadth Bonus
+ * 
+ * - Base Score: Weighted dimension score (0-100)
+ * - Depth Bonus: Up to +15 points (follow-up question quality)
+ * - Maturity Bonus: Up to +10 points (current support approach)
+ * - Breadth Bonus: Up to +5 points (conditions & program structure)
+ * 
+ * Maximum Enhanced Score = 100 + 30 = 130 (displayed capped at 100)
+ * 
+ * EXPONENTIAL POINT SCALING:
+ * Point values are exponentially distributed to create meaningful differentiation:
+ * - Low offerings: 0-2 points
+ * - Medium offerings: 3-5 points  
+ * - High offerings: 7-10 points
+ * 
+ * Example: Paid leave duration
+ * - 1-3 weeks: 1 point (10% of max)
+ * - 5-9 weeks: 4 points (40% of max)
+ * - 13+ weeks: 10 points (100% of max)
  */
 
 // ============================================
@@ -33,12 +50,17 @@ export const DIMENSION_WEIGHTS: Record<number, number> = {
 };
 
 // Component weights for composite score
+// NEW MODEL: Enhancement factors ADD bonus points on top of base score
+// Maximum boost possible = 30 points (if all enhancements score 100%)
 export const COMPONENT_WEIGHTS = {
-  base: 0.70,
-  depth: 0.15,
-  maturity: 0.10,
-  breadth: 0.05,
+  base: 1.0,        // Base score is the foundation (100%)
+  depth: 0.15,      // Depth can add up to 15 bonus points
+  maturity: 0.10,   // Maturity can add up to 10 bonus points
+  breadth: 0.05,    // Breadth can add up to 5 bonus points
 };
+
+// Maximum possible bonus from enhancements
+export const MAX_ENHANCEMENT_BONUS = 30; // 15 + 10 + 5
 
 // Point values for main grid items
 export const GRID_POINTS = {
@@ -75,137 +97,138 @@ export const DIMENSION_NAMES: Record<number, string> = {
 
 /**
  * Depth scoring for follow-up questions
- * Higher values = more comprehensive offering
+ * EXPONENTIAL SCALING: Much bigger rewards for comprehensive offerings
+ * Scale: 0-10 points per item (normalized to 0-100 later)
  */
 export const DEPTH_SCORING = {
   // D1: Medical Leave Follow-ups
-  d1_1: { // Paid leave duration (USA)
+  d1_1: { // Paid leave duration (USA) - EXPONENTIAL SCALING
     '1 to less than 3 weeks': 1,
     '3 to less than 5 weeks': 2,
-    '5 to less than 9 weeks': 3,
-    '9 to less than 13 weeks': 4,
-    '13 or more weeks': 5,
+    '5 to less than 9 weeks': 4,
+    '9 to less than 13 weeks': 7,
+    '13 or more weeks': 10,
     'Does not apply': 0,
   },
-  d1_2: { // Intermittent leave (USA)
+  d1_2: { // Intermittent leave (USA) - EXPONENTIAL SCALING
     'No additional leave': 0,
     '1 to 4 additional weeks': 1,
-    '5 to 11 additional weeks': 2,
-    '12 to 23 additional weeks': 3,
-    '24 or more additional weeks': 4,
-    'Unlimited based on medical need': 5,
+    '5 to 11 additional weeks': 3,
+    '12 to 23 additional weeks': 6,
+    '24 or more additional weeks': 8,
+    'Unlimited based on medical need': 10,
     'Does not apply': 0,
   },
-  d1_4a: { // Remote work duration
+  d1_4a: { // Remote work duration - EXPONENTIAL SCALING
     'Up to 3 months': 1,
-    '4-6 months': 2,
-    '7-12 months': 3,
-    'More than 12 months': 4,
-    'As long as requested by healthcare provider': 5,
-    'As long as medically necessary': 5,
-    'Unlimited with medical certification': 5,
-    'Case-by-case basis': 3,
+    '4-6 months': 3,
+    '7-12 months': 5,
+    'More than 12 months': 7,
+    'As long as requested by healthcare provider': 10,
+    'As long as medically necessary': 10,
+    'Unlimited with medical certification': 10,
+    'Case-by-case basis': 4,
     'No additional remote work beyond legal requirements': 0,
   },
-  d1_4b: { // Part-time with full benefits
+  d1_4b: { // Part-time with full benefits - EXPONENTIAL SCALING
     'Up to 4 weeks': 1,
-    '5 to less than 13 weeks': 2,
-    '13 to less than 26 weeks': 3,
-    '26 weeks or more': 4,
-    'As long as requested by healthcare provider': 5,
-    'As long as medically necessary': 5,
-    'Case-by-case basis': 3,
+    '5 to less than 13 weeks': 3,
+    '13 to less than 26 weeks': 5,
+    '26 weeks or more': 8,
+    'As long as requested by healthcare provider': 10,
+    'As long as medically necessary': 10,
+    'Case-by-case basis': 4,
     'No additional time beyond legal requirements': 0,
   },
-  d1_5: { // Job protection duration (USA)
+  d1_5: { // Job protection duration (USA) - EXPONENTIAL SCALING
     '1 to less than 4 weeks': 1,
     '4 to less than 12 weeks': 2,
-    '12 to less than 26 weeks': 3,
-    '26 to less than 52 weeks': 4,
-    '52 weeks or more': 5,
+    '12 to less than 26 weeks': 4,
+    '26 to less than 52 weeks': 7,
+    '52 weeks or more': 10,
     'Does not apply': 0,
   },
   
-  // D3: Manager Training Follow-ups
+  // D3: Manager Training Follow-ups - EXPONENTIAL SCALING
   d3_1a: { // Training mandatory vs voluntary
-    'Mandatory for all managers': 5,
-    'Mandatory for new managers only': 3,
-    'Voluntary': 1,
-    'Varies by training type': 2,
+    'Mandatory for all managers': 10,
+    'Mandatory for new managers only': 5,
+    'Voluntary': 2,
+    'Varies by training type': 3,
   },
-  d3_1: { // % of managers trained
-    'Less than 10%': 1,
-    '10 to less than 25%': 2,
+  d3_1: { // % of managers trained - EXPONENTIAL SCALING
+    'Less than 10%': 0,
+    '10 to less than 25%': 1,
     '25 to less than 50%': 3,
-    '50 to less than 75%': 4,
-    '75 to less than 100%': 4.5,
-    '100%': 5,
+    '50 to less than 75%': 5,
+    '75 to less than 100%': 8,
+    '100%': 10,
     'Unsure': 0,
     'Do not track this information': 0,
     'Not able to provide this information': 0,
   },
   
-  // D4: Navigation Follow-ups (count-based)
+  // D4: Navigation Follow-ups (count-based) - HIGHER POINTS PER SELECTION
   d4_1a: { // Who provides navigation - points per selection
-    pointsPerSelection: 1,
-    maxPoints: 5,
+    pointsPerSelection: 2,
+    maxPoints: 10,
     bonusOptions: {
-      'Credentialed internal staff dedicated to employee navigation (e.g. nurse, social worker, etc.)': 2, // Bonus for internal staff
+      'Credentialed internal staff dedicated to employee navigation (e.g. nurse, social worker, etc.)': 4, // Big bonus for internal staff
     }
   },
   d4_1b: { // Services available - points per selection
-    pointsPerSelection: 0.625, // 8 options × 0.625 = 5 max
-    maxPoints: 5,
+    pointsPerSelection: 1.25, // 8 options × 1.25 = 10 max
+    maxPoints: 10,
   },
   
   // D6: Culture Follow-ups (count-based)
   d6_2: { // How psychological safety is measured
-    pointsPerSelection: 1,
-    maxPoints: 5,
+    pointsPerSelection: 2,
+    maxPoints: 10,
     penaltyOptions: {
-      "Don't formally measure": -5, // If selected, score = 0
+      "Don't formally measure": -10, // If selected, score = 0
     }
   },
   
   // D11: Prevention Follow-ups (count-based)
   d11_1: { // Screenings covered at 70%+
-    pointsPerSelection: 0.2, // Many options, cap at 5
-    maxPoints: 5,
+    pointsPerSelection: 0.4, // Many options, cap at 10
+    maxPoints: 10,
   },
   
-  // D12: Continuous Improvement Follow-ups
+  // D12: Continuous Improvement Follow-ups - EXPONENTIAL SCALING
   d12_1: { // Case review process
-    'Yes, using a systematic case review process': 5,
-    'Yes, using ad hoc case reviews': 3,
-    'No, we only review aggregate metrics': 1,
-    'Regular case review meetings': 5,
-    'Ad hoc reviews as needed': 3,
-    'Third-party vendor manages reviews': 4,
-    'Manager-led reviews': 3,
+    'Yes, using a systematic case review process': 10,
+    'Yes, using ad hoc case reviews': 5,
+    'No, we only review aggregate metrics': 2,
+    'Regular case review meetings': 10,
+    'Ad hoc reviews as needed': 5,
+    'Third-party vendor manages reviews': 7,
+    'Manager-led reviews': 5,
     "We don't review individual cases": 0,
-    'Other approach': 2,
+    'Other approach': 3,
   },
   d12_2: { // Have changes been made based on employee experiences
-    'Yes, several changes implemented': 5,
-    'Yes, a few changes implemented': 3,
+    'Yes, several changes implemented': 10,
+    'Yes, a few changes implemented': 5,
     'No': 0,
   },
   
-  // D13: Communication Follow-ups
+  // D13: Communication Follow-ups - EXPONENTIAL SCALING
   d13_1: { // Communication frequency
-    'Weekly': 5,
-    'Monthly': 5,
-    'Monthly or more often': 5,
-    'Quarterly': 4,
-    'Semi-annually': 3,
-    'Twice per year': 3,
+    'Weekly': 10,
+    'Monthly': 10,
+    'Monthly or more often': 10,
+    'Quarterly': 7,
+    'Semi-annually': 4,
+    'Twice per year': 4,
     'Annually': 2,
     'Annually (typically during enrollment or on World Cancer Day)': 2,
     'Only during benefits enrollment': 1,
-    'Only when asked/reactive only': 0.5,
-    'Only when asked': 0.5,
+    'Only when asked/reactive only': 0,
+    'Only when asked': 0,
     "We don't actively communicate": 0,
-    'No regular communication schedule': 0.5,
+    'No regular communication schedule': 0,
   },
 };
 
@@ -214,44 +237,43 @@ export const DEPTH_SCORING = {
 // ============================================
 
 export const MATURITY_SCORING = {
-  // OR1: Current approach level
+  // OR1: Current approach level - EXPONENTIAL SCALING (0-10)
   or1: {
     'No formal approach: Handle case-by-case': 0,
     'No formal approach - handled case by case': 0,
-    'Developing approach: Currently building our programs': 1,
-    'Developing approach': 1,
-    'Legal minimum only: Meet legal requirements only (FMLA, ADA)': 2,
-    'Legal minimum only': 2,
-    'Moderate support: Some programs beyond legal requirements': 3,
-    'Moderate support': 3,
-    'Enhanced support: Meaningful programs beyond legal minimums': 4,
-    'Enhanced support': 4,
-    'Comprehensive support: Extensive programs well beyond legal requirements': 5,
-    'Comprehensive support': 5,
+    'Developing approach: Currently building our programs': 2,
+    'Developing approach': 2,
+    'Legal minimum only: Meet legal requirements only (FMLA, ADA)': 3,
+    'Legal minimum only': 3,
+    'Moderate support: Some programs beyond legal requirements': 5,
+    'Moderate support': 5,
+    'Enhanced support: Meaningful programs beyond legal minimums': 8,
+    'Enhanced support': 8,
+    'Comprehensive support: Extensive programs well beyond legal requirements': 10,
+    'Comprehensive support': 10,
     // Also handle schema options
-    'No formal approach - handled case by case': 0,
-    'Manager discretion with HR guidance': 1,
-    'Standardized process with some flexibility': 2,
-    'Formal program with defined benefits': 3,
-    'Comprehensive integrated support system': 5,
+    'Manager discretion with HR guidance': 2,
+    'Standardized process with some flexibility': 4,
+    'Formal program with defined benefits': 6,
+    'Comprehensive integrated support system': 10,
   },
   
-  // OR5a: Caregiver support types (count-based)
+  // OR5a: Caregiver support types (count-based) - HIGHER POINTS
   or5a: {
-    pointsPerSelection: 0.35, // ~14 options, cap at 5
-    maxPoints: 5,
+    pointsPerSelection: 0.7, // ~14 options, cap at 10
+    maxPoints: 10,
     penaltyOptions: {
-      'Not able to provide caregiver support at this time': -5, // If selected, score = 0
+      'Not able to provide caregiver support at this time': -10, // If selected, score = 0
     }
   },
   
-  // OR6: Effectiveness monitoring (count-based)
+  // OR6: Effectiveness monitoring (count-based) - HIGHER POINTS
   or6: {
-    pointsPerSelection: 0.5, // ~10 options, cap at 5
-    maxPoints: 5,
+    pointsPerSelection: 1.0, // ~10 options, cap at 10
+    maxPoints: 10,
     penaltyOptions: {
-      "We don't currently measure": -5,
-      'No systematic monitoring': -5,
+      "We don't currently measure": -10,
+      'No systematic monitoring': -10,
     }
   },
 };
@@ -261,37 +283,37 @@ export const MATURITY_SCORING = {
 // ============================================
 
 export const BREADTH_SCORING = {
-  // CB3a: Beyond legal requirements
+  // CB3a: Beyond legal requirements - EXPONENTIAL SCALING (0-10)
   cb3a: {
-    'Yes, we offer additional support beyond legal requirements': 5,
-    'Currently developing enhanced support offerings': 3,
-    'At this time, we primarily focus on meeting legal compliance requirements': 1,
-    'Not yet, but actively exploring options': 2,
+    'Yes, we offer additional support beyond legal requirements': 10,
+    'Currently developing enhanced support offerings': 5,
+    'At this time, we primarily focus on meeting legal compliance requirements': 2,
+    'Not yet, but actively exploring options': 3,
     // Also handle schema options
     'No specific program - standard benefits only': 0,
-    'Basic support through existing benefits': 1,
-    'Enhanced support with some specialized resources': 3,
-    'Comprehensive program with dedicated resources': 4,
-    'Leading-edge program with innovative solutions': 5,
+    'Basic support through existing benefits': 2,
+    'Enhanced support with some specialized resources': 6,
+    'Comprehensive program with dedicated resources': 8,
+    'Leading-edge program with innovative solutions': 10,
   },
   
-  // CB3b: Program structure (count-based with bonuses)
+  // CB3b: Program structure (count-based with bonuses) - HIGHER POINTS
   cb3b: {
-    pointsPerSelection: 0.7, // ~7 options
-    maxPoints: 5,
+    pointsPerSelection: 1.4, // ~7 options, cap at 10
+    maxPoints: 10,
     bonusOptions: {
-      'Comprehensive framework that integrates multiple support elements': 2,
-      'Coordinated support services - single point of contact for multiple resources (e.g., nurse navigation, case management)': 1.5,
-      'Internally developed formal program with a specific name': 1,
+      'Comprehensive framework that integrates multiple support elements': 4,
+      'Coordinated support services - single point of contact for multiple resources (e.g., nurse navigation, case management)': 3,
+      'Internally developed formal program with a specific name': 2,
     }
   },
   
-  // CB3c: Conditions covered (count-based)
+  // CB3c: Conditions covered (count-based) - HIGHER POINTS
   cb3c: {
-    pointsPerSelection: 0.4, // ~12 options
-    maxPoints: 5,
+    pointsPerSelection: 0.8, // ~12 options, cap at 10
+    maxPoints: 10,
     bonusOptions: {
-      'All serious medical conditions': 2, // Bonus for comprehensive coverage
+      'All serious medical conditions': 4, // Bonus for comprehensive coverage
     }
   },
 };
@@ -558,46 +580,46 @@ function calculateDepthScore(assessment: any): DepthScore {
   const d1_1_usa = d1Data.d1_1_usa || d1Data.d1_1;
   if (d1_1_usa) {
     const score = scoreSelectFollowUp(d1_1_usa, DEPTH_SCORING.d1_1);
-    details['d1_1'] = { value: score, maxValue: 5, source: `Paid leave: ${d1_1_usa}` };
+    details['d1_1'] = { value: score, maxValue: 10, source: `Paid leave: ${d1_1_usa}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D1.2 - Intermittent leave
   const d1_2_usa = d1Data.d1_2_usa || d1Data.d1_2;
   if (d1_2_usa) {
     const score = scoreSelectFollowUp(d1_2_usa, DEPTH_SCORING.d1_2);
-    details['d1_2'] = { value: score, maxValue: 5, source: `Intermittent leave: ${d1_2_usa}` };
+    details['d1_2'] = { value: score, maxValue: 10, source: `Intermittent leave: ${d1_2_usa}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D1.4a - Remote work
   const d1_4a = d1Data.d1_4a;
   if (d1_4a) {
     const score = scoreSelectFollowUp(d1_4a, DEPTH_SCORING.d1_4a);
-    details['d1_4a'] = { value: score, maxValue: 5, source: `Remote work: ${d1_4a}` };
+    details['d1_4a'] = { value: score, maxValue: 10, source: `Remote work: ${d1_4a}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D1.4b - Part-time with benefits
   const d1_4b = d1Data.d1_4b;
   if (d1_4b) {
     const score = scoreSelectFollowUp(d1_4b, DEPTH_SCORING.d1_4b);
-    details['d1_4b'] = { value: score, maxValue: 5, source: `Part-time benefits: ${d1_4b}` };
+    details['d1_4b'] = { value: score, maxValue: 10, source: `Part-time benefits: ${d1_4b}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D1.5 - Job protection
   const d1_5_usa = d1Data.d1_5_usa || d1Data.d1_5;
   if (d1_5_usa) {
     const score = scoreSelectFollowUp(d1_5_usa, DEPTH_SCORING.d1_5);
-    details['d1_5'] = { value: score, maxValue: 5, source: `Job protection: ${d1_5_usa}` };
+    details['d1_5'] = { value: score, maxValue: 10, source: `Job protection: ${d1_5_usa}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D3 Follow-ups
   const d3Data = assessment.dimension3_data || {};
@@ -606,19 +628,19 @@ function calculateDepthScore(assessment: any): DepthScore {
   const d3_1a = d3Data.d3_1a;
   if (d3_1a) {
     const score = scoreSelectFollowUp(d3_1a, DEPTH_SCORING.d3_1a);
-    details['d3_1a'] = { value: score, maxValue: 5, source: `Training policy: ${d3_1a}` };
+    details['d3_1a'] = { value: score, maxValue: 10, source: `Training policy: ${d3_1a}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D3.1 - % managers trained
   const d3_1 = d3Data.d3_1;
   if (d3_1) {
     const score = scoreSelectFollowUp(d3_1, DEPTH_SCORING.d3_1);
-    details['d3_1'] = { value: score, maxValue: 5, source: `Managers trained: ${d3_1}` };
+    details['d3_1'] = { value: score, maxValue: 10, source: `Managers trained: ${d3_1}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D4 Follow-ups
   const d4Data = assessment.dimension4_data || {};
@@ -627,19 +649,19 @@ function calculateDepthScore(assessment: any): DepthScore {
   const d4_1a = d4Data.d4_1a;
   if (d4_1a && Array.isArray(d4_1a)) {
     const score = scoreCountBasedFollowUp(d4_1a, DEPTH_SCORING.d4_1a as any);
-    details['d4_1a'] = { value: score, maxValue: 5, source: `Navigation providers: ${d4_1a.length} selected` };
+    details['d4_1a'] = { value: score, maxValue: 10, source: `Navigation providers: ${d4_1a.length} selected` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D4.1b - Navigation services
   const d4_1b = d4Data.d4_1b;
   if (d4_1b && Array.isArray(d4_1b)) {
     const score = scoreCountBasedFollowUp(d4_1b, DEPTH_SCORING.d4_1b as any);
-    details['d4_1b'] = { value: score, maxValue: 5, source: `Navigation services: ${d4_1b.length} selected` };
+    details['d4_1b'] = { value: score, maxValue: 10, source: `Navigation services: ${d4_1b.length} selected` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D6 Follow-ups
   const d6Data = assessment.dimension6_data || {};
@@ -648,10 +670,10 @@ function calculateDepthScore(assessment: any): DepthScore {
   const d6_2 = d6Data.d6_2;
   if (d6_2 && Array.isArray(d6_2)) {
     const score = scoreCountBasedFollowUp(d6_2, DEPTH_SCORING.d6_2 as any);
-    details['d6_2'] = { value: score, maxValue: 5, source: `Safety measurement: ${d6_2.length} methods` };
+    details['d6_2'] = { value: score, maxValue: 10, source: `Safety measurement: ${d6_2.length} methods` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D11 Follow-ups
   const d11Data = assessment.dimension11_data || {};
@@ -660,10 +682,10 @@ function calculateDepthScore(assessment: any): DepthScore {
   const d11_1 = d11Data.d11_1;
   if (d11_1 && Array.isArray(d11_1)) {
     const score = scoreCountBasedFollowUp(d11_1, DEPTH_SCORING.d11_1 as any);
-    details['d11_1'] = { value: score, maxValue: 5, source: `Screenings covered: ${d11_1.length} types` };
+    details['d11_1'] = { value: score, maxValue: 10, source: `Screenings covered: ${d11_1.length} types` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D12 Follow-ups
   const d12Data = assessment.dimension12_data || {};
@@ -672,19 +694,19 @@ function calculateDepthScore(assessment: any): DepthScore {
   const d12_1 = d12Data.d12_1;
   if (d12_1) {
     const score = scoreSelectFollowUp(d12_1, DEPTH_SCORING.d12_1);
-    details['d12_1'] = { value: score, maxValue: 5, source: `Case review: ${d12_1}` };
+    details['d12_1'] = { value: score, maxValue: 10, source: `Case review: ${d12_1}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D12.2 - Changes implemented
   const d12_2 = d12Data.d12_2;
   if (d12_2) {
     const score = scoreSelectFollowUp(d12_2, DEPTH_SCORING.d12_2);
-    details['d12_2'] = { value: score, maxValue: 5, source: `Changes made: ${d12_2}` };
+    details['d12_2'] = { value: score, maxValue: 10, source: `Changes made: ${d12_2}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // D13 Follow-ups
   const d13Data = assessment.dimension13_data || {};
@@ -693,14 +715,14 @@ function calculateDepthScore(assessment: any): DepthScore {
   const d13_1 = d13Data.d13_1;
   if (d13_1) {
     const score = scoreSelectFollowUp(d13_1, DEPTH_SCORING.d13_1);
-    details['d13_1'] = { value: score, maxValue: 5, source: `Comm frequency: ${d13_1}` };
+    details['d13_1'] = { value: score, maxValue: 10, source: `Comm frequency: ${d13_1}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // Calculate percentage (0-100)
   const answeredQuestions = Object.keys(details).length;
-  const adjustedMaxPossible = answeredQuestions * 5; // Only count answered questions
+  const adjustedMaxPossible = answeredQuestions * 10; // 10-point scale
   const percentage = adjustedMaxPossible > 0 ? Math.round((totalPoints / adjustedMaxPossible) * 100) : 0;
   
   return {
@@ -726,41 +748,41 @@ function calculateMaturityScore(assessment: any): MaturityScore {
   const or1 = currentSupportData.or1;
   if (or1) {
     const score = scoreSelectFollowUp(or1, MATURITY_SCORING.or1);
-    details['or1'] = { value: score, maxValue: 5, source: `Approach: ${or1}` };
+    details['or1'] = { value: score, maxValue: 10, source: `Approach: ${or1}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // OR5a - Caregiver support types
   const or5a = currentSupportData.or5a;
   if (or5a && Array.isArray(or5a)) {
     const score = scoreCountBasedFollowUp(or5a, MATURITY_SCORING.or5a as any);
-    details['or5a'] = { value: score, maxValue: 5, source: `Caregiver supports: ${or5a.length} types` };
+    details['or5a'] = { value: score, maxValue: 10, source: `Caregiver supports: ${or5a.length} types` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // OR6 - Effectiveness monitoring
   const or6 = currentSupportData.or6;
   if (or6 && Array.isArray(or6)) {
     const score = scoreCountBasedFollowUp(or6, MATURITY_SCORING.or6 as any);
-    details['or6'] = { value: score, maxValue: 5, source: `Monitoring methods: ${or6.length} used` };
+    details['or6'] = { value: score, maxValue: 10, source: `Monitoring methods: ${or6.length} used` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // OR2a - Triggers for enhanced support (bonus indicator)
   const or2a = currentSupportData.or2a;
   if (or2a && Array.isArray(or2a) && or2a.length > 0) {
-    const score = Math.min(or2a.length * 0.5, 5); // 0.5 per trigger, max 5
-    details['or2a'] = { value: score, maxValue: 5, source: `Triggers: ${or2a.length} identified` };
+    const score = Math.min(or2a.length * 1.0, 10); // 1 point per trigger, max 10
+    details['or2a'] = { value: score, maxValue: 10, source: `Triggers: ${or2a.length} identified` };
     totalPoints += score;
-    maxPossible += 5;
+    maxPossible += 10;
   }
   
   // Calculate percentage
   const answeredQuestions = Object.keys(details).length;
-  const adjustedMaxPossible = answeredQuestions * 5;
+  const adjustedMaxPossible = answeredQuestions * 10; // 10-point scale
   const percentage = adjustedMaxPossible > 0 ? Math.round((totalPoints / adjustedMaxPossible) * 100) : 0;
   
   return {
@@ -787,32 +809,32 @@ function calculateBreadthScore(assessment: any): BreadthScore {
   const cb3a = currentSupportData.cb3a || generalBenefitsData.cb3a;
   if (cb3a) {
     const score = scoreSelectFollowUp(cb3a, BREADTH_SCORING.cb3a);
-    details['cb3a'] = { value: score, maxValue: 5, source: `Beyond legal: ${cb3a}` };
+    details['cb3a'] = { value: score, maxValue: 10, source: `Beyond legal: ${cb3a}` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // CB3b - Program structure
   const cb3b = currentSupportData.cb3b || generalBenefitsData.cb3b;
   if (cb3b && Array.isArray(cb3b)) {
     const score = scoreCountBasedFollowUp(cb3b, BREADTH_SCORING.cb3b as any);
-    details['cb3b'] = { value: score, maxValue: 5, source: `Program structure: ${cb3b.length} elements` };
+    details['cb3b'] = { value: score, maxValue: 10, source: `Program structure: ${cb3b.length} elements` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // CB3c - Conditions covered
   const cb3c = currentSupportData.cb3c || generalBenefitsData.cb3c;
   if (cb3c && Array.isArray(cb3c)) {
     const score = scoreCountBasedFollowUp(cb3c, BREADTH_SCORING.cb3c as any);
-    details['cb3c'] = { value: score, maxValue: 5, source: `Conditions: ${cb3c.length} covered` };
+    details['cb3c'] = { value: score, maxValue: 10, source: `Conditions: ${cb3c.length} covered` };
     totalPoints += score;
   }
-  maxPossible += 5;
+  maxPossible += 10;
   
   // Calculate percentage
   const answeredQuestions = Object.keys(details).length;
-  const adjustedMaxPossible = answeredQuestions * 5;
+  const adjustedMaxPossible = answeredQuestions * 10; // 10-point scale
   const percentage = adjustedMaxPossible > 0 ? Math.round((totalPoints / adjustedMaxPossible) * 100) : 0;
   
   return {
@@ -834,19 +856,32 @@ export function calculateEnhancedScore(assessment: any): EnhancedScore {
   const maturityDetails = calculateMaturityScore(assessment);
   const breadthDetails = calculateBreadthScore(assessment);
   
-  // Component scores (0-100)
+  // Component scores (0-100 percentages)
   const baseScore = baseResult.score;
   const depthScore = depthDetails.percentage;
   const maturityScore = maturityDetails.percentage;
   const breadthScore = breadthDetails.percentage;
   
-  // Composite score (weighted)
-  const compositeScore = Math.round(
-    (baseScore * COMPONENT_WEIGHTS.base) +
-    (depthScore * COMPONENT_WEIGHTS.depth) +
-    (maturityScore * COMPONENT_WEIGHTS.maturity) +
-    (breadthScore * COMPONENT_WEIGHTS.breadth)
-  );
+  // ADDITIVE BONUS MODEL:
+  // Enhanced = Base Score + Depth Bonus + Maturity Bonus + Breadth Bonus
+  // - Base Score: 100% of weighted dimension score (0-100)
+  // - Depth Bonus: Up to 15 points (if depthScore = 100%)
+  // - Maturity Bonus: Up to 10 points (if maturityScore = 100%)
+  // - Breadth Bonus: Up to 5 points (if breadthScore = 100%)
+  // - Maximum possible: 100 + 30 = 130 (capped at 100 for display)
+  //
+  // Example: Base=70, Depth=80%, Maturity=60%, Breadth=40%
+  // Enhanced = 70 + (80×0.15) + (60×0.10) + (40×0.05)
+  //          = 70 + 12 + 6 + 2 = 90
+  
+  const depthBonus = (depthScore / 100) * 15;    // 0-15 points
+  const maturityBonus = (maturityScore / 100) * 10;  // 0-10 points
+  const breadthBonus = (breadthScore / 100) * 5;   // 0-5 points
+  
+  const rawComposite = baseScore + depthBonus + maturityBonus + breadthBonus;
+  
+  // Cap at 100 for display purposes (though internally can exceed)
+  const compositeScore = Math.round(Math.min(rawComposite, 100));
   
   // Determine if provisional
   const isProvisional = baseResult.insufficientDataCount >= 4;
