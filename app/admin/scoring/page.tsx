@@ -20,6 +20,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
+import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
 
 // ============================================
 // DEFAULT DIMENSION WEIGHTS (Total = 100%)
@@ -383,6 +384,11 @@ interface CompanyScores {
   isComplete: boolean;
   isFoundingPartner: boolean;
   completedDimCount: number;
+  // Enhanced scoring fields
+  enhancedComposite: number;
+  depthScore: number;
+  maturityScore: number;
+  breadthScore: number;
 }
 
 function calculateCompanyScores(assessment: Record<string, any>, weights: Record<number, number>): CompanyScores {
@@ -427,6 +433,20 @@ function calculateCompanyScores(assessment: Record<string, any>, weights: Record
     weightedScore = Math.round(weightedScore);
   }
   
+  // Calculate enhanced scores
+  let enhancedResult = { compositeScore: weightedScore, depthScore: 0, maturityScore: 0, breadthScore: 0 };
+  try {
+    const enhanced = calculateEnhancedScore(assessment);
+    enhancedResult = {
+      compositeScore: enhanced.compositeScore,
+      depthScore: enhanced.depthScore,
+      maturityScore: enhanced.maturityScore,
+      breadthScore: enhanced.breadthScore,
+    };
+  } catch (e) {
+    // If enhanced calculation fails, use weighted score as fallback
+  }
+  
   return {
     companyName: assessment.company_name || 'Unknown',
     surveyId: assessment.app_id || assessment.survey_id || 'N/A',
@@ -438,6 +458,11 @@ function calculateCompanyScores(assessment: Record<string, any>, weights: Record
     isComplete,
     isFoundingPartner,
     completedDimCount,
+    // Enhanced scores
+    enhancedComposite: enhancedResult.compositeScore,
+    depthScore: enhancedResult.depthScore,
+    maturityScore: enhancedResult.maturityScore,
+    breadthScore: enhancedResult.breadthScore,
   };
 }
 
@@ -571,6 +596,8 @@ export default function AggregateScoringReport() {
   const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard'>('all');
   // ENHANCED: Collapsible legend state
   const [showLegend, setShowLegend] = useState(true);
+  // NEW: Scoring mode toggle
+  const [scoringMode, setScoringMode] = useState<'original' | 'enhanced'>('original');
 
   useEffect(() => {
     const loadAssessments = async () => {
@@ -627,13 +654,16 @@ export default function AggregateScoringReport() {
       if (sortBy === 'name') {
         comparison = a.companyName.localeCompare(b.companyName);
       } else if (sortBy === 'weighted') {
-        comparison = a.weightedScore - b.weightedScore;
+        // Use enhanced or weighted based on mode
+        const aScore = scoringMode === 'enhanced' ? a.enhancedComposite : a.weightedScore;
+        const bScore = scoringMode === 'enhanced' ? b.enhancedComposite : b.weightedScore;
+        comparison = aScore - bScore;
       } else {
         comparison = a.unweightedScore - b.unweightedScore;
       }
       return sortDir === 'desc' ? -comparison : comparison;
     });
-  }, [companyScores, sortBy, sortDir, filterType, filterComplete]);
+  }, [companyScores, sortBy, sortDir, filterType, filterComplete, scoringMode]);
 
   const calculateIndex = (score: number, avg: number | null): number | null => {
     if (avg === null || avg === 0) return null;
@@ -692,6 +722,11 @@ export default function AggregateScoringReport() {
         total: completeCompanies.length > 0 ? Math.round(completeCompanies.reduce((s, c) => s + c.weightedScore, 0) / completeCompanies.length) : null,
         fp: completeFP.length > 0 ? Math.round(completeFP.reduce((s, c) => s + c.weightedScore, 0) / completeFP.length) : null,
         standard: completeStd.length > 0 ? Math.round(completeStd.reduce((s, c) => s + c.weightedScore, 0) / completeStd.length) : null,
+      },
+      enhanced: {
+        total: completeCompanies.length > 0 ? Math.round(completeCompanies.reduce((s, c) => s + c.enhancedComposite, 0) / completeCompanies.length) : null,
+        fp: completeFP.length > 0 ? Math.round(completeFP.reduce((s, c) => s + c.enhancedComposite, 0) / completeFP.length) : null,
+        standard: completeStd.length > 0 ? Math.round(completeStd.reduce((s, c) => s + c.enhancedComposite, 0) / completeStd.length) : null,
       },
       counts: {
         total: completeCompanies.length,
@@ -815,6 +850,28 @@ export default function AggregateScoringReport() {
             
             {/* View Toggle & Filters */}
             <div className="flex items-center gap-4">
+              {/* NEW: Scoring Mode Toggle */}
+              <div className="flex bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-lg p-0.5 border border-purple-400/30">
+                <button
+                  onClick={() => setScoringMode('original')}
+                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                    scoringMode === 'original' ? 'bg-white text-purple-900' : 'text-white hover:bg-white/10'
+                  }`}
+                  title="Original scoring: Dimension grids + geo multiplier only"
+                >
+                  Original
+                </button>
+                <button
+                  onClick={() => setScoringMode('enhanced')}
+                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                    scoringMode === 'enhanced' ? 'bg-white text-purple-900' : 'text-white hover:bg-white/10'
+                  }`}
+                  title="Enhanced scoring: Dimension + Depth + Maturity + Breadth"
+                >
+                  Enhanced
+                </button>
+              </div>
+              
               {/* Score/Index Toggle */}
               <div className="flex bg-white/10 rounded-lg p-0.5">
                 <button
@@ -879,6 +936,19 @@ export default function AggregateScoringReport() {
             <span className="text-blue-600 ml-2">≥100 = At/Above Avg</span>
             <span className="text-orange-600 ml-2">≥90 = Below</span>
             <span className="text-red-600 ml-2">&lt;90 = Significant Gap</span>
+          </p>
+        </div>
+      )}
+      
+      {/* Scoring Mode Explanation */}
+      {scoringMode === 'enhanced' && (
+        <div className="bg-purple-50 border-b border-purple-200 px-8 py-2 print:hidden">
+          <p className="text-sm text-purple-800">
+            <strong>Enhanced Scoring:</strong> Combines 4 components: 
+            <span className="font-semibold ml-2">Dimension (70%)</span> = Grid responses with geo adjustment
+            <span className="font-semibold ml-2">+ Depth (15%)</span> = Follow-up question quality
+            <span className="font-semibold ml-2">+ Maturity (10%)</span> = Support approach level
+            <span className="font-semibold ml-2">+ Breadth (5%)</span> = Conditions covered
           </p>
         </div>
       )}
@@ -1367,25 +1437,27 @@ export default function AggregateScoringReport() {
                   })}
                 </tr>
 
-                {/* ENHANCED: Weighted Score Row with prominent gradient */}
-                <tr className="bg-gradient-to-r from-indigo-100 via-indigo-150 to-purple-100">
+                {/* ENHANCED: Weighted/Enhanced Score Row with prominent gradient */}
+                <tr className={`bg-gradient-to-r ${scoringMode === 'enhanced' ? 'from-purple-100 via-purple-150 to-indigo-100' : 'from-indigo-100 via-indigo-150 to-purple-100'}`}>
                   <td 
-                    className="px-4 py-4 bg-gradient-to-r from-indigo-100 to-purple-100 z-10 border-r border-indigo-300"
+                    className={`px-4 py-4 z-10 border-r border-indigo-300 ${scoringMode === 'enhanced' ? 'bg-gradient-to-r from-purple-100 to-indigo-100' : 'bg-gradient-to-r from-indigo-100 to-purple-100'}`}
                     style={{ position: 'sticky', left: 0, minWidth: COL1_WIDTH, width: COL1_WIDTH }}
                   >
-                    <button onClick={() => handleSort('weighted')} className="text-sm font-bold text-indigo-900 hover:text-indigo-600 flex items-center gap-2">
-                      <span className="p-1.5 bg-indigo-600 rounded text-white text-xs">WGT</span>
-                      Weighted Composite
+                    <button onClick={() => handleSort('weighted')} className={`text-sm font-bold hover:text-indigo-600 flex items-center gap-2 ${scoringMode === 'enhanced' ? 'text-purple-900' : 'text-indigo-900'}`}>
+                      <span className={`p-1.5 rounded text-white text-xs ${scoringMode === 'enhanced' ? 'bg-purple-600' : 'bg-indigo-600'}`}>
+                        {scoringMode === 'enhanced' ? 'ENH' : 'WGT'}
+                      </span>
+                      {scoringMode === 'enhanced' ? 'Enhanced Composite' : 'Weighted Composite'}
                       {sortBy === 'weighted' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                     </button>
                   </td>
-                  <td className="px-2 py-4 text-center text-xs text-indigo-600 bg-gradient-to-r from-indigo-100 to-purple-100 z-10 border-r border-indigo-300"
+                  <td className={`px-2 py-4 text-center text-xs z-10 border-r border-indigo-300 ${scoringMode === 'enhanced' ? 'text-purple-600 bg-gradient-to-r from-purple-100 to-indigo-100' : 'text-indigo-600 bg-gradient-to-r from-indigo-100 to-purple-100'}`}
                       style={{ position: 'sticky', left: COL1_WIDTH, width: COL2_WIDTH }}>
-                    {totalWeight === 100 ? 'wgt' : <span className="text-red-600 font-bold">ERR</span>}
+                    {totalWeight === 100 ? (scoringMode === 'enhanced' ? 'enh' : 'wgt') : <span className="text-red-600 font-bold">ERR</span>}
                   </td>
-                  <td className="px-2 py-4 text-center bg-indigo-200 z-10 font-black text-xl text-indigo-900 border-r border-indigo-300"
+                  <td className={`px-2 py-4 text-center z-10 font-black text-xl border-r border-indigo-300 ${scoringMode === 'enhanced' ? 'bg-purple-200 text-purple-900' : 'bg-indigo-200 text-indigo-900'}`}
                       style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, width: COL_AVG_WIDTH }}>
-                    {totalWeight === 100 ? (viewMode === 'index' ? '100' : (compositeAverages.weighted.total ?? '—')) : '—'}
+                    {totalWeight === 100 ? (viewMode === 'index' ? '100' : (scoringMode === 'enhanced' ? compositeAverages.enhanced.total : compositeAverages.weighted.total) ?? '—') : '—'}
                   </td>
                   <td className="px-2 py-4 text-center bg-amber-200 z-10 font-black text-xl border-r border-indigo-300"
                       style={{ 
@@ -1393,13 +1465,19 @@ export default function AggregateScoringReport() {
                         left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, 
                         width: COL_AVG_WIDTH,
                         color: viewMode === 'index' && totalWeight === 100 
-                          ? getIndexColor(calculateIndex(compositeAverages.weighted.fp ?? 0, compositeAverages.weighted.total ?? 0)) 
+                          ? getIndexColor(calculateIndex(
+                              scoringMode === 'enhanced' ? compositeAverages.enhanced.fp ?? 0 : compositeAverages.weighted.fp ?? 0, 
+                              scoringMode === 'enhanced' ? compositeAverages.enhanced.total ?? 0 : compositeAverages.weighted.total ?? 0
+                            )) 
                           : undefined
                       }}>
                     {totalWeight === 100 
                       ? (viewMode === 'index' 
-                          ? calculateIndex(compositeAverages.weighted.fp ?? 0, compositeAverages.weighted.total ?? 0) ?? '—'
-                          : compositeAverages.weighted.fp ?? '—') 
+                          ? calculateIndex(
+                              scoringMode === 'enhanced' ? compositeAverages.enhanced.fp ?? 0 : compositeAverages.weighted.fp ?? 0, 
+                              scoringMode === 'enhanced' ? compositeAverages.enhanced.total ?? 0 : compositeAverages.weighted.total ?? 0
+                            ) ?? '—'
+                          : (scoringMode === 'enhanced' ? compositeAverages.enhanced.fp : compositeAverages.weighted.fp) ?? '—') 
                       : '—'}
                   </td>
                   <td className="px-2 py-4 text-center bg-cyan-200 z-10 font-black text-xl border-r border-indigo-300"
@@ -1408,18 +1486,25 @@ export default function AggregateScoringReport() {
                         left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), 
                         width: COL_AVG_WIDTH,
                         color: viewMode === 'index' && totalWeight === 100
-                          ? getIndexColor(calculateIndex(compositeAverages.weighted.standard ?? 0, compositeAverages.weighted.total ?? 0))
+                          ? getIndexColor(calculateIndex(
+                              scoringMode === 'enhanced' ? compositeAverages.enhanced.standard ?? 0 : compositeAverages.weighted.standard ?? 0, 
+                              scoringMode === 'enhanced' ? compositeAverages.enhanced.total ?? 0 : compositeAverages.weighted.total ?? 0
+                            ))
                           : undefined
                       }}>
                     {totalWeight === 100 
                       ? (viewMode === 'index'
-                          ? calculateIndex(compositeAverages.weighted.standard ?? 0, compositeAverages.weighted.total ?? 0) ?? '—'
-                          : compositeAverages.weighted.standard ?? '—')
+                          ? calculateIndex(
+                              scoringMode === 'enhanced' ? compositeAverages.enhanced.standard ?? 0 : compositeAverages.weighted.standard ?? 0, 
+                              scoringMode === 'enhanced' ? compositeAverages.enhanced.total ?? 0 : compositeAverages.weighted.total ?? 0
+                            ) ?? '—'
+                          : (scoringMode === 'enhanced' ? compositeAverages.enhanced.standard : compositeAverages.weighted.standard) ?? '—')
                       : '—'}
                   </td>
                   {sortedCompanies.map(company => {
-                    const score = company.weightedScore;
-                    const index = calculateIndex(score, compositeAverages.weighted.total ?? 0);
+                    const score = scoringMode === 'enhanced' ? company.enhancedComposite : company.weightedScore;
+                    const avgTotal = scoringMode === 'enhanced' ? compositeAverages.enhanced.total : compositeAverages.weighted.total;
+                    const index = calculateIndex(score, avgTotal ?? 0);
                     const displayValue = viewMode === 'index' ? index : score;
                     const displayColor = viewMode === 'index' ? getIndexColor(index) : undefined;
                     
@@ -1432,7 +1517,7 @@ export default function AggregateScoringReport() {
                         ) : totalWeight !== 100 ? (
                           <span className="text-xs text-red-500">Wt≠100%</span>
                         ) : (
-                          <span className="font-black text-2xl" style={{ color: displayColor ?? '#312E81' }}>
+                          <span className="font-black text-2xl" style={{ color: displayColor ?? (scoringMode === 'enhanced' ? '#581C87' : '#312E81') }}>
                             {displayValue ?? '—'}
                           </span>
                         )}
@@ -1479,7 +1564,7 @@ export default function AggregateScoringReport() {
                         </td>
                       );
                     }
-                    const tier = getPerformanceTier(company.weightedScore, company.isProvisional);
+                    const tier = getPerformanceTier(scoringMode === 'enhanced' ? company.enhancedComposite : company.weightedScore, company.isProvisional);
                     return (
                       <td key={company.surveyId} 
                           className={`px-2 py-3 text-center border-r border-gray-100 last:border-r-0 ${company.isFoundingPartner ? 'bg-amber-50/30' : 'bg-cyan-50/30'}`}
