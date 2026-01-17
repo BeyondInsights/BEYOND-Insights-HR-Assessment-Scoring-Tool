@@ -2,30 +2,19 @@
  * ENHANCED SCORING TOOL
  * Best Companies for Working with Cancer Index
  * 
- * ADDITIVE BONUS MODEL:
- * Enhancement factors ADD bonus points on top of the base score.
- * They can ONLY boost scores, never lower them.
+ * BALANCED WEIGHTED MODEL:
+ * Enhanced = (Weighted Dim × 85%) + (Depth × 8%) + (Maturity × 5%) + (Breadth × 2%)
  * 
- * Formula:
- * Enhanced Composite = Base Score + Depth Bonus + Maturity Bonus + Breadth Bonus
- * 
- * - Base Score: Weighted dimension score (0-100)
- * - Depth Bonus: Up to +15 points (follow-up question quality)
- * - Maturity Bonus: Up to +10 points (current support approach)
- * - Breadth Bonus: Up to +5 points (conditions & program structure)
- * 
- * Maximum Enhanced Score = 100 + 30 = 130 (displayed capped at 100)
+ * - Weighted Dimension: 85% (primary driver)
+ * - Depth: 8% (follow-up question quality)
+ * - Maturity: 5% (current support approach)
+ * - Breadth: 2% (conditions & program structure)
  * 
  * EXPONENTIAL POINT SCALING:
  * Point values are exponentially distributed to create meaningful differentiation:
  * - Low offerings: 0-2 points
  * - Medium offerings: 3-5 points  
  * - High offerings: 7-10 points
- * 
- * Example: Paid leave duration
- * - 1-3 weeks: 1 point (10% of max)
- * - 5-9 weeks: 4 points (40% of max)
- * - 13+ weeks: 10 points (100% of max)
  */
 
 // ============================================
@@ -49,18 +38,13 @@ export const DIMENSION_WEIGHTS: Record<number, number> = {
   12: 3,   // Continuous Improvement
 };
 
-// Component weights for composite score
-// NEW MODEL: Enhancement factors ADD bonus points on top of base score
-// Maximum boost possible = 30 points (if all enhancements score 100%)
+// Component weights for enhanced composite (sum = 100%)
 export const COMPONENT_WEIGHTS = {
-  base: 1.0,        // Base score is the foundation (100%)
-  depth: 0.15,      // Depth can add up to 15 bonus points
-  maturity: 0.10,   // Maturity can add up to 10 bonus points
-  breadth: 0.05,    // Breadth can add up to 5 bonus points
+  weightedDim: 0.85,  // 85% - primary driver
+  depth: 0.08,        // 8% - follow-up quality
+  maturity: 0.05,     // 5% - approach maturity
+  breadth: 0.02,      // 2% - program breadth
 };
-
-// Maximum possible bonus from enhancements
-export const MAX_ENHANCEMENT_BONUS = 30; // 15 + 10 + 5
 
 // Point values for main grid items
 export const GRID_POINTS = {
@@ -862,26 +846,25 @@ export function calculateEnhancedScore(assessment: any): EnhancedScore {
   const maturityScore = maturityDetails.percentage;
   const breadthScore = breadthDetails.percentage;
   
-  // ADDITIVE BONUS MODEL:
-  // Enhanced = Base Score + Depth Bonus + Maturity Bonus + Breadth Bonus
-  // - Base Score: 100% of weighted dimension score (0-100)
-  // - Depth Bonus: Up to 15 points (if depthScore = 100%)
-  // - Maturity Bonus: Up to 10 points (if maturityScore = 100%)
-  // - Breadth Bonus: Up to 5 points (if breadthScore = 100%)
-  // - Maximum possible: 100 + 30 = 130 (capped at 100 for display)
+  // BALANCED WEIGHTED MODEL:
+  // Enhanced = (Weighted Dim × 85%) + (Depth × 8%) + (Maturity × 5%) + (Breadth × 2%)
+  // 
+  // This ensures:
+  // - Base dimension score is primary driver (85%)
+  // - Enhancements provide modest differentiation (15% combined)
+  // - Good enhancements boost slightly, poor enhancements lower slightly
+  // - No extreme swings
   //
-  // Example: Base=70, Depth=80%, Maturity=60%, Breadth=40%
-  // Enhanced = 70 + (80×0.15) + (60×0.10) + (40×0.05)
-  //          = 70 + 12 + 6 + 2 = 90
+  // Example: Base=70, Depth=80, Maturity=60, Breadth=40
+  // Enhanced = (70×0.85) + (80×0.08) + (60×0.05) + (40×0.02)
+  //          = 59.5 + 6.4 + 3 + 0.8 = 69.7 ≈ 70
   
-  const depthBonus = (depthScore / 100) * 15;    // 0-15 points
-  const maturityBonus = (maturityScore / 100) * 10;  // 0-10 points
-  const breadthBonus = (breadthScore / 100) * 5;   // 0-5 points
-  
-  const rawComposite = baseScore + depthBonus + maturityBonus + breadthBonus;
-  
-  // Cap at 100 for display purposes (though internally can exceed)
-  const compositeScore = Math.round(Math.min(rawComposite, 100));
+  const compositeScore = Math.round(
+    (baseScore * 0.85) +
+    (depthScore * 0.08) +
+    (maturityScore * 0.05) +
+    (breadthScore * 0.02)
+  );
   
   // Determine if provisional
   const isProvisional = baseResult.insufficientDataCount >= 4;
