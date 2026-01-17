@@ -331,7 +331,7 @@ function DimensionScoringModal({ onClose }: { onClose: () => void }) {
                 <p className="text-sm text-indigo-800">
                   <strong>Weighted:</strong> Each dimension contributes based on its importance weight:
                 </p>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
                   <div className="flex justify-between"><span>D4: Navigation</span><span className="font-bold">14%</span></div>
                   <div className="flex justify-between"><span>D8: Work Continuation</span><span className="font-bold">13%</span></div>
                   <div className="flex justify-between"><span>D3: Manager Prep</span><span className="font-bold">12%</span></div>
@@ -340,8 +340,11 @@ function DimensionScoringModal({ onClose }: { onClose: () => void }) {
                   <div className="flex justify-between"><span>D6: Culture</span><span className="font-bold">8%</span></div>
                   <div className="flex justify-between"><span>D1: Medical Leave</span><span className="font-bold">7%</span></div>
                   <div className="flex justify-between"><span>D5: Accommodations</span><span className="font-bold">7%</span></div>
-                  <div className="flex justify-between text-gray-500"><span>D7, D9, D10</span><span>4% each</span></div>
-                  <div className="flex justify-between text-gray-500"><span>D11, D12</span><span>3% each</span></div>
+                  <div className="flex justify-between"><span>D7: Career Continuity</span><span className="font-bold">4%</span></div>
+                  <div className="flex justify-between"><span>D9: Executive Commitment</span><span className="font-bold">4%</span></div>
+                  <div className="flex justify-between"><span>D10: Caregiver Support</span><span className="font-bold">4%</span></div>
+                  <div className="flex justify-between"><span>D11: Prevention & Wellness</span><span className="font-bold">3%</span></div>
+                  <div className="flex justify-between"><span>D12: Continuous Improvement</span><span className="font-bold">3%</span></div>
                 </div>
               </div>
             </section>
@@ -381,7 +384,7 @@ function DimensionScoringModal({ onClose }: { onClose: () => void }) {
 function EnhancedScoringModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">How Enhanced Scoring Works</h2>
@@ -392,73 +395,134 @@ function EnhancedScoringModal({ onClose }: { onClose: () => void }) {
             </button>
           </div>
         </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
           <div className="space-y-6">
             <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
               <p className="text-purple-800 font-medium">
-                Enhanced scoring goes beyond grid responses to evaluate the <strong>quality and depth</strong> of an organization's support programs.
+                Enhanced scoring evaluates the <strong>quality and depth</strong> of support programs beyond the primary dimension grids.
               </p>
             </div>
             
             <section>
               <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold">D</span>
-                Depth Score (15% weight)
+                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold text-sm">D</span>
+                Depth Score (15% of Enhanced Composite)
               </h3>
-              <p className="text-gray-600 mb-3">Measures the <strong>quality of follow-up responses</strong>:</p>
-              <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
-                <li>D1.1: Duration of paid leave beyond legal requirements</li>
-                <li>D1.5: Weeks of job protection guaranteed</li>
-                <li>D3.1: Percentage of managers trained</li>
-                <li>D3.1a: Whether training is mandatory</li>
-                <li>D4.1a/b: Navigation providers and services available</li>
-                <li>D6.2: Methods for measuring psychological safety</li>
-                <li>D11.1: Screenings covered at 70%+</li>
-                <li>D12.1: Case review process (systematic vs ad hoc)</li>
-                <li>D13.1: Communication frequency</li>
-              </ul>
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p className="text-gray-700 mb-3 text-sm">Measures the <strong>quality of follow-up responses</strong> when organizations indicate they "Currently Offer" specific programs.</p>
+                <div className="space-y-3 text-sm">
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">D1.1: Paid Leave Duration</p>
+                    <p className="text-gray-600 text-xs">Points: 13+ weeks = 5pts | 9-12 weeks = 4pts | 5-8 weeks = 3pts | 3-4 weeks = 2pts | 1-2 weeks = 1pt</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">D1.5: Job Protection Weeks</p>
+                    <p className="text-gray-600 text-xs">Points: 52+ weeks = 5pts | 26-51 weeks = 4pts | 12-25 weeks = 3pts | 4-11 weeks = 2pts | 1-3 weeks = 1pt</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">D3.1: Manager Training Completion</p>
+                    <p className="text-gray-600 text-xs">Points: 100% = 5pts | 75-99% = 4pts | 50-74% = 3pts | 25-49% = 2pts | 10-24% = 1pt | &lt;10% = 0pts</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">D3.1a: Training Mandatory Status</p>
+                    <p className="text-gray-600 text-xs">Points: Mandatory all = 5pts | Mandatory new = 3pts | Voluntary = 1pt</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">D4.1a/b: Navigation Provider & Services</p>
+                    <p className="text-gray-600 text-xs">Provider types: 1pt each (max 5) | Services available: 0.5pts each (max 5)</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">D6.2: Psychological Safety Measurement</p>
+                    <p className="text-gray-600 text-xs">Points: 1pt per method selected (pulse surveys, focus groups, exit interviews, manager feedback, 1:1 discussions)</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">D11.1: Screenings at 70%+ Coverage</p>
+                    <p className="text-gray-600 text-xs">Points: Count of screening types covered at 70%+ (mammograms, colonoscopy, etc.) ÷ 5</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">D12.1: Case Review Process</p>
+                    <p className="text-gray-600 text-xs">Points: Systematic = 5pts | Ad hoc = 3pts | Aggregate only = 1pt</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">D13.1: Communication Frequency</p>
+                    <p className="text-gray-600 text-xs">Points: Monthly+ = 5pts | Quarterly = 4pts | Twice/year = 3pts | Annually = 2pts | Reactive only = 1pt</p>
+                  </div>
+                </div>
+                <div className="mt-3 bg-purple-100 rounded p-2 text-xs text-purple-800">
+                  <strong>Depth Score</strong> = (Sum of all depth item points ÷ Maximum possible points) × 100
+                </div>
+              </div>
             </section>
             
             <section>
               <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold">M</span>
-                Maturity Score (10% weight)
+                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold text-sm">M</span>
+                Maturity Score (10% of Enhanced Composite)
               </h3>
-              <p className="text-gray-600 mb-3">Evaluates <strong>organizational support maturity</strong>:</p>
-              <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
-                <li>OR1: Current approach to support (Comprehensive → No formal approach)</li>
-                <li>OR5a: Types of caregiver support provided</li>
-                <li>OR6: Methods for monitoring program effectiveness</li>
-              </ul>
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p className="text-gray-700 mb-3 text-sm">Evaluates <strong>organizational readiness and program sophistication</strong> from Current Support section.</p>
+                <div className="space-y-3 text-sm">
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">OR1: Current Support Approach</p>
+                    <p className="text-gray-600 text-xs">Points: Comprehensive = 5pts | Enhanced = 4pts | Moderate = 3pts | Legal minimum = 2pts | Developing = 1pt | No formal = 0pts</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">OR5a: Caregiver Support Types</p>
+                    <p className="text-gray-600 text-xs">Points: Count of caregiver support types offered (flex schedules, remote work, paid leave, EAP, etc.) ÷ 3</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">OR6: Program Monitoring Methods</p>
+                    <p className="text-gray-600 text-xs">Points: 1pt per monitoring method (aggregate metrics, de-identified tracking, utilization data, employee feedback)</p>
+                  </div>
+                </div>
+                <div className="mt-3 bg-purple-100 rounded p-2 text-xs text-purple-800">
+                  <strong>Maturity Score</strong> = (Sum of maturity item points ÷ Maximum possible points) × 100
+                </div>
+              </div>
             </section>
             
             <section>
               <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold">B</span>
-                Breadth Score (5% weight)
+                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold text-sm">B</span>
+                Breadth Score (5% of Enhanced Composite)
               </h3>
-              <p className="text-gray-600 mb-3">Measures <strong>coverage scope and structure</strong>:</p>
-              <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
-                <li>CB3a: Support beyond legal requirements</li>
-                <li>CB3b: Program structure (coordinated services, formal programs)</li>
-                <li>CB3c: Health conditions covered by programs</li>
-              </ul>
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p className="text-gray-700 mb-3 text-sm">Measures <strong>program scope and coverage</strong> from Current Benefits section.</p>
+                <div className="space-y-3 text-sm">
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">CB3a: Support Beyond Legal Requirements</p>
+                    <p className="text-gray-600 text-xs">Points: Yes, offers additional = 5pts | Currently developing = 3pts | Actively exploring = 2pts | Legal compliance only = 0pts</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">CB3b: Program Structure</p>
+                    <p className="text-gray-600 text-xs">Points: 1pt per structure type (coordinated services, formal named program, external initiative, comprehensive framework)</p>
+                  </div>
+                  <div className="bg-white rounded p-3 border border-gray-100">
+                    <p className="font-semibold text-gray-800 mb-1">CB3c: Health Conditions Covered</p>
+                    <p className="text-gray-600 text-xs">Points: Count of health conditions covered by programs (cancer, autoimmune, heart disease, etc.) ÷ 3</p>
+                  </div>
+                </div>
+                <div className="mt-3 bg-purple-100 rounded p-2 text-xs text-purple-800">
+                  <strong>Breadth Score</strong> = (Sum of breadth item points ÷ Maximum possible points) × 100
+                </div>
+              </div>
             </section>
             
             <section>
               <h3 className="font-bold text-gray-900 mb-3">Enhanced Composite Formula</h3>
-              <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-4 border border-purple-200">
-                <div className="text-center">
-                  <p className="text-sm text-purple-700 mb-2">Enhanced Composite Score =</p>
-                  <div className="flex items-center justify-center gap-2 flex-wrap">
-                    <span className="px-3 py-1 bg-blue-500 text-white rounded-lg font-bold">Dimension × 70%</span>
+              <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-5 border border-purple-200">
+                <div className="text-center space-y-3">
+                  <p className="text-sm text-purple-700 font-medium">Enhanced Composite Score =</p>
+                  <div className="flex items-center justify-center gap-2 flex-wrap text-sm">
+                    <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold">Weighted Dimension Score × 70%</span>
                     <span className="text-purple-600 font-bold">+</span>
-                    <span className="px-3 py-1 bg-purple-500 text-white rounded-lg font-bold">Depth × 15%</span>
+                    <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Depth × 15%</span>
                     <span className="text-purple-600 font-bold">+</span>
-                    <span className="px-3 py-1 bg-purple-500 text-white rounded-lg font-bold">Maturity × 10%</span>
+                    <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Maturity × 10%</span>
                     <span className="text-purple-600 font-bold">+</span>
-                    <span className="px-3 py-1 bg-purple-500 text-white rounded-lg font-bold">Breadth × 5%</span>
+                    <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Breadth × 5%</span>
                   </div>
+                  <p className="text-xs text-purple-600 mt-2">All component scores are normalized to 0-100 scale before weighting</p>
                 </div>
               </div>
             </section>
@@ -549,19 +613,39 @@ function TierBadge({ score, isComplete, isProvisional = false, size = 'normal' }
   
   const tier = getPerformanceTier(score);
   
+  if (isProvisional) {
+    return (
+      <span className="inline-flex flex-col items-center gap-0.5">
+        <span 
+          className={`inline-block font-bold border rounded-full ${
+            size === 'small' ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-xs'
+          } ring-2 ring-amber-400 ring-offset-1`}
+          style={{ 
+            backgroundColor: tier.bg, 
+            color: tier.color,
+            borderColor: tier.border,
+          }}
+          title="Provisional: >40% Unsure responses in 4+ dimensions"
+        >
+          {tier.name}
+        </span>
+        <span className="text-[9px] text-amber-600 font-semibold uppercase tracking-wide">Provisional</span>
+      </span>
+    );
+  }
+  
   return (
     <span 
       className={`inline-block font-bold border rounded-full ${
         size === 'small' ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-xs'
-      } ${isProvisional ? 'ring-2 ring-amber-400 ring-offset-1' : ''}`}
+      }`}
       style={{ 
         backgroundColor: tier.bg, 
         color: tier.color,
         borderColor: tier.border,
       }}
-      title={isProvisional ? 'Provisional: >40% Unsure responses in 4+ dimensions' : undefined}
     >
-      {tier.name}{isProvisional ? ' *' : ''}
+      {tier.name}
     </span>
   );
 }
@@ -688,7 +772,11 @@ export default function AggregateScoringReport() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-3">
-                <span className="p-2 bg-white/10 rounded-xl">📊</span>
+                <span className="p-2 bg-white/10 rounded-xl">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </span>
                 Best Companies Scoring Report
               </h1>
               <p className="text-indigo-200 text-sm mt-1">Workplace Support Excellence Index</p>
@@ -711,7 +799,12 @@ export default function AggregateScoringReport() {
                 <span className="font-bold text-xl">{companyScores.length}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-violet-500/30 border border-violet-400/50 text-violet-200 text-xs font-bold">⭐ FP</span>
+                <span className="px-2 py-0.5 rounded-full bg-violet-500/30 border border-violet-400/50 text-violet-200 text-xs font-bold flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  FP
+                </span>
                 <span className="font-bold">{companyScores.filter(c => c.isFoundingPartner).length}</span>
               </div>
               <div className="flex items-center gap-2">
@@ -911,7 +1004,12 @@ export default function AggregateScoringReport() {
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-violet-600 border-r border-violet-500"
                         style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, zIndex: 30, width: COL_AVG_WIDTH }}>
-                      ⭐ FP
+                      <span className="flex items-center justify-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        FP
+                      </span>
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-slate-500 border-r border-slate-400"
                         style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), zIndex: 30, width: COL_AVG_WIDTH }}>
@@ -1005,7 +1103,11 @@ export default function AggregateScoringReport() {
                     <td className="px-4 py-3 bg-gray-100 border-r border-gray-300"
                         style={{ position: 'sticky', left: 0, zIndex: 10 }}>
                       <span className="font-semibold text-gray-700 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-gray-500 rounded flex items-center justify-center text-white text-xs">Σ</span>
+                        <span className="w-6 h-6 bg-gray-500 rounded flex items-center justify-center text-white text-xs">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 6l8 6-8 6" />
+                          </svg>
+                        </span>
                         Unweighted Average
                       </span>
                     </td>
@@ -1070,7 +1172,11 @@ export default function AggregateScoringReport() {
                     <td className="px-4 py-3 bg-white border-r border-gray-200"
                         style={{ position: 'sticky', left: 0, zIndex: 10 }}>
                       <span className="font-semibold text-gray-700 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-yellow-500 rounded flex items-center justify-center text-white text-xs">🏆</span>
+                        <span className="w-6 h-6 bg-yellow-500 rounded flex items-center justify-center text-white">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-1.17a3 3 0 01-5.66 0H8.83a3 3 0 01-5.66 0H2a2 2 0 110-4h1.17A3 3 0 015 5zm5 8a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-4 1a1 1 0 100 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                          </svg>
+                        </span>
                         Performance Tier
                       </span>
                     </td>
@@ -1261,7 +1367,11 @@ export default function AggregateScoringReport() {
                     <td className="px-4 py-3 bg-white border-r border-gray-200"
                         style={{ position: 'sticky', left: 0, zIndex: 10 }}>
                       <span className="font-semibold text-gray-700 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-gradient-to-r from-purple-500 to-indigo-500 rounded flex items-center justify-center text-white text-xs">🏆</span>
+                        <span className="w-6 h-6 bg-gradient-to-r from-purple-500 to-indigo-500 rounded flex items-center justify-center text-white">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-1.17a3 3 0 01-5.66 0H8.83a3 3 0 01-5.66 0H2a2 2 0 110-4h1.17A3 3 0 015 5zm5 8a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-4 1a1 1 0 100 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                          </svg>
+                        </span>
                         Enhanced Tier
                       </span>
                     </td>
