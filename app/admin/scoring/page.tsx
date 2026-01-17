@@ -513,7 +513,7 @@ function ScoreCell({
 // TIER BADGE COMPONENT  
 // ============================================
 
-function TierBadge({ score, isComplete, size = 'normal' }: { score: number; isComplete: boolean; size?: 'normal' | 'small' }) {
+function TierBadge({ score, isComplete, isProvisional = false, size = 'normal' }: { score: number; isComplete: boolean; isProvisional?: boolean; size?: 'normal' | 'small' }) {
   if (!isComplete) {
     return <span className="text-xs text-gray-400 italic">—</span>;
   }
@@ -524,14 +524,15 @@ function TierBadge({ score, isComplete, size = 'normal' }: { score: number; isCo
     <span 
       className={`inline-block font-bold border rounded-full ${
         size === 'small' ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-xs'
-      }`}
+      } ${isProvisional ? 'ring-2 ring-amber-400 ring-offset-1' : ''}`}
       style={{ 
         backgroundColor: tier.bg, 
         color: tier.color,
         borderColor: tier.border,
       }}
+      title={isProvisional ? 'Provisional: >40% Unsure responses in 4+ dimensions' : undefined}
     >
-      {tier.name}
+      {tier.name}{isProvisional ? ' *' : ''}
     </span>
   );
 }
@@ -545,6 +546,7 @@ export default function AggregateScoringReport() {
   const [assessments, setAssessments] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(true);
   const [weights, setWeights] = useState<Record<number, number>>({ ...DEFAULT_WEIGHTS });
+  const [showWeights, setShowWeights] = useState(false);
   const [showDimensionModal, setShowDimensionModal] = useState(false);
   const [showEnhancedModal, setShowEnhancedModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'enhanced'>('weighted');
@@ -712,8 +714,65 @@ export default function AggregateScoringReport() {
                 />
                 <span>Complete Only</span>
               </label>
+              
+              <button
+                onClick={() => setShowWeights(!showWeights)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  showWeights ? 'bg-amber-500 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                Adjust Weights
+              </button>
             </div>
           </div>
+          
+          {/* Weight Adjustment Panel */}
+          {showWeights && (
+            <div className="mt-4 bg-white/10 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-white flex items-center gap-2">
+                  <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                  Dimension Weights (total: {Object.values(weights).reduce((a, b) => a + b, 0)}%)
+                </h3>
+                <button
+                  onClick={() => setWeights({ ...DEFAULT_WEIGHTS })}
+                  className="text-xs px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white/80"
+                >
+                  Reset to Default
+                </button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                {DIMENSION_ORDER.map(dim => (
+                  <div key={dim} className="bg-white/5 rounded-lg p-2">
+                    <label className="block text-xs text-indigo-200 mb-1 truncate" title={DIMENSION_NAMES[dim]}>
+                      D{dim}: {DIMENSION_NAMES[dim].split(' ')[0]}
+                    </label>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={weights[dim]}
+                        onChange={(e) => setWeights(prev => ({ ...prev, [dim]: parseInt(e.target.value) || 0 }))}
+                        className="w-12 px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-sm text-center focus:ring-1 focus:ring-amber-400"
+                      />
+                      <span className="text-xs text-white/60">%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {Object.values(weights).reduce((a, b) => a + b, 0) !== 100 && (
+                <p className="mt-2 text-amber-300 text-xs">
+                  ⚠️ Weights sum to {Object.values(weights).reduce((a, b) => a + b, 0)}% (should be 100%)
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -945,7 +1004,7 @@ export default function AggregateScoringReport() {
                       <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-gray-100 last:border-r-0 ${
                         company.isFoundingPartner ? 'bg-amber-50/30' : ''
                       }`}>
-                        <TierBadge score={company.weightedScore} isComplete={company.isComplete} size="small" />
+                        <TierBadge score={company.weightedScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="small" />
                       </td>
                     ))}
                   </tr>
@@ -1136,7 +1195,7 @@ export default function AggregateScoringReport() {
                       <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-gray-100 last:border-r-0 ${
                         company.isFoundingPartner ? 'bg-amber-50/30' : ''
                       }`}>
-                        <TierBadge score={company.enhancedComposite} isComplete={company.isComplete} size="small" />
+                        <TierBadge score={company.enhancedComposite} isComplete={company.isComplete} isProvisional={company.isProvisional} size="small" />
                       </td>
                     ))}
                   </tr>
