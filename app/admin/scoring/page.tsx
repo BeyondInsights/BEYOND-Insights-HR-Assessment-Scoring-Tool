@@ -473,24 +473,53 @@ function EnhancedScoringModal({ onClose }: { onClose: () => void }) {
 // SCORE CELL COMPONENT
 // ============================================
 
+function getIndexColor(index: number): string {
+  if (index >= 120) return '#065F46'; // Excellent - dark green
+  if (index >= 110) return '#059669'; // Strong - green  
+  if (index >= 100) return '#0284C7'; // At/Above avg - blue
+  if (index >= 90) return '#D97706';  // Below avg - amber
+  return '#DC2626'; // Significant gap - red
+}
+
 function ScoreCell({ 
   score, 
   isComplete, 
   isInsufficientData = false,
   size = 'normal',
   showBg = false,
+  benchmark,
+  viewMode = 'score',
 }: { 
   score: number | null; 
   isComplete: boolean; 
   isInsufficientData?: boolean;
   size?: 'normal' | 'large';
   showBg?: boolean;
+  benchmark?: number | null;
+  viewMode?: 'score' | 'index';
 }) {
   if (!isComplete) {
     return <span className="text-xs text-gray-400 italic">—</span>;
   }
   if (score === null) {
     return <span className="text-gray-400">—</span>;
+  }
+  
+  // Index mode: show score relative to benchmark (100 = avg)
+  if (viewMode === 'index' && benchmark && benchmark > 0) {
+    const index = Math.round((score / benchmark) * 100);
+    const indexColor = getIndexColor(index);
+    return (
+      <span 
+        className={`font-bold ${size === 'large' ? 'text-xl' : 'text-base'} ${
+          isInsufficientData ? 'ring-2 ring-amber-400 ring-offset-1 rounded px-1' : ''
+        }`}
+        style={{ color: indexColor }}
+        title={`Score: ${score} | Benchmark: ${benchmark} | Index: ${index}`}
+      >
+        {index}
+      </span>
+    );
   }
   
   const color = getScoreColor(score);
@@ -553,6 +582,7 @@ export default function AggregateScoringReport() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard'>('all');
   const [filterComplete, setFilterComplete] = useState(false);
+  const [viewMode, setViewMode] = useState<'score' | 'index'>('score');
 
   useEffect(() => {
     const loadAssessments = async () => {
@@ -714,6 +744,27 @@ export default function AggregateScoringReport() {
                 />
                 <span>Complete Only</span>
               </label>
+              
+              {/* Score/Index Toggle */}
+              <div className="flex bg-white/10 rounded-lg p-0.5">
+                <button
+                  onClick={() => setViewMode('score')}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    viewMode === 'score' ? 'bg-white text-indigo-900' : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  Scores
+                </button>
+                <button
+                  onClick={() => setViewMode('index')}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    viewMode === 'index' ? 'bg-white text-indigo-900' : 'text-white hover:bg-white/10'
+                  }`}
+                  title="Index: 100 = Average. Shows performance relative to benchmark."
+                >
+                  Index
+                </button>
+              </div>
               
               <button
                 onClick={() => setShowWeights(!showWeights)}
@@ -906,6 +957,8 @@ export default function AggregateScoringReport() {
                             score={company.dimensions[dim]?.adjustedScore ?? null} 
                             isComplete={company.dimensions[dim]?.totalItems > 0}
                             isInsufficientData={company.dimensions[dim]?.isInsufficientData}
+                            viewMode={viewMode}
+                            benchmark={averages.dimensions[dim]?.total}
                           />
                         </td>
                       ))}
@@ -939,7 +992,7 @@ export default function AggregateScoringReport() {
                       <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-gray-200 last:border-r-0 ${
                         company.isFoundingPartner ? 'bg-amber-100/50' : 'bg-gray-100'
                       }`}>
-                        <ScoreCell score={company.unweightedScore} isComplete={company.isComplete} size="large" />
+                        <ScoreCell score={company.unweightedScore} isComplete={company.isComplete} size="large" viewMode={viewMode} benchmark={averages.unweighted.total} />
                       </td>
                     ))}
                   </tr>
@@ -972,7 +1025,7 @@ export default function AggregateScoringReport() {
                       <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-blue-200 last:border-r-0 ${
                         company.isFoundingPartner ? 'bg-amber-100/70' : 'bg-blue-50'
                       }`}>
-                        <ScoreCell score={company.weightedScore} isComplete={company.isComplete} size="large" />
+                        <ScoreCell score={company.weightedScore} isComplete={company.isComplete} size="large" viewMode={viewMode} benchmark={averages.weighted.total} />
                       </td>
                     ))}
                   </tr>
@@ -1063,7 +1116,7 @@ export default function AggregateScoringReport() {
                       <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-purple-100 last:border-r-0 ${
                         company.isFoundingPartner ? 'bg-amber-50/30' : 'bg-purple-50/30'
                       }`}>
-                        <ScoreCell score={company.depthScore} isComplete={company.isComplete} />
+                        <ScoreCell score={company.depthScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.depth.total} />
                       </td>
                     ))}
                   </tr>
@@ -1096,7 +1149,7 @@ export default function AggregateScoringReport() {
                       <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-purple-100 last:border-r-0 ${
                         company.isFoundingPartner ? 'bg-amber-50/30' : ''
                       }`}>
-                        <ScoreCell score={company.maturityScore} isComplete={company.isComplete} />
+                        <ScoreCell score={company.maturityScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.maturity.total} />
                       </td>
                     ))}
                   </tr>
@@ -1129,7 +1182,7 @@ export default function AggregateScoringReport() {
                       <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-purple-100 last:border-r-0 ${
                         company.isFoundingPartner ? 'bg-amber-50/30' : 'bg-purple-50/30'
                       }`}>
-                        <ScoreCell score={company.breadthScore} isComplete={company.isComplete} />
+                        <ScoreCell score={company.breadthScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.breadth.total} />
                       </td>
                     ))}
                   </tr>
@@ -1163,7 +1216,7 @@ export default function AggregateScoringReport() {
                       <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-purple-200 last:border-r-0 ${
                         company.isFoundingPartner ? 'bg-amber-100/70' : 'bg-purple-50'
                       }`}>
-                        <ScoreCell score={company.enhancedComposite} isComplete={company.isComplete} size="large" />
+                        <ScoreCell score={company.enhancedComposite} isComplete={company.isComplete} size="large" viewMode={viewMode} benchmark={averages.enhanced.total} />
                       </td>
                     ))}
                   </tr>
