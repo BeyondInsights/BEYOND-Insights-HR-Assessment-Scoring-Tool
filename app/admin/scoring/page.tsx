@@ -676,10 +676,10 @@ export default function AggregateScoringReport() {
   
   // Enhancement weights (Weighted Dim, Depth, Maturity, Breadth) - must sum to 100%
   const [enhancementWeights, setEnhancementWeights] = useState({
-    weightedDim: 70,
-    depth: 15,
-    maturity: 10,
-    breadth: 5,
+    weightedDim: 85,
+    depth: 8,
+    maturity: 5,
+    breadth: 2,
   });
   const enhancementWeightsSum = enhancementWeights.weightedDim + enhancementWeights.depth + enhancementWeights.maturity + enhancementWeights.breadth;
   const enhancementWeightsValid = enhancementWeightsSum === 100;
@@ -1198,7 +1198,7 @@ export default function AggregateScoringReport() {
                               </svg>
                               Weights = {enhancementWeightsSum}%
                               <button
-                                onClick={() => setEnhancementWeights({ weightedDim: 70, depth: 15, maturity: 10, breadth: 5 })}
+                                onClick={() => setEnhancementWeights({ weightedDim: 85, depth: 8, maturity: 5, breadth: 2 })}
                                 className="ml-1 px-1.5 py-0.5 bg-red-200 hover:bg-red-300 rounded text-red-800"
                               >
                                 Reset
@@ -1447,7 +1447,7 @@ export default function AggregateScoringReport() {
                           <button
                             onClick={() => {
                               if (!weightsValid) setWeights({ ...DEFAULT_WEIGHTS });
-                              if (!enhancementWeightsValid) setEnhancementWeights({ weightedDim: 70, depth: 15, maturity: 10, breadth: 5 });
+                              if (!enhancementWeightsValid) setEnhancementWeights({ weightedDim: 85, depth: 8, maturity: 5, breadth: 2 });
                             }}
                             className="ml-2 px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
                           >
