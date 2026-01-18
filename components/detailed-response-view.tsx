@@ -104,9 +104,21 @@ function statusToPoints(status: string | number): { points: number | null; isUns
 }
 
 // EXACT copy of getGeoMultiplier from scoring page
-function getGeoMultiplier(geoResponse: string | undefined | null): number {
-  if (!geoResponse) return 1.0
-  const s = geoResponse.toLowerCase()
+function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
+  if (geoResponse === undefined || geoResponse === null) return 1.0
+  
+  // Handle numeric values (from panel data)
+  if (typeof geoResponse === 'number') {
+    switch (geoResponse) {
+      case 1: return 0.75  // Only available in select locations
+      case 2: return 0.90  // Vary across locations
+      case 3: return 1.0   // Generally consistent across all locations
+      default: return 1.0
+    }
+  }
+  
+  // Handle string values
+  const s = String(geoResponse).toLowerCase()
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0
   if (s.includes('vary') || s.includes('varies')) return 0.90
   if (s.includes('select') || s.includes('only available in select')) return 0.75
@@ -484,7 +496,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
               <h3 className="text-sm font-semibold text-gray-900 mb-1">Participant Type</h3>
               {assessment.isFoundingPartner ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">⭐</span>
+                  <span className="text-2xl">â­</span>
                   <div>
                     <p className="font-bold text-purple-700">Founding Partner</p>
                     <p className="text-sm text-purple-600">No payment required</p>
@@ -507,7 +519,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                 <div>
                   <p className="text-sm text-gray-600">Status</p>
                   <p className={`font-semibold ${assessment.payment_completed ? 'text-green-600' : 'text-red-600'}`}>
-                    {assessment.payment_completed ? '✓ Paid' : '✗ Unpaid'}
+                    {assessment.payment_completed ? 'âœ“ Paid' : 'âœ— Unpaid'}
                   </p>
                 </div>
                 <div>
@@ -549,13 +561,13 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                 <div className="bg-white rounded-lg p-3 border border-indigo-200">
                   <p className="text-xs text-gray-500 uppercase">Weighted Score</p>
                   <p className="text-2xl font-bold" style={{ color: getScoreColor(compositeScores.weightedScore) }}>
-                    {compositeScores.completedDimCount > 0 ? compositeScores.weightedScore : '—'}
+                    {compositeScores.completedDimCount > 0 ? compositeScores.weightedScore : 'â€”'}
                   </p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-indigo-200">
                   <p className="text-xs text-gray-500 uppercase">Unweighted Avg</p>
                   <p className="text-2xl font-bold text-gray-700">
-                    {compositeScores.completedDimCount > 0 ? compositeScores.unweightedScore : '—'}
+                    {compositeScores.completedDimCount > 0 ? compositeScores.unweightedScore : 'â€”'}
                   </p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-indigo-200">
@@ -611,7 +623,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                             {hasData ? (
                               <span className="text-gray-600">{score.rawScore}</span>
                             ) : (
-                              <span className="text-gray-400">—</span>
+                              <span className="text-gray-400">â€”</span>
                             )}
                           </td>
                           <td className="px-2 py-2 text-center text-xs">
@@ -620,7 +632,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                             ) : hasData ? (
                               <span className="text-gray-400">1.0x</span>
                             ) : (
-                              <span className="text-gray-400">—</span>
+                              <span className="text-gray-400">â€”</span>
                             )}
                           </td>
                           <td className="px-2 py-2 text-center">
@@ -629,31 +641,31 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                                 {score.adjustedScore}
                               </span>
                             ) : (
-                              <span className="text-gray-400">—</span>
+                              <span className="text-gray-400">â€”</span>
                             )}
                           </td>
                           <td className="px-3 py-2">
                             {hasData ? (
                               <div className="flex items-center gap-2 text-xs">
-                                <span className="text-green-600 font-medium" title="Currently Offer (5 pts)">✓{score.breakdown.currentlyOffer}</span>
-                                <span className="text-blue-600 font-medium" title="Planning (3 pts)">●{score.breakdown.planning}</span>
-                                <span className="text-orange-500 font-medium" title="Assessing (2 pts)">○{score.breakdown.assessing}</span>
-                                <span className="text-red-500 font-medium" title="Not Able (0 pts)">✗{score.breakdown.notAble}</span>
+                                <span className="text-green-600 font-medium" title="Currently Offer (5 pts)">âœ“{score.breakdown.currentlyOffer}</span>
+                                <span className="text-blue-600 font-medium" title="Planning (3 pts)">â—{score.breakdown.planning}</span>
+                                <span className="text-orange-500 font-medium" title="Assessing (2 pts)">â—‹{score.breakdown.assessing}</span>
+                                <span className="text-red-500 font-medium" title="Not Able (0 pts)">âœ—{score.breakdown.notAble}</span>
                                 {score.breakdown.unsure > 0 && (
                                   <span className="text-gray-400 font-medium" title="Unsure (0 pts, in denominator)">?{score.breakdown.unsure}</span>
                                 )}
                               </div>
                             ) : (
-                              <span className="text-gray-400">—</span>
+                              <span className="text-gray-400">â€”</span>
                             )}
                           </td>
                           <td className="px-2 py-2 text-center">
                             {hasData && score.unsureCount > 0 ? (
                               <span className={isHighUnsure ? 'text-amber-600 font-semibold' : 'text-gray-500'}>
-                                {isHighUnsure && '⚠️'}{Math.round(score.unsurePercent * 100)}%
+                                {isHighUnsure && 'âš ï¸'}{Math.round(score.unsurePercent * 100)}%
                               </span>
                             ) : (
-                              <span className="text-gray-400">—</span>
+                              <span className="text-gray-400">â€”</span>
                             )}
                           </td>
                         </tr>
@@ -667,7 +679,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                       <td className="px-2 py-3 text-center text-indigo-700">
                         {compositeScores.unweightedScore}
                       </td>
-                      <td className="px-2 py-3 text-center text-indigo-600 text-xs">—</td>
+                      <td className="px-2 py-3 text-center text-indigo-600 text-xs">â€”</td>
                       <td className="px-2 py-3 text-center">
                         <span className="text-xl" style={{ color: getScoreColor(compositeScores.weightedScore) }}>
                           {compositeScores.weightedScore}
@@ -675,10 +687,10 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2 text-xs">
-                          <span className="text-green-600">✓{compositeScores.breakdown.currentlyOffer}</span>
-                          <span className="text-blue-600">●{compositeScores.breakdown.planning}</span>
-                          <span className="text-orange-500">○{compositeScores.breakdown.assessing}</span>
-                          <span className="text-red-500">✗{compositeScores.breakdown.notAble}</span>
+                          <span className="text-green-600">âœ“{compositeScores.breakdown.currentlyOffer}</span>
+                          <span className="text-blue-600">â—{compositeScores.breakdown.planning}</span>
+                          <span className="text-orange-500">â—‹{compositeScores.breakdown.assessing}</span>
+                          <span className="text-red-500">âœ—{compositeScores.breakdown.notAble}</span>
                           {compositeScores.breakdown.unsure > 0 && (
                             <span className="text-gray-400">?{compositeScores.breakdown.unsure}</span>
                           )}
@@ -697,16 +709,16 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
               {/* Legend */}
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-gray-600">
                 <span className="font-semibold">Legend:</span>
-                <span><span className="text-green-600 font-bold">✓</span> Currently Offer (5pts)</span>
-                <span><span className="text-blue-600 font-bold">●</span> Planning (3pts)</span>
-                <span><span className="text-orange-500 font-bold">○</span> Assessing (2pts)</span>
-                <span><span className="text-red-500 font-bold">✗</span> Not Able (0pts)</span>
+                <span><span className="text-green-600 font-bold">âœ“</span> Currently Offer (5pts)</span>
+                <span><span className="text-blue-600 font-bold">â—</span> Planning (3pts)</span>
+                <span><span className="text-orange-500 font-bold">â—‹</span> Assessing (2pts)</span>
+                <span><span className="text-red-500 font-bold">âœ—</span> Not Able (0pts)</span>
                 <span><span className="text-gray-400 font-bold">?</span> Unsure (0pts, in denominator)</span>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
                 <span><strong>Geo:</strong> Consistent=1.0x, Varies=0.9x, Select=0.75x</span>
                 <span>|</span>
-                <span><strong>⚠️</strong> = &gt;40% Unsure (Insufficient Data)</span>
+                <span><strong>âš ï¸</strong> = &gt;40% Unsure (Insufficient Data)</span>
               </div>
             </div>
           )}
@@ -735,7 +747,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       ) : (
-                        <span className="text-xs font-bold">—</span>
+                        <span className="text-xs font-bold">â€”</span>
                       )}
                     </div>
                     <span className={`font-medium ${
