@@ -407,9 +407,21 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   return { points: null, isUnsure: false };
 }
 
-function getGeoMultiplier(geoResponse: string | undefined | null): number {
-  if (!geoResponse) return 1.0;
-  const s = geoResponse.toLowerCase();
+function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
+  if (geoResponse === undefined || geoResponse === null) return 1.0;
+  
+  // Handle numeric values (from panel data)
+  if (typeof geoResponse === 'number') {
+    switch (geoResponse) {
+      case 1: return 0.75;  // Only available in select locations
+      case 2: return 0.90;  // Vary across locations
+      case 3: return 1.0;   // Generally consistent across all locations
+      default: return 1.0;
+    }
+  }
+  
+  // Handle string values
+  const s = String(geoResponse).toLowerCase();
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
   if (s.includes('vary') || s.includes('varies')) return 0.90;
   if (s.includes('select') || s.includes('only available in select')) return 0.75;
