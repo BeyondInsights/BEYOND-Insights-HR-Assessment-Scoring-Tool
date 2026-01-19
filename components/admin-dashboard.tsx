@@ -61,6 +61,7 @@ interface Assessment {
 
 interface ProcessedAssessment extends Assessment {
   isFoundingPartner: boolean
+  isPanel: boolean
   status: string
   completionPercentage: number
   sectionsCompleted: number
@@ -2557,7 +2558,7 @@ function VerbatimCommentsTab({ assessments }: { assessments: ProcessedAssessment
       
       comments.push({
         text: value,
-        companyType: a.isFoundingPartner ? 'Founding Partner' : 'Standard',
+        companyType: a.isPanel ? 'Panel' : a.isFoundingPartner ? 'Founding Partner' : 'Standard',
         companyName: a.company_name || 'Unknown'
       })
     })
@@ -2686,7 +2687,7 @@ function VerbatimCommentsTab({ assessments }: { assessments: ProcessedAssessment
               <div key={idx} className="p-5 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start gap-4">
                   <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold ${
-                    comment.companyType === 'Founding Partner' ? 'bg-purple-600' : 'bg-blue-600'
+                    comment.companyType === 'Panel' ? 'bg-amber-600' : comment.companyType === 'Founding Partner' ? 'bg-purple-600' : 'bg-blue-600'
                   }`}>
                     {comment.companyName.substring(0, 2).toUpperCase()}
                   </div>
@@ -2694,7 +2695,9 @@ function VerbatimCommentsTab({ assessments }: { assessments: ProcessedAssessment
                     <p className="text-gray-800 whitespace-pre-wrap">{comment.text}</p>
                     <p className="mt-2 text-sm text-gray-500">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        comment.companyType === 'Founding Partner' 
+                        comment.companyType === 'Panel' 
+                          ? 'bg-amber-100 text-amber-800' 
+                          : comment.companyType === 'Founding Partner' 
                           ? 'bg-purple-100 text-purple-800' 
                           : 'bg-blue-100 text-blue-800'
                       }`}>
@@ -2718,23 +2721,26 @@ function VerbatimCommentsTab({ assessments }: { assessments: ProcessedAssessment
 // ============================================
 function AnalyticsTab({ assessments }: { assessments: ProcessedAssessment[] }) {
   const [completedOnly, setCompletedOnly] = useState(false)
-  const [typeFilter, setTypeFilter] = useState('all')
+  const [typeFilter, setTypeFilter] = useState({ fp: true, standard: true, panel: true })
   const [activeSection, setActiveSection] = useState<string>('overview')
   
   const filteredAssessments = assessments.filter(a => {
     // Completion filter
     if (completedOnly && a.completionPercentage < 100) return false
     // Type filter
-    if (typeFilter === 'founding' && !a.isFoundingPartner) return false
-    if (typeFilter === 'standard' && a.isFoundingPartner) return false
-    return true
+    const matchesType =
+      (a.isFoundingPartner && !a.isPanel && typeFilter.fp) ||
+      (!a.isFoundingPartner && !a.isPanel && typeFilter.standard) ||
+      (a.isPanel && typeFilter.panel)
+    return matchesType
   })
   
   const totalRespondents = filteredAssessments.length
   
   // Count by type for display
-  const fpCount = assessments.filter(a => a.isFoundingPartner).length
-  const standardCount = assessments.filter(a => !a.isFoundingPartner).length
+  const fpCount = assessments.filter(a => a.isFoundingPartner && !a.isPanel).length
+  const standardCount = assessments.filter(a => !a.isFoundingPartner && !a.isPanel).length
+  const panelCount = assessments.filter(a => a.isPanel).length
   
   // Grouped sections
   const foundationSections = [
@@ -2781,16 +2787,36 @@ function AnalyticsTab({ assessments }: { assessments: ProcessedAssessment[] }) {
           <div className="flex items-center gap-4">
             {/* Type Filter */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Company Type</label>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Both ({fpCount + standardCount})</option>
-                <option value="founding">Founding Partners ({fpCount})</option>
-                <option value="standard">Standard ({standardCount})</option>
-              </select>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Company Types</label>
+              <div className="flex items-center gap-3 bg-white border border-gray-300 rounded-lg px-3 py-1.5">
+                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={typeFilter.fp}
+                    onChange={() => setTypeFilter(prev => ({ ...prev, fp: !prev.fp }))}
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span className="text-xs text-gray-700">FP ({fpCount})</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={typeFilter.standard}
+                    onChange={() => setTypeFilter(prev => ({ ...prev, standard: !prev.standard }))}
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-xs text-gray-700">Standard ({standardCount})</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={typeFilter.panel}
+                    onChange={() => setTypeFilter(prev => ({ ...prev, panel: !prev.panel }))}
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                  />
+                  <span className="text-xs text-gray-700">Panel ({panelCount})</span>
+                </label>
+              </div>
             </div>
             {/* Completion Filter */}
             <label className="flex items-center gap-2 cursor-pointer">
@@ -2898,7 +2924,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [typeFilter, setTypeFilter] = useState('all')
+  const [typeFilter, setTypeFilter] = useState({ fp: true, standard: true, panel: true })
   const [selectedAssessment, setSelectedAssessment] = useState<ProcessedAssessment | null>(null)
   const [activeTab, setActiveTab] = useState<'responses' | 'analytics' | 'verbatim'>('responses')
   
@@ -2922,6 +2948,7 @@ export default function AdminDashboard() {
 
       const processed = (data || []).map((assessment: Assessment) => {
         const isFP = isFoundingPartner(assessment.survey_id)
+        const isPanel = (assessment.survey_id || '').startsWith('PANEL-')
         
         // 🐛 DEBUG: Log FP check results
         if (assessment.company_name?.toLowerCase().includes('merck') || 
@@ -2972,6 +2999,7 @@ export default function AdminDashboard() {
         return {
           ...assessment,
           isFoundingPartner: isFP,
+          isPanel: isPanel,
           status,
           completionPercentage,
           sectionsCompleted,
@@ -3038,25 +3066,28 @@ export default function AdminDashboard() {
       (statusFilter === 'not-started' && a.status === 'Not Started')
 
     const matchesType =
-      typeFilter === 'all' ||
-      (typeFilter === 'founding' && a.isFoundingPartner) ||
-      (typeFilter === 'standard' && !a.isFoundingPartner)
+      (a.isFoundingPartner && !a.isPanel && typeFilter.fp) ||
+      (!a.isFoundingPartner && !a.isPanel && typeFilter.standard) ||
+      (a.isPanel && typeFilter.panel)
 
     return matchesSearch && matchesStatus && matchesType
   })
 
   const stats = {
-    foundingStarted: assessments.filter((a) => a.isFoundingPartner).length,
-    foundingCompleted: assessments.filter((a) => a.isFoundingPartner && a.completionPercentage >= 100).length,
-    standardStarted: assessments.filter((a) => !a.isFoundingPartner).length,
-    standardCompleted: assessments.filter((a) => !a.isFoundingPartner && a.completionPercentage >= 100).length,
+    foundingStarted: assessments.filter((a) => a.isFoundingPartner && !a.isPanel).length,
+    foundingCompleted: assessments.filter((a) => a.isFoundingPartner && !a.isPanel && a.completionPercentage >= 100).length,
+    standardStarted: assessments.filter((a) => !a.isFoundingPartner && !a.isPanel).length,
+    standardCompleted: assessments.filter((a) => !a.isFoundingPartner && !a.isPanel && a.completionPercentage >= 100).length,
+    panelStarted: assessments.filter((a) => a.isPanel).length,
+    panelCompleted: assessments.filter((a) => a.isPanel && a.completionPercentage >= 100).length,
     totalRevenue: assessments.reduce((sum, a) => {
+      if (a.isPanel) return sum // Panel doesn't contribute to revenue
       if (a.isFoundingPartner) return sum + 1250
       if (a.payment_completed) return sum + 1250
       return sum
     }, 0),
-    paidSurveys: assessments.filter((a) => !a.isFoundingPartner && a.payment_completed).length,
-    fpSponsored: assessments.filter((a) => a.isFoundingPartner).length,
+    paidSurveys: assessments.filter((a) => !a.isFoundingPartner && !a.isPanel && a.payment_completed).length,
+    fpSponsored: assessments.filter((a) => a.isFoundingPartner && !a.isPanel).length,
     avgCompletion: Math.round(
       assessments.reduce((sum, a) => sum + a.completionPercentage, 0) / (assessments.length || 1)
     ),
@@ -3107,7 +3138,7 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-5 gap-4 mb-6">
           <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl p-5 text-white shadow-lg">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold uppercase tracking-wide opacity-90">Founding Partners</p>
@@ -3128,6 +3159,18 @@ export default function AdminDashboard() {
             </div>
             <p className="text-3xl font-bold mb-1">{stats.standardStarted}</p>
             <p className="text-sm opacity-90">{stats.standardCompleted} completed</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl p-5 text-white shadow-lg">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold uppercase tracking-wide opacity-90">Panel Data</p>
+              <svg className="w-5 h-5 opacity-75" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <p className="text-3xl font-bold mb-1">{stats.panelStarted}</p>
+            <p className="text-sm opacity-90">{stats.panelCompleted} completed</p>
           </div>
 
           <div className="bg-gradient-to-br from-green-500 to-green-700 rounded-xl p-5 text-white shadow-lg">
@@ -3229,16 +3272,45 @@ export default function AdminDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">COMPANY TYPE</label>
-                  <select
-                    value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">Both (All Companies)</option>
-                    <option value="founding">Founding Partners Only</option>
-                    <option value="standard">Standard Companies Only</option>
-                  </select>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">COMPANY TYPES</label>
+                  <div className="flex items-center gap-4 bg-white border border-gray-300 rounded-lg px-3 py-2">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={typeFilter.fp}
+                        onChange={() => setTypeFilter(prev => ({ ...prev, fp: !prev.fp }))}
+                        className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="flex items-center gap-1.5 text-sm text-gray-700">
+                        <span className="w-2.5 h-2.5 rounded-sm bg-purple-500"></span>
+                        FP
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={typeFilter.standard}
+                        onChange={() => setTypeFilter(prev => ({ ...prev, standard: !prev.standard }))}
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="flex items-center gap-1.5 text-sm text-gray-700">
+                        <span className="w-2.5 h-2.5 rounded-sm bg-blue-500"></span>
+                        Standard
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={typeFilter.panel}
+                        onChange={() => setTypeFilter(prev => ({ ...prev, panel: !prev.panel }))}
+                        className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                      />
+                      <span className="flex items-center gap-1.5 text-sm text-gray-700">
+                        <span className="w-2.5 h-2.5 rounded-sm bg-amber-500"></span>
+                        Panel
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
               <div className="mt-4 flex items-center justify-between">
@@ -3273,7 +3345,7 @@ export default function AdminDashboard() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${
-                            assessment.isFoundingPartner ? 'bg-purple-600' : 'bg-blue-600'
+                            assessment.isPanel ? 'bg-amber-600' : assessment.isFoundingPartner ? 'bg-purple-600' : 'bg-blue-600'
                           }`}>
                             {(assessment.company_name || 'NA').substring(0, 2).toUpperCase()}
                           </div>
@@ -3293,7 +3365,11 @@ export default function AdminDashboard() {
 
                       {/* Type */}
                       <td className="px-4 py-3">
-                        {assessment.isFoundingPartner ? (
+                        {assessment.isPanel ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            Panel
+                          </span>
+                        ) : assessment.isFoundingPartner ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                             Founding
                           </span>
@@ -3306,7 +3382,9 @@ export default function AdminDashboard() {
 
                       {/* Payment */}
                       <td className="px-4 py-3">
-                        {assessment.isFoundingPartner ? (
+                        {assessment.isPanel ? (
+                          <span className="text-xs font-medium text-amber-700">Panel</span>
+                        ) : assessment.isFoundingPartner ? (
                           <span className="text-xs font-medium text-purple-700">FP Comp</span>
                         ) : assessment.payment_completed ? (
                           <span className="text-xs font-medium text-green-700">
