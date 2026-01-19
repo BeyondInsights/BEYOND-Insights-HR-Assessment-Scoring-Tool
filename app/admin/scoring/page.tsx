@@ -308,8 +308,8 @@ function DimensionScoringModal({ onClose }: { onClose: () => void }) {
               <p className="text-gray-600 mb-3">Scores are adjusted based on geographic consistency:</p>
               <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
                 <div className="flex justify-between"><span>Generally consistent across all locations</span><span className="font-bold">?1.00</span></div>
-                <div className="flex justify-between"><span>Vary across locations</span><span className="font-bold">?0.90</span></div>
-                <div className="flex justify-between"><span>Only available in select locations</span><span className="font-bold">?0.75</span></div>
+                <div className="flex justify-between"><span>Vary across locations</span><span className="font-bold">×0.90</span></div>
+                <div className="flex justify-between"><span>Only available in select locations</span><span className="font-bold">×0.75</span></div>
               </div>
             </section>
             
