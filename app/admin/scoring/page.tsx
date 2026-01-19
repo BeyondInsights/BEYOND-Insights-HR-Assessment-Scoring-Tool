@@ -496,7 +496,7 @@ export default function AggregateScoringReport() {
   const [weights, setWeights] = useState<Record<number, number>>({ ...DEFAULT_WEIGHTS });
   const [showDimensionModal, setShowDimensionModal] = useState(false);
   const [showEnhancedModal, setShowEnhancedModal] = useState(false);
-  const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'enhanced'>('weighted');
+  const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'enhanced'>('enhanced');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard' | 'panel'>('all');
   const [filterComplete, setFilterComplete] = useState(false);
@@ -811,6 +811,26 @@ export default function AggregateScoringReport() {
                 </button>
               </div>
               
+              {/* Help Buttons */}
+              <button 
+                onClick={() => setShowDimensionModal(true)}
+                className="px-3 py-1.5 bg-blue-500/30 border border-blue-400/50 text-blue-200 text-xs font-medium rounded-lg hover:bg-blue-500/40 transition-colors flex items-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                How Dim Scoring Works
+              </button>
+              <button 
+                onClick={() => setShowEnhancedModal(true)}
+                className="px-3 py-1.5 bg-purple-500/30 border border-purple-400/50 text-purple-200 text-xs font-medium rounded-lg hover:bg-purple-500/40 transition-colors flex items-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                How Enhancement Works
+              </button>
+              
               {/* Weight Status Indicator */}
               {Object.values(weights).reduce((a, b) => a + b, 0) !== 100 && (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 border border-red-400/50 rounded-lg">
@@ -929,27 +949,106 @@ export default function AggregateScoringReport() {
                 
                 <tbody>
                   {/* ============================================ */}
+                  {/* SECTION 0: ENHANCED COMPOSITE SCORE (TOP) */}
+                  {/* ============================================ */}
+                  
+                  {/* Enhanced Composite Section Header */}
+                  <tr>
+                    <td colSpan={6 + sortedCompanies.length} className="bg-gradient-to-r from-purple-100 to-indigo-100 border-y-2 border-purple-300">
+                      <div className="px-4 py-2 flex items-center gap-3">
+                        <span className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">★</span>
+                        <span className="font-bold text-purple-900">Enhanced Composite Score</span>
+                        <span className="text-purple-600 text-sm">(Overall ranking metric)</span>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  {/* Enhanced Composite Row */}
+                  <tr className={`${enhancementWeightsValid && weightsValid ? 'bg-gradient-to-r from-purple-50 to-indigo-50' : 'bg-red-50'}`}>
+                    <td className={`px-4 py-3 border-r ${enhancementWeightsValid && weightsValid ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200' : 'bg-red-50 border-red-200'}`}
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                      <button onClick={() => handleSort('enhanced')} className={`font-bold flex items-center gap-2 ${enhancementWeightsValid && weightsValid ? 'text-purple-900 hover:text-purple-700' : 'text-red-700'}`}>
+                        <span className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${enhancementWeightsValid && weightsValid ? 'bg-purple-600' : 'bg-red-500'}`}>E</span>
+                        Enhanced Composite
+                        {sortBy === 'enhanced' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
+                      </button>
+                      <span className={`text-[10px] ml-8 block ${enhancementWeightsValid && weightsValid ? 'text-purple-600' : 'text-red-600'}`}>
+                        (W{enhancementWeights.weightedDim}% + D{enhancementWeights.depth}% + M{enhancementWeights.maturity}% + B{enhancementWeights.breadth}%)
+                      </span>
+                    </td>
+                    <td className={`px-2 py-3 text-center text-xs border-r ${enhancementWeightsValid && weightsValid ? 'text-purple-600 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200' : 'bg-red-50 border-red-200'}`}
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                      {enhancementWeightsValid && weightsValid ? (
+                        <span className="text-purple-600 font-medium">★</span>
+                      ) : (
+                        <span className="text-red-600 font-bold">{enhancementWeightsSum}%</span>
+                      )}
+                    </td>
+                    {enhancementWeightsValid && weightsValid ? (
+                      <>
+                        <td className="px-2 py-3 text-center bg-purple-200 border-r border-purple-300 font-black text-xl"
+                            style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10, color: getScoreColor(averages.enhanced.total ?? 0) }}>
+                          {averages.enhanced.total ?? '?'}
+                        </td>
+                        <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-xl"
+                            style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10, color: getScoreColor(averages.enhanced.fp ?? 0) }}>
+                          {averages.enhanced.fp ?? '?'}
+                        </td>
+                        <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-xl"
+                            style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10, color: getScoreColor(averages.enhanced.std ?? 0) }}>
+                          {averages.enhanced.std ?? '?'}
+                        </td>
+                        <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-xl"
+                            style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.enhanced.panel ?? 0) }}>
+                          {averages.enhanced.panel ?? '?'}
+                        </td>
+                        {sortedCompanies.map(company => (
+                          <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-purple-200 last:border-r-0 ${
+                            company.isPanel ? 'bg-amber-100/70' : company.isFoundingPartner ? 'bg-violet-100/70' : 'bg-purple-50'
+                          }`}>
+                            <ScoreCell score={company.enhancedComposite} isComplete={company.isComplete} size="large" viewMode={viewMode} benchmark={averages.enhanced.total} />
+                          </td>
+                        ))}
+                      </>
+                    ) : (
+                      <td colSpan={4 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
+                        <div className="flex items-center gap-2 text-red-700">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <span className="font-medium">
+                            {!weightsValid && !enhancementWeightsValid 
+                              ? `Both weight sets must sum to 100% (Dimension: ${weightsSum}%, Enhancement: ${enhancementWeightsSum}%)`
+                              : !weightsValid 
+                                ? `Dimension weights must sum to 100% (currently ${weightsSum}%)`
+                                : `Enhancement weights must sum to 100% (currently ${enhancementWeightsSum}%)`
+                            }
+                          </span>
+                          <button
+                            onClick={() => {
+                              if (!weightsValid) setWeights({ ...DEFAULT_WEIGHTS });
+                              if (!enhancementWeightsValid) setEnhancementWeights({ weightedDim: 85, depth: 8, maturity: 5, breadth: 2 });
+                            }}
+                            className="ml-2 px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                          >
+                            Reset Weights
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                  
+                  {/* ============================================ */}
                   {/* SECTION 1: DIMENSION SCORES */}
                   {/* ============================================ */}
                   
                   {/* Section Header */}
                   <tr>
                     <td colSpan={6 + sortedCompanies.length} className="bg-blue-50 border-y-2 border-blue-200">
-                      <div className="px-4 py-2 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">D</span>
-                          <span className="font-bold text-blue-900">Dimension Scores</span>
-                          <span className="text-blue-600 text-sm">(Grid-based assessment)</span>
-                        </div>
-                        <button 
-                          onClick={() => setShowDimensionModal(true)}
-                          className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1.5"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          How Scoring Works
-                        </button>
+                      <div className="px-4 py-2 flex items-center gap-3">
+                        <span className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">D</span>
+                        <span className="font-bold text-blue-900">Dimension Scores</span>
+                        <span className="text-blue-600 text-sm">(Grid-based assessment)</span>
                       </div>
                     </td>
                   </tr>
@@ -1151,21 +1250,10 @@ export default function AggregateScoringReport() {
                   {/* Section Header */}
                   <tr>
                     <td colSpan={6 + sortedCompanies.length} className="bg-purple-50 border-y-2 border-purple-200">
-                      <div className="px-4 py-2 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">E</span>
-                          <span className="font-bold text-purple-900">Enhancement Factors</span>
-                          <span className="text-purple-600 text-sm">(Depth, Maturity, Breadth)</span>
-                        </div>
-                        <button 
-                          onClick={() => setShowEnhancedModal(true)}
-                          className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-1.5"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          How Enhancement Works
-                        </button>
+                      <div className="px-4 py-2 flex items-center gap-3">
+                        <span className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">E</span>
+                        <span className="font-bold text-purple-900">Enhancement Factors</span>
+                        <span className="text-purple-600 text-sm">(Depth, Maturity, Breadth)</span>
                       </div>
                     </td>
                   </tr>
@@ -1344,81 +1432,6 @@ export default function AggregateScoringReport() {
                         <ScoreCell score={company.breadthScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.breadth.total} />
                       </td>
                     ))}
-                  </tr>
-                  
-                  {/* Enhanced Composite Row */}
-                  <tr className={`${enhancementWeightsValid && weightsValid ? 'bg-gradient-to-r from-purple-100 to-indigo-100' : 'bg-red-50'}`}>
-                    <td className={`px-4 py-3 border-r ${enhancementWeightsValid && weightsValid ? 'bg-gradient-to-r from-purple-100 to-indigo-100 border-purple-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                      <button onClick={() => handleSort('enhanced')} className={`font-bold flex items-center gap-2 ${enhancementWeightsValid && weightsValid ? 'text-purple-900 hover:text-purple-700' : 'text-red-700'}`}>
-                        <span className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${enhancementWeightsValid && weightsValid ? 'bg-purple-600' : 'bg-red-500'}`}>E</span>
-                        Enhanced Composite
-                        {sortBy === 'enhanced' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
-                      </button>
-                      <span className={`text-[10px] ml-8 block ${enhancementWeightsValid && weightsValid ? 'text-purple-600' : 'text-red-600'}`}>
-                        (W{enhancementWeights.weightedDim}% + D{enhancementWeights.depth}% + M{enhancementWeights.maturity}% + B{enhancementWeights.breadth}%)
-                      </span>
-                    </td>
-                    <td className={`px-2 py-3 text-center text-xs border-r ${enhancementWeightsValid && weightsValid ? 'text-purple-600 bg-gradient-to-r from-purple-100 to-indigo-100 border-purple-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
-                      {enhancementWeightsValid && weightsValid ? (
-                        <span className="text-purple-600">enh</span>
-                      ) : (
-                        <span className="text-red-600 font-bold">{enhancementWeightsSum}%</span>
-                      )}
-                    </td>
-                    {enhancementWeightsValid && weightsValid ? (
-                      <>
-                        <td className="px-2 py-3 text-center bg-purple-200 border-r border-purple-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10, color: getScoreColor(averages.enhanced.total ?? 0) }}>
-                          {averages.enhanced.total ?? '?'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10, color: getScoreColor(averages.enhanced.fp ?? 0) }}>
-                          {averages.enhanced.fp ?? '?'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10, color: getScoreColor(averages.enhanced.std ?? 0) }}>
-                          {averages.enhanced.std ?? '?'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.enhanced.panel ?? 0) }}>
-                          {averages.enhanced.panel ?? '?'}
-                        </td>
-                        {sortedCompanies.map(company => (
-                          <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-purple-200 last:border-r-0 ${
-                            company.isPanel ? 'bg-amber-100/70' : company.isFoundingPartner ? 'bg-violet-100/70' : 'bg-purple-50'
-                          }`}>
-                            <ScoreCell score={company.enhancedComposite} isComplete={company.isComplete} size="large" viewMode={viewMode} benchmark={averages.enhanced.total} />
-                          </td>
-                        ))}
-                      </>
-                    ) : (
-                      <td colSpan={4 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
-                        <div className="flex items-center gap-2 text-red-700">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          <span className="font-medium">
-                            {!weightsValid && !enhancementWeightsValid 
-                              ? `Both weight sets must sum to 100% (Dimension: ${weightsSum}%, Enhancement: ${enhancementWeightsSum}%)`
-                              : !weightsValid 
-                                ? `Dimension weights must sum to 100% (currently ${weightsSum}%)`
-                                : `Enhancement weights must sum to 100% (currently ${enhancementWeightsSum}%)`
-                            }
-                          </span>
-                          <button
-                            onClick={() => {
-                              if (!weightsValid) setWeights({ ...DEFAULT_WEIGHTS });
-                              if (!enhancementWeightsValid) setEnhancementWeights({ weightedDim: 85, depth: 8, maturity: 5, breadth: 2 });
-                            }}
-                            className="ml-2 px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
-                          >
-                            Reset Weights
-                          </button>
-                        </div>
-                      </td>
-                    )}
                   </tr>
                   
                   {/* Enhanced Performance Tier Row - only show if weights valid */}
