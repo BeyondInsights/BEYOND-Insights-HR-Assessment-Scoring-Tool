@@ -11,6 +11,7 @@ interface Assessment {
   user_id: string
   email: string
   survey_id: string
+  app_id?: string  // Panel records use app_id = 'PANEL-XXX'
   company_name: string | null
   created_at: string
   updated_at: string
@@ -2948,7 +2949,8 @@ export default function AdminDashboard() {
 
       const processed = (data || []).map((assessment: Assessment) => {
         const isFP = isFoundingPartner(assessment.survey_id)
-        const isPanel = (assessment.survey_id || '').startsWith('PANEL-')
+        // Check BOTH survey_id AND app_id for Panel detection (Panel records may have app_id = 'PANEL-XXX')
+        const isPanel = (assessment.survey_id || '').startsWith('PANEL-') || (assessment.app_id || '').startsWith('PANEL-')
         
         // 🐛 DEBUG: Log FP check results
         if (assessment.company_name?.toLowerCase().includes('merck') || 
