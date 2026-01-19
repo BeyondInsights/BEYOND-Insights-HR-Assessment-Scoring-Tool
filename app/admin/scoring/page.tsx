@@ -646,13 +646,13 @@ export default function AggregateScoringReport() {
   const STICKY_LEFT_6 = COL1_WIDTH + COL2_WIDTH + (3 * COL_AVG_WIDTH);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Modals */}
       {showDimensionModal && <DimensionScoringModal onClose={() => setShowDimensionModal(false)} />}
       {showEnhancedModal && <EnhancedScoringModal onClose={() => setShowEnhancedModal(false)} />}
 
-      {/* Header */}
-      <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-5 px-8 shadow-xl sticky top-0 z-40">
+      {/* Header - Fixed at top */}
+      <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-5 px-8 shadow-xl flex-shrink-0">
         <div className="max-w-full mx-auto">
           <div className="flex items-center justify-between">
             <div>
@@ -723,8 +723,16 @@ export default function AggregateScoringReport() {
                 <span className="font-bold">{companyScores.filter(c => c.isPanel).length}</span>
               </div>
               <div className="border-l border-white/20 pl-4 flex items-center gap-2">
-                <span className="text-green-300">? Complete:</span>
+                <span className="text-green-300">✓ Complete:</span>
                 <span className="font-bold">{companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
+              </div>
+              {/* Compact Score Legend */}
+              <div className="border-l border-white/20 pl-4 flex items-center gap-2 text-[10px]">
+                <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#059669' }} title="80-100" />
+                <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#0284C7' }} title="60-79" />
+                <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#D97706' }} title="40-59" />
+                <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#DC2626' }} title="0-39" />
+                <span className="text-white/60 ml-1">Score Colors</span>
               </div>
             </div>
             
@@ -751,14 +759,14 @@ export default function AggregateScoringReport() {
                 <option value="panel" className="text-gray-900">Panel Only</option>
               </select>
               
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <label className="flex items-center gap-2 text-sm cursor-pointer bg-white/10 px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors">
                 <input
                   type="checkbox"
                   checked={filterComplete}
                   onChange={(e) => setFilterComplete(e.target.checked)}
-                  className="rounded border-white/30 bg-white/10 text-indigo-400 focus:ring-white/30"
+                  className="w-4 h-4 rounded border-2 border-white/50 bg-transparent text-indigo-400 focus:ring-2 focus:ring-white/50 cursor-pointer"
                 />
-                <span>Complete Only</span>
+                <span className={filterComplete ? 'text-white font-medium' : 'text-white/80'}>Complete Only</span>
               </label>
               
               {/* Score/Index Toggle */}
@@ -805,7 +813,7 @@ export default function AggregateScoringReport() {
       </header>
 
       {/* Main Content */}
-      <main className="p-6">
+      <main className="p-6 flex-1 overflow-hidden flex flex-col">
         {sortedCompanies.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -817,10 +825,22 @@ export default function AggregateScoringReport() {
             <p className="text-gray-500">No companies match your current filters.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div ref={tableRef} className="overflow-x-auto max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex-1 flex flex-col">
+            <div 
+              ref={tableRef} 
+              className="overflow-x-scroll overflow-y-auto flex-1"
+              style={{ 
+                scrollbarWidth: 'none', /* Firefox */
+                msOverflowStyle: 'none', /* IE/Edge */
+              }}
+            >
+              <style jsx>{`
+                div::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
               <table className="w-full text-sm">
-                <thead className="sticky top-0 z-50">
+                <thead className="sticky top-0 z-20 bg-slate-700">
                   {/* Column Group Headers */}
                   <tr className="bg-slate-800 text-white">
                     <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600"
@@ -1426,58 +1446,6 @@ export default function AggregateScoringReport() {
             </div>
           </div>
         )}
-        
-        {/* Legend */}
-        <div className="mt-6 bg-white rounded-xl shadow-lg p-5">
-          <h3 className="font-bold text-gray-900 mb-3">Legend</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Score Colors</p>
-              <div className="flex flex-wrap gap-3">
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#059669' }} />
-                  <span>80-100 (Excellent)</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#0284C7' }} />
-                  <span>60-79 (Good)</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#D97706' }} />
-                  <span>40-59 (Developing)</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#DC2626' }} />
-                  <span>0-39 (Needs Focus)</span>
-                </span>
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Company Types</p>
-              <div className="flex flex-wrap gap-3">
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded bg-violet-500" />
-                  <span>Founding Partner (FP)</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded bg-slate-500" />
-                  <span>Standard (STD)</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded bg-amber-500" />
-                  <span>Panel Data</span>
-                </span>
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Data Quality</p>
-              <div className="flex items-center gap-2 text-xs text-gray-600">
-                <span className="ring-2 ring-amber-400 ring-offset-1 rounded px-2 py-0.5 font-bold">42</span>
-                <span>= Over 40% "Unsure" responses (data quality note)</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );
