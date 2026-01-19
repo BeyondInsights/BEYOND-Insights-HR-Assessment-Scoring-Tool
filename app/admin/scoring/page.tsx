@@ -2,7 +2,7 @@
  * AGGREGATE SCORING REPORT - OPTIMIZED UX
  * 
  * Clean visual hierarchy with two scoring sections:
- * 1. COMPOSITE SCORE (top) -> Composite Score -> Composite Tier -> 4 Components
+ * 1. COMPOSITE SCORE (top) -> Composite Score -> Composite Tier -> Maturity & Breadth
  * 2. DIMENSION SCORES -> Unweighted -> Weighted -> Dimension Tier
  * 
  * Features:
@@ -11,6 +11,12 @@
  * - Default weight reset buttons for both composite and dimension weights
  * - Visual separation between sections
  * - Sticky headers for scrolling
+ * 
+ * SCORING MODEL (Updated):
+ * - Dimensions 1, 3, 12, 13 use weighted blend: 85% grid + 15% follow-up quality
+ * - Maturity = OR1 only (100/50/0)
+ * - Breadth = CB3a only (100/50/0)
+ * - Composite = 95% Weighted Dim + 3% Maturity + 2% Breadth
  */
 
 'use client';
@@ -19,7 +25,6 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
-import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
 
 // ============================================
 // CONSTANTS
@@ -30,9 +35,9 @@ const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
 };
 
 const DEFAULT_COMPOSITE_WEIGHTS = {
-  weightedDim: 85,
-  depth: 8,
-  maturity: 5,
+  weightedDim: 95,
+  depth: 0,  // Depth now merged into dimension scores
+  maturity: 3,
   breadth: 2,
 };
 
@@ -109,6 +114,169 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
   return 1.0;
 }
 
+// ============================================
+// FOLLOW-UP SCORING FOR WEIGHTED BLEND
+// ============================================
+
+// D1: Paid leave duration scoring (d1_1_usa, d1_1_non_usa)
+function scoreD1PaidLeave(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('13') || v.includes('more')) return 100;
+  if (v.includes('9') && v.includes('13')) return 70;
+  if (v.includes('5') && v.includes('9')) return 40;
+  if (v.includes('3') && v.includes('5')) return 20;
+  if (v.includes('1') && v.includes('3')) return 10;
+  if (v.includes('does not apply')) return 0;
+  return 0;
+}
+
+// D1: Part-time benefits duration scoring (d1_4b)
+function scoreD1PartTime(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('medically necessary')) return 100;
+  if (v.includes('26') || (v.includes('26') && v.includes('more'))) return 80;
+  if (v.includes('13') && v.includes('26')) return 50;
+  if (v.includes('5') && v.includes('13')) return 30;
+  if (v.includes('4 weeks') || v.includes('up to 4')) return 10;
+  if (v.includes('case-by-case')) return 40;
+  if (v.includes('no additional')) return 0;
+  return 0;
+}
+
+// D3: Manager training completion % (d31)
+function scoreD3Training(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v === '100%' || v.includes('100%')) return 100;
+  if (v.includes('75') && v.includes('100')) return 80;
+  if (v.includes('50') && v.includes('75')) return 50;
+  if (v.includes('25') && v.includes('50')) return 30;
+  if (v.includes('10') && v.includes('25')) return 10;
+  if (v.includes('less than 10')) return 0;
+  return 0;
+}
+
+// D12: Case review process (d12_1)
+function scoreD12CaseReview(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('systematic')) return 100;
+  if (v.includes('ad hoc')) return 50;
+  if (v.includes('aggregate') || v.includes('only review aggregate')) return 20;
+  return 0;
+}
+
+// D13: Communication frequency (d13_1)
+function scoreD13Communication(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('monthly')) return 100;
+  if (v.includes('quarterly')) return 70;
+  if (v.includes('twice')) return 40;
+  if (v.includes('annually') || v.includes('world cancer day')) return 20;
+  if (v.includes('only when asked')) return 0;
+  if (v.includes('do not actively')) return 0;
+  return 0;
+}
+
+// Calculate follow-up score for a dimension (returns 0-100)
+function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>): number | null {
+  const dimData = assessment[`dimension${dimNum}_data`];
+  const currentSupport = assessment.current_support_data || {};
+  
+  switch (dimNum) {
+    case 1: {
+      // Average of paid leave (USA + non-USA) and part-time benefits
+      const d1_1_usa = dimData?.d1_1_usa;
+      const d1_1_non_usa = dimData?.d1_1_non_usa;
+      const d1_4b = dimData?.d1_4b;
+      
+      const scores: number[] = [];
+      if (d1_1_usa) scores.push(scoreD1PaidLeave(d1_1_usa));
+      if (d1_1_non_usa) scores.push(scoreD1PaidLeave(d1_1_non_usa));
+      if (d1_4b) scores.push(scoreD1PartTime(d1_4b));
+      
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 3: {
+      const d31 = dimData?.d31;
+      return d31 ? scoreD3Training(d31) : null;
+    }
+    case 12: {
+      const d12_1 = dimData?.d12_1;
+      return d12_1 ? scoreD12CaseReview(d12_1) : null;
+    }
+    case 13: {
+      const d13_1 = dimData?.d13_1;
+      return d13_1 ? scoreD13Communication(d13_1) : null;
+    }
+    default:
+      return null;
+  }
+}
+
+// ============================================
+// MATURITY & BREADTH SCORING (Simplified)
+// ============================================
+
+// Maturity = OR1 only
+function calculateMaturityScore(assessment: Record<string, any>): number {
+  const currentSupport = assessment.current_support_data || {};
+  const or1 = currentSupport.or1 || '';
+  const v = String(or1).toLowerCase();
+  
+  if (v.includes('comprehensive')) return 100;
+  if (v.includes('enhanced')) return 80;
+  if (v.includes('moderate')) return 50;
+  if (v.includes('legal minimum')) return 30;
+  if (v.includes('developing')) return 20;
+  if (v.includes('no formal')) return 0;
+  return 0;
+}
+
+// Breadth = Average of (CB3a + CB3b + CB3c)
+// CB3a: 100/50/0 scale
+// CB3b: count-based (program structure)
+// CB3c: count-based (conditions covered)
+function calculateBreadthScore(assessment: Record<string, any>): number {
+  const currentSupport = assessment.current_support_data || {};
+  const scores: number[] = [];
+  
+  // CB3a: Beyond legal requirements (100/50/0)
+  const cb3a = currentSupport.cb3a || '';
+  const v = String(cb3a).toLowerCase();
+  if (v.includes('yes') && v.includes('additional support')) {
+    scores.push(100);
+  } else if (v.includes('developing') || v.includes('currently developing')) {
+    scores.push(50);
+  } else {
+    scores.push(0); // "meet legal only", "not sure", anything else
+  }
+  
+  // CB3b: Program structure elements (count-based, ~17pts per element, max 100 for 6)
+  const cb3b = currentSupport.cb3b;
+  if (cb3b && Array.isArray(cb3b)) {
+    const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
+    scores.push(cb3bScore);
+  } else {
+    scores.push(0);
+  }
+  
+  // CB3c: Conditions covered (count-based, ~8pts per condition, max 100 for 13)
+  const cb3c = currentSupport.cb3c;
+  if (cb3c && Array.isArray(cb3c)) {
+    const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
+    scores.push(cb3cScore);
+  } else {
+    scores.push(0);
+  }
+  
+  // Return average
+  return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+}
+
 interface DimensionScore {
   rawScore: number;
   adjustedScore: number;
@@ -118,12 +286,15 @@ interface DimensionScore {
   unsureCount: number;
   unsurePercent: number;
   isInsufficientData: boolean;
+  followUpScore: number | null;
+  blendedScore: number;
 }
 
-function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | null): DimensionScore {
+function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | null, assessment?: Record<string, any>): DimensionScore {
   const result: DimensionScore = {
     rawScore: 0, adjustedScore: 0, geoMultiplier: 1.0, totalItems: 0,
     answeredItems: 0, unsureCount: 0, unsurePercent: 0, isInsufficientData: false,
+    followUpScore: null, blendedScore: 0,
   };
   if (!dimData) return result;
   const mainGrid = dimData[`d${dimNum}a`];
@@ -142,6 +313,22 @@ function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | 
   const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
   result.geoMultiplier = getGeoMultiplier(geoResponse);
   result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier);
+  
+  // Apply weighted blend for D1, D3, D12, D13 (85% grid + 15% follow-up)
+  if (assessment && [1, 3, 12, 13].includes(dimNum)) {
+    result.followUpScore = calculateFollowUpScore(dimNum, assessment);
+    if (result.followUpScore !== null) {
+      // Weighted blend: 85% adjusted grid score + 15% follow-up score
+      result.blendedScore = Math.round((result.adjustedScore * 0.85) + (result.followUpScore * 0.15));
+    } else {
+      // No follow-up data: use 100% grid score (no penalty)
+      result.blendedScore = result.adjustedScore;
+    }
+  } else {
+    // Non-blended dimensions use adjusted score directly
+    result.blendedScore = result.adjustedScore;
+  }
+  
   return result;
 }
 
@@ -163,13 +350,14 @@ interface CompanyScores {
   breadthScore: number;
 }
 
-function calculateCompanyScores(assessment: Record<string, any>, weights: Record<number, number>): CompanyScores {
+function calculateCompanyScores(assessment: Record<string, any>, weights: Record<number, number>, compositeWeights: typeof DEFAULT_COMPOSITE_WEIGHTS): CompanyScores {
   const dimensions: Record<number, DimensionScore> = {};
   let completedDimCount = 0;
   
   for (let i = 1; i <= 13; i++) {
     const dimData = assessment[`dimension${i}_data`];
-    dimensions[i] = calculateDimensionScore(i, dimData);
+    // Pass assessment for weighted blend on D1, D3, D12, D13
+    dimensions[i] = calculateDimensionScore(i, dimData, assessment);
     if (dimensions[i].totalItems > 0) completedDimCount++;
   }
   
@@ -185,42 +373,45 @@ function calculateCompanyScores(assessment: Record<string, any>, weights: Record
   let weightedScore = 0;
   
   if (isComplete) {
+    // Unweighted uses blended scores for applicable dimensions
     const dimsWithData = Object.values(dimensions).filter(d => d.totalItems > 0);
     unweightedScore = dimsWithData.length > 0
-      ? Math.round(dimsWithData.reduce((sum, d) => sum + d.adjustedScore, 0) / dimsWithData.length)
+      ? Math.round(dimsWithData.reduce((sum, d) => sum + d.blendedScore, 0) / dimsWithData.length)
       : 0;
     
+    // Weighted uses blended scores
     const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
     if (totalWeight > 0) {
       for (let i = 1; i <= 13; i++) {
         const dim = dimensions[i];
         const weight = weights[i] || 0;
-        weightedScore += dim.adjustedScore * (weight / totalWeight);
+        weightedScore += dim.blendedScore * (weight / totalWeight);
       }
     }
     weightedScore = Math.round(weightedScore);
   }
   
-  let enhancedResult = { compositeScore: weightedScore, depthScore: 0, maturityScore: 0, breadthScore: 0 };
-  try {
-    const enhanced = calculateEnhancedScore(assessment);
-    enhancedResult = {
-      compositeScore: enhanced.compositeScore ?? weightedScore,
-      depthScore: enhanced.depthScore ?? 0,
-      maturityScore: enhanced.maturityScore ?? 0,
-      breadthScore: enhanced.breadthScore ?? 0,
-    };
-  } catch (e) {}
+  // Calculate maturity and breadth using local functions
+  const maturityScore = calculateMaturityScore(assessment);
+  const breadthScore = calculateBreadthScore(assessment);
+  
+  // Calculate composite: Weighted Dim × weightedDim% + Maturity × maturity% + Breadth × breadth%
+  // Note: depth is now 0% (merged into dimensions via weighted blend)
+  const compositeScore = isComplete ? Math.round(
+    (weightedScore * (compositeWeights.weightedDim / 100)) +
+    (maturityScore * (compositeWeights.maturity / 100)) +
+    (breadthScore * (compositeWeights.breadth / 100))
+  ) : 0;
   
   return {
-    companyName: assessment.company_name || 'Unknown',
+    companyName: (assessment.company_name || 'Unknown').replace('Panel Company ', 'Panel Co '),
     surveyId: assessment.app_id || assessment.survey_id || 'N/A',
     dimensions, unweightedScore, weightedScore, insufficientDataCount,
     isProvisional, isComplete, isFoundingPartner, isPanel, completedDimCount,
-    compositeScore: enhancedResult.compositeScore,
-    depthScore: enhancedResult.depthScore,
-    maturityScore: enhancedResult.maturityScore,
-    breadthScore: enhancedResult.breadthScore,
+    compositeScore,
+    depthScore: 0, // Depth now merged into dimensions
+    maturityScore,
+    breadthScore,
   };
 }
 
@@ -377,142 +568,88 @@ function CompositeScoringModal({ onClose, compositeWeights }: { onClose: () => v
                 <div className="flex items-center justify-center gap-2 flex-wrap text-sm">
                   <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold">W × {compositeWeights.weightedDim}%</span>
                   <span className="text-purple-600 font-bold">+</span>
-                  <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">D × {compositeWeights.depth}%</span>
-                  <span className="text-purple-600 font-bold">+</span>
                   <span className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-bold">M × {compositeWeights.maturity}%</span>
                   <span className="text-purple-600 font-bold">+</span>
                   <span className="px-3 py-1.5 bg-violet-600 text-white rounded-lg font-bold">B × {compositeWeights.breadth}%</span>
                 </div>
-                <p className="text-xs text-gray-600">W = Weighted Dimension | D = Depth | M = Maturity | B = Breadth</p>
+                <p className="text-xs text-gray-600">W = Weighted Dimension (with depth blended in) | M = Maturity | B = Breadth</p>
               </div>
             </div>
 
-            {/* Weighted Dimension */}
+            {/* Weighted Dimension with Depth Blend */}
             <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-sm font-bold">W</span>
                 <h4 className="font-bold text-blue-900 text-lg">Weighted Dimension Score ({compositeWeights.weightedDim}%)</h4>
               </div>
-              <p className="text-sm text-gray-700 mb-3">Foundation score from 13 dimension grid assessments (D#a questions), weighted by dimension importance.</p>
-              <div className="text-xs text-gray-600 bg-white rounded p-2">
-                <strong>Source:</strong> All D1a through D13a grid responses scored and weighted by dimension weights
-              </div>
-            </div>
-            
-            {/* DEPTH SCORE - Detailed */}
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center text-white text-sm font-bold">D</span>
-                <h4 className="font-bold text-purple-900 text-lg">Depth Score ({compositeWeights.depth}%)</h4>
-              </div>
-              <p className="text-sm text-gray-700 mb-3">Measures follow-up question quality and implementation details beyond basic grid answers.</p>
+              <p className="text-sm text-gray-700 mb-3">Foundation score from 13 dimension grid assessments, weighted by dimension importance. Dimensions 1, 3, 12, and 13 include a depth blend.</p>
               
-              <div className="space-y-3 text-xs">
-                <div className="bg-white rounded p-3 border border-purple-100">
-                  <p className="font-bold text-purple-800 mb-1">d1_1_usa / d1_1_non_usa — Paid Leave Duration</p>
-                  <p className="text-gray-600">1-3 weeks: 10pts | 3-5 weeks: 20pts | 5-9 weeks: 40pts | 9-13 weeks: 70pts | 13+ weeks: 100pts</p>
+              <div className="bg-white rounded p-3 border border-blue-100 mb-3">
+                <p className="font-bold text-blue-800 mb-2">Depth Blend (for D1, D3, D12, D13)</p>
+                <p className="text-xs text-gray-600 mb-2">These dimensions use: <strong>85% Grid Score + 15% Follow-up Quality</strong></p>
+                <div className="space-y-2 text-xs text-gray-600">
+                  <p><strong>D1:</strong> Paid leave duration (d1_1_usa/non_usa) + Part-time benefits (d1_4b)</p>
+                  <p><strong>D3:</strong> Manager training completion % (d31)</p>
+                  <p><strong>D12:</strong> Case review process type (d12_1)</p>
+                  <p><strong>D13:</strong> Communication frequency (d13_1)</p>
                 </div>
-                <div className="bg-white rounded p-3 border border-purple-100">
-                  <p className="font-bold text-purple-800 mb-1">d1_4b — Part-Time with Full Benefits Duration</p>
-                  <p className="text-gray-600">Up to 4 weeks: 10pts | 5-13 weeks: 30pts | 13-26 weeks: 50pts | 26+ weeks: 80pts | As long as medically necessary: 100pts</p>
-                </div>
-                <div className="bg-white rounded p-3 border border-purple-100">
-                  <p className="font-bold text-purple-800 mb-1">d31 — Manager Training Completion %</p>
-                  <p className="text-gray-600">&lt;10%: 0pts | 10-25%: 10pts | 25-50%: 30pts | 50-75%: 50pts | 75-100%: 80pts | 100%: 100pts</p>
-                </div>
-                <div className="bg-white rounded p-3 border border-purple-100">
-                  <p className="font-bold text-purple-800 mb-1">d12_1 — Case Review Process</p>
-                  <p className="text-gray-600">Systematic case review: 100pts | Ad hoc reviews: 50pts | Aggregate only: 20pts</p>
-                </div>
-                <div className="bg-white rounded p-3 border border-purple-100">
-                  <p className="font-bold text-purple-800 mb-1">d13_1 — Communication Frequency</p>
-                  <p className="text-gray-600">Monthly+: 100pts | Quarterly: 70pts | Twice/year: 40pts | Annually: 20pts | Only when asked: 0pts</p>
-                </div>
-                <div className="bg-purple-100 rounded p-2 mt-2">
-                  <strong>Formula:</strong> Sum of answered field points ÷ Max possible points × 100
-                </div>
+              </div>
+              
+              <div className="text-xs text-gray-600 bg-white rounded p-2">
+                <strong>Other dimensions:</strong> Use geo-adjusted grid score directly (no blend)
               </div>
             </div>
             
-            {/* MATURITY SCORE - Detailed */}
+            {/* MATURITY SCORE - OR1 Only */}
             <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white text-sm font-bold">M</span>
                 <h4 className="font-bold text-indigo-900 text-lg">Maturity Score ({compositeWeights.maturity}%)</h4>
               </div>
-              <p className="text-sm text-gray-700 mb-3">Measures organizational readiness, formal program structure, and monitoring practices.</p>
+              <p className="text-sm text-gray-700 mb-3">Self-assessed organizational support approach level.</p>
               
-              <div className="space-y-3 text-xs">
-                <div className="bg-white rounded p-3 border border-indigo-100">
-                  <p className="font-bold text-indigo-800 mb-1">OR1 — Current Support Approach (Self-Assessment)</p>
-                  <p className="text-gray-600">Comprehensive: 100pts | Enhanced: 80pts | Moderate: 60pts | Legal minimum: 30pts | Developing: 20pts | No formal: 0pts</p>
-                </div>
-                <div className="bg-white rounded p-3 border border-indigo-100">
-                  <p className="font-bold text-indigo-800 mb-1">OR5a — Caregiver Support Types Offered (Count-Based)</p>
-                  <p className="text-gray-600">Each type selected: ~8pts (max 100pts for 12+ types)</p>
-                  <p className="text-gray-500 mt-1">Types: Flex schedules, remote work, paid leave, EAP, support groups, emergency care, respite care, financial assistance, navigator, legal/financial planning, mental health, manager training, eldercare</p>
-                </div>
-                <div className="bg-white rounded p-3 border border-indigo-100">
-                  <p className="font-bold text-indigo-800 mb-1">OR6 — Effectiveness Monitoring Methods (Count-Based)</p>
-                  <p className="text-gray-600">Each method selected: ~25pts (max 100pts for 4+ methods)</p>
-                  <p className="text-gray-500 mt-1">Methods: Aggregate metrics, utilization data, employee surveys, third-party reporting</p>
-                </div>
-                <div className="bg-indigo-100 rounded p-2 mt-2">
-                  <strong>Formula:</strong> Average of (OR1 pts + OR5a pts + OR6 pts) ÷ 3 × 100
+              <div className="bg-white rounded p-3 border border-indigo-100">
+                <p className="font-bold text-indigo-800 mb-2">OR1 — Current Support Approach</p>
+                <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                  <p>Comprehensive support: <strong>100 pts</strong></p>
+                  <p>Enhanced support: <strong>80 pts</strong></p>
+                  <p>Moderate support: <strong>50 pts</strong></p>
+                  <p>Legal minimum only: <strong>30 pts</strong></p>
+                  <p>Developing approach: <strong>20 pts</strong></p>
+                  <p>No formal approach: <strong>0 pts</strong></p>
                 </div>
               </div>
             </div>
             
-            {/* BREADTH SCORE - Detailed */}
+            {/* BREADTH SCORE */}
             <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-8 h-8 bg-violet-600 rounded flex items-center justify-center text-white text-sm font-bold">B</span>
                 <h4 className="font-bold text-violet-900 text-lg">Breadth Score ({compositeWeights.breadth}%)</h4>
               </div>
-              <p className="text-sm text-gray-700 mb-3">Measures coverage scope across conditions, populations, and program structure.</p>
+              <p className="text-sm text-gray-700 mb-3">Average of program scope indicators (CB3a + CB3b + CB3c).</p>
               
               <div className="space-y-3 text-xs">
                 <div className="bg-white rounded p-3 border border-violet-100">
                   <p className="font-bold text-violet-800 mb-1">CB3a — Beyond Legal Requirements</p>
-                  <p className="text-gray-600">Yes, additional support: 100pts | Currently developing: 50pts | Meet legal only: 20pts | Not sure: 10pts</p>
+                  <p className="text-gray-600">Yes, additional support: <strong>100 pts</strong> | Currently developing: <strong>50 pts</strong> | Anything else: <strong>0 pts</strong></p>
                 </div>
                 <div className="bg-white rounded p-3 border border-violet-100">
                   <p className="font-bold text-violet-800 mb-1">CB3b — Program Structure Elements (Count-Based)</p>
-                  <p className="text-gray-600">Each element: ~17pts (max 100pts for 6 elements)</p>
+                  <p className="text-gray-600">Score = (count / 6) × 100, max 100 pts</p>
                   <p className="text-gray-500 mt-1">Elements: Individual benefits, coordinated services, internal program, external program, external initiatives, comprehensive framework</p>
                 </div>
                 <div className="bg-white rounded p-3 border border-violet-100">
                   <p className="font-bold text-violet-800 mb-1">CB3c — Conditions Covered (Count-Based)</p>
-                  <p className="text-gray-600">Each condition: ~8pts (max 100pts for 13 conditions)</p>
+                  <p className="text-gray-600">Score = (count / 13) × 100, max 100 pts</p>
                   <p className="text-gray-500 mt-1">Conditions: Autoimmune, Cancer, Chronic, Heart disease, HIV/AIDS, Kidney, Mental health, MS, Neurological, Respiratory, Stroke, Substance use, Transplant</p>
                 </div>
                 <div className="bg-violet-100 rounded p-2 mt-2">
-                  <strong>Formula:</strong> Average of (CB3a pts + CB3b pts + CB3c pts) ÷ 3 × 100
+                  <strong>Formula:</strong> (CB3a + CB3b + CB3c) ÷ 3
                 </div>
               </div>
             </div>
 
-            {/* Consistency Check Warning */}
-            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">⚠️</span>
-                <div>
-                  <h4 className="font-bold text-amber-900 mb-2">Consistency Check: Low Maturity Flag</h4>
-                  <p className="text-sm text-amber-800 mb-2">
-                    A company with <strong>HIGH dimension scores</strong> but <strong>LOW maturity</strong> may indicate inconsistent responses:
-                  </p>
-                  <ul className="text-xs text-amber-700 space-y-1 ml-4 list-disc">
-                    <li>Claiming to "currently offer" many items but OR1 shows no formal program</li>
-                    <li>Missing caregiver support entirely (OR5a empty)</li>
-                    <li>No program monitoring or effectiveness tracking (OR6 empty)</li>
-                  </ul>
-                  <p className="text-xs text-amber-800 mt-2">
-                    <strong>Legitimate leading companies</strong> should have high dimension scores AND high OR1 AND multiple OR5a caregiver supports AND multiple OR6 monitoring methods.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
             {/* Performance Tiers */}
             <section>
               <h3 className="font-bold text-gray-900 mb-3">Performance Tiers</h3>
@@ -648,7 +785,7 @@ export default function AggregateScoringReport() {
   const weightsValid = weightsSum === 100;
   
   const [compositeWeights, setCompositeWeights] = useState({ ...DEFAULT_COMPOSITE_WEIGHTS });
-  const compositeWeightsSum = compositeWeights.weightedDim + compositeWeights.depth + compositeWeights.maturity + compositeWeights.breadth;
+  const compositeWeightsSum = compositeWeights.weightedDim + compositeWeights.maturity + compositeWeights.breadth;
   const compositeWeightsValid = compositeWeightsSum === 100;
 
   useEffect(() => {
@@ -683,8 +820,8 @@ export default function AggregateScoringReport() {
   }, []);
 
   const companyScores = useMemo(() => {
-    return assessments.map(a => calculateCompanyScores(a, weights));
-  }, [assessments, weights]);
+    return assessments.map(a => calculateCompanyScores(a, weights, compositeWeights));
+  }, [assessments, weights, compositeWeights]);
 
   const sortedCompanies = useMemo(() => {
     let filtered = companyScores;
@@ -964,12 +1101,12 @@ export default function AggregateScoringReport() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div ref={tableRef} className="overflow-x-auto">
+            <div ref={tableRef} className="overflow-x-auto max-h-[calc(100vh-300px)]">
               <table className="w-full text-sm">
-                <thead>
+                <thead className="sticky top-0 z-40">
                   <tr className="bg-slate-800 text-white">
                     <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600"
-                        style={{ position: 'sticky', left: 0, zIndex: 30, backgroundColor: '#1E293B' }}>
+                        style={{ position: 'sticky', left: 0, zIndex: 45, backgroundColor: '#1E293B' }}>
                       METRICS
                     </th>
                     <th colSpan={4} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500">
@@ -980,23 +1117,23 @@ export default function AggregateScoringReport() {
                     </th>
                   </tr>
                   
-                  <tr className="bg-slate-700 text-white" style={{ position: 'sticky', top: 0, zIndex: 25 }}>
+                  <tr className="bg-slate-700 text-white">
                     <th className="px-4 py-3 text-left font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 35, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
                       <button onClick={() => handleSort('name')} className="hover:text-indigo-300 flex items-center gap-1">
                         Metric {sortBy === 'name' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                       </button>
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 35, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                       Wt%
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-indigo-600 border-r border-indigo-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 35, width: COL_AVG_WIDTH }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#4F46E5' }}>
                       ALL
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-violet-600 border-r border-violet-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 35, width: COL_AVG_WIDTH }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#7C3AED' }}>
                       <span className="flex items-center justify-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -1005,11 +1142,11 @@ export default function AggregateScoringReport() {
                       </span>
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-slate-500 border-r border-slate-400"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 35, width: COL_AVG_WIDTH }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#64748B' }}>
                       STD
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-amber-600 border-r border-amber-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 35, width: COL_AVG_WIDTH }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#D97706' }}>
                       PANEL
                     </th>
                     {sortedCompanies.map(company => (
@@ -1153,7 +1290,8 @@ export default function AggregateScoringReport() {
                     <td colSpan={6 + sortedCompanies.length} className="bg-purple-50/50 border-b border-purple-100">
                       <div className="px-4 py-1.5 flex items-center gap-2 text-xs text-purple-700">
                         <span className="font-semibold">Composite Components:</span>
-                        <span>W×{compositeWeights.weightedDim}% + D×{compositeWeights.depth}% + M×{compositeWeights.maturity}% + B×{compositeWeights.breadth}%</span>
+                        <span>W×{compositeWeights.weightedDim}% + M×{compositeWeights.maturity}% + B×{compositeWeights.breadth}%</span>
+                        <span className="text-purple-500">(Depth blended into D1, D3, D12, D13)</span>
                       </div>
                     </td>
                   </tr>
@@ -1166,6 +1304,7 @@ export default function AggregateScoringReport() {
                         <span className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center text-blue-600 text-xs font-bold">W</span>
                         Weighted Dimension Score
                       </span>
+                      <span className="text-gray-500 text-xs ml-7 block">Includes depth blend on D1, D3, D12, D13</span>
                     </td>
                     <td className="px-2 py-2 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
                         style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
@@ -1201,61 +1340,17 @@ export default function AggregateScoringReport() {
                     ))}
                   </tr>
                   
-                  {/* Depth Score (Component 2) */}
+                  {/* Maturity Score (Component 2) */}
                   <tr className="bg-gray-50">
                     <td className="px-4 py-2 bg-gray-50 border-r border-gray-200"
                         style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
                       <span className="font-medium text-gray-900 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-purple-100 rounded flex items-center justify-center text-purple-600 text-xs font-bold">D</span>
-                        Depth Score
-                      </span>
-                      <span className="text-gray-500 text-xs ml-7 block">Follow-up quality</span>
-                    </td>
-                    <td className="px-2 py-2 text-center text-xs text-gray-500 bg-gray-50 border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
-                      <input
-                        type="number" min="0" max="100"
-                        value={compositeWeights.depth}
-                        onChange={(e) => setCompositeWeights(prev => ({ ...prev, depth: parseInt(e.target.value) || 0 }))}
-                        className="w-10 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-purple-400"
-                      />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
-                      <ScoreCell score={averages.depth.total} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
-                      <ScoreCell score={averages.depth.fp} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
-                      <ScoreCell score={averages.depth.std} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
-                      <ScoreCell score={averages.depth.panel} isComplete={true} />
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
-                        company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : 'bg-gray-50'
-                      }`}>
-                        <ScoreCell score={company.depthScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.depth.total} />
-                      </td>
-                    ))}
-                  </tr>
-                  
-                  {/* Maturity Score (Component 3) */}
-                  <tr className="bg-white">
-                    <td className="px-4 py-2 bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                      <span className="font-medium text-gray-900 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-purple-100 rounded flex items-center justify-center text-purple-600 text-xs font-bold">M</span>
+                        <span className="w-5 h-5 bg-indigo-100 rounded flex items-center justify-center text-indigo-600 text-xs font-bold">M</span>
                         Maturity Score
                       </span>
-                      <span className="text-gray-500 text-xs ml-7 block">Organizational readiness</span>
+                      <span className="text-gray-500 text-xs ml-7 block">OR1: Support approach level</span>
                     </td>
-                    <td className="px-2 py-2 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
+                    <td className="px-2 py-2 text-center text-xs text-gray-500 bg-gray-50 border-r border-gray-200"
                         style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
                       <input
                         type="number" min="0" max="100"
@@ -1289,15 +1384,15 @@ export default function AggregateScoringReport() {
                     ))}
                   </tr>
                   
-                  {/* Breadth Score (Component 4) */}
-                  <tr className="bg-gray-50 border-b-4 border-gray-300">
-                    <td className="px-4 py-2 bg-gray-50 border-r border-gray-200"
+                  {/* Breadth Score (Component 3) */}
+                  <tr className="bg-white border-b-4 border-gray-300">
+                    <td className="px-4 py-2 bg-white border-r border-gray-200"
                         style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
                       <span className="font-medium text-gray-900 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-purple-100 rounded flex items-center justify-center text-purple-600 text-xs font-bold">B</span>
+                        <span className="w-5 h-5 bg-violet-100 rounded flex items-center justify-center text-violet-600 text-xs font-bold">B</span>
                         Breadth Score
                       </span>
-                      <span className="text-gray-500 text-xs ml-7 block">Program coverage</span>
+                      <span className="text-gray-500 text-xs ml-7 block">CB3a/b/c: Program scope & coverage</span>
                     </td>
                     <td className="px-2 py-2 text-center text-xs text-gray-500 bg-gray-50 border-r border-gray-200"
                         style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
