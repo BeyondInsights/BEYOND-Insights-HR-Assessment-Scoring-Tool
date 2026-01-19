@@ -1292,10 +1292,25 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
   
   // Aliases for response options (e.g., "Currently use" → "Currently offer")
   const responseAliases: Record<string, string> = {
+    // "Currently offer" variants
     'currently use': 'Currently offer',
     'currently utilize': 'Currently offer',
+    'currently measure / track': 'Currently offer',
+    'currently measure/track': 'Currently offer',
+    'currently provide to managers': 'Currently offer',
+    'currently provide': 'Currently offer',
+    'currently track': 'Currently offer',
+    // "Not able to offer" variants
     'not able to offer': 'Not able to offer in foreseeable future',
-    'not able': 'Not able to offer in foreseeable future'
+    'not able': 'Not able to offer in foreseeable future',
+    'not able to measure / track in foreseeable future': 'Not able to offer in foreseeable future',
+    'not able to measure/track in foreseeable future': 'Not able to offer in foreseeable future',
+    'not able to provide in foreseeable future': 'Not able to offer in foreseeable future',
+    'not able to utilize in foreseeable future': 'Not able to offer in foreseeable future',
+    'not able to track in foreseeable future': 'Not able to offer in foreseeable future',
+    // Unknown/Unsure variants
+    'unknown (5)': 'Unsure',
+    'unknown': 'Unsure'
   }
   
   // Pre-normalize response options
