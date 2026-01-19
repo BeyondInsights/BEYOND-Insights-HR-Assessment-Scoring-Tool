@@ -9,6 +9,8 @@
  * 5. Blend weights adjustable via settings panel (not scattered popovers)
  * 6. Unweighted Average row - KEPT
  * 7. Dimension Tier row - KEPT
+ * 8. How It Works + Reset Weights buttons moved to top header
+ * 9. BENCHMARKS header now sticky when scrolling horizontally
  */
 
 'use client';
@@ -846,7 +848,7 @@ export default function AggregateScoringReport() {
             </div>
           </div>
           
-          {/* Stats Row */}
+          {/* Stats Row - WITH HOW IT WORKS AND RESET WEIGHTS BUTTONS */}
           <div className="mt-4 flex items-center justify-between bg-white/5 rounded-xl px-5 py-3">
             <div className="flex items-center gap-6 text-sm">
               <div className="flex items-center gap-2">
@@ -866,8 +868,33 @@ export default function AggregateScoringReport() {
                 <span className="font-bold">{companyScores.filter(c => c.isPanel).length}</span>
               </div>
               <div className="border-l border-white/20 pl-4 flex items-center gap-2">
-                <span className="text-green-300">✔ Complete:</span>
+                <span className="text-green-300">✓ Complete:</span>
                 <span className="font-bold">{companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
+              </div>
+              
+              {/* HOW IT WORKS AND RESET WEIGHTS BUTTONS - MOVED HERE */}
+              <div className="border-l border-white/20 pl-4 flex items-center gap-2">
+                <button 
+                  onClick={() => setShowCompositeModal(true)}
+                  className="px-2.5 py-1 bg-purple-500/30 text-purple-200 text-xs font-medium rounded-lg hover:bg-purple-500/50 transition-colors border border-purple-400/30"
+                >
+                  Composite?
+                </button>
+                <button 
+                  onClick={() => setShowDimensionModal(true)}
+                  className="px-2.5 py-1 bg-blue-500/30 text-blue-200 text-xs font-medium rounded-lg hover:bg-blue-500/50 transition-colors border border-blue-400/30"
+                >
+                  Dimensions?
+                </button>
+                <button 
+                  onClick={() => {
+                    setCompositeWeights({ ...DEFAULT_COMPOSITE_WEIGHTS });
+                    setWeights({ ...DEFAULT_DIMENSION_WEIGHTS });
+                  }}
+                  className="px-2.5 py-1 bg-white/10 text-white/80 text-xs font-medium rounded-lg hover:bg-white/20 transition-colors border border-white/20"
+                >
+                  Reset Weights
+                </button>
               </div>
             </div>
             
@@ -1001,12 +1028,14 @@ export default function AggregateScoringReport() {
             <div ref={tableRef} className="overflow-x-auto max-h-[calc(100vh-300px)]">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 z-40">
+                  {/* FIRST HEADER ROW - METRICS + BENCHMARKS + COMPANIES - ALL STICKY */}
                   <tr className="bg-slate-800 text-white">
                     <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600"
-                        style={{ position: 'sticky', left: 0, zIndex: 45, backgroundColor: '#1E293B' }}>
+                        style={{ position: 'sticky', left: 0, zIndex: 45, backgroundColor: '#1E293B', minWidth: COL1_WIDTH + COL2_WIDTH }}>
                       METRICS
                     </th>
-                    <th colSpan={4} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500">
+                    <th colSpan={4} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 45, backgroundColor: '#4338CA', minWidth: 4 * COL_AVG_WIDTH }}>
                       BENCHMARKS
                     </th>
                     <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium bg-slate-700">
@@ -1014,6 +1043,7 @@ export default function AggregateScoringReport() {
                     </th>
                   </tr>
                   
+                  {/* SECOND HEADER ROW - Column headers */}
                   <tr className="bg-slate-700 text-white">
                     <th className="px-4 py-3 text-left font-semibold border-r border-slate-600"
                         style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
@@ -1063,27 +1093,11 @@ export default function AggregateScoringReport() {
                   
                   <tr>
                     <td colSpan={6 + sortedCompanies.length} className="bg-gradient-to-r from-purple-100 to-indigo-100 border-y-2 border-purple-300">
-                      <div className="px-4 py-2.5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">★</span>
-                          <div>
-                            <span className="font-bold text-purple-900 text-lg">Composite Score</span>
-                            <span className="text-purple-600 text-sm ml-2">(Overall Ranking)</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => setShowCompositeModal(true)}
-                            className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors"
-                          >
-                            How It Works
-                          </button>
-                          <button 
-                            onClick={() => setCompositeWeights({ ...DEFAULT_COMPOSITE_WEIGHTS })}
-                            className="px-3 py-1.5 bg-white text-purple-600 text-xs font-medium rounded-lg border border-purple-300 hover:bg-purple-50 transition-colors"
-                          >
-                            Reset Weights
-                          </button>
+                      <div className="px-4 py-2.5 flex items-center gap-3">
+                        <span className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">★</span>
+                        <div>
+                          <span className="font-bold text-purple-900 text-lg">Composite Score</span>
+                          <span className="text-purple-600 text-sm ml-2">(Overall Ranking)</span>
                         </div>
                       </div>
                     </td>
@@ -1099,25 +1113,25 @@ export default function AggregateScoringReport() {
                         {sortBy === 'composite' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                       </button>
                     </td>
-                    <td className={`px-2 py-3 text-center text-xs border-r ${compositeWeightsValid && weightsValid ? 'text-purple-600 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200' : 'bg-red-50 border-red-200'}`}
+                    <td className={`px-2 py-3 text-center text-xs border-r ${compositeWeightsValid && weightsValid ? 'text-purple-600 bg-purple-50 border-purple-200' : 'bg-red-50 border-red-200'}`}
                         style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
-                      {compositeWeightsValid && weightsValid ? '100%' : <span className="text-red-600 font-bold">{compositeWeightsSum}%</span>}
+                      {compositeWeightsValid ? '100%' : <span className="text-red-600 font-bold">{compositeWeightsSum}%</span>}
                     </td>
                     {compositeWeightsValid && weightsValid ? (
                       <>
-                        <td className="px-2 py-3 text-center bg-purple-200 border-r border-purple-300 font-black text-2xl"
+                        <td className="px-2 py-3 text-center bg-indigo-200 border-r border-indigo-300 font-black text-xl"
                             style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10, color: getScoreColor(averages.composite.total ?? 0) }}>
                           {averages.composite.total ?? '—'}
                         </td>
-                        <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-2xl"
+                        <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-xl"
                             style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10, color: getScoreColor(averages.composite.fp ?? 0) }}>
                           {averages.composite.fp ?? '—'}
                         </td>
-                        <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-2xl"
+                        <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-xl"
                             style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10, color: getScoreColor(averages.composite.std ?? 0) }}>
                           {averages.composite.std ?? '—'}
                         </td>
-                        <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-2xl"
+                        <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-xl"
                             style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.composite.panel ?? 0) }}>
                           {averages.composite.panel ?? '—'}
                         </td>
@@ -1131,19 +1145,14 @@ export default function AggregateScoringReport() {
                       </>
                     ) : (
                       <td colSpan={4 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
-                        <div className="flex items-center gap-2 text-red-700">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          <span className="font-medium">Weights must sum to 100%</span>
-                        </div>
+                        <span className="text-red-700 font-medium">Weights must sum to 100%</span>
                       </td>
                     )}
                   </tr>
                   
                   {/* Composite Tier Row */}
                   {compositeWeightsValid && weightsValid && (
-                    <tr className="bg-white border-b-2 border-purple-200">
+                    <tr className="bg-white">
                       <td className="px-4 py-2.5 bg-white border-r border-gray-200"
                           style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
                         <span className="font-semibold text-gray-700 flex items-center gap-2 ml-8">
@@ -1178,22 +1187,21 @@ export default function AggregateScoringReport() {
                     </tr>
                   )}
                   
-                  {/* Composite Components */}
+                  {/* Composite Components Label */}
                   <tr>
-                    <td colSpan={6 + sortedCompanies.length} className="bg-purple-50/50 border-b border-purple-100">
-                      <div className="px-4 py-1.5 flex items-center gap-2 text-xs text-purple-700">
-                        <span className="font-semibold">Composite =</span>
-                        <span>W×{compositeWeights.weightedDim}% + M×{compositeWeights.maturity}% + B×{compositeWeights.breadth}%</span>
+                    <td colSpan={6 + sortedCompanies.length} className="bg-gray-100 border-y border-gray-200">
+                      <div className="px-4 py-1.5 text-xs text-gray-600 font-medium">
+                        Composite Components
                       </div>
                     </td>
                   </tr>
                   
-                  {/* Weighted Score Component */}
+                  {/* Weighted Dimension Score Component */}
                   <tr className="bg-white">
                     <td className="px-4 py-2 bg-white border-r border-gray-200"
                         style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
                       <span className="font-medium text-gray-800 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center text-blue-600 text-xs font-bold">W</span>
+                        <span className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center text-blue-600 text-xs font-bold">Σ</span>
                         Weighted Dimension Score
                       </span>
                     </td>
@@ -1323,27 +1331,11 @@ export default function AggregateScoringReport() {
                   
                   <tr>
                     <td colSpan={6 + sortedCompanies.length} className="bg-blue-50 border-y-2 border-blue-200">
-                      <div className="px-4 py-2.5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">D</span>
-                          <div>
-                            <span className="font-bold text-blue-900 text-lg">Dimension Scores</span>
-                            <span className="text-blue-600 text-sm ml-2">(13 Assessment Areas)</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => setShowDimensionModal(true)}
-                            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            How It Works
-                          </button>
-                          <button 
-                            onClick={() => setWeights({ ...DEFAULT_DIMENSION_WEIGHTS })}
-                            className="px-3 py-1.5 bg-white text-blue-600 text-xs font-medium rounded-lg border border-blue-300 hover:bg-blue-50 transition-colors"
-                          >
-                            Reset Weights
-                          </button>
+                      <div className="px-4 py-2.5 flex items-center gap-3">
+                        <span className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">D</span>
+                        <div>
+                          <span className="font-bold text-blue-900 text-lg">Dimension Scores</span>
+                          <span className="text-blue-600 text-sm ml-2">(13 Assessment Areas)</span>
                         </div>
                       </div>
                     </td>
