@@ -1014,15 +1014,29 @@ function getGridData(data: any, gridField: string): Record<string, string> {
   try {
     const parsed = typeof data === 'string' ? JSON.parse(data) : data
     if (!parsed || typeof parsed !== 'object') return {}
-    const grid = parsed[gridField]
+    
+    // Try multiple field name variations (d1a, D1a, d1A)
+    let grid = parsed[gridField]
+    if (!grid) {
+      // Try uppercase variation
+      const upperField = gridField.charAt(0).toUpperCase() + gridField.slice(1)
+      grid = parsed[upperField]
+    }
+    if (!grid) {
+      // Try all uppercase
+      grid = parsed[gridField.toUpperCase()]
+    }
+    
     if (!grid || typeof grid !== 'object' || Array.isArray(grid)) return {}
+    
     // Ensure all values are strings
     const result: Record<string, string> = {}
     Object.entries(grid).forEach(([key, value]) => {
       result[key] = typeof value === 'string' ? value : String(value || '')
     })
     return result
-  } catch {
+  } catch (e) {
+    console.error('getGridData error:', e, 'data:', data, 'gridField:', gridField)
     return {}
   }
 }
@@ -1292,7 +1306,7 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
   
   // Aliases for response options (e.g., "Currently use" → "Currently offer")
   const responseAliases: Record<string, string> = {
-    // "Currently offer" variants
+    // "Currently offer" variants (lowercase normalized)
     'currently use': 'Currently offer',
     'currently utilize': 'Currently offer',
     'currently measure / track': 'Currently offer',
@@ -1300,9 +1314,20 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
     'currently provide to managers': 'Currently offer',
     'currently provide': 'Currently offer',
     'currently track': 'Currently offer',
+    'currently offer': 'Currently offer',  // Explicit lowercase match
+    // "In active planning / development" variants
+    'in active planning / development': 'In active planning / development',
+    'in active planning/development': 'In active planning / development',
+    'planning': 'In active planning / development',
+    'in planning': 'In active planning / development',
+    'in development': 'In active planning / development',
+    // "Assessing feasibility" variants
+    'assessing feasibility': 'Assessing feasibility',
+    'assessing': 'Assessing feasibility',
     // "Not able to offer" variants
     'not able to offer': 'Not able to offer in foreseeable future',
     'not able': 'Not able to offer in foreseeable future',
+    'not able to offer in foreseeable future': 'Not able to offer in foreseeable future',
     'not able to measure / track in foreseeable future': 'Not able to offer in foreseeable future',
     'not able to measure/track in foreseeable future': 'Not able to offer in foreseeable future',
     'not able to provide in foreseeable future': 'Not able to offer in foreseeable future',
@@ -1310,7 +1335,8 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
     'not able to track in foreseeable future': 'Not able to offer in foreseeable future',
     // Unknown/Unsure variants
     'unknown (5)': 'Unsure',
-    'unknown': 'Unsure'
+    'unknown': 'Unsure',
+    'unsure': 'Unsure'
   }
   
   // Pre-normalize response options
@@ -1330,7 +1356,32 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
     config.items.forEach(item => {
       // Strip asterisk from item for data lookup (asterisk is for display only)
       const lookupKey = item.replace(/ \*$/, '')
-      const response = gridData[item] || gridData[lookupKey]
+      
+      // Try exact match first
+      let response = gridData[item] || gridData[lookupKey]
+      
+      // If no exact match, try case-insensitive match
+      if (!response) {
+        const lowerLookup = lookupKey.toLowerCase()
+        for (const [key, value] of Object.entries(gridData)) {
+          if (key.toLowerCase() === lowerLookup) {
+            response = value
+            break
+          }
+        }
+      }
+      
+      // If still no match, try partial match (first 40 chars)
+      if (!response) {
+        const partialLookup = lookupKey.slice(0, 40).toLowerCase()
+        for (const [key, value] of Object.entries(gridData)) {
+          if (key.toLowerCase().startsWith(partialLookup)) {
+            response = value
+            break
+          }
+        }
+      }
+      
       if (!response) {
         results[item]['No response']++
       } else {
