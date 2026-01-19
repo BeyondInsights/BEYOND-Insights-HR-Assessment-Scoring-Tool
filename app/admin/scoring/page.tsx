@@ -357,7 +357,7 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
 function CompositeScoringModal({ onClose, compositeWeights }: { onClose: () => void; compositeWeights: typeof DEFAULT_COMPOSITE_WEIGHTS }) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">How Composite Scoring Works</h2>
@@ -370,80 +370,150 @@ function CompositeScoringModal({ onClose, compositeWeights }: { onClose: () => v
         </div>
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
           <div className="space-y-6">
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-              <p className="text-purple-800 font-medium">
-                The Composite Score combines the <strong>Weighted Dimension Score</strong> with three enhancement factors that evaluate the <strong>quality and depth</strong> of support programs.
-              </p>
+            {/* Formula Overview */}
+            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-5 border border-purple-200">
+              <h3 className="font-bold text-gray-900 mb-3 text-center">Composite Score Formula</h3>
+              <div className="text-center space-y-3">
+                <div className="flex items-center justify-center gap-2 flex-wrap text-sm">
+                  <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold">W × {compositeWeights.weightedDim}%</span>
+                  <span className="text-purple-600 font-bold">+</span>
+                  <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">D × {compositeWeights.depth}%</span>
+                  <span className="text-purple-600 font-bold">+</span>
+                  <span className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-bold">M × {compositeWeights.maturity}%</span>
+                  <span className="text-purple-600 font-bold">+</span>
+                  <span className="px-3 py-1.5 bg-violet-600 text-white rounded-lg font-bold">B × {compositeWeights.breadth}%</span>
+                </div>
+                <p className="text-xs text-gray-600">W = Weighted Dimension | D = Depth | M = Maturity | B = Breadth</p>
+              </div>
+            </div>
+
+            {/* Weighted Dimension */}
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-sm font-bold">W</span>
+                <h4 className="font-bold text-blue-900 text-lg">Weighted Dimension Score ({compositeWeights.weightedDim}%)</h4>
+              </div>
+              <p className="text-sm text-gray-700 mb-3">Foundation score from 13 dimension grid assessments (D#a questions), weighted by dimension importance.</p>
+              <div className="text-xs text-gray-600 bg-white rounded p-2">
+                <strong>Source:</strong> All D1a through D13a grid responses scored and weighted by dimension weights
+              </div>
             </div>
             
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3">Composite Score Formula</h3>
-              <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-5 border border-purple-200">
-                <div className="text-center space-y-3">
-                  <p className="text-sm text-purple-700 font-medium">Composite Score =</p>
-                  <div className="flex items-center justify-center gap-2 flex-wrap text-sm">
-                    <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold">Weighted Dim × {compositeWeights.weightedDim}%</span>
-                    <span className="text-purple-600 font-bold">+</span>
-                    <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Depth × {compositeWeights.depth}%</span>
-                    <span className="text-purple-600 font-bold">+</span>
-                    <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Maturity × {compositeWeights.maturity}%</span>
-                    <span className="text-purple-600 font-bold">+</span>
-                    <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Breadth × {compositeWeights.breadth}%</span>
-                  </div>
+            {/* DEPTH SCORE - Detailed */}
+            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center text-white text-sm font-bold">D</span>
+                <h4 className="font-bold text-purple-900 text-lg">Depth Score ({compositeWeights.depth}%)</h4>
+              </div>
+              <p className="text-sm text-gray-700 mb-3">Measures follow-up question quality and implementation details beyond basic grid answers.</p>
+              
+              <div className="space-y-3 text-xs">
+                <div className="bg-white rounded p-3 border border-purple-100">
+                  <p className="font-bold text-purple-800 mb-1">d1_1_usa / d1_1_non_usa — Paid Leave Duration</p>
+                  <p className="text-gray-600">1-3 weeks: 10pts | 3-5 weeks: 20pts | 5-9 weeks: 40pts | 9-13 weeks: 70pts | 13+ weeks: 100pts</p>
+                </div>
+                <div className="bg-white rounded p-3 border border-purple-100">
+                  <p className="font-bold text-purple-800 mb-1">d1_4b — Part-Time with Full Benefits Duration</p>
+                  <p className="text-gray-600">Up to 4 weeks: 10pts | 5-13 weeks: 30pts | 13-26 weeks: 50pts | 26+ weeks: 80pts | As long as medically necessary: 100pts</p>
+                </div>
+                <div className="bg-white rounded p-3 border border-purple-100">
+                  <p className="font-bold text-purple-800 mb-1">d31 — Manager Training Completion %</p>
+                  <p className="text-gray-600">&lt;10%: 0pts | 10-25%: 10pts | 25-50%: 30pts | 50-75%: 50pts | 75-100%: 80pts | 100%: 100pts</p>
+                </div>
+                <div className="bg-white rounded p-3 border border-purple-100">
+                  <p className="font-bold text-purple-800 mb-1">d12_1 — Case Review Process</p>
+                  <p className="text-gray-600">Systematic case review: 100pts | Ad hoc reviews: 50pts | Aggregate only: 20pts</p>
+                </div>
+                <div className="bg-white rounded p-3 border border-purple-100">
+                  <p className="font-bold text-purple-800 mb-1">d13_1 — Communication Frequency</p>
+                  <p className="text-gray-600">Monthly+: 100pts | Quarterly: 70pts | Twice/year: 40pts | Annually: 20pts | Only when asked: 0pts</p>
+                </div>
+                <div className="bg-purple-100 rounded p-2 mt-2">
+                  <strong>Formula:</strong> Sum of answered field points ÷ Max possible points × 100
                 </div>
               </div>
-            </section>
+            </div>
             
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3">Component Breakdown</h3>
-              <div className="space-y-4">
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">W</span>
-                    <h4 className="font-bold text-blue-900">Weighted Dimension Score ({compositeWeights.weightedDim}%)</h4>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-2">The foundation score from the 13 dimension assessments, weighted by importance.</p>
-                  <p className="text-xs text-blue-600">Source: Grid responses (D#a questions) across all dimensions</p>
+            {/* MATURITY SCORE - Detailed */}
+            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white text-sm font-bold">M</span>
+                <h4 className="font-bold text-indigo-900 text-lg">Maturity Score ({compositeWeights.maturity}%)</h4>
+              </div>
+              <p className="text-sm text-gray-700 mb-3">Measures organizational readiness, formal program structure, and monitoring practices.</p>
+              
+              <div className="space-y-3 text-xs">
+                <div className="bg-white rounded p-3 border border-indigo-100">
+                  <p className="font-bold text-indigo-800 mb-1">OR1 — Current Support Approach (Self-Assessment)</p>
+                  <p className="text-gray-600">Comprehensive: 100pts | Enhanced: 80pts | Moderate: 60pts | Legal minimum: 30pts | Developing: 20pts | No formal: 0pts</p>
                 </div>
-                
-                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-6 h-6 bg-purple-600 rounded flex items-center justify-center text-white text-xs font-bold">D</span>
-                    <h4 className="font-bold text-purple-900">Depth Score ({compositeWeights.depth}%)</h4>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-2">Evaluates the quality and comprehensiveness of follow-up responses beyond basic grid answers.</p>
-                  <p className="text-xs text-purple-600 mb-2">Source: Follow-up questions (D#b, D#c, D#d) that assess program details</p>
-                  <div className="text-xs text-gray-600 bg-white/60 rounded p-2">
-                    <strong>Measures:</strong> Implementation details, coverage scope, documentation quality, measurement practices
-                  </div>
+                <div className="bg-white rounded p-3 border border-indigo-100">
+                  <p className="font-bold text-indigo-800 mb-1">OR5a — Caregiver Support Types Offered (Count-Based)</p>
+                  <p className="text-gray-600">Each type selected: ~8pts (max 100pts for 12+ types)</p>
+                  <p className="text-gray-500 mt-1">Types: Flex schedules, remote work, paid leave, EAP, support groups, emergency care, respite care, financial assistance, navigator, legal/financial planning, mental health, manager training, eldercare</p>
                 </div>
-                
-                <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-6 h-6 bg-indigo-600 rounded flex items-center justify-center text-white text-xs font-bold">M</span>
-                    <h4 className="font-bold text-indigo-900">Maturity Score ({compositeWeights.maturity}%)</h4>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-2">Assesses the organization's current approach and readiness for supporting employees with serious health conditions.</p>
-                  <p className="text-xs text-indigo-600 mb-2">Source: General Benefits section and organizational readiness indicators</p>
-                  <div className="text-xs text-gray-600 bg-white/60 rounded p-2">
-                    <strong>Measures:</strong> Formal programs vs ad-hoc support, dedicated resources, established processes, leadership engagement
-                  </div>
+                <div className="bg-white rounded p-3 border border-indigo-100">
+                  <p className="font-bold text-indigo-800 mb-1">OR6 — Effectiveness Monitoring Methods (Count-Based)</p>
+                  <p className="text-gray-600">Each method selected: ~25pts (max 100pts for 4+ methods)</p>
+                  <p className="text-gray-500 mt-1">Methods: Aggregate metrics, utilization data, employee surveys, third-party reporting</p>
                 </div>
-                
-                <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-6 h-6 bg-violet-600 rounded flex items-center justify-center text-white text-xs font-bold">B</span>
-                    <h4 className="font-bold text-violet-900">Breadth Score ({compositeWeights.breadth}%)</h4>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-2">Evaluates the scope and coverage of support across different conditions and employee populations.</p>
-                  <p className="text-xs text-violet-600 mb-2">Source: Conditions covered, population segments, benefit availability</p>
-                  <div className="text-xs text-gray-600 bg-white/60 rounded p-2">
-                    <strong>Measures:</strong> Cancer types covered, family member inclusion, part-time/contract worker coverage, geographic reach
-                  </div>
+                <div className="bg-indigo-100 rounded p-2 mt-2">
+                  <strong>Formula:</strong> Average of (OR1 pts + OR5a pts + OR6 pts) ÷ 3 × 100
                 </div>
               </div>
-            </section>
+            </div>
             
+            {/* BREADTH SCORE - Detailed */}
+            <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-8 h-8 bg-violet-600 rounded flex items-center justify-center text-white text-sm font-bold">B</span>
+                <h4 className="font-bold text-violet-900 text-lg">Breadth Score ({compositeWeights.breadth}%)</h4>
+              </div>
+              <p className="text-sm text-gray-700 mb-3">Measures coverage scope across conditions, populations, and program structure.</p>
+              
+              <div className="space-y-3 text-xs">
+                <div className="bg-white rounded p-3 border border-violet-100">
+                  <p className="font-bold text-violet-800 mb-1">CB3a — Beyond Legal Requirements</p>
+                  <p className="text-gray-600">Yes, additional support: 100pts | Currently developing: 50pts | Meet legal only: 20pts | Not sure: 10pts</p>
+                </div>
+                <div className="bg-white rounded p-3 border border-violet-100">
+                  <p className="font-bold text-violet-800 mb-1">CB3b — Program Structure Elements (Count-Based)</p>
+                  <p className="text-gray-600">Each element: ~17pts (max 100pts for 6 elements)</p>
+                  <p className="text-gray-500 mt-1">Elements: Individual benefits, coordinated services, internal program, external program, external initiatives, comprehensive framework</p>
+                </div>
+                <div className="bg-white rounded p-3 border border-violet-100">
+                  <p className="font-bold text-violet-800 mb-1">CB3c — Conditions Covered (Count-Based)</p>
+                  <p className="text-gray-600">Each condition: ~8pts (max 100pts for 13 conditions)</p>
+                  <p className="text-gray-500 mt-1">Conditions: Autoimmune, Cancer, Chronic, Heart disease, HIV/AIDS, Kidney, Mental health, MS, Neurological, Respiratory, Stroke, Substance use, Transplant</p>
+                </div>
+                <div className="bg-violet-100 rounded p-2 mt-2">
+                  <strong>Formula:</strong> Average of (CB3a pts + CB3b pts + CB3c pts) ÷ 3 × 100
+                </div>
+              </div>
+            </div>
+
+            {/* Consistency Check Warning */}
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">⚠️</span>
+                <div>
+                  <h4 className="font-bold text-amber-900 mb-2">Consistency Check: Low Maturity Flag</h4>
+                  <p className="text-sm text-amber-800 mb-2">
+                    A company with <strong>HIGH dimension scores</strong> but <strong>LOW maturity</strong> may indicate inconsistent responses:
+                  </p>
+                  <ul className="text-xs text-amber-700 space-y-1 ml-4 list-disc">
+                    <li>Claiming to "currently offer" many items but OR1 shows no formal program</li>
+                    <li>Missing caregiver support entirely (OR5a empty)</li>
+                    <li>No program monitoring or effectiveness tracking (OR6 empty)</li>
+                  </ul>
+                  <p className="text-xs text-amber-800 mt-2">
+                    <strong>Legitimate leading companies</strong> should have high dimension scores AND high OR1 AND multiple OR5a caregiver supports AND multiple OR6 monitoring methods.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Performance Tiers */}
             <section>
               <h3 className="font-bold text-gray-900 mb-3">Performance Tiers</h3>
               <div className="grid grid-cols-5 gap-2 text-center text-xs">
