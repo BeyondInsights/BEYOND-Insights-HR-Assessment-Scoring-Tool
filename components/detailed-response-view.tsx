@@ -103,22 +103,19 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   return { points: null, isUnsure: false }
 }
 
-// EXACT copy of getGeoMultiplier from scoring page
+// EXACT copy of getGeoMultiplier from scoring page - with type safety
 function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
-  if (geoResponse === undefined || geoResponse === null) return 1.0
-  
-  // Handle numeric values (from panel data)
+  if (!geoResponse) return 1.0
+  // Handle numeric geo responses from panel data
   if (typeof geoResponse === 'number') {
-    switch (geoResponse) {
-      case 1: return 0.75  // Only available in select locations
-      case 2: return 0.90  // Vary across locations
-      case 3: return 1.0   // Generally consistent across all locations
-      default: return 1.0
-    }
+    // Panel data might use: 1=Consistent, 2=Vary, 3=Select
+    if (geoResponse === 1) return 1.0
+    if (geoResponse === 2) return 0.90
+    if (geoResponse === 3) return 0.75
+    return 1.0
   }
-  
-  // Handle string values
-  const s = String(geoResponse).toLowerCase()
+  if (typeof geoResponse !== 'string') return 1.0
+  const s = geoResponse.toLowerCase()
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0
   if (s.includes('vary') || s.includes('varies')) return 0.90
   if (s.includes('select') || s.includes('only available in select')) return 0.75
@@ -451,11 +448,41 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Title</p>
                 <p className="font-semibold text-gray-900">
-                  {(firmographics.title && typeof firmographics.title === 'string' && firmographics.title.toLowerCase() !== 'other' 
-                    ? firmographics.title 
-                    : firmographics.titleOther || firmographics.title_other || firmographics.title) 
-                    || firmographics.s5 
-                    || 'N/A'}
+                  {(() => {
+                    const title = firmographics.title
+                    const titleOther = firmographics.titleOther || firmographics.title_other
+                    const s5 = firmographics.s5
+                    
+                    // Handle string title
+                    if (typeof title === 'string' && title.toLowerCase() !== 'other') {
+                      return title
+                    }
+                    // Fallback to titleOther if title is "other" or not a string
+                    if (typeof titleOther === 'string' && titleOther) {
+                      return titleOther
+                    }
+                    // s5 might be numeric in panel data - display as-is or map code
+                    if (typeof s5 === 'number') {
+                      const s5Map: Record<number, string> = {
+                        1: 'C-level executive',
+                        2: 'Executive/Senior VP',
+                        3: 'Vice President',
+                        4: 'Director',
+                        5: 'Senior Manager',
+                        6: 'Manager',
+                        7: 'HR Generalist',
+                        8: 'Benefits Specialist',
+                        9: 'HR Specialist',
+                        10: 'HR Assistant',
+                        11: 'Other'
+                      }
+                      return s5Map[s5] || `Level ${s5}`
+                    }
+                    if (typeof s5 === 'string' && s5) {
+                      return s5
+                    }
+                    return 'N/A'
+                  })()}
                 </p>
               </div>
             </div>
