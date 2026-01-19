@@ -1,27 +1,22 @@
 /**
- * AGGREGATE SCORING REPORT - OPTIMIZED UX
+ * AGGREGATE SCORING REPORT - UPDATED
  * 
- * Clean visual hierarchy with two scoring sections:
- * 1. COMPOSITE SCORE (top) -> Composite Score -> Composite Tier -> Maturity & Breadth
- * 2. DIMENSION SCORES -> Unweighted -> Weighted -> Dimension Tier
+ * Fixes applied:
+ * 1. Follow-up blend weights adjustable per dimension (D1, D3, D12, D13)
+ * 2. Maturity scoring fixed - "legal minimum" now gets 0 points
+ * 3. Wt% column widened + totals row with adjustment helper
+ * 4. Clear visual feedback when weights don't sum to 100%
  * 
- * Features:
- * - Composite Score section at top with clear component breakdown
- * - Educational modals with detailed calculation explanations
- * - Default weight reset buttons for both composite and dimension weights
- * - Visual separation between sections
- * - Sticky headers for scrolling
- * 
- * SCORING MODEL (Updated):
- * - Dimensions 1, 3, 12, 13 use weighted blend: 85% grid + 15% follow-up quality
- * - Maturity = OR1 only (100/50/0)
- * - Breadth = CB3a only (100/50/0)
- * - Composite = 95% Weighted Dim + 3% Maturity + 2% Breadth
+ * SCORING MODEL:
+ * - Dimensions 1, 3, 12, 13 use weighted blend: (user-adjustable) grid + follow-up quality
+ * - Maturity = OR1 (Comprehensive=100, Enhanced=80, Moderate=50, Legal min=0, Developing=10, No formal=0)
+ * - Breadth = Average of CB3a + CB3b + CB3c
+ * - Composite = Weighted Dim × % + Maturity × % + Breadth × %
  */
 
 'use client';
 
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
@@ -34,9 +29,16 @@ const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
   4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3,
 };
 
+// Default blend weights for dimensions with follow-up questions (grid% / followup%)
+const DEFAULT_BLEND_WEIGHTS: Record<number, { grid: number; followUp: number }> = {
+  1: { grid: 85, followUp: 15 },   // Medical Leave
+  3: { grid: 85, followUp: 15 },   // Manager Preparedness
+  12: { grid: 85, followUp: 15 },  // Continuous Improvement
+  13: { grid: 85, followUp: 15 },  // Communication
+};
+
 const DEFAULT_COMPOSITE_WEIGHTS = {
   weightedDim: 95,
-  depth: 0,  // Depth now merged into dimension scores
   maturity: 3,
   breadth: 2,
 };
@@ -57,13 +59,16 @@ const DIMENSION_NAMES: Record<number, string> = {
   13: 'Communication & Awareness',
 };
 
+// Dimensions that have follow-up questions (for blend weight adjustment)
+const DIMENSIONS_WITH_FOLLOWUP = [1, 3, 12, 13];
+
 const DIMENSION_ORDER = [4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12];
 
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 const INSUFFICIENT_DATA_THRESHOLD = 0.40;
 
 const COL1_WIDTH = 280;
-const COL2_WIDTH = 50;
+const COL2_WIDTH = 65;  // WIDENED from 50
 const COL_AVG_WIDTH = 60;
 
 // ============================================
@@ -118,7 +123,6 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
 // FOLLOW-UP SCORING FOR WEIGHTED BLEND
 // ============================================
 
-// D1: Paid leave duration scoring (d1_1_usa, d1_1_non_usa)
 function scoreD1PaidLeave(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
@@ -131,7 +135,6 @@ function scoreD1PaidLeave(value: string | undefined): number {
   return 0;
 }
 
-// D1: Part-time benefits duration scoring (d1_4b)
 function scoreD1PartTime(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
@@ -145,7 +148,6 @@ function scoreD1PartTime(value: string | undefined): number {
   return 0;
 }
 
-// D3: Manager training completion % (d31)
 function scoreD3Training(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
@@ -158,7 +160,6 @@ function scoreD3Training(value: string | undefined): number {
   return 0;
 }
 
-// D12: Case review process (d12_1)
 function scoreD12CaseReview(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
@@ -168,7 +169,6 @@ function scoreD12CaseReview(value: string | undefined): number {
   return 0;
 }
 
-// D13: Communication frequency (d13_1)
 function scoreD13Communication(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
@@ -181,14 +181,11 @@ function scoreD13Communication(value: string | undefined): number {
   return 0;
 }
 
-// Calculate follow-up score for a dimension (returns 0-100)
 function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>): number | null {
   const dimData = assessment[`dimension${dimNum}_data`];
-  const currentSupport = assessment.current_support_data || {};
   
   switch (dimNum) {
     case 1: {
-      // Average of paid leave (USA + non-USA) and part-time benefits
       const d1_1_usa = dimData?.d1_1_usa;
       const d1_1_non_usa = dimData?.d1_1_non_usa;
       const d1_4b = dimData?.d1_4b;
@@ -218,33 +215,30 @@ function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>)
 }
 
 // ============================================
-// MATURITY & BREADTH SCORING (Simplified)
+// MATURITY & BREADTH SCORING (FIXED)
 // ============================================
 
-// Maturity = OR1 only
+// Maturity = OR1 only - FIXED: Legal minimum now gets 0 points
 function calculateMaturityScore(assessment: Record<string, any>): number {
   const currentSupport = assessment.current_support_data || {};
   const or1 = currentSupport.or1 || '';
   const v = String(or1).toLowerCase();
   
+  // FIXED SCORING: Legal minimum = 0 (just meeting legal requirements isn't worthy of points)
   if (v.includes('comprehensive')) return 100;
   if (v.includes('enhanced')) return 80;
   if (v.includes('moderate')) return 50;
-  if (v.includes('legal minimum')) return 30;
-  if (v.includes('developing')) return 20;
+  if (v.includes('developing')) return 10;  // Small credit for effort
+  if (v.includes('legal minimum')) return 0; // FIXED: Was 30, now 0
   if (v.includes('no formal')) return 0;
   return 0;
 }
 
 // Breadth = Average of (CB3a + CB3b + CB3c)
-// CB3a: 100/50/0 scale
-// CB3b: count-based (program structure)
-// CB3c: count-based (conditions covered)
 function calculateBreadthScore(assessment: Record<string, any>): number {
   const currentSupport = assessment.current_support_data || {};
   const scores: number[] = [];
   
-  // CB3a: Beyond legal requirements (100/50/0)
   const cb3a = currentSupport.cb3a || '';
   const v = String(cb3a).toLowerCase();
   if (v.includes('yes') && v.includes('additional support')) {
@@ -252,10 +246,9 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
   } else if (v.includes('developing') || v.includes('currently developing')) {
     scores.push(50);
   } else {
-    scores.push(0); // "meet legal only", "not sure", anything else
+    scores.push(0);
   }
   
-  // CB3b: Program structure elements (count-based, ~17pts per element, max 100 for 6)
   const cb3b = currentSupport.cb3b;
   if (cb3b && Array.isArray(cb3b)) {
     const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
@@ -264,7 +257,6 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  // CB3c: Conditions covered (count-based, ~8pts per condition, max 100 for 13)
   const cb3c = currentSupport.cb3c;
   if (cb3c && Array.isArray(cb3c)) {
     const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
@@ -273,7 +265,6 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  // Return average
   return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
 }
 
@@ -290,7 +281,12 @@ interface DimensionScore {
   blendedScore: number;
 }
 
-function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | null, assessment?: Record<string, any>): DimensionScore {
+function calculateDimensionScore(
+  dimNum: number, 
+  dimData: Record<string, any> | null, 
+  assessment?: Record<string, any>,
+  blendWeights?: Record<number, { grid: number; followUp: number }>
+): DimensionScore {
   const result: DimensionScore = {
     rawScore: 0, adjustedScore: 0, geoMultiplier: 1.0, totalItems: 0,
     answeredItems: 0, unsureCount: 0, unsurePercent: 0, isInsufficientData: false,
@@ -314,18 +310,17 @@ function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | 
   result.geoMultiplier = getGeoMultiplier(geoResponse);
   result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier);
   
-  // Apply weighted blend for D1, D3, D12, D13 (85% grid + 15% follow-up)
-  if (assessment && [1, 3, 12, 13].includes(dimNum)) {
+  // Apply weighted blend for D1, D3, D12, D13 using user-specified blend weights
+  if (assessment && DIMENSIONS_WITH_FOLLOWUP.includes(dimNum)) {
     result.followUpScore = calculateFollowUpScore(dimNum, assessment);
-    if (result.followUpScore !== null) {
-      // Weighted blend: 85% adjusted grid score + 15% follow-up score
-      result.blendedScore = Math.round((result.adjustedScore * 0.85) + (result.followUpScore * 0.15));
+    if (result.followUpScore !== null && blendWeights && blendWeights[dimNum]) {
+      const gridWeight = blendWeights[dimNum].grid / 100;
+      const followUpWeight = blendWeights[dimNum].followUp / 100;
+      result.blendedScore = Math.round((result.adjustedScore * gridWeight) + (result.followUpScore * followUpWeight));
     } else {
-      // No follow-up data: use 100% grid score (no penalty)
       result.blendedScore = result.adjustedScore;
     }
   } else {
-    // Non-blended dimensions use adjusted score directly
     result.blendedScore = result.adjustedScore;
   }
   
@@ -345,19 +340,22 @@ interface CompanyScores {
   isPanel: boolean;
   completedDimCount: number;
   compositeScore: number;
-  depthScore: number;
   maturityScore: number;
   breadthScore: number;
 }
 
-function calculateCompanyScores(assessment: Record<string, any>, weights: Record<number, number>, compositeWeights: typeof DEFAULT_COMPOSITE_WEIGHTS): CompanyScores {
+function calculateCompanyScores(
+  assessment: Record<string, any>, 
+  weights: Record<number, number>, 
+  compositeWeights: typeof DEFAULT_COMPOSITE_WEIGHTS,
+  blendWeights: Record<number, { grid: number; followUp: number }>
+): CompanyScores {
   const dimensions: Record<number, DimensionScore> = {};
   let completedDimCount = 0;
   
   for (let i = 1; i <= 13; i++) {
     const dimData = assessment[`dimension${i}_data`];
-    // Pass assessment for weighted blend on D1, D3, D12, D13
-    dimensions[i] = calculateDimensionScore(i, dimData, assessment);
+    dimensions[i] = calculateDimensionScore(i, dimData, assessment, blendWeights);
     if (dimensions[i].totalItems > 0) completedDimCount++;
   }
   
@@ -373,13 +371,11 @@ function calculateCompanyScores(assessment: Record<string, any>, weights: Record
   let weightedScore = 0;
   
   if (isComplete) {
-    // Unweighted uses blended scores for applicable dimensions
     const dimsWithData = Object.values(dimensions).filter(d => d.totalItems > 0);
     unweightedScore = dimsWithData.length > 0
       ? Math.round(dimsWithData.reduce((sum, d) => sum + d.blendedScore, 0) / dimsWithData.length)
       : 0;
     
-    // Weighted uses blended scores
     const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
     if (totalWeight > 0) {
       for (let i = 1; i <= 13; i++) {
@@ -391,12 +387,9 @@ function calculateCompanyScores(assessment: Record<string, any>, weights: Record
     weightedScore = Math.round(weightedScore);
   }
   
-  // Calculate maturity and breadth using local functions
   const maturityScore = calculateMaturityScore(assessment);
   const breadthScore = calculateBreadthScore(assessment);
   
-  // Calculate composite: Weighted Dim × weightedDim% + Maturity × maturity% + Breadth × breadth%
-  // Note: depth is now 0% (merged into dimensions via weighted blend)
   const compositeScore = isComplete ? Math.round(
     (weightedScore * (compositeWeights.weightedDim / 100)) +
     (maturityScore * (compositeWeights.maturity / 100)) +
@@ -409,7 +402,6 @@ function calculateCompanyScores(assessment: Record<string, any>, weights: Record
     dimensions, unweightedScore, weightedScore, insufficientDataCount,
     isProvisional, isComplete, isFoundingPartner, isPanel, completedDimCount,
     compositeScore,
-    depthScore: 0, // Depth now merged into dimensions
     maturityScore,
     breadthScore,
   };
@@ -431,260 +423,7 @@ function getPerformanceTier(score: number): { name: string; color: string; bg: s
 }
 
 // ============================================
-// EDUCATIONAL MODALS
-// ============================================
-
-function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => void; defaultWeights: Record<number, number> }) {
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">How Dimension Scoring Works</h2>
-            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
-          <div className="space-y-6">
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">1</span>
-                Individual Dimension Scoring
-              </h3>
-              <p className="text-gray-600 mb-3">Each of the 13 dimensions is scored based on the grid responses (D#a questions):</p>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-green-700">Currently Offer</span>
-                  <div className="flex-1 h-2 bg-green-200 rounded-full" />
-                  <span className="font-bold text-green-700">5 points</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-blue-700">Planning</span>
-                  <div className="flex-1 h-2 bg-blue-200 rounded-full" style={{ width: '60%' }} />
-                  <span className="font-bold text-blue-700">3 points</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-amber-700">Assessing</span>
-                  <div className="flex-1 h-2 bg-amber-200 rounded-full" style={{ width: '40%' }} />
-                  <span className="font-bold text-amber-700">2 points</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-red-700">Not Able</span>
-                  <div className="flex-1 h-2 bg-red-200 rounded-full" style={{ width: '5%' }} />
-                  <span className="font-bold text-red-700">0 points</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-gray-500">Unsure</span>
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full" style={{ width: '5%' }} />
-                  <span className="font-bold text-gray-500">Excluded from calculation</span>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                <strong>Formula:</strong> (Earned Points / Max Possible Points) × 100 = Raw Score
-              </p>
-            </section>
-            
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">2</span>
-                Geographic Multiplier
-              </h3>
-              <p className="text-gray-600 mb-3">Raw scores are adjusted based on geographic consistency of benefits:</p>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span>Generally consistent across all locations</span><span className="font-bold text-green-600">×1.00</span></div>
-                <div className="flex justify-between"><span>Vary across locations</span><span className="font-bold text-amber-600">×0.90</span></div>
-                <div className="flex justify-between"><span>Only available in select locations</span><span className="font-bold text-red-600">×0.75</span></div>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                <strong>Formula:</strong> Raw Score × Geographic Multiplier = Adjusted Score
-              </p>
-            </section>
-            
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">3</span>
-                Default Dimension Weights
-              </h3>
-              <p className="text-gray-600 mb-3">Dimensions are weighted by their importance to workplace support:</p>
-              <div className="bg-gray-50 rounded-lg p-4 grid grid-cols-2 gap-2 text-xs">
-                {DIMENSION_ORDER.map(dim => (
-                  <div key={dim} className="flex justify-between">
-                    <span className="text-gray-700">D{dim}: {DIMENSION_NAMES[dim].substring(0, 25)}...</span>
-                    <span className="font-bold text-blue-600">{defaultWeights[dim]}%</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-            
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">4</span>
-                Aggregate Scores
-              </h3>
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 space-y-3">
-                <div>
-                  <p className="font-semibold text-gray-800">Unweighted Dimension Score:</p>
-                  <p className="text-gray-600 text-sm">Simple average of all 13 dimension adjusted scores</p>
-                  <p className="text-xs text-blue-600 mt-1">Formula: Sum of Adjusted Scores ÷ 13</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800">Weighted Dimension Score:</p>
-                  <p className="text-gray-600 text-sm">Each dimension's adjusted score multiplied by its weight, then summed</p>
-                  <p className="text-xs text-blue-600 mt-1">Formula: Σ(Adjusted Score × Weight%) = Weighted Score</p>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CompositeScoringModal({ onClose, compositeWeights }: { onClose: () => void; compositeWeights: typeof DEFAULT_COMPOSITE_WEIGHTS }) {
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">How Composite Scoring Works</h2>
-            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-          <div className="space-y-6">
-            {/* Formula Overview */}
-            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-5 border border-purple-200">
-              <h3 className="font-bold text-gray-900 mb-3 text-center">Composite Score Formula</h3>
-              <div className="text-center space-y-3">
-                <div className="flex items-center justify-center gap-2 flex-wrap text-sm">
-                  <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold">W × {compositeWeights.weightedDim}%</span>
-                  <span className="text-purple-600 font-bold">+</span>
-                  <span className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-bold">M × {compositeWeights.maturity}%</span>
-                  <span className="text-purple-600 font-bold">+</span>
-                  <span className="px-3 py-1.5 bg-violet-600 text-white rounded-lg font-bold">B × {compositeWeights.breadth}%</span>
-                </div>
-                <p className="text-xs text-gray-600">W = Weighted Dimension (with depth blended in) | M = Maturity | B = Breadth</p>
-              </div>
-            </div>
-
-            {/* Weighted Dimension with Depth Blend */}
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-sm font-bold">W</span>
-                <h4 className="font-bold text-blue-900 text-lg">Weighted Dimension Score ({compositeWeights.weightedDim}%)</h4>
-              </div>
-              <p className="text-sm text-gray-700 mb-3">Foundation score from 13 dimension grid assessments, weighted by dimension importance. Dimensions 1, 3, 12, and 13 include a depth blend.</p>
-              
-              <div className="bg-white rounded p-3 border border-blue-100 mb-3">
-                <p className="font-bold text-blue-800 mb-2">Depth Blend (for D1, D3, D12, D13)</p>
-                <p className="text-xs text-gray-600 mb-2">These dimensions use: <strong>85% Grid Score + 15% Follow-up Quality</strong></p>
-                <div className="space-y-2 text-xs text-gray-600">
-                  <p><strong>D1:</strong> Paid leave duration (d1_1_usa/non_usa) + Part-time benefits (d1_4b)</p>
-                  <p><strong>D3:</strong> Manager training completion % (d31)</p>
-                  <p><strong>D12:</strong> Case review process type (d12_1)</p>
-                  <p><strong>D13:</strong> Communication frequency (d13_1)</p>
-                </div>
-              </div>
-              
-              <div className="text-xs text-gray-600 bg-white rounded p-2">
-                <strong>Other dimensions:</strong> Use geo-adjusted grid score directly (no blend)
-              </div>
-            </div>
-            
-            {/* MATURITY SCORE - OR1 Only */}
-            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white text-sm font-bold">M</span>
-                <h4 className="font-bold text-indigo-900 text-lg">Maturity Score ({compositeWeights.maturity}%)</h4>
-              </div>
-              <p className="text-sm text-gray-700 mb-3">Self-assessed organizational support approach level.</p>
-              
-              <div className="bg-white rounded p-3 border border-indigo-100">
-                <p className="font-bold text-indigo-800 mb-2">OR1 — Current Support Approach</p>
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                  <p>Comprehensive support: <strong>100 pts</strong></p>
-                  <p>Enhanced support: <strong>80 pts</strong></p>
-                  <p>Moderate support: <strong>50 pts</strong></p>
-                  <p>Legal minimum only: <strong>30 pts</strong></p>
-                  <p>Developing approach: <strong>20 pts</strong></p>
-                  <p>No formal approach: <strong>0 pts</strong></p>
-                </div>
-              </div>
-            </div>
-            
-            {/* BREADTH SCORE */}
-            <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-8 h-8 bg-violet-600 rounded flex items-center justify-center text-white text-sm font-bold">B</span>
-                <h4 className="font-bold text-violet-900 text-lg">Breadth Score ({compositeWeights.breadth}%)</h4>
-              </div>
-              <p className="text-sm text-gray-700 mb-3">Average of program scope indicators (CB3a + CB3b + CB3c).</p>
-              
-              <div className="space-y-3 text-xs">
-                <div className="bg-white rounded p-3 border border-violet-100">
-                  <p className="font-bold text-violet-800 mb-1">CB3a — Beyond Legal Requirements</p>
-                  <p className="text-gray-600">Yes, additional support: <strong>100 pts</strong> | Currently developing: <strong>50 pts</strong> | Anything else: <strong>0 pts</strong></p>
-                </div>
-                <div className="bg-white rounded p-3 border border-violet-100">
-                  <p className="font-bold text-violet-800 mb-1">CB3b — Program Structure Elements (Count-Based)</p>
-                  <p className="text-gray-600">Score = (count / 6) × 100, max 100 pts</p>
-                  <p className="text-gray-500 mt-1">Elements: Individual benefits, coordinated services, internal program, external program, external initiatives, comprehensive framework</p>
-                </div>
-                <div className="bg-white rounded p-3 border border-violet-100">
-                  <p className="font-bold text-violet-800 mb-1">CB3c — Conditions Covered (Count-Based)</p>
-                  <p className="text-gray-600">Score = (count / 13) × 100, max 100 pts</p>
-                  <p className="text-gray-500 mt-1">Conditions: Autoimmune, Cancer, Chronic, Heart disease, HIV/AIDS, Kidney, Mental health, MS, Neurological, Respiratory, Stroke, Substance use, Transplant</p>
-                </div>
-                <div className="bg-violet-100 rounded p-2 mt-2">
-                  <strong>Formula:</strong> (CB3a + CB3b + CB3c) ÷ 3
-                </div>
-              </div>
-            </div>
-
-            {/* Performance Tiers */}
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3">Performance Tiers</h3>
-              <div className="grid grid-cols-5 gap-2 text-center text-xs">
-                <div className="p-2 rounded-lg" style={{ backgroundColor: '#D1FAE5', color: '#065F46' }}>
-                  <div className="font-bold">Exemplary</div>
-                  <div>90-100</div>
-                </div>
-                <div className="p-2 rounded-lg" style={{ backgroundColor: '#DBEAFE', color: '#1E40AF' }}>
-                  <div className="font-bold">Leading</div>
-                  <div>75-89</div>
-                </div>
-                <div className="p-2 rounded-lg" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-                  <div className="font-bold">Progressing</div>
-                  <div>60-74</div>
-                </div>
-                <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFEDD5', color: '#9A3412' }}>
-                  <div className="font-bold">Emerging</div>
-                  <div>40-59</div>
-                </div>
-                <div className="p-2 rounded-lg" style={{ backgroundColor: '#F3F4F6', color: '#374151' }}>
-                  <div className="font-bold">Beginning</div>
-                  <div>0-39</div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// SCORE CELL COMPONENT
+// COMPONENTS
 // ============================================
 
 function ScoreCell({ 
@@ -730,10 +469,6 @@ function ScoreCell({
   );
 }
 
-// ============================================
-// TIER BADGE COMPONENT
-// ============================================
-
 function TierBadge({ score, isComplete, isProvisional, size = 'normal' }: { 
   score: number | null; 
   isComplete: boolean;
@@ -762,6 +497,246 @@ function TierBadge({ score, isComplete, isProvisional, size = 'normal' }: {
   );
 }
 
+// Blend weight adjustment popover for dimensions with follow-up questions
+function BlendWeightEditor({ 
+  dimNum, 
+  blendWeights, 
+  onUpdate 
+}: { 
+  dimNum: number;
+  blendWeights: { grid: number; followUp: number };
+  onUpdate: (grid: number, followUp: number) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const handleGridChange = (value: number) => {
+    const newGrid = Math.max(0, Math.min(100, value));
+    onUpdate(newGrid, 100 - newGrid);
+  };
+  
+  return (
+    <div className="relative inline-block">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="text-[10px] text-purple-600 hover:text-purple-800 underline decoration-dotted"
+        title="Click to adjust grid/follow-up blend"
+      >
+        {blendWeights.grid}/{blendWeights.followUp}
+      </button>
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsOpen(false)} 
+          />
+          <div className="absolute left-0 top-full mt-1 z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-3 w-48">
+            <div className="text-xs font-medium text-gray-700 mb-2">
+              D{dimNum} Blend Weights
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600">Grid Score:</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={blendWeights.grid}
+                    onChange={(e) => handleGridChange(parseInt(e.target.value) || 0)}
+                    className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded"
+                  />
+                  <span className="text-xs text-gray-500">%</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600">Follow-up:</span>
+                <div className="flex items-center gap-1">
+                  <span className="w-12 px-1 py-0.5 text-xs text-center bg-gray-100 rounded">
+                    {blendWeights.followUp}
+                  </span>
+                  <span className="text-xs text-gray-500">%</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between">
+              <button
+                onClick={() => {
+                  onUpdate(85, 15);
+                }}
+                className="text-[10px] text-gray-500 hover:text-gray-700"
+              >
+                Reset to 85/15
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-[10px] text-purple-600 hover:text-purple-800 font-medium"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ============================================
+// MODALS
+// ============================================
+
+function DimensionScoringModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">How Dimension Scoring Works</h2>
+            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+          <div className="space-y-6">
+            <section>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">1</span>
+                Grid Response Scoring
+              </h3>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="w-24 text-sm font-medium text-green-700">Currently Offer</span>
+                  <div className="flex-1 h-2 bg-green-200 rounded-full" />
+                  <span className="font-bold text-green-700">5 points</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-24 text-sm font-medium text-blue-700">Planning</span>
+                  <div className="flex-1 h-2 bg-blue-200 rounded-full" style={{ width: '60%' }} />
+                  <span className="font-bold text-blue-700">3 points</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-24 text-sm font-medium text-amber-700">Assessing</span>
+                  <div className="flex-1 h-2 bg-amber-200 rounded-full" style={{ width: '40%' }} />
+                  <span className="font-bold text-amber-700">2 points</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-24 text-sm font-medium text-red-700">Not Able</span>
+                  <div className="flex-1 h-2 bg-red-200 rounded-full" style={{ width: '5%' }} />
+                  <span className="font-bold text-red-700">0 points</span>
+                </div>
+              </div>
+            </section>
+            
+            <section>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold">2</span>
+                Blended Dimensions (D1, D3, D12, D13)
+              </h3>
+              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <p className="text-purple-800 text-sm mb-2">
+                  These dimensions have follow-up quality questions that are blended with the grid score:
+                </p>
+                <div className="bg-white rounded p-3 text-sm">
+                  <strong>Blended Score</strong> = (Grid Score × Grid%) + (Follow-up Score × Follow-up%)
+                </div>
+                <p className="text-purple-600 text-xs mt-2">
+                  Click the blend ratio (e.g., "85/15") in the table to adjust weights.
+                </p>
+              </div>
+            </section>
+            
+            <section>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">3</span>
+                Geographic Multiplier
+              </h3>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                <div className="flex justify-between"><span>Generally consistent across all locations</span><span className="font-bold">×1.00</span></div>
+                <div className="flex justify-between"><span>Vary across locations</span><span className="font-bold">×0.90</span></div>
+                <div className="flex justify-between"><span>Only available in select locations</span><span className="font-bold">×0.75</span></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CompositeScoringModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">How Composite Scoring Works</h2>
+            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+          <div className="space-y-6">
+            <section>
+              <h3 className="font-bold text-gray-900 mb-3">Composite Formula</h3>
+              <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-5 border border-purple-200">
+                <div className="text-center space-y-3">
+                  <p className="text-sm text-purple-700 font-medium">Composite Score =</p>
+                  <div className="flex items-center justify-center gap-2 flex-wrap text-sm">
+                    <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold">Weighted Dim × 95%</span>
+                    <span className="text-purple-600 font-bold">+</span>
+                    <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Maturity × 3%</span>
+                    <span className="text-purple-600 font-bold">+</span>
+                    <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Breadth × 2%</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+            
+            <section>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="w-5 h-5 bg-purple-100 rounded flex items-center justify-center text-purple-600 text-xs font-bold">M</span>
+                Maturity Score (OR1)
+              </h3>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                <div className="flex justify-between"><span>Comprehensive (industry-leading support)</span><span className="font-bold text-green-600">100 pts</span></div>
+                <div className="flex justify-between"><span>Enhanced (beyond typical requirements)</span><span className="font-bold text-green-600">80 pts</span></div>
+                <div className="flex justify-between"><span>Moderate (standard benefit programs)</span><span className="font-bold text-blue-600">50 pts</span></div>
+                <div className="flex justify-between"><span>Developing (building support programs)</span><span className="font-bold text-amber-600">10 pts</span></div>
+                <div className="flex justify-between"><span className="text-red-700">Legal minimum only</span><span className="font-bold text-red-600">0 pts</span></div>
+                <div className="flex justify-between"><span className="text-red-700">No formal programs</span><span className="font-bold text-red-600">0 pts</span></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2 italic">
+                Note: Meeting only legal requirements does not earn points—the index recognizes organizations that go beyond compliance.
+              </p>
+            </section>
+            
+            <section>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="w-5 h-5 bg-purple-100 rounded flex items-center justify-center text-purple-600 text-xs font-bold">B</span>
+                Breadth Score (CB3a/b/c average)
+              </h3>
+              <div className="bg-gray-50 rounded-lg p-4 text-sm">
+                <p className="text-gray-700">Average of:</p>
+                <ul className="mt-2 space-y-1 text-gray-600">
+                  <li>• CB3a: Beyond legal requirements (100/50/0)</li>
+                  <li>• CB3b: Program structure elements (count-based)</li>
+                  <li>• CB3c: Conditions covered (count-based)</li>
+                </ul>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ============================================
 // MAIN COMPONENT
 // ============================================
@@ -772,19 +747,22 @@ export default function AggregateScoringReport() {
   const [assessments, setAssessments] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(true);
   const [weights, setWeights] = useState<Record<number, number>>({ ...DEFAULT_DIMENSION_WEIGHTS });
+  const [blendWeights, setBlendWeights] = useState<Record<number, { grid: number; followUp: number }>>({ ...DEFAULT_BLEND_WEIGHTS });
+  const [compositeWeights, setCompositeWeights] = useState({ ...DEFAULT_COMPOSITE_WEIGHTS });
   const [showDimensionModal, setShowDimensionModal] = useState(false);
   const [showCompositeModal, setShowCompositeModal] = useState(false);
-  const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'composite'>('composite');
+  const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'composite'>('weighted');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard' | 'panel'>('all');
   const [filterComplete, setFilterComplete] = useState(false);
   const [viewMode, setViewMode] = useState<'score' | 'index'>('score');
   const [includePanel, setIncludePanel] = useState(true);
   
-  const weightsSum = Object.values(weights).reduce((a, b) => a + b, 0);
-  const weightsValid = weightsSum === 100;
+  // Weight validation
+  const dimWeightsSum = Object.values(weights).reduce((a, b) => a + b, 0);
+  const dimWeightsValid = dimWeightsSum === 100;
+  const dimWeightsDiff = 100 - dimWeightsSum;
   
-  const [compositeWeights, setCompositeWeights] = useState({ ...DEFAULT_COMPOSITE_WEIGHTS });
   const compositeWeightsSum = compositeWeights.weightedDim + compositeWeights.maturity + compositeWeights.breadth;
   const compositeWeightsValid = compositeWeightsSum === 100;
 
@@ -820,8 +798,8 @@ export default function AggregateScoringReport() {
   }, []);
 
   const companyScores = useMemo(() => {
-    return assessments.map(a => calculateCompanyScores(a, weights, compositeWeights));
-  }, [assessments, weights, compositeWeights]);
+    return assessments.map(a => calculateCompanyScores(a, weights, compositeWeights, blendWeights));
+  }, [assessments, weights, compositeWeights, blendWeights]);
 
   const sortedCompanies = useMemo(() => {
     let filtered = companyScores;
@@ -856,7 +834,7 @@ export default function AggregateScoringReport() {
       arr.length > 0 ? Math.round(arr.reduce((s, c) => s + ((c[key] as number) || 0), 0) / arr.length) : null;
     
     const dimAvg = (dim: number, arr: CompanyScores[]) => 
-      arr.length > 0 ? Math.round(arr.reduce((s, c) => s + (c.dimensions[dim]?.adjustedScore || 0), 0) / arr.length) : null;
+      arr.length > 0 ? Math.round(arr.reduce((s, c) => s + (c.dimensions[dim]?.blendedScore || 0), 0) / arr.length) : null;
     
     return {
       dimensions: Object.fromEntries(DIMENSION_ORDER.map(d => [d, {
@@ -867,7 +845,6 @@ export default function AggregateScoringReport() {
       }])),
       unweighted: { total: calcAvg(complete, 'unweightedScore'), fp: calcAvg(fp, 'unweightedScore'), std: calcAvg(std, 'unweightedScore'), panel: calcAvg(panel, 'unweightedScore') },
       weighted: { total: calcAvg(complete, 'weightedScore'), fp: calcAvg(fp, 'weightedScore'), std: calcAvg(std, 'weightedScore'), panel: calcAvg(panel, 'weightedScore') },
-      depth: { total: calcAvg(complete, 'depthScore'), fp: calcAvg(fp, 'depthScore'), std: calcAvg(std, 'depthScore'), panel: calcAvg(panel, 'depthScore') },
       maturity: { total: calcAvg(complete, 'maturityScore'), fp: calcAvg(fp, 'maturityScore'), std: calcAvg(std, 'maturityScore'), panel: calcAvg(panel, 'maturityScore') },
       breadth: { total: calcAvg(complete, 'breadthScore'), fp: calcAvg(fp, 'breadthScore'), std: calcAvg(std, 'breadthScore'), panel: calcAvg(panel, 'breadthScore') },
       composite: { total: calcAvg(complete, 'compositeScore'), fp: calcAvg(fp, 'compositeScore'), std: calcAvg(std, 'compositeScore'), panel: calcAvg(panel, 'compositeScore') },
@@ -880,16 +857,14 @@ export default function AggregateScoringReport() {
     else { setSortBy(column); setSortDir(column === 'name' ? 'asc' : 'desc'); }
   };
 
-  const scrollLeft = () => {
-    if (tableRef.current) {
-      tableRef.current.scrollBy({ left: -300, behavior: 'smooth' });
-    }
-  };
-  
-  const scrollRight = () => {
-    if (tableRef.current) {
-      tableRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-    }
+  const scrollLeft = () => tableRef.current?.scrollBy({ left: -300, behavior: 'smooth' });
+  const scrollRight = () => tableRef.current?.scrollBy({ left: 300, behavior: 'smooth' });
+
+  const updateBlendWeight = (dimNum: number, grid: number, followUp: number) => {
+    setBlendWeights(prev => ({
+      ...prev,
+      [dimNum]: { grid, followUp }
+    }));
   };
 
   if (loading) {
@@ -912,12 +887,11 @@ export default function AggregateScoringReport() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Modals */}
-      {showDimensionModal && <DimensionScoringModal onClose={() => setShowDimensionModal(false)} defaultWeights={DEFAULT_DIMENSION_WEIGHTS} />}
-      {showCompositeModal && <CompositeScoringModal onClose={() => setShowCompositeModal(false)} compositeWeights={compositeWeights} />}
+      {showDimensionModal && <DimensionScoringModal onClose={() => setShowDimensionModal(false)} />}
+      {showCompositeModal && <CompositeScoringModal onClose={() => setShowCompositeModal(false)} />}
 
       {/* Header */}
-      <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-5 px-8 shadow-xl">
+      <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-5 px-8 shadow-xl sticky top-0 z-40">
         <div className="max-w-full mx-auto">
           <div className="flex items-center justify-between">
             <div>
@@ -948,11 +922,8 @@ export default function AggregateScoringReport() {
               <button onClick={() => window.print()} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors">
                 Print Report
               </button>
-              <button onClick={() => router.push('/admin')} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back
+              <button onClick={() => router.push('/admin')} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors">
+                ← Back
               </button>
             </div>
           </div>
@@ -965,12 +936,7 @@ export default function AggregateScoringReport() {
                 <span className="font-bold text-xl">{companyScores.filter(c => includePanel || !c.isPanel).length}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-violet-500/30 border border-violet-400/50 text-violet-200 text-xs font-bold flex items-center gap-1">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  FP
-                </span>
+                <span className="px-2 py-0.5 rounded-full bg-violet-500/30 border border-violet-400/50 text-violet-200 text-xs font-bold">FP</span>
                 <span className="font-bold">{companyScores.filter(c => c.isFoundingPartner && !c.isPanel).length}</span>
               </div>
               <div className="flex items-center gap-2">
@@ -982,31 +948,12 @@ export default function AggregateScoringReport() {
                 <span className="font-bold">{companyScores.filter(c => c.isPanel).length}</span>
               </div>
               <div className="border-l border-white/20 pl-4 flex items-center gap-2">
-                <span className="text-green-400 font-bold">✓</span>
-                <span className="text-green-300">Complete:</span>
+                <span className="text-green-300">✔ Complete:</span>
                 <span className="font-bold">{companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
-              </div>
-              <div className="border-l border-white/20 pl-4 flex items-center gap-3 text-[10px]">
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#059669' }} />
-                  <span className="text-white/70">80+</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#0284C7' }} />
-                  <span className="text-white/70">60+</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#D97706' }} />
-                  <span className="text-white/70">40+</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#DC2626' }} />
-                  <span className="text-white/70">&lt;40</span>
-                </span>
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-sm cursor-pointer bg-amber-500/20 px-3 py-1.5 rounded-lg border border-amber-400/30">
                 <input
                   type="checkbox"
@@ -1014,12 +961,12 @@ export default function AggregateScoringReport() {
                   onChange={(e) => setIncludePanel(e.target.checked)}
                   className="rounded border-amber-400/50 bg-white/10 text-amber-400 focus:ring-amber-400/30"
                 />
-                <span className="text-amber-200">Include Panel</span>
+                <span className="text-amber-200">Include Panel Data</span>
               </label>
               
               <select
                 value={filterType}
-                onChange={(e) => setFilterType(e.target.value as 'all' | 'fp' | 'standard' | 'panel')}
+                onChange={(e) => setFilterType(e.target.value as any)}
                 className="bg-white/10 text-white border-0 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-white/30"
               >
                 <option value="all" className="text-gray-900">All Companies</option>
@@ -1028,21 +975,15 @@ export default function AggregateScoringReport() {
                 <option value="panel" className="text-gray-900">Panel Only</option>
               </select>
               
-              <button
-                onClick={() => setFilterComplete(!filterComplete)}
-                className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                  filterComplete 
-                    ? 'bg-green-500/30 border border-green-400/50 text-green-200' 
-                    : 'bg-white/10 hover:bg-white/20 text-white/80'
-                }`}
-              >
-                <span className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                  filterComplete ? 'bg-green-500 border-green-400' : 'border-white/50 bg-transparent'
-                }`}>
-                  {filterComplete && <span className="text-white text-xs font-bold">✓</span>}
-                </span>
-                <span className={filterComplete ? 'text-white font-medium' : ''}>Complete Only</span>
-              </button>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filterComplete}
+                  onChange={(e) => setFilterComplete(e.target.checked)}
+                  className="rounded border-white/30 bg-white/10 text-indigo-400 focus:ring-white/30"
+                />
+                <span>Complete Only</span>
+              </label>
               
               <div className="flex bg-white/10 rounded-lg p-0.5">
                 <button
@@ -1063,25 +1004,6 @@ export default function AggregateScoringReport() {
                   Index
                 </button>
               </div>
-              
-              <button 
-                onClick={() => setShowDimensionModal(true)}
-                className="px-3 py-1.5 bg-blue-500/30 border border-blue-400/50 text-blue-200 text-xs font-medium rounded-lg hover:bg-blue-500/40 transition-colors flex items-center gap-1.5"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Dimension Scoring
-              </button>
-              <button 
-                onClick={() => setShowCompositeModal(true)}
-                className="px-3 py-1.5 bg-purple-500/30 border border-purple-400/50 text-purple-200 text-xs font-medium rounded-lg hover:bg-purple-500/40 transition-colors flex items-center gap-1.5"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Composite Scoring
-              </button>
             </div>
           </div>
         </div>
@@ -1091,23 +1013,18 @@ export default function AggregateScoringReport() {
       <main className="p-6">
         {sortedCompanies.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No Assessments Found</h3>
             <p className="text-gray-500">No companies match your current filters.</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div ref={tableRef} className="overflow-x-auto max-h-[calc(100vh-300px)]">
+            <div ref={tableRef} className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 z-40">
+                <thead>
                   <tr className="bg-slate-800 text-white">
                     <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600"
-                        style={{ position: 'sticky', left: 0, zIndex: 45, backgroundColor: '#1E293B' }}>
-                      METRICS
+                        style={{ position: 'sticky', left: 0, zIndex: 30, backgroundColor: '#1E293B' }}>
+                      DIMENSIONS
                     </th>
                     <th colSpan={4} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500">
                       BENCHMARKS
@@ -1117,36 +1034,31 @@ export default function AggregateScoringReport() {
                     </th>
                   </tr>
                   
-                  <tr className="bg-slate-700 text-white">
+                  <tr className="bg-slate-700 text-white" style={{ position: 'sticky', top: 0, zIndex: 25 }}>
                     <th className="px-4 py-3 text-left font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 35, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
                       <button onClick={() => handleSort('name')} className="hover:text-indigo-300 flex items-center gap-1">
-                        Metric {sortBy === 'name' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
+                        Dimension {sortBy === 'name' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                       </button>
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
-                      Wt%
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 35, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                      Wt %
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-indigo-600 border-r border-indigo-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#4F46E5' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 35, width: COL_AVG_WIDTH }}>
                       ALL
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-violet-600 border-r border-violet-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#7C3AED' }}>
-                      <span className="flex items-center justify-center gap-1">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        FP
-                      </span>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 35, width: COL_AVG_WIDTH }}>
+                      FP
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-slate-500 border-r border-slate-400"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#64748B' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 35, width: COL_AVG_WIDTH }}>
                       STD
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-amber-600 border-r border-amber-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#D97706' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 35, width: COL_AVG_WIDTH }}>
                       PANEL
                     </th>
                     {sortedCompanies.map(company => (
@@ -1165,66 +1077,383 @@ export default function AggregateScoringReport() {
                 </thead>
                 
                 <tbody>
-                  {/* ============================================ */}
-                  {/* SECTION 1: COMPOSITE SCORE (TOP) */}
-                  {/* ============================================ */}
-                  
+                  {/* SECTION 1: DIMENSION SCORES */}
                   <tr>
-                    <td colSpan={6 + sortedCompanies.length} className="bg-gradient-to-r from-purple-100 to-indigo-100 border-y-2 border-purple-300">
-                      <div className="px-4 py-2.5 flex items-center justify-between">
+                    <td colSpan={6 + sortedCompanies.length} className="bg-blue-50 border-y-2 border-blue-200">
+                      <div className="px-4 py-2 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">★</span>
-                          <div>
-                            <span className="font-bold text-purple-900 text-lg">Composite Score</span>
-                            <span className="text-purple-600 text-sm ml-2">(Overall Ranking Metric)</span>
-                          </div>
+                          <span className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">D</span>
+                          <span className="font-bold text-blue-900">Dimension Scores</span>
+                          <span className="text-blue-600 text-sm">(Grid + Blended follow-ups)</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => setCompositeWeights({ ...DEFAULT_COMPOSITE_WEIGHTS })}
-                            className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors"
-                          >
-                            Use Default Composite Weights
-                          </button>
-                          {!compositeWeightsValid && (
-                            <span className="text-red-600 text-xs font-medium bg-red-100 px-2 py-1 rounded">
-                              Weights = {compositeWeightsSum}% (must be 100%)
-                            </span>
-                          )}
-                        </div>
+                        <button 
+                          onClick={() => setShowDimensionModal(true)}
+                          className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1.5"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          How Scoring Works
+                        </button>
                       </div>
                     </td>
                   </tr>
                   
-                  {/* Composite Score Row */}
-                  <tr className={`${compositeWeightsValid && weightsValid ? 'bg-gradient-to-r from-purple-50 to-indigo-50' : 'bg-red-50'}`}>
-                    <td className={`px-4 py-3 border-r ${compositeWeightsValid && weightsValid ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200' : 'bg-red-50 border-red-200'}`}
+                  {/* Dimension Rows */}
+                  {DIMENSION_ORDER.map((dim, idx) => {
+                    const hasFollowUp = DIMENSIONS_WITH_FOLLOWUP.includes(dim);
+                    return (
+                      <tr key={dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className={`px-4 py-2.5 border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                            style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-gray-900">
+                              <span className="text-blue-600 font-bold">D{dim}:</span> {DIMENSION_NAMES[dim]}
+                            </span>
+                            {hasFollowUp && (
+                              <BlendWeightEditor
+                                dimNum={dim}
+                                blendWeights={blendWeights[dim]}
+                                onUpdate={(g, f) => updateBlendWeight(dim, g, f)}
+                              />
+                            )}
+                          </div>
+                        </td>
+                        <td className={`px-1 py-1 text-center border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                            style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={weights[dim]}
+                            onChange={(e) => setWeights(prev => ({ ...prev, [dim]: parseInt(e.target.value) || 0 }))}
+                            className={`w-14 px-1 py-0.5 text-xs text-center border rounded focus:ring-1 focus:ring-blue-400 focus:border-blue-400 bg-white ${
+                              !dimWeightsValid ? 'border-red-300' : 'border-gray-300'
+                            }`}
+                          />
+                        </td>
+                        <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
+                            style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
+                          <ScoreCell score={averages.dimensions[dim]?.total ?? null} isComplete={true} />
+                        </td>
+                        <td className="px-2 py-2.5 text-center bg-violet-50 border-r border-violet-100"
+                            style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
+                          <ScoreCell score={averages.dimensions[dim]?.fp ?? null} isComplete={true} />
+                        </td>
+                        <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                            style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
+                          <ScoreCell score={averages.dimensions[dim]?.std ?? null} isComplete={true} />
+                        </td>
+                        <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
+                            style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
+                          <ScoreCell score={averages.dimensions[dim]?.panel ?? null} isComplete={true} />
+                        </td>
+                        {sortedCompanies.map(company => (
+                          <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${
+                            company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
+                          }`}>
+                            <ScoreCell 
+                              score={company.dimensions[dim].blendedScore} 
+                              isComplete={company.dimensions[dim].totalItems > 0}
+                              isProvisional={company.dimensions[dim].isInsufficientData}
+                              viewMode={viewMode}
+                              benchmark={averages.dimensions[dim]?.total}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                  
+                  {/* WEIGHTS TOTAL ROW */}
+                  <tr className={`${dimWeightsValid ? 'bg-blue-100' : 'bg-red-100'} border-t-2 ${dimWeightsValid ? 'border-blue-300' : 'border-red-300'}`}>
+                    <td className={`px-4 py-2 border-r ${dimWeightsValid ? 'bg-blue-100 border-blue-200' : 'bg-red-100 border-red-200'}`}
                         style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                      <button onClick={() => handleSort('composite')} className={`font-bold flex items-center gap-2 ${compositeWeightsValid && weightsValid ? 'text-purple-900 hover:text-purple-700' : 'text-red-700'}`}>
-                        <span className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${compositeWeightsValid && weightsValid ? 'bg-gradient-to-br from-purple-600 to-indigo-600' : 'bg-red-500'}`}>★</span>
+                      <div className="flex items-center justify-between">
+                        <span className={`font-semibold ${dimWeightsValid ? 'text-blue-800' : 'text-red-800'}`}>
+                          Total Weights
+                        </span>
+                        {!dimWeightsValid && (
+                          <span className="text-xs text-red-600 font-medium">
+                            {dimWeightsDiff > 0 ? `Add ${dimWeightsDiff}%` : `Remove ${Math.abs(dimWeightsDiff)}%`}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className={`px-1 py-2 text-center border-r font-bold ${dimWeightsValid ? 'bg-blue-100 border-blue-200 text-blue-800' : 'bg-red-100 border-red-200 text-red-800'}`}
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                      <span className={`text-base ${!dimWeightsValid && 'animate-pulse'}`}>
+                        {dimWeightsSum}%
+                      </span>
+                    </td>
+                    <td colSpan={4 + sortedCompanies.length} className={`px-4 py-2 ${dimWeightsValid ? 'bg-blue-50' : 'bg-red-50'}`}>
+                      {!dimWeightsValid ? (
+                        <div className="flex items-center gap-3">
+                          <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-red-700 font-medium text-sm">
+                            Weights must equal 100% for valid scoring
+                          </span>
+                          <button
+                            onClick={() => setWeights({ ...DEFAULT_DIMENSION_WEIGHTS })}
+                            className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
+                          >
+                            Reset to Defaults
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-blue-600 text-sm flex items-center gap-2">
+                          <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Weights valid
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                  
+                  {/* Weighted Average Row */}
+                  <tr className="bg-blue-100 border-t border-blue-200">
+                    <td className="px-4 py-2.5 border-r border-blue-200 bg-blue-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                      <button onClick={() => handleSort('weighted')} className="font-bold text-blue-800 flex items-center gap-2 hover:text-blue-600">
+                        <span className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">W</span>
+                        Weighted Average
+                        {sortBy === 'weighted' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
+                      </button>
+                    </td>
+                    <td className="px-2 py-2.5 text-center text-xs text-blue-600 border-r border-blue-200 bg-blue-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>wtd</td>
+                    <td className="px-2 py-2.5 text-center bg-indigo-200 border-r border-indigo-300 font-bold text-lg"
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10, color: getScoreColor(averages.weighted.total ?? 0) }}>
+                      {averages.weighted.total ?? '—'}
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-violet-200 border-r border-violet-300 font-bold text-lg"
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10, color: getScoreColor(averages.weighted.fp ?? 0) }}>
+                      {averages.weighted.fp ?? '—'}
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-slate-200 border-r border-slate-300 font-bold text-lg"
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10, color: getScoreColor(averages.weighted.std ?? 0) }}>
+                      {averages.weighted.std ?? '—'}
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-amber-200 border-r border-amber-300 font-bold text-lg"
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.weighted.panel ?? 0) }}>
+                      {averages.weighted.panel ?? '—'}
+                    </td>
+                    {sortedCompanies.map(company => (
+                      <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-blue-200 last:border-r-0 ${
+                        company.isPanel ? 'bg-amber-100/70' : company.isFoundingPartner ? 'bg-violet-100/70' : 'bg-blue-50'
+                      }`}>
+                        <ScoreCell score={company.weightedScore} isComplete={company.isComplete} size="large" viewMode={viewMode} benchmark={averages.weighted.total} />
+                      </td>
+                    ))}
+                  </tr>
+                  
+                  {/* SECTION 2: COMPOSITE FACTORS */}
+                  <tr>
+                    <td colSpan={6 + sortedCompanies.length} className="bg-purple-50 border-y-2 border-purple-200">
+                      <div className="px-4 py-2 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">C</span>
+                          <span className="font-bold text-purple-900">Composite Score Factors</span>
+                          <span className="text-purple-600 text-sm">(Maturity & Breadth)</span>
+                        </div>
+                        <button 
+                          onClick={() => setShowCompositeModal(true)}
+                          className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-1.5"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          How Composite Works
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  {/* Maturity Score Row */}
+                  <tr className="bg-white">
+                    <td className="px-4 py-2.5 bg-white border-r border-gray-200"
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                      <span className="font-medium text-gray-900 flex items-center gap-2">
+                        <span className="w-5 h-5 bg-purple-100 rounded flex items-center justify-center text-purple-600 text-xs font-bold">M</span>
+                        Maturity Score
+                      </span>
+                      <span className="text-gray-500 text-xs ml-7 block">Organizational readiness (OR1)</span>
+                    </td>
+                    <td className="px-1 py-2.5 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                      <input
+                        type="number" min="0" max="100"
+                        value={compositeWeights.maturity}
+                        onChange={(e) => setCompositeWeights(prev => ({ ...prev, maturity: parseInt(e.target.value) || 0 }))}
+                        className="w-14 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-purple-400"
+                      />
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
+                      <ScoreCell score={averages.maturity.total} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-violet-50 border-r border-violet-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
+                      <ScoreCell score={averages.maturity.fp} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
+                      <ScoreCell score={averages.maturity.std} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
+                      <ScoreCell score={averages.maturity.panel} isComplete={true} />
+                    </td>
+                    {sortedCompanies.map(company => (
+                      <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${
+                        company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
+                      }`}>
+                        <ScoreCell score={company.maturityScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.maturity.total} />
+                      </td>
+                    ))}
+                  </tr>
+                  
+                  {/* Breadth Score Row */}
+                  <tr className="bg-gray-50">
+                    <td className="px-4 py-2.5 bg-gray-50 border-r border-gray-200"
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                      <span className="font-medium text-gray-900 flex items-center gap-2">
+                        <span className="w-5 h-5 bg-purple-100 rounded flex items-center justify-center text-purple-600 text-xs font-bold">B</span>
+                        Breadth Score
+                      </span>
+                      <span className="text-gray-500 text-xs ml-7 block">Program scope (CB3a/b/c)</span>
+                    </td>
+                    <td className="px-1 py-2.5 text-center text-xs text-gray-500 bg-gray-50 border-r border-gray-200"
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                      <input
+                        type="number" min="0" max="100"
+                        value={compositeWeights.breadth}
+                        onChange={(e) => setCompositeWeights(prev => ({ ...prev, breadth: parseInt(e.target.value) || 0 }))}
+                        className="w-14 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-purple-400"
+                      />
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
+                      <ScoreCell score={averages.breadth.total} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-violet-50 border-r border-violet-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
+                      <ScoreCell score={averages.breadth.fp} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
+                      <ScoreCell score={averages.breadth.std} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
+                      <ScoreCell score={averages.breadth.panel} isComplete={true} />
+                    </td>
+                    {sortedCompanies.map(company => (
+                      <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${
+                        company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : 'bg-gray-50'
+                      }`}>
+                        <ScoreCell score={company.breadthScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.breadth.total} />
+                      </td>
+                    ))}
+                  </tr>
+                  
+                  {/* Weighted Dim Row (shows the 95% factor) */}
+                  <tr className="bg-white">
+                    <td className="px-4 py-2.5 bg-white border-r border-gray-200"
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                      <span className="font-medium text-gray-900 flex items-center gap-2">
+                        <span className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center text-blue-600 text-xs font-bold">W</span>
+                        Weighted Dimensions
+                      </span>
+                      <span className="text-gray-500 text-xs ml-7 block">From above section</span>
+                    </td>
+                    <td className="px-1 py-2.5 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                      <input
+                        type="number" min="0" max="100"
+                        value={compositeWeights.weightedDim}
+                        onChange={(e) => setCompositeWeights(prev => ({ ...prev, weightedDim: parseInt(e.target.value) || 0 }))}
+                        className="w-14 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-purple-400"
+                      />
+                    </td>
+                    <td colSpan={4 + sortedCompanies.length} className="px-4 py-2.5 text-gray-500 text-xs italic">
+                      (Uses Weighted Average scores from Dimension section above)
+                    </td>
+                  </tr>
+                  
+                  {/* Composite Weights Total Row */}
+                  <tr className={`${compositeWeightsValid ? 'bg-purple-100' : 'bg-red-100'} border-t ${compositeWeightsValid ? 'border-purple-300' : 'border-red-300'}`}>
+                    <td className={`px-4 py-2 border-r ${compositeWeightsValid ? 'bg-purple-100 border-purple-200' : 'bg-red-100 border-red-200'}`}
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                      <span className={`font-semibold ${compositeWeightsValid ? 'text-purple-800' : 'text-red-800'}`}>
+                        Composite Weight Total
+                      </span>
+                    </td>
+                    <td className={`px-1 py-2 text-center border-r font-bold ${compositeWeightsValid ? 'bg-purple-100 border-purple-200 text-purple-800' : 'bg-red-100 border-red-200 text-red-800'}`}
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                      <span className={`text-base ${!compositeWeightsValid && 'animate-pulse'}`}>
+                        {compositeWeightsSum}%
+                      </span>
+                    </td>
+                    <td colSpan={4 + sortedCompanies.length} className={`px-4 py-2 ${compositeWeightsValid ? 'bg-purple-50' : 'bg-red-50'}`}>
+                      {!compositeWeightsValid ? (
+                        <div className="flex items-center gap-3">
+                          <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-red-700 font-medium text-sm">
+                            Weights must equal 100% (currently {compositeWeightsSum}%)
+                          </span>
+                          <button
+                            onClick={() => setCompositeWeights({ ...DEFAULT_COMPOSITE_WEIGHTS })}
+                            className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
+                          >
+                            Reset to Defaults
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-purple-600 text-sm flex items-center gap-2">
+                          <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Composite weights valid (W×{compositeWeights.weightedDim}% + M×{compositeWeights.maturity}% + B×{compositeWeights.breadth}%)
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                  
+                  {/* Composite Score Row */}
+                  <tr className={`${compositeWeightsValid && dimWeightsValid ? 'bg-gradient-to-r from-purple-100 to-indigo-100' : 'bg-red-50'}`}>
+                    <td className={`px-4 py-3 border-r ${compositeWeightsValid && dimWeightsValid ? 'bg-gradient-to-r from-purple-100 to-indigo-100 border-purple-200' : 'bg-red-50 border-red-200'}`}
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                      <button onClick={() => handleSort('composite')} className={`font-bold flex items-center gap-2 ${compositeWeightsValid && dimWeightsValid ? 'text-purple-900 hover:text-purple-700' : 'text-red-700'}`}>
+                        <span className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${compositeWeightsValid && dimWeightsValid ? 'bg-purple-600' : 'bg-red-500'}`}>★</span>
                         Composite Score
                         {sortBy === 'composite' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                       </button>
                     </td>
-                    <td className={`px-2 py-3 text-center text-xs border-r ${compositeWeightsValid && weightsValid ? 'text-purple-600 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200' : 'bg-red-50 border-red-200'}`}
+                    <td className={`px-2 py-3 text-center text-xs border-r ${compositeWeightsValid && dimWeightsValid ? 'text-purple-600 bg-gradient-to-r from-purple-100 to-indigo-100 border-purple-200' : 'bg-red-50 border-red-200'}`}
                         style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
-                      {compositeWeightsValid && weightsValid ? '100%' : <span className="text-red-600 font-bold">{compositeWeightsSum}%</span>}
+                      {compositeWeightsValid && dimWeightsValid ? 'comp' : <span className="text-red-600 font-bold">!</span>}
                     </td>
-                    {compositeWeightsValid && weightsValid ? (
+                    {compositeWeightsValid && dimWeightsValid ? (
                       <>
-                        <td className="px-2 py-3 text-center bg-purple-200 border-r border-purple-300 font-black text-2xl"
+                        <td className="px-2 py-3 text-center bg-purple-200 border-r border-purple-300 font-black text-xl"
                             style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10, color: getScoreColor(averages.composite.total ?? 0) }}>
                           {averages.composite.total ?? '—'}
                         </td>
-                        <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-2xl"
+                        <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-xl"
                             style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10, color: getScoreColor(averages.composite.fp ?? 0) }}>
                           {averages.composite.fp ?? '—'}
                         </td>
-                        <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-2xl"
+                        <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-xl"
                             style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10, color: getScoreColor(averages.composite.std ?? 0) }}>
                           {averages.composite.std ?? '—'}
                         </td>
-                        <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-2xl"
+                        <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-xl"
                             style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.composite.panel ?? 0) }}>
                           {averages.composite.panel ?? '—'}
                         </td>
@@ -1242,392 +1471,56 @@ export default function AggregateScoringReport() {
                           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
-                          <span className="font-medium">Weights must sum to 100%</span>
+                          <span className="font-medium">
+                            {!dimWeightsValid && !compositeWeightsValid 
+                              ? `Both weight sets must sum to 100% (Dimension: ${dimWeightsSum}%, Composite: ${compositeWeightsSum}%)`
+                              : !dimWeightsValid 
+                                ? `Dimension weights must sum to 100% (currently ${dimWeightsSum}%)`
+                                : `Composite weights must sum to 100% (currently ${compositeWeightsSum}%)`
+                            }
+                          </span>
                         </div>
                       </td>
                     )}
                   </tr>
                   
-                  {/* Composite Tier Row */}
-                  {compositeWeightsValid && weightsValid && (
-                    <tr className="bg-white border-b-2 border-purple-200">
-                      <td className="px-4 py-2.5 bg-white border-r border-gray-200"
+                  {/* Performance Tier Row */}
+                  {compositeWeightsValid && dimWeightsValid && (
+                    <tr className="bg-white">
+                      <td className="px-4 py-3 bg-white border-r border-gray-200"
                           style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                        <span className="font-semibold text-gray-700 flex items-center gap-2 ml-8">
-                          Composite Tier
+                        <span className="font-semibold text-gray-700 flex items-center gap-2">
+                          <span className="w-6 h-6 bg-gradient-to-r from-purple-500 to-indigo-500 rounded flex items-center justify-center text-white">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-1.17a3 3 0 01-5.66 0H8.83a3 3 0 01-5.66 0H2a2 2 0 110-4h1.17A3 3 0 015 5zm5 8a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-4 1a1 1 0 100 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                            </svg>
+                          </span>
+                          Performance Tier
                         </span>
                       </td>
-                      <td className="px-2 py-2.5 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
+                      <td className="px-2 py-3 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
                           style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}></td>
-                      <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
+                      <td className="px-2 py-3 text-center bg-indigo-50 border-r border-indigo-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
                         {averages.composite.total !== null && <TierBadge score={averages.composite.total} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-violet-50 border-r border-violet-100"
+                      <td className="px-2 py-3 text-center bg-violet-50 border-r border-violet-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
                         {averages.composite.fp !== null && <TierBadge score={averages.composite.fp} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                      <td className="px-2 py-3 text-center bg-slate-50 border-r border-slate-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
                         {averages.composite.std !== null && <TierBadge score={averages.composite.std} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
+                      <td className="px-2 py-3 text-center bg-amber-50 border-r border-amber-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
                         {averages.composite.panel !== null && <TierBadge score={averages.composite.panel} isComplete={true} size="small" />}
                       </td>
                       {sortedCompanies.map(company => (
-                        <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${
+                        <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-gray-100 last:border-r-0 ${
                           company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
                         }`}>
                           <TierBadge score={company.compositeScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="small" />
-                        </td>
-                      ))}
-                    </tr>
-                  )}
-                  
-                  {/* Composite Components Sub-header */}
-                  <tr>
-                    <td colSpan={6 + sortedCompanies.length} className="bg-purple-50/50 border-b border-purple-100">
-                      <div className="px-4 py-1.5 flex items-center gap-2 text-xs text-purple-700">
-                        <span className="font-semibold">Composite Components:</span>
-                        <span>W×{compositeWeights.weightedDim}% + M×{compositeWeights.maturity}% + B×{compositeWeights.breadth}%</span>
-                        <span className="text-purple-500">(Depth blended into D1, D3, D12, D13)</span>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* Weighted Dimension Score (Component 1) */}
-                  <tr className="bg-white">
-                    <td className="px-4 py-2 bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                      <span className="font-medium text-gray-900 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center text-blue-600 text-xs font-bold">W</span>
-                        Weighted Dimension Score
-                      </span>
-                      <span className="text-gray-500 text-xs ml-7 block">Includes depth blend on D1, D3, D12, D13</span>
-                    </td>
-                    <td className="px-2 py-2 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
-                      <input
-                        type="number" min="0" max="100"
-                        value={compositeWeights.weightedDim}
-                        onChange={(e) => setCompositeWeights(prev => ({ ...prev, weightedDim: parseInt(e.target.value) || 0 }))}
-                        className="w-10 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-purple-400"
-                      />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
-                      <ScoreCell score={averages.weighted.total} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
-                      <ScoreCell score={averages.weighted.fp} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
-                      <ScoreCell score={averages.weighted.std} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
-                      <ScoreCell score={averages.weighted.panel} isComplete={true} />
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
-                        company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                      }`}>
-                        <ScoreCell score={company.weightedScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.weighted.total} />
-                      </td>
-                    ))}
-                  </tr>
-                  
-                  {/* Maturity Score (Component 2) */}
-                  <tr className="bg-gray-50">
-                    <td className="px-4 py-2 bg-gray-50 border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                      <span className="font-medium text-gray-900 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-indigo-100 rounded flex items-center justify-center text-indigo-600 text-xs font-bold">M</span>
-                        Maturity Score
-                      </span>
-                      <span className="text-gray-500 text-xs ml-7 block">OR1: Support approach level</span>
-                    </td>
-                    <td className="px-2 py-2 text-center text-xs text-gray-500 bg-gray-50 border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
-                      <input
-                        type="number" min="0" max="100"
-                        value={compositeWeights.maturity}
-                        onChange={(e) => setCompositeWeights(prev => ({ ...prev, maturity: parseInt(e.target.value) || 0 }))}
-                        className="w-10 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-purple-400"
-                      />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
-                      <ScoreCell score={averages.maturity.total} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
-                      <ScoreCell score={averages.maturity.fp} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
-                      <ScoreCell score={averages.maturity.std} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
-                      <ScoreCell score={averages.maturity.panel} isComplete={true} />
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
-                        company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                      }`}>
-                        <ScoreCell score={company.maturityScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.maturity.total} />
-                      </td>
-                    ))}
-                  </tr>
-                  
-                  {/* Breadth Score (Component 3) */}
-                  <tr className="bg-white border-b-4 border-gray-300">
-                    <td className="px-4 py-2 bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                      <span className="font-medium text-gray-900 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-violet-100 rounded flex items-center justify-center text-violet-600 text-xs font-bold">B</span>
-                        Breadth Score
-                      </span>
-                      <span className="text-gray-500 text-xs ml-7 block">CB3a/b/c: Program scope & coverage</span>
-                    </td>
-                    <td className="px-2 py-2 text-center text-xs text-gray-500 bg-gray-50 border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
-                      <input
-                        type="number" min="0" max="100"
-                        value={compositeWeights.breadth}
-                        onChange={(e) => setCompositeWeights(prev => ({ ...prev, breadth: parseInt(e.target.value) || 0 }))}
-                        className="w-10 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-purple-400"
-                      />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
-                      <ScoreCell score={averages.breadth.total} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
-                      <ScoreCell score={averages.breadth.fp} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
-                      <ScoreCell score={averages.breadth.std} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
-                      <ScoreCell score={averages.breadth.panel} isComplete={true} />
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
-                        company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : 'bg-gray-50'
-                      }`}>
-                        <ScoreCell score={company.breadthScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.breadth.total} />
-                      </td>
-                    ))}
-                  </tr>
-                  
-                  {/* ============================================ */}
-                  {/* SECTION 2: DIMENSION SCORES */}
-                  {/* ============================================ */}
-                  
-                  <tr>
-                    <td colSpan={6 + sortedCompanies.length} className="bg-blue-50 border-y-2 border-blue-200">
-                      <div className="px-4 py-2.5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">D</span>
-                          <div>
-                            <span className="font-bold text-blue-900 text-lg">Dimension Scores</span>
-                            <span className="text-blue-600 text-sm ml-2">(13 Assessment Areas)</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => setWeights({ ...DEFAULT_DIMENSION_WEIGHTS })}
-                            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            Use Default Dimension Weights
-                          </button>
-                          {!weightsValid && (
-                            <span className="text-red-600 text-xs font-medium bg-red-100 px-2 py-1 rounded">
-                              Weights = {weightsSum}% (must be 100%)
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* Dimension Rows */}
-                  {DIMENSION_ORDER.map((dim, idx) => (
-                    <tr key={dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className={`px-4 py-2 border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                        <span className="font-medium text-gray-900">
-                          <span className="text-blue-600 font-bold">D{dim}:</span> {DIMENSION_NAMES[dim]}
-                        </span>
-                      </td>
-                      <td className={`px-1 py-1 text-center border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={weights[dim]}
-                          onChange={(e) => setWeights(prev => ({ ...prev, [dim]: parseInt(e.target.value) || 0 }))}
-                          className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-400 focus:border-blue-400 bg-white"
-                        />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.total ?? null} isComplete={true} />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.fp ?? null} isComplete={true} />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.std ?? null} isComplete={true} />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.panel ?? null} isComplete={true} />
-                      </td>
-                      {sortedCompanies.map(company => (
-                        <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
-                          company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                        }`}>
-                          <ScoreCell 
-                            score={company.dimensions[dim].adjustedScore} 
-                            isComplete={company.dimensions[dim].totalItems > 0}
-                            isProvisional={company.dimensions[dim].isInsufficientData}
-                            viewMode={viewMode}
-                            benchmark={averages.dimensions[dim]?.total}
-                          />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                  
-                  {/* Unweighted Average Row */}
-                  <tr className="bg-blue-50 border-t-2 border-blue-200">
-                    <td className="px-4 py-2.5 border-r border-blue-200 bg-blue-50"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                      <span className="font-semibold text-blue-800">Unweighted Dimension Score</span>
-                    </td>
-                    <td className="px-2 py-2.5 text-center text-xs text-blue-600 border-r border-blue-200 bg-blue-50"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>avg</td>
-                    <td className="px-2 py-2.5 text-center bg-indigo-100 border-r border-indigo-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10, color: getScoreColor(averages.unweighted.total ?? 0) }}>
-                      {averages.unweighted.total ?? '—'}
-                    </td>
-                    <td className="px-2 py-2.5 text-center bg-violet-100 border-r border-violet-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10, color: getScoreColor(averages.unweighted.fp ?? 0) }}>
-                      {averages.unweighted.fp ?? '—'}
-                    </td>
-                    <td className="px-2 py-2.5 text-center bg-slate-100 border-r border-slate-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10, color: getScoreColor(averages.unweighted.std ?? 0) }}>
-                      {averages.unweighted.std ?? '—'}
-                    </td>
-                    <td className="px-2 py-2.5 text-center bg-amber-100 border-r border-amber-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.unweighted.panel ?? 0) }}>
-                      {averages.unweighted.panel ?? '—'}
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-blue-100 last:border-r-0 ${
-                        company.isPanel ? 'bg-amber-100/50' : company.isFoundingPartner ? 'bg-violet-100/50' : 'bg-blue-50'
-                      }`}>
-                        <ScoreCell score={company.unweightedScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.unweighted.total} />
-                      </td>
-                    ))}
-                  </tr>
-                  
-                  {/* Weighted Score Row */}
-                  <tr className={`${weightsValid ? 'bg-blue-100' : 'bg-red-50'}`}>
-                    <td className={`px-4 py-3 border-r ${weightsValid ? 'bg-blue-100 border-blue-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                      <button onClick={() => handleSort('weighted')} className={`font-bold flex items-center gap-2 ${weightsValid ? 'text-blue-900 hover:text-blue-700' : 'text-red-700'}`}>
-                        <span className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${weightsValid ? 'bg-blue-600' : 'bg-red-500'}`}>Σ</span>
-                        Weighted Dimension Score
-                        {sortBy === 'weighted' && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
-                      </button>
-                    </td>
-                    <td className={`px-2 py-3 text-center text-xs border-r ${weightsValid ? 'text-blue-600 bg-blue-100 border-blue-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
-                      {weightsValid ? '100%' : <span className="text-red-600 font-bold">{weightsSum}%</span>}
-                    </td>
-                    {weightsValid ? (
-                      <>
-                        <td className="px-2 py-3 text-center bg-indigo-200 border-r border-indigo-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10, color: getScoreColor(averages.weighted.total ?? 0) }}>
-                          {averages.weighted.total ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10, color: getScoreColor(averages.weighted.fp ?? 0) }}>
-                          {averages.weighted.fp ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10, color: getScoreColor(averages.weighted.std ?? 0) }}>
-                          {averages.weighted.std ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.weighted.panel ?? 0) }}>
-                          {averages.weighted.panel ?? '—'}
-                        </td>
-                        {sortedCompanies.map(company => (
-                          <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-blue-200 last:border-r-0 ${
-                            company.isPanel ? 'bg-amber-100/70' : company.isFoundingPartner ? 'bg-violet-100/70' : 'bg-blue-100'
-                          }`}>
-                            <ScoreCell score={company.weightedScore} isComplete={company.isComplete} size="large" viewMode={viewMode} benchmark={averages.weighted.total} />
-                          </td>
-                        ))}
-                      </>
-                    ) : (
-                      <td colSpan={4 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
-                        <div className="flex items-center gap-2 text-red-700">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          <span className="font-medium">Dimension weights must sum to 100% (currently {weightsSum}%)</span>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                  
-                  {/* Dimension Tier Row */}
-                  {weightsValid && (
-                    <tr className="bg-white">
-                      <td className="px-4 py-2.5 bg-white border-r border-gray-200"
-                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                        <span className="font-semibold text-gray-700 flex items-center gap-2 ml-8">
-                          Dimension Tier
-                        </span>
-                      </td>
-                      <td className="px-2 py-2.5 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
-                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}></td>
-                      <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
-                        {averages.weighted.total !== null && <TierBadge score={averages.weighted.total} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2.5 text-center bg-violet-50 border-r border-violet-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
-                        {averages.weighted.fp !== null && <TierBadge score={averages.weighted.fp} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
-                        {averages.weighted.std !== null && <TierBadge score={averages.weighted.std} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
-                        {averages.weighted.panel !== null && <TierBadge score={averages.weighted.panel} isComplete={true} size="small" />}
-                      </td>
-                      {sortedCompanies.map(company => (
-                        <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${
-                          company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                        }`}>
-                          <TierBadge score={company.weightedScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="small" />
                         </td>
                       ))}
                     </tr>
@@ -1641,25 +1534,25 @@ export default function AggregateScoringReport() {
         {/* Legend */}
         <div className="mt-6 bg-white rounded-xl shadow-lg p-5">
           <h3 className="font-bold text-gray-900 mb-3">Legend</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2">Score Colors</p>
               <div className="flex flex-wrap gap-3">
                 <span className="flex items-center gap-1.5 text-xs">
                   <span className="w-3 h-3 rounded" style={{ backgroundColor: '#059669' }} />
-                  <span>80-100 (Excellent)</span>
+                  <span>80-100</span>
                 </span>
                 <span className="flex items-center gap-1.5 text-xs">
                   <span className="w-3 h-3 rounded" style={{ backgroundColor: '#0284C7' }} />
-                  <span>60-79 (Good)</span>
+                  <span>60-79</span>
                 </span>
                 <span className="flex items-center gap-1.5 text-xs">
                   <span className="w-3 h-3 rounded" style={{ backgroundColor: '#D97706' }} />
-                  <span>40-59 (Developing)</span>
+                  <span>40-59</span>
                 </span>
                 <span className="flex items-center gap-1.5 text-xs">
                   <span className="w-3 h-3 rounded" style={{ backgroundColor: '#DC2626' }} />
-                  <span>0-39 (Needs Focus)</span>
+                  <span>0-39</span>
                 </span>
               </div>
             </div>
@@ -1668,15 +1561,15 @@ export default function AggregateScoringReport() {
               <div className="flex flex-wrap gap-3">
                 <span className="flex items-center gap-1.5 text-xs">
                   <span className="w-3 h-3 rounded bg-violet-500" />
-                  <span>Founding Partner (FP)</span>
+                  <span>Founding Partner</span>
                 </span>
                 <span className="flex items-center gap-1.5 text-xs">
                   <span className="w-3 h-3 rounded bg-slate-500" />
-                  <span>Standard (STD)</span>
+                  <span>Standard</span>
                 </span>
                 <span className="flex items-center gap-1.5 text-xs">
                   <span className="w-3 h-3 rounded bg-amber-500" />
-                  <span>Panel Data</span>
+                  <span>Panel</span>
                 </span>
               </div>
             </div>
@@ -1684,7 +1577,14 @@ export default function AggregateScoringReport() {
               <p className="text-sm font-medium text-gray-700 mb-2">Data Quality</p>
               <div className="flex items-center gap-2 text-xs text-gray-600">
                 <span className="ring-2 ring-amber-400 ring-offset-1 rounded px-2 py-0.5 font-bold">42</span>
-                <span>= Over 40% "Unsure" responses (data quality note)</span>
+                <span>= Over 40% "Unsure"</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Blend Weights</p>
+              <div className="flex items-center gap-2 text-xs text-gray-600">
+                <span className="text-purple-600 underline decoration-dotted">85/15</span>
+                <span>= Click to adjust grid/follow-up blend</span>
               </div>
             </div>
           </div>
