@@ -451,7 +451,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Title</p>
                 <p className="font-semibold text-gray-900">
-                  {(firmographics.title && firmographics.title.toLowerCase() !== 'other' 
+                  {(firmographics.title && typeof firmographics.title === 'string' && firmographics.title.toLowerCase() !== 'other' 
                     ? firmographics.title 
                     : firmographics.titleOther || firmographics.title_other || firmographics.title) 
                     || firmographics.s5 
