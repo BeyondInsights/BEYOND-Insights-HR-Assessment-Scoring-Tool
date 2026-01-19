@@ -2,8 +2,8 @@
  * AGGREGATE SCORING REPORT - REDESIGNED
  * 
  * Clean visual hierarchy with two scoring sections:
- * 1. DIMENSION SCORES -> Unweighted -> Weighted ? Performance Tier
- * 2. ENHANCEMENT FACTORS -> Enhanced Composite ? Enhanced Tier
+ * 1. DIMENSION SCORES -> Unweighted -> Weighted -> Performance Tier
+ * 2. ENHANCEMENT FACTORS -> Enhanced Composite -> Enhanced Tier
  * 
  * Features:
  * - Optimal UX with clear section separation
@@ -723,16 +723,28 @@ export default function AggregateScoringReport() {
                 <span className="font-bold">{companyScores.filter(c => c.isPanel).length}</span>
               </div>
               <div className="border-l border-white/20 pl-4 flex items-center gap-2">
-                <span className="text-green-300">✓ Complete:</span>
+                <span className="text-green-400 font-bold">&#10003;</span>
+                <span className="text-green-300">Complete:</span>
                 <span className="font-bold">{companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
               </div>
-              {/* Compact Score Legend */}
-              <div className="border-l border-white/20 pl-4 flex items-center gap-2 text-[10px]">
-                <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#059669' }} title="80-100" />
-                <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#0284C7' }} title="60-79" />
-                <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#D97706' }} title="40-59" />
-                <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#DC2626' }} title="0-39" />
-                <span className="text-white/60 ml-1">Score Colors</span>
+              {/* Score Color Legend with Labels */}
+              <div className="border-l border-white/20 pl-4 flex items-center gap-3 text-[10px]">
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#059669' }} />
+                  <span className="text-white/70">80+</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#0284C7' }} />
+                  <span className="text-white/70">60+</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#D97706' }} />
+                  <span className="text-white/70">40+</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#DC2626' }} />
+                  <span className="text-white/70">&lt;40</span>
+                </span>
               </div>
             </div>
             
@@ -759,15 +771,21 @@ export default function AggregateScoringReport() {
                 <option value="panel" className="text-gray-900">Panel Only</option>
               </select>
               
-              <label className="flex items-center gap-2 text-sm cursor-pointer bg-white/10 px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={filterComplete}
-                  onChange={(e) => setFilterComplete(e.target.checked)}
-                  className="w-4 h-4 rounded border-2 border-white/50 bg-transparent text-indigo-400 focus:ring-2 focus:ring-white/50 cursor-pointer"
-                />
-                <span className={filterComplete ? 'text-white font-medium' : 'text-white/80'}>Complete Only</span>
-              </label>
+              <button
+                onClick={() => setFilterComplete(!filterComplete)}
+                className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                  filterComplete 
+                    ? 'bg-green-500/30 border border-green-400/50 text-green-200' 
+                    : 'bg-white/10 hover:bg-white/20 text-white/80'
+                }`}
+              >
+                <span className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                  filterComplete ? 'bg-green-500 border-green-400' : 'border-white/50 bg-transparent'
+                }`}>
+                  {filterComplete && <span className="text-white text-xs font-bold">&#10003;</span>}
+                </span>
+                <span className={filterComplete ? 'text-white font-medium' : ''}>Complete Only</span>
+              </button>
               
               {/* Score/Index Toggle */}
               <div className="flex bg-white/10 rounded-lg p-0.5">
