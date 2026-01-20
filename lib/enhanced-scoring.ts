@@ -2,19 +2,20 @@
  * ENHANCED SCORING TOOL
  * Best Companies for Working with Cancer Index
  * 
- * BALANCED WEIGHTED MODEL:
- * Enhanced = (Weighted Dim × 85%) + (Depth × 8%) + (Maturity × 5%) + (Breadth × 2%)
+ * CANONICAL SCORING MODEL (90/5/5):
+ * Composite = (Weighted Dim × 90%) + (Maturity × 5%) + (Breadth × 5%)
  * 
- * - Weighted Dimension: 85% (primary driver)
- * - Depth: 8% (follow-up question quality)
- * - Maturity: 5% (current support approach)
- * - Breadth: 2% (conditions & program structure)
+ * - Weighted Dimension: 90% (primary driver)
+ *   - For D1, D3, D12, D13: 85% grid + 15% depth blend
+ *   - All other dimensions: 100% grid score
+ * - Maturity: 5% (current support approach from OR1)
+ * - Breadth: 5% (CB3a + CB3b + CB3c average)
  * 
- * EXPONENTIAL POINT SCALING:
- * Point values are exponentially distributed to create meaningful differentiation:
- * - Low offerings: 0-2 points
- * - Medium offerings: 3-5 points  
- * - High offerings: 7-10 points
+ * GRID SCORING:
+ * - Currently Offer: 5 points
+ * - Planning: 3 points
+ * - Assessing: 2 points
+ * - Not Able / Unsure: 0 points (Unsure included in denominator)
  */
 
 // ============================================
@@ -39,12 +40,12 @@ export const DIMENSION_WEIGHTS: Record<number, number> = {
 };
 
 // Component weights for enhanced composite (sum = 100%)
-// FIXED: Match scoring page formula exactly: 95% dimension + 3% maturity + 2% breadth
+// FIXED: Match scoring page formula exactly: 90% dimension + 5% maturity + 5% breadth
 export const COMPONENT_WEIGHTS = {
-  weightedDim: 0.95,  // 95% - primary driver (matches scoring page)
+  weightedDim: 0.90,  // 90% - primary driver (matches scoring page)
   depth: 0.00,        // 0% - depth is blended INTO dimension scores, not separate
-  maturity: 0.03,     // 3% - approach maturity
-  breadth: 0.02,      // 2% - program breadth
+  maturity: 0.05,     // 5% - approach maturity
+  breadth: 0.05,      // 5% - program breadth
 };
 
 // Point values for main grid items
@@ -452,7 +453,7 @@ function getPerformanceTier(score: number, isProvisional: boolean): { name: stri
   else if (score >= 75) tier = { name: 'Leading', color: '#0D47A1', bg: '#E3F2FD' };
   else if (score >= 60) tier = { name: 'Progressing', color: '#E65100', bg: '#FFF8E1' };
   else if (score >= 40) tier = { name: 'Emerging', color: '#BF360C', bg: '#FFF3E0' };
-  else tier = { name: 'Beginning', color: '#37474F', bg: '#ECEFF1' };
+  else tier = { name: 'Developing', color: '#37474F', bg: '#ECEFF1' };
   return { ...tier, isProvisional };
 }
 
@@ -858,13 +859,13 @@ export function calculateEnhancedScore(assessment: any): EnhancedScore {
   const breadthScore = breadthDetails.percentage;
   
   // FIXED: Match scoring page formula EXACTLY
-  // Composite = 95% weighted dimension + 3% maturity + 2% breadth
+  // Composite = 90% weighted dimension + 5% maturity + 5% breadth
   // Depth is blended INTO dimension scores (85/15 for D1,D3,D12,D13), NOT separate
   
   const compositeScore = Math.round(
-    (baseScore * 0.95) +
-    (maturityScore * 0.03) +
-    (breadthScore * 0.02)
+    (baseScore * 0.90) +
+    (maturityScore * 0.05) +
+    (breadthScore * 0.05)
   );
   
   // Determine if provisional
