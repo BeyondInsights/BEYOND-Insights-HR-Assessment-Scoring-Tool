@@ -230,7 +230,7 @@ function getPerformanceTier(score: number, isProvisional: boolean): { name: stri
   } else if (score >= 40) {
     tier = { name: 'Emerging', color: '#BF360C', bg: '#FFF3E0' }
   } else {
-    tier = { name: 'Beginning', color: '#37474F', bg: '#ECEFF1' }
+    tier = { name: 'Developing', color: '#37474F', bg: '#ECEFF1' }
   }
   return { ...tier, isProvisional }
 }
@@ -342,8 +342,8 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
     const cb3cScore = Array.isArray(cb3c) && cb3c.length > 0 ? Math.min(100, Math.round((cb3c.length / 13) * 100)) : 0
     const breadthScore = Math.round((cb3aScore + cb3bScore + cb3cScore) / 3)
     
-    // Composite = 95% weighted + 3% maturity + 2% breadth
-    const compositeScore = Math.round(weightedScore * 0.95 + maturityScore * 0.03 + breadthScore * 0.02)
+    // Composite = 90% weighted + 5% maturity + 5% breadth
+    const compositeScore = Math.round(weightedScore * 0.90 + maturityScore * 0.05 + breadthScore * 0.05)
     
     // Aggregate breakdown
     let totalCurrentlyOffer = 0
@@ -633,7 +633,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                   <p className="text-3xl font-bold" style={{ color: getScoreColor(compositeScores.compositeScore) }}>
                     {compositeScores.completedDimCount > 0 ? compositeScores.compositeScore : '—'}
                   </p>
-                  <p className="text-[10px] text-gray-500 mt-1">95% Dim + 3% Mat + 2% Brd</p>
+                  <p className="text-[10px] text-gray-500 mt-1">90% Dim + 5% Mat + 5% Brd</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-indigo-200">
                   <p className="text-xs text-gray-500 uppercase">Weighted Dimension</p>
@@ -654,7 +654,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                 <div className="bg-white rounded-lg p-3 border border-green-200">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-xs text-green-600 uppercase font-medium">Maturity (3%)</p>
+                      <p className="text-xs text-green-600 uppercase font-medium">Maturity (5%)</p>
                       <p className="text-xl font-bold" style={{ color: getScoreColor(compositeScores.maturityScore) }}>
                         {compositeScores.maturityScore}
                       </p>
@@ -665,7 +665,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                 <div className="bg-white rounded-lg p-3 border border-purple-200">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-xs text-purple-600 uppercase font-medium">Breadth (2%)</p>
+                      <p className="text-xs text-purple-600 uppercase font-medium">Breadth (5%)</p>
                       <p className="text-xl font-bold" style={{ color: getScoreColor(compositeScores.breadthScore) }}>
                         {compositeScores.breadthScore}
                       </p>
