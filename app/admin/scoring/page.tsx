@@ -238,20 +238,28 @@ function calculateMaturityScore(assessment: Record<string, any>): number {
   const or1 = currentSupport.or1 || '';
   const v = String(or1).toLowerCase();
   
+  // Map or1 text to scores (order matters - check most specific first)
+  if (v.includes('leading-edge') || v.includes('leading edge')) return 100;
   if (v.includes('comprehensive')) return 100;
-  if (v.includes('enhanced')) return 80;
+  if (v.includes('enhanced') || v.includes('strong')) return 80;
   if (v.includes('moderate')) return 50;
+  if (v.includes('basic')) return 20;
   if (v.includes('developing')) return 20;
-  if (v.includes('legal minimum')) return 0;  // FIXED: Was 30, now 0
+  if (v.includes('legal minimum')) return 0;
   if (v.includes('no formal')) return 0;
   return 0;
 }
 
 function calculateBreadthScore(assessment: Record<string, any>): number {
+  // Check BOTH current_support_data AND general_benefits_data for cb3 fields
+  // Some companies have these in current_support_data, others in general_benefits_data
   const currentSupport = assessment.current_support_data || {};
+  const generalBenefits = assessment.general_benefits_data || {};
+  
   const scores: number[] = [];
   
-  const cb3a = currentSupport.cb3a || '';
+  // CB3a: Check both sources, prefer current_support_data if present
+  const cb3a = currentSupport.cb3a || generalBenefits.cb3a || '';
   const v = String(cb3a).toLowerCase();
   if (v.includes('yes') && v.includes('additional support')) {
     scores.push(100);
@@ -261,7 +269,8 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  const cb3b = currentSupport.cb3b;
+  // CB3b: Check both sources
+  const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
   if (cb3b && Array.isArray(cb3b)) {
     const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
     scores.push(cb3bScore);
@@ -269,7 +278,8 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  const cb3c = currentSupport.cb3c;
+  // CB3c: Check both sources
+  const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
   if (cb3c && Array.isArray(cb3c)) {
     const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
     scores.push(cb3cScore);
