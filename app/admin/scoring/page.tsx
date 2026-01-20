@@ -26,6 +26,7 @@
  * 14. FIXED: Tier label "Beginning" → "Developing" for consistency
  * 15. ADDED: Global Consistency badge for multi-country companies
  * 16. ADDED: Scenario analysis disclaimer (heuristic stress test note)
+ * 17. ADDED: Data Confidence metric (% of items not marked "Unsure")
  */
 
 'use client';
@@ -371,6 +372,12 @@ interface CompanyScores {
   depthScore: number;
   maturityScore: number;
   breadthScore: number;
+  dataConfidence: {
+    score: number;         // 0-100, higher = more confident
+    totalItems: number;
+    unsureItems: number;
+    verifiedItems: number;
+  };
   globalFootprint: {
     countryCount: number;
     segment: 'Single' | 'Regional' | 'Global';
@@ -482,6 +489,19 @@ function calculateCompanyScores(
     },
   };
   
+  // Calculate Data Confidence: 1 - (unsure / total)
+  const totalItems = Object.values(dimensions).reduce((sum, d) => sum + d.totalItems, 0);
+  const unsureItems = Object.values(dimensions).reduce((sum, d) => sum + d.unsureCount, 0);
+  const verifiedItems = totalItems - unsureItems;
+  const dataConfidenceScore = totalItems > 0 ? Math.round((verifiedItems / totalItems) * 100) : 0;
+  
+  const dataConfidence = {
+    score: dataConfidenceScore,
+    totalItems,
+    unsureItems,
+    verifiedItems,
+  };
+  
   const compositeScore = isComplete ? Math.round(
     (weightedScore * (compositeWeights.weightedDim / 100)) +
     (maturityScore * (compositeWeights.maturity / 100)) +
@@ -497,6 +517,7 @@ function calculateCompanyScores(
     depthScore: 0,
     maturityScore,
     breadthScore,
+    dataConfidence,
     globalFootprint,
   };
 }
@@ -2528,7 +2549,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                   <li><strong>Tier thresholds are crossing points</strong> — companies near boundaries shift tiers when scores compress</li>
                   <li><strong>Status point values reflect design intent</strong> — the index deliberately values companies actively planning or assessing improvements</li>
                 </ol>
-                </div>
+              </div>
             </div>
           )}
         </div>
@@ -3239,6 +3260,67 @@ export default function AggregateScoringReport() {
                       ))}
                     </tr>
                   )}
+                  
+                  {/* Data Confidence Row */}
+                  <tr className="bg-gray-50/50">
+                    <td className="px-4 py-2 bg-gray-50/50 border-r border-gray-200"
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                      <span className="font-medium text-gray-700 flex items-center gap-2">
+                        <span className="w-5 h-5 bg-teal-100 rounded flex items-center justify-center text-teal-600 text-xs font-bold">✓</span>
+                        Data Confidence
+                        <span className="text-xs text-gray-400 font-normal">(verified items %)</span>
+                      </span>
+                    </td>
+                    <td className="px-1 py-2 text-center bg-gray-50/50 border-r border-gray-200 text-xs text-gray-500"
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>—</td>
+                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
+                      <span className="text-xs text-gray-600">
+                        {Math.round(sortedCompanies.reduce((sum, c) => sum + c.dataConfidence.score, 0) / (sortedCompanies.length || 1))}%
+                      </span>
+                    </td>
+                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
+                      <span className="text-xs text-gray-500">—</span>
+                    </td>
+                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
+                      <span className="text-xs text-gray-500">—</span>
+                    </td>
+                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
+                      <span className="text-xs text-gray-500">—</span>
+                    </td>
+                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                      <span className="text-xs text-gray-500">—</span>
+                    </td>
+                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                      <span className="text-xs text-gray-500">—</span>
+                    </td>
+                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                      <span className="text-xs text-gray-500">—</span>
+                    </td>
+                    {sortedCompanies.map(company => {
+                      const conf = company.dataConfidence.score;
+                      const confColor = conf >= 95 ? 'text-green-600 bg-green-50' : 
+                                        conf >= 85 ? 'text-teal-600 bg-teal-50' : 
+                                        conf >= 70 ? 'text-amber-600 bg-amber-50' : 'text-red-600 bg-red-50';
+                      return (
+                        <td key={`conf-${company.surveyId}`} 
+                            className={`px-2 py-2 text-center border-r border-gray-100 ${
+                              company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
+                            }`}>
+                          <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${confColor}`} 
+                                title={`${company.dataConfidence.verifiedItems}/${company.dataConfidence.totalItems} items verified (${company.dataConfidence.unsureItems} unsure)`}>
+                            {conf}%
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
                   
                   {/* Composite Components */}
                   <tr>
