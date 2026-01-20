@@ -418,15 +418,29 @@ function calculateCompanyScores(
   
   // Extract global footprint from firmographics
   const firmographics = assessment.firmographics_data || {};
-  const s9 = firmographics.s9; // Countries of operation - could be array or string
-  let countryCount = 1;
-  if (Array.isArray(s9)) {
-    countryCount = s9.length;
-  } else if (typeof s9 === 'string' && s9.includes(',')) {
-    countryCount = s9.split(',').length;
-  } else if (typeof s9 === 'number') {
-    countryCount = s9;
+  const s9a = firmographics.s9a || ''; // Number of OTHER countries besides HQ
+  let countryCount = 1; // Start with 1 (headquarters)
+  
+  // Parse s9a to get additional country count
+  if (typeof s9a === 'string') {
+    const s = s9a.toLowerCase();
+    if (s.includes('no other countries') || s.includes('headquarters only')) {
+      countryCount = 1;
+    } else if (s.includes('50 or more') || s.includes('50+')) {
+      countryCount = 51; // 50+ other countries + HQ
+    } else if (s.includes('20 to 49')) {
+      countryCount = 35; // midpoint + HQ
+    } else if (s.includes('10 to 19')) {
+      countryCount = 15; // midpoint + HQ
+    } else if (s.includes('5 to 9')) {
+      countryCount = 8; // midpoint + HQ
+    } else if (s.includes('3 to 4')) {
+      countryCount = 4; // midpoint + HQ
+    } else if (s.includes('1 to 2')) {
+      countryCount = 2; // midpoint + HQ
+    }
   }
+  
   // Determine segment
   const segment: 'Single' | 'Regional' | 'Global' = 
     countryCount === 1 ? 'Single' : 
@@ -707,17 +721,20 @@ function TierStatsModal({
               <div className="border-t border-gray-200 pt-3">
                 <div className="text-gray-700 font-medium mb-2">Global Footprint Breakdown:</div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-slate-100 rounded-lg p-2 text-center">
-                    <div className="text-lg font-bold text-slate-700">{footprintCounts.single}</div>
-                    <div className="text-xs text-slate-600">Single Country</div>
+                  <div className="bg-slate-100 rounded-lg p-3 text-center border border-slate-200">
+                    <div className="text-2xl mb-1">📍</div>
+                    <div className="text-2xl font-bold text-slate-700">{footprintCounts.single}</div>
+                    <div className="text-xs text-slate-600 font-medium">Single Country</div>
                   </div>
-                  <div className="bg-blue-100 rounded-lg p-2 text-center">
-                    <div className="text-lg font-bold text-blue-700">{footprintCounts.regional}</div>
-                    <div className="text-xs text-blue-600">Regional (2-10)</div>
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-3 text-center border border-blue-200">
+                    <div className="text-2xl mb-1">🗺️</div>
+                    <div className="text-2xl font-bold text-blue-700">{footprintCounts.regional}</div>
+                    <div className="text-xs text-blue-600 font-medium">Regional (2-10)</div>
                   </div>
-                  <div className="bg-indigo-100 rounded-lg p-2 text-center">
-                    <div className="text-lg font-bold text-indigo-700">{footprintCounts.global}</div>
-                    <div className="text-xs text-indigo-600">Global (11+)</div>
+                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-3 text-center border border-indigo-200">
+                    <div className="text-2xl mb-1">🌍</div>
+                    <div className="text-2xl font-bold text-indigo-700">{footprintCounts.global}</div>
+                    <div className="text-xs text-indigo-600 font-medium">Global (11+)</div>
                   </div>
                 </div>
               </div>
@@ -1532,9 +1549,9 @@ export default function AggregateScoringReport() {
               </div>
               <div className="border-l border-white/20 pl-4 flex items-center gap-3 text-xs">
                 <span className="text-gray-400">Footprint:</span>
-                <span className="px-1.5 py-0.5 rounded bg-slate-500/40 text-slate-200" title="Single country">S</span>
-                <span className="px-1.5 py-0.5 rounded bg-blue-500/40 text-blue-200" title="Regional (2-10 countries)">R</span>
-                <span className="px-1.5 py-0.5 rounded bg-indigo-500/40 text-indigo-200" title="Global (11+ countries)">G</span>
+                <span className="px-1.5 py-0.5 rounded bg-slate-500 text-white flex items-center gap-1" title="Single country">📍 1</span>
+                <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex items-center gap-1" title="Regional (2-10 countries)">🗺️ 2-10</span>
+                <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center gap-1" title="Global (11+ countries)">🌍 11+</span>
               </div>
             </div>
             
@@ -1763,14 +1780,46 @@ export default function AggregateScoringReport() {
                         </Link>
                         <div className="flex items-center justify-center gap-1 mt-0.5">
                           <span className="text-[10px] opacity-70">{company.completedDimCount}/13</span>
-                          <span className={`text-[9px] px-1 rounded ${
-                            company.globalFootprint.segment === 'Global' ? 'bg-indigo-400/50 text-white' :
-                            company.globalFootprint.segment === 'Regional' ? 'bg-blue-400/50 text-white' :
-                            'bg-slate-400/50 text-white'
-                          }`} title={`${company.globalFootprint.countryCount} ${company.globalFootprint.countryCount === 1 ? 'country' : 'countries'}`}>
-                            {company.globalFootprint.segment === 'Global' ? 'G' : 
-                             company.globalFootprint.segment === 'Regional' ? 'R' : 'S'}
-                          </span>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                  {/* Country Count Row */}
+                  <tr className="bg-gradient-to-r from-slate-700 to-slate-800">
+                    <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, backgroundColor: '#334155' }}>
+                      Global Footprint
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL_WT_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    {sortedCompanies.map(company => (
+                      <th key={`footprint-${company.surveyId}`} 
+                          className="px-2 py-1.5 text-center border-r border-slate-600 last:border-r-0"
+                          style={{ minWidth: 100, backgroundColor: '#334155' }}>
+                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+                          company.globalFootprint.segment === 'Global' 
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md' 
+                            : company.globalFootprint.segment === 'Regional' 
+                            ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' 
+                            : 'bg-slate-500 text-white'
+                        }`}>
+                          {company.globalFootprint.segment === 'Global' && <span>🌍</span>}
+                          {company.globalFootprint.segment === 'Regional' && <span>🗺️</span>}
+                          {company.globalFootprint.segment === 'Single' && <span>📍</span>}
+                          <span>{company.globalFootprint.countryCount}</span>
                         </div>
                       </th>
                     ))}
