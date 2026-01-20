@@ -942,6 +942,32 @@ export default function AggregateScoringReport() {
                   Index
                 </button>
               </div>
+              
+              {/* Scoring Info & Reset */}
+              <div className="border-l border-white/20 pl-4 flex items-center gap-2">
+                <button 
+                  onClick={() => setShowCompositeModal(true)}
+                  className="px-3 py-1.5 bg-purple-500 hover:bg-purple-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Composite Scoring
+                </button>
+                <button 
+                  onClick={() => setShowDimensionModal(true)}
+                  className="px-3 py-1.5 bg-blue-500 hover:bg-blue-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Dimension Scoring
+                </button>
+                <button 
+                  onClick={() => {
+                    setCompositeWeights({ ...DEFAULT_COMPOSITE_WEIGHTS });
+                    setBlendWeights({ ...DEFAULT_BLEND_WEIGHTS });
+                    setWeights({ ...DEFAULT_DIMENSION_WEIGHTS });
+                  }}
+                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Reset All Weights
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1088,27 +1114,11 @@ export default function AggregateScoringReport() {
                   
                   <tr>
                     <td colSpan={6 + sortedCompanies.length} className="bg-gradient-to-r from-purple-100 to-indigo-100 border-y-2 border-purple-300">
-                      <div className="px-4 py-2.5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">★</span>
-                          <div>
-                            <span className="font-bold text-purple-900 text-lg">Composite Score</span>
-                            <span className="text-purple-600 text-sm ml-2">(Overall Ranking)</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => setShowCompositeModal(true)}
-                            className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors"
-                          >
-                            How It Works
-                          </button>
-                          <button 
-                            onClick={() => setCompositeWeights({ ...DEFAULT_COMPOSITE_WEIGHTS })}
-                            className="px-3 py-1.5 bg-white text-purple-600 text-xs font-medium rounded-lg border border-purple-300 hover:bg-purple-50 transition-colors"
-                          >
-                            Reset Weights
-                          </button>
+                      <div className="px-4 py-2.5 flex items-center gap-3">
+                        <span className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">★</span>
+                        <div>
+                          <span className="font-bold text-purple-900 text-lg">Composite Score</span>
+                          <span className="text-purple-600 text-sm ml-2">(Overall Ranking)</span>
                         </div>
                       </div>
                     </td>
@@ -1348,27 +1358,11 @@ export default function AggregateScoringReport() {
                   
                   <tr>
                     <td colSpan={6 + sortedCompanies.length} className="bg-blue-50 border-y-2 border-blue-200">
-                      <div className="px-4 py-2.5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">D</span>
-                          <div>
-                            <span className="font-bold text-blue-900 text-lg">Dimension Scores</span>
-                            <span className="text-blue-600 text-sm ml-2">(13 Assessment Areas)</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => setShowDimensionModal(true)}
-                            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            How It Works
-                          </button>
-                          <button 
-                            onClick={() => setWeights({ ...DEFAULT_DIMENSION_WEIGHTS })}
-                            className="px-3 py-1.5 bg-white text-blue-600 text-xs font-medium rounded-lg border border-blue-300 hover:bg-blue-50 transition-colors"
-                          >
-                            Reset Weights
-                          </button>
+                      <div className="px-4 py-2.5 flex items-center gap-3">
+                        <span className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">D</span>
+                        <div>
+                          <span className="font-bold text-blue-900 text-lg">Dimension Scores</span>
+                          <span className="text-blue-600 text-sm ml-2">(13 Assessment Areas)</span>
                         </div>
                       </div>
                     </td>
