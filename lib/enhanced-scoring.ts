@@ -521,6 +521,105 @@ function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | 
   return result;
 }
 
+// ============================================
+// FOLLOW-UP SCORING FOR 85/15 DEPTH BLEND
+// (Must match scoring page exactly)
+// ============================================
+
+function scoreD1PaidLeave(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('does not apply')) return 0;
+  if (v.includes('13 or more') || v.includes('13 weeks or more') || v.includes('13+ weeks')) return 100;
+  if ((v.includes('9 to') && v.includes('13')) || v.includes('9-13')) return 70;
+  if ((v.includes('5 to') && v.includes('9')) || v.includes('5-9')) return 40;
+  if ((v.includes('3 to') && v.includes('5')) || v.includes('3-5')) return 20;
+  if ((v.includes('1 to') && v.includes('3')) || v.includes('1-3')) return 10;
+  return 0;
+}
+
+function scoreD1PartTime(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('no additional')) return 0;
+  if (v.includes('medically necessary') || v.includes('healthcare provider')) return 100;
+  if (v.includes('26 weeks or more') || v.includes('26+ weeks') || v.includes('26 or more')) return 80;
+  if ((v.includes('12 to') || v.includes('13 to')) && v.includes('26')) return 50;
+  if ((v.includes('5 to') && v.includes('12')) || (v.includes('5 to') && v.includes('13'))) return 30;
+  if (v.includes('case-by-case')) return 40;
+  if (v.includes('4 weeks') || v.includes('up to 4')) return 10;
+  return 0;
+}
+
+function scoreD3Training(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('less than 10%') || v === 'less than 10' || v.includes('less than 10 percent')) return 0;
+  if (v === '100%' || v === '100' || v.includes('100% of') || (v.includes('100') && !v.includes('less than'))) return 100;
+  if (v.includes('75') && v.includes('100')) return 80;
+  if (v.includes('50') && v.includes('75')) return 50;
+  if (v.includes('25') && v.includes('50')) return 30;
+  if (v.includes('10') && v.includes('25')) return 10;
+  return 0;
+}
+
+function scoreD12CaseReview(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('systematic')) return 100;
+  if (v.includes('ad hoc')) return 50;
+  if (v.includes('aggregate') || v.includes('only review aggregate')) return 20;
+  return 0;
+}
+
+function scoreD13Communication(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('monthly')) return 100;
+  if (v.includes('quarterly')) return 70;
+  if (v.includes('twice')) return 40;
+  if (v.includes('annually') || v.includes('world cancer day')) return 20;
+  if (v.includes('only when asked')) return 0;
+  if (v.includes('do not actively') || v.includes('no regular')) return 0;
+  return 0;
+}
+
+function calculateFollowUpScoreForBlend(dimNum: number, assessment: any): number | null {
+  const dimData = assessment[`dimension${dimNum}_data`];
+  if (!dimData) return null;
+  
+  switch (dimNum) {
+    case 1: {
+      const d1_1_usa = dimData.d1_1_usa;
+      const d1_1_non_usa = dimData.d1_1_non_usa;
+      const d1_4b = dimData.d1_4b;
+      const scores: number[] = [];
+      if (d1_1_usa) scores.push(scoreD1PaidLeave(d1_1_usa));
+      if (d1_1_non_usa) scores.push(scoreD1PaidLeave(d1_1_non_usa));
+      if (d1_4b) scores.push(scoreD1PartTime(d1_4b));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 3: {
+      const d31 = dimData.d31;
+      return d31 ? scoreD3Training(d31) : null;
+    }
+    case 12: {
+      const d12_1 = dimData.d12_1;
+      return d12_1 ? scoreD12CaseReview(d12_1) : null;
+    }
+    case 13: {
+      const d13_1 = dimData.d13_1;
+      return d13_1 ? scoreD13Communication(d13_1) : null;
+    }
+    default:
+      return null;
+  }
+}
+
+// ============================================
+// BASE SCORE CALCULATION - FIXED with 85/15 blend
+// ============================================
+
 function calculateBaseScore(assessment: any): { score: number; dimensionScores: Record<number, DimensionScore>; completedDimCount: number; insufficientDataCount: number } {
   const dimensionScores: Record<number, DimensionScore> = {};
   let completedDimCount = 0;
@@ -537,14 +636,25 @@ function calculateBaseScore(assessment: any): { score: number; dimensionScores: 
     return { score: 0, dimensionScores, completedDimCount, insufficientDataCount };
   }
   
-  // Weighted score calculation
+  // Weighted score calculation WITH 85/15 DEPTH BLEND for D1, D3, D12, D13
   const totalWeight = Object.values(DIMENSION_WEIGHTS).reduce((sum, w) => sum + w, 0);
   let weightedScore = 0;
   
   for (let i = 1; i <= 13; i++) {
     const dim = dimensionScores[i];
     const weight = DIMENSION_WEIGHTS[i] || 0;
-    weightedScore += dim.adjustedScore * (weight / totalWeight);
+    
+    // Apply 85% grid + 15% depth blend for D1, D3, D12, D13
+    let scoreToUse = dim.adjustedScore;
+    if ([1, 3, 12, 13].includes(i)) {
+      const followUpScore = calculateFollowUpScoreForBlend(i, assessment);
+      if (followUpScore !== null) {
+        // 85% grid (adjustedScore) + 15% follow-up (depth)
+        scoreToUse = Math.round((dim.adjustedScore * 0.85) + (followUpScore * 0.15));
+      }
+    }
+    
+    weightedScore += scoreToUse * (weight / totalWeight);
   }
   
   return { 
