@@ -3192,14 +3192,14 @@ export default function AggregateScoringReport() {
                               company.globalFootprint.segment === 'Global' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white' :
                               company.globalFootprint.segment === 'Regional' ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white' : 'bg-slate-500 text-white'
                             }`}>
-                              <span className="text-sm">📍</span> {company.globalFootprint.count}
+                              <span className="text-sm">📍</span> {company.globalFootprint.countryCount}
                             </div>
                             <div className={`text-[10px] px-1.5 py-0.5 rounded ${
-                              company.globalFootprint.count === 1 ? 'bg-gray-400 text-white' :
-                              company.geoMultiplier >= 1.0 ? 'bg-green-500 text-white' :
-                              company.geoMultiplier >= 0.9 ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'
+                              company.globalFootprint.countryCount === 1 ? 'bg-gray-400 text-white' :
+                              company.globalFootprint.segment === 'Global' ? 'bg-green-500 text-white' :
+                              company.globalFootprint.segment === 'Regional' ? 'bg-blue-500 text-white' : 'bg-slate-500 text-white'
                             }`}>
-                              {company.globalFootprint.count === 1 ? '— N/A' : company.geoMultiplier >= 1.0 ? '✓ Consistent' : company.geoMultiplier >= 0.9 ? '⚠ Varies' : '∼ Mixed'}
+                              {company.globalFootprint.countryCount === 1 ? '— N/A' : company.globalFootprint.segment}
                             </div>
                           </div>
                         </th>
@@ -3260,7 +3260,7 @@ export default function AggregateScoringReport() {
                       <tr key={`right-dim-${dim}`} className="border-b border-gray-100 hover:bg-gray-50/50">
                         {sortedCompanies.map(company => (
                           <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''}`}>
-                            <ScoreCell score={company.dimensionScores[dim]?.score ?? null} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.dimensions[dim]?.total} />
+                            <ScoreCell score={company.dimensions[dim]?.blendedScore ?? null} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.dimensions[dim]?.total} />
                           </td>
                         ))}
                       </tr>
