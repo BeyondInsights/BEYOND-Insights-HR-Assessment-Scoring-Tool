@@ -2978,7 +2978,6 @@ export default function AggregateScoringReport() {
                       <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600" style={{ backgroundColor: '#334155' }}>
                         <div>Global Footprint</div>
                         <div className="text-[10px] text-slate-400">Geo Consistency</div>
-                        <div className="text-[10px] text-slate-400">Data Confidence</div>
                       </th>
                       <th className="border-r border-slate-600" style={{ backgroundColor: '#334155' }}></th>
                       <th className="border-r border-slate-600" style={{ backgroundColor: '#334155' }}></th>
@@ -3201,13 +3200,6 @@ export default function AggregateScoringReport() {
                               company.geoMultiplier >= 0.9 ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'
                             }`}>
                               {company.globalFootprint.count === 1 ? '— N/A' : company.geoMultiplier >= 1.0 ? '✓ Consistent' : company.geoMultiplier >= 0.9 ? '⚠ Varies' : '∼ Mixed'}
-                            </div>
-                            <div className={`text-[10px] px-1.5 py-0.5 rounded ${
-                              company.dataConfidence.score >= 95 ? 'bg-green-100 text-green-700' :
-                              company.dataConfidence.score >= 85 ? 'bg-teal-100 text-teal-700' :
-                              company.dataConfidence.score >= 70 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                            }`}>
-                              {company.dataConfidence.score}% conf
                             </div>
                           </div>
                         </th>
