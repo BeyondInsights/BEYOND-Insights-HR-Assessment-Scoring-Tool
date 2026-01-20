@@ -1,5 +1,5 @@
 /**
- * AGGREGATE SCORING REPORT - PANEL DATA FIXED
+ * AGGREGATE SCORING REPORT - CORRECTED
  * 
  * FIXES APPLIED:
  * 1. TierBadge now shows "Provisional" indicator when isProvisional=true
@@ -9,16 +9,8 @@
  * 5. Blend weights adjustable via settings panel (not scattered popovers)
  * 6. Unweighted Average row - KEPT
  * 7. Dimension Tier row - KEPT
- * 
- * PANEL DATA FIXES (NEW):
- * 8. calculateMaturityScore now reads or1 from BOTH current_support_data AND general_benefits_data
- * 9. calculateBreadthScore now reads cb3a/cb3b/cb3c from BOTH current_support_data AND general_benefits_data
- * 10. Company name now falls back to firmographics_data.companyName for panel data
- * 
- * These fixes ensure panel data (PANEL-001 through PANEL-052) is correctly included
- * in the aggregate summaries, as panel data uses different column names:
- * - Panel: general_benefits_data.or1, general_benefits_data.cb3a
- * - Real companies: current_support_data.or1, current_support_data.cb3a
+ * 8. D10 "Concierge services" item excluded - added post-launch, will include in Year 2
+ * 9. Follow-up scoring substring bugs fixed - proper range ordering to avoid mis-scoring
  */
 
 'use client';
@@ -71,6 +63,12 @@ const DIMENSION_ORDER = [4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12];
 
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 const INSUFFICIENT_DATA_THRESHOLD = 0.40;
+
+// D10 item exclusion - added after initial survey launch, excluded for Year 1 fairness
+// Will be included in Year 2 scoring once all respondents have had opportunity to answer
+const D10_EXCLUDED_ITEMS = [
+  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
+];
 
 const COL1_WIDTH = 280;
 const COL2_WIDTH = 65;  // WIDENED from 50
@@ -131,37 +129,40 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
 function scoreD1PaidLeave(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
-  if (v.includes('13') || v.includes('more')) return 100;
-  if (v.includes('9') && v.includes('13')) return 70;
-  if (v.includes('5') && v.includes('9')) return 40;
-  if (v.includes('3') && v.includes('5')) return 20;
-  if (v.includes('1') && v.includes('3')) return 10;
+  // Order matters: check most specific ranges FIRST to avoid substring matching issues
   if (v.includes('does not apply')) return 0;
+  if (v.includes('13 weeks or more') || v.includes('13+ weeks') || (v.includes('13') && v.includes('more'))) return 100;
+  if (v.includes('9 to') && v.includes('13')) return 70;   // "9 to less than 13"
+  if (v.includes('5 to') && v.includes('9')) return 40;    // "5 to less than 9"  
+  if (v.includes('3 to') && v.includes('5')) return 20;    // "3 to less than 5"
+  if (v.includes('1 to') && v.includes('3')) return 10;    // "1 to less than 3"
   return 0;
 }
 
 function scoreD1PartTime(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
-  if (v.includes('medically necessary')) return 100;
-  if (v.includes('26') || (v.includes('26') && v.includes('more'))) return 80;
-  if (v.includes('13') && v.includes('26')) return 50;
-  if (v.includes('5') && v.includes('13')) return 30;
-  if (v.includes('4 weeks') || v.includes('up to 4')) return 10;
-  if (v.includes('case-by-case')) return 40;
+  // Order matters: check most specific first
   if (v.includes('no additional')) return 0;
+  if (v.includes('medically necessary')) return 100;
+  if (v.includes('26 weeks or more') || v.includes('26+ weeks') || (v.includes('26') && v.includes('more'))) return 80;
+  if (v.includes('13 to') && v.includes('26')) return 50;  // "13 to less than 26"
+  if (v.includes('5 to') && v.includes('13')) return 30;   // "5 to less than 13"
+  if (v.includes('case-by-case')) return 40;
+  if (v.includes('4 weeks') || v.includes('up to 4')) return 10;
   return 0;
 }
 
 function scoreD3Training(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
-  if (v === '100%' || v.includes('100%')) return 100;
-  if (v.includes('75') && v.includes('100')) return 80;
-  if (v.includes('50') && v.includes('75')) return 50;
-  if (v.includes('25') && v.includes('50')) return 30;
-  if (v.includes('10') && v.includes('25')) return 10;
+  // Order matters: check ranges before single values
   if (v.includes('less than 10')) return 0;
+  if (v === '100%' || v.includes('100% of')) return 100;
+  if (v.includes('75%') && v.includes('100%')) return 80;  // "75% to less than 100%"
+  if (v.includes('50%') && v.includes('75%')) return 50;   // "50% to less than 75%"
+  if (v.includes('25%') && v.includes('50%')) return 30;   // "25% to less than 50%"
+  if (v.includes('10%') && v.includes('25%')) return 10;   // "10% to less than 25%"
   return 0;
 }
 
@@ -223,10 +224,8 @@ function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>)
 
 // Maturity = OR1 only - FIXED: Legal minimum = 0 points
 function calculateMaturityScore(assessment: Record<string, any>): number {
-  // Read from current_support_data OR general_benefits_data (panel data uses general_benefits_data)
   const currentSupport = assessment.current_support_data || {};
-  const generalBenefits = assessment.general_benefits_data || {};
-  const or1 = currentSupport.or1 || generalBenefits.or1 || '';
+  const or1 = currentSupport.or1 || '';
   const v = String(or1).toLowerCase();
   
   if (v.includes('comprehensive')) return 100;
@@ -239,12 +238,10 @@ function calculateMaturityScore(assessment: Record<string, any>): number {
 }
 
 function calculateBreadthScore(assessment: Record<string, any>): number {
-  // Read from current_support_data OR general_benefits_data (panel data uses general_benefits_data)
   const currentSupport = assessment.current_support_data || {};
-  const generalBenefits = assessment.general_benefits_data || {};
   const scores: number[] = [];
   
-  const cb3a = currentSupport.cb3a || generalBenefits.cb3a || '';
+  const cb3a = currentSupport.cb3a || '';
   const v = String(cb3a).toLowerCase();
   if (v.includes('yes') && v.includes('additional support')) {
     scores.push(100);
@@ -254,7 +251,7 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
+  const cb3b = currentSupport.cb3b;
   if (cb3b && Array.isArray(cb3b)) {
     const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
     scores.push(cb3bScore);
@@ -262,7 +259,7 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
+  const cb3c = currentSupport.cb3c;
   if (cb3c && Array.isArray(cb3c)) {
     const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
     scores.push(cb3cScore);
@@ -301,12 +298,20 @@ function calculateDimensionScore(
   const mainGrid = dimData[`d${dimNum}a`];
   if (!mainGrid || typeof mainGrid !== 'object') return result;
   let earnedPoints = 0;
-  Object.values(mainGrid).forEach((status: any) => {
+  
+  // Process grid items, excluding D10 items that weren't in original survey
+  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+    // Skip excluded D10 items for Year 1 scoring fairness
+    if (dimNum === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) {
+      return; // Skip this item entirely
+    }
+    
     result.totalItems++;
     const { points, isUnsure } = statusToPoints(status);
     if (isUnsure) { result.unsureCount++; result.answeredItems++; }
     else if (points !== null) { result.answeredItems++; earnedPoints += points; }
   });
+  
   result.unsurePercent = result.totalItems > 0 ? result.unsureCount / result.totalItems : 0;
   result.isInsufficientData = result.unsurePercent > INSUFFICIENT_DATA_THRESHOLD;
   const maxPoints = result.answeredItems * POINTS.CURRENTLY_OFFER;
@@ -403,12 +408,8 @@ function calculateCompanyScores(
     (breadthScore * (compositeWeights.breadth / 100))
   ) : 0;
   
-  // Get company name - fallback to firmographics_data for panel data
-  const firmographics = assessment.firmographics_data || {};
-  const rawCompanyName = assessment.company_name || firmographics.companyName || 'Unknown';
-  
   return {
-    companyName: rawCompanyName.replace('Panel Company ', 'Panel Co '),
+    companyName: (assessment.company_name || 'Unknown').replace('Panel Company ', 'Panel Co '),
     surveyId: assessment.app_id || assessment.survey_id || 'N/A',
     dimensions, unweightedScore, weightedScore, insufficientDataCount,
     isProvisional, isComplete, isFoundingPartner, isPanel, completedDimCount,
@@ -483,7 +484,7 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
                 <div className="flex items-center gap-3">
                   <span className="w-24 text-sm font-medium text-gray-500">Unsure</span>
                   <div className="flex-1 h-2 bg-gray-200 rounded-full" style={{ width: '5%' }} />
-                  <span className="font-bold text-gray-500">0 pts (in denominator)</span>
+                  <span className="font-bold text-gray-500">0 pts (excluded)</span>
                 </div>
               </div>
             </section>
