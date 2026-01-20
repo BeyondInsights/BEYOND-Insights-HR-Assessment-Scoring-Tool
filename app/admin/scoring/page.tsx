@@ -515,7 +515,7 @@ function getPerformanceTier(score: number): { name: string; color: string; bg: s
 
 function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => void; defaultWeights: Record<number, number> }) {
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -603,7 +603,7 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
 
 function CompositeModal({ onClose, compositeWeights }: { onClose: () => void; compositeWeights: typeof DEFAULT_COMPOSITE_WEIGHTS }) {
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -720,7 +720,7 @@ function TierStatsModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -1184,7 +1184,7 @@ function SensitivityAnalysisModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -1745,7 +1745,7 @@ function ReliabilityDiagnosticsModal({
   const avgInterCorrelation = corrCount > 0 ? totalCorr / corrCount : 0;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -2170,7 +2170,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<'overview' | 'scoring' | 'reliability' | 'sensitivity'>('overview');
   
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -2242,7 +2242,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                     <li>• Zero tier changes from random weight variations</li>
                     <li>• Strong average reliability (α = 0.78)</li>
                     <li>• D10 Caregiver shows excellent consistency (α = 0.90)</li>
-                    <li>• Optimal inter-dimension correlation (r = 0.60)</li>
+                    <li>• Optimal inter-dimension correlation (r = 0.58)</li>
                   </ul>
                 </div>
                 <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
@@ -2357,7 +2357,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                   <div className="text-xs text-green-500 font-medium">Acceptable</div>
                 </div>
                 <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
-                  <div className="text-4xl font-bold text-green-700">0.60</div>
+                  <div className="text-4xl font-bold text-green-700">0.58</div>
                   <div className="text-sm text-green-600">Avg Inter-Dimension r</div>
                   <div className="text-xs text-green-500 font-medium">Optimal Range (0.3-0.7)</div>
                 </div>
@@ -2945,16 +2945,16 @@ export default function AggregateScoringReport() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div ref={tableRef} className="overflow-auto max-h-[calc(100vh-300px)]">
-              <table className="w-full text-sm border-collapse">
-                <thead className="sticky top-0 z-50" style={{ backgroundColor: '#1E293B' }}>
-                  <tr className="bg-slate-800 text-white" style={{ backgroundColor: '#1E293B' }}>
+            <div ref={tableRef} className="overflow-auto max-h-[calc(100vh-300px)] relative">
+              <table className="w-full text-sm border-collapse" style={{ isolation: 'isolate' }}>
+                <thead className="sticky top-0" style={{ backgroundColor: '#1E293B', zIndex: 100, position: 'sticky' }}>
+                  <tr style={{ backgroundColor: '#1E293B' }}>
                     <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600"
-                        style={{ position: 'sticky', left: 0, zIndex: 55, backgroundColor: '#1E293B' }}>
+                        style={{ position: 'sticky', left: 0, zIndex: 100, backgroundColor: '#1E293B' }}>
                       METRICS
                     </th>
                     <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500"
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 55, backgroundColor: '#4338CA' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 100, backgroundColor: '#4338CA' }}>
                       BENCHMARKS
                     </th>
                     <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium bg-slate-700"
@@ -2965,43 +2965,43 @@ export default function AggregateScoringReport() {
                   
                   <tr className="bg-slate-700 text-white" style={{ backgroundColor: '#334155' }}>
                     <th className="px-4 py-3 text-left font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 55, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 100, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
                       <button onClick={() => handleSort('name')} className="hover:text-indigo-300 flex items-center gap-1">
                         Metric {sortBy === 'name' && <span className="text-xs">{sortDir === 'asc' ? '^' : 'v'}</span>}
                       </button>
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 55, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 100, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                       Wt %
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-indigo-600 border-r border-indigo-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#4F46E5' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#4F46E5' }}>
                       ALL
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-violet-600 border-r border-violet-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#7C3AED' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#7C3AED' }}>
                       FP
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-slate-500 border-r border-slate-400"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#64748B' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#64748B' }}>
                       STD
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-amber-600 border-r border-amber-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#D97706' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#D97706' }}>
                       PANEL
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-slate-600 border-r border-slate-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#475569' }}
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#475569' }}
                         title="Single Country">
                       1🌍
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-blue-600 border-r border-blue-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#2563EB' }}
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#2563EB' }}
                         title="Regional (2-10 countries)">
                       REG
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-purple-600 border-r border-purple-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#9333EA' }}
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#9333EA' }}
                         title="Global (10+ countries)">
                       GLB
                     </th>
@@ -3023,34 +3023,34 @@ export default function AggregateScoringReport() {
                   {/* Country Count Row */}
                   <tr className="bg-gradient-to-r from-slate-700 to-slate-800" style={{ backgroundColor: '#334155' }}>
                     <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 55, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 100, backgroundColor: '#334155' }}>
                       Global Footprint
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 55, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 100, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.single}</span>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.regional}</span>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.global}</span>
                     </th>
                     {sortedCompanies.map(company => (
@@ -3087,32 +3087,32 @@ export default function AggregateScoringReport() {
                   {/* Data Confidence Row */}
                   <tr className="bg-gradient-to-r from-slate-700 to-slate-800" style={{ backgroundColor: '#334155' }}>
                     <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 55, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 100, backgroundColor: '#334155' }}>
                       Data Confidence
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 55, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 100, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 100, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     {sortedCompanies.map(company => {
                       const conf = company.dataConfidence.percent;
@@ -3133,7 +3133,7 @@ export default function AggregateScoringReport() {
                   </tr>
                 </thead>
                 
-                <tbody>
+                <tbody style={{ position: 'relative', zIndex: 1 }}>
                   {/* ============================================ */}
                   {/* SECTION 1: COMPOSITE SCORE */}
                   {/* ============================================ */}
