@@ -2988,8 +2988,7 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', left: 0, zIndex: 45, backgroundColor: '#1E293B' }}>
                       METRICS
                     </th>
-                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500"
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 45, backgroundColor: '#4338CA' }}>
+                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500">
                       BENCHMARKS
                     </th>
                     <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium bg-slate-700">
@@ -3058,10 +3057,9 @@ export default function AggregateScoringReport() {
                   <tr className="bg-gradient-to-r from-slate-700 to-slate-800">
                     <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
                         style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, backgroundColor: '#334155' }}>
-                      <div className="space-y-1">
+                      <div className="space-y-0.5">
                         <div>Global Footprint</div>
-                        <div className="text-[10px] text-slate-400">Geo Consistency</div>
-                        <div className="text-[10px] text-slate-400">Data Confidence</div>
+                        <div className="text-[10px] text-slate-400">Geo Consistency / Data Confidence</div>
                       </div>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
@@ -3287,67 +3285,6 @@ export default function AggregateScoringReport() {
                       ))}
                     </tr>
                   )}
-                  
-                  {/* Data Confidence Row */}
-                  <tr className="bg-gray-50/50">
-                    <td className="px-4 py-2 bg-gray-50/50 border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
-                      <span className="font-medium text-gray-700 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-teal-100 rounded flex items-center justify-center text-teal-600 text-xs font-bold">✓</span>
-                        Data Confidence
-                        <span className="text-xs text-gray-400 font-normal">(verified items %)</span>
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-center bg-gray-50/50 border-r border-gray-200 text-xs text-gray-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>—</td>
-                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
-                      <span className="text-xs text-gray-600">
-                        {Math.round(sortedCompanies.reduce((sum, c) => sum + c.dataConfidence.score, 0) / (sortedCompanies.length || 1))}%
-                      </span>
-                    </td>
-                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
-                      <span className="text-xs text-gray-500">—</span>
-                    </td>
-                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
-                      <span className="text-xs text-gray-500">—</span>
-                    </td>
-                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
-                      <span className="text-xs text-gray-500">—</span>
-                    </td>
-                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
-                      <span className="text-xs text-gray-500">—</span>
-                    </td>
-                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
-                      <span className="text-xs text-gray-500">—</span>
-                    </td>
-                    <td className="px-2 py-2 text-center bg-gray-50/50 border-r border-gray-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
-                      <span className="text-xs text-gray-500">—</span>
-                    </td>
-                    {sortedCompanies.map(company => {
-                      const conf = company.dataConfidence.score;
-                      const confColor = conf >= 95 ? 'text-green-600 bg-green-50' : 
-                                        conf >= 85 ? 'text-teal-600 bg-teal-50' : 
-                                        conf >= 70 ? 'text-amber-600 bg-amber-50' : 'text-red-600 bg-red-50';
-                      return (
-                        <td key={`conf-${company.surveyId}`} 
-                            className={`px-2 py-2 text-center border-r border-gray-100 ${
-                              company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                            }`}>
-                          <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${confColor}`} 
-                                title={`${company.dataConfidence.verifiedItems}/${company.dataConfidence.totalItems} items verified (${company.dataConfidence.unsureItems} unsure)`}>
-                            {conf}%
-                          </span>
-                        </td>
-                      );
-                    })}
-                  </tr>
                   
                   {/* Composite Components */}
                   <tr>
