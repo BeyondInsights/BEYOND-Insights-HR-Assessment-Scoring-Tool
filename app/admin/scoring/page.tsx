@@ -3007,9 +3007,8 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                       Wt %
                     </th>
-                    <th className="px-2 py-2 text-center font-semibold bg-indigo-600 border-r border-indigo-500"
+                    <th className="px-2 py-3 text-center font-semibold bg-indigo-600 border-r border-indigo-500"
                         style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#4F46E5' }}>
-                      <div className="text-[9px] text-indigo-200 -mb-0.5">BENCH</div>
                       ALL
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-violet-600 border-r border-violet-500"
