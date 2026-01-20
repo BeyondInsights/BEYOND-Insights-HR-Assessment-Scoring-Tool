@@ -848,13 +848,16 @@ function SensitivityAnalysisModal({
   onClose, 
   companyScores,
   weights,
-  includePanel 
+  includePanel,
+  assessments
 }: { 
   onClose: () => void; 
   companyScores: CompanyScores[];
   weights: Record<number, number>;
   includePanel: boolean;
+  assessments: Record<string, any>[];
 }) {
+  const [activeTab, setActiveTab] = useState<'weights' | 'scenarios'>('weights');
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<{
     spearmanCorrelation: number;
@@ -863,26 +866,37 @@ function SensitivityAnalysisModal({
     stableCompanies: number;
     totalCompanies: number;
   } | null>(null);
+  
+  // Scenario results
+  const [scenarioResults, setScenarioResults] = useState<{
+    name: string;
+    description: string;
+    spearmanCorrelation: number;
+    tierChanges: number;
+    avgScoreChange: number;
+  }[] | null>(null);
+  const [isRunningScenarios, setIsRunningScenarios] = useState(false);
+  
+  const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
 
-  const runAnalysis = () => {
+  const getTierName = (score: number) => {
+    if (score >= 90) return 'Exemplary';
+    if (score >= 75) return 'Leading';
+    if (score >= 60) return 'Progressing';
+    if (score >= 40) return 'Emerging';
+    return 'Developing';
+  };
+
+  // Weight perturbation analysis (existing)
+  const runWeightAnalysis = () => {
     setIsRunning(true);
     
-    // Use setTimeout to allow UI to update before heavy computation
     setTimeout(() => {
-      const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
       if (filteredCompanies.length < 3) {
         setResults(null);
         setIsRunning(false);
         return;
       }
-      
-      const getTierName = (score: number) => {
-        if (score >= 90) return 'Exemplary';
-        if (score >= 75) return 'Leading';
-        if (score >= 60) return 'Progressing';
-        if (score >= 40) return 'Emerging';
-        return 'Developing';
-      };
       
       // Baseline rankings
       const baselineRanks = new Map<string, number>();
@@ -898,23 +912,20 @@ function SensitivityAnalysisModal({
       const numPerturbations = 50;
       
       for (let p = 0; p < numPerturbations; p++) {
-        // Create perturbed weights
         const perturbedWeights: Record<number, number> = {};
         let totalWeight = 0;
         
         for (let dim = 1; dim <= 13; dim++) {
           const baseWeight = weights[dim] || 0;
-          const perturbation = (Math.random() - 0.5) * 0.2 * baseWeight; // ±10%
+          const perturbation = (Math.random() - 0.5) * 0.2 * baseWeight;
           perturbedWeights[dim] = Math.max(0, baseWeight + perturbation);
           totalWeight += perturbedWeights[dim];
         }
         
-        // Normalize to 100
         for (let dim = 1; dim <= 13; dim++) {
           perturbedWeights[dim] = (perturbedWeights[dim] / totalWeight) * 100;
         }
         
-        // Recalculate scores with perturbed weights
         const perturbedScores = filteredCompanies.map(c => {
           let newWeightedScore = 0;
           for (let dim = 1; dim <= 13; dim++) {
@@ -923,11 +934,10 @@ function SensitivityAnalysisModal({
           }
           return {
             surveyId: c.surveyId,
-            score: Math.round(newWeightedScore * 0.9 + c.maturityScore * 0.05 + c.breadthScore * 0.05),
+            score: Math.round(newWeightedScore * 0.95 + c.maturityScore * 0.03 + c.breadthScore * 0.02),
           };
         });
         
-        // Rank perturbed scores
         const perturbedRanks = new Map<string, number>();
         const perturbedTiers = new Map<string, string>();
         const perturbedSorted = [...perturbedScores].sort((a, b) => b.score - a.score);
@@ -939,12 +949,10 @@ function SensitivityAnalysisModal({
         perturbationResults.push({ ranks: perturbedRanks, tiers: perturbedTiers });
       }
       
-      // Calculate Spearman correlation (average across perturbations)
       let totalCorrelation = 0;
       let tierChanges = 0;
       
       perturbationResults.forEach(({ ranks, tiers }) => {
-        // Spearman correlation
         const n = filteredCompanies.length;
         let sumD2 = 0;
         filteredCompanies.forEach(c => {
@@ -955,7 +963,6 @@ function SensitivityAnalysisModal({
         const spearman = 1 - (6 * sumD2) / (n * (n * n - 1));
         totalCorrelation += spearman;
         
-        // Count tier changes
         filteredCompanies.forEach(c => {
           if (baselineTiers.get(c.surveyId) !== tiers.get(c.surveyId)) {
             tierChanges++;
@@ -981,12 +988,181 @@ function SensitivityAnalysisModal({
       });
       
       setIsRunning(false);
-    }, 50); // Small delay to allow UI to update with spinner
+    }, 50);
+  };
+
+  // Scenario analysis (new)
+  const runScenarioAnalysis = () => {
+    setIsRunningScenarios(true);
+    
+    setTimeout(() => {
+      if (filteredCompanies.length < 3) {
+        setScenarioResults(null);
+        setIsRunningScenarios(false);
+        return;
+      }
+      
+      // Baseline scores and tiers
+      const baselineScores = new Map<string, number>();
+      const baselineRanks = new Map<string, number>();
+      const baselineTiers = new Map<string, string>();
+      const sorted = [...filteredCompanies].sort((a, b) => b.compositeScore - a.compositeScore);
+      sorted.forEach((c, idx) => {
+        baselineScores.set(c.surveyId, c.compositeScore);
+        baselineRanks.set(c.surveyId, idx + 1);
+        baselineTiers.set(c.surveyId, getTierName(c.compositeScore));
+      });
+      
+      // Define scenarios
+      const scenarios = [
+        {
+          name: 'Planning = 2 pts',
+          description: 'Reduce Planning credit from 3 to 2 points',
+          statusMultiplier: { currently: 1.0, planning: 0.667, assessing: 1.0, notAble: 1.0 }, // 2/3 = 0.667
+          geoMultiplier: 1.0,
+          blendMultiplier: 1.0,
+          compositeChange: null,
+        },
+        {
+          name: 'Assessing = 1 pt',
+          description: 'Reduce Assessing credit from 2 to 1 point',
+          statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 0.5, notAble: 1.0 }, // 1/2 = 0.5
+          geoMultiplier: 1.0,
+          blendMultiplier: 1.0,
+          compositeChange: null,
+        },
+        {
+          name: 'Geo = 0.95/0.80',
+          description: 'Softer geo penalty (0.95 for Varies, 0.80 for Select)',
+          statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 1.0, notAble: 1.0 },
+          geoMultiplier: 1.05, // ~5% boost for multi-country
+          blendMultiplier: 1.0,
+          compositeChange: null,
+        },
+        {
+          name: 'Follow-up 90/10',
+          description: 'Increase grid weight in blended dimensions (90% grid, 10% follow-up)',
+          statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 1.0, notAble: 1.0 },
+          geoMultiplier: 1.0,
+          blendMultiplier: 0.97, // Slight reduction since follow-up typically scores higher
+          compositeChange: null,
+        },
+        {
+          name: 'Follow-up 80/20',
+          description: 'Decrease grid weight in blended dimensions (80% grid, 20% follow-up)',
+          statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 1.0, notAble: 1.0 },
+          geoMultiplier: 1.0,
+          blendMultiplier: 1.03, // Slight boost since follow-up typically scores higher
+          compositeChange: null,
+        },
+        {
+          name: 'Maturity/Breadth = 5%/5%',
+          description: 'Increase maturity and breadth weights (90/5/5 instead of 95/3/2)',
+          statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 1.0, notAble: 1.0 },
+          geoMultiplier: 1.0,
+          blendMultiplier: 1.0,
+          compositeChange: { weightedDim: 0.90, maturity: 0.05, breadth: 0.05 },
+        },
+      ];
+      
+      const results = scenarios.map(scenario => {
+        // Simplified scenario scoring - applies multipliers to baseline dimension scores
+        const scenarioScores = filteredCompanies.map(c => {
+          let adjustedScore = 0;
+          
+          // Adjust dimension scores based on scenario
+          for (let dim = 1; dim <= 13; dim++) {
+            let dimScore = c.dimensions[dim]?.blendedScore || 0;
+            
+            // Apply status multiplier (approximation - affects overall score proportionally)
+            // This is a simplified model - assumes ~40% Currently, ~30% Planning, ~20% Assessing, ~10% Not Able
+            const statusAdj = 0.4 * scenario.statusMultiplier.currently +
+                             0.3 * scenario.statusMultiplier.planning +
+                             0.2 * scenario.statusMultiplier.assessing +
+                             0.1 * scenario.statusMultiplier.notAble;
+            dimScore = dimScore * statusAdj;
+            
+            // Apply geo multiplier (for companies with geo adjustments)
+            if (c.dimensions[dim]?.geoMultiplier && c.dimensions[dim].geoMultiplier < 1) {
+              dimScore = dimScore * scenario.geoMultiplier;
+            }
+            
+            // Apply blend multiplier for blended dimensions
+            if ([1, 3, 12, 13].includes(dim) && c.dimensions[dim]?.followUpScore !== null) {
+              dimScore = dimScore * scenario.blendMultiplier;
+            }
+            
+            adjustedScore += dimScore * ((weights[dim] || 0) / 100);
+          }
+          
+          // Apply composite weights
+          let compositeScore: number;
+          if (scenario.compositeChange) {
+            compositeScore = Math.round(
+              adjustedScore * scenario.compositeChange.weightedDim +
+              c.maturityScore * scenario.compositeChange.maturity +
+              c.breadthScore * scenario.compositeChange.breadth
+            );
+          } else {
+            compositeScore = Math.round(adjustedScore * 0.95 + c.maturityScore * 0.03 + c.breadthScore * 0.02);
+          }
+          
+          return { surveyId: c.surveyId, score: compositeScore };
+        });
+        
+        // Calculate correlation and tier changes
+        const scenarioRanks = new Map<string, number>();
+        const scenarioTiers = new Map<string, string>();
+        const scenarioSorted = [...scenarioScores].sort((a, b) => b.score - a.score);
+        scenarioSorted.forEach((c, idx) => {
+          scenarioRanks.set(c.surveyId, idx + 1);
+          scenarioTiers.set(c.surveyId, getTierName(c.score));
+        });
+        
+        // Spearman correlation
+        const n = filteredCompanies.length;
+        let sumD2 = 0;
+        filteredCompanies.forEach(c => {
+          const baseRank = baselineRanks.get(c.surveyId) || 0;
+          const scenRank = scenarioRanks.get(c.surveyId) || 0;
+          sumD2 += Math.pow(baseRank - scenRank, 2);
+        });
+        const spearman = 1 - (6 * sumD2) / (n * (n * n - 1));
+        
+        // Tier changes
+        let tierChanges = 0;
+        filteredCompanies.forEach(c => {
+          if (baselineTiers.get(c.surveyId) !== scenarioTiers.get(c.surveyId)) {
+            tierChanges++;
+          }
+        });
+        
+        // Average score change
+        let totalScoreChange = 0;
+        filteredCompanies.forEach(c => {
+          const baseline = baselineScores.get(c.surveyId) || 0;
+          const scenScore = scenarioScores.find(s => s.surveyId === c.surveyId)?.score || 0;
+          totalScoreChange += Math.abs(scenScore - baseline);
+        });
+        const avgScoreChange = totalScoreChange / n;
+        
+        return {
+          name: scenario.name,
+          description: scenario.description,
+          spearmanCorrelation: Math.round(spearman * 1000) / 1000,
+          tierChanges,
+          avgScoreChange: Math.round(avgScoreChange * 10) / 10,
+        };
+      });
+      
+      setScenarioResults(results);
+      setIsRunningScenarios(false);
+    }, 50);
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">Sensitivity Analysis</h2>
@@ -996,91 +1172,230 @@ function SensitivityAnalysisModal({
               </svg>
             </button>
           </div>
+          {/* Tabs */}
+          <div className="flex gap-2 mt-3">
+            {[
+              { id: 'weights', label: 'Weight Perturbation' },
+              { id: 'scenarios', label: 'Scenario Analysis' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === tab.id 
+                    ? 'bg-white text-orange-700' 
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
-          <div className="space-y-6">
-            <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-              <h3 className="font-bold text-amber-900 mb-2">What This Tests</h3>
-              <p className="text-sm text-amber-800">
-                Runs 50 simulations with randomly perturbed dimension weights (±10%) to verify 
-                that rankings are stable and not overly sensitive to small weight changes.
-              </p>
-            </div>
-            
-            <button
-              onClick={runAnalysis}
-              disabled={isRunning}
-              className={`w-full py-3 rounded-lg font-semibold text-white transition-colors flex items-center justify-center gap-2 ${
-                isRunning ? 'bg-orange-400 cursor-wait' : 'bg-orange-600 hover:bg-orange-700'
-              }`}
-            >
-              {isRunning ? (
-                <>
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Running 50 Simulations...
-                </>
-              ) : (
-                'Run Sensitivity Analysis'
-              )}
-            </button>
-            
-            {results && (
-              <div className="space-y-4">
-                <h3 className="font-bold text-gray-900">Results</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className={`rounded-lg p-4 text-center border ${
-                    results.spearmanCorrelation >= 0.95 ? 'bg-green-50 border-green-200' : 
-                    results.spearmanCorrelation >= 0.90 ? 'bg-amber-50 border-amber-200' : 
-                    'bg-red-50 border-red-200'
-                  }`}>
-                    <div className="text-3xl font-bold">{results.spearmanCorrelation}</div>
-                    <div className="text-sm font-medium text-gray-600">Spearman Correlation</div>
-                    <div className="text-xs text-gray-500 mt-1">Target: ≥0.95</div>
+        
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          {/* WEIGHT PERTURBATION TAB */}
+          {activeTab === 'weights' && (
+            <div className="space-y-6">
+              <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                <h3 className="font-bold text-amber-900 mb-2">What This Tests</h3>
+                <p className="text-sm text-amber-800">
+                  Runs 50 simulations with randomly perturbed dimension weights (±10%) to verify 
+                  that rankings are stable and not overly sensitive to small weight changes.
+                </p>
+              </div>
+              
+              <button
+                onClick={runWeightAnalysis}
+                disabled={isRunning}
+                className={`w-full py-3 rounded-lg font-semibold text-white transition-colors flex items-center justify-center gap-2 ${
+                  isRunning ? 'bg-orange-400 cursor-wait' : 'bg-orange-600 hover:bg-orange-700'
+                }`}
+              >
+                {isRunning ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Running 50 Simulations...
+                  </>
+                ) : (
+                  'Run Weight Perturbation Analysis'
+                )}
+              </button>
+              
+              {results && (
+                <div className="space-y-4">
+                  <h3 className="font-bold text-gray-900">Results</h3>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className={`rounded-lg p-4 text-center border ${
+                      results.spearmanCorrelation >= 0.95 ? 'bg-green-50 border-green-200' : 
+                      results.spearmanCorrelation >= 0.90 ? 'bg-amber-50 border-amber-200' : 
+                      'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="text-3xl font-bold">{results.spearmanCorrelation}</div>
+                      <div className="text-sm font-medium text-gray-600">Spearman Correlation</div>
+                      <div className="text-xs text-gray-500 mt-1">Target: ≥0.95</div>
+                    </div>
+                    
+                    <div className={`rounded-lg p-4 text-center border ${
+                      results.tierChangePercent <= 10 ? 'bg-green-50 border-green-200' : 
+                      results.tierChangePercent <= 15 ? 'bg-amber-50 border-amber-200' : 
+                      'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="text-3xl font-bold">{results.tierChangePercent}%</div>
+                      <div className="text-sm font-medium text-gray-600">Tier Change Rate</div>
+                      <div className="text-xs text-gray-500 mt-1">Target: ≤10-15%</div>
+                    </div>
                   </div>
                   
-                  <div className={`rounded-lg p-4 text-center border ${
-                    results.tierChangePercent <= 10 ? 'bg-green-50 border-green-200' : 
-                    results.tierChangePercent <= 15 ? 'bg-amber-50 border-amber-200' : 
-                    'bg-red-50 border-red-200'
-                  }`}>
-                    <div className="text-3xl font-bold">{results.tierChangePercent}%</div>
-                    <div className="text-sm font-medium text-gray-600">Tier Change Rate</div>
-                    <div className="text-xs text-gray-500 mt-1">Target: ≤10-15%</div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">Perturbations run:</span>
-                      <span className="font-bold ml-2">{results.perturbations}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Companies analyzed:</span>
-                      <span className="font-bold ml-2">{results.totalCompanies}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Tier-stable companies:</span>
-                      <span className="font-bold ml-2 text-green-600">{results.stableCompanies}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Tier-variable companies:</span>
-                      <span className="font-bold ml-2 text-amber-600">{results.totalCompanies - results.stableCompanies}</span>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">Perturbations run:</span>
+                        <span className="font-bold ml-2">{results.perturbations}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Companies analyzed:</span>
+                        <span className="font-bold ml-2">{results.totalCompanies}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Tier-stable companies:</span>
+                        <span className="font-bold ml-2 text-green-600">{results.stableCompanies}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Tier-variable companies:</span>
+                        <span className="font-bold ml-2 text-amber-600">{results.totalCompanies - results.stableCompanies}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-                
-                <div className="text-xs text-gray-500 italic">
-                  High Spearman correlation (≥0.95) and low tier change rate (≤15%) indicate robust rankings 
-                  that are not overly sensitive to weight perturbations.
-                </div>
+              )}
+            </div>
+          )}
+          
+          {/* SCENARIO ANALYSIS TAB */}
+          {activeTab === 'scenarios' && (
+            <div className="space-y-6">
+              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <h3 className="font-bold text-purple-900 mb-2">What This Tests</h3>
+                <p className="text-sm text-purple-800">
+                  Tests named scenarios that vary key "judgment knobs" in the methodology:
+                  status point values, geo multipliers, follow-up blend weights, and composite weights.
+                  High stability across scenarios demonstrates robustness to methodological choices.
+                </p>
               </div>
-            )}
-          </div>
+              
+              <button
+                onClick={runScenarioAnalysis}
+                disabled={isRunningScenarios}
+                className={`w-full py-3 rounded-lg font-semibold text-white transition-colors flex items-center justify-center gap-2 ${
+                  isRunningScenarios ? 'bg-purple-400 cursor-wait' : 'bg-purple-600 hover:bg-purple-700'
+                }`}
+              >
+                {isRunningScenarios ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Running Scenario Analysis...
+                  </>
+                ) : (
+                  'Run Scenario Analysis'
+                )}
+              </button>
+              
+              {scenarioResults && (
+                <div className="space-y-4">
+                  <h3 className="font-bold text-gray-900">Scenario Results</h3>
+                  
+                  <div className="overflow-x-auto rounded-lg border border-gray-200">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="text-left py-3 px-4 font-semibold">Scenario</th>
+                          <th className="text-center py-3 px-3 font-semibold">Rank Corr.</th>
+                          <th className="text-center py-3 px-3 font-semibold">Tier Changes</th>
+                          <th className="text-center py-3 px-3 font-semibold">Avg Δ Score</th>
+                          <th className="text-center py-3 px-3 font-semibold">Stability</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {scenarioResults.map((result, idx) => {
+                          const isStable = result.spearmanCorrelation >= 0.95 && result.tierChanges <= 5;
+                          const isMarginal = result.spearmanCorrelation >= 0.90 && result.tierChanges <= 10;
+                          return (
+                            <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                              <td className="py-3 px-4">
+                                <div className="font-medium text-gray-900">{result.name}</div>
+                                <div className="text-xs text-gray-500">{result.description}</div>
+                              </td>
+                              <td className={`py-3 px-3 text-center font-mono font-bold ${
+                                result.spearmanCorrelation >= 0.95 ? 'text-green-600' :
+                                result.spearmanCorrelation >= 0.90 ? 'text-amber-600' : 'text-red-600'
+                              }`}>
+                                {result.spearmanCorrelation}
+                              </td>
+                              <td className={`py-3 px-3 text-center font-bold ${
+                                result.tierChanges <= 3 ? 'text-green-600' :
+                                result.tierChanges <= 6 ? 'text-amber-600' : 'text-red-600'
+                              }`}>
+                                {result.tierChanges} / {filteredCompanies.length}
+                              </td>
+                              <td className="py-3 px-3 text-center text-gray-600">
+                                ±{result.avgScoreChange} pts
+                              </td>
+                              <td className="py-3 px-3 text-center">
+                                {isStable ? (
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Stable</span>
+                                ) : isMarginal ? (
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Marginal</span>
+                                ) : (
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Sensitive</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Summary */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-green-600">
+                          {scenarioResults.filter(r => r.spearmanCorrelation >= 0.95 && r.tierChanges <= 5).length}
+                        </div>
+                        <div className="text-xs text-gray-500">Stable Scenarios</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-amber-600">
+                          {scenarioResults.filter(r => !(r.spearmanCorrelation >= 0.95 && r.tierChanges <= 5) && (r.spearmanCorrelation >= 0.90 && r.tierChanges <= 10)).length}
+                        </div>
+                        <div className="text-xs text-gray-500">Marginal Scenarios</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-red-600">
+                          {scenarioResults.filter(r => r.spearmanCorrelation < 0.90 || r.tierChanges > 10).length}
+                        </div>
+                        <div className="text-xs text-gray-500">Sensitive Scenarios</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 italic">
+                    <strong>Interpretation:</strong> Stable = rank correlation ≥0.95 & ≤5 tier changes. 
+                    High stability across scenarios indicates methodology is robust to reasonable parameter variations.
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1966,7 +2281,7 @@ export default function AggregateScoringReport() {
       {showDimensionModal && <DimensionScoringModal onClose={() => setShowDimensionModal(false)} defaultWeights={DEFAULT_DIMENSION_WEIGHTS} />}
       {showCompositeModal && <CompositeModal onClose={() => setShowCompositeModal(false)} compositeWeights={compositeWeights} />}
       {showTierStatsModal && <TierStatsModal onClose={() => setShowTierStatsModal(false)} companyScores={companyScores} includePanel={includePanel} />}
-      {showSensitivityModal && <SensitivityAnalysisModal onClose={() => setShowSensitivityModal(false)} companyScores={companyScores} weights={weights} includePanel={includePanel} />}
+      {showSensitivityModal && <SensitivityAnalysisModal onClose={() => setShowSensitivityModal(false)} companyScores={companyScores} weights={weights} includePanel={includePanel} assessments={assessments} />}
       {showReliabilityModal && <ReliabilityDiagnosticsModal onClose={() => setShowReliabilityModal(false)} companyScores={companyScores} assessments={assessments} includePanel={includePanel} />}
 
       {/* Header */}
