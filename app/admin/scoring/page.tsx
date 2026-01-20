@@ -828,41 +828,43 @@ function SensitivityAnalysisModal({
   const runAnalysis = () => {
     setIsRunning(true);
     
-    const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
-    if (filteredCompanies.length < 3) {
-      setResults(null);
-      setIsRunning(false);
-      return;
-    }
-    
-    // Baseline rankings
-    const baselineRanks = new Map<string, number>();
-    const baselineTiers = new Map<string, string>();
-    const sorted = [...filteredCompanies].sort((a, b) => b.compositeScore - a.compositeScore);
-    sorted.forEach((c, idx) => {
-      baselineRanks.set(c.surveyId, idx + 1);
-      baselineTiers.set(c.surveyId, getTierName(c.compositeScore));
-    });
-    
-    const getTierName = (score: number) => {
-      if (score >= 75) return 'Leading';
-      if (score >= 60) return 'Progressing';
-      if (score >= 40) return 'Emerging';
-      return 'Developing';
-    };
-    
-    // Run perturbations (±10% on each weight)
-    const perturbationResults: { ranks: Map<string, number>; tiers: Map<string, string> }[] = [];
-    const numPerturbations = 50;
-    
-    for (let p = 0; p < numPerturbations; p++) {
-      // Create perturbed weights
-      const perturbedWeights: Record<number, number> = {};
-      let totalWeight = 0;
+    // Use setTimeout to allow UI to update before heavy computation
+    setTimeout(() => {
+      const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
+      if (filteredCompanies.length < 3) {
+        setResults(null);
+        setIsRunning(false);
+        return;
+      }
       
-      for (let dim = 1; dim <= 13; dim++) {
-        const baseWeight = weights[dim] || 0;
-        const perturbation = (Math.random() - 0.5) * 0.2 * baseWeight; // ±10%
+      // Baseline rankings
+      const baselineRanks = new Map<string, number>();
+      const baselineTiers = new Map<string, string>();
+      const sorted = [...filteredCompanies].sort((a, b) => b.compositeScore - a.compositeScore);
+      sorted.forEach((c, idx) => {
+        baselineRanks.set(c.surveyId, idx + 1);
+        baselineTiers.set(c.surveyId, getTierName(c.compositeScore));
+      });
+      
+      const getTierName = (score: number) => {
+        if (score >= 75) return 'Leading';
+        if (score >= 60) return 'Progressing';
+        if (score >= 40) return 'Emerging';
+        return 'Developing';
+      };
+      
+      // Run perturbations (±10% on each weight)
+      const perturbationResults: { ranks: Map<string, number>; tiers: Map<string, string> }[] = [];
+      const numPerturbations = 50;
+      
+      for (let p = 0; p < numPerturbations; p++) {
+        // Create perturbed weights
+        const perturbedWeights: Record<number, number> = {};
+        let totalWeight = 0;
+        
+        for (let dim = 1; dim <= 13; dim++) {
+          const baseWeight = weights[dim] || 0;
+          const perturbation = (Math.random() - 0.5) * 0.2 * baseWeight; // ±10%
         perturbedWeights[dim] = Math.max(0, baseWeight + perturbation);
         totalWeight += perturbedWeights[dim];
       }
@@ -939,6 +941,7 @@ function SensitivityAnalysisModal({
     });
     
     setIsRunning(false);
+    }, 50); // Small delay to allow UI to update with spinner
   };
 
   return (
@@ -967,11 +970,21 @@ function SensitivityAnalysisModal({
             <button
               onClick={runAnalysis}
               disabled={isRunning}
-              className={`w-full py-3 rounded-lg font-semibold text-white transition-colors ${
-                isRunning ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-700'
+              className={`w-full py-3 rounded-lg font-semibold text-white transition-colors flex items-center justify-center gap-2 ${
+                isRunning ? 'bg-orange-400 cursor-wait' : 'bg-orange-600 hover:bg-orange-700'
               }`}
             >
-              {isRunning ? 'Running Analysis...' : 'Run Sensitivity Analysis'}
+              {isRunning ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Running 50 Simulations...
+                </>
+              ) : (
+                'Run Sensitivity Analysis'
+              )}
             </button>
             
             {results && (
