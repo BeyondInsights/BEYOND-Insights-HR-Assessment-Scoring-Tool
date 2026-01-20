@@ -3095,60 +3095,63 @@ export default function AggregateScoringReport() {
                       <th key={`footprint-${company.surveyId}`} 
                           className="px-2 py-1.5 text-center border-r border-slate-600 last:border-r-0"
                           style={{ minWidth: 100, backgroundColor: '#334155' }}>
-                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-                          company.globalFootprint.segment === 'Global' 
-                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md' 
-                            : company.globalFootprint.segment === 'Regional' 
-                            ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' 
-                            : 'bg-slate-500 text-white'
-                        }`}>
-                          {company.globalFootprint.segment === 'Global' && (
-                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                            </svg>
+                        <div className="flex flex-col items-center gap-1">
+                          {/* Row 1: Global Footprint Badge */}
+                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+                            company.globalFootprint.segment === 'Global' 
+                              ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md' 
+                              : company.globalFootprint.segment === 'Regional' 
+                              ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' 
+                              : 'bg-slate-500 text-white'
+                          }`}>
+                            {company.globalFootprint.segment === 'Global' && (
+                              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                              </svg>
+                            )}
+                            {company.globalFootprint.segment === 'Regional' && (
+                              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+                              </svg>
+                            )}
+                            {company.globalFootprint.segment === 'Single' && (
+                              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                              </svg>
+                            )}
+                            <span>{company.globalFootprint.countryCount}</span>
+                          </div>
+                          {/* Row 2: Geo Consistency Badge */}
+                          {company.globalFootprint.isMultiCountry ? (
+                            <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              company.globalFootprint.geoConsistency.badge === 'Consistent' 
+                                ? 'bg-green-100 text-green-700 border border-green-300' 
+                                : company.globalFootprint.geoConsistency.badge === 'Mixed' 
+                                ? 'bg-amber-100 text-amber-700 border border-amber-300' 
+                                : 'bg-orange-100 text-orange-700 border border-orange-300'
+                            }`} title={`${company.globalFootprint.geoConsistency.consistentCount}/${company.globalFootprint.geoConsistency.applicableCount} dimensions consistent`}>
+                              {company.globalFootprint.geoConsistency.badge === 'Consistent' && '✓ '}
+                              {company.globalFootprint.geoConsistency.badge === 'Mixed' && '~ '}
+                              {company.globalFootprint.geoConsistency.badge === 'Varies' && '⚠ '}
+                              {company.globalFootprint.geoConsistency.badge}
+                            </div>
+                          ) : (
+                            <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-200 text-slate-500 border border-slate-300" title="Single country - geo consistency N/A">
+                              — N/A
+                            </div>
                           )}
-                          {company.globalFootprint.segment === 'Regional' && (
-                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
-                            </svg>
-                          )}
-                          {company.globalFootprint.segment === 'Single' && (
-                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                            </svg>
-                          )}
-                          <span>{company.globalFootprint.countryCount}</span>
-                        </div>
-                        {/* Geo Consistency Badge - show N/A for single-country */}
-                        {company.globalFootprint.isMultiCountry ? (
-                          <div className={`mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                            company.globalFootprint.geoConsistency.badge === 'Consistent' 
+                          {/* Row 3: Data Confidence Badge */}
+                          <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            company.dataConfidence.score >= 95 
                               ? 'bg-green-100 text-green-700 border border-green-300' 
-                              : company.globalFootprint.geoConsistency.badge === 'Mixed' 
+                              : company.dataConfidence.score >= 85 
+                              ? 'bg-teal-100 text-teal-700 border border-teal-300' 
+                              : company.dataConfidence.score >= 70 
                               ? 'bg-amber-100 text-amber-700 border border-amber-300' 
-                              : 'bg-orange-100 text-orange-700 border border-orange-300'
-                          }`} title={`${company.globalFootprint.geoConsistency.consistentCount}/${company.globalFootprint.geoConsistency.applicableCount} dimensions consistent`}>
-                            {company.globalFootprint.geoConsistency.badge === 'Consistent' && '✓ '}
-                            {company.globalFootprint.geoConsistency.badge === 'Mixed' && '~ '}
-                            {company.globalFootprint.geoConsistency.badge === 'Varies' && '⚠ '}
-                            {company.globalFootprint.geoConsistency.badge}
+                              : 'bg-red-100 text-red-700 border border-red-300'
+                          }`} title={`${company.dataConfidence.verifiedItems}/${company.dataConfidence.totalItems} items verified (${company.dataConfidence.unsureItems} unsure)`}>
+                            {company.dataConfidence.score}% conf
                           </div>
-                        ) : (
-                          <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-200 text-slate-500 border border-slate-300" title="Single country - geo consistency N/A">
-                            — N/A
-                          </div>
-                        )}
-                        {/* Data Confidence Badge */}
-                        <div className={`mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          company.dataConfidence.score >= 95 
-                            ? 'bg-green-100 text-green-700 border border-green-300' 
-                            : company.dataConfidence.score >= 85 
-                            ? 'bg-teal-100 text-teal-700 border border-teal-300' 
-                            : company.dataConfidence.score >= 70 
-                            ? 'bg-amber-100 text-amber-700 border border-amber-300' 
-                            : 'bg-red-100 text-red-700 border border-red-300'
-                        }`} title={`${company.dataConfidence.verifiedItems}/${company.dataConfidence.totalItems} items verified (${company.dataConfidence.unsureItems} unsure)`}>
-                          {company.dataConfidence.score}% conf
                         </div>
                       </th>
                     ))}
