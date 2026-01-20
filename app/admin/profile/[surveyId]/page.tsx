@@ -180,11 +180,11 @@ function getScoreColor(score: number): string {
 
 function getPerformanceTier(score: number, isProvisional: boolean): { name: string; color: string; bg: string; isProvisional: boolean } {
   let tier: { name: string; color: string; bg: string };
-  if (score >= 90) tier = { name: 'Exemplary', color: '#1B5E20', bg: '#E8F5E9' };
-  else if (score >= 75) tier = { name: 'Leading', color: '#0D47A1', bg: '#E3F2FD' };
-  else if (score >= 60) tier = { name: 'Progressing', color: '#E65100', bg: '#FFF8E1' };
-  else if (score >= 40) tier = { name: 'Emerging', color: '#BF360C', bg: '#FFF3E0' };
-  else tier = { name: 'Beginning', color: '#37474F', bg: '#ECEFF1' };
+  if (score >= 90) tier = { name: 'Exemplary', color: '#065F46', bg: '#D1FAE5' };
+  else if (score >= 75) tier = { name: 'Leading', color: '#1E40AF', bg: '#DBEAFE' };
+  else if (score >= 60) tier = { name: 'Progressing', color: '#92400E', bg: '#FEF3C7' };
+  else if (score >= 40) tier = { name: 'Emerging', color: '#9A3412', bg: '#FFEDD5' };
+  else tier = { name: 'Developing', color: '#374151', bg: '#F3F4F6' };
   return { ...tier, isProvisional };
 }
 
