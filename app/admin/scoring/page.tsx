@@ -100,7 +100,8 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   if (typeof status === 'string') {
     const s = status.toLowerCase().trim();
     if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false };
-    if (s === 'unsure' || s.includes('unsure')) return { points: null, isUnsure: true };
+    // Handle both "Unsure" and "Unknown (5)" as unsure responses
+    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };
     if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {
       return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
     }
@@ -139,25 +140,26 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
 function scoreD1PaidLeave(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
-  // Order matters: check most specific ranges FIRST to avoid substring matching issues
+  // Match actual survey values: "13 or more weeks", "9 to less than 13 weeks", etc.
   if (v.includes('does not apply')) return 0;
-  if (v.includes('13 weeks or more') || v.includes('13+ weeks') || (v.includes('13') && v.includes('more'))) return 100;
-  if (v.includes('9 to') && v.includes('13')) return 70;   // "9 to less than 13"
-  if (v.includes('5 to') && v.includes('9')) return 40;    // "5 to less than 9"  
-  if (v.includes('3 to') && v.includes('5')) return 20;    // "3 to less than 5"
-  if (v.includes('1 to') && v.includes('3')) return 10;    // "1 to less than 3"
+  if (v.includes('13 or more') || v.includes('13 weeks or more') || v.includes('13+ weeks')) return 100;
+  if ((v.includes('9 to') && v.includes('13')) || v.includes('9-13')) return 70;
+  if ((v.includes('5 to') && v.includes('9')) || v.includes('5-9')) return 40;
+  if ((v.includes('3 to') && v.includes('5')) || v.includes('3-5')) return 20;
+  if ((v.includes('1 to') && v.includes('3')) || v.includes('1-3')) return 10;
   return 0;
 }
 
 function scoreD1PartTime(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
-  // Order matters: check most specific first
+  // Match actual survey values: "26 weeks or more", "13 to less than 26 weeks", "12 to less than 26 weeks", etc.
   if (v.includes('no additional')) return 0;
-  if (v.includes('medically necessary')) return 100;
-  if (v.includes('26 weeks or more') || v.includes('26+ weeks') || (v.includes('26') && v.includes('more'))) return 80;
-  if (v.includes('13 to') && v.includes('26')) return 50;  // "13 to less than 26"
-  if (v.includes('5 to') && v.includes('13')) return 30;   // "5 to less than 13"
+  if (v.includes('medically necessary') || v.includes('healthcare provider')) return 100;
+  if (v.includes('26 weeks or more') || v.includes('26+ weeks') || v.includes('26 or more')) return 80;
+  // Handle both "12 to" and "13 to" less than 26 - treat as same tier
+  if ((v.includes('12 to') || v.includes('13 to')) && v.includes('26')) return 50;
+  if ((v.includes('5 to') && v.includes('12')) || (v.includes('5 to') && v.includes('13'))) return 30;
   if (v.includes('case-by-case')) return 40;
   if (v.includes('4 weeks') || v.includes('up to 4')) return 10;
   return 0;
@@ -166,13 +168,14 @@ function scoreD1PartTime(value: string | undefined): number {
 function scoreD3Training(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
-  // Order matters: check ranges before single values
-  if (v.includes('less than 10')) return 0;
-  if (v === '100%' || v.includes('100% of')) return 100;
-  if (v.includes('75%') && v.includes('100%')) return 80;  // "75% to less than 100%"
-  if (v.includes('50%') && v.includes('75%')) return 50;   // "50% to less than 75%"
-  if (v.includes('25%') && v.includes('50%')) return 30;   // "25% to less than 50%"
-  if (v.includes('10%') && v.includes('25%')) return 10;   // "10% to less than 25%"
+  // Match actual survey values: "100%", "75 to less than 100%", "10 to less than 25%"
+  // IMPORTANT: Check for exact "less than 10%" first (not "less than 100")
+  if (v.includes('less than 10%') || v === 'less than 10' || v.includes('less than 10 percent')) return 0;
+  if (v === '100%' || v === '100' || v.includes('100% of') || (v.includes('100') && !v.includes('less than'))) return 100;
+  if (v.includes('75') && v.includes('100')) return 80;    // "75 to less than 100%"
+  if (v.includes('50') && v.includes('75')) return 50;     // "50 to less than 75%"
+  if (v.includes('25') && v.includes('50')) return 30;     // "25 to less than 50%"
+  if (v.includes('10') && v.includes('25')) return 10;     // "10 to less than 25%"
   return 0;
 }
 
@@ -193,7 +196,7 @@ function scoreD13Communication(value: string | undefined): number {
   if (v.includes('twice')) return 40;
   if (v.includes('annually') || v.includes('world cancer day')) return 20;
   if (v.includes('only when asked')) return 0;
-  if (v.includes('do not actively')) return 0;
+  if (v.includes('do not actively') || v.includes('no regular')) return 0;
   return 0;
 }
 
