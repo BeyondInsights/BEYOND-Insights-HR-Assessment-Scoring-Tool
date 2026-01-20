@@ -39,10 +39,11 @@ export const DIMENSION_WEIGHTS: Record<number, number> = {
 };
 
 // Component weights for enhanced composite (sum = 100%)
+// FIXED: Match scoring page formula exactly: 95% dimension + 3% maturity + 2% breadth
 export const COMPONENT_WEIGHTS = {
-  weightedDim: 0.85,  // 85% - primary driver
-  depth: 0.08,        // 8% - follow-up quality
-  maturity: 0.05,     // 5% - approach maturity
+  weightedDim: 0.95,  // 95% - primary driver (matches scoring page)
+  depth: 0.00,        // 0% - depth is blended INTO dimension scores, not separate
+  maturity: 0.03,     // 3% - approach maturity
   breadth: 0.02,      // 2% - program breadth
 };
 
@@ -753,60 +754,39 @@ function calculateDepthScore(assessment: any): DepthScore {
 }
 
 // ============================================
-// MATURITY SCORE CALCULATION (NEW)
+// MATURITY SCORE CALCULATION - FIXED to match scoring page
 // ============================================
 
 function calculateMaturityScore(assessment: any): MaturityScore {
   const details: Record<string, { value: number; maxValue: number; source: string }> = {};
-  let totalPoints = 0;
-  let maxPossible = 0;
   
   const currentSupportData = assessment.current_support_data || {};
   
-  // OR1 - Current approach level
-  const or1 = currentSupportData.or1;
-  if (or1) {
-    const score = scoreSelectFollowUp(or1, MATURITY_SCORING.or1);
-    details['or1'] = { value: score, maxValue: 10, source: `Approach: ${or1}` };
-    totalPoints += score;
-  }
-  maxPossible += 10;
+  // FIXED: Maturity is ONLY based on OR1, mapped to 0-100 scale
+  // This matches the scoring page formula exactly
+  const or1 = currentSupportData.or1 || '';
+  const v = String(or1).toLowerCase();
   
-  // OR5a - Caregiver support types
-  const or5a = currentSupportData.or5a;
-  if (or5a && Array.isArray(or5a)) {
-    const score = scoreCountBasedFollowUp(or5a, MATURITY_SCORING.or5a as any);
-    details['or5a'] = { value: score, maxValue: 10, source: `Caregiver supports: ${or5a.length} types` };
-    totalPoints += score;
-  }
-  maxPossible += 10;
-  
-  // OR6 - Effectiveness monitoring
-  const or6 = currentSupportData.or6;
-  if (or6 && Array.isArray(or6)) {
-    const score = scoreCountBasedFollowUp(or6, MATURITY_SCORING.or6 as any);
-    details['or6'] = { value: score, maxValue: 10, source: `Monitoring methods: ${or6.length} used` };
-    totalPoints += score;
-  }
-  maxPossible += 10;
-  
-  // OR2a - Triggers for enhanced support (bonus indicator)
-  const or2a = currentSupportData.or2a;
-  if (or2a && Array.isArray(or2a) && or2a.length > 0) {
-    const score = Math.min(or2a.length * 1.0, 10); // 1 point per trigger, max 10
-    details['or2a'] = { value: score, maxValue: 10, source: `Triggers: ${or2a.length} identified` };
-    totalPoints += score;
-    maxPossible += 10;
+  let percentage = 0;
+  if (v.includes('leading-edge') || v.includes('leading edge')) {
+    percentage = 100;
+  } else if (v.includes('comprehensive')) {
+    percentage = 100;
+  } else if (v.includes('enhanced') || v.includes('strong')) {
+    percentage = 80;
+  } else if (v.includes('moderate')) {
+    percentage = 50;
+  } else if (v.includes('basic') || v.includes('developing')) {
+    percentage = 20;
+  } else if (v.includes('legal minimum') || v.includes('no formal')) {
+    percentage = 0;
   }
   
-  // Calculate percentage
-  const answeredQuestions = Object.keys(details).length;
-  const adjustedMaxPossible = answeredQuestions * 10; // 10-point scale
-  const percentage = adjustedMaxPossible > 0 ? Math.round((totalPoints / adjustedMaxPossible) * 100) : 0;
+  details['or1'] = { value: percentage, maxValue: 100, source: `Approach: ${or1 || 'Not answered'}` };
   
   return {
-    total: totalPoints,
-    maxPossible: adjustedMaxPossible,
+    total: percentage,
+    maxPossible: 100,
     percentage,
     details,
   };
@@ -818,47 +798,43 @@ function calculateMaturityScore(assessment: any): MaturityScore {
 
 function calculateBreadthScore(assessment: any): BreadthScore {
   const details: Record<string, { value: number; maxValue: number; source: string }> = {};
-  let totalPoints = 0;
-  let maxPossible = 0;
   
   const currentSupportData = assessment.current_support_data || {};
   const generalBenefitsData = assessment.general_benefits_data || {};
   
-  // CB3a - Beyond legal requirements
-  const cb3a = currentSupportData.cb3a || generalBenefitsData.cb3a;
-  if (cb3a) {
-    const score = scoreSelectFollowUp(cb3a, BREADTH_SCORING.cb3a);
-    details['cb3a'] = { value: score, maxValue: 10, source: `Beyond legal: ${cb3a}` };
-    totalPoints += score;
-  }
-  maxPossible += 10;
+  // FIXED: Use same formula as scoring page - always average all 3 components on 0-100 scale
+  const scores: number[] = [];
   
-  // CB3b - Program structure
+  // CB3a - Beyond legal requirements (0-100)
+  const cb3a = currentSupportData.cb3a || generalBenefitsData.cb3a || '';
+  const cb3aLower = String(cb3a).toLowerCase();
+  let cb3aScore = 0;
+  if (cb3aLower.includes('yes') && cb3aLower.includes('additional support')) {
+    cb3aScore = 100;
+  } else if (cb3aLower.includes('developing')) {
+    cb3aScore = 50;
+  }
+  scores.push(cb3aScore);
+  details['cb3a'] = { value: cb3aScore, maxValue: 100, source: `Beyond legal: ${cb3a || 'Not answered'}` };
+  
+  // CB3b - Program structure (count / 6 * 100)
   const cb3b = currentSupportData.cb3b || generalBenefitsData.cb3b;
-  if (cb3b && Array.isArray(cb3b)) {
-    const score = scoreCountBasedFollowUp(cb3b, BREADTH_SCORING.cb3b as any);
-    details['cb3b'] = { value: score, maxValue: 10, source: `Program structure: ${cb3b.length} elements` };
-    totalPoints += score;
-  }
-  maxPossible += 10;
+  const cb3bScore = (cb3b && Array.isArray(cb3b)) ? Math.min(100, Math.round((cb3b.length / 6) * 100)) : 0;
+  scores.push(cb3bScore);
+  details['cb3b'] = { value: cb3bScore, maxValue: 100, source: `Program structure: ${cb3b && Array.isArray(cb3b) ? cb3b.length : 0} elements` };
   
-  // CB3c - Conditions covered
+  // CB3c - Conditions covered (count / 13 * 100)
   const cb3c = currentSupportData.cb3c || generalBenefitsData.cb3c;
-  if (cb3c && Array.isArray(cb3c)) {
-    const score = scoreCountBasedFollowUp(cb3c, BREADTH_SCORING.cb3c as any);
-    details['cb3c'] = { value: score, maxValue: 10, source: `Conditions: ${cb3c.length} covered` };
-    totalPoints += score;
-  }
-  maxPossible += 10;
+  const cb3cScore = (cb3c && Array.isArray(cb3c)) ? Math.min(100, Math.round((cb3c.length / 13) * 100)) : 0;
+  scores.push(cb3cScore);
+  details['cb3c'] = { value: cb3cScore, maxValue: 100, source: `Conditions: ${cb3c && Array.isArray(cb3c) ? cb3c.length : 0} covered` };
   
-  // Calculate percentage
-  const answeredQuestions = Object.keys(details).length;
-  const adjustedMaxPossible = answeredQuestions * 10; // 10-point scale
-  const percentage = adjustedMaxPossible > 0 ? Math.round((totalPoints / adjustedMaxPossible) * 100) : 0;
+  // ALWAYS average all 3 components
+  const percentage = Math.round(scores.reduce((a, b) => a + b, 0) / 3);
   
   return {
-    total: totalPoints,
-    maxPossible: adjustedMaxPossible,
+    total: percentage,
+    maxPossible: 100,
     percentage,
     details,
   };
@@ -881,23 +857,13 @@ export function calculateEnhancedScore(assessment: any): EnhancedScore {
   const maturityScore = maturityDetails.percentage;
   const breadthScore = breadthDetails.percentage;
   
-  // BALANCED WEIGHTED MODEL:
-  // Enhanced = (Weighted Dim × 85%) + (Depth × 8%) + (Maturity × 5%) + (Breadth × 2%)
-  // 
-  // This ensures:
-  // - Base dimension score is primary driver (85%)
-  // - Enhancements provide modest differentiation (15% combined)
-  // - Good enhancements boost slightly, poor enhancements lower slightly
-  // - No extreme swings
-  //
-  // Example: Base=70, Depth=80, Maturity=60, Breadth=40
-  // Enhanced = (70×0.85) + (80×0.08) + (60×0.05) + (40×0.02)
-  //          = 59.5 + 6.4 + 3 + 0.8 = 69.7 ≈ 70
+  // FIXED: Match scoring page formula EXACTLY
+  // Composite = 95% weighted dimension + 3% maturity + 2% breadth
+  // Depth is blended INTO dimension scores (85/15 for D1,D3,D12,D13), NOT separate
   
   const compositeScore = Math.round(
-    (baseScore * 0.85) +
-    (depthScore * 0.08) +
-    (maturityScore * 0.05) +
+    (baseScore * 0.95) +
+    (maturityScore * 0.03) +
     (breadthScore * 0.02)
   );
   
