@@ -483,7 +483,7 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
                 <div className="flex items-center gap-3">
                   <span className="w-24 text-sm font-medium text-gray-500">Unsure</span>
                   <div className="flex-1 h-2 bg-gray-200 rounded-full" style={{ width: '5%' }} />
-                  <span className="font-bold text-gray-500">0 pts (excluded)</span>
+                  <span className="font-bold text-gray-500">0 pts (in denominator)</span>
                 </div>
               </div>
             </section>
