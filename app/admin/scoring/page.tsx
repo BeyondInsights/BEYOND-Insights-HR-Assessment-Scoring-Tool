@@ -2980,61 +2980,54 @@ export default function AggregateScoringReport() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div ref={tableRef} className="overflow-x-auto max-h-[calc(100vh-300px)]">
-              <table className="text-sm" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
-                <colgroup>
-                  <col style={{ width: COL1_WIDTH, minWidth: COL1_WIDTH }} />
-                  <col style={{ width: COL2_WIDTH, minWidth: COL2_WIDTH }} />
-                  <col style={{ width: COL_AVG_WIDTH, minWidth: COL_AVG_WIDTH }} />
-                  <col style={{ width: COL_AVG_WIDTH, minWidth: COL_AVG_WIDTH }} />
-                  <col style={{ width: COL_AVG_WIDTH, minWidth: COL_AVG_WIDTH }} />
-                  <col style={{ width: COL_AVG_WIDTH, minWidth: COL_AVG_WIDTH }} />
-                  <col style={{ width: COL_AVG_WIDTH, minWidth: COL_AVG_WIDTH }} />
-                  <col style={{ width: COL_AVG_WIDTH, minWidth: COL_AVG_WIDTH }} />
-                  <col style={{ width: COL_AVG_WIDTH, minWidth: COL_AVG_WIDTH }} />
-                  {sortedCompanies.map(c => <col key={c.surveyId} style={{ width: 100, minWidth: 100 }} />)}
-                </colgroup>
+            <div ref={tableRef} className="overflow-auto max-h-[calc(100vh-300px)]" style={{ position: 'relative' }}>
+              <style>{`
+                .scoring-table th, .scoring-table td {
+                  box-sizing: border-box;
+                }
+              `}</style>
+              <table className="scoring-table text-sm" style={{ borderCollapse: 'separate', borderSpacing: 0, width: 'max-content' }}>
                 <thead className="sticky top-0 z-40">
-                  {/* Single header row - each cell sticky individually */}
+                  {/* Header row - Metric, Wt%, and all benchmark columns are sticky */}
                   <tr className="bg-slate-700 text-white">
                     <th className="px-4 py-3 text-left font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: 0, zIndex: 50, minWidth: COL1_WIDTH, width: COL1_WIDTH, backgroundColor: '#334155' }}>
                       <button onClick={() => handleSort('name')} className="hover:text-indigo-300 flex items-center gap-1">
                         Metric {sortBy === 'name' && <span className="text-xs">{sortDir === 'asc' ? '^' : 'v'}</span>}
                       </button>
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH, zIndex: 50, minWidth: COL2_WIDTH, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                       Wt %
                     </th>
-                    <th className="px-2 py-3 text-center font-semibold bg-indigo-600 border-r border-indigo-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#4F46E5' }}>
+                    <th className="px-2 py-3 text-center font-semibold border-r border-indigo-500"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#4F46E5' }}>
                       ALL
                     </th>
-                    <th className="px-2 py-3 text-center font-semibold bg-violet-600 border-r border-violet-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#7C3AED' }}>
+                    <th className="px-2 py-3 text-center font-semibold border-r border-violet-500"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#7C3AED' }}>
                       FP
                     </th>
-                    <th className="px-2 py-3 text-center font-semibold bg-slate-500 border-r border-slate-400"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#64748B' }}>
+                    <th className="px-2 py-3 text-center font-semibold border-r border-slate-400"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#64748B' }}>
                       STD
                     </th>
-                    <th className="px-2 py-3 text-center font-semibold bg-amber-600 border-r border-amber-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#D97706' }}>
+                    <th className="px-2 py-3 text-center font-semibold border-r border-amber-500"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (3 * COL_AVG_WIDTH), zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#D97706' }}>
                       PANEL
                     </th>
-                    <th className="px-2 py-3 text-center font-semibold bg-slate-600 border-r border-slate-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#475569' }}
+                    <th className="px-2 py-3 text-center font-semibold border-r border-slate-500"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (4 * COL_AVG_WIDTH), zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#475569' }}
                         title="Single Country">
                       1🌍
                     </th>
-                    <th className="px-2 py-3 text-center font-semibold bg-blue-600 border-r border-blue-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#2563EB' }}
+                    <th className="px-2 py-3 text-center font-semibold border-r border-blue-500"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (5 * COL_AVG_WIDTH), zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#2563EB' }}
                         title="Regional (2-10 countries)">
                       REG
                     </th>
-                    <th className="px-2 py-3 text-center font-semibold bg-purple-600 border-r border-purple-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#9333EA' }}
+                    <th className="px-2 py-3 text-center font-semibold border-r border-purple-500"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (6 * COL_AVG_WIDTH), zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#9333EA' }}
                         title="Global (10+ countries)">
                       GLB
                     </th>
@@ -3054,40 +3047,38 @@ export default function AggregateScoringReport() {
                     ))}
                   </tr>
                   {/* Country Count Row */}
-                  <tr className="bg-gradient-to-r from-slate-700 to-slate-800">
+                  <tr className="bg-slate-700">
                     <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, backgroundColor: '#334155' }}>
-                      <div className="space-y-0.5">
-                        <div>Global Footprint</div>
-                        <div className="text-[10px] text-slate-400">Geo Consistency</div>
-                        <div className="text-[10px] text-slate-400">Data Confidence</div>
-                      </div>
+                        style={{ position: 'sticky', left: 0, zIndex: 50, minWidth: COL1_WIDTH, width: COL1_WIDTH, backgroundColor: '#334155' }}>
+                      <div>Global Footprint</div>
+                      <div className="text-[10px] text-slate-400">Geo Consistency</div>
+                      <div className="text-[10px] text-slate-400">Data Confidence</div>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH, zIndex: 50, minWidth: COL2_WIDTH, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH, zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH), zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (3 * COL_AVG_WIDTH), zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (4 * COL_AVG_WIDTH), zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.single}</span>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (5 * COL_AVG_WIDTH), zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.regional}</span>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH + (6 * COL_AVG_WIDTH), zIndex: 50, minWidth: COL_AVG_WIDTH, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.global}</span>
                     </th>
                     {sortedCompanies.map(company => (
