@@ -891,7 +891,7 @@ export default function AggregateScoringReport() {
                 <span className="font-bold">{companyScores.filter(c => c.isPanel).length}</span>
               </div>
               <div className="border-l border-white/20 pl-4 flex items-center gap-2">
-                <span className="text-green-300">[check] Complete:</span>
+                <span className="text-green-300">Complete:</span>
                 <span className="font-bold">{companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
               </div>
             </div>
@@ -956,7 +956,7 @@ export default function AggregateScoringReport() {
             className="w-full px-4 py-3 flex items-center justify-between hover:bg-purple-100 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <span className="w-6 h-6 bg-purple-600 rounded flex items-center justify-center text-white text-xs font-bold">[gear]</span>
+              <span className="w-6 h-6 bg-purple-600 rounded flex items-center justify-center text-white text-xs font-bold">S</span>
               <span className="font-semibold text-purple-900">Blend Weight Settings</span>
               <span className="text-purple-600 text-sm">(D1, D3, D12, D13 use Grid + Follow-up blend)</span>
             </div>
@@ -1382,7 +1382,7 @@ export default function AggregateScoringReport() {
                         <span className="font-medium text-gray-900">
                           <span className="text-blue-600 font-bold">D{dim}:</span> {DIMENSION_NAMES[dim]}
                           {[1, 3, 12, 13].includes(dim) && (
-                            <span className="text-purple-500 text-xs ml-1" title="Uses blend with follow-up">[gear]</span>
+                            <span className="text-purple-500 text-xs ml-1" title="Uses blend with follow-up">*</span>
                           )}
                         </span>
                       </td>
