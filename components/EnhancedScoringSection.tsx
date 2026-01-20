@@ -1,9 +1,14 @@
 /**
- * ENHANCED SCORING COMPONENT - FINAL VERSION
+ * ENHANCED SCORING COMPONENT - UPDATED FOR NEW MODEL (Jan 2026)
  * 
- * Shows both scoring methods clearly:
- * - DIMENSION SCORE (grid-based + geo multiplier) - the original method
- * - ENHANCED COMPOSITE (Dimension + Depth + Maturity + Breadth)
+ * NEW SCORING MODEL:
+ * - WEIGHTED DIMENSION SCORE (95%): Grid responses with depth blended into applicable dimensions
+ *   - For D1, D3, D12, D13: Uses 85% grid + 15% depth blend
+ *   - For other dimensions: Uses 100% grid score
+ * - MATURITY (3%): Current support approach maturity
+ * - BREADTH (2%): Coverage scope and conditions
+ * 
+ * NOTE: Depth is no longer a separate bonus - it's integrated into dimension scoring
  */
 
 'use client';
@@ -14,8 +19,14 @@ import {
   getScoreColor,
   DIMENSION_NAMES,
   DIMENSION_WEIGHTS,
-  COMPONENT_WEIGHTS,
 } from '@/lib/enhanced-scoring';
+
+// Updated component weights for new model
+const NEW_COMPONENT_WEIGHTS = {
+  weightedDim: 0.95,  // 95% weighted dimension score
+  maturity: 0.03,     // 3% maturity
+  breadth: 0.02,      // 2% breadth
+};
 
 interface EnhancedScoringProps {
   assessment: any;
@@ -23,7 +34,15 @@ interface EnhancedScoringProps {
 }
 
 // ============================================
-// SCORE CIRCLE COMPONENT - FIXED POSITIONING
+// SAFE NUMBER HELPER
+// ============================================
+function safeNumber(value: any, fallback: number = 0): number {
+  if (value === null || value === undefined || isNaN(value)) return fallback;
+  return Number(value);
+}
+
+// ============================================
+// SCORE CIRCLE COMPONENT - WITH NaN PROTECTION
 // ============================================
 
 function ScoreCircle({ 
@@ -33,7 +52,8 @@ function ScoreCircle({
   score: number; 
   size?: 'large' | 'medium' | 'small';
 }) {
-  const color = getScoreColor(score);
+  const safeScore = safeNumber(score, 0);
+  const color = getScoreColor(safeScore);
   
   const dimensions = {
     large: { width: 140, strokeWidth: 10, radius: 58, fontSize: 'text-4xl' },
@@ -43,7 +63,7 @@ function ScoreCircle({
   
   const d = dimensions[size];
   const circumference = 2 * Math.PI * d.radius;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
+  const strokeDashoffset = circumference - (safeScore / 100) * circumference;
   
   return (
     <div className="relative" style={{ width: d.width, height: d.width }}>
@@ -70,7 +90,7 @@ function ScoreCircle({
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className={`${d.fontSize} font-bold`} style={{ color }}>{score}</span>
+        <span className={`${d.fontSize} font-bold`} style={{ color }}>{safeScore}</span>
       </div>
     </div>
   );
@@ -96,7 +116,9 @@ function ComponentBar({
   isMain?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const color = getScoreColor(score);
+  const safeScore = safeNumber(score, 0);
+  const safeContribution = safeNumber(contribution, 0);
+  const color = getScoreColor(safeScore);
   const hasDetails = details && Object.keys(details).length > 0;
   
   return (
@@ -123,11 +145,11 @@ function ComponentBar({
           <div className="w-32 h-2.5 bg-gray-200 rounded-full overflow-hidden">
             <div 
               className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${score}%`, backgroundColor: color }}
+              style={{ width: `${safeScore}%`, backgroundColor: color }}
             />
           </div>
-          <span className="font-bold text-lg w-10 text-right" style={{ color }}>{score}</span>
-          <span className="text-xs text-gray-500 w-16 text-right">+{contribution.toFixed(1)} pts</span>
+          <span className="font-bold text-lg w-10 text-right" style={{ color }}>{safeScore}</span>
+          <span className="text-xs text-gray-500 w-16 text-right">+{safeContribution.toFixed(1)} pts</span>
         </div>
       </div>
       
@@ -178,24 +200,32 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
   }
   
   const { 
-    baseScore, depthScore, maturityScore, breadthScore, compositeScore, tier,
-    depthDetails, maturityDetails, breadthDetails,
+    baseScore, maturityScore, breadthScore, compositeScore, tier,
+    maturityDetails, breadthDetails,
     dimensionScores, completedDimensions, insufficientDataCount, isProvisional
   } = enhancedScore;
   
-  // Calculate contributions
-  const dimensionContribution = baseScore * COMPONENT_WEIGHTS.base;
-  const depthContribution = depthScore * COMPONENT_WEIGHTS.depth;
-  const maturityContribution = maturityScore * COMPONENT_WEIGHTS.maturity;
-  const breadthContribution = breadthScore * COMPONENT_WEIGHTS.breadth;
+  // Safe score values
+  const safeBaseScore = safeNumber(baseScore, 0);
+  const safeMaturityScore = safeNumber(maturityScore, 0);
+  const safeBreadthScore = safeNumber(breadthScore, 0);
+  const safeCompositeScore = safeNumber(compositeScore, 0);
+  
+  // Calculate contributions using NEW weights (95/3/2)
+  const dimContribution = safeBaseScore * NEW_COMPONENT_WEIGHTS.weightedDim;
+  const maturityContribution = safeMaturityScore * NEW_COMPONENT_WEIGHTS.maturity;
+  const breadthContribution = safeBreadthScore * NEW_COMPONENT_WEIGHTS.breadth;
+  
+  // Recalculate composite with new weights
+  const newCompositeScore = Math.round(dimContribution + maturityContribution + breadthContribution);
   
   return (
     <section className="mb-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Enhanced Assessment Scoring</h2>
-          <p className="text-sm text-gray-600">Comprehensive evaluation across 4 scoring components</p>
+          <h2 className="text-xl font-bold text-gray-900">Assessment Scoring</h2>
+          <p className="text-sm text-gray-600">Composite score: 95% dimension + 3% maturity + 2% breadth</p>
         </div>
         {tier && (
           <div className="text-right">
@@ -216,46 +246,40 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
       <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          {/* Left: Dimension Score (Original Method) */}
+          {/* Left: Weighted Dimension Score */}
           <div className="flex flex-col items-center p-5 bg-blue-50 rounded-xl border-2 border-blue-200">
-            <p className="text-sm font-bold text-blue-800 mb-1">DIMENSION SCORE</p>
-            <p className="text-xs text-blue-600 mb-4">(Grid Responses + Geo Coverage)</p>
-            <ScoreCircle score={baseScore} size="large" />
+            <p className="text-sm font-bold text-blue-800 mb-1">WEIGHTED DIMENSION SCORE</p>
+            <p className="text-xs text-blue-600 mb-4">(Grid + Depth Blend for D1,D3,D12,D13)</p>
+            <ScoreCircle score={safeBaseScore} size="large" />
             <p className="text-xs text-gray-500 mt-4">{completedDimensions}/13 dimensions completed</p>
-            <p className="text-xs text-blue-600 mt-1 font-medium">Original Scoring Method</p>
+            <p className="text-xs text-blue-600 mt-1 font-medium">95% of Composite</p>
           </div>
           
-          {/* Right: Enhanced Composite */}
+          {/* Right: Composite Score */}
           <div className="flex flex-col items-center p-5 bg-purple-50 rounded-xl border-2 border-purple-200">
-            <p className="text-sm font-bold text-purple-800 mb-1">ENHANCED COMPOSITE</p>
-            <p className="text-xs text-purple-600 mb-4">(Dimension + Depth + Maturity + Breadth)</p>
-            <ScoreCircle score={compositeScore} size="large" />
-            <p className="text-xs text-gray-500 mt-4">Weighted combination of 4 components</p>
-            <p className="text-xs text-purple-600 mt-1 font-medium">New Enhanced Method</p>
+            <p className="text-sm font-bold text-purple-800 mb-1">COMPOSITE SCORE</p>
+            <p className="text-xs text-purple-600 mb-4">(Dimension 95% + Maturity 3% + Breadth 2%)</p>
+            <ScoreCircle score={newCompositeScore} size="large" />
+            <p className="text-xs text-gray-500 mt-4">Final weighted score</p>
+            <p className="text-xs text-purple-600 mt-1 font-medium">Index Ranking Score</p>
           </div>
         </div>
         
-        {/* Enhancement Factors Row */}
+        {/* Maturity & Breadth Row */}
         <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-sm font-semibold text-gray-700 mb-4 text-center">Enhancement Factors (added to Dimension Score)</p>
-          <div className="grid grid-cols-3 gap-6">
+          <p className="text-sm font-semibold text-gray-700 mb-4 text-center">Additional Components</p>
+          <div className="grid grid-cols-2 gap-6 max-w-md mx-auto">
             <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
-              <ScoreCircle score={depthScore} size="small" />
-              <p className="text-sm font-semibold text-gray-700 mt-3">Depth</p>
-              <p className="text-xs text-gray-500 text-center">Follow-up Question Quality</p>
-              <p className="text-xs text-indigo-600 font-medium mt-1">15% weight</p>
-            </div>
-            <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
-              <ScoreCircle score={maturityScore} size="small" />
+              <ScoreCircle score={safeMaturityScore} size="small" />
               <p className="text-sm font-semibold text-gray-700 mt-3">Maturity</p>
-              <p className="text-xs text-gray-500 text-center">Current Support Approach</p>
-              <p className="text-xs text-indigo-600 font-medium mt-1">10% weight</p>
+              <p className="text-xs text-gray-500 text-center">Support Approach</p>
+              <p className="text-xs text-indigo-600 font-medium mt-1">3% weight</p>
             </div>
             <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
-              <ScoreCircle score={breadthScore} size="small" />
+              <ScoreCircle score={safeBreadthScore} size="small" />
               <p className="text-sm font-semibold text-gray-700 mt-3">Breadth</p>
-              <p className="text-xs text-gray-500 text-center">Conditions & Structure</p>
-              <p className="text-xs text-indigo-600 font-medium mt-1">5% weight</p>
+              <p className="text-xs text-gray-500 text-center">Coverage Scope</p>
+              <p className="text-xs text-indigo-600 font-medium mt-1">2% weight</p>
             </div>
           </div>
         </div>
@@ -279,48 +303,40 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
           <h3 className="font-bold text-gray-900 mb-4">Score Composition Breakdown</h3>
           
           <ComponentBar 
-            label="Dimension Score" 
-            score={baseScore} 
-            weight={70}
-            contribution={dimensionContribution}
+            label="Weighted Dimension Score" 
+            score={safeBaseScore} 
+            weight={95}
+            contribution={dimContribution}
             isMain={true}
           />
           
           <div className="ml-4 border-l-2 border-gray-200 pl-4">
             <ComponentBar 
-              label="Depth Bonus" 
-              score={depthScore} 
-              weight={15}
-              contribution={depthContribution}
-              details={depthDetails.details}
-            />
-            
-            <ComponentBar 
-              label="Maturity Bonus" 
-              score={maturityScore} 
-              weight={10}
+              label="Maturity Score" 
+              score={safeMaturityScore} 
+              weight={3}
               contribution={maturityContribution}
-              details={maturityDetails.details}
+              details={maturityDetails?.details}
             />
             
             <ComponentBar 
-              label="Breadth Bonus" 
-              score={breadthScore} 
-              weight={5}
+              label="Breadth Score" 
+              score={safeBreadthScore} 
+              weight={2}
               contribution={breadthContribution}
-              details={breadthDetails.details}
+              details={breadthDetails?.details}
             />
           </div>
           
           {/* Total */}
           <div className="mt-4 pt-4 border-t-2 border-purple-200 flex items-center justify-between bg-purple-50 rounded-lg p-4">
-            <span className="font-bold text-purple-900 text-lg">Enhanced Composite Total</span>
+            <span className="font-bold text-purple-900 text-lg">Composite Total</span>
             <div className="flex items-center gap-4">
-              <span className="text-4xl font-bold" style={{ color: getScoreColor(compositeScore) }}>
-                {compositeScore}
+              <span className="text-4xl font-bold" style={{ color: getScoreColor(newCompositeScore) }}>
+                {newCompositeScore}
               </span>
               <span className="text-sm text-gray-600 bg-white px-3 py-1 rounded border">
-                = {dimensionContribution.toFixed(1)} + {depthContribution.toFixed(1)} + {maturityContribution.toFixed(1)} + {breadthContribution.toFixed(1)}
+                = {dimContribution.toFixed(1)} + {maturityContribution.toFixed(1)} + {breadthContribution.toFixed(1)}
               </span>
             </div>
           </div>
@@ -349,9 +365,9 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
                 <tr className="bg-indigo-800 text-white">
                   <th className="px-3 py-2 text-left font-semibold">Dimension</th>
                   <th className="px-2 py-2 text-center font-semibold w-12">Wt%</th>
-                  <th className="px-2 py-2 text-center font-semibold w-14">Raw</th>
+                  <th className="px-2 py-2 text-center font-semibold w-14">Grid</th>
                   <th className="px-2 py-2 text-center font-semibold w-12">Geo</th>
-                  <th className="px-2 py-2 text-center font-semibold w-14">Adj</th>
+                  <th className="px-2 py-2 text-center font-semibold w-14">Final</th>
                   <th className="px-3 py-2 text-left font-semibold">Response Breakdown</th>
                   <th className="px-2 py-2 text-center font-semibold w-14">Unsure</th>
                 </tr>
@@ -359,18 +375,22 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
               <tbody>
                 {[4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12].map((dim) => {
                   const score = dimensionScores[dim];
-                  const hasData = score.totalItems > 0;
-                  const isHighUnsure = score.isInsufficientData;
+                  const hasData = score && score.totalItems > 0;
+                  const isHighUnsure = score?.isInsufficientData;
                   const weight = DIMENSION_WEIGHTS[dim];
+                  const hasDepthBlend = [1, 3, 12, 13].includes(dim);
                   
                   return (
                     <tr key={dim} className={`border-b ${isHighUnsure ? 'bg-amber-50' : 'hover:bg-gray-50'}`}>
                       <td className="px-3 py-2 font-medium text-gray-900">
                         D{dim}: {DIMENSION_NAMES[dim]}
+                        {hasDepthBlend && (
+                          <span className="text-purple-500 text-xs ml-1" title="Uses 85% grid + 15% depth blend">†</span>
+                        )}
                       </td>
                       <td className="px-2 py-2 text-center text-gray-500 text-xs">{weight}%</td>
                       <td className="px-2 py-2 text-center">
-                        {hasData ? <span className="text-gray-600">{score.rawScore}</span> : <span className="text-gray-400">—</span>}
+                        {hasData ? <span className="text-gray-600">{safeNumber(score.rawScore)}</span> : <span className="text-gray-400">—</span>}
                       </td>
                       <td className="px-2 py-2 text-center text-xs">
                         {hasData && score.geoMultiplier < 1 ? (
@@ -381,19 +401,19 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
                       </td>
                       <td className="px-2 py-2 text-center">
                         {hasData ? (
-                          <span className="font-bold" style={{ color: getScoreColor(score.adjustedScore) }}>
-                            {score.adjustedScore}
+                          <span className="font-bold" style={{ color: getScoreColor(safeNumber(score.adjustedScore)) }}>
+                            {safeNumber(score.adjustedScore)}
                           </span>
                         ) : <span className="text-gray-400">—</span>}
                       </td>
                       <td className="px-3 py-2">
                         {hasData ? (
                           <div className="flex items-center gap-2 text-xs">
-                            <span className="text-green-600 font-medium" title="Currently Offer (5pts)">✓{score.breakdown.currentlyOffer}</span>
-                            <span className="text-blue-600 font-medium" title="Planning (3pts)">●{score.breakdown.planning}</span>
-                            <span className="text-orange-500 font-medium" title="Assessing (2pts)">○{score.breakdown.assessing}</span>
-                            <span className="text-red-500 font-medium" title="Not Able (0pts)">✗{score.breakdown.notAble}</span>
-                            {score.breakdown.unsure > 0 && (
+                            <span className="text-green-600 font-medium" title="Currently Offer (5pts)">✓{score.breakdown?.currentlyOffer || 0}</span>
+                            <span className="text-blue-600 font-medium" title="Planning (3pts)">●{score.breakdown?.planning || 0}</span>
+                            <span className="text-orange-500 font-medium" title="Assessing (2pts)">○{score.breakdown?.assessing || 0}</span>
+                            <span className="text-red-500 font-medium" title="Not Able (0pts)">✗{score.breakdown?.notAble || 0}</span>
+                            {(score.breakdown?.unsure || 0) > 0 && (
                               <span className="text-gray-400 font-medium" title="Unsure (0pts)">?{score.breakdown.unsure}</span>
                             )}
                           </div>
@@ -402,7 +422,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
                       <td className="px-2 py-2 text-center">
                         {hasData && score.unsureCount > 0 ? (
                           <span className={isHighUnsure ? 'text-amber-600 font-semibold' : 'text-gray-500'}>
-                            {isHighUnsure && '⚠️'}{Math.round(score.unsurePercent * 100)}%
+                            {isHighUnsure && '⚠️'}{Math.round(safeNumber(score.unsurePercent) * 100)}%
                           </span>
                         ) : <span className="text-gray-400">—</span>}
                       </td>
@@ -411,6 +431,9 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
                 })}
               </tbody>
             </table>
+            <div className="p-2 bg-gray-50 text-xs text-gray-500">
+              <span className="text-purple-500 font-medium">†</span> Dimensions D1, D3, D12, D13 use 85% grid + 15% depth blend
+            </div>
           </div>
         )}
       </div>
@@ -419,10 +442,9 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
       <div className="mt-4 p-3 bg-white/60 rounded-lg text-xs text-gray-600">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="font-semibold">Scoring Model:</span>
-          <span><strong className="text-blue-700">Dimension (70%)</strong> = Grid responses with geo adjustment</span>
-          <span><strong className="text-indigo-600">Depth (15%)</strong> = Follow-up question quality</span>
-          <span><strong className="text-indigo-600">Maturity (10%)</strong> = Current support approach</span>
-          <span><strong className="text-indigo-600">Breadth (5%)</strong> = Coverage scope</span>
+          <span><strong className="text-blue-700">Dimension (95%)</strong> = Weighted scores with depth blend on D1,D3,D12,D13</span>
+          <span><strong className="text-indigo-600">Maturity (3%)</strong> = Support approach level</span>
+          <span><strong className="text-indigo-600">Breadth (2%)</strong> = Coverage scope</span>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <span className="text-green-600 font-bold">✓</span> Currently Offer (5pts)
