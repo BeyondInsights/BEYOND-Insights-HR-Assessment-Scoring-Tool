@@ -1712,7 +1712,7 @@ function ReliabilityDiagnosticsModal({
     if (alpha >= 0.9) return { label: 'Excellent', color: 'text-green-600 bg-green-50' };
     if (alpha >= 0.8) return { label: 'Good', color: 'text-blue-600 bg-blue-50' };
     if (alpha >= 0.7) return { label: 'Acceptable', color: 'text-cyan-600 bg-cyan-50' };
-    if (alpha >= 0.5) return { label: 'Questionable', color: 'text-amber-600 bg-amber-50' };
+    if (alpha >= 0.5) return { label: 'Moderate', color: 'text-amber-600 bg-amber-50' };
     return { label: 'Poor', color: 'text-red-600 bg-red-50' };
   };
   
@@ -1803,7 +1803,7 @@ function ReliabilityDiagnosticsModal({
                     : 'bg-amber-50 border-amber-200 text-amber-700'
                 }`}>
                   <div className="text-3xl font-bold">{avgInterCorrelation.toFixed(2)}</div>
-                  <div className="text-sm">Avg Inter-Dimension r</div>
+                  <div className="text-sm">Avg Inter-Dimension Correlation</div>
                   <div className="text-xs mt-1 font-medium">
                     {avgInterCorrelation >= 0.3 && avgInterCorrelation <= 0.7 ? 'Optimal Range' : 'Review Needed'}
                   </div>
@@ -1827,8 +1827,8 @@ function ReliabilityDiagnosticsModal({
                         <th className="text-center py-3 px-3 font-semibold">Valid N</th>
                         <th className="text-center py-3 px-3 font-semibold">Cronbach's α</th>
                         <th className="text-center py-3 px-3 font-semibold">Quality</th>
-                        <th className="text-center py-3 px-3 font-semibold">Mean</th>
-                        <th className="text-center py-3 px-3 font-semibold">SD</th>
+                        <th className="text-center py-3 px-3 font-semibold" title="Average dimension score across companies">Score Mean</th>
+                        <th className="text-center py-3 px-3 font-semibold" title="Standard deviation of dimension scores">Score SD</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2358,7 +2358,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                 </div>
                 <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
                   <div className="text-4xl font-bold text-green-700">0.58</div>
-                  <div className="text-sm text-green-600">Avg Inter-Dimension r</div>
+                  <div className="text-sm text-green-600">Avg Inter-Dimension Correlation</div>
                   <div className="text-xs text-green-500 font-medium">Optimal Range (0.3-0.7)</div>
                 </div>
               </div>
@@ -2388,8 +2388,8 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                       { dim: 'D12: Continuous Improvement', items: 9, n: 36, alpha: 0.76, quality: 'Acceptable', color: 'text-cyan-600' },
                       { dim: 'D13: Communication', items: 11, n: 36, alpha: 0.75, quality: 'Acceptable', color: 'text-cyan-600' },
                       { dim: 'D3: Manager Preparedness', items: 10, n: 34, alpha: 0.74, quality: 'Acceptable', color: 'text-cyan-600' },
-                      { dim: 'D5: Workplace Accommodations', items: 11, n: 36, alpha: 0.66, quality: 'Questionable', color: 'text-amber-600', highlight: true },
-                      { dim: 'D1: Medical Leave & Flexibility', items: 13, n: 36, alpha: 0.59, quality: 'Questionable', color: 'text-amber-600', highlight: true },
+                      { dim: 'D5: Workplace Accommodations', items: 11, n: 36, alpha: 0.66, quality: 'Moderate', color: 'text-amber-600', highlight: true },
+                      { dim: 'D1: Medical Leave & Flexibility', items: 13, n: 36, alpha: 0.59, quality: 'Moderate', color: 'text-amber-600', highlight: true },
                     ].map((row, idx) => (
                       <tr key={idx} className={row.highlight ? 'bg-amber-50' : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="py-2 px-3">{row.dim}</td>
