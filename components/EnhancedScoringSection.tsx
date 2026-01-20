@@ -2,7 +2,7 @@
  * ENHANCED SCORING COMPONENT - FINAL VERSION (Jan 2026)
  * 
  * SCORING MODEL (90/5/5):
- * - WEIGHTED DIMENSION SCORE (90%): Grid responses with depth blended into applicable dimensions
+ * - WEIGHTED DIMENSION SCORE (95%): Grid responses with depth blended into applicable dimensions
  *   - For D1, D3, D12, D13: Uses 85% grid + 15% depth blend
  *   - For other dimensions: Uses 100% grid score
  * - MATURITY (5%): Current support approach maturity
@@ -29,12 +29,12 @@ import {
 } from '@/lib/enhanced-scoring';
 
 // ============================================
-// CANONICAL WEIGHTS - 90/5/5 MODEL
+// CANONICAL WEIGHTS - 95/3/2 MODEL (matches scoring page)
 // ============================================
 const COMPOSITE_WEIGHTS = {
-  weightedDim: 0.90,  // 90% weighted dimension score
-  maturity: 0.05,     // 5% maturity
-  breadth: 0.05,      // 5% breadth
+  weightedDim: 0.95,  // 95% weighted dimension score
+  maturity: 0.03,     // 3% maturity
+  breadth: 0.02,      // 2% breadth
 };
 
 // ============================================
@@ -249,7 +249,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Assessment Scoring</h2>
-          <p className="text-sm text-gray-600">Composite: 90% dimension + 5% maturity + 5% breadth</p>
+          <p className="text-sm text-gray-600">Composite: 95% dimension + 3% maturity + 2% breadth</p>
         </div>
         {tier && (
           <div className="text-right">
@@ -276,13 +276,13 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
             <p className="text-xs text-blue-600 mb-4">(Grid + Depth Blend for D1,D3,D12,D13)</p>
             <ScoreCircle score={safeBaseScore} size="large" />
             <p className="text-xs text-gray-500 mt-4">{completedDimensions}/13 dimensions completed</p>
-            <p className="text-xs text-blue-600 mt-1 font-medium">90% of Composite</p>
+            <p className="text-xs text-blue-600 mt-1 font-medium">95% of Composite</p>
           </div>
           
           {/* Right: Composite Score */}
           <div className="flex flex-col items-center p-5 bg-purple-50 rounded-xl border-2 border-purple-200">
             <p className="text-sm font-bold text-purple-800 mb-1">COMPOSITE SCORE</p>
-            <p className="text-xs text-purple-600 mb-4">(Dimension 90% + Maturity 5% + Breadth 5%)</p>
+            <p className="text-xs text-purple-600 mb-4">(Dimension 95% + Maturity 3% + Breadth 2%)</p>
             <ScoreCircle score={compositeScore} size="large" />
             <p className="text-xs text-gray-500 mt-4">Final weighted score</p>
             <p className="text-xs text-purple-600 mt-1 font-medium">Index Ranking Score</p>
@@ -338,7 +338,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
             <ComponentBar 
               label="Maturity Score" 
               score={safeMaturityScore} 
-              weight={5}
+              weight={3}
               contribution={maturityContribution}
               details={maturityDetails?.details}
             />
@@ -346,7 +346,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
             <ComponentBar 
               label="Breadth Score" 
               score={safeBreadthScore} 
-              weight={5}
+              weight={2}
               contribution={breadthContribution}
               details={breadthDetails?.details}
             />
@@ -466,9 +466,9 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
       <div className="mt-4 p-3 bg-white/60 rounded-lg text-xs text-gray-600">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="font-semibold">Scoring Model (v1.0):</span>
-          <span><strong className="text-blue-700">Dimension (90%)</strong> = Weighted scores with depth blend on D1,D3,D12,D13</span>
-          <span><strong className="text-indigo-600">Maturity (5%)</strong> = Support approach level</span>
-          <span><strong className="text-indigo-600">Breadth (5%)</strong> = Coverage scope</span>
+          <span><strong className="text-blue-700">Dimension (95%)</strong> = Weighted scores with depth blend on D1,D3,D12,D13</span>
+          <span><strong className="text-indigo-600">Maturity (3%)</strong> = Support approach level</span>
+          <span><strong className="text-indigo-600">Breadth (2%)</strong> = Coverage scope</span>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <span className="text-green-600 font-bold">✓</span> Currently Offer (5pts)
