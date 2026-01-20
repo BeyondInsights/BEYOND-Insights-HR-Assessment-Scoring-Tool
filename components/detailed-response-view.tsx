@@ -309,6 +309,42 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
       weightedScore = Math.round(weightedScore)
     }
     
+    // Calculate Maturity Score from OR1
+    const currentSupport = assessment.current_support_data || {}
+    const generalBenefits = assessment.general_benefits_data || {}
+    const or1 = currentSupport.or1 || generalBenefits.or1 || ''
+    let maturityScore = 0
+    const or1Lower = String(or1).toLowerCase()
+    if (or1Lower.includes('comprehensive') || or1Lower.includes('leading') || or1Lower.includes('extensive')) {
+      maturityScore = 100
+    } else if (or1Lower.includes('enhanced') || or1Lower.includes('strong')) {
+      maturityScore = 80
+    } else if (or1Lower.includes('moderate')) {
+      maturityScore = 50
+    } else if (or1Lower.includes('basic') || or1Lower.includes('developing')) {
+      maturityScore = 20
+    }
+    
+    // Calculate Breadth Score from CB3a, CB3b, CB3c
+    const cb3a = currentSupport.cb3a || generalBenefits.cb3a || ''
+    const cb3b = currentSupport.cb3b || generalBenefits.cb3b || []
+    const cb3c = currentSupport.cb3c || generalBenefits.cb3c || []
+    
+    const cb3aLower = String(cb3a).toLowerCase()
+    let cb3aScore = 0
+    if (cb3aLower.includes('yes') && cb3aLower.includes('additional support')) {
+      cb3aScore = 100
+    } else if (cb3aLower.includes('developing')) {
+      cb3aScore = 50
+    }
+    
+    const cb3bScore = Array.isArray(cb3b) && cb3b.length > 0 ? Math.min(100, Math.round((cb3b.length / 6) * 100)) : 0
+    const cb3cScore = Array.isArray(cb3c) && cb3c.length > 0 ? Math.min(100, Math.round((cb3c.length / 13) * 100)) : 0
+    const breadthScore = Math.round((cb3aScore + cb3bScore + cb3cScore) / 3)
+    
+    // Composite = 95% weighted + 3% maturity + 2% breadth
+    const compositeScore = Math.round(weightedScore * 0.95 + maturityScore * 0.03 + breadthScore * 0.02)
+    
     // Aggregate breakdown
     let totalCurrentlyOffer = 0
     let totalPlanning = 0
@@ -325,11 +361,18 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
       totalUnsure += score.breakdown.unsure
     }
     
-    const tier = completedDimCount > 0 ? getPerformanceTier(weightedScore, isProvisional) : null
+    // Use composite score for tier (not just weighted)
+    const tier = completedDimCount > 0 ? getPerformanceTier(compositeScore, isProvisional) : null
     
     return {
       unweightedScore,
       weightedScore,
+      compositeScore,
+      maturityScore,
+      breadthScore,
+      cb3aScore,
+      cb3bScore,
+      cb3cScore,
       completedDimCount,
       isComplete,
       isProvisional,
@@ -343,7 +386,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
         unsure: totalUnsure
       }
     }
-  }, [dimensionScores])
+  }, [dimensionScores, assessment])
 
   // Check if any dimension has data
   const hasAnyDimensionData = compositeScores.completedDimCount > 0
@@ -583,18 +626,19 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                 )}
               </div>
               
-              {/* Summary Cards */}
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="bg-white rounded-lg p-3 border border-indigo-200">
-                  <p className="text-xs text-gray-500 uppercase">Weighted Score</p>
-                  <p className="text-2xl font-bold" style={{ color: getScoreColor(compositeScores.weightedScore) }}>
-                    {compositeScores.completedDimCount > 0 ? compositeScores.weightedScore : '—'}
+              {/* Summary Cards - Top Row: Main Scores */}
+              <div className="grid grid-cols-3 gap-4 mb-3">
+                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-3 border-2 border-indigo-300">
+                  <p className="text-xs text-indigo-600 uppercase font-semibold">Composite Score</p>
+                  <p className="text-3xl font-bold" style={{ color: getScoreColor(compositeScores.compositeScore) }}>
+                    {compositeScores.completedDimCount > 0 ? compositeScores.compositeScore : '—'}
                   </p>
+                  <p className="text-[10px] text-gray-500 mt-1">95% Dim + 3% Mat + 2% Brd</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-indigo-200">
-                  <p className="text-xs text-gray-500 uppercase">Unweighted Avg</p>
-                  <p className="text-2xl font-bold text-gray-700">
-                    {compositeScores.completedDimCount > 0 ? compositeScores.unweightedScore : '—'}
+                  <p className="text-xs text-gray-500 uppercase">Weighted Dimension</p>
+                  <p className="text-2xl font-bold" style={{ color: getScoreColor(compositeScores.weightedScore) }}>
+                    {compositeScores.completedDimCount > 0 ? compositeScores.weightedScore : '—'}
                   </p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-indigo-200">
@@ -602,6 +646,36 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                   <p className="text-2xl font-bold text-gray-700">
                     {compositeScores.completedDimCount}/13
                   </p>
+                </div>
+              </div>
+              
+              {/* Summary Cards - Bottom Row: Maturity & Breadth */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-white rounded-lg p-3 border border-green-200">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-xs text-green-600 uppercase font-medium">Maturity (3%)</p>
+                      <p className="text-xl font-bold" style={{ color: getScoreColor(compositeScores.maturityScore) }}>
+                        {compositeScores.maturityScore}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-400">OR1</span>
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-purple-200">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-xs text-purple-600 uppercase font-medium">Breadth (2%)</p>
+                      <p className="text-xl font-bold" style={{ color: getScoreColor(compositeScores.breadthScore) }}>
+                        {compositeScores.breadthScore}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-gray-400 block">CB3a: {compositeScores.cb3aScore}</span>
+                      <span className="text-[10px] text-gray-400 block">CB3b: {compositeScores.cb3bScore}</span>
+                      <span className="text-[10px] text-gray-400 block">CB3c: {compositeScores.cb3cScore}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
