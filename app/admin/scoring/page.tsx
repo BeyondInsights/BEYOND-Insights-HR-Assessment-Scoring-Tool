@@ -1091,79 +1091,266 @@ function ReliabilityDiagnosticsModal({
   assessments: Record<string, any>[];
   includePanel: boolean;
 }) {
-  const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
+  const [activeTab, setActiveTab] = useState<'executive' | 'detailed' | 'items'>('executive');
+  const [selectedDim, setSelectedDim] = useState<number>(1);
   
-  // Calculate internal consistency per dimension (simplified Cronbach's alpha approximation)
-  const calculateDimensionStats = (dimNum: number) => {
-    const scores = filteredCompanies.map(c => c.dimensions[dimNum]?.blendedScore ?? 0);
-    const n = scores.length;
-    if (n < 3) return { mean: 0, std: 0, min: 0, max: 0, floor: 0, ceiling: 0 };
+  const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
+  const filteredAssessments = assessments.filter(a => {
+    const company = filteredCompanies.find(c => c.surveyId === a.app_id);
+    return company !== undefined;
+  });
+  
+  // Item definitions per dimension (main scoring items only)
+  const DIMENSION_ITEMS: Record<number, { key: string; field: string; items: string[] }> = {
+    1: { key: 'd1a', field: 'dimension1_data', items: ['Dedicated cancer/serious illness navigation services', 'Employee assistance program (EAP) with cancer-specific resources', 'Medical advocacy/second opinion services', 'Treatment coordination support', 'Digital health tools for symptom tracking/management', 'Survivorship care planning resources', 'Clinical trial matching services', 'Personalized care team assignment'] },
+    2: { key: 'd2a', field: 'dimension2_data', items: ['Cancer-specific coverage (chemotherapy, radiation, immunotherapy)', 'Coverage for clinical trial participation', 'Out-of-network specialist access', 'Mental health coverage parity', 'Fertility preservation coverage', 'Genetic testing coverage', 'Rehabilitation services coverage', 'Palliative/supportive care coverage', 'Coverage for prosthetics/medical devices', 'Travel/lodging for treatment', 'Telemedicine/virtual care'] },
+    3: { key: 'd3a', field: 'dimension3_data', items: ['Mandatory training for all people managers', 'Role-specific training (HR, senior leaders)', 'Training includes legal compliance', 'Training includes communication skills', 'Training includes accommodation process', 'Simulation/scenario-based exercises', 'Refresher training requirements', 'Manager resource toolkit/quick reference'] },
+    4: { key: 'd4a', field: 'dimension4_data', items: ['Centralized intake/request process', 'Interactive accommodation process with employee', 'Temporary accommodations while evaluating', 'Appeals/review process', 'Proactive accommodation suggestions', 'Technology/equipment accommodations', 'Workspace modification options', 'Meeting/scheduling flexibility'] },
+    5: { key: 'd5a', field: 'dimension5_data', items: ['Formal flexible work policy', 'Remote work options', 'Modified schedules', 'Reduced hours with benefits', 'Job sharing options', 'Gradual return-to-work program', 'Workload adjustment protocols', 'Break time flexibility'] },
+    6: { key: 'd6a', field: 'dimension6_data', items: ['Anti-discrimination policy includes serious illness', 'Psychological safety training', 'Employee resource group (ERG) for health', 'Peer support/buddy programs', 'Leadership visible support', 'Non-retaliation policy', 'Confidentiality protections', 'Regular culture assessments'] },
+    7: { key: 'd7a', field: 'dimension7_data', items: ['Career continuity planning', 'Skills maintenance during leave', 'Alternative role exploration', 'Mentorship continuation', 'Performance evaluation adjustments', 'Promotion eligibility protection', 'Professional development access', 'Recognition programs inclusion'] },
+    8: { key: 'd8a', field: 'dimension8_data', items: ['Paid medical leave beyond FMLA/statutory', 'Leave for appointments/treatment', 'Intermittent leave flexibility', 'Leave donation programs', 'Disability insurance supplements', 'Job protection beyond legal minimum', 'Benefits continuation during leave', 'Gradual return options'] },
+    9: { key: 'd9a', field: 'dimension9_data', items: ['Executive sponsor for cancer support', 'Board/C-suite reporting on programs', 'Dedicated budget allocation', 'Strategic plan includes employee health', 'Executive communication on support', 'Leadership accountability metrics', 'Cross-functional governance', 'External commitments/pledges'] },
+    10: { key: 'd10a', field: 'dimension10_data', items: ['Paid caregiver leave', 'Flexible scheduling for caregivers', 'Caregiver support groups', 'Backup care services', 'Care management resources', 'Legal/financial planning assistance', 'Modified duties during caregiving', 'Unpaid leave job protection', 'Eldercare consultation', 'Paid time for care appointments', 'Expanded caregiver leave eligibility'] },
+    11: { key: 'd11a', field: 'dimension11_data', items: ['Recommended screening coverage', 'Annual health checkups', 'Risk-reduction programs', 'Paid time for preventive care', 'Legal protections beyond requirements', 'Workplace safety assessments', 'Health education sessions', 'Individual health assessments', 'Genetic screening/counseling', 'On-site vaccinations', 'Lifestyle coaching', 'Risk factor tracking', 'Immuno-compromised policies'] },
+    12: { key: 'd12a', field: 'dimension12_data', items: ['Return-to-work metrics', 'Employee satisfaction tracking', 'Business impact/ROI assessment', 'Regular program enhancements', 'External benchmarking', 'Innovation pilots', 'Employee confidence tracking', 'Program utilization analytics'] },
+    13: { key: 'd13a', field: 'dimension13_data', items: ['Proactive diagnosis communication', 'Dedicated program website/portal', 'Quarterly awareness campaigns', 'New hire orientation coverage', 'Manager cascade toolkit', 'Employee testimonials/stories', 'Multi-channel strategy', 'Family/caregiver inclusion', 'Anonymous info access'] },
+  };
+  
+  // Score mapping for items
+  const scoreItem = (value: string | undefined): number | null => {
+    if (!value || value === 'Unsure') return null;
+    const v = value.toLowerCase();
+    if (v.includes('currently offer') || v.includes('currently use') || v.includes('currently measure')) return 100;
+    if (v.includes('active planning') || v.includes('in active')) return 66;
+    if (v.includes('assessing feasibility')) return 33;
+    if (v.includes('not able')) return 0;
+    return null;
+  };
+  
+  // Get item-level scores for a dimension across all companies
+  const getItemScores = (dimNum: number): { itemName: string; scores: (number | null)[] }[] => {
+    const dimConfig = DIMENSION_ITEMS[dimNum];
+    if (!dimConfig) return [];
     
-    const mean = scores.reduce((a, b) => a + b, 0) / n;
-    const variance = scores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / n;
-    const std = Math.sqrt(variance);
-    const min = Math.min(...scores);
-    const max = Math.max(...scores);
-    const floor = scores.filter(s => s <= 10).length;
-    const ceiling = scores.filter(s => s >= 90).length;
+    return dimConfig.items.map(itemName => {
+      const scores = filteredAssessments.map(assessment => {
+        const dimData = assessment[dimConfig.field];
+        if (!dimData || !dimData[dimConfig.key]) return null;
+        const itemValue = dimData[dimConfig.key][itemName];
+        return scoreItem(itemValue);
+      });
+      return { itemName, scores };
+    });
+  };
+  
+  // Calculate Cronbach's Alpha
+  const calculateCronbachAlpha = (dimNum: number): { alpha: number; itemCount: number; validN: number } => {
+    const itemScores = getItemScores(dimNum);
+    if (itemScores.length < 2) return { alpha: 0, itemCount: 0, validN: 0 };
+    
+    // Get companies with complete data for this dimension
+    const validIndices: number[] = [];
+    for (let i = 0; i < filteredAssessments.length; i++) {
+      const allValid = itemScores.every(item => item.scores[i] !== null);
+      if (allValid) validIndices.push(i);
+    }
+    
+    if (validIndices.length < 3) return { alpha: 0, itemCount: itemScores.length, validN: validIndices.length };
+    
+    const k = itemScores.length; // number of items
+    const n = validIndices.length; // number of valid responses
+    
+    // Calculate item variances and total variance
+    const itemVariances: number[] = [];
+    const totals: number[] = [];
+    
+    // Calculate totals for each respondent
+    for (const idx of validIndices) {
+      let total = 0;
+      for (const item of itemScores) {
+        total += item.scores[idx] || 0;
+      }
+      totals.push(total);
+    }
+    
+    // Calculate variance of totals
+    const totalMean = totals.reduce((a, b) => a + b, 0) / n;
+    const totalVariance = totals.reduce((sum, t) => sum + Math.pow(t - totalMean, 2), 0) / (n - 1);
+    
+    // Calculate variance of each item
+    for (const item of itemScores) {
+      const validScores = validIndices.map(idx => item.scores[idx] || 0);
+      const mean = validScores.reduce((a, b) => a + b, 0) / n;
+      const variance = validScores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / (n - 1);
+      itemVariances.push(variance);
+    }
+    
+    const sumItemVariances = itemVariances.reduce((a, b) => a + b, 0);
+    
+    if (totalVariance === 0) return { alpha: 0, itemCount: k, validN: n };
+    
+    // Cronbach's alpha formula: α = (k/(k-1)) * (1 - Σσ²ᵢ/σ²ₜ)
+    const alpha = (k / (k - 1)) * (1 - sumItemVariances / totalVariance);
     
     return { 
-      mean: Math.round(mean * 10) / 10, 
-      std: Math.round(std * 10) / 10, 
-      min, 
-      max,
-      floor,
-      ceiling,
+      alpha: Math.max(0, Math.min(1, alpha)), 
+      itemCount: k, 
+      validN: n 
     };
   };
   
-  // Calculate dimension correlations
-  const calculateCorrelation = (dim1: number, dim2: number) => {
-    const scores1 = filteredCompanies.map(c => c.dimensions[dim1]?.blendedScore ?? 0);
-    const scores2 = filteredCompanies.map(c => c.dimensions[dim2]?.blendedScore ?? 0);
+  // Calculate item-total correlations
+  const calculateItemTotalCorrelations = (dimNum: number): { itemName: string; correlation: number; alphaIfDropped: number }[] => {
+    const itemScores = getItemScores(dimNum);
+    if (itemScores.length < 3) return [];
     
-    const n = scores1.length;
-    if (n < 3) return 0;
-    
-    const mean1 = scores1.reduce((a, b) => a + b, 0) / n;
-    const mean2 = scores2.reduce((a, b) => a + b, 0) / n;
-    
-    let numerator = 0;
-    let denom1 = 0;
-    let denom2 = 0;
-    
-    for (let i = 0; i < n; i++) {
-      const d1 = scores1[i] - mean1;
-      const d2 = scores2[i] - mean2;
-      numerator += d1 * d2;
-      denom1 += d1 * d1;
-      denom2 += d2 * d2;
+    // Get valid indices
+    const validIndices: number[] = [];
+    for (let i = 0; i < filteredAssessments.length; i++) {
+      const allValid = itemScores.every(item => item.scores[i] !== null);
+      if (allValid) validIndices.push(i);
     }
     
-    if (denom1 === 0 || denom2 === 0) return 0;
-    return numerator / Math.sqrt(denom1 * denom2);
+    if (validIndices.length < 3) return [];
+    
+    const n = validIndices.length;
+    const results: { itemName: string; correlation: number; alphaIfDropped: number }[] = [];
+    
+    for (let itemIdx = 0; itemIdx < itemScores.length; itemIdx++) {
+      const currentItem = itemScores[itemIdx];
+      
+      // Calculate "rest" score (total without this item)
+      const restScores: number[] = [];
+      const itemValues: number[] = [];
+      
+      for (const idx of validIndices) {
+        let restTotal = 0;
+        for (let j = 0; j < itemScores.length; j++) {
+          if (j !== itemIdx) {
+            restTotal += itemScores[j].scores[idx] || 0;
+          }
+        }
+        restScores.push(restTotal);
+        itemValues.push(currentItem.scores[idx] || 0);
+      }
+      
+      // Calculate correlation
+      const itemMean = itemValues.reduce((a, b) => a + b, 0) / n;
+      const restMean = restScores.reduce((a, b) => a + b, 0) / n;
+      
+      let numerator = 0;
+      let denom1 = 0;
+      let denom2 = 0;
+      
+      for (let i = 0; i < n; i++) {
+        const d1 = itemValues[i] - itemMean;
+        const d2 = restScores[i] - restMean;
+        numerator += d1 * d2;
+        denom1 += d1 * d1;
+        denom2 += d2 * d2;
+      }
+      
+      const correlation = (denom1 > 0 && denom2 > 0) ? numerator / Math.sqrt(denom1 * denom2) : 0;
+      
+      // Calculate alpha if this item dropped (simplified)
+      const k = itemScores.length - 1;
+      if (k < 2) {
+        results.push({ itemName: currentItem.itemName, correlation, alphaIfDropped: 0 });
+        continue;
+      }
+      
+      // Recalculate with item removed
+      const remainingItems = itemScores.filter((_, idx) => idx !== itemIdx);
+      const newTotals = validIndices.map(idx => 
+        remainingItems.reduce((sum, item) => sum + (item.scores[idx] || 0), 0)
+      );
+      const newTotalMean = newTotals.reduce((a, b) => a + b, 0) / n;
+      const newTotalVar = newTotals.reduce((sum, t) => sum + Math.pow(t - newTotalMean, 2), 0) / (n - 1);
+      
+      let newSumItemVar = 0;
+      for (const item of remainingItems) {
+        const scores = validIndices.map(idx => item.scores[idx] || 0);
+        const mean = scores.reduce((a, b) => a + b, 0) / n;
+        const variance = scores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / (n - 1);
+        newSumItemVar += variance;
+      }
+      
+      const alphaIfDropped = newTotalVar > 0 ? (k / (k - 1)) * (1 - newSumItemVar / newTotalVar) : 0;
+      
+      results.push({ 
+        itemName: currentItem.itemName, 
+        correlation: Math.max(-1, Math.min(1, correlation)), 
+        alphaIfDropped: Math.max(0, Math.min(1, alphaIfDropped))
+      });
+    }
+    
+    return results;
   };
   
-  const dimStats = DIMENSION_ORDER.map(dim => ({
-    dim,
-    name: DIMENSION_NAMES[dim],
-    ...calculateDimensionStats(dim),
-  }));
+  // Calculate all dimension reliability stats
+  const dimensionReliability = DIMENSION_ORDER.map(dim => {
+    const { alpha, itemCount, validN } = calculateCronbachAlpha(dim);
+    const scores = filteredCompanies.map(c => c.dimensions[dim]?.blendedScore ?? 0);
+    const mean = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+    const variance = scores.length > 0 ? scores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / scores.length : 0;
+    const std = Math.sqrt(variance);
+    
+    return {
+      dim,
+      name: DIMENSION_NAMES[dim],
+      alpha: Math.round(alpha * 100) / 100,
+      itemCount,
+      validN,
+      mean: Math.round(mean * 10) / 10,
+      std: Math.round(std * 10) / 10,
+    };
+  });
+  
+  // Calculate average alpha
+  const avgAlpha = dimensionReliability.reduce((sum, d) => sum + d.alpha, 0) / dimensionReliability.length;
+  
+  // Get alpha quality label
+  const getAlphaQuality = (alpha: number): { label: string; color: string } => {
+    if (alpha >= 0.9) return { label: 'Excellent', color: 'text-green-600 bg-green-50' };
+    if (alpha >= 0.8) return { label: 'Good', color: 'text-blue-600 bg-blue-50' };
+    if (alpha >= 0.7) return { label: 'Acceptable', color: 'text-cyan-600 bg-cyan-50' };
+    if (alpha >= 0.6) return { label: 'Questionable', color: 'text-amber-600 bg-amber-50' };
+    if (alpha >= 0.5) return { label: 'Poor', color: 'text-orange-600 bg-orange-50' };
+    return { label: 'Unacceptable', color: 'text-red-600 bg-red-50' };
+  };
   
   // Calculate average inter-dimension correlation
   let totalCorr = 0;
   let corrCount = 0;
   for (let i = 0; i < DIMENSION_ORDER.length; i++) {
     for (let j = i + 1; j < DIMENSION_ORDER.length; j++) {
-      totalCorr += calculateCorrelation(DIMENSION_ORDER[i], DIMENSION_ORDER[j]);
-      corrCount++;
+      const scores1 = filteredCompanies.map(c => c.dimensions[DIMENSION_ORDER[i]]?.blendedScore ?? 0);
+      const scores2 = filteredCompanies.map(c => c.dimensions[DIMENSION_ORDER[j]]?.blendedScore ?? 0);
+      const n = scores1.length;
+      if (n >= 3) {
+        const mean1 = scores1.reduce((a, b) => a + b, 0) / n;
+        const mean2 = scores2.reduce((a, b) => a + b, 0) / n;
+        let num = 0, d1 = 0, d2 = 0;
+        for (let k = 0; k < n; k++) {
+          const x1 = scores1[k] - mean1;
+          const x2 = scores2[k] - mean2;
+          num += x1 * x2;
+          d1 += x1 * x1;
+          d2 += x2 * x2;
+        }
+        if (d1 > 0 && d2 > 0) {
+          totalCorr += num / Math.sqrt(d1 * d2);
+          corrCount++;
+        }
+      }
     }
   }
   const avgInterCorrelation = corrCount > 0 ? totalCorr / corrCount : 0;
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">Reliability Diagnostics</h2>
@@ -1173,74 +1360,290 @@ function ReliabilityDiagnosticsModal({
               </svg>
             </button>
           </div>
-        </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
-          <div className="space-y-6">
-            {/* Summary */}
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <div className="flex items-center justify-between">
-                <span className="text-blue-900 font-medium">Companies Analyzed:</span>
-                <span className="text-2xl font-bold text-blue-900">{filteredCompanies.length}</span>
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-blue-800">Avg Inter-Dimension Correlation:</span>
-                <span className={`text-xl font-bold ${
-                  avgInterCorrelation >= 0.3 && avgInterCorrelation <= 0.7 ? 'text-green-600' : 'text-amber-600'
-                }`}>
-                  {(avgInterCorrelation).toFixed(2)}
-                </span>
-              </div>
-              <p className="text-xs text-blue-600 mt-2">
-                Moderate correlations (0.3-0.7) suggest dimensions measure related but distinct constructs.
-              </p>
-            </div>
-            
-            {/* Dimension Statistics */}
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3">Dimension Score Distributions</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="text-left py-2 px-3 font-semibold">Dimension</th>
-                      <th className="text-center py-2 px-2 font-semibold">Mean</th>
-                      <th className="text-center py-2 px-2 font-semibold">Std Dev</th>
-                      <th className="text-center py-2 px-2 font-semibold">Min</th>
-                      <th className="text-center py-2 px-2 font-semibold">Max</th>
-                      <th className="text-center py-2 px-2 font-semibold">Floor (≤10)</th>
-                      <th className="text-center py-2 px-2 font-semibold">Ceiling (≥90)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dimStats.map((stat, idx) => (
-                      <tr key={stat.dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="py-2 px-3 font-medium">
-                          <span className="text-blue-600">D{stat.dim}:</span> {stat.name.split(' ')[0]}
-                        </td>
-                        <td className="py-2 px-2 text-center font-bold">{stat.mean}</td>
-                        <td className="py-2 px-2 text-center">{stat.std}</td>
-                        <td className="py-2 px-2 text-center text-red-600">{stat.min}</td>
-                        <td className="py-2 px-2 text-center text-green-600">{stat.max}</td>
-                        <td className={`py-2 px-2 text-center ${stat.floor > 0 ? 'text-red-600 font-bold' : 'text-gray-400'}`}>
-                          {stat.floor}
-                        </td>
-                        <td className={`py-2 px-2 text-center ${stat.ceiling > filteredCompanies.length * 0.3 ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>
-                          {stat.ceiling}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-            
-            {/* Interpretation Guide */}
-            <div className="bg-gray-100 rounded-lg p-4 text-xs text-gray-600 space-y-2">
-              <p><strong>Floor/Ceiling Effects:</strong> High counts indicate poor differentiation at score extremes.</p>
-              <p><strong>Standard Deviation:</strong> Low SD suggests limited variability (potential measurement issue).</p>
-              <p><strong>Inter-Dimension Correlation:</strong> Very high correlations (&gt;0.8) may indicate redundant dimensions; very low (&lt;0.2) may indicate unrelated constructs.</p>
-            </div>
+          {/* Tabs */}
+          <div className="flex gap-2 mt-3">
+            {[
+              { id: 'executive', label: 'Executive Summary' },
+              { id: 'detailed', label: 'Detailed Stats' },
+              { id: 'items', label: 'Item Analysis' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === tab.id 
+                    ? 'bg-white text-cyan-700' 
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
+        </div>
+        
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          {/* EXECUTIVE SUMMARY TAB */}
+          {activeTab === 'executive' && (
+            <div className="space-y-6">
+              {/* Key Metrics */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 text-center">
+                  <div className="text-3xl font-bold text-blue-900">{filteredCompanies.length}</div>
+                  <div className="text-sm text-blue-600">Companies Analyzed</div>
+                </div>
+                <div className={`rounded-xl p-4 border text-center ${getAlphaQuality(avgAlpha).color.replace('text-', 'border-').replace('bg-', 'bg-')}`}>
+                  <div className="text-3xl font-bold">{avgAlpha.toFixed(2)}</div>
+                  <div className="text-sm">Avg Cronbach's α</div>
+                  <div className="text-xs mt-1 font-medium">{getAlphaQuality(avgAlpha).label}</div>
+                </div>
+                <div className={`rounded-xl p-4 border text-center ${
+                  avgInterCorrelation >= 0.3 && avgInterCorrelation <= 0.7 
+                    ? 'bg-green-50 border-green-200 text-green-700' 
+                    : 'bg-amber-50 border-amber-200 text-amber-700'
+                }`}>
+                  <div className="text-3xl font-bold">{avgInterCorrelation.toFixed(2)}</div>
+                  <div className="text-sm">Avg Inter-Dimension r</div>
+                  <div className="text-xs mt-1 font-medium">
+                    {avgInterCorrelation >= 0.3 && avgInterCorrelation <= 0.7 ? 'Optimal Range' : 'Review Needed'}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Executive Reliability Table */}
+              <section>
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Dimension Reliability Summary
+                </h3>
+                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-semibold">Dimension</th>
+                        <th className="text-center py-3 px-3 font-semibold">Items</th>
+                        <th className="text-center py-3 px-3 font-semibold">Valid N</th>
+                        <th className="text-center py-3 px-3 font-semibold">Cronbach's α</th>
+                        <th className="text-center py-3 px-3 font-semibold">Quality</th>
+                        <th className="text-center py-3 px-3 font-semibold">Mean</th>
+                        <th className="text-center py-3 px-3 font-semibold">SD</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dimensionReliability.map((stat, idx) => {
+                        const quality = getAlphaQuality(stat.alpha);
+                        return (
+                          <tr key={stat.dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            <td className="py-2.5 px-4 font-medium">
+                              <span className="text-cyan-600 font-bold">D{stat.dim}:</span>{' '}
+                              {stat.name.length > 20 ? stat.name.substring(0, 20) + '...' : stat.name}
+                            </td>
+                            <td className="py-2.5 px-3 text-center">{stat.itemCount}</td>
+                            <td className="py-2.5 px-3 text-center text-gray-500">{stat.validN}</td>
+                            <td className="py-2.5 px-3 text-center font-bold text-lg">{stat.alpha.toFixed(2)}</td>
+                            <td className="py-2.5 px-3 text-center">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${quality.color}`}>
+                                {quality.label}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3 text-center">{stat.mean}</td>
+                            <td className="py-2.5 px-3 text-center text-gray-500">{stat.std}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+              
+              {/* Interpretation */}
+              <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600 space-y-2">
+                <p className="font-semibold text-gray-800">Interpretation Guide:</p>
+                <p><strong>Cronbach's α:</strong> ≥0.70 acceptable, ≥0.80 good, ≥0.90 excellent for research purposes.</p>
+                <p><strong>Inter-Dimension Correlation:</strong> 0.3-0.7 suggests related but distinct constructs; &gt;0.8 may indicate redundancy.</p>
+                <p><strong>Note:</strong> Alpha calculated on item-level scores where available. Low valid N may affect estimates.</p>
+              </div>
+            </div>
+          )}
+          
+          {/* DETAILED STATS TAB */}
+          {activeTab === 'detailed' && (
+            <div className="space-y-6">
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-blue-900 font-medium">Companies Analyzed:</span>
+                  <span className="text-2xl font-bold text-blue-900">{filteredCompanies.length}</span>
+                </div>
+              </div>
+              
+              <section>
+                <h3 className="font-bold text-gray-900 mb-3">Dimension Score Distributions</h3>
+                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="text-left py-2 px-3 font-semibold">Dimension</th>
+                        <th className="text-center py-2 px-2 font-semibold">Mean</th>
+                        <th className="text-center py-2 px-2 font-semibold">SD</th>
+                        <th className="text-center py-2 px-2 font-semibold">Min</th>
+                        <th className="text-center py-2 px-2 font-semibold">Max</th>
+                        <th className="text-center py-2 px-2 font-semibold">Floor (≤10)</th>
+                        <th className="text-center py-2 px-2 font-semibold">Ceiling (≥90)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {DIMENSION_ORDER.map((dim, idx) => {
+                        const scores = filteredCompanies.map(c => c.dimensions[dim]?.blendedScore ?? 0);
+                        const n = scores.length;
+                        const mean = n > 0 ? scores.reduce((a, b) => a + b, 0) / n : 0;
+                        const std = n > 0 ? Math.sqrt(scores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / n) : 0;
+                        const min = n > 0 ? Math.min(...scores) : 0;
+                        const max = n > 0 ? Math.max(...scores) : 0;
+                        const floor = scores.filter(s => s <= 10).length;
+                        const ceiling = scores.filter(s => s >= 90).length;
+                        
+                        return (
+                          <tr key={dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            <td className="py-2 px-3 font-medium">
+                              <span className="text-cyan-600">D{dim}:</span> {DIMENSION_NAMES[dim].split(' ')[0]}
+                            </td>
+                            <td className="py-2 px-2 text-center font-bold">{mean.toFixed(1)}</td>
+                            <td className="py-2 px-2 text-center">{std.toFixed(1)}</td>
+                            <td className="py-2 px-2 text-center text-red-600">{Math.round(min)}</td>
+                            <td className="py-2 px-2 text-center text-green-600">{Math.round(max)}</td>
+                            <td className={`py-2 px-2 text-center ${floor > 0 ? 'text-red-600 font-bold' : 'text-gray-400'}`}>
+                              {floor}
+                            </td>
+                            <td className={`py-2 px-2 text-center ${ceiling > n * 0.3 ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>
+                              {ceiling}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+              
+              <div className="bg-gray-100 rounded-lg p-4 text-xs text-gray-600 space-y-2">
+                <p><strong>Floor/Ceiling Effects:</strong> High counts indicate poor differentiation at score extremes.</p>
+                <p><strong>Standard Deviation:</strong> Low SD suggests limited variability (potential measurement issue).</p>
+              </div>
+            </div>
+          )}
+          
+          {/* ITEM ANALYSIS TAB */}
+          {activeTab === 'items' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-700">Select Dimension:</label>
+                <select 
+                  value={selectedDim}
+                  onChange={(e) => setSelectedDim(Number(e.target.value))}
+                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+                >
+                  {DIMENSION_ORDER.map(dim => (
+                    <option key={dim} value={dim}>D{dim}: {DIMENSION_NAMES[dim]}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {(() => {
+                const reliability = dimensionReliability.find(d => d.dim === selectedDim);
+                const itemCorrelations = calculateItemTotalCorrelations(selectedDim);
+                const quality = reliability ? getAlphaQuality(reliability.alpha) : { label: 'N/A', color: 'text-gray-500 bg-gray-50' };
+                
+                return (
+                  <div className="space-y-4">
+                    {/* Dimension Summary */}
+                    <div className="bg-cyan-50 rounded-lg p-4 border border-cyan-200">
+                      <div className="grid grid-cols-4 gap-4 text-center">
+                        <div>
+                          <div className="text-2xl font-bold text-cyan-900">{reliability?.alpha.toFixed(2) || 'N/A'}</div>
+                          <div className="text-xs text-cyan-600">Cronbach's α</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-cyan-900">{reliability?.itemCount || 0}</div>
+                          <div className="text-xs text-cyan-600">Items</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-cyan-900">{reliability?.validN || 0}</div>
+                          <div className="text-xs text-cyan-600">Valid N</div>
+                        </div>
+                        <div>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${quality.color}`}>
+                            {quality.label}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Item-Total Correlations */}
+                    {itemCorrelations.length > 0 ? (
+                      <section>
+                        <h3 className="font-bold text-gray-900 mb-3">Item-Rest Correlations & Alpha-if-Dropped</h3>
+                        <div className="overflow-x-auto rounded-lg border border-gray-200 max-h-[400px] overflow-y-auto">
+                          <table className="w-full text-sm">
+                            <thead className="sticky top-0 bg-gray-50">
+                              <tr className="border-b border-gray-200">
+                                <th className="text-left py-2 px-3 font-semibold">Item</th>
+                                <th className="text-center py-2 px-3 font-semibold">Item-Rest r</th>
+                                <th className="text-center py-2 px-3 font-semibold">α if Dropped</th>
+                                <th className="text-center py-2 px-3 font-semibold">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {itemCorrelations.map((item, idx) => {
+                                const currentAlpha = reliability?.alpha || 0;
+                                const wouldImprove = item.alphaIfDropped > currentAlpha + 0.02;
+                                const lowCorrelation = item.correlation < 0.3;
+                                
+                                return (
+                                  <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${wouldImprove ? 'bg-amber-50' : ''}`}>
+                                    <td className="py-2 px-3 text-xs max-w-[300px]">
+                                      {item.itemName.length > 50 ? item.itemName.substring(0, 50) + '...' : item.itemName}
+                                    </td>
+                                    <td className={`py-2 px-3 text-center font-mono ${
+                                      lowCorrelation ? 'text-red-600 font-bold' : 'text-gray-700'
+                                    }`}>
+                                      {item.correlation.toFixed(2)}
+                                    </td>
+                                    <td className={`py-2 px-3 text-center font-mono ${
+                                      wouldImprove ? 'text-amber-600 font-bold' : 'text-gray-700'
+                                    }`}>
+                                      {item.alphaIfDropped.toFixed(2)}
+                                    </td>
+                                    <td className="py-2 px-3 text-center">
+                                      {wouldImprove && (
+                                        <span className="text-xs text-amber-600 font-medium">Consider dropping</span>
+                                      )}
+                                      {lowCorrelation && !wouldImprove && (
+                                        <span className="text-xs text-red-600 font-medium">Low correlation</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Items with low item-rest correlation (&lt;0.30) or where α-if-dropped exceeds current α may be candidates for review.
+                        </p>
+                      </section>
+                    ) : (
+                      <div className="bg-gray-100 rounded-lg p-8 text-center text-gray-500">
+                        <p>Insufficient data for item-level analysis.</p>
+                        <p className="text-sm mt-1">Need at least 3 complete responses with all items scored.</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
       </div>
     </div>
