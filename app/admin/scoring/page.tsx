@@ -2492,9 +2492,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                   <li><strong>Tier thresholds are crossing points</strong> — companies near boundaries shift tiers when scores compress</li>
                   <li><strong>Status point values reflect design intent</strong> — the index deliberately values companies actively planning or assessing improvements</li>
                 </ol>
-                <p className="text-sm text-blue-800 mt-2 italic">
-                  A reviewer who argues for different point values is proposing a different construct definition (e.g., "only implemented policies matter"), not exposing a methodological flaw.
-                </p>
+               
               </div>
             </div>
           )}
