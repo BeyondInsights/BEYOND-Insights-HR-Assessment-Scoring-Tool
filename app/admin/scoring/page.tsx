@@ -2888,6 +2888,12 @@ export default function AggregateScoringReport() {
                   Reliability
                 </button>
                 <button 
+                  onClick={() => setShowBlendSettings(true)}
+                  className="px-3 py-1.5 bg-fuchsia-500 hover:bg-fuchsia-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Blend Weights
+                </button>
+                <button 
                   onClick={() => setShowMethodologyModal(true)}
                   className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium rounded-lg transition-colors"
                 >
@@ -2909,36 +2915,38 @@ export default function AggregateScoringReport() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="p-6">
-        {/* BLEND SETTINGS PANEL - Simple, all in one place */}
-        <div className="mb-4 bg-purple-50 rounded-xl border border-purple-200 overflow-hidden">
-          <button
-            onClick={() => setShowBlendSettings(!showBlendSettings)}
-            className="w-full px-4 py-3 flex items-center justify-between hover:bg-purple-100 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="w-6 h-6 bg-purple-600 rounded flex items-center justify-center text-white text-xs font-bold">S</span>
-              <span className="font-semibold text-purple-900">Blend Weight Settings</span>
-              <span className="text-purple-600 text-sm">(D1, D3, D12, D13 use Grid + Follow-up blend)</span>
+      {/* Blend Weight Settings Modal */}
+      {showBlendSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-[600px] max-w-[90vw]">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-purple-50 rounded-t-xl">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">S</span>
+                <div>
+                  <h3 className="font-semibold text-purple-900">Blend Weight Settings</h3>
+                  <p className="text-purple-600 text-xs">D1, D3, D12, D13 use Grid + Follow-up blend</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowBlendSettings(false)}
+                className="text-gray-400 hover:text-gray-600 p-1"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <svg className={`w-5 h-5 text-purple-600 transition-transform ${showBlendSettings ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          
-          {showBlendSettings && (
-            <div className="px-4 pb-4 border-t border-purple-200 bg-white">
-              <div className="pt-4 grid grid-cols-4 gap-4">
+            <div className="p-6">
+              <div className="grid grid-cols-2 gap-4">
                 {(['d1', 'd3', 'd12', 'd13'] as const).map((key) => {
                   const dimNum = parseInt(key.substring(1));
                   return (
-                    <div key={key} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="font-semibold text-gray-800 text-sm mb-2">
+                    <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="font-semibold text-gray-800 mb-3">
                         D{dimNum}: {DIMENSION_NAMES[dimNum].split(' ')[0]}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <label className="text-xs text-gray-600 w-12">Grid:</label>
+                      <div className="flex items-center gap-3 mb-2">
+                        <label className="text-sm text-gray-600 w-16">Grid:</label>
                         <input
                           type="number"
                           min="0"
@@ -2951,32 +2959,42 @@ export default function AggregateScoringReport() {
                               [key]: { grid: newGrid, followUp: 100 - newGrid }
                             }));
                           }}
-                          className="w-14 px-2 py-1 text-sm text-center border border-gray-300 rounded"
+                          className="w-16 px-2 py-1.5 text-center border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                         />
-                        <span className="text-xs text-gray-500">%</span>
+                        <span className="text-sm text-gray-500">%</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <label className="text-xs text-gray-600 w-12">Follow:</label>
-                        <span className="w-14 px-2 py-1 text-sm text-center bg-gray-100 rounded">
+                      <div className="flex items-center gap-3">
+                        <label className="text-sm text-gray-600 w-16">Follow-up:</label>
+                        <span className="w-16 px-2 py-1.5 text-center bg-gray-200 rounded text-gray-700">
                           {blendWeights[key].followUp}
                         </span>
-                        <span className="text-xs text-gray-500">%</span>
+                        <span className="text-sm text-gray-500">%</span>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="mt-3 flex justify-end">
+              <div className="mt-6 flex justify-between items-center">
                 <button
                   onClick={() => setBlendWeights({ ...DEFAULT_BLEND_WEIGHTS })}
-                  className="px-3 py-1.5 text-xs text-purple-600 hover:text-purple-800 border border-purple-300 rounded hover:bg-purple-50"
+                  className="px-4 py-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded-lg hover:bg-purple-50"
                 >
                   Reset All to 85/15
                 </button>
+                <button
+                  onClick={() => setShowBlendSettings(false)}
+                  className="px-6 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                  Done
+                </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
+      )}
+
+      {/* Main Content */}
+      <main className="p-6">
 
         {sortedCompanies.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
