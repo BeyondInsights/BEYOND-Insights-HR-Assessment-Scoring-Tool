@@ -55,6 +55,11 @@ export const GRID_POINTS = {
   UNSURE: 0, // Counted in denominator with 0 points
 };
 
+// D10 item exclusion - added after initial survey launch, excluded for Year 1 fairness
+const D10_EXCLUDED_ITEMS = [
+  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
+];
+
 // ============================================
 // DIMENSION NAMES
 // ============================================
@@ -117,6 +122,7 @@ export const DEPTH_SCORING = {
   d1_4b: { // Part-time with full benefits - EXPONENTIAL SCALING
     'Up to 4 weeks': 1,
     '5 to less than 13 weeks': 3,
+    '12 to less than 26 weeks': 5,
     '13 to less than 26 weeks': 5,
     '26 weeks or more': 8,
     'As long as requested by healthcare provider': 10,
@@ -226,15 +232,22 @@ export const MATURITY_SCORING = {
     'No formal approach: Handle case-by-case': 0,
     'No formal approach - handled case by case': 0,
     'Developing approach: Currently building our programs': 2,
+    'Developing approach: Currently building programs and policies': 2,
     'Developing approach': 2,
-    'Legal minimum only: Meet legal requirements only (FMLA, ADA)': 3,
-    'Legal minimum only': 3,
+    'Legal minimum only: Meet legal requirements only (FMLA, ADA)': 0,
+    'Legal minimum only': 0,
+    'Basic support: Legal minimums plus some informal flexibility': 2,
+    'Basic support': 2,
     'Moderate support: Some programs beyond legal requirements': 5,
     'Moderate support': 5,
     'Enhanced support: Meaningful programs beyond legal minimums': 8,
     'Enhanced support': 8,
+    'Strong support: Meaningful programs beyond legal minimums': 8,
+    'Strong support': 8,
     'Comprehensive support: Extensive programs well beyond legal requirements': 10,
     'Comprehensive support': 10,
+    'Leading-edge support: Extensive, innovative programs': 10,
+    'Leading-edge support': 10,
     // Also handle schema options
     'Manager discretion with HR guidance': 2,
     'Standardized process with some flexibility': 4,
@@ -271,8 +284,11 @@ export const BREADTH_SCORING = {
   cb3a: {
     'Yes, we offer additional support beyond legal requirements': 10,
     'Currently developing enhanced support offerings': 5,
-    'At this time, we primarily focus on meeting legal compliance requirements': 2,
-    'Not yet, but actively exploring options': 3,
+    'We are still developing our approach': 5,
+    'At this time, we primarily focus on meeting legal compliance requirements': 0,
+    'No, we meet legal requirements but do not exceed them': 0,
+    'Not yet, but actively exploring options': 0,
+    'I am not sure': 0,
     // Also handle schema options
     'No specific program - standard benefits only': 0,
     'Basic support through existing benefits': 2,
@@ -395,7 +411,8 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   if (typeof status === 'string') {
     const s = status.toLowerCase().trim();
     if (s.includes('not able')) return { points: GRID_POINTS.NOT_ABLE, isUnsure: false };
-    if (s === 'unsure' || s.includes('unsure')) return { points: null, isUnsure: true };
+    // Handle both "Unsure" and "Unknown (5)" as unsure responses
+    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };
     if (s.includes('currently') || s.includes('offer') || s.includes('provide') || 
         s.includes('use') || s.includes('track') || s.includes('measure')) {
       return { points: GRID_POINTS.CURRENTLY_OFFER, isUnsure: false };
@@ -462,7 +479,13 @@ function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | 
   
   let earnedPoints = 0;
   
-  Object.values(mainGrid).forEach((status: any) => {
+  // Process grid items, excluding D10 items that weren't in original survey
+  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+    // Skip excluded D10 items for Year 1 scoring fairness
+    if (dimNum === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) {
+      return; // Skip this item entirely
+    }
+    
     result.totalItems++;
     const { points, isUnsure } = statusToPoints(status);
     
