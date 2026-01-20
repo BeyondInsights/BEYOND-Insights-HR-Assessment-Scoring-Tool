@@ -1712,9 +1712,8 @@ function ReliabilityDiagnosticsModal({
     if (alpha >= 0.9) return { label: 'Excellent', color: 'text-green-600 bg-green-50' };
     if (alpha >= 0.8) return { label: 'Good', color: 'text-blue-600 bg-blue-50' };
     if (alpha >= 0.7) return { label: 'Acceptable', color: 'text-cyan-600 bg-cyan-50' };
-    if (alpha >= 0.6) return { label: 'Questionable', color: 'text-amber-600 bg-amber-50' };
-    if (alpha >= 0.5) return { label: 'Poor', color: 'text-orange-600 bg-orange-50' };
-    return { label: 'Unacceptable', color: 'text-red-600 bg-red-50' };
+    if (alpha >= 0.5) return { label: 'Questionable', color: 'text-amber-600 bg-amber-50' };
+    return { label: 'Poor', color: 'text-red-600 bg-red-50' };
   };
   
   // Calculate average inter-dimension correlation
@@ -2390,7 +2389,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                       { dim: 'D13: Communication', items: 11, n: 36, alpha: 0.75, quality: 'Acceptable', color: 'text-cyan-600' },
                       { dim: 'D3: Manager Preparedness', items: 10, n: 34, alpha: 0.74, quality: 'Acceptable', color: 'text-cyan-600' },
                       { dim: 'D5: Workplace Accommodations', items: 11, n: 36, alpha: 0.66, quality: 'Questionable', color: 'text-amber-600', highlight: true },
-                      { dim: 'D1: Medical Leave & Flexibility', items: 13, n: 36, alpha: 0.59, quality: 'Poor', color: 'text-red-600', highlight: true },
+                      { dim: 'D1: Medical Leave & Flexibility', items: 13, n: 36, alpha: 0.59, quality: 'Questionable', color: 'text-amber-600', highlight: true },
                     ].map((row, idx) => (
                       <tr key={idx} className={row.highlight ? 'bg-amber-50' : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="py-2 px-3">{row.dim}</td>
