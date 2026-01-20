@@ -1,14 +1,21 @@
 /**
- * ENHANCED SCORING COMPONENT - UPDATED FOR NEW MODEL (Jan 2026)
+ * ENHANCED SCORING COMPONENT - FINAL VERSION (Jan 2026)
  * 
- * NEW SCORING MODEL:
- * - WEIGHTED DIMENSION SCORE (95%): Grid responses with depth blended into applicable dimensions
+ * SCORING MODEL (90/5/5):
+ * - WEIGHTED DIMENSION SCORE (90%): Grid responses with depth blended into applicable dimensions
  *   - For D1, D3, D12, D13: Uses 85% grid + 15% depth blend
  *   - For other dimensions: Uses 100% grid score
- * - MATURITY (3%): Current support approach maturity
- * - BREADTH (2%): Coverage scope and conditions
+ * - MATURITY (5%): Current support approach maturity
+ * - BREADTH (5%): Coverage scope and conditions
  * 
- * NOTE: Depth is no longer a separate bonus - it's integrated into dimension scoring
+ * TIER THRESHOLDS:
+ * - Exemplary: 90+
+ * - Leading: 75-89
+ * - Progressing: 60-74
+ * - Emerging: 40-59
+ * - Developing: <40
+ * 
+ * Scoring Version: v1.0 (Year 1)
  */
 
 'use client';
@@ -21,12 +28,27 @@ import {
   DIMENSION_WEIGHTS,
 } from '@/lib/enhanced-scoring';
 
-// Updated component weights for new model
-const NEW_COMPONENT_WEIGHTS = {
-  weightedDim: 0.95,  // 95% weighted dimension score
-  maturity: 0.03,     // 3% maturity
-  breadth: 0.02,      // 2% breadth
+// ============================================
+// CANONICAL WEIGHTS - 90/5/5 MODEL
+// ============================================
+const COMPOSITE_WEIGHTS = {
+  weightedDim: 0.90,  // 90% weighted dimension score
+  maturity: 0.05,     // 5% maturity
+  breadth: 0.05,      // 5% breadth
 };
+
+// ============================================
+// CANONICAL TIER DEFINITIONS
+// ============================================
+function getPerformanceTier(score: number, isProvisional: boolean): { name: string; color: string; bg: string; isProvisional: boolean } {
+  let tier: { name: string; color: string; bg: string };
+  if (score >= 90) tier = { name: 'Exemplary', color: '#065F46', bg: '#D1FAE5' };
+  else if (score >= 75) tier = { name: 'Leading', color: '#1E40AF', bg: '#DBEAFE' };
+  else if (score >= 60) tier = { name: 'Progressing', color: '#92400E', bg: '#FEF3C7' };
+  else if (score >= 40) tier = { name: 'Emerging', color: '#9A3412', bg: '#FFEDD5' };
+  else tier = { name: 'Developing', color: '#374151', bg: '#F3F4F6' };
+  return { ...tier, isProvisional };
+}
 
 interface EnhancedScoringProps {
   assessment: any;
@@ -34,7 +56,7 @@ interface EnhancedScoringProps {
 }
 
 // ============================================
-// SAFE NUMBER HELPER
+// SAFE NUMBER HELPER - PREVENTS NaN DISPLAY
 // ============================================
 function safeNumber(value: any, fallback: number = 0): number {
   if (value === null || value === undefined || isNaN(value)) return fallback;
@@ -42,7 +64,7 @@ function safeNumber(value: any, fallback: number = 0): number {
 }
 
 // ============================================
-// SCORE CIRCLE COMPONENT - WITH NaN PROTECTION
+// SCORE CIRCLE COMPONENT
 // ============================================
 
 function ScoreCircle({ 
@@ -200,7 +222,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
   }
   
   const { 
-    baseScore, maturityScore, breadthScore, compositeScore, tier,
+    baseScore, maturityScore, breadthScore,
     maturityDetails, breadthDetails,
     dimensionScores, completedDimensions, insufficientDataCount, isProvisional
   } = enhancedScore;
@@ -209,15 +231,17 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
   const safeBaseScore = safeNumber(baseScore, 0);
   const safeMaturityScore = safeNumber(maturityScore, 0);
   const safeBreadthScore = safeNumber(breadthScore, 0);
-  const safeCompositeScore = safeNumber(compositeScore, 0);
   
-  // Calculate contributions using NEW weights (95/3/2)
-  const dimContribution = safeBaseScore * NEW_COMPONENT_WEIGHTS.weightedDim;
-  const maturityContribution = safeMaturityScore * NEW_COMPONENT_WEIGHTS.maturity;
-  const breadthContribution = safeBreadthScore * NEW_COMPONENT_WEIGHTS.breadth;
+  // Calculate contributions using 90/5/5 weights
+  const dimContribution = safeBaseScore * COMPOSITE_WEIGHTS.weightedDim;
+  const maturityContribution = safeMaturityScore * COMPOSITE_WEIGHTS.maturity;
+  const breadthContribution = safeBreadthScore * COMPOSITE_WEIGHTS.breadth;
   
-  // Recalculate composite with new weights
-  const newCompositeScore = Math.round(dimContribution + maturityContribution + breadthContribution);
+  // Calculate composite with 90/5/5
+  const compositeScore = Math.round(dimContribution + maturityContribution + breadthContribution);
+  
+  // Get tier using canonical function
+  const tier = getPerformanceTier(compositeScore, isProvisional);
   
   return (
     <section className="mb-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200">
@@ -225,7 +249,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Assessment Scoring</h2>
-          <p className="text-sm text-gray-600">Composite score: 95% dimension + 3% maturity + 2% breadth</p>
+          <p className="text-sm text-gray-600">Composite: 90% dimension + 5% maturity + 5% breadth</p>
         </div>
         {tier && (
           <div className="text-right">
@@ -252,14 +276,14 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
             <p className="text-xs text-blue-600 mb-4">(Grid + Depth Blend for D1,D3,D12,D13)</p>
             <ScoreCircle score={safeBaseScore} size="large" />
             <p className="text-xs text-gray-500 mt-4">{completedDimensions}/13 dimensions completed</p>
-            <p className="text-xs text-blue-600 mt-1 font-medium">95% of Composite</p>
+            <p className="text-xs text-blue-600 mt-1 font-medium">90% of Composite</p>
           </div>
           
           {/* Right: Composite Score */}
           <div className="flex flex-col items-center p-5 bg-purple-50 rounded-xl border-2 border-purple-200">
             <p className="text-sm font-bold text-purple-800 mb-1">COMPOSITE SCORE</p>
-            <p className="text-xs text-purple-600 mb-4">(Dimension 95% + Maturity 3% + Breadth 2%)</p>
-            <ScoreCircle score={newCompositeScore} size="large" />
+            <p className="text-xs text-purple-600 mb-4">(Dimension 90% + Maturity 5% + Breadth 5%)</p>
+            <ScoreCircle score={compositeScore} size="large" />
             <p className="text-xs text-gray-500 mt-4">Final weighted score</p>
             <p className="text-xs text-purple-600 mt-1 font-medium">Index Ranking Score</p>
           </div>
@@ -273,13 +297,13 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
               <ScoreCircle score={safeMaturityScore} size="small" />
               <p className="text-sm font-semibold text-gray-700 mt-3">Maturity</p>
               <p className="text-xs text-gray-500 text-center">Support Approach</p>
-              <p className="text-xs text-indigo-600 font-medium mt-1">3% weight</p>
+              <p className="text-xs text-indigo-600 font-medium mt-1">5% weight</p>
             </div>
             <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
               <ScoreCircle score={safeBreadthScore} size="small" />
               <p className="text-sm font-semibold text-gray-700 mt-3">Breadth</p>
               <p className="text-xs text-gray-500 text-center">Coverage Scope</p>
-              <p className="text-xs text-indigo-600 font-medium mt-1">2% weight</p>
+              <p className="text-xs text-indigo-600 font-medium mt-1">5% weight</p>
             </div>
           </div>
         </div>
@@ -305,7 +329,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
           <ComponentBar 
             label="Weighted Dimension Score" 
             score={safeBaseScore} 
-            weight={95}
+            weight={90}
             contribution={dimContribution}
             isMain={true}
           />
@@ -314,7 +338,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
             <ComponentBar 
               label="Maturity Score" 
               score={safeMaturityScore} 
-              weight={3}
+              weight={5}
               contribution={maturityContribution}
               details={maturityDetails?.details}
             />
@@ -322,7 +346,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
             <ComponentBar 
               label="Breadth Score" 
               score={safeBreadthScore} 
-              weight={2}
+              weight={5}
               contribution={breadthContribution}
               details={breadthDetails?.details}
             />
@@ -332,8 +356,8 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
           <div className="mt-4 pt-4 border-t-2 border-purple-200 flex items-center justify-between bg-purple-50 rounded-lg p-4">
             <span className="font-bold text-purple-900 text-lg">Composite Total</span>
             <div className="flex items-center gap-4">
-              <span className="text-4xl font-bold" style={{ color: getScoreColor(newCompositeScore) }}>
-                {newCompositeScore}
+              <span className="text-4xl font-bold" style={{ color: getScoreColor(compositeScore) }}>
+                {compositeScore}
               </span>
               <span className="text-sm text-gray-600 bg-white px-3 py-1 rounded border">
                 = {dimContribution.toFixed(1)} + {maturityContribution.toFixed(1)} + {breadthContribution.toFixed(1)}
@@ -441,10 +465,10 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
       {/* Legend */}
       <div className="mt-4 p-3 bg-white/60 rounded-lg text-xs text-gray-600">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="font-semibold">Scoring Model:</span>
-          <span><strong className="text-blue-700">Dimension (95%)</strong> = Weighted scores with depth blend on D1,D3,D12,D13</span>
-          <span><strong className="text-indigo-600">Maturity (3%)</strong> = Support approach level</span>
-          <span><strong className="text-indigo-600">Breadth (2%)</strong> = Coverage scope</span>
+          <span className="font-semibold">Scoring Model (v1.0):</span>
+          <span><strong className="text-blue-700">Dimension (90%)</strong> = Weighted scores with depth blend on D1,D3,D12,D13</span>
+          <span><strong className="text-indigo-600">Maturity (5%)</strong> = Support approach level</span>
+          <span><strong className="text-indigo-600">Breadth (5%)</strong> = Coverage scope</span>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <span className="text-green-600 font-bold">✓</span> Currently Offer (5pts)
@@ -452,6 +476,9 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
           <span className="text-orange-500 font-bold">○</span> Assessing (2pts)
           <span className="text-red-500 font-bold">✗</span> Not Able (0pts)
           <span className="text-gray-400 font-bold">?</span> Unsure (0pts)
+        </div>
+        <div className="mt-2 text-gray-500">
+          <strong>Tiers:</strong> Exemplary (90+) | Leading (75-89) | Progressing (60-74) | Emerging (40-59) | Developing (&lt;40)
         </div>
       </div>
     </section>
