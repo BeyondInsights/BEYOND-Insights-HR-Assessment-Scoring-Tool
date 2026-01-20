@@ -3112,14 +3112,14 @@ export default function AggregateScoringReport() {
                       </div>
                     </td></tr>
                     {/* Dimension Rows - Left */}
-                    {DIMENSIONS.map(dim => {
+                    {DIMENSION_ORDER.map(dim => {
                       const dimAvg = averages.dimensions[dim];
                       const dimWeight = weights[dim] ?? 0;
                       return (
                         <tr key={`left-dim-${dim}`} className="border-b border-gray-100 hover:bg-gray-50/50">
                           <td className="px-4 py-2 border-r border-gray-200">
                             <button onClick={() => handleSort(`dim${dim}`)} className="font-medium text-gray-900 hover:text-blue-700 flex items-center gap-2">
-                              <span className={`w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold ${DEPTH_DIMENSIONS.includes(dim) ? 'bg-gradient-to-br from-blue-500 to-indigo-500' : 'bg-blue-500'}`}>
+                              <span className={`w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold ${[1, 3, 12, 13].includes(dim) ? 'bg-gradient-to-br from-blue-500 to-indigo-500' : 'bg-blue-500'}`}>
                                 {dim}
                               </span>
                               <span className="truncate" style={{ maxWidth: COL1_WIDTH - 60 }}>{DIMENSION_NAMES[dim]}</span>
@@ -3264,7 +3264,7 @@ export default function AggregateScoringReport() {
                     {/* Dimension Scores Section Header - Right */}
                     <tr><td colSpan={sortedCompanies.length} className="bg-blue-100 border-b border-blue-200 h-[44px]"></td></tr>
                     {/* Dimension Rows - Right */}
-                    {DIMENSIONS.map(dim => (
+                    {DIMENSION_ORDER.map(dim => (
                       <tr key={`right-dim-${dim}`} className="border-b border-gray-100 hover:bg-gray-50/50">
                         {sortedCompanies.map(company => (
                           <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''}`}>
