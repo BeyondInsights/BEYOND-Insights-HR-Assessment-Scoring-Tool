@@ -36,10 +36,10 @@ const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
 };
 
 const DEFAULT_COMPOSITE_WEIGHTS = {
-  weightedDim: 95,  // Primary: weighted dimension scores
+  weightedDim: 90,  // Primary: weighted dimension scores
   depth: 0,         // Deprecated: now integrated into dimensions
-  maturity: 3,      // Program development stage
-  breadth: 2,       // Coverage across dimensions
+  maturity: 5,      // Program development stage
+  breadth: 5,       // Coverage across dimensions
 };
 
 // Default blend weights for dimensions with follow-up questions
@@ -934,7 +934,7 @@ function SensitivityAnalysisModal({
           }
           return {
             surveyId: c.surveyId,
-            score: Math.round(newWeightedScore * 0.95 + c.maturityScore * 0.03 + c.breadthScore * 0.02),
+            score: Math.round(newWeightedScore * 0.90 + c.maturityScore * 0.05 + c.breadthScore * 0.05),
           };
         });
         
@@ -1056,12 +1056,12 @@ function SensitivityAnalysisModal({
           compositeChange: null,
         },
         {
-          name: 'Maturity/Breadth = 5%/5%',
-          description: 'Increase maturity and breadth weights (90/5/5 instead of 95/3/2)',
+          name: 'Maturity/Breadth = 3%/2%',
+          description: 'Reduce maturity and breadth weights (95/3/2 instead of 90/5/5)',
           statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 1.0, notAble: 1.0 },
           geoMultiplier: 1.0,
           blendMultiplier: 1.0,
-          compositeChange: { weightedDim: 0.90, maturity: 0.05, breadth: 0.05 },
+          compositeChange: { weightedDim: 0.95, maturity: 0.03, breadth: 0.02 },
         },
       ];
       
@@ -1104,7 +1104,7 @@ function SensitivityAnalysisModal({
               c.breadthScore * scenario.compositeChange.breadth
             );
           } else {
-            compositeScore = Math.round(adjustedScore * 0.95 + c.maturityScore * 0.03 + c.breadthScore * 0.02);
+            compositeScore = Math.round(adjustedScore * 0.90 + c.maturityScore * 0.05 + c.breadthScore * 0.05);
           }
           
           return { surveyId: c.surveyId, score: compositeScore };
@@ -2243,19 +2243,19 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                 <h3 className="font-bold text-gray-900 text-lg mb-3">13 Dimensions Assessed</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {[
-                    { num: 1, name: 'Medical Leave & Flexibility', weight: '7.7%' },
-                    { num: 2, name: 'Insurance & Financial Protection', weight: '7.7%' },
-                    { num: 3, name: 'Manager Preparedness', weight: '7.7%' },
-                    { num: 4, name: 'Navigation & Expert Support', weight: '7.7%' },
-                    { num: 5, name: 'Workplace Accommodations', weight: '7.7%' },
-                    { num: 6, name: 'Culture & Psychological Safety', weight: '7.7%' },
-                    { num: 7, name: 'Career Continuity & Growth', weight: '7.7%' },
-                    { num: 8, name: 'Work Continuation & Reintegration', weight: '7.7%' },
-                    { num: 9, name: 'Executive Commitment', weight: '7.7%' },
-                    { num: 10, name: 'Caregiver & Family Support', weight: '7.7%' },
-                    { num: 11, name: 'Prevention & Wellness', weight: '7.7%' },
-                    { num: 12, name: 'Continuous Improvement', weight: '7.7%' },
-                    { num: 13, name: 'Communication & Awareness', weight: '7.7%' },
+                    { num: 4, name: 'Navigation & Expert Support', weight: '14%' },
+                    { num: 8, name: 'Work Continuation & Reintegration', weight: '13%' },
+                    { num: 3, name: 'Manager Preparedness', weight: '12%' },
+                    { num: 2, name: 'Insurance & Financial Protection', weight: '11%' },
+                    { num: 13, name: 'Communication & Awareness', weight: '10%' },
+                    { num: 6, name: 'Culture & Psychological Safety', weight: '8%' },
+                    { num: 1, name: 'Medical Leave & Flexibility', weight: '7%' },
+                    { num: 5, name: 'Workplace Accommodations', weight: '7%' },
+                    { num: 7, name: 'Career Continuity & Growth', weight: '4%' },
+                    { num: 9, name: 'Executive Commitment', weight: '4%' },
+                    { num: 10, name: 'Caregiver & Family Support', weight: '4%' },
+                    { num: 11, name: 'Prevention & Wellness', weight: '3%' },
+                    { num: 12, name: 'Continuous Improvement', weight: '3%' },
                   ].map(d => (
                     <div key={d.num} className="flex items-center justify-between bg-gray-50 rounded px-3 py-2">
                       <span><span className="text-indigo-600 font-medium">D{d.num}:</span> {d.name}</span>
@@ -2289,11 +2289,11 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                 <h3 className="font-bold text-gray-900 text-lg mb-3">Composite Score Formula</h3>
                 <div className="bg-gray-100 rounded-lg p-4 text-center">
                   <span className="text-gray-700">Composite = </span>
-                  <span className="font-bold text-blue-600">(Weighted Dim × 95%)</span>
+                  <span className="font-bold text-blue-600">(Weighted Dim × 90%)</span>
                   <span className="text-gray-700"> + </span>
-                  <span className="font-bold text-purple-600">(Maturity × 3%)</span>
+                  <span className="font-bold text-purple-600">(Maturity × 5%)</span>
                   <span className="text-gray-700"> + </span>
-                  <span className="font-bold text-violet-600">(Breadth × 2%)</span>
+                  <span className="font-bold text-violet-600">(Breadth × 5%)</span>
                 </div>
               </div>
               
@@ -2447,7 +2447,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                       { name: 'Follow-up blend 90/10', corr: 1.000, changes: '0/38', delta: '±0.2', stable: true },
                       { name: 'Follow-up blend 80/20', corr: 0.999, changes: '1/38', delta: '±0.4', stable: true },
                       { name: 'Geo multiplier 0.95/0.80', corr: 0.995, changes: '2/38', delta: '±0.9', stable: true },
-                      { name: 'Composite 90/5/5', corr: 0.994, changes: '2/38', delta: '±1.1', stable: true },
+                      { name: 'Composite 95/3/2', corr: 0.994, changes: '2/38', delta: '±1.1', stable: true },
                       { name: 'Planning = 2 pts (not 3)', corr: 0.999, changes: '11/38', delta: '±5', stable: false },
                       { name: 'Assessing = 1 pt (not 2)', corr: 0.999, changes: '11/38', delta: '±5', stable: false },
                     ].map((row, idx) => (
