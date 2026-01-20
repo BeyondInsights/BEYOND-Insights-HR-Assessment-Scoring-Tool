@@ -37,10 +37,10 @@ const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
 };
 
 const DEFAULT_COMPOSITE_WEIGHTS = {
-  weightedDim: 90,  // Primary: weighted dimension scores
-  depth: 0,         // Deprecated: now integrated into dimensions
-  maturity: 5,      // Program development stage
-  breadth: 5,       // Coverage across dimensions
+  weightedDim: 90,  // Primary: weighted dimension scores (depth blended into D1/D3/D12/D13)
+  depth: 0,         // Deprecated: now integrated into dimensions via 85/15 blend
+  maturity: 5,      // Program maturity level (OR1)
+  breadth: 5,       // Coverage scope (CB3a/b/c)
 };
 
 // Default blend weights for dimensions with follow-up questions
@@ -519,7 +519,7 @@ function getPerformanceTier(score: number): { name: string; color: string; bg: s
   if (score >= 75) return { name: 'Leading', color: '#1E40AF', bg: '#DBEAFE', border: '#93C5FD' };
   if (score >= 60) return { name: 'Progressing', color: '#92400E', bg: '#FEF3C7', border: '#FCD34D' };
   if (score >= 40) return { name: 'Emerging', color: '#9A3412', bg: '#FFEDD5', border: '#FDBA74' };
-  return { name: 'Beginning', color: '#374151', bg: '#F3F4F6', border: '#D1D5DB' };
+  return { name: 'Developing', color: '#374151', bg: '#F3F4F6', border: '#D1D5DB' };
 }
 
 // ============================================
