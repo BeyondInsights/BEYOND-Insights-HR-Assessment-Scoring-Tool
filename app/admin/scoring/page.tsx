@@ -1100,42 +1100,80 @@ function ReliabilityDiagnosticsModal({
     return company !== undefined;
   });
   
-  // Item definitions per dimension (main scoring items only)
-  const DIMENSION_ITEMS: Record<number, { key: string; field: string; items: string[] }> = {
-    1: { key: 'd1a', field: 'dimension1_data', items: ['Dedicated cancer/serious illness navigation services', 'Employee assistance program (EAP) with cancer-specific resources', 'Medical advocacy/second opinion services', 'Treatment coordination support', 'Digital health tools for symptom tracking/management', 'Survivorship care planning resources', 'Clinical trial matching services', 'Personalized care team assignment'] },
-    2: { key: 'd2a', field: 'dimension2_data', items: ['Cancer-specific coverage (chemotherapy, radiation, immunotherapy)', 'Coverage for clinical trial participation', 'Out-of-network specialist access', 'Mental health coverage parity', 'Fertility preservation coverage', 'Genetic testing coverage', 'Rehabilitation services coverage', 'Palliative/supportive care coverage', 'Coverage for prosthetics/medical devices', 'Travel/lodging for treatment', 'Telemedicine/virtual care'] },
-    3: { key: 'd3a', field: 'dimension3_data', items: ['Mandatory training for all people managers', 'Role-specific training (HR, senior leaders)', 'Training includes legal compliance', 'Training includes communication skills', 'Training includes accommodation process', 'Simulation/scenario-based exercises', 'Refresher training requirements', 'Manager resource toolkit/quick reference'] },
-    4: { key: 'd4a', field: 'dimension4_data', items: ['Centralized intake/request process', 'Interactive accommodation process with employee', 'Temporary accommodations while evaluating', 'Appeals/review process', 'Proactive accommodation suggestions', 'Technology/equipment accommodations', 'Workspace modification options', 'Meeting/scheduling flexibility'] },
-    5: { key: 'd5a', field: 'dimension5_data', items: ['Formal flexible work policy', 'Remote work options', 'Modified schedules', 'Reduced hours with benefits', 'Job sharing options', 'Gradual return-to-work program', 'Workload adjustment protocols', 'Break time flexibility'] },
-    6: { key: 'd6a', field: 'dimension6_data', items: ['Anti-discrimination policy includes serious illness', 'Psychological safety training', 'Employee resource group (ERG) for health', 'Peer support/buddy programs', 'Leadership visible support', 'Non-retaliation policy', 'Confidentiality protections', 'Regular culture assessments'] },
-    7: { key: 'd7a', field: 'dimension7_data', items: ['Career continuity planning', 'Skills maintenance during leave', 'Alternative role exploration', 'Mentorship continuation', 'Performance evaluation adjustments', 'Promotion eligibility protection', 'Professional development access', 'Recognition programs inclusion'] },
-    8: { key: 'd8a', field: 'dimension8_data', items: ['Paid medical leave beyond FMLA/statutory', 'Leave for appointments/treatment', 'Intermittent leave flexibility', 'Leave donation programs', 'Disability insurance supplements', 'Job protection beyond legal minimum', 'Benefits continuation during leave', 'Gradual return options'] },
-    9: { key: 'd9a', field: 'dimension9_data', items: ['Executive sponsor for cancer support', 'Board/C-suite reporting on programs', 'Dedicated budget allocation', 'Strategic plan includes employee health', 'Executive communication on support', 'Leadership accountability metrics', 'Cross-functional governance', 'External commitments/pledges'] },
-    10: { key: 'd10a', field: 'dimension10_data', items: ['Paid caregiver leave', 'Flexible scheduling for caregivers', 'Caregiver support groups', 'Backup care services', 'Care management resources', 'Legal/financial planning assistance', 'Modified duties during caregiving', 'Unpaid leave job protection', 'Eldercare consultation', 'Paid time for care appointments', 'Expanded caregiver leave eligibility'] },
-    11: { key: 'd11a', field: 'dimension11_data', items: ['Recommended screening coverage', 'Annual health checkups', 'Risk-reduction programs', 'Paid time for preventive care', 'Legal protections beyond requirements', 'Workplace safety assessments', 'Health education sessions', 'Individual health assessments', 'Genetic screening/counseling', 'On-site vaccinations', 'Lifestyle coaching', 'Risk factor tracking', 'Immuno-compromised policies'] },
-    12: { key: 'd12a', field: 'dimension12_data', items: ['Return-to-work metrics', 'Employee satisfaction tracking', 'Business impact/ROI assessment', 'Regular program enhancements', 'External benchmarking', 'Innovation pilots', 'Employee confidence tracking', 'Program utilization analytics'] },
-    13: { key: 'd13a', field: 'dimension13_data', items: ['Proactive diagnosis communication', 'Dedicated program website/portal', 'Quarterly awareness campaigns', 'New hire orientation coverage', 'Manager cascade toolkit', 'Employee testimonials/stories', 'Multi-channel strategy', 'Family/caregiver inclusion', 'Anonymous info access'] },
+  // Dimension field mapping
+  const DIMENSION_FIELDS: Record<number, { key: string; field: string }> = {
+    1: { key: 'd1a', field: 'dimension1_data' },
+    2: { key: 'd2a', field: 'dimension2_data' },
+    3: { key: 'd3a', field: 'dimension3_data' },
+    4: { key: 'd4a', field: 'dimension4_data' },
+    5: { key: 'd5a', field: 'dimension5_data' },
+    6: { key: 'd6a', field: 'dimension6_data' },
+    7: { key: 'd7a', field: 'dimension7_data' },
+    8: { key: 'd8a', field: 'dimension8_data' },
+    9: { key: 'd9a', field: 'dimension9_data' },
+    10: { key: 'd10a', field: 'dimension10_data' },
+    11: { key: 'd11a', field: 'dimension11_data' },
+    12: { key: 'd12a', field: 'dimension12_data' },
+    13: { key: 'd13a', field: 'dimension13_data' },
   };
   
-  // Score mapping for items
+  // Score mapping for items - expanded to catch all variations
   const scoreItem = (value: string | undefined): number | null => {
     if (!value || value === 'Unsure') return null;
     const v = value.toLowerCase();
-    if (v.includes('currently offer') || v.includes('currently use') || v.includes('currently measure')) return 100;
-    if (v.includes('active planning') || v.includes('in active')) return 66;
-    if (v.includes('assessing feasibility')) return 33;
-    if (v.includes('not able')) return 0;
+    // Currently implemented/offered
+    if (v.includes('currently offer') || v.includes('currently use') || 
+        v.includes('currently measure') || v.includes('currently track') ||
+        v.includes('currently provide') || v === 'yes') return 100;
+    // In development/planning
+    if (v.includes('active planning') || v.includes('in active') || 
+        v.includes('in development') || v.includes('planning to')) return 66;
+    // Assessing/considering
+    if (v.includes('assessing feasibility') || v.includes('assessing') || 
+        v.includes('considering')) return 33;
+    // Not able/not offered
+    if (v.includes('not able') || v.includes('not offer') || 
+        v.includes('do not') || v === 'no') return 0;
     return null;
+  };
+  
+  // Dynamically extract all item names from actual data for a dimension
+  const getItemNamesForDimension = (dimNum: number): string[] => {
+    const dimConfig = DIMENSION_FIELDS[dimNum];
+    if (!dimConfig) return [];
+    
+    const allItems = new Set<string>();
+    
+    for (const assessment of filteredAssessments) {
+      let dimData = assessment[dimConfig.field];
+      // Handle case where data might be a JSON string
+      if (typeof dimData === 'string') {
+        try { dimData = JSON.parse(dimData); } catch { continue; }
+      }
+      if (dimData && dimData[dimConfig.key] && typeof dimData[dimConfig.key] === 'object') {
+        Object.keys(dimData[dimConfig.key]).forEach(key => allItems.add(key));
+      }
+    }
+    
+    return Array.from(allItems);
   };
   
   // Get item-level scores for a dimension across all companies
   const getItemScores = (dimNum: number): { itemName: string; scores: (number | null)[] }[] => {
-    const dimConfig = DIMENSION_ITEMS[dimNum];
+    const dimConfig = DIMENSION_FIELDS[dimNum];
     if (!dimConfig) return [];
     
-    return dimConfig.items.map(itemName => {
+    // Get all item names dynamically from actual data
+    const itemNames = getItemNamesForDimension(dimNum);
+    if (itemNames.length === 0) return [];
+    
+    return itemNames.map(itemName => {
       const scores = filteredAssessments.map(assessment => {
-        const dimData = assessment[dimConfig.field];
+        let dimData = assessment[dimConfig.field];
+        // Handle case where data might be a JSON string
+        if (typeof dimData === 'string') {
+          try { dimData = JSON.parse(dimData); } catch { return null; }
+        }
         if (!dimData || !dimData[dimConfig.key]) return null;
         const itemValue = dimData[dimConfig.key][itemName];
         return scoreItem(itemValue);
@@ -1149,11 +1187,13 @@ function ReliabilityDiagnosticsModal({
     const itemScores = getItemScores(dimNum);
     if (itemScores.length < 2) return { alpha: 0, itemCount: 0, validN: 0 };
     
-    // Get companies with complete data for this dimension
+    // Get companies with at least 50% valid items (lenient threshold)
     const validIndices: number[] = [];
+    const minValidItems = Math.max(2, Math.floor(itemScores.length * 0.5));
+    
     for (let i = 0; i < filteredAssessments.length; i++) {
-      const allValid = itemScores.every(item => item.scores[i] !== null);
-      if (allValid) validIndices.push(i);
+      const validCount = itemScores.filter(item => item.scores[i] !== null).length;
+      if (validCount >= minValidItems) validIndices.push(i);
     }
     
     if (validIndices.length < 3) return { alpha: 0, itemCount: itemScores.length, validN: validIndices.length };
@@ -1165,11 +1205,11 @@ function ReliabilityDiagnosticsModal({
     const itemVariances: number[] = [];
     const totals: number[] = [];
     
-    // Calculate totals for each respondent
+    // Calculate totals for each respondent (treat null as 0 for calculation)
     for (const idx of validIndices) {
       let total = 0;
       for (const item of itemScores) {
-        total += item.scores[idx] || 0;
+        total += item.scores[idx] ?? 0;
       }
       totals.push(total);
     }
@@ -1180,7 +1220,7 @@ function ReliabilityDiagnosticsModal({
     
     // Calculate variance of each item
     for (const item of itemScores) {
-      const validScores = validIndices.map(idx => item.scores[idx] || 0);
+      const validScores = validIndices.map(idx => item.scores[idx] ?? 0);
       const mean = validScores.reduce((a, b) => a + b, 0) / n;
       const variance = validScores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / (n - 1);
       itemVariances.push(variance);
@@ -1205,11 +1245,13 @@ function ReliabilityDiagnosticsModal({
     const itemScores = getItemScores(dimNum);
     if (itemScores.length < 3) return [];
     
-    // Get valid indices
+    // Get valid indices (at least 50% of items have scores)
     const validIndices: number[] = [];
+    const minValidItems = Math.max(2, Math.floor(itemScores.length * 0.5));
+    
     for (let i = 0; i < filteredAssessments.length; i++) {
-      const allValid = itemScores.every(item => item.scores[i] !== null);
-      if (allValid) validIndices.push(i);
+      const validCount = itemScores.filter(item => item.scores[i] !== null).length;
+      if (validCount >= minValidItems) validIndices.push(i);
     }
     
     if (validIndices.length < 3) return [];
@@ -1387,10 +1429,14 @@ function ReliabilityDiagnosticsModal({
           {activeTab === 'executive' && (
             <div className="space-y-6">
               {/* Key Metrics */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 text-center">
                   <div className="text-3xl font-bold text-blue-900">{filteredCompanies.length}</div>
                   <div className="text-sm text-blue-600">Companies Analyzed</div>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-center">
+                  <div className="text-3xl font-bold text-slate-700">{filteredAssessments.length}</div>
+                  <div className="text-sm text-slate-500">Assessments w/ Data</div>
                 </div>
                 <div className={`rounded-xl p-4 border text-center ${getAlphaQuality(avgAlpha).color.replace('text-', 'border-').replace('bg-', 'bg-')}`}>
                   <div className="text-3xl font-bold">{avgAlpha.toFixed(2)}</div>
@@ -1463,7 +1509,12 @@ function ReliabilityDiagnosticsModal({
                 <p className="font-semibold text-gray-800">Interpretation Guide:</p>
                 <p><strong>Cronbach's α:</strong> ≥0.70 acceptable, ≥0.80 good, ≥0.90 excellent for research purposes.</p>
                 <p><strong>Inter-Dimension Correlation:</strong> 0.3-0.7 suggests related but distinct constructs; &gt;0.8 may indicate redundancy.</p>
-                <p><strong>Note:</strong> Alpha calculated on item-level scores where available. Low valid N may affect estimates.</p>
+                <p><strong>Note:</strong> Alpha calculated on item-level scores where available. Valid N = companies with ≥70% items scored (excluding "Unsure").</p>
+                {dimensionReliability.every(d => d.validN === 0) && (
+                  <p className="text-amber-600 font-medium">
+                    ⚠️ No companies have sufficient item-level data for reliability analysis. This may occur if most responses are "Unsure" or if data format issues exist.
+                  </p>
+                )}
               </div>
             </div>
           )}
