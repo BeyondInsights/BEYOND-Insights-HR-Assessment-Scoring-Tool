@@ -1842,6 +1842,14 @@ function ReliabilityDiagnosticsModal({
                 <p><strong>Cronbach's α:</strong> ≥0.70 acceptable, ≥0.80 good, ≥0.90 excellent for research purposes.</p>
                 <p><strong>Inter-Dimension Correlation:</strong> 0.3-0.7 suggests related but distinct constructs; &gt;0.8 may indicate redundancy.</p>
                 <p><strong>Note:</strong> Alpha calculated on item-level scores where available. Valid N = companies with ≥50% items scored (excluding "Unsure").</p>
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="font-semibold text-amber-800">About D1 & D5 Lower Reliability:</p>
+                  <p className="text-amber-700 mt-1">
+                    D1 (Medical Leave) and D5 (Workplace Accommodations) show lower α values. This is <em>expected</em> for <strong>formative policy indices</strong> that aggregate diverse workplace mechanisms. 
+                    These dimensions capture <em>breadth of support</em> (leave policies, scheduling, physical accommodations) rather than a single latent trait—items need not correlate to be valid. 
+                    Alpha is reported as a diagnostic to identify mis-keyed items, not as a validity requirement.
+                  </p>
+                </div>
                 {dimensionReliability.every(d => d.validN === 0) && (
                   <p className="text-amber-600 font-medium">
                     ⚠️ No companies have sufficient item-level data for reliability analysis. This may occur if most responses are "Unsure" or if data format issues exist.
