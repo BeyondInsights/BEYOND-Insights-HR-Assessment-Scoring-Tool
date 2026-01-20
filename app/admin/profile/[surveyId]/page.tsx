@@ -1579,7 +1579,15 @@ export default function ProfilePage() {
   // Extract data
   const firm = assessment.firmographics_data || {};
   const general = assessment.general_benefits_data || {};
-  const support = assessment.current_support_data || {};
+  const currentSupport = assessment.current_support_data || {};
+  // Merge support data from both sources - CB3 data can be in either
+  const support = {
+    ...currentSupport,
+    cb3a: currentSupport.cb3a || general.cb3a,
+    cb3b: currentSupport.cb3b || general.cb3b,
+    cb3c: currentSupport.cb3c || general.cb3c,
+    cb3d: currentSupport.cb3d || general.cb3d,
+  };
   const cross = assessment.cross_dimensional_data || {};
   const impact = assessment.employee_impact_data || assessment['employee-impact-assessment_data'] || {};
 
