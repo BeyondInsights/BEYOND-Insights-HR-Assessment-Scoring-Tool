@@ -837,6 +837,13 @@ function SensitivityAnalysisModal({
         return;
       }
       
+      const getTierName = (score: number) => {
+        if (score >= 75) return 'Leading';
+        if (score >= 60) return 'Progressing';
+        if (score >= 40) return 'Emerging';
+        return 'Developing';
+      };
+      
       // Baseline rankings
       const baselineRanks = new Map<string, number>();
       const baselineTiers = new Map<string, string>();
@@ -845,13 +852,6 @@ function SensitivityAnalysisModal({
         baselineRanks.set(c.surveyId, idx + 1);
         baselineTiers.set(c.surveyId, getTierName(c.compositeScore));
       });
-      
-      const getTierName = (score: number) => {
-        if (score >= 75) return 'Leading';
-        if (score >= 60) return 'Progressing';
-        if (score >= 40) return 'Emerging';
-        return 'Developing';
-      };
       
       // Run perturbations (±10% on each weight)
       const perturbationResults: { ranks: Map<string, number>; tiers: Map<string, string> }[] = [];
@@ -865,82 +865,82 @@ function SensitivityAnalysisModal({
         for (let dim = 1; dim <= 13; dim++) {
           const baseWeight = weights[dim] || 0;
           const perturbation = (Math.random() - 0.5) * 0.2 * baseWeight; // ±10%
-        perturbedWeights[dim] = Math.max(0, baseWeight + perturbation);
-        totalWeight += perturbedWeights[dim];
-      }
-      
-      // Normalize to 100
-      for (let dim = 1; dim <= 13; dim++) {
-        perturbedWeights[dim] = (perturbedWeights[dim] / totalWeight) * 100;
-      }
-      
-      // Recalculate scores with perturbed weights
-      const perturbedScores = filteredCompanies.map(c => {
-        let newWeightedScore = 0;
+          perturbedWeights[dim] = Math.max(0, baseWeight + perturbation);
+          totalWeight += perturbedWeights[dim];
+        }
+        
+        // Normalize to 100
         for (let dim = 1; dim <= 13; dim++) {
-          const dimScore = c.dimensions[dim]?.blendedScore || 0;
-          newWeightedScore += dimScore * (perturbedWeights[dim] / 100);
+          perturbedWeights[dim] = (perturbedWeights[dim] / totalWeight) * 100;
         }
-        return {
-          surveyId: c.surveyId,
-          score: Math.round(newWeightedScore * 0.9 + c.maturityScore * 0.05 + c.breadthScore * 0.05),
-        };
-      });
-      
-      // Rank perturbed scores
-      const perturbedRanks = new Map<string, number>();
-      const perturbedTiers = new Map<string, string>();
-      const perturbedSorted = [...perturbedScores].sort((a, b) => b.score - a.score);
-      perturbedSorted.forEach((c, idx) => {
-        perturbedRanks.set(c.surveyId, idx + 1);
-        perturbedTiers.set(c.surveyId, getTierName(c.score));
-      });
-      
-      perturbationResults.push({ ranks: perturbedRanks, tiers: perturbedTiers });
-    }
-    
-    // Calculate Spearman correlation (average across perturbations)
-    let totalCorrelation = 0;
-    let tierChanges = 0;
-    
-    perturbationResults.forEach(({ ranks, tiers }) => {
-      // Spearman correlation
-      const n = filteredCompanies.length;
-      let sumD2 = 0;
-      filteredCompanies.forEach(c => {
-        const baseRank = baselineRanks.get(c.surveyId) || 0;
-        const pertRank = ranks.get(c.surveyId) || 0;
-        sumD2 += Math.pow(baseRank - pertRank, 2);
-      });
-      const spearman = 1 - (6 * sumD2) / (n * (n * n - 1));
-      totalCorrelation += spearman;
-      
-      // Count tier changes
-      filteredCompanies.forEach(c => {
-        if (baselineTiers.get(c.surveyId) !== tiers.get(c.surveyId)) {
-          tierChanges++;
-        }
-      });
-    });
-    
-    const avgCorrelation = totalCorrelation / numPerturbations;
-    const avgTierChangePercent = (tierChanges / (numPerturbations * filteredCompanies.length)) * 100;
-    
-    setResults({
-      spearmanCorrelation: Math.round(avgCorrelation * 1000) / 1000,
-      tierChangePercent: Math.round(avgTierChangePercent * 10) / 10,
-      perturbations: numPerturbations,
-      stableCompanies: filteredCompanies.filter(c => {
-        let changes = 0;
-        perturbationResults.forEach(({ tiers }) => {
-          if (baselineTiers.get(c.surveyId) !== tiers.get(c.surveyId)) changes++;
+        
+        // Recalculate scores with perturbed weights
+        const perturbedScores = filteredCompanies.map(c => {
+          let newWeightedScore = 0;
+          for (let dim = 1; dim <= 13; dim++) {
+            const dimScore = c.dimensions[dim]?.blendedScore || 0;
+            newWeightedScore += dimScore * (perturbedWeights[dim] / 100);
+          }
+          return {
+            surveyId: c.surveyId,
+            score: Math.round(newWeightedScore * 0.9 + c.maturityScore * 0.05 + c.breadthScore * 0.05),
+          };
         });
-        return changes === 0;
-      }).length,
-      totalCompanies: filteredCompanies.length,
-    });
-    
-    setIsRunning(false);
+        
+        // Rank perturbed scores
+        const perturbedRanks = new Map<string, number>();
+        const perturbedTiers = new Map<string, string>();
+        const perturbedSorted = [...perturbedScores].sort((a, b) => b.score - a.score);
+        perturbedSorted.forEach((c, idx) => {
+          perturbedRanks.set(c.surveyId, idx + 1);
+          perturbedTiers.set(c.surveyId, getTierName(c.score));
+        });
+        
+        perturbationResults.push({ ranks: perturbedRanks, tiers: perturbedTiers });
+      }
+      
+      // Calculate Spearman correlation (average across perturbations)
+      let totalCorrelation = 0;
+      let tierChanges = 0;
+      
+      perturbationResults.forEach(({ ranks, tiers }) => {
+        // Spearman correlation
+        const n = filteredCompanies.length;
+        let sumD2 = 0;
+        filteredCompanies.forEach(c => {
+          const baseRank = baselineRanks.get(c.surveyId) || 0;
+          const pertRank = ranks.get(c.surveyId) || 0;
+          sumD2 += Math.pow(baseRank - pertRank, 2);
+        });
+        const spearman = 1 - (6 * sumD2) / (n * (n * n - 1));
+        totalCorrelation += spearman;
+        
+        // Count tier changes
+        filteredCompanies.forEach(c => {
+          if (baselineTiers.get(c.surveyId) !== tiers.get(c.surveyId)) {
+            tierChanges++;
+          }
+        });
+      });
+      
+      const avgCorrelation = totalCorrelation / numPerturbations;
+      const avgTierChangePercent = (tierChanges / (numPerturbations * filteredCompanies.length)) * 100;
+      
+      setResults({
+        spearmanCorrelation: Math.round(avgCorrelation * 1000) / 1000,
+        tierChangePercent: Math.round(avgTierChangePercent * 10) / 10,
+        perturbations: numPerturbations,
+        stableCompanies: filteredCompanies.filter(c => {
+          let changes = 0;
+          perturbationResults.forEach(({ tiers }) => {
+            if (baselineTiers.get(c.surveyId) !== tiers.get(c.surveyId)) changes++;
+          });
+          return changes === 0;
+        }).length,
+        totalCompanies: filteredCompanies.length,
+      });
+      
+      setIsRunning(false);
     }, 50); // Small delay to allow UI to update with spinner
   };
 
@@ -1530,6 +1530,12 @@ export default function AggregateScoringReport() {
                 <span className="text-green-300">Complete:</span>
                 <span className="font-bold">{companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
               </div>
+              <div className="border-l border-white/20 pl-4 flex items-center gap-3 text-xs">
+                <span className="text-gray-400">Footprint:</span>
+                <span className="px-1.5 py-0.5 rounded bg-slate-500/40 text-slate-200" title="Single country">S</span>
+                <span className="px-1.5 py-0.5 rounded bg-blue-500/40 text-blue-200" title="Regional (2-10 countries)">R</span>
+                <span className="px-1.5 py-0.5 rounded bg-indigo-500/40 text-indigo-200" title="Global (11+ countries)">G</span>
+              </div>
             </div>
             
             <div className="flex items-center gap-4">
@@ -1755,7 +1761,17 @@ export default function AggregateScoringReport() {
                         <Link href={`/admin/profile/${company.surveyId}`} className="text-xs hover:underline block truncate text-white" title={company.companyName}>
                           {company.companyName.length > 12 ? company.companyName.substring(0, 12) + '...' : company.companyName}
                         </Link>
-                        <span className="text-[10px] opacity-70 block">{company.completedDimCount}/13</span>
+                        <div className="flex items-center justify-center gap-1 mt-0.5">
+                          <span className="text-[10px] opacity-70">{company.completedDimCount}/13</span>
+                          <span className={`text-[9px] px-1 rounded ${
+                            company.globalFootprint.segment === 'Global' ? 'bg-indigo-400/50 text-white' :
+                            company.globalFootprint.segment === 'Regional' ? 'bg-blue-400/50 text-white' :
+                            'bg-slate-400/50 text-white'
+                          }`} title={`${company.globalFootprint.countryCount} ${company.globalFootprint.countryCount === 1 ? 'country' : 'countries'}`}>
+                            {company.globalFootprint.segment === 'Global' ? 'G' : 
+                             company.globalFootprint.segment === 'Regional' ? 'R' : 'S'}
+                          </span>
+                        </div>
                       </th>
                     ))}
                   </tr>
