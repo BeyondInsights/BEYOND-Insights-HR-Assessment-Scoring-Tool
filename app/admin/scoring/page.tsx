@@ -36,10 +36,10 @@ const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
 };
 
 const DEFAULT_COMPOSITE_WEIGHTS = {
-  weightedDim: 90,
-  depth: 0,
-  maturity: 5,
-  breadth: 5,
+  weightedDim: 95,  // Primary: weighted dimension scores
+  depth: 0,         // Deprecated: now integrated into dimensions
+  maturity: 3,      // Program development stage
+  breadth: 2,       // Coverage across dimensions
 };
 
 // Default blend weights for dimensions with follow-up questions
@@ -655,15 +655,17 @@ function TierStatsModal({
   const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
   
   const getTierName = (score: number) => {
+    if (score >= 90) return 'Exemplary';
     if (score >= 75) return 'Leading';
     if (score >= 60) return 'Progressing';
     if (score >= 40) return 'Emerging';
     return 'Developing';
   };
   
-  // Composite tier counts
+  // Composite tier counts (5 tiers to match main scoring)
   const compositeCounts = {
-    leading: filteredCompanies.filter(c => c.compositeScore >= 75).length,
+    exemplary: filteredCompanies.filter(c => c.compositeScore >= 90).length,
+    leading: filteredCompanies.filter(c => c.compositeScore >= 75 && c.compositeScore < 90).length,
     progressing: filteredCompanies.filter(c => c.compositeScore >= 60 && c.compositeScore < 75).length,
     emerging: filteredCompanies.filter(c => c.compositeScore >= 40 && c.compositeScore < 60).length,
     developing: filteredCompanies.filter(c => c.compositeScore < 40).length,
@@ -679,14 +681,15 @@ function TierStatsModal({
     global: filteredCompanies.filter(c => c.globalFootprint.segment === 'Global').length,
   };
   
-  // Dimension tier counts
+  // Dimension tier counts (5 tiers)
   const getDimensionTierCounts = (dimNum: number) => {
     const scores = filteredCompanies
       .map(c => c.dimensions[dimNum]?.blendedScore ?? c.dimensions[dimNum]?.adjustedScore ?? null)
       .filter((s): s is number => s !== null);
     
     return {
-      leading: scores.filter(s => s >= 75).length,
+      exemplary: scores.filter(s => s >= 90).length,
+      leading: scores.filter(s => s >= 75 && s < 90).length,
       progressing: scores.filter(s => s >= 60 && s < 75).length,
       emerging: scores.filter(s => s >= 40 && s < 60).length,
       developing: scores.filter(s => s < 40).length,
@@ -758,11 +761,16 @@ function TierStatsModal({
                 <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold">★</span>
                 Composite Score Tiers
               </h3>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-5 gap-3">
+                <div className="bg-emerald-50 rounded-lg p-4 text-center border border-emerald-200">
+                  <div className="text-3xl font-bold text-emerald-700">{compositeCounts.exemplary}</div>
+                  <div className="text-sm font-medium text-emerald-600">Exemplary</div>
+                  <div className="text-xs text-emerald-500">90+</div>
+                </div>
                 <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
                   <div className="text-3xl font-bold text-blue-700">{compositeCounts.leading}</div>
                   <div className="text-sm font-medium text-blue-600">Leading</div>
-                  <div className="text-xs text-blue-500">75+</div>
+                  <div className="text-xs text-blue-500">75-89</div>
                 </div>
                 <div className="bg-amber-50 rounded-lg p-4 text-center border border-amber-200">
                   <div className="text-3xl font-bold text-amber-700">{compositeCounts.progressing}</div>
@@ -793,10 +801,11 @@ function TierStatsModal({
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="text-left py-2 px-3 font-semibold text-gray-700">Dimension</th>
-                      <th className="text-center py-2 px-3 font-semibold text-blue-700">Leading<br/><span className="font-normal text-xs">75+</span></th>
-                      <th className="text-center py-2 px-3 font-semibold text-amber-700">Progressing<br/><span className="font-normal text-xs">60-74</span></th>
-                      <th className="text-center py-2 px-3 font-semibold text-orange-700">Emerging<br/><span className="font-normal text-xs">40-59</span></th>
-                      <th className="text-center py-2 px-3 font-semibold text-red-700">Developing<br/><span className="font-normal text-xs">&lt;40</span></th>
+                      <th className="text-center py-2 px-2 font-semibold text-emerald-700">Exemplary<br/><span className="font-normal text-xs">90+</span></th>
+                      <th className="text-center py-2 px-2 font-semibold text-blue-700">Leading<br/><span className="font-normal text-xs">75-89</span></th>
+                      <th className="text-center py-2 px-2 font-semibold text-amber-700">Progressing<br/><span className="font-normal text-xs">60-74</span></th>
+                      <th className="text-center py-2 px-2 font-semibold text-orange-700">Emerging<br/><span className="font-normal text-xs">40-59</span></th>
+                      <th className="text-center py-2 px-2 font-semibold text-red-700">Developing<br/><span className="font-normal text-xs">&lt;40</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -807,10 +816,11 @@ function TierStatsModal({
                           <td className="py-2 px-3 font-medium text-gray-900">
                             <span className="text-blue-600">D{dim}:</span> {DIMENSION_NAMES[dim]}
                           </td>
-                          <td className="py-2 px-3 text-center font-bold text-blue-700">{counts.leading}</td>
-                          <td className="py-2 px-3 text-center font-bold text-amber-700">{counts.progressing}</td>
-                          <td className="py-2 px-3 text-center font-bold text-orange-700">{counts.emerging}</td>
-                          <td className="py-2 px-3 text-center font-bold text-red-700">{counts.developing}</td>
+                          <td className="py-2 px-2 text-center font-bold text-emerald-700">{counts.exemplary}</td>
+                          <td className="py-2 px-2 text-center font-bold text-blue-700">{counts.leading}</td>
+                          <td className="py-2 px-2 text-center font-bold text-amber-700">{counts.progressing}</td>
+                          <td className="py-2 px-2 text-center font-bold text-orange-700">{counts.emerging}</td>
+                          <td className="py-2 px-2 text-center font-bold text-red-700">{counts.developing}</td>
                         </tr>
                       );
                     })}
@@ -821,7 +831,7 @@ function TierStatsModal({
             
             {/* Tier Thresholds Reference */}
             <div className="bg-gray-100 rounded-lg p-3 text-xs text-gray-600">
-              <strong>Tier Thresholds:</strong> Leading (75+) | Progressing (60-74) | Emerging (40-59) | Developing (&lt;40)
+              <strong>Tier Thresholds:</strong> Exemplary (90+) | Leading (75-89) | Progressing (60-74) | Emerging (40-59) | Developing (&lt;40)
             </div>
           </div>
         </div>
@@ -867,6 +877,7 @@ function SensitivityAnalysisModal({
       }
       
       const getTierName = (score: number) => {
+        if (score >= 90) return 'Exemplary';
         if (score >= 75) return 'Leading';
         if (score >= 60) return 'Progressing';
         if (score >= 40) return 'Emerging';
@@ -1117,21 +1128,21 @@ function ReliabilityDiagnosticsModal({
     13: { key: 'd13a', field: 'dimension13_data' },
   };
   
-  // Score mapping for items - expanded to catch all variations
+  // Score mapping for items - aligned with main scoring (5/3/2/0 scale)
   const scoreItem = (value: string | undefined): number | null => {
     if (!value || value === 'Unsure') return null;
     const v = value.toLowerCase();
-    // Currently implemented/offered
+    // Currently implemented/offered = 5 points
     if (v.includes('currently offer') || v.includes('currently use') || 
         v.includes('currently measure') || v.includes('currently track') ||
-        v.includes('currently provide') || v === 'yes') return 100;
-    // In development/planning
+        v.includes('currently provide') || v === 'yes') return 5;
+    // In development/planning = 3 points
     if (v.includes('active planning') || v.includes('in active') || 
-        v.includes('in development') || v.includes('planning to')) return 66;
-    // Assessing/considering
+        v.includes('in development') || v.includes('planning to')) return 3;
+    // Assessing/considering = 2 points
     if (v.includes('assessing feasibility') || v.includes('assessing') || 
-        v.includes('considering')) return 33;
-    // Not able/not offered
+        v.includes('considering')) return 2;
+    // Not able/not offered = 0 points
     if (v.includes('not able') || v.includes('not offer') || 
         v.includes('do not') || v === 'no') return 0;
     return null;
@@ -1155,7 +1166,13 @@ function ReliabilityDiagnosticsModal({
       }
     }
     
-    return Array.from(allItems);
+    // Exclude D10 post-launch items for consistency with main scoring
+    let items = Array.from(allItems);
+    if (dimNum === 10) {
+      items = items.filter(item => !D10_EXCLUDED_ITEMS.includes(item));
+    }
+    
+    return items;
   };
   
   // Get item-level scores for a dimension across all companies
@@ -1509,7 +1526,7 @@ function ReliabilityDiagnosticsModal({
                 <p className="font-semibold text-gray-800">Interpretation Guide:</p>
                 <p><strong>Cronbach's α:</strong> ≥0.70 acceptable, ≥0.80 good, ≥0.90 excellent for research purposes.</p>
                 <p><strong>Inter-Dimension Correlation:</strong> 0.3-0.7 suggests related but distinct constructs; &gt;0.8 may indicate redundancy.</p>
-                <p><strong>Note:</strong> Alpha calculated on item-level scores where available. Valid N = companies with ≥70% items scored (excluding "Unsure").</p>
+                <p><strong>Note:</strong> Alpha calculated on item-level scores where available. Valid N = companies with ≥50% items scored (excluding "Unsure").</p>
                 {dimensionReliability.every(d => d.validN === 0) && (
                   <p className="text-amber-600 font-medium">
                     ⚠️ No companies have sufficient item-level data for reliability analysis. This may occur if most responses are "Unsure" or if data format issues exist.
