@@ -33,10 +33,10 @@ const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
 };
 
 const DEFAULT_COMPOSITE_WEIGHTS = {
-  weightedDim: 95,
+  weightedDim: 90,
   depth: 0,
-  maturity: 3,
-  breadth: 2,
+  maturity: 5,
+  breadth: 5,
 };
 
 // Default blend weights for dimensions with follow-up questions
@@ -490,7 +490,7 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
                 <div className="flex items-center gap-3">
                   <span className="w-24 text-sm font-medium text-gray-500">Unsure</span>
                   <div className="flex-1 h-2 bg-gray-200 rounded-full" style={{ width: '5%' }} />
-                  <span className="font-bold text-gray-500">0 pts (excluded)</span>
+                  <span className="font-bold text-gray-500">0 pts (in denominator)</span>
                 </div>
               </div>
             </section>
@@ -501,10 +501,15 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
                 Geographic Multiplier
               </h3>
               <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span>Generally consistent across all locations</span><span className="font-bold">x1.00</span></div>
-                <div className="flex justify-between"><span>Vary across locations</span><span className="font-bold">x0.90</span></div>
-                <div className="flex justify-between"><span>Only available in select locations</span><span className="font-bold">x0.75</span></div>
+                <div className="flex justify-between"><span>Multi-country + Consistent across all locations</span><span className="font-bold text-green-600">x1.00</span></div>
+                <div className="flex justify-between"><span>Multi-country + Varies by location</span><span className="font-bold text-amber-600">x0.90</span></div>
+                <div className="flex justify-between"><span>Single-country (geo question not applicable)</span><span className="font-bold text-amber-600">x0.90</span></div>
+                <div className="flex justify-between"><span>Multi-country + Only available in select locations</span><span className="font-bold text-red-600">x0.75</span></div>
               </div>
+              <p className="text-xs text-gray-500 mt-2 italic">
+                Note: Single-country companies receive the same multiplier as multi-country companies that vary by location. 
+                Only multi-country companies demonstrating consistent global policies earn the full 1.0 multiplier.
+              </p>
             </section>
             
             <section>
