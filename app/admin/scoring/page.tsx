@@ -1480,9 +1480,22 @@ function ReliabilityDiagnosticsModal({
   };
   
   // Score mapping for items - aligned with main scoring (5/3/2/0 scale)
-  const scoreItem = (value: string | undefined): number | null => {
-    if (!value || value === 'Unsure') return null;
-    const v = value.toLowerCase();
+  const scoreItem = (value: string | number | undefined): number | null => {
+    // Handle numeric values (from panel data)
+    if (typeof value === 'number') {
+      switch (value) {
+        case 4: return 5;  // Currently offer
+        case 3: return 3;  // Planning
+        case 2: return 2;  // Assessing
+        case 1: return 0;  // Not able
+        case 5: return null;  // Unsure
+        default: return null;
+      }
+    }
+    if (!value) return null;
+    const v = String(value).toLowerCase();
+    // Handle Unsure and Unknown (5) - exclude from reliability
+    if (v === 'unsure' || v.includes('unsure') || v.includes('unknown')) return null;
     // Currently implemented/offered = 5 points
     if (v.includes('currently offer') || v.includes('currently use') || 
         v.includes('currently measure') || v.includes('currently track') ||
