@@ -2681,11 +2681,11 @@ export default function AggregateScoringReport() {
   const STICKY_LEFT_8 = COL1_WIDTH + COL2_WIDTH + (5 * COL_AVG_WIDTH);  // Regional
   const STICKY_LEFT_9 = COL1_WIDTH + COL2_WIDTH + (6 * COL_AVG_WIDTH);  // Global
   
-  // Row heights for sticky top offsets
-  const H_ROW1 = 32;   // METRICS/BENCHMARKS/COMPANIES row
-  const H_ROW2 = 44;   // Column labels row (Metric, Wt%, ALL, FP, etc.)
-  const H_ROW3 = 28;   // Global Footprint row
-  const H_ROW4 = 28;   // Data Confidence row
+  // Row heights for sticky top offsets (must match actual rendered heights)
+  const H_ROW1 = 36;   // METRICS/BENCHMARKS/COMPANIES row (py-2 + text)
+  const H_ROW2 = 48;   // Column labels row (py-3 + text + completion indicator)
+  const H_ROW3 = 32;   // Global Footprint row (py-1.5 + badge)
+  const H_ROW4 = 32;   // Data Confidence row (py-1.5 + badge)
   
   const TOP_ROW1 = 0;
   const TOP_ROW2 = H_ROW1;
@@ -2980,18 +2980,18 @@ export default function AggregateScoringReport() {
                   ))}
                 </colgroup>
                 <thead style={{ backgroundColor: '#1E293B' }}>
-                  {/* ROW 1: METRICS / BENCHMARKS / COMPANIES */}
+                  {/* ROW 1: METRICS / BENCHMARKS / COMPANIES - sticky TOP only (colSpan breaks with sticky left) */}
                   <tr className="text-white">
                     <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600 text-white"
-                        style={{ position: 'sticky', top: TOP_ROW1, left: 0, zIndex: 90, backgroundColor: '#1E293B' }}>
+                        style={{ position: 'sticky', top: TOP_ROW1, zIndex: 80, backgroundColor: '#1E293B' }}>
                       METRICS
                     </th>
                     <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium border-r border-indigo-500 text-white"
-                        style={{ position: 'sticky', top: TOP_ROW1, left: COL1_WIDTH + COL2_WIDTH, zIndex: 90, backgroundColor: '#4338CA' }}>
+                        style={{ position: 'sticky', top: TOP_ROW1, zIndex: 80, backgroundColor: '#4338CA' }}>
                       BENCHMARKS
                     </th>
                     <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium text-white"
-                        style={{ position: 'sticky', top: TOP_ROW1, zIndex: 70, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: TOP_ROW1, zIndex: 80, backgroundColor: '#334155' }}>
                       COMPANIES ({sortedCompanies.length})
                     </th>
                   </tr>
