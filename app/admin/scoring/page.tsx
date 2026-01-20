@@ -2861,30 +2861,33 @@ export default function AggregateScoringReport() {
                 >
                   Dimension Scoring
                 </button>
-                <button 
-                  onClick={() => setShowTierStatsModal(true)}
-                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Tier Stats
-                </button>
-                <button 
-                  onClick={() => setShowSensitivityModal(true)}
-                  className="px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Sensitivity
-                </button>
-                <button 
-                  onClick={() => setShowReliabilityModal(true)}
-                  className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Reliability
-                </button>
-                <button 
-                  onClick={() => setShowMethodologyModal(true)}
-                  className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Methodology
-                </button>
+                {/* Methodology buttons with dark background */}
+                <div className="flex items-center gap-2 bg-slate-800/80 rounded-lg px-2 py-1 ml-2">
+                  <button 
+                    onClick={() => setShowTierStatsModal(true)}
+                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Tier Stats
+                  </button>
+                  <button 
+                    onClick={() => setShowSensitivityModal(true)}
+                    className="px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Sensitivity
+                  </button>
+                  <button 
+                    onClick={() => setShowReliabilityModal(true)}
+                    className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Reliability
+                  </button>
+                  <button 
+                    onClick={() => setShowMethodologyModal(true)}
+                    className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Methodology
+                  </button>
+                </div>
                 <button 
                   onClick={() => {
                     setCompositeWeights({ ...DEFAULT_COMPOSITE_WEIGHTS });
@@ -2985,7 +2988,8 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', left: 0, zIndex: 45, backgroundColor: '#1E293B' }}>
                       METRICS
                     </th>
-                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500">
+                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 45, backgroundColor: '#4338CA' }}>
                       BENCHMARKS
                     </th>
                     <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium bg-slate-700">
@@ -3126,6 +3130,18 @@ export default function AggregateScoringReport() {
                             {company.globalFootprint.geoConsistency.badge}
                           </div>
                         )}
+                        {/* Data Confidence Badge */}
+                        <div className={`mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                          company.dataConfidence.score >= 95 
+                            ? 'bg-green-100 text-green-700 border border-green-300' 
+                            : company.dataConfidence.score >= 85 
+                            ? 'bg-teal-100 text-teal-700 border border-teal-300' 
+                            : company.dataConfidence.score >= 70 
+                            ? 'bg-amber-100 text-amber-700 border border-amber-300' 
+                            : 'bg-red-100 text-red-700 border border-red-300'
+                        }`} title={`${company.dataConfidence.verifiedItems}/${company.dataConfidence.totalItems} items verified (${company.dataConfidence.unsureItems} unsure)`}>
+                          {company.dataConfidence.score}% conf
+                        </div>
                       </th>
                     ))}
                   </tr>
