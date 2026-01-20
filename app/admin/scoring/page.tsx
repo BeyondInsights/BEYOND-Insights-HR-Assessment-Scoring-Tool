@@ -2985,10 +2985,11 @@ export default function AggregateScoringReport() {
                 <thead className="sticky top-0 z-40">
                   <tr className="bg-slate-800 text-white">
                     <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600"
-                        style={{ position: 'sticky', left: 0, zIndex: 45, backgroundColor: '#1E293B' }}>
+                        style={{ position: 'sticky', left: 0, zIndex: 46, backgroundColor: '#1E293B' }}>
                       METRICS
                     </th>
-                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500">
+                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium border-r border-indigo-500"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 46, backgroundColor: '#4338CA', minWidth: 7 * COL_AVG_WIDTH }}>
                       BENCHMARKS
                     </th>
                     <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium bg-slate-700">
@@ -3059,7 +3060,8 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, backgroundColor: '#334155' }}>
                       <div className="space-y-0.5">
                         <div>Global Footprint</div>
-                        <div className="text-[10px] text-slate-400">Geo Consistency / Data Confidence</div>
+                        <div className="text-[10px] text-slate-400">Geo Consistency</div>
+                        <div className="text-[10px] text-slate-400">Data Confidence</div>
                       </div>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
