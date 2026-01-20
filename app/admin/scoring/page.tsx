@@ -2141,6 +2141,370 @@ function TierBadge({ score, isComplete, isProvisional, size = 'normal' }: {
 }
 
 // ============================================
+// TECHNICAL METHODOLOGY MODAL
+// ============================================
+
+function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'scoring' | 'reliability' | 'sensitivity'>('overview');
+  
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">Technical Scoring Methodology</h2>
+            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <p className="text-indigo-100 text-sm mt-1">Best Companies for Working with Cancer Index | Year 1</p>
+          {/* Tabs */}
+          <div className="flex gap-2 mt-3">
+            {[
+              { id: 'overview', label: 'Overview' },
+              { id: 'scoring', label: 'Scoring Framework' },
+              { id: 'reliability', label: 'Reliability' },
+              { id: 'sensitivity', label: 'Sensitivity' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === tab.id 
+                    ? 'bg-white text-indigo-700' 
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="p-6 overflow-y-auto max-h-[calc(92vh-140px)]">
+          {/* OVERVIEW TAB */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <div className="bg-indigo-50 rounded-lg p-5 border border-indigo-200">
+                <h3 className="font-bold text-indigo-900 text-lg mb-3">Executive Summary</h3>
+                <p className="text-indigo-800 mb-3">
+                  This document details the scoring methodology for the Best Companies for Working with Cancer Index, 
+                  including statistical validation of reliability and sensitivity analyses demonstrating robustness to methodological variations.
+                </p>
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div className="bg-white rounded-lg p-3 text-center border border-indigo-200">
+                    <div className="text-2xl font-bold text-indigo-700">0.78</div>
+                    <div className="text-xs text-indigo-600">Avg Cronbach's α</div>
+                    <div className="text-xs text-green-600 font-medium">Acceptable</div>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 text-center border border-indigo-200">
+                    <div className="text-2xl font-bold text-indigo-700">0.999</div>
+                    <div className="text-xs text-indigo-600">Spearman Correlation</div>
+                    <div className="text-xs text-green-600 font-medium">Under ±10% Weight Change</div>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 text-center border border-indigo-200">
+                    <div className="text-2xl font-bold text-indigo-700">4/6</div>
+                    <div className="text-xs text-indigo-600">Stable Scenarios</div>
+                    <div className="text-xs text-green-600 font-medium">Robust Methodology</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-6">
+                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <h4 className="font-bold text-green-900 mb-2">Key Strengths</h4>
+                  <ul className="text-sm text-green-800 space-y-1">
+                    <li>• Near-perfect rank stability (r = 0.999) under weight perturbation</li>
+                    <li>• Zero tier changes from random weight variations</li>
+                    <li>• Strong average reliability (α = 0.78)</li>
+                    <li>• D10 Caregiver shows excellent consistency (α = 0.90)</li>
+                    <li>• Optimal inter-dimension correlation (r = 0.60)</li>
+                  </ul>
+                </div>
+                <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                  <h4 className="font-bold text-amber-900 mb-2">Documented Limitations</h4>
+                  <ul className="text-sm text-amber-800 space-y-1">
+                    <li>• D1 & D5 lower reliability (formative indices - expected)</li>
+                    <li>• Status point sensitivity affects tier assignments</li>
+                    <li>• Year 1 sample size (N=38) limits CI precision</li>
+                    <li>• Bootstrap CIs planned for Year 2</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* SCORING FRAMEWORK TAB */}
+          {activeTab === 'scoring' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg mb-3">13 Dimensions Assessed</h3>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {[
+                    { num: 1, name: 'Medical Leave & Flexibility', weight: '7.7%' },
+                    { num: 2, name: 'Insurance & Financial Protection', weight: '7.7%' },
+                    { num: 3, name: 'Manager Preparedness', weight: '7.7%' },
+                    { num: 4, name: 'Navigation & Expert Support', weight: '7.7%' },
+                    { num: 5, name: 'Workplace Accommodations', weight: '7.7%' },
+                    { num: 6, name: 'Culture & Psychological Safety', weight: '7.7%' },
+                    { num: 7, name: 'Career Continuity & Growth', weight: '7.7%' },
+                    { num: 8, name: 'Work Continuation & Reintegration', weight: '7.7%' },
+                    { num: 9, name: 'Executive Commitment', weight: '7.7%' },
+                    { num: 10, name: 'Caregiver & Family Support', weight: '7.7%' },
+                    { num: 11, name: 'Prevention & Wellness', weight: '7.7%' },
+                    { num: 12, name: 'Continuous Improvement', weight: '7.7%' },
+                    { num: 13, name: 'Communication & Awareness', weight: '7.7%' },
+                  ].map(d => (
+                    <div key={d.num} className="flex items-center justify-between bg-gray-50 rounded px-3 py-2">
+                      <span><span className="text-indigo-600 font-medium">D{d.num}:</span> {d.name}</span>
+                      <span className="text-gray-500 font-mono">{d.weight}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg mb-3">Item-Level Scoring (4-Point Scale)</h3>
+                <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+                  <thead className="bg-indigo-600 text-white">
+                    <tr>
+                      <th className="py-2 px-4 text-left">Response</th>
+                      <th className="py-2 px-3 text-center">Points</th>
+                      <th className="py-2 px-4 text-left">Interpretation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b"><td className="py-2 px-4">Currently offer/use this</td><td className="py-2 px-3 text-center font-bold text-green-600">5</td><td className="py-2 px-4">Implemented</td></tr>
+                    <tr className="border-b bg-gray-50"><td className="py-2 px-4">In active planning/development</td><td className="py-2 px-3 text-center font-bold text-blue-600">3</td><td className="py-2 px-4">Planning</td></tr>
+                    <tr className="border-b"><td className="py-2 px-4">Assessing feasibility</td><td className="py-2 px-3 text-center font-bold text-amber-600">2</td><td className="py-2 px-4">Exploring</td></tr>
+                    <tr className="border-b bg-gray-50"><td className="py-2 px-4">Not able to offer at this time</td><td className="py-2 px-3 text-center font-bold text-red-600">0</td><td className="py-2 px-4">Not Available</td></tr>
+                    <tr><td className="py-2 px-4">Unsure</td><td className="py-2 px-3 text-center font-bold text-gray-400">0</td><td className="py-2 px-4">Unknown (flagged)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg mb-3">Composite Score Formula</h3>
+                <div className="bg-gray-100 rounded-lg p-4 text-center">
+                  <span className="text-gray-700">Composite = </span>
+                  <span className="font-bold text-blue-600">(Weighted Dim × 95%)</span>
+                  <span className="text-gray-700"> + </span>
+                  <span className="font-bold text-purple-600">(Maturity × 3%)</span>
+                  <span className="text-gray-700"> + </span>
+                  <span className="font-bold text-violet-600">(Breadth × 2%)</span>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg mb-3">Tier Classification</h3>
+                <div className="grid grid-cols-5 gap-2 text-center text-sm">
+                  <div className="bg-emerald-100 rounded-lg p-3 border border-emerald-300">
+                    <div className="font-bold text-emerald-700">Exemplary</div>
+                    <div className="text-emerald-600">90+</div>
+                  </div>
+                  <div className="bg-blue-100 rounded-lg p-3 border border-blue-300">
+                    <div className="font-bold text-blue-700">Leading</div>
+                    <div className="text-blue-600">75-89</div>
+                  </div>
+                  <div className="bg-amber-100 rounded-lg p-3 border border-amber-300">
+                    <div className="font-bold text-amber-700">Progressing</div>
+                    <div className="text-amber-600">60-74</div>
+                  </div>
+                  <div className="bg-orange-100 rounded-lg p-3 border border-orange-300">
+                    <div className="font-bold text-orange-700">Emerging</div>
+                    <div className="text-orange-600">40-59</div>
+                  </div>
+                  <div className="bg-red-100 rounded-lg p-3 border border-red-300">
+                    <div className="font-bold text-red-700">Developing</div>
+                    <div className="text-red-600">&lt;40</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* RELIABILITY TAB */}
+          {activeTab === 'reliability' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
+                  <div className="text-4xl font-bold text-green-700">0.78</div>
+                  <div className="text-sm text-green-600">Average Cronbach's α</div>
+                  <div className="text-xs text-green-500 font-medium">Acceptable</div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
+                  <div className="text-4xl font-bold text-green-700">0.60</div>
+                  <div className="text-sm text-green-600">Avg Inter-Dimension r</div>
+                  <div className="text-xs text-green-500 font-medium">Optimal Range (0.3-0.7)</div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg mb-3">Dimension-Level Reliability</h3>
+                <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+                  <thead className="bg-cyan-600 text-white">
+                    <tr>
+                      <th className="py-2 px-3 text-left">Dimension</th>
+                      <th className="py-2 px-2 text-center">Items</th>
+                      <th className="py-2 px-2 text-center">Valid N</th>
+                      <th className="py-2 px-2 text-center">α</th>
+                      <th className="py-2 px-3 text-center">Quality</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { dim: 'D10: Caregiver & Family', items: 19, n: 35, alpha: 0.90, quality: 'Excellent', color: 'text-green-600' },
+                      { dim: 'D8: Work Continuation', items: 12, n: 35, alpha: 0.87, quality: 'Good', color: 'text-blue-600' },
+                      { dim: 'D4: Navigation & Expert', items: 10, n: 36, alpha: 0.83, quality: 'Good', color: 'text-blue-600' },
+                      { dim: 'D7: Career Continuity', items: 9, n: 34, alpha: 0.82, quality: 'Good', color: 'text-blue-600' },
+                      { dim: 'D11: Prevention & Wellness', items: 13, n: 36, alpha: 0.81, quality: 'Good', color: 'text-blue-600' },
+                      { dim: 'D2: Insurance & Financial', items: 17, n: 35, alpha: 0.80, quality: 'Good', color: 'text-blue-600' },
+                      { dim: 'D9: Executive Commitment', items: 12, n: 33, alpha: 0.80, quality: 'Good', color: 'text-blue-600' },
+                      { dim: 'D6: Culture & Psych Safety', items: 12, n: 35, alpha: 0.78, quality: 'Acceptable', color: 'text-cyan-600' },
+                      { dim: 'D12: Continuous Improvement', items: 9, n: 36, alpha: 0.76, quality: 'Acceptable', color: 'text-cyan-600' },
+                      { dim: 'D13: Communication', items: 11, n: 36, alpha: 0.75, quality: 'Acceptable', color: 'text-cyan-600' },
+                      { dim: 'D3: Manager Preparedness', items: 10, n: 34, alpha: 0.74, quality: 'Acceptable', color: 'text-cyan-600' },
+                      { dim: 'D5: Workplace Accommodations', items: 11, n: 36, alpha: 0.66, quality: 'Questionable', color: 'text-amber-600', highlight: true },
+                      { dim: 'D1: Medical Leave & Flexibility', items: 13, n: 36, alpha: 0.59, quality: 'Poor', color: 'text-red-600', highlight: true },
+                    ].map((row, idx) => (
+                      <tr key={idx} className={row.highlight ? 'bg-amber-50' : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="py-2 px-3">{row.dim}</td>
+                        <td className="py-2 px-2 text-center">{row.items}</td>
+                        <td className="py-2 px-2 text-center">{row.n}</td>
+                        <td className={`py-2 px-2 text-center font-bold ${row.color}`}>{row.alpha.toFixed(2)}</td>
+                        <td className={`py-2 px-3 text-center ${row.color}`}>{row.quality}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                <h4 className="font-bold text-amber-900 mb-2">About D1 & D5 Lower Reliability (Formative Policy Indices)</h4>
+                <p className="text-sm text-amber-800 mb-2">
+                  Dimensions D1 (Medical Leave) and D5 (Workplace Accommodations) show lower α values. This is <strong>expected</strong> and does not indicate measurement failure.
+                </p>
+                <p className="text-sm text-amber-800 mb-2">
+                  These dimensions function as <em>formative policy indices</em> rather than reflective scales:
+                </p>
+                <ul className="text-sm text-amber-800 ml-4 space-y-1">
+                  <li>• <strong>Reflective scales:</strong> Items manifest one latent trait and should co-vary (high α expected)</li>
+                  <li>• <strong>Formative indices:</strong> Items are distinct components of support that do not need to correlate to be valid</li>
+                </ul>
+                <p className="text-sm text-amber-800 mt-2 italic">
+                  D1 aggregates diverse mechanisms (leave length, intermittent leave, PTO accrual, job protection). D5 combines physical accommodations, scheduling flexibility, and technology supports. 
+                  Alpha is reported as a diagnostic to identify mis-keyed items, not as a validity requirement.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* SENSITIVITY TAB */}
+          {activeTab === 'sensitivity' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg mb-3">Weight Perturbation Analysis</h3>
+                <p className="text-sm text-gray-600 mb-3">Dimension weights randomly perturbed by ±10% across 50 simulations.</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
+                    <div className="text-3xl font-bold text-green-700">0.999</div>
+                    <div className="text-sm text-green-600">Spearman Correlation</div>
+                    <div className="text-xs text-gray-500">Target: ≥0.95</div>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
+                    <div className="text-3xl font-bold text-green-700">0%</div>
+                    <div className="text-sm text-green-600">Tier Change Rate</div>
+                    <div className="text-xs text-gray-500">Target: ≤10-15%</div>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
+                    <div className="text-3xl font-bold text-green-700">38/38</div>
+                    <div className="text-sm text-green-600">Tier-Stable Companies</div>
+                    <div className="text-xs text-gray-500">100% stability</div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 italic mt-2">
+                  Rankings are essentially invariant to ±10% weight changes—neutralizes "arbitrary weights" criticism.
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg mb-3">Scenario Analysis</h3>
+                <p className="text-sm text-gray-600 mb-3">Named scenarios test stability under alternative methodological choices.</p>
+                <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+                  <thead className="bg-orange-600 text-white">
+                    <tr>
+                      <th className="py-2 px-3 text-left">Scenario</th>
+                      <th className="py-2 px-2 text-center">Rank Corr.</th>
+                      <th className="py-2 px-2 text-center">Tier Changes</th>
+                      <th className="py-2 px-2 text-center">Avg Δ</th>
+                      <th className="py-2 px-3 text-center">Stability</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { name: 'Follow-up blend 90/10', corr: 1.000, changes: '0/38', delta: '±0.2', stable: true },
+                      { name: 'Follow-up blend 80/20', corr: 0.999, changes: '1/38', delta: '±0.4', stable: true },
+                      { name: 'Geo multiplier 0.95/0.80', corr: 0.995, changes: '2/38', delta: '±0.9', stable: true },
+                      { name: 'Composite 90/5/5', corr: 0.994, changes: '2/38', delta: '±1.1', stable: true },
+                      { name: 'Planning = 2 pts (not 3)', corr: 0.999, changes: '11/38', delta: '±5', stable: false },
+                      { name: 'Assessing = 1 pt (not 2)', corr: 0.999, changes: '11/38', delta: '±5', stable: false },
+                    ].map((row, idx) => (
+                      <tr key={idx} className={row.stable ? (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50') : 'bg-amber-50'}>
+                        <td className="py-2 px-3">{row.name}</td>
+                        <td className="py-2 px-2 text-center font-bold text-green-600">{row.corr.toFixed(3)}</td>
+                        <td className={`py-2 px-2 text-center font-bold ${row.stable ? '' : 'text-red-600'}`}>{row.changes}</td>
+                        <td className="py-2 px-2 text-center text-gray-600">{row.delta} pts</td>
+                        <td className="py-2 px-3 text-center">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${row.stable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {row.stable ? 'Stable' : 'Sensitive'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-green-50 rounded-lg p-3 text-center border border-green-200">
+                  <div className="text-2xl font-bold text-green-700">4</div>
+                  <div className="text-xs text-green-600">Stable Scenarios</div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-200">
+                  <div className="text-2xl font-bold text-gray-500">0</div>
+                  <div className="text-xs text-gray-500">Marginal Scenarios</div>
+                </div>
+                <div className="bg-red-50 rounded-lg p-3 text-center border border-red-200">
+                  <div className="text-2xl font-bold text-red-700">2</div>
+                  <div className="text-xs text-red-600">Sensitive Scenarios</div>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h4 className="font-bold text-blue-900 mb-2">Interpretation of "Sensitive" Scenarios</h4>
+                <p className="text-sm text-blue-800 mb-2">
+                  The two "sensitive" scenarios (Planning = 2 pts, Assessing = 1 pt) show high tier changes but maintain exceptional rank correlation (0.999). This indicates:
+                </p>
+                <ol className="text-sm text-blue-800 ml-4 space-y-1 list-decimal">
+                  <li><strong>Rankings are robust</strong> — the same companies rank highly regardless of point values</li>
+                  <li><strong>Tier thresholds are crossing points</strong> — companies near boundaries shift tiers when scores compress</li>
+                  <li><strong>Status point values reflect design intent</strong> — the index deliberately values companies actively planning or assessing improvements</li>
+                </ol>
+                <p className="text-sm text-blue-800 mt-2 italic">
+                  A reviewer who argues for different point values is proposing a different construct definition (e.g., "only implemented policies matter"), not exposing a methodological flaw.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 
@@ -2157,6 +2521,7 @@ export default function AggregateScoringReport() {
   const [showTierStatsModal, setShowTierStatsModal] = useState(false);
   const [showSensitivityModal, setShowSensitivityModal] = useState(false);
   const [showReliabilityModal, setShowReliabilityModal] = useState(false);
+  const [showMethodologyModal, setShowMethodologyModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'composite'>('composite');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard' | 'panel'>('all');
@@ -2291,6 +2656,7 @@ export default function AggregateScoringReport() {
       {showTierStatsModal && <TierStatsModal onClose={() => setShowTierStatsModal(false)} companyScores={companyScores} includePanel={includePanel} />}
       {showSensitivityModal && <SensitivityAnalysisModal onClose={() => setShowSensitivityModal(false)} companyScores={companyScores} weights={weights} includePanel={includePanel} assessments={assessments} />}
       {showReliabilityModal && <ReliabilityDiagnosticsModal onClose={() => setShowReliabilityModal(false)} companyScores={companyScores} assessments={assessments} includePanel={includePanel} />}
+      {showMethodologyModal && <TechnicalMethodologyModal onClose={() => setShowMethodologyModal(false)} />}
 
       {/* Header */}
       <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-5 px-8 shadow-xl sticky top-0 z-40">
@@ -2448,6 +2814,12 @@ export default function AggregateScoringReport() {
                   className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   Reliability
+                </button>
+                <button 
+                  onClick={() => setShowMethodologyModal(true)}
+                  className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Methodology
                 </button>
                 <button 
                   onClick={() => {
