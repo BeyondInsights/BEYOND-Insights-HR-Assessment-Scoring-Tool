@@ -3058,7 +3058,11 @@ export default function AggregateScoringReport() {
                   <tr className="bg-gradient-to-r from-slate-700 to-slate-800">
                     <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
                         style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, backgroundColor: '#334155' }}>
-                      Global Footprint
+                      <div className="space-y-1">
+                        <div>Global Footprint</div>
+                        <div className="text-[10px] text-slate-400">Geo Consistency</div>
+                        <div className="text-[10px] text-slate-400">Data Confidence</div>
+                      </div>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
                         style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
@@ -3115,8 +3119,8 @@ export default function AggregateScoringReport() {
                           )}
                           <span>{company.globalFootprint.countryCount}</span>
                         </div>
-                        {/* Geo Consistency Badge - only show for multi-country */}
-                        {company.globalFootprint.isMultiCountry && (
+                        {/* Geo Consistency Badge - show N/A for single-country */}
+                        {company.globalFootprint.isMultiCountry ? (
                           <div className={`mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
                             company.globalFootprint.geoConsistency.badge === 'Consistent' 
                               ? 'bg-green-100 text-green-700 border border-green-300' 
@@ -3128,6 +3132,10 @@ export default function AggregateScoringReport() {
                             {company.globalFootprint.geoConsistency.badge === 'Mixed' && '~ '}
                             {company.globalFootprint.geoConsistency.badge === 'Varies' && '⚠ '}
                             {company.globalFootprint.geoConsistency.badge}
+                          </div>
+                        ) : (
+                          <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-200 text-slate-500 border border-slate-300" title="Single country - geo consistency N/A">
+                            — N/A
                           </div>
                         )}
                         {/* Data Confidence Badge */}
