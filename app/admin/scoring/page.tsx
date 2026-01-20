@@ -2983,20 +2983,6 @@ export default function AggregateScoringReport() {
             <div ref={tableRef} className="overflow-x-auto max-h-[calc(100vh-300px)]">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 z-40">
-                  <tr className="bg-slate-800 text-white">
-                    <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600"
-                        style={{ position: 'sticky', left: 0, zIndex: 46, backgroundColor: '#1E293B' }}>
-                      METRICS
-                    </th>
-                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium border-r border-indigo-500"
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 46, backgroundColor: '#4338CA', minWidth: 7 * COL_AVG_WIDTH }}>
-                      BENCHMARKS
-                    </th>
-                    <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium bg-slate-700">
-                      COMPANIES ({sortedCompanies.length})
-                    </th>
-                  </tr>
-                  
                   <tr className="bg-slate-700 text-white">
                     <th className="px-4 py-3 text-left font-semibold border-r border-slate-600"
                         style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
