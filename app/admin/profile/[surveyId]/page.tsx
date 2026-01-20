@@ -101,6 +101,11 @@ const DEFAULT_WEIGHTS: Record<number, number> = {
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 const INSUFFICIENT_DATA_THRESHOLD = 0.40;
 
+// D10 item exclusion - added after initial survey launch, excluded for Year 1 fairness
+const D10_EXCLUDED_ITEMS = [
+  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
+];
+
 function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean } {
   if (typeof status === 'number') {
     switch (status) {
@@ -115,7 +120,8 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   if (typeof status === 'string') {
     const s = status.toLowerCase().trim();
     if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false };
-    if (s === 'unsure' || s.includes('unsure')) return { points: null, isUnsure: true };
+    // Handle both "Unsure" and "Unknown (5)" as unsure responses
+    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };
     if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
     if (s.includes('planning') || s.includes('development')) return { points: POINTS.PLANNING, isUnsure: false };
     if (s.includes('assessing') || s.includes('feasibility')) return { points: POINTS.ASSESSING, isUnsure: false };
@@ -124,9 +130,20 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   return { points: null, isUnsure: false };
 }
 
-function getGeoMultiplier(geoResponse: string | undefined | null): number {
-  if (!geoResponse) return 1.0;
-  const s = geoResponse.toLowerCase();
+function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
+  // Single-country companies (no geo question asked) get 1.0 - question doesn't apply
+  if (geoResponse === undefined || geoResponse === null) return 1.0;
+  
+  if (typeof geoResponse === 'number') {
+    switch (geoResponse) {
+      case 1: return 0.75;  // Select locations only
+      case 2: return 0.90;  // Varies by location
+      case 3: return 1.0;   // Consistent globally
+      default: return 1.0;  // N/A or unknown
+    }
+  }
+  
+  const s = String(geoResponse).toLowerCase();
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
   if (s.includes('vary') || s.includes('varies')) return 0.90;
   if (s.includes('select') || s.includes('only available in select')) return 0.75;
@@ -149,7 +166,14 @@ function calculateDimensionScore(dimNum: number, dimData: Record<string, any> | 
   const mainGrid = dimData[`d${dimNum}a`];
   if (!mainGrid || typeof mainGrid !== 'object') return result;
   let earnedPoints = 0;
-  Object.values(mainGrid).forEach((status: any) => {
+  
+  // Process grid items, excluding D10 items that weren't in original survey
+  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+    // Skip excluded D10 items for Year 1 scoring fairness
+    if (dimNum === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) {
+      return; // Skip this item entirely
+    }
+    
     result.totalItems++;
     const { points, isUnsure } = statusToPoints(status);
     if (isUnsure) { result.unsureCount++; result.answeredItems++; result.breakdown.unsure++; }
