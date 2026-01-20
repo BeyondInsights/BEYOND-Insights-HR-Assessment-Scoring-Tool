@@ -11,10 +11,13 @@
  * 7. Dimension Tier row - KEPT
  * 8. D10 "Concierge services" item excluded - added post-launch, will include in Year 2
  * 9. Follow-up scoring substring bugs fixed - proper range ordering to avoid mis-scoring
- * 10. Geo multiplier: Single-country companies now get 0.90 (same as "varies"), not 1.0
- *     - 1.0 = Multi-country + Consistent (earned top tier)
- *     - 0.90 = Single-country OR Multi-country + Varies
+ * 10. Geo multiplier: Single-country = 1.0 (N/A - question doesn't apply)
+ *     - 1.0 = Multi-country + Consistent OR Single-country (N/A)
+ *     - 0.90 = Multi-country + Varies
  *     - 0.75 = Multi-country + Select locations only
+ * 11. Tier Stats modal with composite/dimension tier counts + provisional count
+ * 12. Sensitivity analysis for weight robustness testing
+ * 13. Reliability diagnostics for internal consistency
  */
 
 'use client';
@@ -108,16 +111,16 @@ function statusToPoints(status: string | number): { points: number | null; isUns
 }
 
 function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
-  // Single-country companies (no geo question asked) get 0.90 - same as "varies"
-  // They didn't face the challenge of maintaining consistency across borders
-  if (geoResponse === undefined || geoResponse === null) return 0.90;
+  // Single-country companies (no geo question asked) get 1.0 - question doesn't apply
+  // The geo multiplier measures consistency across locations, which requires multiple locations
+  if (geoResponse === undefined || geoResponse === null) return 1.0;
   
   if (typeof geoResponse === 'number') {
     switch (geoResponse) {
       case 1: return 0.75;  // Select locations only
       case 2: return 0.90;  // Varies by location
       case 3: return 1.0;   // Consistent globally
-      default: return 0.90;
+      default: return 1.0;  // N/A or unknown
     }
   }
   
@@ -125,7 +128,7 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
   if (s.includes('vary') || s.includes('varies')) return 0.90;
   if (s.includes('select') || s.includes('only available in select')) return 0.75;
-  return 0.90;  // Default to single-country treatment
+  return 1.0;  // Default to N/A treatment
 }
 
 // ============================================
@@ -360,6 +363,11 @@ interface CompanyScores {
   depthScore: number;
   maturityScore: number;
   breadthScore: number;
+  globalFootprint: {
+    countryCount: number;
+    segment: 'Single' | 'Regional' | 'Global';
+    isMultiCountry: boolean;
+  };
 }
 
 function calculateCompanyScores(
@@ -408,6 +416,28 @@ function calculateCompanyScores(
   const maturityScore = calculateMaturityScore(assessment);
   const breadthScore = calculateBreadthScore(assessment);
   
+  // Extract global footprint from firmographics
+  const firmographics = assessment.firmographics_data || {};
+  const s9 = firmographics.s9; // Countries of operation - could be array or string
+  let countryCount = 1;
+  if (Array.isArray(s9)) {
+    countryCount = s9.length;
+  } else if (typeof s9 === 'string' && s9.includes(',')) {
+    countryCount = s9.split(',').length;
+  } else if (typeof s9 === 'number') {
+    countryCount = s9;
+  }
+  // Determine segment
+  const segment: 'Single' | 'Regional' | 'Global' = 
+    countryCount === 1 ? 'Single' : 
+    countryCount <= 10 ? 'Regional' : 'Global';
+  
+  const globalFootprint = {
+    countryCount,
+    segment,
+    isMultiCountry: countryCount > 1,
+  };
+  
   const compositeScore = isComplete ? Math.round(
     (weightedScore * (compositeWeights.weightedDim / 100)) +
     (maturityScore * (compositeWeights.maturity / 100)) +
@@ -423,6 +453,7 @@ function calculateCompanyScores(
     depthScore: 0,
     maturityScore,
     breadthScore,
+    globalFootprint,
   };
 }
 
@@ -502,13 +533,14 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
               </h3>
               <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
                 <div className="flex justify-between"><span>Multi-country + Consistent across all locations</span><span className="font-bold text-green-600">x1.00</span></div>
+                <div className="flex justify-between"><span>Single-country (geo question not applicable)</span><span className="font-bold text-green-600">x1.00</span></div>
                 <div className="flex justify-between"><span>Multi-country + Varies by location</span><span className="font-bold text-amber-600">x0.90</span></div>
-                <div className="flex justify-between"><span>Single-country (geo question not applicable)</span><span className="font-bold text-amber-600">x0.90</span></div>
                 <div className="flex justify-between"><span>Multi-country + Only available in select locations</span><span className="font-bold text-red-600">x0.75</span></div>
               </div>
               <p className="text-xs text-gray-500 mt-2 italic">
-                Note: Single-country companies receive the same multiplier as multi-country companies that vary by location. 
-                Only multi-country companies demonstrating consistent global policies earn the full 1.0 multiplier.
+                Note: The geo multiplier measures consistency across locations. Single-country companies receive 1.0 
+                because the question does not apply. Global operational complexity is displayed separately via the 
+                Global Footprint indicator.
               </p>
             </section>
             
@@ -626,6 +658,13 @@ function TierStatsModal({
   // Provisional count
   const provisionalCount = filteredCompanies.filter(c => c.isProvisional).length;
   
+  // Global Footprint counts
+  const footprintCounts = {
+    single: filteredCompanies.filter(c => c.globalFootprint.segment === 'Single').length,
+    regional: filteredCompanies.filter(c => c.globalFootprint.segment === 'Regional').length,
+    global: filteredCompanies.filter(c => c.globalFootprint.segment === 'Global').length,
+  };
+  
   // Dimension tier counts
   const getDimensionTierCounts = (dimNum: number) => {
     const scores = filteredCompanies
@@ -656,14 +695,31 @@ function TierStatsModal({
         <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
           <div className="space-y-6">
             {/* Summary Stats */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-gray-700 font-medium">Total Complete Companies:</span>
                 <span className="text-2xl font-bold text-gray-900">{filteredCompanies.length}</span>
               </div>
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <span className="text-amber-700 font-medium">Provisional Scores (4+ dims with 40%+ Unsure):</span>
                 <span className="text-xl font-bold text-amber-600">{provisionalCount}</span>
+              </div>
+              <div className="border-t border-gray-200 pt-3">
+                <div className="text-gray-700 font-medium mb-2">Global Footprint Breakdown:</div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-slate-100 rounded-lg p-2 text-center">
+                    <div className="text-lg font-bold text-slate-700">{footprintCounts.single}</div>
+                    <div className="text-xs text-slate-600">Single Country</div>
+                  </div>
+                  <div className="bg-blue-100 rounded-lg p-2 text-center">
+                    <div className="text-lg font-bold text-blue-700">{footprintCounts.regional}</div>
+                    <div className="text-xs text-blue-600">Regional (2-10)</div>
+                  </div>
+                  <div className="bg-indigo-100 rounded-lg p-2 text-center">
+                    <div className="text-lg font-bold text-indigo-700">{footprintCounts.global}</div>
+                    <div className="text-xs text-indigo-600">Global (11+)</div>
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -737,6 +793,410 @@ function TierStatsModal({
             {/* Tier Thresholds Reference */}
             <div className="bg-gray-100 rounded-lg p-3 text-xs text-gray-600">
               <strong>Tier Thresholds:</strong> Leading (75+) | Progressing (60-74) | Emerging (40-59) | Developing (&lt;40)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// SENSITIVITY ANALYSIS MODAL
+// ============================================
+
+function SensitivityAnalysisModal({ 
+  onClose, 
+  companyScores,
+  weights,
+  includePanel 
+}: { 
+  onClose: () => void; 
+  companyScores: CompanyScores[];
+  weights: Record<number, number>;
+  includePanel: boolean;
+}) {
+  const [isRunning, setIsRunning] = useState(false);
+  const [results, setResults] = useState<{
+    spearmanCorrelation: number;
+    tierChangePercent: number;
+    perturbations: number;
+    stableCompanies: number;
+    totalCompanies: number;
+  } | null>(null);
+
+  const runAnalysis = () => {
+    setIsRunning(true);
+    
+    const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
+    if (filteredCompanies.length < 3) {
+      setResults(null);
+      setIsRunning(false);
+      return;
+    }
+    
+    // Baseline rankings
+    const baselineRanks = new Map<string, number>();
+    const baselineTiers = new Map<string, string>();
+    const sorted = [...filteredCompanies].sort((a, b) => b.compositeScore - a.compositeScore);
+    sorted.forEach((c, idx) => {
+      baselineRanks.set(c.surveyId, idx + 1);
+      baselineTiers.set(c.surveyId, getTierName(c.compositeScore));
+    });
+    
+    const getTierName = (score: number) => {
+      if (score >= 75) return 'Leading';
+      if (score >= 60) return 'Progressing';
+      if (score >= 40) return 'Emerging';
+      return 'Developing';
+    };
+    
+    // Run perturbations (±10% on each weight)
+    const perturbationResults: { ranks: Map<string, number>; tiers: Map<string, string> }[] = [];
+    const numPerturbations = 50;
+    
+    for (let p = 0; p < numPerturbations; p++) {
+      // Create perturbed weights
+      const perturbedWeights: Record<number, number> = {};
+      let totalWeight = 0;
+      
+      for (let dim = 1; dim <= 13; dim++) {
+        const baseWeight = weights[dim] || 0;
+        const perturbation = (Math.random() - 0.5) * 0.2 * baseWeight; // ±10%
+        perturbedWeights[dim] = Math.max(0, baseWeight + perturbation);
+        totalWeight += perturbedWeights[dim];
+      }
+      
+      // Normalize to 100
+      for (let dim = 1; dim <= 13; dim++) {
+        perturbedWeights[dim] = (perturbedWeights[dim] / totalWeight) * 100;
+      }
+      
+      // Recalculate scores with perturbed weights
+      const perturbedScores = filteredCompanies.map(c => {
+        let newWeightedScore = 0;
+        for (let dim = 1; dim <= 13; dim++) {
+          const dimScore = c.dimensions[dim]?.blendedScore || 0;
+          newWeightedScore += dimScore * (perturbedWeights[dim] / 100);
+        }
+        return {
+          surveyId: c.surveyId,
+          score: Math.round(newWeightedScore * 0.9 + c.maturityScore * 0.05 + c.breadthScore * 0.05),
+        };
+      });
+      
+      // Rank perturbed scores
+      const perturbedRanks = new Map<string, number>();
+      const perturbedTiers = new Map<string, string>();
+      const perturbedSorted = [...perturbedScores].sort((a, b) => b.score - a.score);
+      perturbedSorted.forEach((c, idx) => {
+        perturbedRanks.set(c.surveyId, idx + 1);
+        perturbedTiers.set(c.surveyId, getTierName(c.score));
+      });
+      
+      perturbationResults.push({ ranks: perturbedRanks, tiers: perturbedTiers });
+    }
+    
+    // Calculate Spearman correlation (average across perturbations)
+    let totalCorrelation = 0;
+    let tierChanges = 0;
+    
+    perturbationResults.forEach(({ ranks, tiers }) => {
+      // Spearman correlation
+      const n = filteredCompanies.length;
+      let sumD2 = 0;
+      filteredCompanies.forEach(c => {
+        const baseRank = baselineRanks.get(c.surveyId) || 0;
+        const pertRank = ranks.get(c.surveyId) || 0;
+        sumD2 += Math.pow(baseRank - pertRank, 2);
+      });
+      const spearman = 1 - (6 * sumD2) / (n * (n * n - 1));
+      totalCorrelation += spearman;
+      
+      // Count tier changes
+      filteredCompanies.forEach(c => {
+        if (baselineTiers.get(c.surveyId) !== tiers.get(c.surveyId)) {
+          tierChanges++;
+        }
+      });
+    });
+    
+    const avgCorrelation = totalCorrelation / numPerturbations;
+    const avgTierChangePercent = (tierChanges / (numPerturbations * filteredCompanies.length)) * 100;
+    
+    setResults({
+      spearmanCorrelation: Math.round(avgCorrelation * 1000) / 1000,
+      tierChangePercent: Math.round(avgTierChangePercent * 10) / 10,
+      perturbations: numPerturbations,
+      stableCompanies: filteredCompanies.filter(c => {
+        let changes = 0;
+        perturbationResults.forEach(({ tiers }) => {
+          if (baselineTiers.get(c.surveyId) !== tiers.get(c.surveyId)) changes++;
+        });
+        return changes === 0;
+      }).length,
+      totalCompanies: filteredCompanies.length,
+    });
+    
+    setIsRunning(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">Sensitivity Analysis</h2>
+            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+          <div className="space-y-6">
+            <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+              <h3 className="font-bold text-amber-900 mb-2">What This Tests</h3>
+              <p className="text-sm text-amber-800">
+                Runs 50 simulations with randomly perturbed dimension weights (±10%) to verify 
+                that rankings are stable and not overly sensitive to small weight changes.
+              </p>
+            </div>
+            
+            <button
+              onClick={runAnalysis}
+              disabled={isRunning}
+              className={`w-full py-3 rounded-lg font-semibold text-white transition-colors ${
+                isRunning ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-700'
+              }`}
+            >
+              {isRunning ? 'Running Analysis...' : 'Run Sensitivity Analysis'}
+            </button>
+            
+            {results && (
+              <div className="space-y-4">
+                <h3 className="font-bold text-gray-900">Results</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`rounded-lg p-4 text-center border ${
+                    results.spearmanCorrelation >= 0.95 ? 'bg-green-50 border-green-200' : 
+                    results.spearmanCorrelation >= 0.90 ? 'bg-amber-50 border-amber-200' : 
+                    'bg-red-50 border-red-200'
+                  }`}>
+                    <div className="text-3xl font-bold">{results.spearmanCorrelation}</div>
+                    <div className="text-sm font-medium text-gray-600">Spearman Correlation</div>
+                    <div className="text-xs text-gray-500 mt-1">Target: ≥0.95</div>
+                  </div>
+                  
+                  <div className={`rounded-lg p-4 text-center border ${
+                    results.tierChangePercent <= 10 ? 'bg-green-50 border-green-200' : 
+                    results.tierChangePercent <= 15 ? 'bg-amber-50 border-amber-200' : 
+                    'bg-red-50 border-red-200'
+                  }`}>
+                    <div className="text-3xl font-bold">{results.tierChangePercent}%</div>
+                    <div className="text-sm font-medium text-gray-600">Tier Change Rate</div>
+                    <div className="text-xs text-gray-500 mt-1">Target: ≤10-15%</div>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Perturbations run:</span>
+                      <span className="font-bold ml-2">{results.perturbations}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Companies analyzed:</span>
+                      <span className="font-bold ml-2">{results.totalCompanies}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Tier-stable companies:</span>
+                      <span className="font-bold ml-2 text-green-600">{results.stableCompanies}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Tier-variable companies:</span>
+                      <span className="font-bold ml-2 text-amber-600">{results.totalCompanies - results.stableCompanies}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-gray-500 italic">
+                  High Spearman correlation (≥0.95) and low tier change rate (≤15%) indicate robust rankings 
+                  that are not overly sensitive to weight perturbations.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// RELIABILITY DIAGNOSTICS MODAL
+// ============================================
+
+function ReliabilityDiagnosticsModal({ 
+  onClose, 
+  companyScores,
+  assessments,
+  includePanel 
+}: { 
+  onClose: () => void; 
+  companyScores: CompanyScores[];
+  assessments: Record<string, any>[];
+  includePanel: boolean;
+}) {
+  const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
+  
+  // Calculate internal consistency per dimension (simplified Cronbach's alpha approximation)
+  const calculateDimensionStats = (dimNum: number) => {
+    const scores = filteredCompanies.map(c => c.dimensions[dimNum]?.blendedScore ?? 0);
+    const n = scores.length;
+    if (n < 3) return { mean: 0, std: 0, min: 0, max: 0, floor: 0, ceiling: 0 };
+    
+    const mean = scores.reduce((a, b) => a + b, 0) / n;
+    const variance = scores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / n;
+    const std = Math.sqrt(variance);
+    const min = Math.min(...scores);
+    const max = Math.max(...scores);
+    const floor = scores.filter(s => s <= 10).length;
+    const ceiling = scores.filter(s => s >= 90).length;
+    
+    return { 
+      mean: Math.round(mean * 10) / 10, 
+      std: Math.round(std * 10) / 10, 
+      min, 
+      max,
+      floor,
+      ceiling,
+    };
+  };
+  
+  // Calculate dimension correlations
+  const calculateCorrelation = (dim1: number, dim2: number) => {
+    const scores1 = filteredCompanies.map(c => c.dimensions[dim1]?.blendedScore ?? 0);
+    const scores2 = filteredCompanies.map(c => c.dimensions[dim2]?.blendedScore ?? 0);
+    
+    const n = scores1.length;
+    if (n < 3) return 0;
+    
+    const mean1 = scores1.reduce((a, b) => a + b, 0) / n;
+    const mean2 = scores2.reduce((a, b) => a + b, 0) / n;
+    
+    let numerator = 0;
+    let denom1 = 0;
+    let denom2 = 0;
+    
+    for (let i = 0; i < n; i++) {
+      const d1 = scores1[i] - mean1;
+      const d2 = scores2[i] - mean2;
+      numerator += d1 * d2;
+      denom1 += d1 * d1;
+      denom2 += d2 * d2;
+    }
+    
+    if (denom1 === 0 || denom2 === 0) return 0;
+    return numerator / Math.sqrt(denom1 * denom2);
+  };
+  
+  const dimStats = DIMENSION_ORDER.map(dim => ({
+    dim,
+    name: DIMENSION_NAMES[dim],
+    ...calculateDimensionStats(dim),
+  }));
+  
+  // Calculate average inter-dimension correlation
+  let totalCorr = 0;
+  let corrCount = 0;
+  for (let i = 0; i < DIMENSION_ORDER.length; i++) {
+    for (let j = i + 1; j < DIMENSION_ORDER.length; j++) {
+      totalCorr += calculateCorrelation(DIMENSION_ORDER[i], DIMENSION_ORDER[j]);
+      corrCount++;
+    }
+  }
+  const avgInterCorrelation = corrCount > 0 ? totalCorr / corrCount : 0;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">Reliability Diagnostics</h2>
+            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+          <div className="space-y-6">
+            {/* Summary */}
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <span className="text-blue-900 font-medium">Companies Analyzed:</span>
+                <span className="text-2xl font-bold text-blue-900">{filteredCompanies.length}</span>
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-blue-800">Avg Inter-Dimension Correlation:</span>
+                <span className={`text-xl font-bold ${
+                  avgInterCorrelation >= 0.3 && avgInterCorrelation <= 0.7 ? 'text-green-600' : 'text-amber-600'
+                }`}>
+                  {(avgInterCorrelation).toFixed(2)}
+                </span>
+              </div>
+              <p className="text-xs text-blue-600 mt-2">
+                Moderate correlations (0.3-0.7) suggest dimensions measure related but distinct constructs.
+              </p>
+            </div>
+            
+            {/* Dimension Statistics */}
+            <section>
+              <h3 className="font-bold text-gray-900 mb-3">Dimension Score Distributions</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-gray-50">
+                      <th className="text-left py-2 px-3 font-semibold">Dimension</th>
+                      <th className="text-center py-2 px-2 font-semibold">Mean</th>
+                      <th className="text-center py-2 px-2 font-semibold">Std Dev</th>
+                      <th className="text-center py-2 px-2 font-semibold">Min</th>
+                      <th className="text-center py-2 px-2 font-semibold">Max</th>
+                      <th className="text-center py-2 px-2 font-semibold">Floor (≤10)</th>
+                      <th className="text-center py-2 px-2 font-semibold">Ceiling (≥90)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dimStats.map((stat, idx) => (
+                      <tr key={stat.dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="py-2 px-3 font-medium">
+                          <span className="text-blue-600">D{stat.dim}:</span> {stat.name.split(' ')[0]}
+                        </td>
+                        <td className="py-2 px-2 text-center font-bold">{stat.mean}</td>
+                        <td className="py-2 px-2 text-center">{stat.std}</td>
+                        <td className="py-2 px-2 text-center text-red-600">{stat.min}</td>
+                        <td className="py-2 px-2 text-center text-green-600">{stat.max}</td>
+                        <td className={`py-2 px-2 text-center ${stat.floor > 0 ? 'text-red-600 font-bold' : 'text-gray-400'}`}>
+                          {stat.floor}
+                        </td>
+                        <td className={`py-2 px-2 text-center ${stat.ceiling > filteredCompanies.length * 0.3 ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>
+                          {stat.ceiling}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+            
+            {/* Interpretation Guide */}
+            <div className="bg-gray-100 rounded-lg p-4 text-xs text-gray-600 space-y-2">
+              <p><strong>Floor/Ceiling Effects:</strong> High counts indicate poor differentiation at score extremes.</p>
+              <p><strong>Standard Deviation:</strong> Low SD suggests limited variability (potential measurement issue).</p>
+              <p><strong>Inter-Dimension Correlation:</strong> Very high correlations (&gt;0.8) may indicate redundant dimensions; very low (&lt;0.2) may indicate unrelated constructs.</p>
             </div>
           </div>
         </div>
@@ -859,6 +1319,8 @@ export default function AggregateScoringReport() {
   const [showDimensionModal, setShowDimensionModal] = useState(false);
   const [showCompositeModal, setShowCompositeModal] = useState(false);
   const [showTierStatsModal, setShowTierStatsModal] = useState(false);
+  const [showSensitivityModal, setShowSensitivityModal] = useState(false);
+  const [showReliabilityModal, setShowReliabilityModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'composite'>('composite');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard' | 'panel'>('all');
@@ -991,6 +1453,8 @@ export default function AggregateScoringReport() {
       {showDimensionModal && <DimensionScoringModal onClose={() => setShowDimensionModal(false)} defaultWeights={DEFAULT_DIMENSION_WEIGHTS} />}
       {showCompositeModal && <CompositeModal onClose={() => setShowCompositeModal(false)} compositeWeights={compositeWeights} />}
       {showTierStatsModal && <TierStatsModal onClose={() => setShowTierStatsModal(false)} companyScores={companyScores} includePanel={includePanel} />}
+      {showSensitivityModal && <SensitivityAnalysisModal onClose={() => setShowSensitivityModal(false)} companyScores={companyScores} weights={weights} includePanel={includePanel} />}
+      {showReliabilityModal && <ReliabilityDiagnosticsModal onClose={() => setShowReliabilityModal(false)} companyScores={companyScores} assessments={assessments} includePanel={includePanel} />}
 
       {/* Header */}
       <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-5 px-8 shadow-xl sticky top-0 z-40">
@@ -1121,6 +1585,18 @@ export default function AggregateScoringReport() {
                   className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   Tier Stats
+                </button>
+                <button 
+                  onClick={() => setShowSensitivityModal(true)}
+                  className="px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Sensitivity
+                </button>
+                <button 
+                  onClick={() => setShowReliabilityModal(true)}
+                  className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Reliability
                 </button>
                 <button 
                   onClick={() => {
