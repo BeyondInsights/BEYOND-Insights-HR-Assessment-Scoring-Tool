@@ -501,9 +501,9 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
                 Geographic Multiplier
               </h3>
               <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span>Generally consistent across all locations</span><span className="font-bold">Ã—1.00</span></div>
-                <div className="flex justify-between"><span>Vary across locations</span><span className="font-bold">Ã—0.90</span></div>
-                <div className="flex justify-between"><span>Only available in select locations</span><span className="font-bold">Ã—0.75</span></div>
+                <div className="flex justify-between"><span>Generally consistent across all locations</span><span className="font-bold">x1.00</span></div>
+                <div className="flex justify-between"><span>Vary across locations</span><span className="font-bold">x0.90</span></div>
+                <div className="flex justify-between"><span>Only available in select locations</span><span className="font-bold">x0.75</span></div>
               </div>
             </section>
             
@@ -515,7 +515,7 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
               <div className="bg-purple-50 rounded-lg p-4 text-sm">
                 <p className="mb-2">These dimensions blend Grid Score with Follow-up Quality:</p>
                 <div className="bg-white rounded p-3 border border-purple-200 mb-2">
-                  <strong>Blended Score</strong> = (Grid Ã— Grid%) + (Follow-up Ã— Follow-up%)
+                  <strong>Blended Score</strong> = (Grid x Grid%) + (Follow-up x Follow-up%)
                 </div>
                 <p className="text-purple-600 text-xs">Adjust blend weights in the settings panel above the table.</p>
               </div>
@@ -547,11 +547,11 @@ function CompositeModal({ onClose, compositeWeights }: { onClose: () => void; co
               <div className="text-center space-y-3">
                 <p className="text-sm text-purple-700 font-medium">Composite Score =</p>
                 <div className="flex items-center justify-center gap-2 flex-wrap text-sm">
-                  <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold">Weighted Dim Ã— {compositeWeights.weightedDim}%</span>
+                  <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold">Weighted Dim x {compositeWeights.weightedDim}%</span>
                   <span className="text-purple-600 font-bold">+</span>
-                  <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Maturity Ã— {compositeWeights.maturity}%</span>
+                  <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Maturity x {compositeWeights.maturity}%</span>
                   <span className="text-purple-600 font-bold">+</span>
-                  <span className="px-3 py-1.5 bg-violet-600 text-white rounded-lg font-bold">Breadth Ã— {compositeWeights.breadth}%</span>
+                  <span className="px-3 py-1.5 bg-violet-600 text-white rounded-lg font-bold">Breadth x {compositeWeights.breadth}%</span>
                 </div>
               </div>
             </div>
@@ -577,8 +577,8 @@ function CompositeModal({ onClose, compositeWeights }: { onClose: () => void; co
               <h4 className="font-bold text-violet-900 mb-3">Breadth Score (CB3a/b/c average)</h4>
               <div className="space-y-2 text-sm text-gray-600">
                 <p><strong>CB3a:</strong> Beyond legal requirements (100/50/0)</p>
-                <p><strong>CB3b:</strong> Program structure elements (count / 6 Ã— 100)</p>
-                <p><strong>CB3c:</strong> Conditions covered (count / 13 Ã— 100)</p>
+                <p><strong>CB3b:</strong> Program structure elements (count / 6 x 100)</p>
+                <p><strong>CB3c:</strong> Conditions covered (count / 13 x 100)</p>
               </div>
             </div>
           </div>
@@ -1208,7 +1208,7 @@ export default function AggregateScoringReport() {
                     <td colSpan={6 + sortedCompanies.length} className="bg-purple-50/50 border-b border-purple-100">
                       <div className="px-4 py-1.5 flex items-center gap-2 text-xs text-purple-700">
                         <span className="font-semibold">Composite =</span>
-                        <span>WÃ—{compositeWeights.weightedDim}% + MÃ—{compositeWeights.maturity}% + BÃ—{compositeWeights.breadth}%</span>
+                        <span>W-{compositeWeights.weightedDim}% + M-{compositeWeights.maturity}% + B-{compositeWeights.breadth}%</span>
                       </div>
                     </td>
                   </tr>
