@@ -1,5 +1,10 @@
 /**
- * AGGREGATE SCORING REPORT - CORRECTED
+ * AGGREGATE SCORING REPORT - UPDATED (Jan 2026)
+ * 
+ * SCORING MODEL v1.0 (Year 1):
+ * - Composite = Weighted Dimension (90%) + Maturity (5%) + Breadth (5%)
+ * - Depth blended into D1, D3, D12, D13 (85% grid + 15% depth)
+ * - Tiers: Exemplary (90+) | Leading (75-89) | Progressing (60-74) | Emerging (40-59) | Developing (<40)
  * 
  * FIXES APPLIED:
  * 1. TierBadge now shows "Provisional" indicator when isProvisional=true
@@ -18,6 +23,9 @@
  * 11. Tier Stats modal with composite/dimension tier counts + provisional count
  * 12. Sensitivity analysis for weight robustness testing
  * 13. Reliability diagnostics for internal consistency
+ * 14. FIXED: Tier label "Beginning" → "Developing" for consistency
+ * 15. ADDED: Global Consistency badge for multi-country companies
+ * 16. ADDED: Scenario analysis disclaimer (heuristic stress test note)
  */
 
 'use client';
@@ -367,6 +375,12 @@ interface CompanyScores {
     countryCount: number;
     segment: 'Single' | 'Regional' | 'Global';
     isMultiCountry: boolean;
+    geoConsistency: {
+      consistentCount: number;
+      applicableCount: number;
+      rate: number;
+      badge: 'Consistent' | 'Mixed' | 'Varies' | 'N/A';
+    };
   };
 }
 
@@ -446,10 +460,26 @@ function calculateCompanyScores(
     countryCount === 1 ? 'Single' : 
     countryCount <= 10 ? 'Regional' : 'Global';
   
+  // Calculate geo consistency for multi-country companies
+  const consistentDims = Object.values(dimensions).filter(d => d.totalItems > 0 && d.geoMultiplier === 1.0).length;
+  const applicableDims = Object.values(dimensions).filter(d => d.totalItems > 0).length;
+  const consistencyRate = applicableDims > 0 ? consistentDims / applicableDims : 0;
+  
+  const geoConsistencyBadge: 'Consistent' | 'Mixed' | 'Varies' | 'N/A' = 
+    countryCount === 1 ? 'N/A' :
+    consistencyRate >= 0.7 ? 'Consistent' :
+    consistencyRate >= 0.5 ? 'Mixed' : 'Varies';
+  
   const globalFootprint = {
     countryCount,
     segment,
     isMultiCountry: countryCount > 1,
+    geoConsistency: {
+      consistentCount: consistentDims,
+      applicableCount: applicableDims,
+      rate: consistencyRate,
+      badge: geoConsistencyBadge,
+    },
   };
   
   const compositeScore = isComplete ? Math.round(
@@ -483,7 +513,7 @@ function getPerformanceTier(score: number): { name: string; color: string; bg: s
   if (score >= 75) return { name: 'Leading', color: '#1E40AF', bg: '#DBEAFE', border: '#93C5FD' };
   if (score >= 60) return { name: 'Progressing', color: '#92400E', bg: '#FEF3C7', border: '#FCD34D' };
   if (score >= 40) return { name: 'Emerging', color: '#9A3412', bg: '#FFEDD5', border: '#FDBA74' };
-  return { name: 'Beginning', color: '#374151', bg: '#F3F4F6', border: '#D1D5DB' };
+  return { name: 'Developing', color: '#374151', bg: '#F3F4F6', border: '#D1D5DB' };
 }
 
 // ============================================
@@ -1391,6 +1421,12 @@ function SensitivityAnalysisModal({
                   <div className="text-xs text-gray-500 italic">
                     <strong>Interpretation:</strong> Stable = rank correlation ≥0.95 & ≤5 tier changes. 
                     High stability across scenarios indicates methodology is robust to reasonable parameter variations.
+                  </div>
+                  
+                  <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                    <strong>Note:</strong> Scenario analysis uses heuristic stress testing with assumed status distributions. 
+                    For exact validation, scores would need to be recomputed from raw data under alternate parameters.
+                    The primary robustness indicator is the weight perturbation analysis, which is computed exactly.
                   </div>
                 </div>
               )}
@@ -2492,7 +2528,10 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                   <li><strong>Tier thresholds are crossing points</strong> — companies near boundaries shift tiers when scores compress</li>
                   <li><strong>Status point values reflect design intent</strong> — the index deliberately values companies actively planning or assessing improvements</li>
                 </ol>
-               </div>
+                <p className="text-sm text-blue-800 mt-2 italic">
+                  A reviewer who argues for different point values is proposing a different construct definition (e.g., "only implemented policies matter"), not exposing a methodological flaw.
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -3054,6 +3093,21 @@ export default function AggregateScoringReport() {
                           )}
                           <span>{company.globalFootprint.countryCount}</span>
                         </div>
+                        {/* Geo Consistency Badge - only show for multi-country */}
+                        {company.globalFootprint.isMultiCountry && (
+                          <div className={`mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            company.globalFootprint.geoConsistency.badge === 'Consistent' 
+                              ? 'bg-green-100 text-green-700 border border-green-300' 
+                              : company.globalFootprint.geoConsistency.badge === 'Mixed' 
+                              ? 'bg-amber-100 text-amber-700 border border-amber-300' 
+                              : 'bg-orange-100 text-orange-700 border border-orange-300'
+                          }`} title={`${company.globalFootprint.geoConsistency.consistentCount}/${company.globalFootprint.geoConsistency.applicableCount} dimensions consistent`}>
+                            {company.globalFootprint.geoConsistency.badge === 'Consistent' && '✓ '}
+                            {company.globalFootprint.geoConsistency.badge === 'Mixed' && '~ '}
+                            {company.globalFootprint.geoConsistency.badge === 'Varies' && '⚠ '}
+                            {company.globalFootprint.geoConsistency.badge}
+                          </div>
+                        )}
                       </th>
                     ))}
                   </tr>
