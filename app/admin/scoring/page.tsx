@@ -86,9 +86,9 @@ const D10_EXCLUDED_ITEMS = [
   'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
 ];
 
-const COL1_WIDTH = 280;
-const COL2_WIDTH = 65;  // WIDENED from 50
-const COL_AVG_WIDTH = 60;
+const COL1_WIDTH = 200;  // Reduced from 280 for laptop screens
+const COL2_WIDTH = 50;   // Reduced from 65
+const COL_AVG_WIDTH = 52; // Reduced from 60
 
 // ============================================
 // SCORING FUNCTIONS
@@ -2985,8 +2985,16 @@ export default function AggregateScoringReport() {
                 .scoring-table th, .scoring-table td {
                   box-sizing: border-box;
                 }
+                @media (max-width: 1200px) {
+                  .scoring-table {
+                    font-size: 11px;
+                  }
+                  .scoring-table th, .scoring-table td {
+                    padding: 4px 6px;
+                  }
+                }
               `}</style>
-              <table className="scoring-table text-sm" style={{ borderCollapse: 'separate', borderSpacing: 0, width: 'max-content' }}>
+              <table className="scoring-table text-sm" style={{ borderCollapse: 'separate', borderSpacing: 0, width: 'max-content', minWidth: '100%' }}>
                 <thead className="sticky top-0 z-40">
                   {/* Header row - Metric, Wt%, and all benchmark columns are sticky */}
                   <tr className="bg-slate-700 text-white">
