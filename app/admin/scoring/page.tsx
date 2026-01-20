@@ -18,6 +18,7 @@
  * 11. Tier Stats modal with composite/dimension tier counts + provisional count
  * 12. Sensitivity analysis for weight robustness testing
  * 13. Reliability diagnostics for internal consistency
+ * 14. Data Confidence metric: % of items NOT marked "Unsure" (color-coded badge per company)
  */
 
 'use client';
@@ -368,6 +369,12 @@ interface CompanyScores {
     segment: 'Single' | 'Regional' | 'Global';
     isMultiCountry: boolean;
   };
+  dataConfidence: {
+    percent: number;
+    totalItems: number;
+    verifiedItems: number;
+    unsureCount: number;
+  };
 }
 
 function calculateCompanyScores(
@@ -452,6 +459,21 @@ function calculateCompanyScores(
     isMultiCountry: countryCount > 1,
   };
   
+  // Calculate Data Confidence (% of items not marked "Unsure")
+  let totalItems = 0;
+  let unsureCount = 0;
+  for (let i = 1; i <= 13; i++) {
+    totalItems += dimensions[i].totalItems;
+    unsureCount += dimensions[i].unsureCount;
+  }
+  const verifiedItems = totalItems - unsureCount;
+  const dataConfidence = {
+    percent: totalItems > 0 ? Math.round((verifiedItems / totalItems) * 100) : 0,
+    totalItems,
+    verifiedItems,
+    unsureCount,
+  };
+  
   const compositeScore = isComplete ? Math.round(
     (weightedScore * (compositeWeights.weightedDim / 100)) +
     (maturityScore * (compositeWeights.maturity / 100)) +
@@ -468,6 +490,7 @@ function calculateCompanyScores(
     maturityScore,
     breadthScore,
     globalFootprint,
+    dataConfidence,
   };
 }
 
@@ -2923,7 +2946,7 @@ export default function AggregateScoringReport() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div ref={tableRef} className="overflow-x-auto max-h-[calc(100vh-300px)]">
+            <div ref={tableRef} className="overflow-auto max-h-[calc(100vh-300px)]">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 z-40">
                   <tr className="bg-slate-800 text-white">
@@ -2931,7 +2954,8 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', left: 0, zIndex: 45, backgroundColor: '#1E293B' }}>
                       METRICS
                     </th>
-                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500">
+                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500"
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 45, backgroundColor: '#4338CA' }}>
                       BENCHMARKS
                     </th>
                     <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium bg-slate-700">
@@ -3059,6 +3083,53 @@ export default function AggregateScoringReport() {
                         </div>
                       </th>
                     ))}
+                  </tr>
+                  {/* Data Confidence Row */}
+                  <tr className="bg-gradient-to-r from-slate-700 to-slate-800">
+                    <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, backgroundColor: '#334155' }}>
+                      Data Confidence
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    {sortedCompanies.map(company => {
+                      const conf = company.dataConfidence.percent;
+                      const confColor = conf >= 95 ? 'bg-green-500' : conf >= 85 ? 'bg-teal-500' : conf >= 70 ? 'bg-amber-500' : 'bg-red-500';
+                      return (
+                        <th key={`conf-${company.surveyId}`} 
+                            className="px-2 py-1.5 text-center border-r border-slate-600 last:border-r-0"
+                            style={{ minWidth: 100, backgroundColor: '#334155' }}>
+                          <div 
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white ${confColor}`}
+                            title={`${company.dataConfidence.verifiedItems}/${company.dataConfidence.totalItems} items verified (${company.dataConfidence.unsureCount} unsure)`}
+                          >
+                            {conf}%
+                          </div>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 
