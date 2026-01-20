@@ -2946,61 +2946,62 @@ export default function AggregateScoringReport() {
         ) : (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div ref={tableRef} className="overflow-auto max-h-[calc(100vh-300px)]">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 z-40">
-                  <tr className="bg-slate-800 text-white">
+              <table className="w-full text-sm border-collapse">
+                <thead className="sticky top-0 z-50" style={{ backgroundColor: '#1E293B' }}>
+                  <tr className="bg-slate-800 text-white" style={{ backgroundColor: '#1E293B' }}>
                     <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600"
-                        style={{ position: 'sticky', left: 0, zIndex: 45, backgroundColor: '#1E293B' }}>
+                        style={{ position: 'sticky', left: 0, zIndex: 55, backgroundColor: '#1E293B' }}>
                       METRICS
                     </th>
                     <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500"
-                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 45, backgroundColor: '#4338CA' }}>
+                        style={{ position: 'sticky', left: COL1_WIDTH + COL2_WIDTH, zIndex: 55, backgroundColor: '#4338CA' }}>
                       BENCHMARKS
                     </th>
-                    <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium bg-slate-700">
+                    <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium bg-slate-700"
+                        style={{ backgroundColor: '#334155' }}>
                       COMPANIES ({sortedCompanies.length})
                     </th>
                   </tr>
                   
-                  <tr className="bg-slate-700 text-white">
+                  <tr className="bg-slate-700 text-white" style={{ backgroundColor: '#334155' }}>
                     <th className="px-4 py-3 text-left font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 55, minWidth: COL1_WIDTH, backgroundColor: '#334155' }}>
                       <button onClick={() => handleSort('name')} className="hover:text-indigo-300 flex items-center gap-1">
                         Metric {sortBy === 'name' && <span className="text-xs">{sortDir === 'asc' ? '^' : 'v'}</span>}
                       </button>
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 55, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                       Wt %
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-indigo-600 border-r border-indigo-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#4F46E5' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#4F46E5' }}>
                       ALL
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-violet-600 border-r border-violet-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#7C3AED' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#7C3AED' }}>
                       FP
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-slate-500 border-r border-slate-400"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#64748B' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#64748B' }}>
                       STD
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-amber-600 border-r border-amber-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#D97706' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#D97706' }}>
                       PANEL
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-slate-600 border-r border-slate-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#475569' }}
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#475569' }}
                         title="Single Country">
                       1🌍
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-blue-600 border-r border-blue-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#2563EB' }}
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#2563EB' }}
                         title="Regional (2-10 countries)">
                       REG
                     </th>
                     <th className="px-2 py-3 text-center font-semibold bg-purple-600 border-r border-purple-500"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#9333EA' }}
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#9333EA' }}
                         title="Global (10+ countries)">
                       GLB
                     </th>
@@ -3009,7 +3010,7 @@ export default function AggregateScoringReport() {
                           className={`px-3 py-2 text-center font-medium border-r last:border-r-0 ${
                             company.isPanel ? 'bg-amber-600' : company.isFoundingPartner ? 'bg-violet-600' : 'bg-slate-600'
                           }`}
-                          style={{ minWidth: 100 }}>
+                          style={{ minWidth: 100, backgroundColor: company.isPanel ? '#D97706' : company.isFoundingPartner ? '#7C3AED' : '#475569' }}>
                         <Link href={`/admin/profile/${company.surveyId}`} className="text-xs hover:underline block truncate text-white" title={company.companyName}>
                           {company.companyName.length > 12 ? company.companyName.substring(0, 12) + '...' : company.companyName}
                         </Link>
@@ -3020,36 +3021,36 @@ export default function AggregateScoringReport() {
                     ))}
                   </tr>
                   {/* Country Count Row */}
-                  <tr className="bg-gradient-to-r from-slate-700 to-slate-800">
+                  <tr className="bg-gradient-to-r from-slate-700 to-slate-800" style={{ backgroundColor: '#334155' }}>
                     <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 55, backgroundColor: '#334155' }}>
                       Global Footprint
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 55, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.single}</span>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.regional}</span>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.global}</span>
                     </th>
                     {sortedCompanies.map(company => (
@@ -3084,34 +3085,34 @@ export default function AggregateScoringReport() {
                     ))}
                   </tr>
                   {/* Data Confidence Row */}
-                  <tr className="bg-gradient-to-r from-slate-700 to-slate-800">
+                  <tr className="bg-gradient-to-r from-slate-700 to-slate-800" style={{ backgroundColor: '#334155' }}>
                     <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 45, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 55, backgroundColor: '#334155' }}>
                       Data Confidence
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 55, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 55, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     {sortedCompanies.map(company => {
                       const conf = company.dataConfidence.percent;
@@ -3152,7 +3153,7 @@ export default function AggregateScoringReport() {
                   {/* Composite Score Row */}
                   <tr className={`${compositeWeightsValid && weightsValid ? 'bg-gradient-to-r from-purple-50 to-indigo-50' : 'bg-red-50'}`}>
                     <td className={`px-4 py-3 border-r ${compositeWeightsValid && weightsValid ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                       <button onClick={() => handleSort('composite')} className={`font-bold flex items-center gap-2 ${compositeWeightsValid && weightsValid ? 'text-purple-900 hover:text-purple-700' : 'text-red-700'}`}>
                         <span className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${compositeWeightsValid && weightsValid ? 'bg-gradient-to-br from-purple-600 to-indigo-600' : 'bg-red-500'}`}>★</span>
                         Composite Score
@@ -3160,37 +3161,37 @@ export default function AggregateScoringReport() {
                       </button>
                     </td>
                     <td className={`px-2 py-3 text-center text-xs border-r ${compositeWeightsValid && weightsValid ? 'text-purple-600 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
                       {compositeWeightsValid && weightsValid ? '100%' : <span className="text-red-600 font-bold">{compositeWeightsSum}%</span>}
                     </td>
                     {compositeWeightsValid && weightsValid ? (
                       <>
                         <td className="px-2 py-3 text-center bg-purple-200 border-r border-purple-300 font-black text-2xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10, color: getScoreColor(averages.composite.total ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5, color: getScoreColor(averages.composite.total ?? 0) }}>
                           {averages.composite.total ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-2xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10, color: getScoreColor(averages.composite.fp ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5, color: getScoreColor(averages.composite.fp ?? 0) }}>
                           {averages.composite.fp ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-2xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10, color: getScoreColor(averages.composite.std ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5, color: getScoreColor(averages.composite.std ?? 0) }}>
                           {averages.composite.std ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-2xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.composite.panel ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5, color: getScoreColor(averages.composite.panel ?? 0) }}>
                           {averages.composite.panel ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-slate-100 border-r border-slate-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10, color: getScoreColor(averages.composite.single ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5, color: getScoreColor(averages.composite.single ?? 0) }}>
                           {averages.composite.single ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-blue-100 border-r border-blue-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10, color: getScoreColor(averages.composite.regional ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5, color: getScoreColor(averages.composite.regional ?? 0) }}>
                           {averages.composite.regional ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-purple-100 border-r border-purple-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10, color: getScoreColor(averages.composite.global ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.composite.global ?? 0) }}>
                           {averages.composite.global ?? '—'}
                         </td>
                         {sortedCompanies.map(company => (
@@ -3217,39 +3218,39 @@ export default function AggregateScoringReport() {
                   {compositeWeightsValid && weightsValid && (
                     <tr className="bg-white border-b-2 border-purple-200">
                       <td className="px-4 py-2.5 bg-white border-r border-gray-200"
-                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                         <span className="font-semibold text-gray-700 flex items-center gap-2 ml-8">
                           Composite Tier
                         </span>
                       </td>
                       <td className="px-2 py-2.5 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
-                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}></td>
+                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}></td>
                       <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
                         {averages.composite.total !== null && <TierBadge score={averages.composite.total} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-violet-50 border-r border-violet-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
                         {averages.composite.fp !== null && <TierBadge score={averages.composite.fp} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
                         {averages.composite.std !== null && <TierBadge score={averages.composite.std} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
                         {averages.composite.panel !== null && <TierBadge score={averages.composite.panel} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
                         {averages.composite.single !== null && <TierBadge score={averages.composite.single} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-blue-50 border-r border-blue-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
                         {averages.composite.regional !== null && <TierBadge score={averages.composite.regional} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                         {averages.composite.global !== null && <TierBadge score={averages.composite.global} isComplete={true} size="small" />}
                       </td>
                       {sortedCompanies.map(company => (
@@ -3275,14 +3276,14 @@ export default function AggregateScoringReport() {
                   {/* Weighted Score Component */}
                   <tr className="bg-white">
                     <td className="px-4 py-2 bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                       <span className="font-medium text-gray-800 flex items-center gap-2">
                         <span className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center text-blue-600 text-xs font-bold">W</span>
                         Weighted Dimension Score
                       </span>
                     </td>
                     <td className="px-1 py-2 text-center bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
                       <input
                         type="number" min="0" max="100"
                         value={compositeWeights.weightedDim}
@@ -3291,31 +3292,31 @@ export default function AggregateScoringReport() {
                       />
                     </td>
                     <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
                       <ScoreCell score={averages.weighted.total} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
                       <ScoreCell score={averages.weighted.fp} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
                       <ScoreCell score={averages.weighted.std} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
                       <ScoreCell score={averages.weighted.panel} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
                       <ScoreCell score={averages.weighted.single} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
                       <ScoreCell score={averages.weighted.regional} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                       <ScoreCell score={averages.weighted.global} isComplete={true} />
                     </td>
                     {sortedCompanies.map(company => (
@@ -3330,14 +3331,14 @@ export default function AggregateScoringReport() {
                   {/* Maturity Score Component */}
                   <tr className="bg-gray-50">
                     <td className="px-4 py-2 bg-gray-50 border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                       <span className="font-medium text-gray-800 flex items-center gap-2">
                         <span className="w-5 h-5 bg-indigo-100 rounded flex items-center justify-center text-indigo-600 text-xs font-bold">M</span>
                         Maturity Score
                       </span>
                     </td>
                     <td className="px-1 py-2 text-center bg-gray-50 border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
                       <input
                         type="number" min="0" max="100"
                         value={compositeWeights.maturity}
@@ -3346,31 +3347,31 @@ export default function AggregateScoringReport() {
                       />
                     </td>
                     <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
                       <ScoreCell score={averages.maturity.total} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
                       <ScoreCell score={averages.maturity.fp} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
                       <ScoreCell score={averages.maturity.std} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
                       <ScoreCell score={averages.maturity.panel} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
                       <ScoreCell score={averages.maturity.single} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
                       <ScoreCell score={averages.maturity.regional} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                       <ScoreCell score={averages.maturity.global} isComplete={true} />
                     </td>
                     {sortedCompanies.map(company => (
@@ -3385,14 +3386,14 @@ export default function AggregateScoringReport() {
                   {/* Breadth Score Component */}
                   <tr className="bg-white">
                     <td className="px-4 py-2 bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                       <span className="font-medium text-gray-800 flex items-center gap-2">
                         <span className="w-5 h-5 bg-violet-100 rounded flex items-center justify-center text-violet-600 text-xs font-bold">B</span>
                         Breadth Score
                       </span>
                     </td>
                     <td className="px-1 py-2 text-center bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
                       <input
                         type="number" min="0" max="100"
                         value={compositeWeights.breadth}
@@ -3401,31 +3402,31 @@ export default function AggregateScoringReport() {
                       />
                     </td>
                     <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
                       <ScoreCell score={averages.breadth.total} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
                       <ScoreCell score={averages.breadth.fp} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
                       <ScoreCell score={averages.breadth.std} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
                       <ScoreCell score={averages.breadth.panel} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
                       <ScoreCell score={averages.breadth.single} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
                       <ScoreCell score={averages.breadth.regional} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                       <ScoreCell score={averages.breadth.global} isComplete={true} />
                     </td>
                     {sortedCompanies.map(company => (
@@ -3457,7 +3458,7 @@ export default function AggregateScoringReport() {
                   {DIMENSION_ORDER.map((dim, idx) => (
                     <tr key={dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className={`px-4 py-2 border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                         <span className="font-medium text-gray-900">
                           <span className="text-blue-600 font-bold">D{dim}:</span> {DIMENSION_NAMES[dim]}
                           {[1, 3, 12, 13].includes(dim) && (
@@ -3466,7 +3467,7 @@ export default function AggregateScoringReport() {
                         </span>
                       </td>
                       <td className={`px-1 py-1 text-center border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
                         <input
                           type="number"
                           min="0"
@@ -3479,31 +3480,31 @@ export default function AggregateScoringReport() {
                         />
                       </td>
                       <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
                         <ScoreCell score={averages.dimensions[dim]?.total ?? null} isComplete={true} />
                       </td>
                       <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
                         <ScoreCell score={averages.dimensions[dim]?.fp ?? null} isComplete={true} />
                       </td>
                       <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
                         <ScoreCell score={averages.dimensions[dim]?.std ?? null} isComplete={true} />
                       </td>
                       <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
                         <ScoreCell score={averages.dimensions[dim]?.panel ?? null} isComplete={true} />
                       </td>
                       <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
                         <ScoreCell score={averages.dimensions[dim]?.single ?? null} isComplete={true} />
                       </td>
                       <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
                         <ScoreCell score={averages.dimensions[dim]?.regional ?? null} isComplete={true} />
                       </td>
                       <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                         <ScoreCell score={averages.dimensions[dim]?.global ?? null} isComplete={true} />
                       </td>
                       {sortedCompanies.map(company => (
@@ -3525,7 +3526,7 @@ export default function AggregateScoringReport() {
                   {/* WEIGHTS TOTAL ROW */}
                   <tr className={`${weightsValid ? 'bg-blue-100' : 'bg-red-100'} border-t-2 ${weightsValid ? 'border-blue-300' : 'border-red-300'}`}>
                     <td className={`px-4 py-2 border-r ${weightsValid ? 'bg-blue-100 border-blue-200' : 'bg-red-100 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                       <div className="flex items-center justify-between">
                         <span className={`font-semibold ${weightsValid ? 'text-blue-800' : 'text-red-800'}`}>
                           Total Dimension Weights
@@ -3538,7 +3539,7 @@ export default function AggregateScoringReport() {
                       </div>
                     </td>
                     <td className={`px-1 py-2 text-center border-r font-bold text-base ${weightsValid ? 'bg-blue-100 border-blue-200 text-blue-800' : 'bg-red-100 border-red-200 text-red-800'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
                       {weightsSum}%
                     </td>
                     <td colSpan={7 + sortedCompanies.length} className={`px-4 py-2 ${weightsValid ? 'bg-blue-50' : 'bg-red-50'}`}>
@@ -3558,37 +3559,37 @@ export default function AggregateScoringReport() {
                   {/* Unweighted Average Row */}
                   <tr className="bg-blue-50 border-t-2 border-blue-200">
                     <td className="px-4 py-2.5 border-r border-blue-200 bg-blue-50"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                       <span className="font-semibold text-blue-800">Unweighted Dimension Score</span>
                     </td>
                     <td className="px-2 py-2.5 text-center text-xs text-blue-600 border-r border-blue-200 bg-blue-50"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>avg</td>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>avg</td>
                     <td className="px-2 py-2.5 text-center bg-indigo-100 border-r border-indigo-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10, color: getScoreColor(averages.unweighted.total ?? 0) }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5, color: getScoreColor(averages.unweighted.total ?? 0) }}>
                       {averages.unweighted.total ?? '—'}
                     </td>
                     <td className="px-2 py-2.5 text-center bg-violet-100 border-r border-violet-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10, color: getScoreColor(averages.unweighted.fp ?? 0) }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5, color: getScoreColor(averages.unweighted.fp ?? 0) }}>
                       {averages.unweighted.fp ?? '—'}
                     </td>
                     <td className="px-2 py-2.5 text-center bg-slate-100 border-r border-slate-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10, color: getScoreColor(averages.unweighted.std ?? 0) }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5, color: getScoreColor(averages.unweighted.std ?? 0) }}>
                       {averages.unweighted.std ?? '—'}
                     </td>
                     <td className="px-2 py-2.5 text-center bg-amber-100 border-r border-amber-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.unweighted.panel ?? 0) }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5, color: getScoreColor(averages.unweighted.panel ?? 0) }}>
                       {averages.unweighted.panel ?? '—'}
                     </td>
                     <td className="px-2 py-2.5 text-center bg-slate-100 border-r border-slate-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10, color: getScoreColor(averages.unweighted.single ?? 0) }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5, color: getScoreColor(averages.unweighted.single ?? 0) }}>
                       {averages.unweighted.single ?? '—'}
                     </td>
                     <td className="px-2 py-2.5 text-center bg-blue-100 border-r border-blue-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10, color: getScoreColor(averages.unweighted.regional ?? 0) }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5, color: getScoreColor(averages.unweighted.regional ?? 0) }}>
                       {averages.unweighted.regional ?? '—'}
                     </td>
                     <td className="px-2 py-2.5 text-center bg-purple-100 border-r border-purple-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10, color: getScoreColor(averages.unweighted.global ?? 0) }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.unweighted.global ?? 0) }}>
                       {averages.unweighted.global ?? '—'}
                     </td>
                     {sortedCompanies.map(company => (
@@ -3603,7 +3604,7 @@ export default function AggregateScoringReport() {
                   {/* Weighted Score Row */}
                   <tr className={`${weightsValid ? 'bg-blue-100' : 'bg-red-50'}`}>
                     <td className={`px-4 py-3 border-r ${weightsValid ? 'bg-blue-100 border-blue-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                       <button onClick={() => handleSort('weighted')} className={`font-bold flex items-center gap-2 ${weightsValid ? 'text-blue-900 hover:text-blue-700' : 'text-red-700'}`}>
                         <span className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${weightsValid ? 'bg-blue-600' : 'bg-red-500'}`}>Î£</span>
                         Weighted Dimension Score
@@ -3611,37 +3612,37 @@ export default function AggregateScoringReport() {
                       </button>
                     </td>
                     <td className={`px-2 py-3 text-center text-xs border-r ${weightsValid ? 'text-blue-600 bg-blue-100 border-blue-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
                       {weightsValid ? '100%' : <span className="text-red-600 font-bold">{weightsSum}%</span>}
                     </td>
                     {weightsValid ? (
                       <>
                         <td className="px-2 py-3 text-center bg-indigo-200 border-r border-indigo-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10, color: getScoreColor(averages.weighted.total ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5, color: getScoreColor(averages.weighted.total ?? 0) }}>
                           {averages.weighted.total ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10, color: getScoreColor(averages.weighted.fp ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5, color: getScoreColor(averages.weighted.fp ?? 0) }}>
                           {averages.weighted.fp ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10, color: getScoreColor(averages.weighted.std ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5, color: getScoreColor(averages.weighted.std ?? 0) }}>
                           {averages.weighted.std ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.weighted.panel ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5, color: getScoreColor(averages.weighted.panel ?? 0) }}>
                           {averages.weighted.panel ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-slate-100 border-r border-slate-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10, color: getScoreColor(averages.weighted.single ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5, color: getScoreColor(averages.weighted.single ?? 0) }}>
                           {averages.weighted.single ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-blue-100 border-r border-blue-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10, color: getScoreColor(averages.weighted.regional ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5, color: getScoreColor(averages.weighted.regional ?? 0) }}>
                           {averages.weighted.regional ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-purple-100 border-r border-purple-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10, color: getScoreColor(averages.weighted.global ?? 0) }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.weighted.global ?? 0) }}>
                           {averages.weighted.global ?? '—'}
                         </td>
                         {sortedCompanies.map(company => (
@@ -3663,39 +3664,39 @@ export default function AggregateScoringReport() {
                   {weightsValid && (
                     <tr className="bg-white">
                       <td className="px-4 py-2.5 bg-white border-r border-gray-200"
-                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                         <span className="font-semibold text-gray-700 flex items-center gap-2 ml-8">
                           Dimension Tier
                         </span>
                       </td>
                       <td className="px-2 py-2.5 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
-                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}></td>
+                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}></td>
                       <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
                         {averages.weighted.total !== null && <TierBadge score={averages.weighted.total} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-violet-50 border-r border-violet-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
                         {averages.weighted.fp !== null && <TierBadge score={averages.weighted.fp} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
                         {averages.weighted.std !== null && <TierBadge score={averages.weighted.std} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
                         {averages.weighted.panel !== null && <TierBadge score={averages.weighted.panel} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
                         {averages.weighted.single !== null && <TierBadge score={averages.weighted.single} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-blue-50 border-r border-blue-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
                         {averages.weighted.regional !== null && <TierBadge score={averages.weighted.regional} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2.5 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                         {averages.weighted.global !== null && <TierBadge score={averages.weighted.global} isComplete={true} size="small" />}
                       </td>
                       {sortedCompanies.map(company => (
