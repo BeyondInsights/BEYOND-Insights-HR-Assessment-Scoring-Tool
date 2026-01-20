@@ -722,17 +722,29 @@ function TierStatsModal({
                 <div className="text-gray-700 font-medium mb-2">Global Footprint Breakdown:</div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-slate-100 rounded-lg p-3 text-center border border-slate-200">
-                    <div className="text-2xl mb-1">📍</div>
+                    <div className="flex justify-center mb-1">
+                      <svg className="w-8 h-8 text-slate-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                      </svg>
+                    </div>
                     <div className="text-2xl font-bold text-slate-700">{footprintCounts.single}</div>
                     <div className="text-xs text-slate-600 font-medium">Single Country</div>
                   </div>
                   <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-3 text-center border border-blue-200">
-                    <div className="text-2xl mb-1">🗺️</div>
+                    <div className="flex justify-center mb-1">
+                      <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+                      </svg>
+                    </div>
                     <div className="text-2xl font-bold text-blue-700">{footprintCounts.regional}</div>
                     <div className="text-xs text-blue-600 font-medium">Regional (2-10)</div>
                   </div>
                   <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-3 text-center border border-indigo-200">
-                    <div className="text-2xl mb-1">🌍</div>
+                    <div className="flex justify-center mb-1">
+                      <svg className="w-8 h-8 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                      </svg>
+                    </div>
                     <div className="text-2xl font-bold text-indigo-700">{footprintCounts.global}</div>
                     <div className="text-xs text-indigo-600 font-medium">Global (11+)</div>
                   </div>
@@ -1549,9 +1561,18 @@ export default function AggregateScoringReport() {
               </div>
               <div className="border-l border-white/20 pl-4 flex items-center gap-3 text-xs">
                 <span className="text-gray-400">Footprint:</span>
-                <span className="px-1.5 py-0.5 rounded bg-slate-500 text-white flex items-center gap-1" title="Single country">📍 1</span>
-                <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex items-center gap-1" title="Regional (2-10 countries)">🗺️ 2-10</span>
-                <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center gap-1" title="Global (11+ countries)">🌍 11+</span>
+                <span className="px-1.5 py-0.5 rounded bg-slate-500 text-white flex items-center gap-1" title="Single country">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                  1
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex items-center gap-1" title="Regional (2-10 countries)">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                  2-10
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center gap-1" title="Global (11+ countries)">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                  11+
+                </span>
               </div>
             </div>
             
@@ -1791,7 +1812,7 @@ export default function AggregateScoringReport() {
                       Global Footprint
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL_WT_WIDTH, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 45, width: COL2_WIDTH, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
                         style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
@@ -1816,9 +1837,21 @@ export default function AggregateScoringReport() {
                             ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' 
                             : 'bg-slate-500 text-white'
                         }`}>
-                          {company.globalFootprint.segment === 'Global' && <span>🌍</span>}
-                          {company.globalFootprint.segment === 'Regional' && <span>🗺️</span>}
-                          {company.globalFootprint.segment === 'Single' && <span>📍</span>}
+                          {company.globalFootprint.segment === 'Global' && (
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                            </svg>
+                          )}
+                          {company.globalFootprint.segment === 'Regional' && (
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+                            </svg>
+                          )}
+                          {company.globalFootprint.segment === 'Single' && (
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                          )}
                           <span>{company.globalFootprint.countryCount}</span>
                         </div>
                       </th>
