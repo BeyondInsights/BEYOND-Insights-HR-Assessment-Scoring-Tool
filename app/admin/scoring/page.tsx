@@ -594,6 +594,158 @@ function CompositeModal({ onClose, compositeWeights }: { onClose: () => void; co
 }
 
 // ============================================
+// TIER STATS MODAL
+// ============================================
+
+function TierStatsModal({ 
+  onClose, 
+  companyScores,
+  includePanel 
+}: { 
+  onClose: () => void; 
+  companyScores: CompanyScores[];
+  includePanel: boolean;
+}) {
+  const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
+  
+  const getTierName = (score: number) => {
+    if (score >= 75) return 'Leading';
+    if (score >= 60) return 'Progressing';
+    if (score >= 40) return 'Emerging';
+    return 'Developing';
+  };
+  
+  // Composite tier counts
+  const compositeCounts = {
+    leading: filteredCompanies.filter(c => c.compositeScore >= 75).length,
+    progressing: filteredCompanies.filter(c => c.compositeScore >= 60 && c.compositeScore < 75).length,
+    emerging: filteredCompanies.filter(c => c.compositeScore >= 40 && c.compositeScore < 60).length,
+    developing: filteredCompanies.filter(c => c.compositeScore < 40).length,
+  };
+  
+  // Provisional count
+  const provisionalCount = filteredCompanies.filter(c => c.isProvisional).length;
+  
+  // Dimension tier counts
+  const getDimensionTierCounts = (dimNum: number) => {
+    const scores = filteredCompanies
+      .map(c => c.dimensions[dimNum]?.blendedScore ?? c.dimensions[dimNum]?.adjustedScore ?? null)
+      .filter((s): s is number => s !== null);
+    
+    return {
+      leading: scores.filter(s => s >= 75).length,
+      progressing: scores.filter(s => s >= 60 && s < 75).length,
+      emerging: scores.filter(s => s >= 40 && s < 60).length,
+      developing: scores.filter(s => s < 40).length,
+    };
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">Tier Classification Summary</h2>
+            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+          <div className="space-y-6">
+            {/* Summary Stats */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700 font-medium">Total Complete Companies:</span>
+                <span className="text-2xl font-bold text-gray-900">{filteredCompanies.length}</span>
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-amber-700 font-medium">Provisional Scores (4+ dims with 40%+ Unsure):</span>
+                <span className="text-xl font-bold text-amber-600">{provisionalCount}</span>
+              </div>
+            </div>
+            
+            {/* Composite Tier Counts */}
+            <section>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold">★</span>
+                Composite Score Tiers
+              </h3>
+              <div className="grid grid-cols-4 gap-3">
+                <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
+                  <div className="text-3xl font-bold text-blue-700">{compositeCounts.leading}</div>
+                  <div className="text-sm font-medium text-blue-600">Leading</div>
+                  <div className="text-xs text-blue-500">75+</div>
+                </div>
+                <div className="bg-amber-50 rounded-lg p-4 text-center border border-amber-200">
+                  <div className="text-3xl font-bold text-amber-700">{compositeCounts.progressing}</div>
+                  <div className="text-sm font-medium text-amber-600">Progressing</div>
+                  <div className="text-xs text-amber-500">60-74</div>
+                </div>
+                <div className="bg-orange-50 rounded-lg p-4 text-center border border-orange-200">
+                  <div className="text-3xl font-bold text-orange-700">{compositeCounts.emerging}</div>
+                  <div className="text-sm font-medium text-orange-600">Emerging</div>
+                  <div className="text-xs text-orange-500">40-59</div>
+                </div>
+                <div className="bg-red-50 rounded-lg p-4 text-center border border-red-200">
+                  <div className="text-3xl font-bold text-red-700">{compositeCounts.developing}</div>
+                  <div className="text-sm font-medium text-red-600">Developing</div>
+                  <div className="text-xs text-red-500">&lt;40</div>
+                </div>
+              </div>
+            </section>
+            
+            {/* Dimension Tier Counts */}
+            <section>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">D</span>
+                Dimension Score Tiers
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700">Dimension</th>
+                      <th className="text-center py-2 px-3 font-semibold text-blue-700">Leading<br/><span className="font-normal text-xs">75+</span></th>
+                      <th className="text-center py-2 px-3 font-semibold text-amber-700">Progressing<br/><span className="font-normal text-xs">60-74</span></th>
+                      <th className="text-center py-2 px-3 font-semibold text-orange-700">Emerging<br/><span className="font-normal text-xs">40-59</span></th>
+                      <th className="text-center py-2 px-3 font-semibold text-red-700">Developing<br/><span className="font-normal text-xs">&lt;40</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {DIMENSION_ORDER.map((dim, idx) => {
+                      const counts = getDimensionTierCounts(dim);
+                      return (
+                        <tr key={dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="py-2 px-3 font-medium text-gray-900">
+                            <span className="text-blue-600">D{dim}:</span> {DIMENSION_NAMES[dim]}
+                          </td>
+                          <td className="py-2 px-3 text-center font-bold text-blue-700">{counts.leading}</td>
+                          <td className="py-2 px-3 text-center font-bold text-amber-700">{counts.progressing}</td>
+                          <td className="py-2 px-3 text-center font-bold text-orange-700">{counts.emerging}</td>
+                          <td className="py-2 px-3 text-center font-bold text-red-700">{counts.developing}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+            
+            {/* Tier Thresholds Reference */}
+            <div className="bg-gray-100 rounded-lg p-3 text-xs text-gray-600">
+              <strong>Tier Thresholds:</strong> Leading (75+) | Progressing (60-74) | Emerging (40-59) | Developing (&lt;40)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // SCORE CELL COMPONENT
 // ============================================
 
@@ -706,6 +858,7 @@ export default function AggregateScoringReport() {
   const [showBlendSettings, setShowBlendSettings] = useState(false);
   const [showDimensionModal, setShowDimensionModal] = useState(false);
   const [showCompositeModal, setShowCompositeModal] = useState(false);
+  const [showTierStatsModal, setShowTierStatsModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'composite'>('composite');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard' | 'panel'>('all');
@@ -837,6 +990,7 @@ export default function AggregateScoringReport() {
     <div className="min-h-screen bg-gray-50">
       {showDimensionModal && <DimensionScoringModal onClose={() => setShowDimensionModal(false)} defaultWeights={DEFAULT_DIMENSION_WEIGHTS} />}
       {showCompositeModal && <CompositeModal onClose={() => setShowCompositeModal(false)} compositeWeights={compositeWeights} />}
+      {showTierStatsModal && <TierStatsModal onClose={() => setShowTierStatsModal(false)} companyScores={companyScores} includePanel={includePanel} />}
 
       {/* Header */}
       <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-5 px-8 shadow-xl sticky top-0 z-40">
@@ -961,6 +1115,12 @@ export default function AggregateScoringReport() {
                   className="px-3 py-1.5 bg-blue-500 hover:bg-blue-400 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   Dimension Scoring
+                </button>
+                <button 
+                  onClick={() => setShowTierStatsModal(true)}
+                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Tier Stats
                 </button>
                 <button 
                   onClick={() => {
