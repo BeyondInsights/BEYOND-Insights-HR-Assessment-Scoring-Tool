@@ -2681,16 +2681,17 @@ export default function AggregateScoringReport() {
   const STICKY_LEFT_8 = COL1_WIDTH + COL2_WIDTH + (5 * COL_AVG_WIDTH);  // Regional
   const STICKY_LEFT_9 = COL1_WIDTH + COL2_WIDTH + (6 * COL_AVG_WIDTH);  // Global
   
-  // Row heights for sticky top offsets (must match actual rendered heights)
-  const H_ROW1 = 36;   // METRICS/BENCHMARKS/COMPANIES row (py-2 + text)
-  const H_ROW2 = 48;   // Column labels row (py-3 + text + completion indicator)
-  const H_ROW3 = 32;   // Global Footprint row (py-1.5 + badge)
-  const H_ROW4 = 32;   // Data Confidence row (py-1.5 + badge)
+  // Row heights for sticky top offsets (fixed pixel values)
+  const H_ROW1 = 36;   // METRICS/BENCHMARKS/COMPANIES row
+  const H_ROW2 = 52;   // Column labels row (includes company names + 13/13 indicator)
+  const H_ROW3 = 36;   // Global Footprint row
+  const H_ROW4 = 36;   // Data Confidence row
   
+  // Sticky top positions (cumulative)
   const TOP_ROW1 = 0;
-  const TOP_ROW2 = H_ROW1;
-  const TOP_ROW3 = H_ROW1 + H_ROW2;
-  const TOP_ROW4 = H_ROW1 + H_ROW2 + H_ROW3;
+  const TOP_ROW2 = 36;   // After row 1
+  const TOP_ROW3 = 88;   // After rows 1+2
+  const TOP_ROW4 = 124;  // After rows 1+2+3
   
   const COMPANY_COL_WIDTH = 100;
 
@@ -2960,8 +2961,7 @@ export default function AggregateScoringReport() {
           <div className="bg-white rounded-2xl shadow-lg">
             <div
               ref={tableRef}
-              className="relative overflow-auto max-h-[calc(100vh-300px)] rounded-2xl"
-              style={{ isolation: 'isolate' }}
+              className="overflow-auto max-h-[calc(100vh-300px)]"
             >
               <table
                 className="text-sm border-separate border-spacing-0"
@@ -2980,18 +2980,18 @@ export default function AggregateScoringReport() {
                   ))}
                 </colgroup>
                 <thead style={{ backgroundColor: '#1E293B' }}>
-                  {/* ROW 1: METRICS / BENCHMARKS / COMPANIES - sticky TOP only (colSpan breaks with sticky left) */}
+                  {/* ROW 1: METRICS / BENCHMARKS / COMPANIES */}
                   <tr className="text-white">
                     <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600 text-white"
-                        style={{ position: 'sticky', top: TOP_ROW1, zIndex: 80, backgroundColor: '#1E293B' }}>
+                        style={{ position: 'sticky', top: 0, zIndex: 120, backgroundColor: '#1E293B', height: 36 }}>
                       METRICS
                     </th>
                     <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium border-r border-indigo-500 text-white"
-                        style={{ position: 'sticky', top: TOP_ROW1, zIndex: 80, backgroundColor: '#4338CA' }}>
+                        style={{ position: 'sticky', top: 0, zIndex: 120, backgroundColor: '#4338CA', height: 36 }}>
                       BENCHMARKS
                     </th>
                     <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium text-white"
-                        style={{ position: 'sticky', top: TOP_ROW1, zIndex: 80, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 0, zIndex: 120, backgroundColor: '#334155', height: 36 }}>
                       COMPANIES ({sortedCompanies.length})
                     </th>
                   </tr>
@@ -2999,50 +2999,50 @@ export default function AggregateScoringReport() {
                   {/* ROW 2: Column labels */}
                   <tr className="text-white">
                     <th className="px-4 py-3 text-left font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW2, left: STICKY_LEFT_1, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_1, zIndex: 110, backgroundColor: '#334155' }}>
                       <button onClick={() => handleSort('name')} className="hover:text-indigo-300 flex items-center gap-1">
                         Metric {sortBy === 'name' && <span className="text-xs">{sortDir === 'asc' ? '^' : 'v'}</span>}
                       </button>
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW2, left: STICKY_LEFT_2, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_2, zIndex: 110, backgroundColor: '#334155' }}>
                       Wt %
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-indigo-500"
-                        style={{ position: 'sticky', top: TOP_ROW2, left: STICKY_LEFT_3, zIndex: 90, backgroundColor: '#4F46E5' }}>
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_3, zIndex: 110, backgroundColor: '#4F46E5' }}>
                       ALL
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-violet-500"
-                        style={{ position: 'sticky', top: TOP_ROW2, left: STICKY_LEFT_4, zIndex: 90, backgroundColor: '#7C3AED' }}>
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_4, zIndex: 110, backgroundColor: '#7C3AED' }}>
                       FP
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-slate-400"
-                        style={{ position: 'sticky', top: TOP_ROW2, left: STICKY_LEFT_5, zIndex: 90, backgroundColor: '#64748B' }}>
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_5, zIndex: 110, backgroundColor: '#64748B' }}>
                       STD
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-amber-500"
-                        style={{ position: 'sticky', top: TOP_ROW2, left: STICKY_LEFT_6, zIndex: 90, backgroundColor: '#D97706' }}>
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_6, zIndex: 110, backgroundColor: '#D97706' }}>
                       PANEL
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-slate-500"
-                        style={{ position: 'sticky', top: TOP_ROW2, left: STICKY_LEFT_7, zIndex: 90, backgroundColor: '#475569' }}
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_7, zIndex: 110, backgroundColor: '#475569' }}
                         title="Single Country">
                       1🌍
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-blue-500"
-                        style={{ position: 'sticky', top: TOP_ROW2, left: STICKY_LEFT_8, zIndex: 90, backgroundColor: '#2563EB' }}
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_8, zIndex: 110, backgroundColor: '#2563EB' }}
                         title="Regional (2-10 countries)">
                       REG
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-purple-500"
-                        style={{ position: 'sticky', top: TOP_ROW2, left: STICKY_LEFT_9, zIndex: 90, backgroundColor: '#9333EA' }}
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#9333EA' }}
                         title="Global (10+ countries)">
                       GLB
                     </th>
                     {sortedCompanies.map(company => (
                       <th key={company.surveyId} 
                           className="px-3 py-2 text-center font-medium border-r last:border-r-0 text-white"
-                          style={{ position: 'sticky', top: TOP_ROW2, zIndex: 70, backgroundColor: company.isPanel ? '#D97706' : company.isFoundingPartner ? '#7C3AED' : '#475569' }}>
+                          style={{ position: 'sticky', top: 36, zIndex: 100, backgroundColor: company.isPanel ? '#D97706' : company.isFoundingPartner ? '#7C3AED' : '#475569' }}>
                         <Link href={`/admin/profile/${company.surveyId}`} className="text-xs hover:underline block truncate text-white" title={company.companyName}>
                           {company.companyName.length > 12 ? company.companyName.substring(0, 12) + '...' : company.companyName}
                         </Link>
@@ -3055,40 +3055,40 @@ export default function AggregateScoringReport() {
                   {/* ROW 3: Global Footprint */}
                   <tr>
                     <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW3, left: STICKY_LEFT_1, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_1, zIndex: 110, backgroundColor: '#334155' }}>
                       Global Footprint
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW3, left: STICKY_LEFT_2, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_2, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW3, left: STICKY_LEFT_3, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_3, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW3, left: STICKY_LEFT_4, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_4, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW3, left: STICKY_LEFT_5, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_5, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW3, left: STICKY_LEFT_6, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_6, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW3, left: STICKY_LEFT_7, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_7, zIndex: 110, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.single}</span>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW3, left: STICKY_LEFT_8, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_8, zIndex: 110, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.regional}</span>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW3, left: STICKY_LEFT_9, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.global}</span>
                     </th>
                     {sortedCompanies.map(company => (
                       <th key={`footprint-${company.surveyId}`} 
                           className="px-2 py-1.5 text-center border-r border-slate-600 last:border-r-0"
-                          style={{ position: 'sticky', top: TOP_ROW3, zIndex: 70, backgroundColor: '#334155' }}>
+                          style={{ position: 'sticky', top: 88, zIndex: 100, backgroundColor: '#334155' }}>
                         <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
                           company.globalFootprint.segment === 'Global' 
                             ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md' 
@@ -3119,32 +3119,32 @@ export default function AggregateScoringReport() {
                   {/* ROW 4: Data Confidence */}
                   <tr>
                     <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW4, left: STICKY_LEFT_1, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_1, zIndex: 110, backgroundColor: '#334155' }}>
                       Data Confidence
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW4, left: STICKY_LEFT_2, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_2, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW4, left: STICKY_LEFT_3, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_3, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW4, left: STICKY_LEFT_4, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_4, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW4, left: STICKY_LEFT_5, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_5, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW4, left: STICKY_LEFT_6, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_6, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW4, left: STICKY_LEFT_7, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_7, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW4, left: STICKY_LEFT_8, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_8, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: TOP_ROW4, left: STICKY_LEFT_9, zIndex: 90, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     {sortedCompanies.map(company => {
                       const conf = company.dataConfidence.percent;
@@ -3152,7 +3152,7 @@ export default function AggregateScoringReport() {
                       return (
                         <th key={`conf-${company.surveyId}`} 
                             className="px-2 py-1.5 text-center border-r border-slate-600 last:border-r-0"
-                            style={{ position: 'sticky', top: TOP_ROW4, zIndex: 70, backgroundColor: '#334155' }}>
+                            style={{ position: 'sticky', top: 124, zIndex: 100, backgroundColor: '#334155' }}>
                           <div 
                             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white ${confColor}`}
                             title={`${company.dataConfidence.verifiedItems}/${company.dataConfidence.totalItems} items verified (${company.dataConfidence.unsureCount} unsure)`}
