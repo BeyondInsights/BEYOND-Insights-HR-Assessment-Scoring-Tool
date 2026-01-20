@@ -37,18 +37,22 @@ function FPRegisterContent() {
 
       try {
         // Check if this FP code already has contact info registered
+        // IMPORTANT: Fetch ALL survey data, not just email/firmographics
         const { data: existing } = await supabase
           .from('assessments')
-          .select('email, firmographics_data, company_name')
+          .select('*')  // Get ALL fields to restore full survey state
           .eq('survey_id', code)
           .maybeSingle()
 
         if (existing?.email && existing?.firmographics_data?.firstName) {
           // Already registered - auto-login and redirect to dashboard
-          console.log('Existing registration found - redirecting to dashboard')
+          console.log('Existing registration found - loading all survey data and redirecting to dashboard')
           
           const firmData = existing.firmographics_data as any
           
+          // ============================================
+          // LOAD AUTH/LOGIN INFO
+          // ============================================
           localStorage.setItem('login_email', existing.email)
           localStorage.setItem('auth_email', existing.email)
           localStorage.setItem('survey_id', code)
@@ -61,6 +65,77 @@ function FPRegisterContent() {
           localStorage.setItem('login_title', firmData.title || '')
           localStorage.setItem('auth_completed', 'true')
           localStorage.setItem('payment_completed', 'true')
+          
+          // ============================================
+          // LOAD ALL SURVEY DATA FROM SUPABASE
+          // ============================================
+          console.log('[FP-REGISTER] Loading all survey data into localStorage...')
+          
+          // Load survey data fields
+          const dataFields = [
+            { db: 'firmographics_data', local: 'firmographics_data' },
+            { db: 'general_benefits_data', local: 'general_benefits_data' },
+            { db: 'current_support_data', local: 'current_support_data' },
+            { db: 'cross_dimensional_data', local: 'cross_dimensional_data' },
+            { db: 'employee_impact_data', local: 'employee-impact-assessment_data' },  // Different names!
+            { db: 'dimension1_data', local: 'dimension1_data' },
+            { db: 'dimension2_data', local: 'dimension2_data' },
+            { db: 'dimension3_data', local: 'dimension3_data' },
+            { db: 'dimension4_data', local: 'dimension4_data' },
+            { db: 'dimension5_data', local: 'dimension5_data' },
+            { db: 'dimension6_data', local: 'dimension6_data' },
+            { db: 'dimension7_data', local: 'dimension7_data' },
+            { db: 'dimension8_data', local: 'dimension8_data' },
+            { db: 'dimension9_data', local: 'dimension9_data' },
+            { db: 'dimension10_data', local: 'dimension10_data' },
+            { db: 'dimension11_data', local: 'dimension11_data' },
+            { db: 'dimension12_data', local: 'dimension12_data' },
+            { db: 'dimension13_data', local: 'dimension13_data' },
+          ]
+          
+          dataFields.forEach(({ db, local }) => {
+            const value = existing[db]
+            if (value && typeof value === 'object' && Object.keys(value).length > 0) {
+              localStorage.setItem(local, JSON.stringify(value))
+              console.log(`  ✓ Loaded ${db} → ${local}`)
+            }
+          })
+          
+          // Load completion flags
+          const completeFields = [
+            { db: 'firmographics_complete', local: 'firmographics_complete' },
+            { db: 'general_benefits_complete', local: 'general_benefits_complete' },
+            { db: 'current_support_complete', local: 'current_support_complete' },
+            { db: 'cross_dimensional_complete', local: 'cross_dimensional_complete' },
+            { db: 'employee_impact_complete', local: 'employee-impact-assessment_complete' },  // Different names!
+            { db: 'dimension1_complete', local: 'dimension1_complete' },
+            { db: 'dimension2_complete', local: 'dimension2_complete' },
+            { db: 'dimension3_complete', local: 'dimension3_complete' },
+            { db: 'dimension4_complete', local: 'dimension4_complete' },
+            { db: 'dimension5_complete', local: 'dimension5_complete' },
+            { db: 'dimension6_complete', local: 'dimension6_complete' },
+            { db: 'dimension7_complete', local: 'dimension7_complete' },
+            { db: 'dimension8_complete', local: 'dimension8_complete' },
+            { db: 'dimension9_complete', local: 'dimension9_complete' },
+            { db: 'dimension10_complete', local: 'dimension10_complete' },
+            { db: 'dimension11_complete', local: 'dimension11_complete' },
+            { db: 'dimension12_complete', local: 'dimension12_complete' },
+            { db: 'dimension13_complete', local: 'dimension13_complete' },
+          ]
+          
+          completeFields.forEach(({ db, local }) => {
+            if (existing[db] === true) {
+              localStorage.setItem(local, 'true')
+              console.log(`  ✓ Loaded ${db} → ${local}: true`)
+            }
+          })
+          
+          // Load payment info
+          if (existing.payment_method) {
+            localStorage.setItem('payment_method', existing.payment_method)
+          }
+          
+          console.log('[FP-REGISTER] ✅ All survey data loaded successfully!')
           
           router.push('/dashboard')
           return
