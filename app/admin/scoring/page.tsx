@@ -2492,7 +2492,9 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                   <li><strong>Tier thresholds are crossing points</strong> — companies near boundaries shift tiers when scores compress</li>
                   <li><strong>Status point values reflect design intent</strong> — the index deliberately values companies actively planning or assessing improvements</li>
                 </ol>
-               
+                <p className="text-sm text-blue-800 mt-2 italic">
+                  A reviewer who argues for different point values is proposing a different construct definition (e.g., "only implemented policies matter"), not exposing a methodological flaw.
+                </p>
               </div>
             </div>
           )}
@@ -2598,6 +2600,10 @@ export default function AggregateScoringReport() {
     const fp = complete.filter(c => c.isFoundingPartner && !c.isPanel);
     const std = complete.filter(c => !c.isFoundingPartner && !c.isPanel);
     const panel = baseComplete.filter(c => c.isPanel);
+    // Geographic footprint filters
+    const single = complete.filter(c => c.globalFootprint.segment === 'Single');
+    const regional = complete.filter(c => c.globalFootprint.segment === 'Regional');
+    const global = complete.filter(c => c.globalFootprint.segment === 'Global');
     
     const calcAvg = (arr: CompanyScores[], key: keyof CompanyScores) => 
       arr.length > 0 ? Math.round(arr.reduce((s, c) => s + ((c[key] as number) || 0), 0) / arr.length) : null;
@@ -2611,13 +2617,16 @@ export default function AggregateScoringReport() {
         fp: dimAvg(d, fp),
         std: dimAvg(d, std),
         panel: dimAvg(d, panel),
+        single: dimAvg(d, single),
+        regional: dimAvg(d, regional),
+        global: dimAvg(d, global),
       }])),
-      unweighted: { total: calcAvg(complete, 'unweightedScore'), fp: calcAvg(fp, 'unweightedScore'), std: calcAvg(std, 'unweightedScore'), panel: calcAvg(panel, 'unweightedScore') },
-      weighted: { total: calcAvg(complete, 'weightedScore'), fp: calcAvg(fp, 'weightedScore'), std: calcAvg(std, 'weightedScore'), panel: calcAvg(panel, 'weightedScore') },
-      maturity: { total: calcAvg(complete, 'maturityScore'), fp: calcAvg(fp, 'maturityScore'), std: calcAvg(std, 'maturityScore'), panel: calcAvg(panel, 'maturityScore') },
-      breadth: { total: calcAvg(complete, 'breadthScore'), fp: calcAvg(fp, 'breadthScore'), std: calcAvg(std, 'breadthScore'), panel: calcAvg(panel, 'breadthScore') },
-      composite: { total: calcAvg(complete, 'compositeScore'), fp: calcAvg(fp, 'compositeScore'), std: calcAvg(std, 'compositeScore'), panel: calcAvg(panel, 'compositeScore') },
-      counts: { total: complete.length, fp: fp.length, std: std.length, panel: panel.length },
+      unweighted: { total: calcAvg(complete, 'unweightedScore'), fp: calcAvg(fp, 'unweightedScore'), std: calcAvg(std, 'unweightedScore'), panel: calcAvg(panel, 'unweightedScore'), single: calcAvg(single, 'unweightedScore'), regional: calcAvg(regional, 'unweightedScore'), global: calcAvg(global, 'unweightedScore') },
+      weighted: { total: calcAvg(complete, 'weightedScore'), fp: calcAvg(fp, 'weightedScore'), std: calcAvg(std, 'weightedScore'), panel: calcAvg(panel, 'weightedScore'), single: calcAvg(single, 'weightedScore'), regional: calcAvg(regional, 'weightedScore'), global: calcAvg(global, 'weightedScore') },
+      maturity: { total: calcAvg(complete, 'maturityScore'), fp: calcAvg(fp, 'maturityScore'), std: calcAvg(std, 'maturityScore'), panel: calcAvg(panel, 'maturityScore'), single: calcAvg(single, 'maturityScore'), regional: calcAvg(regional, 'maturityScore'), global: calcAvg(global, 'maturityScore') },
+      breadth: { total: calcAvg(complete, 'breadthScore'), fp: calcAvg(fp, 'breadthScore'), std: calcAvg(std, 'breadthScore'), panel: calcAvg(panel, 'breadthScore'), single: calcAvg(single, 'breadthScore'), regional: calcAvg(regional, 'breadthScore'), global: calcAvg(global, 'breadthScore') },
+      composite: { total: calcAvg(complete, 'compositeScore'), fp: calcAvg(fp, 'compositeScore'), std: calcAvg(std, 'compositeScore'), panel: calcAvg(panel, 'compositeScore'), single: calcAvg(single, 'compositeScore'), regional: calcAvg(regional, 'compositeScore'), global: calcAvg(global, 'compositeScore') },
+      counts: { total: complete.length, fp: fp.length, std: std.length, panel: panel.length, single: single.length, regional: regional.length, global: global.length },
     };
   }, [companyScores, includePanel]);
 
@@ -2646,6 +2655,9 @@ export default function AggregateScoringReport() {
   const STICKY_LEFT_4 = COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH;
   const STICKY_LEFT_5 = COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH);
   const STICKY_LEFT_6 = COL1_WIDTH + COL2_WIDTH + (3 * COL_AVG_WIDTH);
+  const STICKY_LEFT_7 = COL1_WIDTH + COL2_WIDTH + (4 * COL_AVG_WIDTH);  // Single Country
+  const STICKY_LEFT_8 = COL1_WIDTH + COL2_WIDTH + (5 * COL_AVG_WIDTH);  // Regional
+  const STICKY_LEFT_9 = COL1_WIDTH + COL2_WIDTH + (6 * COL_AVG_WIDTH);  // Global
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -2919,7 +2931,7 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', left: 0, zIndex: 45, backgroundColor: '#1E293B' }}>
                       METRICS
                     </th>
-                    <th colSpan={4} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500">
+                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium bg-indigo-700 border-r border-indigo-500">
                       BENCHMARKS
                     </th>
                     <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium bg-slate-700">
@@ -2953,6 +2965,21 @@ export default function AggregateScoringReport() {
                     <th className="px-2 py-3 text-center font-semibold bg-amber-600 border-r border-amber-500"
                         style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#D97706' }}>
                       PANEL
+                    </th>
+                    <th className="px-2 py-3 text-center font-semibold bg-slate-600 border-r border-slate-500"
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#475569' }}
+                        title="Single Country">
+                      1🌍
+                    </th>
+                    <th className="px-2 py-3 text-center font-semibold bg-blue-600 border-r border-blue-500"
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#2563EB' }}
+                        title="Regional (2-10 countries)">
+                      REG
+                    </th>
+                    <th className="px-2 py-3 text-center font-semibold bg-purple-600 border-r border-purple-500"
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#9333EA' }}
+                        title="Global (10+ countries)">
+                      GLB
                     </th>
                     {sortedCompanies.map(company => (
                       <th key={company.surveyId} 
@@ -2989,6 +3016,18 @@ export default function AggregateScoringReport() {
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
                         style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                      <span className="text-[10px] text-slate-400">n={averages.counts.single}</span>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                      <span className="text-[10px] text-slate-400">n={averages.counts.regional}</span>
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 45, width: COL_AVG_WIDTH, backgroundColor: '#334155' }}>
+                      <span className="text-[10px] text-slate-400">n={averages.counts.global}</span>
                     </th>
                     {sortedCompanies.map(company => (
                       <th key={`footprint-${company.surveyId}`} 
@@ -3029,7 +3068,7 @@ export default function AggregateScoringReport() {
                   {/* ============================================ */}
                   
                   <tr>
-                    <td colSpan={6 + sortedCompanies.length} className="bg-gradient-to-r from-purple-100 to-indigo-100 border-y-2 border-purple-300">
+                    <td colSpan={9 + sortedCompanies.length} className="bg-gradient-to-r from-purple-100 to-indigo-100 border-y-2 border-purple-300">
                       <div className="px-4 py-2.5 flex items-center gap-3">
                         <span className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">★</span>
                         <div>
@@ -3072,6 +3111,18 @@ export default function AggregateScoringReport() {
                             style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.composite.panel ?? 0) }}>
                           {averages.composite.panel ?? '—'}
                         </td>
+                        <td className="px-2 py-3 text-center bg-slate-100 border-r border-slate-200 font-bold text-lg"
+                            style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10, color: getScoreColor(averages.composite.single ?? 0) }}>
+                          {averages.composite.single ?? '—'}
+                        </td>
+                        <td className="px-2 py-3 text-center bg-blue-100 border-r border-blue-200 font-bold text-lg"
+                            style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10, color: getScoreColor(averages.composite.regional ?? 0) }}>
+                          {averages.composite.regional ?? '—'}
+                        </td>
+                        <td className="px-2 py-3 text-center bg-purple-100 border-r border-purple-200 font-bold text-lg"
+                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10, color: getScoreColor(averages.composite.global ?? 0) }}>
+                          {averages.composite.global ?? '—'}
+                        </td>
                         {sortedCompanies.map(company => (
                           <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-purple-200 last:border-r-0 ${
                             company.isPanel ? 'bg-amber-100/70' : company.isFoundingPartner ? 'bg-violet-100/70' : 'bg-purple-50'
@@ -3081,7 +3132,7 @@ export default function AggregateScoringReport() {
                         ))}
                       </>
                     ) : (
-                      <td colSpan={4 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
+                      <td colSpan={7 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
                         <div className="flex items-center gap-2 text-red-700">
                           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -3119,6 +3170,18 @@ export default function AggregateScoringReport() {
                           style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
                         {averages.composite.panel !== null && <TierBadge score={averages.composite.panel} isComplete={true} size="small" />}
                       </td>
+                      <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                        {averages.composite.single !== null && <TierBadge score={averages.composite.single} isComplete={true} size="small" />}
+                      </td>
+                      <td className="px-2 py-2.5 text-center bg-blue-50 border-r border-blue-100"
+                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                        {averages.composite.regional !== null && <TierBadge score={averages.composite.regional} isComplete={true} size="small" />}
+                      </td>
+                      <td className="px-2 py-2.5 text-center bg-purple-50 border-r border-purple-100"
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                        {averages.composite.global !== null && <TierBadge score={averages.composite.global} isComplete={true} size="small" />}
+                      </td>
                       {sortedCompanies.map(company => (
                         <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${
                           company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
@@ -3131,7 +3194,7 @@ export default function AggregateScoringReport() {
                   
                   {/* Composite Components */}
                   <tr>
-                    <td colSpan={6 + sortedCompanies.length} className="bg-purple-50/50 border-b border-purple-100">
+                    <td colSpan={9 + sortedCompanies.length} className="bg-purple-50/50 border-b border-purple-100">
                       <div className="px-4 py-1.5 flex items-center gap-2 text-xs text-purple-700">
                         <span className="font-semibold">Composite =</span>
                         <span>W-{compositeWeights.weightedDim}% + M-{compositeWeights.maturity}% + B-{compositeWeights.breadth}%</span>
@@ -3172,6 +3235,18 @@ export default function AggregateScoringReport() {
                     <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
                         style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
                       <ScoreCell score={averages.weighted.panel} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                      <ScoreCell score={averages.weighted.single} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                      <ScoreCell score={averages.weighted.regional} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                      <ScoreCell score={averages.weighted.global} isComplete={true} />
                     </td>
                     {sortedCompanies.map(company => (
                       <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
@@ -3216,6 +3291,18 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
                       <ScoreCell score={averages.maturity.panel} isComplete={true} />
                     </td>
+                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                      <ScoreCell score={averages.maturity.single} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                      <ScoreCell score={averages.maturity.regional} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                      <ScoreCell score={averages.maturity.global} isComplete={true} />
+                    </td>
                     {sortedCompanies.map(company => (
                       <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
                         company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : 'bg-gray-50'
@@ -3259,6 +3346,18 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
                       <ScoreCell score={averages.breadth.panel} isComplete={true} />
                     </td>
+                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                      <ScoreCell score={averages.breadth.single} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                      <ScoreCell score={averages.breadth.regional} isComplete={true} />
+                    </td>
+                    <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                      <ScoreCell score={averages.breadth.global} isComplete={true} />
+                    </td>
                     {sortedCompanies.map(company => (
                       <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
                         company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
@@ -3273,7 +3372,7 @@ export default function AggregateScoringReport() {
                   {/* ============================================ */}
                   
                   <tr>
-                    <td colSpan={6 + sortedCompanies.length} className="bg-blue-50 border-y-2 border-blue-200">
+                    <td colSpan={9 + sortedCompanies.length} className="bg-blue-50 border-y-2 border-blue-200">
                       <div className="px-4 py-2.5 flex items-center gap-3">
                         <span className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">D</span>
                         <div>
@@ -3325,6 +3424,18 @@ export default function AggregateScoringReport() {
                           style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
                         <ScoreCell score={averages.dimensions[dim]?.panel ?? null} isComplete={true} />
                       </td>
+                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
+                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                        <ScoreCell score={averages.dimensions[dim]?.single ?? null} isComplete={true} />
+                      </td>
+                      <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
+                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                        <ScoreCell score={averages.dimensions[dim]?.regional ?? null} isComplete={true} />
+                      </td>
+                      <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                        <ScoreCell score={averages.dimensions[dim]?.global ?? null} isComplete={true} />
+                      </td>
                       {sortedCompanies.map(company => (
                         <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
                           company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
@@ -3360,7 +3471,7 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 10 }}>
                       {weightsSum}%
                     </td>
-                    <td colSpan={4 + sortedCompanies.length} className={`px-4 py-2 ${weightsValid ? 'bg-blue-50' : 'bg-red-50'}`}>
+                    <td colSpan={7 + sortedCompanies.length} className={`px-4 py-2 ${weightsValid ? 'bg-blue-50' : 'bg-red-50'}`}>
                       {weightsValid ? (
                         <span className="text-blue-600 text-sm flex items-center gap-2">
                           <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -3397,6 +3508,18 @@ export default function AggregateScoringReport() {
                     <td className="px-2 py-2.5 text-center bg-amber-100 border-r border-amber-200 font-bold"
                         style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.unweighted.panel ?? 0) }}>
                       {averages.unweighted.panel ?? '—'}
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-slate-100 border-r border-slate-200 font-bold"
+                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10, color: getScoreColor(averages.unweighted.single ?? 0) }}>
+                      {averages.unweighted.single ?? '—'}
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-blue-100 border-r border-blue-200 font-bold"
+                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10, color: getScoreColor(averages.unweighted.regional ?? 0) }}>
+                      {averages.unweighted.regional ?? '—'}
+                    </td>
+                    <td className="px-2 py-2.5 text-center bg-purple-100 border-r border-purple-200 font-bold"
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10, color: getScoreColor(averages.unweighted.global ?? 0) }}>
+                      {averages.unweighted.global ?? '—'}
                     </td>
                     {sortedCompanies.map(company => (
                       <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-blue-100 last:border-r-0 ${
@@ -3439,6 +3562,18 @@ export default function AggregateScoringReport() {
                             style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10, color: getScoreColor(averages.weighted.panel ?? 0) }}>
                           {averages.weighted.panel ?? '—'}
                         </td>
+                        <td className="px-2 py-3 text-center bg-slate-100 border-r border-slate-200 font-bold text-lg"
+                            style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10, color: getScoreColor(averages.weighted.single ?? 0) }}>
+                          {averages.weighted.single ?? '—'}
+                        </td>
+                        <td className="px-2 py-3 text-center bg-blue-100 border-r border-blue-200 font-bold text-lg"
+                            style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10, color: getScoreColor(averages.weighted.regional ?? 0) }}>
+                          {averages.weighted.regional ?? '—'}
+                        </td>
+                        <td className="px-2 py-3 text-center bg-purple-100 border-r border-purple-200 font-bold text-lg"
+                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10, color: getScoreColor(averages.weighted.global ?? 0) }}>
+                          {averages.weighted.global ?? '—'}
+                        </td>
                         {sortedCompanies.map(company => (
                           <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-blue-200 last:border-r-0 ${
                             company.isPanel ? 'bg-amber-100/70' : company.isFoundingPartner ? 'bg-violet-100/70' : 'bg-blue-100'
@@ -3448,7 +3583,7 @@ export default function AggregateScoringReport() {
                         ))}
                       </>
                     ) : (
-                      <td colSpan={4 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
+                      <td colSpan={7 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
                         <span className="text-red-700 font-medium">Dimension weights must sum to 100%</span>
                       </td>
                     )}
@@ -3480,6 +3615,18 @@ export default function AggregateScoringReport() {
                       <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 10 }}>
                         {averages.weighted.panel !== null && <TierBadge score={averages.weighted.panel} isComplete={true} size="small" />}
+                      </td>
+                      <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 10 }}>
+                        {averages.weighted.single !== null && <TierBadge score={averages.weighted.single} isComplete={true} size="small" />}
+                      </td>
+                      <td className="px-2 py-2.5 text-center bg-blue-50 border-r border-blue-100"
+                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 10 }}>
+                        {averages.weighted.regional !== null && <TierBadge score={averages.weighted.regional} isComplete={true} size="small" />}
+                      </td>
+                      <td className="px-2 py-2.5 text-center bg-purple-50 border-r border-purple-100"
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 10 }}>
+                        {averages.weighted.global !== null && <TierBadge score={averages.weighted.global} isComplete={true} size="small" />}
                       </td>
                       {sortedCompanies.map(company => (
                         <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${
