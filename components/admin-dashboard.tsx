@@ -3138,7 +3138,13 @@ export default function AdminDashboard() {
       (!a.isFoundingPartner && !a.isPanel && typeFilter.standard) ||
       (a.isPanel && typeFilter.panel)
 
-    return matchesSearch && matchesStatus && matchesType
+   return matchesSearch && matchesStatus && matchesType
+  }).sort((a, b) => {
+    // Sort: FP first, then Standard, then Panel at end
+    if (a.isPanel && !b.isPanel) return 1;
+    if (!a.isPanel && b.isPanel) return -1;
+    // Within same category, sort by updated_at (most recent first)
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
   })
 
   const stats = {
