@@ -268,8 +268,7 @@ function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>)
 
 function calculateMaturityScore(assessment: Record<string, any>): number {
   const currentSupport = assessment.current_support_data || {};
-  const generalBenefits = assessment.general_benefits_data || {};
-  const or1 = currentSupport.or1 ?? generalBenefits.or1 ?? '';
+  const or1 = currentSupport.or1 || '';
   const v = String(or1).toLowerCase();
   
   if (v.includes('comprehensive')) return 100;
@@ -283,11 +282,10 @@ function calculateMaturityScore(assessment: Record<string, any>): number {
 
 function calculateBreadthScore(assessment: Record<string, any>): number {
   const currentSupport = assessment.current_support_data || {};
-  const generalBenefits = assessment.general_benefits_data || {};
   const scores: number[] = [];
   
-  // Handle CB3a - check currentSupport first, fall back to generalBenefits
-  const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
+  // Handle CB3a - can be numeric code (1,2,3) or text
+  const cb3a = currentSupport.cb3a;
   if (cb3a !== undefined && cb3a !== null) {
     // Check for numeric codes first
     if (cb3a === 3 || cb3a === '3') {
@@ -311,8 +309,7 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  // CB3b - check both locations
-  const cb3b = currentSupport.cb3b ?? generalBenefits.cb3b;
+  const cb3b = currentSupport.cb3b;
   if (cb3b && Array.isArray(cb3b)) {
     const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
     scores.push(cb3bScore);
@@ -320,8 +317,7 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  // CB3c - check both locations
-  const cb3c = currentSupport.cb3c ?? generalBenefits.cb3c;
+  const cb3c = currentSupport.cb3c;
   if (cb3c && Array.isArray(cb3c)) {
     const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
     scores.push(cb3cScore);
