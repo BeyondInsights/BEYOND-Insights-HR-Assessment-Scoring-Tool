@@ -27,22 +27,6 @@ const printStyles = `
 // CONSTANTS
 // ============================================
 
-const DIMENSION_NAMES: Record<number, string> = {
-  1: 'Medical Leave & Flexibility',
-  2: 'Insurance & Financial Protection',
-  3: 'Manager Preparedness & Capability',
-  4: 'Navigation & Expert Resources',
-  5: 'Workplace Accommodations',
-  6: 'Culture & Psychological Safety',
-  7: 'Career Continuity & Advancement',
-  8: 'Work Continuation & Resumption',
-  9: 'Executive Commitment & Resources',
-  10: 'Caregiver & Family Support',
-  11: 'Prevention & Wellness',
-  12: 'Continuous Improvement & Outcomes',
-  13: 'Communication & Awareness'
-};
-
 const DIMENSION_RECOMMENDATIONS: Record<number, { focus: string; actions: string[] }> = {
   1: { 
     focus: 'Paid leave policies directly impact employee financial security during treatment',
