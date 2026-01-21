@@ -174,28 +174,41 @@ function getStatusText(status: string | number): string {
   return String(status);
 }
 
-// Follow-up scoring functions
+// Follow-up scoring functions - EXACT COPIES from scoring page
 function scoreD1PaidLeave(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
+  if (v.includes('13') || v.includes('more')) return 100;
+  if (v.includes('9') && v.includes('13')) return 70;
+  if (v.includes('5') && v.includes('9')) return 40;
+  if (v.includes('3') && v.includes('5')) return 20;
+  if (v.includes('1') && v.includes('3')) return 10;
   if (v.includes('does not apply')) return 0;
-  if (v.includes('13 or more') || v.includes('13+ weeks')) return 100;
-  if ((v.includes('9 to') && v.includes('13')) || v.includes('9-13')) return 70;
-  if ((v.includes('5 to') && v.includes('9')) || v.includes('5-9')) return 40;
-  if ((v.includes('3 to') && v.includes('5')) || v.includes('3-5')) return 20;
-  if ((v.includes('1 to') && v.includes('3')) || v.includes('1-3')) return 10;
+  return 0;
+}
+
+function scoreD1PartTime(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('medically necessary')) return 100;
+  if (v.includes('26') || (v.includes('26') && v.includes('more'))) return 80;
+  if (v.includes('13') && v.includes('26')) return 50;
+  if (v.includes('5') && v.includes('13')) return 30;
+  if (v.includes('4 weeks') || v.includes('up to 4')) return 10;
+  if (v.includes('case-by-case')) return 40;
+  if (v.includes('no additional')) return 0;
   return 0;
 }
 
 function scoreD3Training(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
-  if (v.includes('less than 10%') || v === 'less than 10') return 0;
-  if (v === '100%' || v === '100' || (v.includes('100') && !v.includes('less than'))) return 100;
+  if (v === '100%' || v.includes('100%')) return 100;
   if (v.includes('75') && v.includes('100')) return 80;
   if (v.includes('50') && v.includes('75')) return 50;
   if (v.includes('25') && v.includes('50')) return 30;
   if (v.includes('10') && v.includes('25')) return 10;
+  if (v.includes('less than 10')) return 0;
   return 0;
 }
 
@@ -208,15 +221,6 @@ function scoreD12CaseReview(value: string | undefined): number {
   return 0;
 }
 
-function scoreD12PolicyChanges(value: string | undefined): number {
-  if (!value) return 0;
-  const v = String(value).toLowerCase();
-  if (v.includes('significant') || v.includes('major')) return 100;
-  if (v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
-  if (v.includes('no change') || v.includes('not yet') || v.includes('none')) return 20;
-  return 0;
-}
-
 function scoreD13Communication(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
@@ -225,34 +229,32 @@ function scoreD13Communication(value: string | undefined): number {
   if (v.includes('twice')) return 40;
   if (v.includes('annually') || v.includes('world cancer day')) return 20;
   if (v.includes('only when asked')) return 0;
-  if (v.includes('do not actively') || v.includes('no regular')) return 0;
+  if (v.includes('do not actively')) return 0;
   return 0;
 }
 
+// EXACT COPY from scoring page
 function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>): number | null {
   const dimData = assessment[`dimension${dimNum}_data`];
-  if (!dimData) return null;
   
   switch (dimNum) {
     case 1: {
       const d1_1_usa = dimData?.d1_1_usa;
       const d1_1_non_usa = dimData?.d1_1_non_usa;
+      const d1_4b = dimData?.d1_4b;
       const scores: number[] = [];
       if (d1_1_usa) scores.push(scoreD1PaidLeave(d1_1_usa));
       if (d1_1_non_usa) scores.push(scoreD1PaidLeave(d1_1_non_usa));
+      if (d1_4b) scores.push(scoreD1PartTime(d1_4b));
       return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
     }
     case 3: {
-      const d31 = dimData?.d31 ?? dimData?.d3_1;
+      const d31 = dimData?.d31;
       return d31 ? scoreD3Training(d31) : null;
     }
     case 12: {
       const d12_1 = dimData?.d12_1;
-      const d12_2 = dimData?.d12_2;
-      const scores: number[] = [];
-      if (d12_1) scores.push(scoreD12CaseReview(d12_1));
-      if (d12_2) scores.push(scoreD12PolicyChanges(d12_2));
-      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+      return d12_1 ? scoreD12CaseReview(d12_1) : null;
     }
     case 13: {
       const d13_1 = dimData?.d13_1;
@@ -268,7 +270,6 @@ function calculateMaturityScore(assessment: Record<string, any>): number {
   const or1 = currentSupport.or1 || '';
   const v = String(or1).toLowerCase();
   
-  // Text-based matching (matches scoring page exactly)
   if (v.includes('comprehensive')) return 100;
   if (v.includes('enhanced')) return 80;
   if (v.includes('moderate')) return 50;
