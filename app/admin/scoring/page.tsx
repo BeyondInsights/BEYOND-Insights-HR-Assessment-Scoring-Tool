@@ -2676,6 +2676,7 @@ export default function AggregateScoringReport() {
   const [showSensitivityModal, setShowSensitivityModal] = useState(false);
   const [showReliabilityModal, setShowReliabilityModal] = useState(false);
   const [showMethodologyModal, setShowMethodologyModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'composite' | `dim${number}`>('composite');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard' | 'panel'>('all');
@@ -2841,6 +2842,90 @@ export default function AggregateScoringReport() {
       {showSensitivityModal && <SensitivityAnalysisModal onClose={() => setShowSensitivityModal(false)} companyScores={companyScores} weights={weights} includePanel={includePanel} assessments={assessments} />}
       {showReliabilityModal && <ReliabilityDiagnosticsModal onClose={() => setShowReliabilityModal(false)} companyScores={companyScores} assessments={assessments} includePanel={includePanel} />}
       {showMethodologyModal && <TechnicalMethodologyModal onClose={() => setShowMethodologyModal(false)} />}
+      
+      {/* Report Generator Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={() => setShowReportModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-[600px] max-w-[95vw] max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Generate Custom Report</h2>
+                    <p className="text-orange-100 text-sm">Select a company to create their personalized report</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowReportModal(false)} className="text-white/80 hover:text-white p-1">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-100px)]">
+              <p className="text-gray-600 mb-4">Select a company from the list below to generate their custom performance report:</p>
+              <div className="space-y-2">
+                {sortedCompanies
+                  .filter(c => c.isComplete && !c.isPanel)
+                  .map(company => {
+                    const tier = company.compositeScore >= 90 ? 'Exemplary' : 
+                                 company.compositeScore >= 75 ? 'Leading' : 
+                                 company.compositeScore >= 60 ? 'Progressing' : 
+                                 company.compositeScore >= 40 ? 'Emerging' : 'Developing';
+                    const tierColor = company.compositeScore >= 90 ? 'bg-purple-100 text-purple-700' : 
+                                      company.compositeScore >= 75 ? 'bg-green-100 text-green-700' : 
+                                      company.compositeScore >= 60 ? 'bg-blue-100 text-blue-700' : 
+                                      company.compositeScore >= 40 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700';
+                    return (
+                      <button
+                        key={company.surveyId}
+                        onClick={() => {
+                          router.push(`/admin/report/${company.surveyId}`);
+                          setShowReportModal(false);
+                        }}
+                        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-orange-50 rounded-xl border border-gray-200 hover:border-orange-300 transition-all group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-amber-400 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                            {company.companyName.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className="text-left">
+                            <p className="font-semibold text-gray-900 group-hover:text-orange-700">{company.companyName}</p>
+                            <p className="text-xs text-gray-500">{company.isFoundingPartner ? 'Founding Partner' : 'Standard'} • {company.completedDimCount}/13 dimensions</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="text-2xl font-bold" style={{ color: company.compositeScore >= 80 ? '#059669' : company.compositeScore >= 60 ? '#0284C7' : company.compositeScore >= 40 ? '#D97706' : '#DC2626' }}>
+                              {company.compositeScore}
+                            </p>
+                          </div>
+                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${tierColor}`}>
+                            {tier}
+                          </span>
+                          <svg className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
+              {sortedCompanies.filter(c => c.isComplete && !c.isPanel).length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No complete assessments found.</p>
+                  <p className="text-sm mt-1">Companies need to complete at least 10 dimensions to generate a report.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Blend Weight Settings Modal */}
       {showBlendSettings && (
@@ -3092,6 +3177,18 @@ export default function AggregateScoringReport() {
               className="px-2.5 py-1 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-medium rounded-lg transition-colors"
             >
               Methodology
+            </button>
+            
+            <div className="h-5 w-px bg-white/20 mx-1"></div>
+            
+            <button 
+              onClick={() => setShowReportModal(true)}
+              className="px-3 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-md"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Generate Report
             </button>
             <button 
               onClick={() => {
