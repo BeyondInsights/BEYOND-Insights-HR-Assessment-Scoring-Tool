@@ -2885,7 +2885,7 @@ export default function AggregateScoringReport() {
                       <button
                         key={company.surveyId}
                         onClick={() => {
-                          router.push(`/admin/report/${company.surveyId}`);
+                          router.push(`/admin/reports/${company.surveyId}`);
                           setShowReportModal(false);
                         }}
                         className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-orange-50 rounded-xl border border-gray-200 hover:border-orange-300 transition-all group"
