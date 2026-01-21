@@ -957,91 +957,122 @@ export default function CompanyReportPage() {
             <p className="text-sm text-slate-500 mt-1">Dimensions plotted by current performance vs. strategic weight</p>
           </div>
           <div className="px-10 py-6">
-            <div className="relative" style={{ height: '320px' }}>
-              {/* Quadrant backgrounds */}
-              <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
-                <div className="bg-amber-50 border-r border-b border-slate-200 flex items-center justify-center">
-                  <span className="text-xs text-amber-600 font-medium opacity-60">DEVELOP</span>
+            {/* Container with space for axis labels */}
+            <div className="flex">
+              {/* Y-axis label */}
+              <div className="flex flex-col items-center justify-center w-12 mr-2">
+                <span className="text-[10px] text-slate-400 font-medium">High</span>
+                <div className="flex-1 flex items-center">
+                  <span className="-rotate-90 whitespace-nowrap text-xs font-semibold text-slate-500 tracking-wide">
+                    STRATEGIC WEIGHT
+                  </span>
                 </div>
-                <div className="bg-emerald-50 border-b border-slate-200 flex items-center justify-center">
-                  <span className="text-xs text-emerald-600 font-medium opacity-60">MAINTAIN</span>
-                </div>
-                <div className="bg-slate-50 border-r border-slate-200 flex items-center justify-center">
-                  <span className="text-xs text-slate-500 font-medium opacity-60">MONITOR</span>
-                </div>
-                <div className="bg-sky-50 flex items-center justify-center">
-                  <span className="text-xs text-sky-600 font-medium opacity-60">LEVERAGE</span>
-                </div>
+                <span className="text-[10px] text-slate-400 font-medium">Low</span>
               </div>
               
-              {/* Axis labels */}
-              <div className="absolute -left-1 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-slate-400 font-medium whitespace-nowrap">
-                Strategic Weight →
-              </div>
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-6 text-xs text-slate-400 font-medium">
-                Current Score →
-              </div>
-              
-              {/* Plot dimensions */}
-              {dimensionAnalysis.map((d) => {
-                // X position based on score (0-100 mapped to 10-90% to keep dots in view)
-                const xPos = 10 + (d.score / 100) * 80;
-                // Y position based on weight (inverted, higher weight = higher on chart)
-                const maxWeight = Math.max(...dimensionAnalysis.map(dim => dim.weight));
-                const yPos = 90 - ((d.weight / maxWeight) * 80);
-                
-                return (
-                  <div
-                    key={d.dim}
-                    className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
-                    style={{ left: `${xPos}%`, top: `${yPos}%` }}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm cursor-pointer transition-transform hover:scale-110"
-                      style={{ backgroundColor: getScoreColor(d.score) }}
-                    >
-                      {d.dim}
+              {/* Main chart area */}
+              <div className="flex-1">
+                <div className="relative" style={{ height: '340px' }}>
+                  {/* Quadrant backgrounds with gradient effects */}
+                  <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 rounded-lg overflow-hidden border border-slate-200">
+                    {/* DEVELOP - High weight, Low score */}
+                    <div className="bg-gradient-to-br from-amber-100 to-amber-50 border-r border-b border-slate-200 relative">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                          <span className="text-lg font-bold text-amber-600/40">DEVELOP</span>
+                          <p className="text-[10px] text-amber-600/40 mt-1">High Priority</p>
+                        </div>
+                      </div>
                     </div>
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                      <div className="bg-slate-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
-                        {d.name}: {d.score} ({d.weight}% weight)
+                    {/* MAINTAIN - High weight, High score */}
+                    <div className="bg-gradient-to-bl from-emerald-100 to-emerald-50 border-b border-slate-200 relative">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                          <span className="text-lg font-bold text-emerald-600/40">MAINTAIN</span>
+                          <p className="text-[10px] text-emerald-600/40 mt-1">Protect Strengths</p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* MONITOR - Low weight, Low score */}
+                    <div className="bg-gradient-to-tr from-slate-100 to-slate-50 border-r border-slate-200 relative">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                          <span className="text-lg font-bold text-slate-400/50">MONITOR</span>
+                          <p className="text-[10px] text-slate-400/50 mt-1">Watch & Wait</p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* LEVERAGE - Low weight, High score */}
+                    <div className="bg-gradient-to-tl from-sky-100 to-sky-50 relative">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                          <span className="text-lg font-bold text-sky-600/40">LEVERAGE</span>
+                          <p className="text-[10px] text-sky-600/40 mt-1">Quick Wins</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                );
-              })}
-              
-              {/* Median lines */}
-              <div className="absolute left-1/2 top-0 bottom-0 border-l border-dashed border-slate-300"></div>
-              <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-slate-300"></div>
+                  
+                  {/* Center crosshairs */}
+                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-300" style={{ boxShadow: '0 0 4px rgba(0,0,0,0.1)' }}></div>
+                  <div className="absolute top-1/2 left-0 right-0 h-px bg-slate-300" style={{ boxShadow: '0 0 4px rgba(0,0,0,0.1)' }}></div>
+                  
+                  {/* Plot dimensions */}
+                  {dimensionAnalysis.map((d) => {
+                    // X position based on score (0-100 mapped to 5-95% to keep dots in view)
+                    const xPos = 5 + (d.score / 100) * 90;
+                    // Y position based on weight (inverted, higher weight = higher on chart)
+                    const maxWeight = Math.max(...dimensionAnalysis.map(dim => dim.weight));
+                    const minWeight = Math.min(...dimensionAnalysis.map(dim => dim.weight));
+                    const weightRange = maxWeight - minWeight || 1;
+                    const yPos = 92 - (((d.weight - minWeight) / weightRange) * 84);
+                    
+                    return (
+                      <div
+                        key={d.dim}
+                        className="absolute transform -translate-x-1/2 -translate-y-1/2 group z-10"
+                        style={{ left: `${xPos}%`, top: `${yPos}%` }}
+                      >
+                        <div 
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg cursor-pointer transition-all duration-200 hover:scale-125 hover:shadow-xl border-2 border-white"
+                          style={{ backgroundColor: getScoreColor(d.score) }}
+                        >
+                          {d.dim}
+                        </div>
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                          <div className="bg-slate-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
+                            <p className="font-semibold">{d.name}</p>
+                            <p className="text-slate-300 mt-1">Score: {d.score} • Weight: {d.weight}%</p>
+                          </div>
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900"></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* X-axis labels */}
+                <div className="flex justify-between items-center mt-3 px-2">
+                  <span className="text-[10px] text-slate-400 font-medium">0</span>
+                  <span className="text-xs font-semibold text-slate-500 tracking-wide">CURRENT SCORE</span>
+                  <span className="text-[10px] text-slate-400 font-medium">100</span>
+                </div>
+              </div>
             </div>
             
-            {/* Legend */}
-            <div className="mt-8 pt-4 border-t border-slate-100">
-              <div className="flex flex-wrap gap-3 justify-center text-xs">
-                {dimensionAnalysis.slice(0, 7).map(d => (
+            {/* Legend - 2 rows, compact */}
+            <div className="mt-6 pt-5 border-t border-slate-100">
+              <div className="grid grid-cols-7 gap-2 text-xs">
+                {dimensionAnalysis.map(d => (
                   <div key={d.dim} className="flex items-center gap-1.5">
                     <span 
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-sm flex-shrink-0"
                       style={{ backgroundColor: getScoreColor(d.score) }}
                     >
                       {d.dim}
                     </span>
-                    <span className="text-slate-600 truncate max-w-[120px]">{d.name.split(' ')[0]}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-3 justify-center text-xs mt-2">
-                {dimensionAnalysis.slice(7).map(d => (
-                  <div key={d.dim} className="flex items-center gap-1.5">
-                    <span 
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
-                      style={{ backgroundColor: getScoreColor(d.score) }}
-                    >
-                      {d.dim}
-                    </span>
-                    <span className="text-slate-600 truncate max-w-[120px]">{d.name.split(' ')[0]}</span>
+                    <span className="text-slate-600 truncate text-[11px]">{d.name.split('&')[0].trim()}</span>
                   </div>
                 ))}
               </div>
