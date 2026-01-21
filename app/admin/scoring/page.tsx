@@ -2561,9 +2561,6 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                   <li><strong>Tier thresholds are crossing points</strong> — companies near boundaries shift tiers when scores compress</li>
                   <li><strong>Status point values reflect design intent</strong> — the index deliberately values companies actively planning or assessing improvements</li>
                 </ol>
-                <p className="text-sm text-blue-800 mt-2 italic">
-                  A reviewer who argues for different point values is proposing a different construct definition (e.g., "only implemented policies matter"), not exposing a methodological flaw.
-                </p>
               </div>
             </div>
           )}
@@ -2930,6 +2927,48 @@ export default function AggregateScoringReport() {
                 >
                   Reset All Weights
                 </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Legend Row - Score Colors, Data Quality, Provisional Status */}
+          <div className="mt-2 flex items-center justify-between bg-white/5 rounded-xl px-5 py-2">
+            <div className="flex items-center gap-8 text-xs">
+              {/* Score Colors */}
+              <div className="flex items-center gap-3">
+                <span className="text-gray-400 font-medium">Score Colors:</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#059669' }} />
+                  <span className="text-gray-300">80-100</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#0284C7' }} />
+                  <span className="text-gray-300">60-79</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#D97706' }} />
+                  <span className="text-gray-300">40-59</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#DC2626' }} />
+                  <span className="text-gray-300">0-39</span>
+                </span>
+              </div>
+              
+              {/* Data Quality */}
+              <div className="flex items-center gap-2 border-l border-white/20 pl-6">
+                <span className="text-gray-400 font-medium">Data Quality:</span>
+                <span className="ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900 rounded px-2 py-0.5 font-bold text-amber-300 bg-white/10">42</span>
+                <span className="text-gray-400">= Over 40% "Unsure"</span>
+              </div>
+              
+              {/* Provisional Status */}
+              <div className="flex items-center gap-2 border-l border-white/20 pl-6">
+                <span className="text-gray-400 font-medium">Provisional:</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 border-2 border-dashed border-amber-400 bg-amber-500/20 rounded-full text-amber-300 font-bold">
+                  Leading<span className="text-amber-400">*</span>
+                </span>
+                <span className="text-gray-400">= 4+ dims have high Unsure</span>
               </div>
             </div>
           </div>
@@ -3811,66 +3850,6 @@ export default function AggregateScoringReport() {
           </div>
         )}
         
-        {/* Legend */}
-        <div className="mt-6 bg-white rounded-xl shadow-lg p-5">
-          <h3 className="font-bold text-gray-900 mb-3">Legend</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Score Colors</p>
-              <div className="flex flex-wrap gap-3">
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#059669' }} />
-                  <span>80-100</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#0284C7' }} />
-                  <span>60-79</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#D97706' }} />
-                  <span>40-59</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#DC2626' }} />
-                  <span>0-39</span>
-                </span>
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Company Types</p>
-              <div className="flex flex-wrap gap-3">
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded bg-violet-500" />
-                  <span>Founding Partner</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded bg-slate-500" />
-                  <span>Standard</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="w-3 h-3 rounded bg-amber-500" />
-                  <span>Panel</span>
-                </span>
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Data Quality</p>
-              <div className="flex items-center gap-2 text-xs text-gray-600">
-                <span className="ring-2 ring-amber-400 ring-offset-1 rounded px-2 py-0.5 font-bold">42</span>
-                <span>= Over 40% "Unsure"</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Provisional Status</p>
-              <div className="flex items-center gap-2 text-xs text-gray-600">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 border-2 border-dashed border-amber-400 bg-amber-50 rounded-full text-amber-700 font-bold">
-                  Leading<span className="text-amber-600">*</span>
-                </span>
-                <span>= 4+ dims have high Unsure</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );
