@@ -3,7 +3,21 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { SCORING_CONFIG, getTierFromScore, getTotalDimensionWeight } from '@/lib/scoring-config';
+import { SCORING_CONFIG } from '@/lib/scoring-config';
+import { 
+  calculateCompanyScores, 
+  statusToPoints, 
+  getStatusText,
+  getGeoMultiplier,
+  calculateFollowUpScore,
+  calculateMaturityScore,
+  calculateBreadthScore,
+  getPerformanceTier,
+  DEFAULT_DIMENSION_WEIGHTS,
+  DEFAULT_COMPOSITE_WEIGHTS,
+  DEFAULT_BLEND_WEIGHTS,
+  DIMENSION_NAMES
+} from '@/lib/scoring-calculations';
 import Image from 'next/image';
 
 // Print styles for page numbers
@@ -82,33 +96,29 @@ const DIMENSION_RECOMMENDATIONS: Record<number, { focus: string; actions: string
   }
 };
 
-// Use shared scoring configuration
-const DEFAULT_DIMENSION_WEIGHTS = SCORING_CONFIG.dimensionWeights;
-const DIMENSION_NAMES = SCORING_CONFIG.dimensionNames;
-
 const DIMENSION_QUESTION_COUNTS: Record<number, number> = {
   1: 9, 2: 12, 3: 8, 4: 13, 5: 11, 6: 7, 7: 5, 8: 10, 9: 5, 10: 7, 11: 3, 12: 7, 13: 7
 };
 
 // ============================================
-// SCORING FUNCTIONS
+// UI HELPER FUNCTIONS
 // ============================================
 
 function getTier(score: number): { name: string; color: string; bgColor: string; textColor: string; borderColor: string } {
-  const tier = getTierFromScore(score);
-  // Map the simplified tier config to the full format needed by the UI
-  const tierMap: Record<string, { textColor: string; borderColor: string }> = {
-    'Exemplary': { textColor: 'text-emerald-800', borderColor: 'border-emerald-300' },
-    'Leading': { textColor: 'text-blue-800', borderColor: 'border-blue-300' },
-    'Progressing': { textColor: 'text-amber-800', borderColor: 'border-amber-300' },
-    'Emerging': { textColor: 'text-orange-800', borderColor: 'border-orange-300' },
-    'Developing': { textColor: 'text-gray-700', borderColor: 'border-gray-300' },
+  const tier = getPerformanceTier(score);
+  const tierMap: Record<string, { textColor: string; borderColor: string; bgColor: string }> = {
+    'Exemplary': { textColor: 'text-emerald-800', borderColor: 'border-emerald-300', bgColor: 'bg-emerald-100' },
+    'Leading': { textColor: 'text-blue-800', borderColor: 'border-blue-300', bgColor: 'bg-blue-100' },
+    'Progressing': { textColor: 'text-amber-800', borderColor: 'border-amber-300', bgColor: 'bg-amber-100' },
+    'Emerging': { textColor: 'text-orange-800', borderColor: 'border-orange-300', bgColor: 'bg-orange-100' },
+    'Developing': { textColor: 'text-gray-700', borderColor: 'border-gray-300', bgColor: 'bg-gray-100' },
   };
-  const extra = tierMap[tier.name] || tierMap['Developing'];
+  const baseName = tier.name.replace('*', '');
+  const extra = tierMap[baseName] || tierMap['Developing'];
   return {
     name: tier.name,
     color: tier.color,
-    bgColor: tier.bgColor,
+    bgColor: extra.bgColor,
     textColor: extra.textColor,
     borderColor: extra.borderColor,
   };
@@ -122,12 +132,25 @@ function getScoreColor(score: number): string {
   return '#DC2626';  // red
 }
 
-function getGeoMultiplier(geoResponse: any): number {
-  if (!geoResponse) return 1.0;
-  const v = String(geoResponse).toLowerCase();
-  if (v.includes('only available in select') || v.includes('only in select')) return 0.75;
-  if (v.includes('varies by location') || v.includes('varies by')) return 0.90;
-  return 1.0;
+function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
+  // Single-country companies (no geo question asked) get 1.0 - question doesn't apply
+  // The geo multiplier measures consistency across locations, which requires multiple locations
+  if (geoResponse === undefined || geoResponse === null) return 1.0;
+  
+  if (typeof geoResponse === 'number') {
+    switch (geoResponse) {
+      case 1: return 0.75;  // Select locations only
+      case 2: return 0.90;  // Varies by location
+      case 3: return 1.0;   // Consistent globally
+      default: return 1.0;  // N/A or unknown
+    }
+  }
+  
+  const s = String(geoResponse).toLowerCase();
+  if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
+  if (s.includes('vary') || s.includes('varies')) return 0.90;
+  if (s.includes('select') || s.includes('only available in select')) return 0.75;
+  return 1.0;  // Default to N/A treatment
 }
 
 function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean; category: string } {
@@ -144,7 +167,8 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   if (typeof status === 'string') {
     const s = status.toLowerCase().trim();
     if (s.includes('not able')) return { points: 0, isUnsure: false, category: 'not_able' };
-    if (s === 'unsure' || s.includes('unsure')) return { points: null, isUnsure: true, category: 'unsure' };
+    // Handle both "Unsure" and "Unknown (5)" as unsure responses - MATCHES SCORING PAGE
+    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true, category: 'unsure' };
     if (s.includes('currently') || s.includes('offer') || s.includes('provide') || 
         s.includes('use') || s.includes('track') || s.includes('measure')) {
       return { points: 5, isUnsure: false, category: 'currently_offer' };
