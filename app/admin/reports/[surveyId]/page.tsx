@@ -545,7 +545,6 @@ export default function CompanyReportPage() {
       elements: elementsByDim
     };
   }
-  }
 
   function calculateBenchmarks(assessments: any[]) {
     // Filter for COMPLETE assessments - must have items in ALL 13 dimensions
