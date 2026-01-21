@@ -5,6 +5,23 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 
+// Print styles for page numbers
+const printStyles = `
+  @media print {
+    @page {
+      margin: 0.75in;
+      @bottom-right {
+        content: "Page " counter(page) " of " counter(pages);
+        font-size: 10px;
+        color: #64748b;
+      }
+    }
+    .print-break { page-break-before: always; }
+    .no-print { display: none !important; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+`;
+
 // ============================================
 // CONSTANTS
 // ============================================
@@ -311,6 +328,8 @@ export default function CompanyReportPage() {
   const [benchmarks, setBenchmarks] = useState<any>(null);
   const [companyScores, setCompanyScores] = useState<any>(null);
   const [elementDetails, setElementDetails] = useState<any>(null);
+  const [percentileRank, setPercentileRank] = useState<number | null>(null);
+  const [totalCompanies, setTotalCompanies] = useState<number>(0);
 
   useEffect(() => {
     async function loadData() {
@@ -339,6 +358,23 @@ export default function CompanyReportPage() {
         if (allAssessments) {
           const benchmarkScores = calculateBenchmarks(allAssessments);
           setBenchmarks(benchmarkScores);
+          
+          // Calculate percentile ranking
+          const allComposites = allAssessments
+            .map(a => {
+              try {
+                const { scores: s } = calculateCompanyScores(a);
+                return s.compositeScore;
+              } catch { return null; }
+            })
+            .filter(s => s !== null && s !== undefined) as number[];
+          
+          if (allComposites.length > 0 && scores.compositeScore) {
+            const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
+            const percentile = Math.round((belowCount / allComposites.length) * 100);
+            setPercentileRank(percentile);
+            setTotalCompanies(allComposites.length);
+          }
         }
         
         setLoading(false);
@@ -602,9 +638,25 @@ export default function CompanyReportPage() {
     <div className="min-h-screen bg-slate-100">
       <style jsx global>{`
         @media print {
-          body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          @page {
+            margin: 0.75in;
+            size: letter;
+          }
+          body { 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important; 
+          }
           .no-print { display: none !important; }
           .print-break { page-break-before: always; }
+          
+          /* Page numbers via CSS counters */
+          .print-page-numbers {
+            position: fixed;
+            bottom: 0.5in;
+            right: 0.75in;
+            font-size: 10px;
+            color: #64748b;
+          }
         }
       `}</style>
 
@@ -721,6 +773,60 @@ export default function CompanyReportPage() {
                     <span className="text-sm text-slate-500">dimensions with<br/>growth opportunity</span>
                   </div>
                 )}
+              </div>
+              {percentileRank !== null && (
+                <>
+                  <div className="h-10 w-px bg-slate-200"></div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl font-bold text-purple-600">{percentileRank}<sup className="text-lg">th</sup></span>
+                    <span className="text-sm text-slate-500">percentile<br/>of {totalCompanies} companies</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ============ AT A GLANCE - KEY FINDINGS ============ */}
+        <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg shadow-sm overflow-hidden mb-8">
+          <div className="px-10 py-6">
+            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">Key Findings at a Glance</h3>
+            <div className="grid grid-cols-4 gap-6">
+              {/* Strongest Area */}
+              <div className="bg-white/10 rounded-lg p-4">
+                <p className="text-xs text-emerald-300 font-medium uppercase tracking-wider mb-2">Strongest Area</p>
+                <p className="text-white font-semibold">{dimensionAnalysis[0]?.name || 'N/A'}</p>
+                <p className="text-emerald-300 text-sm mt-1">
+                  Score: {dimensionAnalysis[0]?.score} 
+                  {dimensionAnalysis[0]?.benchmark && ` (+${dimensionAnalysis[0].score - dimensionAnalysis[0].benchmark} vs benchmark)`}
+                </p>
+              </div>
+              
+              {/* Largest Gap */}
+              <div className="bg-white/10 rounded-lg p-4">
+                <p className="text-xs text-amber-300 font-medium uppercase tracking-wider mb-2">Priority Focus</p>
+                <p className="text-white font-semibold">{dimensionAnalysis[dimensionAnalysis.length - 1]?.name || 'N/A'}</p>
+                <p className="text-amber-300 text-sm mt-1">
+                  Score: {dimensionAnalysis[dimensionAnalysis.length - 1]?.score}
+                  {dimensionAnalysis[dimensionAnalysis.length - 1]?.benchmark && 
+                    ` (${dimensionAnalysis[dimensionAnalysis.length - 1].score - dimensionAnalysis[dimensionAnalysis.length - 1].benchmark} vs benchmark)`}
+                </p>
+              </div>
+              
+              {/* Above/Below Benchmark */}
+              <div className="bg-white/10 rounded-lg p-4">
+                <p className="text-xs text-sky-300 font-medium uppercase tracking-wider mb-2">Benchmark Position</p>
+                <p className="text-white font-semibold">
+                  {dimensionAnalysis.filter(d => d.score >= d.benchmark).length} of 13 dimensions
+                </p>
+                <p className="text-sky-300 text-sm mt-1">above benchmark average</p>
+              </div>
+              
+              {/* Quick Win */}
+              <div className="bg-white/10 rounded-lg p-4">
+                <p className="text-xs text-purple-300 font-medium uppercase tracking-wider mb-2">Momentum</p>
+                <p className="text-white font-semibold">{inProgressItems.length} initiatives</p>
+                <p className="text-purple-300 text-sm mt-1">currently in planning or assessment</p>
               </div>
             </div>
           </div>
@@ -840,6 +946,105 @@ export default function CompanyReportPage() {
                 <span className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
                 Benchmark
               </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="px-10 py-5 border-b border-slate-100">
+            <h3 className="font-semibold text-slate-900">Strategic Priority Matrix</h3>
+            <p className="text-sm text-slate-500 mt-1">Dimensions plotted by current performance vs. strategic weight</p>
+          </div>
+          <div className="px-10 py-6">
+            <div className="relative" style={{ height: '320px' }}>
+              {/* Quadrant backgrounds */}
+              <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                <div className="bg-amber-50 border-r border-b border-slate-200 flex items-center justify-center">
+                  <span className="text-xs text-amber-600 font-medium opacity-60">DEVELOP</span>
+                </div>
+                <div className="bg-emerald-50 border-b border-slate-200 flex items-center justify-center">
+                  <span className="text-xs text-emerald-600 font-medium opacity-60">MAINTAIN</span>
+                </div>
+                <div className="bg-slate-50 border-r border-slate-200 flex items-center justify-center">
+                  <span className="text-xs text-slate-500 font-medium opacity-60">MONITOR</span>
+                </div>
+                <div className="bg-sky-50 flex items-center justify-center">
+                  <span className="text-xs text-sky-600 font-medium opacity-60">LEVERAGE</span>
+                </div>
+              </div>
+              
+              {/* Axis labels */}
+              <div className="absolute -left-1 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-slate-400 font-medium whitespace-nowrap">
+                Strategic Weight →
+              </div>
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-6 text-xs text-slate-400 font-medium">
+                Current Score →
+              </div>
+              
+              {/* Plot dimensions */}
+              {dimensionAnalysis.map((d) => {
+                // X position based on score (0-100 mapped to 10-90% to keep dots in view)
+                const xPos = 10 + (d.score / 100) * 80;
+                // Y position based on weight (inverted, higher weight = higher on chart)
+                const maxWeight = Math.max(...dimensionAnalysis.map(dim => dim.weight));
+                const yPos = 90 - ((d.weight / maxWeight) * 80);
+                
+                return (
+                  <div
+                    key={d.dim}
+                    className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
+                    style={{ left: `${xPos}%`, top: `${yPos}%` }}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm cursor-pointer transition-transform hover:scale-110"
+                      style={{ backgroundColor: getScoreColor(d.score) }}
+                    >
+                      {d.dim}
+                    </div>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                      <div className="bg-slate-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                        {d.name}: {d.score} ({d.weight}% weight)
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Median lines */}
+              <div className="absolute left-1/2 top-0 bottom-0 border-l border-dashed border-slate-300"></div>
+              <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-slate-300"></div>
+            </div>
+            
+            {/* Legend */}
+            <div className="mt-8 pt-4 border-t border-slate-100">
+              <div className="flex flex-wrap gap-3 justify-center text-xs">
+                {dimensionAnalysis.slice(0, 7).map(d => (
+                  <div key={d.dim} className="flex items-center gap-1.5">
+                    <span 
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
+                      style={{ backgroundColor: getScoreColor(d.score) }}
+                    >
+                      {d.dim}
+                    </span>
+                    <span className="text-slate-600 truncate max-w-[120px]">{d.name.split(' ')[0]}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-3 justify-center text-xs mt-2">
+                {dimensionAnalysis.slice(7).map(d => (
+                  <div key={d.dim} className="flex items-center gap-1.5">
+                    <span 
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
+                      style={{ backgroundColor: getScoreColor(d.score) }}
+                    >
+                      {d.dim}
+                    </span>
+                    <span className="text-slate-600 truncate max-w-[120px]">{d.name.split(' ')[0]}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -1009,6 +1214,106 @@ export default function CompanyReportPage() {
           </div>
         )}
 
+        {/* ============ ACTION ROADMAP ============ */}
+        {opportunityDimensions.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div className="px-10 py-5 border-b border-slate-100">
+              <h3 className="font-semibold text-slate-900">Suggested Action Roadmap</h3>
+              <p className="text-sm text-slate-500 mt-1">Phased approach to strengthening workplace cancer support</p>
+            </div>
+            <div className="px-10 py-6">
+              <div className="grid grid-cols-3 gap-6">
+                {/* Phase 1: Quick Wins */}
+                <div className="relative">
+                  <div className="absolute -left-3 top-0 bottom-0 w-1 bg-emerald-400 rounded-full"></div>
+                  <div className="bg-emerald-50 rounded-lg p-5 border border-emerald-100">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center">1</span>
+                      <h4 className="font-semibold text-emerald-800 text-sm">Quick Wins</h4>
+                    </div>
+                    <p className="text-xs text-slate-500 mb-3">Low effort, high visibility</p>
+                    <ul className="space-y-2 text-xs text-slate-600">
+                      <li className="flex items-start gap-2">
+                        <span className="text-emerald-500 mt-0.5">●</span>
+                        <span>Audit existing resources for accessibility</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-emerald-500 mt-0.5">●</span>
+                        <span>Create single-page support guide for managers</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-emerald-500 mt-0.5">●</span>
+                        <span>Add cancer support to onboarding materials</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                
+                {/* Phase 2: Foundation Building */}
+                <div className="relative">
+                  <div className="absolute -left-3 top-0 bottom-0 w-1 bg-sky-400 rounded-full"></div>
+                  <div className="bg-sky-50 rounded-lg p-5 border border-sky-100">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-6 h-6 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center justify-center">2</span>
+                      <h4 className="font-semibold text-sky-800 text-sm">Foundation Building</h4>
+                    </div>
+                    <p className="text-xs text-slate-500 mb-3">Structural improvements</p>
+                    <ul className="space-y-2 text-xs text-slate-600">
+                      <li className="flex items-start gap-2">
+                        <span className="text-sky-500 mt-0.5">●</span>
+                        <span>Implement manager training program</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-sky-500 mt-0.5">●</span>
+                        <span>Design navigation/concierge system</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-sky-500 mt-0.5">●</span>
+                        <span>Review insurance & leave policies</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                
+                {/* Phase 3: Excellence */}
+                <div className="relative">
+                  <div className="absolute -left-3 top-0 bottom-0 w-1 bg-purple-400 rounded-full"></div>
+                  <div className="bg-purple-50 rounded-lg p-5 border border-purple-100">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center">3</span>
+                      <h4 className="font-semibold text-purple-800 text-sm">Excellence & Culture</h4>
+                    </div>
+                    <p className="text-xs text-slate-500 mb-3">Long-term transformation</p>
+                    <ul className="space-y-2 text-xs text-slate-600">
+                      <li className="flex items-start gap-2">
+                        <span className="text-purple-500 mt-0.5">●</span>
+                        <span>Build sustained post-treatment support</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-purple-500 mt-0.5">●</span>
+                        <span>Develop employee resource group</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-purple-500 mt-0.5">●</span>
+                        <span>Establish continuous improvement metrics</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Progress connector */}
+              <div className="flex items-center justify-center mt-6 gap-2 text-xs text-slate-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <div className="h-px w-16 bg-slate-200"></div>
+                <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                <div className="h-px w-16 bg-slate-200"></div>
+                <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ============ HOW CAC CAN HELP ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
           <div className="px-10 py-6 bg-gradient-to-r from-purple-700 to-purple-600">
@@ -1079,6 +1384,43 @@ export default function CompanyReportPage() {
                   <p className="text-sm font-medium text-purple-700">cancerandcareers.org</p>
                   <p className="text-xs text-slate-500">bestcompanies@cew.org</p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ============ METHODOLOGY ============ */}
+        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-8">
+          <div className="px-10 py-5 border-b border-slate-200">
+            <h3 className="font-semibold text-slate-700 text-sm">Assessment Methodology</h3>
+          </div>
+          <div className="px-10 py-5">
+            <div className="grid grid-cols-3 gap-6 text-xs text-slate-600">
+              <div>
+                <p className="font-medium text-slate-700 mb-2">Scoring Framework</p>
+                <p className="leading-relaxed">
+                  Organizations are assessed across 13 dimensions of workplace cancer support. Each dimension 
+                  receives a weighted score based on current offerings, planned initiatives, and program maturity. 
+                  The composite score combines dimension performance (90%), program maturity (5%), and support breadth (5%).
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-slate-700 mb-2">Benchmarking</p>
+                <p className="leading-relaxed">
+                  Benchmark scores represent the average performance across all {totalCompanies > 0 ? totalCompanies : 'assessed'} organizations 
+                  in the Index. Percentile rankings indicate relative positioning within the cohort. 
+                  Benchmarks are updated as new organizations complete assessments.
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-slate-700 mb-2">Performance Tiers</p>
+                <p className="leading-relaxed">
+                  <span className="text-emerald-600 font-medium">Exemplary</span> (90+): Best-in-class performance<br/>
+                  <span className="text-blue-600 font-medium">Leading</span> (75-89): Above average<br/>
+                  <span className="text-amber-600 font-medium">Progressing</span> (60-74): Meeting expectations<br/>
+                  <span className="text-orange-600 font-medium">Emerging</span> (40-59): Developing capabilities<br/>
+                  <span className="text-slate-500 font-medium">Developing</span> (&lt;40): Early stage
+                </p>
               </div>
             </div>
           </div>
