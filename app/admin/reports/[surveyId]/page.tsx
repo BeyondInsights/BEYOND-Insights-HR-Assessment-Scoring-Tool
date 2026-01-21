@@ -169,57 +169,93 @@ const GRID_RESPONSE_SCORES: Record<string, number> = {
 
 function scoreGridResponse(value: string | number | undefined): number | null {
   if (value === undefined || value === null || value === '') return null;
+  
+  // Handle numeric codes (from panel data)
+  // IMPORTANT: 4 = Currently offer, 3 = Planning, 2 = Assessing, 1 = Not able, 5 = Unsure
   if (typeof value === 'number') {
-    if (value >= 1 && value <= 5) {
-      const numericMap: Record<number, number> = { 5: 5, 4: 3, 3: 2, 2: 0, 1: 0 };
-      return numericMap[value] ?? null;
+    switch (value) {
+      case 4: return 5;  // Currently offer = 5 points
+      case 3: return 3;  // Planning = 3 points
+      case 2: return 2;  // Assessing = 2 points
+      case 1: return 0;  // Not able = 0 points
+      case 5: return 0;  // Unsure = 0 points (treated as no credit)
+      default: return null;
     }
-    return null;
   }
-  const strValue = String(value);
-  for (const [key, score] of Object.entries(GRID_RESPONSE_SCORES)) {
-    if (strValue.toLowerCase().includes(key.toLowerCase())) return score;
+  
+  // Handle string values
+  const strValue = String(value).toLowerCase().trim();
+  
+  // Check for "Not able" first (before checking for "offer")
+  if (strValue.includes('not able')) return 0;
+  
+  // Check for Unsure/Unknown
+  if (strValue === 'unsure' || strValue.includes('unsure') || strValue.includes('unknown')) return 0;
+  
+  // Currently offer variations
+  if (strValue.includes('currently') || strValue.includes('offer') || strValue.includes('provide') || 
+      strValue.includes('use') || strValue.includes('track') || strValue.includes('measure')) {
+    return 5;
   }
+  
+  // Planning
+  if (strValue.includes('planning') || strValue.includes('development')) return 3;
+  
+  // Assessing
+  if (strValue.includes('assessing') || strValue.includes('feasibility') || strValue.includes('considering')) return 2;
+  
   return null;
 }
 
 function calculateDimensionGridScore(dimData: Record<string, any>, dimNum: number): { score: number; rawScore: number; geoMultiplier: number; answered: number; total: number; unsureCount: number } | null {
-  if (!dimData) return null;
-  
-  // The main grid is stored in d1a, d2a, etc. (matching scoring page structure)
-  const mainGrid = dimData[`d${dimNum}a`];
-  if (!mainGrid || typeof mainGrid !== 'object') return null;
+  if (!dimData) {
+    console.log(`Dim ${dimNum}: No dimData`);
+    return null;
+  }
   
   const expectedCount = DIMENSION_QUESTION_COUNTS[dimNum] || 10;
-  let totalPoints = 0;
-  let maxPoints = 0;
+  let earnedPoints = 0;
   let answeredCount = 0;
+  let totalItems = 0;
   let unsureCount = 0;
   
-  // Process grid items from the nested object
+  // Match scoring page exactly: look for d1a, d2a, etc.
+  const mainGrid = dimData[`d${dimNum}a`];
+  
+  if (!mainGrid || typeof mainGrid !== 'object') {
+    console.log(`Dim ${dimNum}: No mainGrid (d${dimNum}a). Keys available:`, Object.keys(dimData).slice(0, 10));
+    return null;
+  }
+  
+  console.log(`Dim ${dimNum}: Found mainGrid with`, Object.keys(mainGrid).length, 'items');
+  
+  // Process grid items exactly like scoring page
   Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
-    const score = scoreGridResponse(status);
-    
-    if (score !== null) {
+    totalItems++;
+    const result = statusToPoints(status);
+    if (result.isUnsure) {
+      unsureCount++;
       answeredCount++;
-      maxPoints += 5;
-      totalPoints += score;
-      
-      const strValue = String(status).toLowerCase();
-      if (strValue.includes('unsure') || status === 1 || status === '1') {
-        unsureCount++;
-      }
+    } else if (result.points !== null) {
+      answeredCount++;
+      earnedPoints += result.points;
     }
   });
   
-  if (answeredCount === 0 || maxPoints === 0) return null;
+  if (answeredCount === 0) {
+    console.log(`Dim ${dimNum}: No answered items`);
+    return null;
+  }
   
-  const rawScore = Math.round((totalPoints / maxPoints) * 100);
+  const maxPoints = answeredCount * 5; // 5 = POINTS.CURRENTLY_OFFER
+  const rawScore = maxPoints > 0 ? Math.round((earnedPoints / maxPoints) * 100) : 0;
   
-  // Get geo multiplier from d1aa, d2aa, etc.
-  const geoResponse = dimData[`d${dimNum}aa`];
+  // Get geo multiplier
+  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
   const geoMultiplier = getGeoMultiplier(geoResponse);
   const adjustedScore = Math.round(rawScore * geoMultiplier);
+  
+  console.log(`Dim ${dimNum}: earned=${earnedPoints}, max=${maxPoints}, raw=${rawScore}, adj=${adjustedScore}`);
   
   return {
     score: adjustedScore,
@@ -229,6 +265,32 @@ function calculateDimensionGridScore(dimData: Record<string, any>, dimNum: numbe
     total: expectedCount,
     unsureCount
   };
+}
+
+// Match scoring page's statusToPoints exactly
+function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean } {
+  if (typeof status === 'number') {
+    switch (status) {
+      case 4: return { points: 5, isUnsure: false };  // Currently offer
+      case 3: return { points: 3, isUnsure: false };  // Planning
+      case 2: return { points: 2, isUnsure: false };  // Assessing
+      case 1: return { points: 0, isUnsure: false };  // Not able
+      case 5: return { points: null, isUnsure: true }; // Unsure
+      default: return { points: null, isUnsure: false };
+    }
+  }
+  if (typeof status === 'string') {
+    const s = status.toLowerCase().trim();
+    if (s.includes('not able')) return { points: 0, isUnsure: false };
+    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };
+    if (s.includes('currently') || s.includes('offer') || s.includes('provide') || 
+        s.includes('use') || s.includes('track') || s.includes('measure')) {
+      return { points: 5, isUnsure: false };
+    }
+    if (s.includes('planning') || s.includes('development')) return { points: 3, isUnsure: false };
+    if (s.includes('assessing') || s.includes('feasibility') || s.includes('considering')) return { points: 2, isUnsure: false };
+  }
+  return { points: null, isUnsure: false };
 }
 
 function calculateMaturityScore(assessment: Record<string, any>): number {
@@ -374,9 +436,25 @@ export default function CompanyReportPage() {
     const gridPct = 85;
     const followUpPct = 15;
     
+    console.log('=== DEBUG: Calculating scores for', assessment.company_name, '===');
+    
     for (let dim = 1; dim <= 13; dim++) {
       const dimData = assessment[`dimension${dim}_data`];
+      
+      // DEBUG: Log the structure of each dimension
+      if (dim <= 3) {
+        console.log(`Dimension ${dim} data:`, dimData);
+        console.log(`Dimension ${dim} keys:`, dimData ? Object.keys(dimData) : 'null');
+        if (dimData) {
+          console.log(`d${dim}a exists?`, !!dimData[`d${dim}a`]);
+          // Also check for alternative key patterns
+          const firstKey = Object.keys(dimData)[0];
+          console.log(`First key in dim${dim}:`, firstKey, '=', dimData[firstKey]);
+        }
+      }
+      
       const result = calculateDimensionGridScore(dimData, dim);
+      console.log(`Dimension ${dim} result:`, result);
       
       if (result && result.score !== null && result.score !== undefined) {
         let finalScore = result.score;
@@ -400,6 +478,9 @@ export default function CompanyReportPage() {
         dimensionScores[dim] = null;
       }
     }
+    
+    console.log('Final dimension scores:', dimensionScores);
+    console.log('Weighted sum:', weightedSum, 'Weight total:', weightTotal);
     
     const weightedDimScore = weightTotal > 0 ? Math.round(weightedSum / weightTotal) : null;
     const maturityScore = calculateMaturityScore(assessment);
