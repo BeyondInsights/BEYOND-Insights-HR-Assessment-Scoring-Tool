@@ -57,6 +57,104 @@ function getIndexStatus(index: number): { label: string; color: string; icon: st
   return { label: 'Needs Focus', color: 'text-red-500', icon: '↓↓' };
 }
 
+// Geo multiplier for multi-country consistency
+function getGeoMultiplier(geoResponse: any): number {
+  if (!geoResponse) return 1.0;
+  const v = String(geoResponse).toLowerCase();
+  if (v.includes('only available in select') || v.includes('only in select')) return 0.75;
+  if (v.includes('varies by location') || v.includes('varies by')) return 0.90;
+  return 1.0; // "Consistent across all" or single-country
+}
+
+// Follow-up scoring functions for D1, D3, D12, D13
+function scoreD1PaidLeave(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('does not apply')) return 0;
+  if (v.includes('13 or more') || v.includes('13+ weeks')) return 100;
+  if ((v.includes('9 to') && v.includes('13')) || v.includes('9-13')) return 70;
+  if ((v.includes('5 to') && v.includes('9')) || v.includes('5-9')) return 40;
+  if ((v.includes('3 to') && v.includes('5')) || v.includes('3-5')) return 20;
+  if ((v.includes('1 to') && v.includes('3')) || v.includes('1-3')) return 10;
+  return 0;
+}
+
+function scoreD3Training(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('less than 10%') || v === 'less than 10') return 0;
+  if (v === '100%' || v === '100' || (v.includes('100') && !v.includes('less than'))) return 100;
+  if (v.includes('75') && v.includes('100')) return 80;
+  if (v.includes('50') && v.includes('75')) return 50;
+  if (v.includes('25') && v.includes('50')) return 30;
+  if (v.includes('10') && v.includes('25')) return 10;
+  return 0;
+}
+
+function scoreD12CaseReview(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('systematic')) return 100;
+  if (v.includes('ad hoc')) return 50;
+  if (v.includes('aggregate') || v.includes('only review aggregate')) return 20;
+  return 0;
+}
+
+function scoreD12PolicyChanges(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('significant') || v.includes('major')) return 100;
+  if (v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
+  if (v.includes('no change') || v.includes('not yet') || v.includes('none')) return 20;
+  return 0;
+}
+
+function scoreD13Communication(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('monthly')) return 100;
+  if (v.includes('quarterly')) return 70;
+  if (v.includes('twice')) return 40;
+  if (v.includes('annually') || v.includes('world cancer day')) return 20;
+  if (v.includes('only when asked')) return 0;
+  if (v.includes('do not actively') || v.includes('no regular')) return 0;
+  return 0;
+}
+
+function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>): number | null {
+  const dimData = assessment[`dimension${dimNum}_data`];
+  if (!dimData) return null;
+  
+  switch (dimNum) {
+    case 1: {
+      const d1_1_usa = dimData?.d1_1_usa;
+      const d1_1_non_usa = dimData?.d1_1_non_usa;
+      const scores: number[] = [];
+      if (d1_1_usa) scores.push(scoreD1PaidLeave(d1_1_usa));
+      if (d1_1_non_usa) scores.push(scoreD1PaidLeave(d1_1_non_usa));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 3: {
+      const d31 = dimData?.d31 ?? dimData?.d3_1;
+      return d31 ? scoreD3Training(d31) : null;
+    }
+    case 12: {
+      const d12_1 = dimData?.d12_1;
+      const d12_2 = dimData?.d12_2;
+      const scores: number[] = [];
+      if (d12_1) scores.push(scoreD12CaseReview(d12_1));
+      if (d12_2) scores.push(scoreD12PolicyChanges(d12_2));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 13: {
+      const d13_1 = dimData?.d13_1;
+      return d13_1 ? scoreD13Communication(d13_1) : null;
+    }
+    default:
+      return null;
+  }
+}
+
 // ============================================
 // SCORING FUNCTIONS (same as scoring page)
 // ============================================
@@ -85,8 +183,12 @@ function scoreGridResponse(value: string | number | undefined): number | null {
   return null;
 }
 
-function calculateDimensionGridScore(dimData: Record<string, any>, dimNum: number): { score: number; answered: number; total: number; unsureCount: number } | null {
+function calculateDimensionGridScore(dimData: Record<string, any>, dimNum: number): { score: number; rawScore: number; geoMultiplier: number; answered: number; total: number; unsureCount: number } | null {
   if (!dimData) return null;
+  
+  // The main grid is stored in d1a, d2a, etc. (matching scoring page structure)
+  const mainGrid = dimData[`d${dimNum}a`];
+  if (!mainGrid || typeof mainGrid !== 'object') return null;
   
   const expectedCount = DIMENSION_QUESTION_COUNTS[dimNum] || 10;
   let totalPoints = 0;
@@ -94,34 +196,35 @@ function calculateDimensionGridScore(dimData: Record<string, any>, dimNum: numbe
   let answeredCount = 0;
   let unsureCount = 0;
   
-  const validKeys = Object.keys(dimData).filter(key => {
-    if (key.startsWith('d') && key.includes('_')) return false;
-    if (key.endsWith('_text') || key.endsWith('_other')) return false;
-    if (['id', 'created_at', 'updated_at', 'survey_id', 'completed'].includes(key)) return false;
-    return true;
-  });
-
-  for (const key of validKeys) {
-    const value = dimData[key];
-    const score = scoreGridResponse(value);
+  // Process grid items from the nested object
+  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+    const score = scoreGridResponse(status);
     
     if (score !== null) {
       answeredCount++;
       maxPoints += 5;
       totalPoints += score;
       
-      const strValue = String(value).toLowerCase();
-      if (strValue.includes('unsure') || value === 1 || value === '1') {
+      const strValue = String(status).toLowerCase();
+      if (strValue.includes('unsure') || status === 1 || status === '1') {
         unsureCount++;
       }
     }
-  }
+  });
   
   if (answeredCount === 0 || maxPoints === 0) return null;
   
-  const rawScore = (totalPoints / maxPoints) * 100;
+  const rawScore = Math.round((totalPoints / maxPoints) * 100);
+  
+  // Get geo multiplier from d1aa, d2aa, etc.
+  const geoResponse = dimData[`d${dimNum}aa`];
+  const geoMultiplier = getGeoMultiplier(geoResponse);
+  const adjustedScore = Math.round(rawScore * geoMultiplier);
+  
   return {
-    score: Math.round(rawScore),
+    score: adjustedScore,
+    rawScore,
+    geoMultiplier,
     answered: answeredCount,
     total: expectedCount,
     unsureCount
@@ -263,19 +366,38 @@ export default function CompanyReportPage() {
 
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
+    const followUpScores: Record<number, number | null> = {};
     let weightedSum = 0;
     let weightTotal = 0;
+    
+    // Default blend weights (85% grid, 15% follow-up)
+    const gridPct = 85;
+    const followUpPct = 15;
     
     for (let dim = 1; dim <= 13; dim++) {
       const dimData = assessment[`dimension${dim}_data`];
       const result = calculateDimensionGridScore(dimData, dim);
-      dimensionScores[dim] = result?.score ?? null;
       
-      // Fixed: check result exists AND score is not null
       if (result && result.score !== null && result.score !== undefined) {
+        let finalScore = result.score;
+        
+        // For D1, D3, D12, D13 - apply blended scoring
+        if ([1, 3, 12, 13].includes(dim)) {
+          const followUp = calculateFollowUpScore(dim, assessment);
+          followUpScores[dim] = followUp;
+          
+          if (followUp !== null) {
+            finalScore = Math.round((result.score * (gridPct / 100)) + (followUp * (followUpPct / 100)));
+          }
+        }
+        
+        dimensionScores[dim] = finalScore;
+        
         const weight = DEFAULT_DIMENSION_WEIGHTS[dim];
-        weightedSum += result.score * weight;
+        weightedSum += finalScore * weight;
         weightTotal += weight;
+      } else {
+        dimensionScores[dim] = null;
       }
     }
     
@@ -294,6 +416,7 @@ export default function CompanyReportPage() {
       maturityScore,
       breadthScore,
       dimensionScores,
+      followUpScores,
       tier: compositeScore !== null ? getTier(compositeScore) : null
     };
   }
@@ -434,7 +557,7 @@ export default function CompanyReportPage() {
               <div className="flex items-center gap-6">
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg p-2">
                   <Image 
-                    src="/BestCo_Seal_2026_Color.png" 
+                    src="/best-companies-2026-logo.png" 
                     alt="Best Companies 2026" 
                     width={88} 
                     height={88}
@@ -538,7 +661,7 @@ export default function CompanyReportPage() {
                         <td className="py-3 px-4 text-center">
                           {index !== null ? (
                             <span className={`font-bold ${index >= 100 ? 'text-green-600' : 'text-amber-600'}`}>
-                              {index}%
+                              {index}
                             </span>
                           ) : '—'}
                         </td>
@@ -602,7 +725,7 @@ export default function CompanyReportPage() {
                         <td className="py-3 px-2 text-center text-gray-600">{d.benchmark}</td>
                         <td className="py-3 px-2 text-center">
                           <span className={`font-bold ${d.index >= 100 ? 'text-green-600' : 'text-amber-600'}`}>
-                            {d.index}%
+                            {d.index}
                           </span>
                         </td>
                         <td className="py-3 px-2">
@@ -657,7 +780,7 @@ export default function CompanyReportPage() {
                           <span className="text-green-600 font-bold">{s.score}</span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
-                          {s.gap > 0 ? `${s.gap} points above benchmark` : 'At benchmark'} • Index: {s.index}%
+                          {s.gap > 0 ? `${s.gap} points above benchmark` : 'At benchmark'} • Index: {s.index}
                         </p>
                       </div>
                     </div>
@@ -694,7 +817,7 @@ export default function CompanyReportPage() {
                           <span className="text-amber-600 font-bold">{o.score}</span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
-                          {o.gap < 0 ? `${Math.abs(o.gap)} points below benchmark` : 'At benchmark'} • Index: {o.index}%
+                          {o.gap < 0 ? `${Math.abs(o.gap)} points below benchmark` : 'At benchmark'} • Index: {o.index}
                         </p>
                       </div>
                     </div>
