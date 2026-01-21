@@ -1277,93 +1277,167 @@ export default function CompanyReportPage() {
           </div>
         )}
 
-        {/* ============ ACTION ROADMAP ============ */}
+        {/* ============ ACTION ROADMAP - DYNAMIC ============ */}
         {opportunityDimensions.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
             <div className="px-10 py-5 border-b border-slate-100">
               <h3 className="font-semibold text-slate-900">Suggested Action Roadmap</h3>
-              <p className="text-sm text-slate-500 mt-1">Phased approach to strengthening workplace cancer support</p>
+              <p className="text-sm text-slate-500 mt-1">Phased approach based on your assessment results</p>
             </div>
             <div className="px-10 py-6">
-              <div className="grid grid-cols-3 gap-6">
-                {/* Phase 1: Quick Wins */}
-                <div className="relative">
-                  <div className="absolute -left-3 top-0 bottom-0 w-1 bg-emerald-400 rounded-full"></div>
-                  <div className="bg-emerald-50 rounded-lg p-5 border border-emerald-100">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center">1</span>
-                      <h4 className="font-semibold text-emerald-800 text-sm">Quick Wins</h4>
-                    </div>
-                    <p className="text-xs text-slate-500 mb-3">Low effort, high visibility</p>
-                    <ul className="space-y-2 text-xs text-slate-600">
-                      <li className="flex items-start gap-2">
-                        <span className="text-emerald-500 mt-0.5">●</span>
-                        <span>Audit existing resources for accessibility</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-emerald-500 mt-0.5">●</span>
-                        <span>Create single-page support guide for managers</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-emerald-500 mt-0.5">●</span>
-                        <span>Add cancer support to onboarding materials</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+              {(() => {
+                // DYNAMIC ROADMAP GENERATION based on actual company data
                 
-                {/* Phase 2: Foundation Building */}
-                <div className="relative">
-                  <div className="absolute -left-3 top-0 bottom-0 w-1 bg-sky-400 rounded-full"></div>
-                  <div className="bg-sky-50 rounded-lg p-5 border border-sky-100">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-6 h-6 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center justify-center">2</span>
-                      <h4 className="font-semibold text-sky-800 text-sm">Foundation Building</h4>
-                    </div>
-                    <p className="text-xs text-slate-500 mb-3">Structural improvements</p>
-                    <ul className="space-y-2 text-xs text-slate-600">
-                      <li className="flex items-start gap-2">
-                        <span className="text-sky-500 mt-0.5">●</span>
-                        <span>Implement manager training program</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-sky-500 mt-0.5">●</span>
-                        <span>Design navigation/concierge system</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-sky-500 mt-0.5">●</span>
-                        <span>Review insurance & leave policies</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+                // Phase 1: Quick Wins - Items in "Assessing" status (close to implementation)
+                // Plus easy wins from low-weight dimensions
+                const assessingItems = dimensionAnalysis
+                  .flatMap(d => d.assessing.map((item: any) => ({
+                    text: item.name,
+                    dimNum: d.dim,
+                    dimName: d.name.split('&')[0].trim()
+                  })))
+                  .slice(0, 3);
                 
-                {/* Phase 3: Excellence */}
-                <div className="relative">
-                  <div className="absolute -left-3 top-0 bottom-0 w-1 bg-purple-400 rounded-full"></div>
-                  <div className="bg-purple-50 rounded-lg p-5 border border-purple-100">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center">3</span>
-                      <h4 className="font-semibold text-purple-800 text-sm">Excellence & Culture</h4>
+                // Add items from lower-weight opportunity dimensions if we need more
+                const lowWeightGaps = opportunityDimensions
+                  .filter(d => d.weight <= 7)
+                  .flatMap(d => d.gaps.slice(0, 1).map((g: any) => ({
+                    text: g.name,
+                    dimNum: d.dim,
+                    dimName: d.name.split('&')[0].trim()
+                  })))
+                  .slice(0, 3 - assessingItems.length);
+                
+                const quickWins = [...assessingItems, ...lowWeightGaps].slice(0, 3);
+                
+                // Phase 2: Foundation - Gaps in HIGH-WEIGHT opportunity dimensions
+                const highWeightGaps = opportunityDimensions
+                  .filter(d => d.weight >= 10)
+                  .flatMap(d => d.gaps.slice(0, 2).map((g: any) => ({
+                    text: g.name,
+                    dimNum: d.dim,
+                    dimName: d.name.split('&')[0].trim(),
+                    weight: d.weight
+                  })))
+                  .sort((a, b) => b.weight - a.weight)
+                  .slice(0, 3);
+                
+                // Phase 3: Excellence - Improvements in STRONG dimensions (move from good to great)
+                // Or items in "Planning" status that need continued investment
+                const planningItems = dimensionAnalysis
+                  .flatMap(d => d.planning.map((item: any) => ({
+                    text: item.name,
+                    dimNum: d.dim,
+                    dimName: d.name.split('&')[0].trim()
+                  })))
+                  .slice(0, 2);
+                
+                const strengthImprovements = strengthDimensions
+                  .flatMap(d => {
+                    const nonStrengthItems = d.elements
+                      .filter((e: any) => !e.isStrength && !e.isUnsure && e.category !== 'currently_offer')
+                      .slice(0, 1);
+                    return nonStrengthItems.map((e: any) => ({
+                      text: e.name,
+                      dimNum: d.dim,
+                      dimName: d.name.split('&')[0].trim()
+                    }));
+                  })
+                  .slice(0, 3 - planningItems.length);
+                
+                const excellence = [...planningItems, ...strengthImprovements].slice(0, 3);
+                
+                return (
+                  <div className="grid grid-cols-3 gap-6">
+                    {/* Phase 1: Quick Wins */}
+                    <div className="relative">
+                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-emerald-400 rounded-full"></div>
+                      <div className="bg-emerald-50 rounded-lg p-5 border border-emerald-100 h-full">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center">1</span>
+                          <h4 className="font-semibold text-emerald-800 text-sm">Quick Wins</h4>
+                        </div>
+                        <p className="text-xs text-slate-500 mb-3">Low effort, high visibility</p>
+                        {quickWins.length > 0 ? (
+                          <ul className="space-y-2 text-xs text-slate-600">
+                            {quickWins.map((item, idx) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="text-emerald-500 mt-0.5 flex-shrink-0">●</span>
+                                <span className="line-clamp-2">{item.text}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-slate-400 italic">No immediate quick wins identified</p>
+                        )}
+                        {quickWins.length > 0 && (
+                          <p className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-emerald-100">
+                            Focus: {[...new Set(quickWins.map(q => `D${q.dimNum}`))].join(', ')}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-xs text-slate-500 mb-3">Long-term transformation</p>
-                    <ul className="space-y-2 text-xs text-slate-600">
-                      <li className="flex items-start gap-2">
-                        <span className="text-purple-500 mt-0.5">●</span>
-                        <span>Build sustained post-treatment support</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-purple-500 mt-0.5">●</span>
-                        <span>Develop employee resource group</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-purple-500 mt-0.5">●</span>
-                        <span>Establish continuous improvement metrics</span>
-                      </li>
-                    </ul>
+                    
+                    {/* Phase 2: Foundation Building */}
+                    <div className="relative">
+                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-sky-400 rounded-full"></div>
+                      <div className="bg-sky-50 rounded-lg p-5 border border-sky-100 h-full">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="w-6 h-6 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center justify-center">2</span>
+                          <h4 className="font-semibold text-sky-800 text-sm">Foundation Building</h4>
+                        </div>
+                        <p className="text-xs text-slate-500 mb-3">High-impact structural changes</p>
+                        {highWeightGaps.length > 0 ? (
+                          <ul className="space-y-2 text-xs text-slate-600">
+                            {highWeightGaps.map((item, idx) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="text-sky-500 mt-0.5 flex-shrink-0">●</span>
+                                <span className="line-clamp-2">{item.text}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-slate-400 italic">Strong foundation already in place</p>
+                        )}
+                        {highWeightGaps.length > 0 && (
+                          <p className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-sky-100">
+                            Focus: {[...new Set(highWeightGaps.map(g => `D${g.dimNum}`))].join(', ')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Phase 3: Excellence */}
+                    <div className="relative">
+                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-purple-400 rounded-full"></div>
+                      <div className="bg-purple-50 rounded-lg p-5 border border-purple-100 h-full">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center">3</span>
+                          <h4 className="font-semibold text-purple-800 text-sm">Excellence & Culture</h4>
+                        </div>
+                        <p className="text-xs text-slate-500 mb-3">Long-term transformation</p>
+                        {excellence.length > 0 ? (
+                          <ul className="space-y-2 text-xs text-slate-600">
+                            {excellence.map((item, idx) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="text-purple-500 mt-0.5 flex-shrink-0">●</span>
+                                <span className="line-clamp-2">{item.text}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-slate-400 italic">Continue current excellence initiatives</p>
+                        )}
+                        {excellence.length > 0 && (
+                          <p className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-purple-100">
+                            Focus: {[...new Set(excellence.map(e => `D${e.dimNum}`))].join(', ')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
               
               {/* Progress connector */}
               <div className="flex items-center justify-center mt-6 gap-2 text-xs text-slate-400">
