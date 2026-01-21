@@ -29,8 +29,9 @@ function isCompdUser(surveyId: string): boolean {
 
 /**
  * Collect all survey data from localStorage
+ * Returns both the data and a hash to detect changes
  */
-function collectAllSurveyData(): Record<string, any> {
+function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean } {
   const updateData: Record<string, any> = {}
   
   console.log('🔍 AUTO-SYNC: Scanning localStorage...')
@@ -93,7 +94,23 @@ function collectAllSurveyData(): Record<string, any> {
   
   console.log(`📊 AUTO-SYNC: Collected ${itemCount} items to sync`)
   
-  return updateData
+  return { data: updateData, hasData: itemCount > 0 }
+}
+
+// Track last synced data hash to avoid unnecessary updates
+let lastSyncedDataHash: string = ''
+
+function getDataHash(data: Record<string, any>): string {
+  return JSON.stringify(data)
+}
+
+function hasDataChanged(newData: Record<string, any>): boolean {
+  const newHash = getDataHash(newData)
+  if (newHash === lastSyncedDataHash) {
+    return false
+  }
+  lastSyncedDataHash = newHash
+  return true
 }
 
 /**
@@ -121,13 +138,20 @@ async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
   const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
   console.log('🎫 AUTO-SYNC: Syncing comp\'d user data for:', normalized)
   
-  const updateData = collectAllSurveyData()
+  const { data: updateData, hasData } = collectAllSurveyData()
   
-  if (Object.keys(updateData).length === 0) {
+  if (!hasData) {
     console.log('⏭️ AUTO-SYNC: No data to sync')
     return true
   }
   
+  // Only update if data has actually changed
+  if (!hasDataChanged(updateData)) {
+    console.log('⏭️ AUTO-SYNC: Data unchanged, skipping sync')
+    return true
+  }
+  
+  // Only set updated_at when data has actually changed
   updateData.updated_at = new Date().toISOString()
   
   try {
@@ -162,13 +186,20 @@ async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
 async function syncFPToSupabase(surveyId: string): Promise<boolean> {
   console.log('🏢 AUTO-SYNC: Syncing FP data for:', surveyId)
   
-  const updateData = collectAllSurveyData()
+  const { data: updateData, hasData } = collectAllSurveyData()
   
-  if (Object.keys(updateData).length === 0) {
+  if (!hasData) {
     console.log('⏭️ AUTO-SYNC: No data to sync')
     return true
   }
   
+  // Only update if data has actually changed
+  if (!hasDataChanged(updateData)) {
+    console.log('⏭️ AUTO-SYNC: Data unchanged, skipping sync')
+    return true
+  }
+  
+  // Only set updated_at when data has actually changed
   updateData.updated_at = new Date().toISOString()
   
   try {
@@ -262,13 +293,20 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
   
   console.log('👤 AUTO-SYNC: Syncing regular user data...')
   
-  const updateData = collectAllSurveyData()
+  const { data: updateData, hasData } = collectAllSurveyData()
   
-  if (Object.keys(updateData).length === 0) {
+  if (!hasData) {
     console.log('⏭️ AUTO-SYNC: No data to sync')
     return true
   }
   
+  // Only update if data has actually changed
+  if (!hasDataChanged(updateData)) {
+    console.log('⏭️ AUTO-SYNC: Data unchanged, skipping sync')
+    return true
+  }
+  
+  // Only set updated_at when data has actually changed
   updateData.updated_at = new Date().toISOString()
   
   const { error } = await supabase
