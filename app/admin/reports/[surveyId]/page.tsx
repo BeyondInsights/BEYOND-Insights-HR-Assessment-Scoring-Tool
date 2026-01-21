@@ -517,6 +517,8 @@ export default function CompanyReportPage() {
   }
 
   const companyName = company.company_name || 'Company';
+  const contactName = company.contact_name || company.firmographics_data?.contact_name || '';
+  const contactEmail = company.contact_email || company.firmographics_data?.contact_email || '';
   const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, tier } = companyScores;
 
   // Analyze dimensions
@@ -557,6 +559,13 @@ export default function CompanyReportPage() {
   // Strengths: Exemplary or Leading dimensions
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
 
+  // Even in strong dimensions, find lowest scoring elements for improvement
+  const improvementOppsInStrengths = strengthDimensions
+    .flatMap(d => d.elements
+      .filter((e: any) => !e.isStrength && !e.isUnsure)
+      .map((e: any) => ({ ...e, dimNum: d.dim, dimName: d.name })))
+    .slice(0, 4);
+
   // Opportunities: Below Leading
   const opportunityDimensions = dimensionAnalysis
     .filter(d => d.tier.name !== 'Exemplary' && d.tier.name !== 'Leading')
@@ -586,7 +595,7 @@ export default function CompanyReportPage() {
 
       {/* Action Bar */}
       <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-8 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
           <button 
             onClick={() => router.push('/admin/scoring')}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium"
@@ -608,7 +617,7 @@ export default function CompanyReportPage() {
         </div>
       </div>
 
-      <div ref={printRef} className="max-w-4xl mx-auto py-10 px-8">
+      <div ref={printRef} className="max-w-6xl mx-auto py-10 px-8">
         
         {/* ============ HEADER ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
@@ -642,6 +651,13 @@ export default function CompanyReportPage() {
               <div>
                 <p className="text-slate-500 text-sm font-medium uppercase tracking-wide">Prepared for</p>
                 <h2 className="text-3xl font-bold text-slate-900 mt-1">{companyName}</h2>
+                {(contactName || contactEmail) && (
+                  <div className="mt-2 text-sm text-slate-500">
+                    {contactName && <span className="font-medium text-slate-600">{contactName}</span>}
+                    {contactName && contactEmail && <span className="mx-2">•</span>}
+                    {contactEmail && <span>{contactEmail}</span>}
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-right">
@@ -703,20 +719,33 @@ export default function CompanyReportPage() {
           <div className="px-10 py-6">
             <div className="grid grid-cols-4 gap-6">
               {[
-                { label: 'Composite', score: compositeScore, weight: '100%', benchmark: benchmarks?.compositeScore },
-                { label: 'Dimension Score', score: weightedDimScore, weight: '90%', benchmark: benchmarks?.weightedDimScore },
+                { label: 'Overall Composite', score: compositeScore, weight: '100%', benchmark: benchmarks?.compositeScore },
+                { label: 'Weighted Dimension Score', score: weightedDimScore, weight: '90%', benchmark: benchmarks?.weightedDimScore },
                 { label: 'Program Maturity', score: maturityScore, weight: '5%', benchmark: benchmarks?.maturityScore },
                 { label: 'Support Breadth', score: breadthScore, weight: '5%', benchmark: benchmarks?.breadthScore },
               ].map((item, idx) => {
                 const itemTier = item.score !== null && item.score !== undefined ? getTier(item.score) : null;
+                const diff = item.score && item.benchmark ? item.score - item.benchmark : null;
                 return (
-                  <div key={idx} className="text-center">
-                    <p className="text-xs text-slate-400 uppercase tracking-wider">{item.label}</p>
+                  <div key={idx} className="text-center p-4 bg-slate-50 rounded-lg">
+                    <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">{item.label}</p>
                     <p className="text-3xl font-bold mt-2" style={{ color: item.score ? getScoreColor(item.score) : '#94a3b8' }}>
                       {item.score ?? '—'}
                     </p>
                     {itemTier && (
                       <p className="text-xs font-medium mt-1" style={{ color: itemTier.color }}>{itemTier.name}</p>
+                    )}
+                    {item.benchmark !== null && item.benchmark !== undefined && (
+                      <div className="mt-2 pt-2 border-t border-slate-200">
+                        <p className="text-xs text-slate-400">
+                          Benchmark: <span className="font-medium text-slate-600">{item.benchmark}</span>
+                          {diff !== null && (
+                            <span className={`ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                              ({diff >= 0 ? '+' : ''}{diff})
+                            </span>
+                          )}
+                        </p>
+                      </div>
                     )}
                     <p className="text-xs text-slate-400 mt-1">({item.weight} weight)</p>
                   </div>
@@ -730,36 +759,59 @@ export default function CompanyReportPage() {
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Dimension Performance Overview</h3>
-            <p className="text-sm text-slate-500 mt-1">Assessment across 13 support dimensions</p>
+            <p className="text-sm text-slate-500 mt-1">Assessment across 13 support dimensions (sorted by score)</p>
           </div>
           <div className="px-10 py-6">
+            {/* Header row */}
+            <div className="flex items-center gap-4 pb-3 mb-3 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
+              <div className="w-6"></div>
+              <div className="flex-1">Dimension</div>
+              <div className="w-32 text-center">Performance</div>
+              <div className="w-12 text-right">Score</div>
+              <div className="w-16 text-center">Bench</div>
+              <div className="w-20 text-center">Tier</div>
+            </div>
             <div className="space-y-3">
-              {dimensionAnalysis.map((d) => (
-                <div key={d.dim} className="flex items-center gap-4">
-                  <div className="w-6 text-right">
-                    <span className="text-xs font-medium text-slate-400">D{d.dim}</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-slate-700">{d.name}</p>
-                  </div>
-                  <div className="w-32">
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full"
-                        style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: getScoreColor(d.score) }}
-                      />
+              {dimensionAnalysis.map((d) => {
+                const diff = d.score - d.benchmark;
+                return (
+                  <div key={d.dim} className="flex items-center gap-4">
+                    <div className="w-6 text-right">
+                      <span className="text-xs font-medium text-slate-400">D{d.dim}</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-slate-700">{d.name}</p>
+                    </div>
+                    <div className="w-32">
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden relative">
+                        {/* Benchmark marker */}
+                        <div 
+                          className="absolute top-0 bottom-0 w-0.5 bg-slate-400 z-10"
+                          style={{ left: `${Math.min(d.benchmark, 100)}%` }}
+                        />
+                        <div 
+                          className="h-full rounded-full"
+                          style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: getScoreColor(d.score) }}
+                        />
+                      </div>
+                    </div>
+                    <div className="w-12 text-right">
+                      <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                    </div>
+                    <div className="w-16 text-center">
+                      <span className="text-xs text-slate-500">{d.benchmark}</span>
+                      <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        ({diff >= 0 ? '+' : ''}{diff})
+                      </span>
+                    </div>
+                    <div className="w-20">
+                      <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>
+                        {d.tier.name}
+                      </span>
                     </div>
                   </div>
-                  <div className="w-12 text-right">
-                    <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                  </div>
-                  <div className="w-20">
-                    <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>
-                      {d.tier.name}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -775,7 +827,7 @@ export default function CompanyReportPage() {
             <div className="p-6">
               {strengthDimensions.length > 0 ? (
                 <div className="space-y-5">
-                  {strengthDimensions.slice(0, 5).map((d) => (
+                  {strengthDimensions.slice(0, 4).map((d) => (
                     <div key={d.dim}>
                       <p className="font-medium text-slate-800 text-sm">{d.name}</p>
                       {d.strengths.length > 0 && (
@@ -790,6 +842,21 @@ export default function CompanyReportPage() {
                       )}
                     </div>
                   ))}
+                  
+                  {/* Items to still enhance in strong dimensions */}
+                  {improvementOppsInStrengths.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-slate-200">
+                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Still to enhance</p>
+                      <ul className="space-y-1">
+                        {improvementOppsInStrengths.slice(0, 3).map((e: any, i: number) => (
+                          <li key={i} className="text-xs text-slate-500 flex items-start gap-2">
+                            <span className="text-slate-400 mt-0.5">◦</span>
+                            <span className="line-clamp-1">{e.name}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="text-slate-500 text-sm">No dimensions at Leading or Exemplary level yet.</p>
