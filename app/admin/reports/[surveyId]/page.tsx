@@ -186,8 +186,10 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
 export default function CompanyReportPage() {
   const params = useParams();
   const router = useRouter();
-  const surveyId = params.surveyId as string;
   const printRef = useRef<HTMLDivElement>(null);
+  
+  // Handle surveyId - could be string or array
+  const surveyId = Array.isArray(params.surveyId) ? params.surveyId[0] : params.surveyId;
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -198,6 +200,8 @@ export default function CompanyReportPage() {
   useEffect(() => {
     async function loadData() {
       try {
+        console.log('Loading report for surveyId:', surveyId);
+        
         // Load company assessment
         const { data: assessment, error: assessmentError } = await supabase
           .from('assessments')
@@ -205,19 +209,33 @@ export default function CompanyReportPage() {
           .eq('survey_id', surveyId)
           .single();
         
-        if (assessmentError || !assessment) {
-          setError('Company not found');
+        console.log('Assessment query result:', { assessment, assessmentError });
+        
+        if (assessmentError) {
+          console.error('Assessment error:', assessmentError);
+          setError(`Company not found: ${assessmentError.message}`);
+          setLoading(false);
+          return;
+        }
+        
+        if (!assessment) {
+          setError('No assessment data found for this company');
           setLoading(false);
           return;
         }
         
         // Load all assessments for benchmarks
-        const { data: allAssessments } = await supabase
+        const { data: allAssessments, error: allError } = await supabase
           .from('assessments')
           .select('*');
         
+        if (allError) {
+          console.error('All assessments error:', allError);
+        }
+        
         // Calculate company scores
         const scores = calculateCompanyScores(assessment);
+        console.log('Calculated scores:', scores);
         setCompanyScores(scores);
         setCompany(assessment);
         
@@ -228,14 +246,19 @@ export default function CompanyReportPage() {
         }
         
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error loading data:', err);
-        setError('Failed to load report data');
+        setError(`Failed to load report data: ${err?.message || 'Unknown error'}`);
         setLoading(false);
       }
     }
     
-    loadData();
+    if (surveyId) {
+      loadData();
+    } else {
+      setError('No survey ID provided');
+      setLoading(false);
+    }
   }, [surveyId]);
 
   function calculateCompanyScores(assessment: Record<string, any>) {
@@ -326,10 +349,11 @@ export default function CompanyReportPage() {
   if (error || !company || !companyScores) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-          <p className="text-red-600 text-lg">{error || 'Unable to generate report'}</p>
-          <button onClick={() => router.back()} className="mt-4 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
-            Go Back
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
+          <p className="text-red-600 text-lg mb-2">{error || 'Unable to generate report'}</p>
+          <p className="text-gray-500 text-sm mb-4">Survey ID: {surveyId || 'not provided'}</p>
+          <button onClick={() => router.push('/admin/scoring')} className="mt-4 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+            Go Back to Scoring
           </button>
         </div>
       </div>
