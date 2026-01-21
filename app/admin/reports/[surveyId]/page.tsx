@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { SCORING_CONFIG, getTierFromScore, getTotalDimensionWeight } from '@/lib/scoring-config';
 import Image from 'next/image';
 
 // Print styles for page numbers
@@ -97,9 +98,9 @@ const DIMENSION_RECOMMENDATIONS: Record<number, { focus: string; actions: string
   }
 };
 
-const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
-  1: 7, 2: 11, 3: 12, 4: 14, 5: 7, 6: 8, 7: 4, 8: 13, 9: 4, 10: 4, 11: 3, 12: 3, 13: 10
-};
+// Use shared scoring configuration
+const DEFAULT_DIMENSION_WEIGHTS = SCORING_CONFIG.dimensionWeights;
+const DIMENSION_NAMES = SCORING_CONFIG.dimensionNames;
 
 const DIMENSION_QUESTION_COUNTS: Record<number, number> = {
   1: 9, 2: 12, 3: 8, 4: 13, 5: 11, 6: 7, 7: 5, 8: 10, 9: 5, 10: 7, 11: 3, 12: 7, 13: 7
@@ -110,12 +111,23 @@ const DIMENSION_QUESTION_COUNTS: Record<number, number> = {
 // ============================================
 
 function getTier(score: number): { name: string; color: string; bgColor: string; textColor: string; borderColor: string } {
-  // Match scoring page getPerformanceTier exactly
-  if (score >= 90) return { name: 'Exemplary', color: '#065F46', bgColor: 'bg-emerald-100', textColor: 'text-emerald-800', borderColor: 'border-emerald-300' };
-  if (score >= 75) return { name: 'Leading', color: '#1E40AF', bgColor: 'bg-blue-100', textColor: 'text-blue-800', borderColor: 'border-blue-300' };
-  if (score >= 60) return { name: 'Progressing', color: '#92400E', bgColor: 'bg-amber-100', textColor: 'text-amber-800', borderColor: 'border-amber-300' };
-  if (score >= 40) return { name: 'Emerging', color: '#9A3412', bgColor: 'bg-orange-100', textColor: 'text-orange-800', borderColor: 'border-orange-300' };
-  return { name: 'Beginning', color: '#374151', bgColor: 'bg-gray-100', textColor: 'text-gray-700', borderColor: 'border-gray-300' };
+  const tier = getTierFromScore(score);
+  // Map the simplified tier config to the full format needed by the UI
+  const tierMap: Record<string, { textColor: string; borderColor: string }> = {
+    'Exemplary': { textColor: 'text-emerald-800', borderColor: 'border-emerald-300' },
+    'Leading': { textColor: 'text-blue-800', borderColor: 'border-blue-300' },
+    'Progressing': { textColor: 'text-amber-800', borderColor: 'border-amber-300' },
+    'Emerging': { textColor: 'text-orange-800', borderColor: 'border-orange-300' },
+    'Developing': { textColor: 'text-gray-700', borderColor: 'border-gray-300' },
+  };
+  const extra = tierMap[tier.name] || tierMap['Developing'];
+  return {
+    name: tier.name,
+    color: tier.color,
+    bgColor: tier.bgColor,
+    textColor: extra.textColor,
+    borderColor: extra.borderColor,
+  };
 }
 
 function getScoreColor(score: number): string {
@@ -427,8 +439,8 @@ export default function CompanyReportPage() {
     const elementsByDim: Record<number, any[]> = {};
     const blendedScores: Record<number, number> = {};
     
-    const gridPct = 85;
-    const followUpPct = 15;
+    // Use shared config blend weights
+    const blendWeights = SCORING_CONFIG.blendWeights;
     
     let completedDimCount = 0;
     
@@ -491,6 +503,9 @@ export default function CompanyReportPage() {
         const followUp = calculateFollowUpScore(dim, assessment);
         followUpScores[dim] = followUp;
         if (followUp !== null) {
+          const key = `d${dim}` as keyof typeof blendWeights;
+          const gridPct = blendWeights[key]?.grid ?? 85;
+          const followUpPct = blendWeights[key]?.followUp ?? 15;
           blendedScore = Math.round((adjustedScore * (gridPct / 100)) + (followUp * (followUpPct / 100)));
         }
       }
@@ -520,11 +535,13 @@ export default function CompanyReportPage() {
     const maturityScore = calculateMaturityScore(assessment);
     const breadthScore = calculateBreadthScore(assessment);
     
+    // Use shared config weights
+    const { weightedDim, maturity, breadth } = SCORING_CONFIG.compositeWeights;
     const compositeScore = isComplete && weightedDimScore !== null
       ? Math.round(
-          (weightedDimScore * 0.90) +
-          (maturityScore * 0.05) +
-          (breadthScore * 0.05)
+          (weightedDimScore * (weightedDim / 100)) +
+          (maturityScore * (maturity / 100)) +
+          (breadthScore * (breadth / 100))
         )
       : null;
     
@@ -669,7 +686,7 @@ export default function CompanyReportPage() {
     leading: dimensionAnalysis.filter(d => d.tier.name === 'Leading').length,
     progressing: dimensionAnalysis.filter(d => d.tier.name === 'Progressing').length,
     emerging: dimensionAnalysis.filter(d => d.tier.name === 'Emerging').length,
-    developing: dimensionAnalysis.filter(d => d.tier.name === 'Beginning').length
+    developing: dimensionAnalysis.filter(d => d.tier.name === 'Developing').length
   };
 
   // Strengths: Exemplary or Leading dimensions
@@ -906,9 +923,9 @@ export default function CompanyReportPage() {
             <div className="grid grid-cols-4 gap-6">
               {[
                 { label: 'Overall Composite', score: compositeScore, weight: '100%', benchmark: benchmarks?.compositeScore },
-                { label: 'Weighted Dimension Score', score: weightedDimScore, weight: '90%', benchmark: benchmarks?.weightedDimScore },
-                { label: 'Program Maturity', score: maturityScore, weight: '5%', benchmark: benchmarks?.maturityScore },
-                { label: 'Support Breadth', score: breadthScore, weight: '5%', benchmark: benchmarks?.breadthScore },
+                { label: 'Weighted Dimension Score', score: weightedDimScore, weight: `${SCORING_CONFIG.compositeWeights.weightedDim}%`, benchmark: benchmarks?.weightedDimScore },
+                { label: 'Program Maturity', score: maturityScore, weight: `${SCORING_CONFIG.compositeWeights.maturity}%`, benchmark: benchmarks?.maturityScore },
+                { label: 'Support Breadth', score: breadthScore, weight: `${SCORING_CONFIG.compositeWeights.breadth}%`, benchmark: benchmarks?.breadthScore },
               ].map((item, idx) => {
                 const itemTier = item.score !== null && item.score !== undefined ? getTier(item.score) : null;
                 const diff = item.score && item.benchmark ? item.score - item.benchmark : null;
@@ -1571,7 +1588,7 @@ export default function CompanyReportPage() {
                 <p className="leading-relaxed">
                   Organizations are assessed across 13 dimensions of workplace cancer support. Each dimension 
                   receives a weighted score based on current offerings, planned initiatives, and program maturity. 
-                  The composite score combines dimension performance (90%), program maturity (5%), and support breadth (5%).
+                  The composite score combines dimension performance ({SCORING_CONFIG.compositeWeights.weightedDim}%), program maturity ({SCORING_CONFIG.compositeWeights.maturity}%), and support breadth ({SCORING_CONFIG.compositeWeights.breadth}%).
                 </p>
               </div>
               <div>
@@ -1589,7 +1606,7 @@ export default function CompanyReportPage() {
                   <span className="text-blue-600 font-medium">Leading</span> (75-89): Above average<br/>
                   <span className="text-amber-600 font-medium">Progressing</span> (60-74): Meeting expectations<br/>
                   <span className="text-orange-600 font-medium">Emerging</span> (40-59): Developing capabilities<br/>
-                  <span className="text-slate-500 font-medium">Beginning</span> (&lt;40): Early stage
+                  <span className="text-slate-500 font-medium">Developing</span> (&lt;40): Early stage
                 </p>
               </div>
             </div>
