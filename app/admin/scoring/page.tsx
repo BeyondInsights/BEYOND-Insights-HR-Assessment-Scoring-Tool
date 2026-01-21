@@ -551,7 +551,7 @@ function getPerformanceTier(score: number): { name: string; color: string; bg: s
 function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => void; defaultWeights: Record<number, number> }) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">How Dimension Scoring Works</h2>
@@ -562,7 +562,7 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
             </button>
           </div>
         </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
           <div className="space-y-6">
             <section>
               <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -623,10 +623,74 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
               </h3>
               <div className="bg-purple-50 rounded-lg p-4 text-sm">
                 <p className="mb-2">These dimensions blend Grid Score with Follow-up Quality:</p>
-                <div className="bg-white rounded p-3 border border-purple-200 mb-2">
+                <div className="bg-white rounded p-3 border border-purple-200 mb-3">
                   <strong>Blended Score</strong> = (Grid x Grid%) + (Follow-up x Follow-up%)
                 </div>
-                <p className="text-purple-600 text-xs">Adjust blend weights in the settings panel above the table.</p>
+                <p className="text-purple-600 text-xs mb-4">Default: 85% Grid + 15% Follow-up. Adjust in settings panel above table.</p>
+                
+                {/* D1 Follow-up Scoring */}
+                <div className="bg-white rounded-lg p-3 border border-blue-200 mb-3">
+                  <h4 className="font-bold text-blue-800 mb-2 text-sm">D1: Medical Leave Follow-up (D1_1)</h4>
+                  <p className="text-xs text-gray-600 mb-2 italic">"How many weeks of 100% paid medical leave do you offer?"</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <span>12+ weeks</span><span className="text-green-600 font-bold text-right">100 pts</span>
+                    <span>9-12 weeks</span><span className="text-green-600 font-bold text-right">80 pts</span>
+                    <span>6-9 weeks</span><span className="text-blue-600 font-bold text-right">60 pts</span>
+                    <span>4-6 weeks</span><span className="text-amber-600 font-bold text-right">40 pts</span>
+                    <span>Under 4 weeks</span><span className="text-orange-600 font-bold text-right">20 pts</span>
+                    <span>Legal minimum only</span><span className="text-red-600 font-bold text-right">0 pts</span>
+                  </div>
+                </div>
+                
+                {/* D3 Follow-up Scoring */}
+                <div className="bg-white rounded-lg p-3 border border-emerald-200 mb-3">
+                  <h4 className="font-bold text-emerald-800 mb-2 text-sm">D3: Manager Training Follow-up (D3_1)</h4>
+                  <p className="text-xs text-gray-600 mb-2 italic">"How is manager training on supporting employees with serious health conditions provided?"</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <span>Mandatory for all managers</span><span className="text-green-600 font-bold text-right">100 pts</span>
+                    <span>Encouraged but optional</span><span className="text-blue-600 font-bold text-right">70 pts</span>
+                    <span>Available on request</span><span className="text-amber-600 font-bold text-right">40 pts</span>
+                    <span>No formal training</span><span className="text-red-600 font-bold text-right">0 pts</span>
+                  </div>
+                </div>
+                
+                {/* D12 Follow-up Scoring */}
+                <div className="bg-white rounded-lg p-3 border border-orange-200 mb-3">
+                  <h4 className="font-bold text-orange-800 mb-2 text-sm">D12: Continuous Improvement Follow-ups</h4>
+                  
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-600 mb-1 italic">D12_1: "How do you review effectiveness of accommodation outcomes?"</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      <span>Systematic case reviews</span><span className="text-green-600 font-bold text-right">100 pts</span>
+                      <span>Ad hoc case reviews</span><span className="text-amber-600 font-bold text-right">50 pts</span>
+                      <span>Aggregate data only</span><span className="text-orange-600 font-bold text-right">20 pts</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs text-gray-600 mb-1 italic">D12_2: "Have reviews led to policy changes?"</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      <span>Significant policy changes</span><span className="text-green-600 font-bold text-right">100 pts</span>
+                      <span>Some adjustments made</span><span className="text-blue-600 font-bold text-right">60 pts</span>
+                      <span>No changes made</span><span className="text-orange-600 font-bold text-right">20 pts</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-purple-600 mt-2 italic">D12 Follow-up = Average of D12_1 and D12_2</p>
+                </div>
+                
+                {/* D13 Follow-up Scoring */}
+                <div className="bg-white rounded-lg p-3 border border-indigo-200">
+                  <h4 className="font-bold text-indigo-800 mb-2 text-sm">D13: Communication Follow-up (D13_1)</h4>
+                  <p className="text-xs text-gray-600 mb-2 italic">"How frequently do you communicate about health support programs?"</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <span>Monthly</span><span className="text-green-600 font-bold text-right">100 pts</span>
+                    <span>Quarterly</span><span className="text-blue-600 font-bold text-right">70 pts</span>
+                    <span>Twice per year</span><span className="text-amber-600 font-bold text-right">40 pts</span>
+                    <span>Annually</span><span className="text-orange-600 font-bold text-right">20 pts</span>
+                    <span>Only on request</span><span className="text-red-600 font-bold text-right">0 pts</span>
+                    <span>No regular schedule</span><span className="text-red-600 font-bold text-right">0 pts</span>
+                  </div>
+                </div>
               </div>
             </section>
           </div>
