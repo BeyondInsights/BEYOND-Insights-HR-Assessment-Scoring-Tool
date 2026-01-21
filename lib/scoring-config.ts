@@ -481,3 +481,29 @@ export function getPerformanceTier(score: number, isProvisional: boolean = false
   }
   return baseTier;
 }
+
+// ============================================
+// CONSOLIDATED SCORING_CONFIG OBJECT
+// Used by report page for easy access to all config values
+// ============================================
+
+export const SCORING_CONFIG = {
+  dimensionWeights: DEFAULT_DIMENSION_WEIGHTS,
+  dimensionNames: DIMENSION_NAMES,
+  blendWeights: DEFAULT_BLEND_WEIGHTS,
+  compositeWeights: DEFAULT_COMPOSITE_WEIGHTS,
+};
+
+// Alias for getTierFromScore (used by report page)
+export function getTierFromScore(score: number): { name: string; color: string; bgColor: string } {
+  if (score >= 90) return { name: 'Exemplary', color: '#7C3AED', bgColor: 'bg-purple-100' };
+  if (score >= 75) return { name: 'Leading', color: '#059669', bgColor: 'bg-green-100' };
+  if (score >= 60) return { name: 'Progressing', color: '#0284C7', bgColor: 'bg-blue-100' };
+  if (score >= 40) return { name: 'Emerging', color: '#D97706', bgColor: 'bg-amber-100' };
+  return { name: 'Developing', color: '#DC2626', bgColor: 'bg-red-100' };
+}
+
+// Helper to get total dimension weight (used by report page)
+export function getTotalDimensionWeight(): number {
+  return Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((sum, w) => sum + w, 0);
+}
