@@ -778,48 +778,53 @@ export default function CompanyReportPage() {
           </div>
           <div className="px-10 py-6">
             {/* Header row */}
-            <div className="flex items-center gap-4 pb-3 mb-3 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
-              <div className="w-6"></div>
-              <div className="flex-1">Dimension</div>
-              <div className="w-32 text-center">Performance</div>
-              <div className="w-12 text-right">Score</div>
-              <div className="w-16 text-center">Bench</div>
+            <div className="flex items-center gap-3 pb-3 mb-3 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
+              <div className="w-8"></div>
+              <div className="w-64">Dimension</div>
+              <div className="flex-1 text-center">Performance</div>
+              <div className="w-14 text-right">Score</div>
+              <div className="w-20 text-center">Bench</div>
               <div className="w-20 text-center">Tier</div>
             </div>
             <div className="space-y-3">
               {dimensionAnalysis.map((d) => {
                 const diff = d.score - d.benchmark;
                 return (
-                  <div key={d.dim} className="flex items-center gap-4">
-                    <div className="w-6 text-right">
+                  <div key={d.dim} className="flex items-center gap-3">
+                    <div className="w-8 text-right">
                       <span className="text-xs font-medium text-slate-400">D{d.dim}</span>
                     </div>
-                    <div className="flex-1">
+                    <div className="w-64">
                       <p className="text-sm text-slate-700">{d.name}</p>
                     </div>
-                    <div className="w-32">
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden relative">
-                        {/* Benchmark marker */}
+                    <div className="flex-1">
+                      <div className="h-3 bg-slate-100 rounded-full overflow-visible relative">
+                        {/* Score bar */}
                         <div 
-                          className="absolute top-0 bottom-0 w-0.5 bg-slate-400 z-10"
-                          style={{ left: `${Math.min(d.benchmark, 100)}%` }}
-                        />
-                        <div 
-                          className="h-full rounded-full"
+                          className="h-full rounded-full relative"
                           style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: getScoreColor(d.score) }}
                         />
+                        {/* Benchmark marker - triangle indicator */}
+                        <div 
+                          className="absolute -top-1 flex flex-col items-center"
+                          style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
+                        >
+                          <div 
+                            className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500"
+                          />
+                        </div>
                       </div>
                     </div>
-                    <div className="w-12 text-right">
+                    <div className="w-14 text-right">
                       <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                     </div>
-                    <div className="w-16 text-center">
+                    <div className="w-20 text-center">
                       <span className="text-xs text-slate-500">{d.benchmark}</span>
                       <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
                         ({diff >= 0 ? '+' : ''}{diff})
                       </span>
                     </div>
-                    <div className="w-20">
+                    <div className="w-20 text-center">
                       <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>
                         {d.tier.name}
                       </span>
@@ -827,6 +832,14 @@ export default function CompanyReportPage() {
                   </div>
                 );
               })}
+            </div>
+            {/* Legend */}
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-4 text-xs text-slate-400">
+              <span>Scores out of 100</span>
+              <span className="flex items-center gap-1">
+                <span className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
+                Benchmark
+              </span>
             </div>
           </div>
         </div>
