@@ -2092,6 +2092,9 @@ function ReliabilityDiagnosticsModal({
                         <p className="text-xs text-gray-500 mt-2">
                           Items with low item-rest correlation (&lt;0.30) or where α-if-dropped exceeds current α may be candidates for review.
                         </p>
+                        <p className="text-xs text-gray-500 mt-1 italic">
+                          Low correlations may reflect restricted variance (rare benefits most companies don't offer) rather than poor item fit. Items measuring advanced practices are valuable for differentiating leaders even if statistically uncommon.
+                        </p>
                       </section>
                     ) : (
                       <div className="bg-gray-100 rounded-lg p-8 text-center text-gray-500">
