@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 
 // ============================================
@@ -198,8 +198,6 @@ export default function CompanyReportPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const supabase = createClient();
-        
         // Load company assessment
         const { data: assessment, error: assessmentError } = await supabase
           .from('assessments')
