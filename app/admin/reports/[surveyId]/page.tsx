@@ -3,21 +3,250 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { SCORING_CONFIG } from '@/lib/scoring-config';
-import { 
-  statusToPoints, 
-  getStatusText,
-  getGeoMultiplier,
-  calculateFollowUpScore,
-  calculateMaturityScore,
-  calculateBreadthScore,
-  getPerformanceTier,
-  DEFAULT_DIMENSION_WEIGHTS,
-  DEFAULT_COMPOSITE_WEIGHTS,
-  DEFAULT_BLEND_WEIGHTS,
-  DIMENSION_NAMES
-} from '@/lib/scoring-calculations';
+import { SCORING_CONFIG, getTierFromScore } from '@/lib/scoring-config';
 import Image from 'next/image';
+
+// ============================================
+// LOCAL CONSTANTS (from SCORING_CONFIG)
+// ============================================
+const DEFAULT_DIMENSION_WEIGHTS = SCORING_CONFIG.dimensionWeights;
+const DEFAULT_BLEND_WEIGHTS = SCORING_CONFIG.blendWeights;
+const DIMENSION_NAMES = SCORING_CONFIG.dimensionNames;
+
+// ============================================
+// SCORING HELPER FUNCTIONS
+// ============================================
+
+function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean; category: string } {
+  if (typeof status === 'number') {
+    switch (status) {
+      case 4: return { points: 5, isUnsure: false, category: 'currently_offer' };
+      case 3: return { points: 3, isUnsure: false, category: 'planning' };
+      case 2: return { points: 2, isUnsure: false, category: 'assessing' };
+      case 1: return { points: 0, isUnsure: false, category: 'not_able' };
+      case 5: return { points: null, isUnsure: true, category: 'unsure' };
+      default: return { points: null, isUnsure: false, category: 'unknown' };
+    }
+  }
+  if (typeof status === 'string') {
+    const s = status.toLowerCase().trim();
+    if (s.includes('not able')) return { points: 0, isUnsure: false, category: 'not_able' };
+    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true, category: 'unsure' };
+    if (s.includes('currently') || s.includes('offer') || s.includes('provide') || 
+        s.includes('use') || s.includes('track') || s.includes('measure')) {
+      return { points: 5, isUnsure: false, category: 'currently_offer' };
+    }
+    if (s.includes('planning') || s.includes('development')) return { points: 3, isUnsure: false, category: 'planning' };
+    if (s.includes('assessing') || s.includes('feasibility')) return { points: 2, isUnsure: false, category: 'assessing' };
+    if (s.length > 0) return { points: 0, isUnsure: false, category: 'not_able' };
+  }
+  return { points: null, isUnsure: false, category: 'unknown' };
+}
+
+function getStatusText(status: string | number): string {
+  if (typeof status === 'number') {
+    switch (status) {
+      case 4: return 'Currently offer';
+      case 3: return 'Planning';
+      case 2: return 'Assessing';
+      case 1: return 'Gap';
+      case 5: return 'To clarify';
+      default: return 'Unknown';
+    }
+  }
+  return String(status);
+}
+
+function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
+  if (geoResponse === undefined || geoResponse === null) return 1.0;
+  
+  if (typeof geoResponse === 'number') {
+    switch (geoResponse) {
+      case 1: return 0.75;
+      case 2: return 0.90;
+      case 3: return 1.0;
+      default: return 1.0;
+    }
+  }
+  
+  const s = String(geoResponse).toLowerCase();
+  if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
+  if (s.includes('vary') || s.includes('varies')) return 0.90;
+  if (s.includes('select') || s.includes('only available in select')) return 0.75;
+  return 1.0;
+}
+
+// Follow-up scoring functions
+function scoreD1PaidLeave(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('13') || v.includes('more')) return 100;
+  if (v.includes('9') && v.includes('13')) return 70;
+  if (v.includes('5') && v.includes('9')) return 40;
+  if (v.includes('3') && v.includes('5')) return 20;
+  if (v.includes('1') && v.includes('3')) return 10;
+  if (v.includes('does not apply')) return 0;
+  return 0;
+}
+
+function scoreD1PartTime(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('medically necessary')) return 100;
+  if (v.includes('26') || (v.includes('26') && v.includes('more'))) return 80;
+  if (v.includes('13') && v.includes('26')) return 50;
+  if (v.includes('5') && v.includes('13')) return 30;
+  if (v.includes('4 weeks') || v.includes('up to 4')) return 10;
+  if (v.includes('case-by-case')) return 40;
+  if (v.includes('no additional')) return 0;
+  return 0;
+}
+
+function scoreD3Training(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v === '100%' || v.includes('100%')) return 100;
+  if (v.includes('75') && v.includes('100')) return 80;
+  if (v.includes('50') && v.includes('75')) return 50;
+  if (v.includes('25') && v.includes('50')) return 30;
+  if (v.includes('10') && v.includes('25')) return 10;
+  if (v.includes('less than 10')) return 0;
+  return 0;
+}
+
+function scoreD12CaseReview(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('systematic')) return 100;
+  if (v.includes('ad hoc')) return 50;
+  if (v.includes('aggregate') || v.includes('only review aggregate')) return 20;
+  return 0;
+}
+
+function scoreD12PolicyChanges(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('significant') || v.includes('major')) return 100;
+  if (v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
+  if (v.includes('no change') || v.includes('not yet') || v.includes('none')) return 20;
+  return 0;
+}
+
+function scoreD13Communication(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('monthly')) return 100;
+  if (v.includes('quarterly')) return 70;
+  if (v.includes('twice')) return 40;
+  if (v.includes('annually') || v.includes('world cancer day')) return 20;
+  if (v.includes('only when asked')) return 0;
+  if (v.includes('do not actively')) return 0;
+  return 0;
+}
+
+function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>): number | null {
+  const dimData = assessment[`dimension${dimNum}_data`];
+  
+  switch (dimNum) {
+    case 1: {
+      const d1_1_usa = dimData?.d1_1_usa;
+      const d1_1_non_usa = dimData?.d1_1_non_usa;
+      const d1_4b = dimData?.d1_4b;
+      const scores: number[] = [];
+      if (d1_1_usa) scores.push(scoreD1PaidLeave(d1_1_usa));
+      if (d1_1_non_usa) scores.push(scoreD1PaidLeave(d1_1_non_usa));
+      if (d1_4b) scores.push(scoreD1PartTime(d1_4b));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 3: {
+      const d31 = dimData?.d31 ?? dimData?.d3_1;
+      return d31 ? scoreD3Training(d31) : null;
+    }
+    case 12: {
+      const d12_1 = dimData?.d12_1;
+      const d12_2 = dimData?.d12_2;
+      const scores: number[] = [];
+      if (d12_1) scores.push(scoreD12CaseReview(d12_1));
+      if (d12_2) scores.push(scoreD12PolicyChanges(d12_2));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 13: {
+      const d13_1 = dimData?.d13_1;
+      return d13_1 ? scoreD13Communication(d13_1) : null;
+    }
+    default:
+      return null;
+  }
+}
+
+function calculateMaturityScore(assessment: Record<string, any>): number {
+  const currentSupport = assessment.current_support_data || {};
+  const or1 = currentSupport.or1;
+  
+  if (or1 === 6 || or1 === '6') return 100;
+  if (or1 === 5 || or1 === '5') return 80;
+  if (or1 === 4 || or1 === '4') return 50;
+  if (or1 === 3 || or1 === '3') return 20;
+  if (or1 === 2 || or1 === '2') return 0;
+  if (or1 === 1 || or1 === '1') return 0;
+  
+  const v = String(or1 || '').toLowerCase();
+  if (v.includes('leading-edge') || v.includes('leading edge')) return 100;
+  if (v.includes('comprehensive')) return 100;
+  if (v.includes('enhanced') || v.includes('strong')) return 80;
+  if (v.includes('moderate')) return 50;
+  if (v.includes('basic')) return 20;
+  if (v.includes('developing')) return 20;
+  if (v.includes('legal minimum')) return 0;
+  if (v.includes('no formal')) return 0;
+  return 0;
+}
+
+function calculateBreadthScore(assessment: Record<string, any>): number {
+  const currentSupport = assessment.current_support_data || {};
+  const generalBenefits = assessment.general_benefits_data || {};
+  
+  const scores: number[] = [];
+  
+  const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
+  
+  if (cb3a === 3 || cb3a === '3') {
+    scores.push(100);
+  } else if (cb3a === 2 || cb3a === '2') {
+    scores.push(50);
+  } else if (cb3a === 1 || cb3a === '1') {
+    scores.push(0);
+  } else if (cb3a !== undefined && cb3a !== null) {
+    const v = String(cb3a).toLowerCase();
+    if (v.includes('yes') && v.includes('additional support')) {
+      scores.push(100);
+    } else if (v.includes('developing') || v.includes('currently developing')) {
+      scores.push(50);
+    } else {
+      scores.push(0);
+    }
+  } else {
+    scores.push(0);
+  }
+  
+  const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
+  if (cb3b && Array.isArray(cb3b)) {
+    const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
+    scores.push(cb3bScore);
+  } else {
+    scores.push(0);
+  }
+  
+  const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
+  if (cb3c && Array.isArray(cb3c)) {
+    const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
+    scores.push(cb3cScore);
+  } else {
+    scores.push(0);
+  }
+  
+  return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+}
 
 // Print styles for page numbers
 const printStyles = `
