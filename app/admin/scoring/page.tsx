@@ -2077,7 +2077,7 @@ function ReliabilityDiagnosticsModal({
                                     </td>
                                     <td className="py-2 px-3 text-center">
                                       {wouldImprove && (
-                                        <span className="text-xs text-amber-600 font-medium">Consider dropping</span>
+                                        <span className="text-xs text-amber-600 font-medium">Weak correlation</span>
                                       )}
                                       {lowCorrelation && !wouldImprove && (
                                         <span className="text-xs text-red-600 font-medium">Low correlation</span>
