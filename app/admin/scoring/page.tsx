@@ -188,6 +188,16 @@ function scoreD12CaseReview(value: string | undefined): number {
   return 0;
 }
 
+// D12_2: Have individual employee experiences/reviews led to policy changes?
+function scoreD12PolicyChanges(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('significant') || v.includes('major')) return 100;
+  if (v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
+  if (v.includes('no change') || v.includes('not yet') || v.includes('none')) return 20;
+  return 0;
+}
+
 function scoreD13Communication(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
@@ -220,8 +230,13 @@ function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>)
       return d31 ? scoreD3Training(d31) : null;
     }
     case 12: {
+      // D12 uses both D12_1 (case review method) and D12_2 (policy changes) - averaged
       const d12_1 = dimData?.d12_1;
-      return d12_1 ? scoreD12CaseReview(d12_1) : null;
+      const d12_2 = dimData?.d12_2;
+      const scores: number[] = [];
+      if (d12_1) scores.push(scoreD12CaseReview(d12_1));
+      if (d12_2) scores.push(scoreD12PolicyChanges(d12_2));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
     }
     case 13: {
       const d13_1 = dimData?.d13_1;
@@ -633,24 +648,27 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
                   <h4 className="font-bold text-blue-800 mb-2 text-sm">D1: Medical Leave Follow-up (D1_1)</h4>
                   <p className="text-xs text-gray-600 mb-2 italic">"How many weeks of 100% paid medical leave do you offer?"</p>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <span>12+ weeks</span><span className="text-green-600 font-bold text-right">100 pts</span>
-                    <span>9-12 weeks</span><span className="text-green-600 font-bold text-right">80 pts</span>
-                    <span>6-9 weeks</span><span className="text-blue-600 font-bold text-right">60 pts</span>
-                    <span>4-6 weeks</span><span className="text-amber-600 font-bold text-right">40 pts</span>
-                    <span>Under 4 weeks</span><span className="text-orange-600 font-bold text-right">20 pts</span>
-                    <span>Legal minimum only</span><span className="text-red-600 font-bold text-right">0 pts</span>
+                    <span>13 or more weeks</span><span className="text-green-600 font-bold text-right">100 pts</span>
+                    <span>9 to less than 13 weeks</span><span className="text-blue-600 font-bold text-right">70 pts</span>
+                    <span>5 to less than 9 weeks</span><span className="text-amber-600 font-bold text-right">40 pts</span>
+                    <span>3 to less than 5 weeks</span><span className="text-orange-600 font-bold text-right">20 pts</span>
+                    <span>1 to less than 3 weeks</span><span className="text-red-600 font-bold text-right">10 pts</span>
+                    <span>Does not apply / None</span><span className="text-red-600 font-bold text-right">0 pts</span>
                   </div>
+                  <p className="text-xs text-blue-600 mt-2 italic">If both USA and non-USA values provided, scores are averaged.</p>
                 </div>
                 
                 {/* D3 Follow-up Scoring */}
                 <div className="bg-white rounded-lg p-3 border border-emerald-200 mb-3">
                   <h4 className="font-bold text-emerald-800 mb-2 text-sm">D3: Manager Training Follow-up (D3_1)</h4>
-                  <p className="text-xs text-gray-600 mb-2 italic">"How is manager training on supporting employees with serious health conditions provided?"</p>
+                  <p className="text-xs text-gray-600 mb-2 italic">"What percentage of managers have received training on supporting employees with serious health conditions?"</p>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <span>Mandatory for all managers</span><span className="text-green-600 font-bold text-right">100 pts</span>
-                    <span>Encouraged but optional</span><span className="text-blue-600 font-bold text-right">70 pts</span>
-                    <span>Available on request</span><span className="text-amber-600 font-bold text-right">40 pts</span>
-                    <span>No formal training</span><span className="text-red-600 font-bold text-right">0 pts</span>
+                    <span>100% of managers</span><span className="text-green-600 font-bold text-right">100 pts</span>
+                    <span>75% to less than 100%</span><span className="text-green-600 font-bold text-right">80 pts</span>
+                    <span>50% to less than 75%</span><span className="text-blue-600 font-bold text-right">50 pts</span>
+                    <span>25% to less than 50%</span><span className="text-amber-600 font-bold text-right">30 pts</span>
+                    <span>10% to less than 25%</span><span className="text-orange-600 font-bold text-right">10 pts</span>
+                    <span>Less than 10%</span><span className="text-red-600 font-bold text-right">0 pts</span>
                   </div>
                 </div>
                 
@@ -659,36 +677,38 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
                   <h4 className="font-bold text-orange-800 mb-2 text-sm">D12: Continuous Improvement Follow-ups</h4>
                   
                   <div className="mb-3">
-                    <p className="text-xs text-gray-600 mb-1 italic">D12_1: "How do you review effectiveness of accommodation outcomes?"</p>
+                    <p className="text-xs text-gray-600 mb-1 italic">D12_1: "Do you review individual employee experiences to assess accommodation effectiveness?"</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                       <span>Systematic case reviews</span><span className="text-green-600 font-bold text-right">100 pts</span>
                       <span>Ad hoc case reviews</span><span className="text-amber-600 font-bold text-right">50 pts</span>
-                      <span>Aggregate data only</span><span className="text-orange-600 font-bold text-right">20 pts</span>
+                      <span>Only review aggregate data</span><span className="text-orange-600 font-bold text-right">20 pts</span>
+                      <span>No review process</span><span className="text-red-600 font-bold text-right">0 pts</span>
                     </div>
                   </div>
                   
                   <div>
-                    <p className="text-xs text-gray-600 mb-1 italic">D12_2: "Have reviews led to policy changes?"</p>
+                    <p className="text-xs text-gray-600 mb-1 italic">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                       <span>Significant policy changes</span><span className="text-green-600 font-bold text-right">100 pts</span>
                       <span>Some adjustments made</span><span className="text-blue-600 font-bold text-right">60 pts</span>
-                      <span>No changes made</span><span className="text-orange-600 font-bold text-right">20 pts</span>
+                      <span>No changes made yet</span><span className="text-orange-600 font-bold text-right">20 pts</span>
+                      <span>N/A or no response</span><span className="text-red-600 font-bold text-right">0 pts</span>
                     </div>
                   </div>
-                  <p className="text-xs text-purple-600 mt-2 italic">D12 Follow-up = Average of D12_1 and D12_2</p>
+                  <p className="text-xs text-purple-600 mt-2 italic">D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
                 </div>
                 
                 {/* D13 Follow-up Scoring */}
                 <div className="bg-white rounded-lg p-3 border border-indigo-200">
                   <h4 className="font-bold text-indigo-800 mb-2 text-sm">D13: Communication Follow-up (D13_1)</h4>
-                  <p className="text-xs text-gray-600 mb-2 italic">"How frequently do you communicate about health support programs?"</p>
+                  <p className="text-xs text-gray-600 mb-2 italic">"How frequently do you communicate about health support programs to employees?"</p>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                     <span>Monthly</span><span className="text-green-600 font-bold text-right">100 pts</span>
                     <span>Quarterly</span><span className="text-blue-600 font-bold text-right">70 pts</span>
                     <span>Twice per year</span><span className="text-amber-600 font-bold text-right">40 pts</span>
-                    <span>Annually</span><span className="text-orange-600 font-bold text-right">20 pts</span>
-                    <span>Only on request</span><span className="text-red-600 font-bold text-right">0 pts</span>
-                    <span>No regular schedule</span><span className="text-red-600 font-bold text-right">0 pts</span>
+                    <span>Annually / World Cancer Day</span><span className="text-orange-600 font-bold text-right">20 pts</span>
+                    <span>Only when asked</span><span className="text-red-600 font-bold text-right">0 pts</span>
+                    <span>Do not actively communicate</span><span className="text-red-600 font-bold text-right">0 pts</span>
                   </div>
                 </div>
               </div>
