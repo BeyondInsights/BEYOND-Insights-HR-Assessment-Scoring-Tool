@@ -337,18 +337,25 @@ function calculateMaturityScore(assessment: Record<string, any>): number {
 }
 
 function calculateBreadthScore(assessment: Record<string, any>): number {
+  // Check BOTH current_support_data AND general_benefits_data for cb3 fields
+  // Some companies have these in current_support_data, others in general_benefits_data
   const currentSupport = assessment.current_support_data || {};
+  const generalBenefits = assessment.general_benefits_data || {};
   
   const scores: number[] = [];
   
-  const cb3a = currentSupport.cb3a;
+  // CB3a: Check both sources, prefer current_support_data if present
+  const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
+  
+  // Handle numeric codes first (from imported data)
   if (cb3a === 3 || cb3a === '3') {
-    scores.push(100);
+    scores.push(100); // Yes, we offer additional support
   } else if (cb3a === 2 || cb3a === '2') {
-    scores.push(50);
+    scores.push(50); // Currently developing
   } else if (cb3a === 1 || cb3a === '1') {
-    scores.push(0);
+    scores.push(0); // No additional support
   } else if (cb3a !== undefined && cb3a !== null) {
+    // Fall back to text matching for survey app entries
     const v = String(cb3a).toLowerCase();
     if (v.includes('yes') && v.includes('additional support')) {
       scores.push(100);
@@ -361,7 +368,8 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  const cb3b = currentSupport.cb3b;
+  // CB3b: Check both sources
+  const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
   if (cb3b && Array.isArray(cb3b)) {
     const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
     scores.push(cb3bScore);
@@ -369,7 +377,8 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  const cb3c = currentSupport.cb3c;
+  // CB3c: Check both sources
+  const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
   if (cb3c && Array.isArray(cb3c)) {
     const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
     scores.push(cb3cScore);
@@ -399,10 +408,10 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
   const weightThreshold = (maxWeight + minWeight) / 2;
   
   return (
-    <div className="px-10 py-8">
-      <div className="relative" style={{ height: '420px' }}>
-        {/* SVG-based chart for professional appearance */}
-        <svg className="w-full h-full" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+    <div className="px-6 py-8">
+      <div className="relative" style={{ height: '480px' }}>
+        {/* SVG-based chart for professional appearance - WIDER */}
+        <svg className="w-full h-full" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet">
           {/* Definitions */}
           <defs>
             {/* Gradients for quadrants */}
@@ -429,63 +438,63 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
             </filter>
           </defs>
           
-          {/* Chart background and quadrants */}
-          <g transform="translate(60, 20)">
+          {/* Chart background and quadrants - WIDER */}
+          <g transform="translate(70, 20)">
             {/* Quadrant backgrounds */}
-            <rect x="0" y="0" width="250" height="170" fill="url(#developGrad)" rx="4" />
-            <rect x="250" y="0" width="250" height="170" fill="url(#maintainGrad)" rx="4" />
-            <rect x="0" y="170" width="250" height="170" fill="url(#monitorGrad)" rx="4" />
-            <rect x="250" y="170" width="250" height="170" fill="url(#leverageGrad)" rx="4" />
+            <rect x="0" y="0" width="330" height="190" fill="url(#developGrad)" rx="6" />
+            <rect x="330" y="0" width="330" height="190" fill="url(#maintainGrad)" rx="6" />
+            <rect x="0" y="190" width="330" height="190" fill="url(#monitorGrad)" rx="6" />
+            <rect x="330" y="190" width="330" height="190" fill="url(#leverageGrad)" rx="6" />
             
             {/* Grid lines */}
             <g stroke="#CBD5E1" strokeWidth="0.5" strokeDasharray="4,4" opacity="0.6">
               {/* Vertical gridlines */}
-              <line x1="125" y1="0" x2="125" y2="340" />
-              <line x1="375" y1="0" x2="375" y2="340" />
+              <line x1="165" y1="0" x2="165" y2="380" />
+              <line x1="495" y1="0" x2="495" y2="380" />
               {/* Horizontal gridlines */}
-              <line x1="0" y1="85" x2="500" y2="85" />
-              <line x1="0" y1="255" x2="500" y2="255" />
+              <line x1="0" y1="95" x2="660" y2="95" />
+              <line x1="0" y1="285" x2="660" y2="285" />
             </g>
             
             {/* Center axis lines */}
-            <line x1="250" y1="0" x2="250" y2="340" stroke="#94A3B8" strokeWidth="1.5" />
-            <line x1="0" y1="170" x2="500" y2="170" stroke="#94A3B8" strokeWidth="1.5" />
+            <line x1="330" y1="0" x2="330" y2="380" stroke="#94A3B8" strokeWidth="2" />
+            <line x1="0" y1="190" x2="660" y2="190" stroke="#94A3B8" strokeWidth="2" />
             
             {/* Outer border */}
-            <rect x="0" y="0" width="500" height="340" fill="none" stroke="#CBD5E1" strokeWidth="1.5" rx="4" />
+            <rect x="0" y="0" width="660" height="380" fill="none" stroke="#CBD5E1" strokeWidth="2" rx="6" />
             
             {/* Quadrant labels */}
-            <g className="text-sm font-semibold" opacity="0.25">
-              <text x="125" y="85" textAnchor="middle" fill="#D97706" fontSize="18" fontWeight="700">DEVELOP</text>
-              <text x="125" y="105" textAnchor="middle" fill="#D97706" fontSize="11">High Priority</text>
+            <g className="text-sm font-semibold" opacity="0.3">
+              <text x="165" y="95" textAnchor="middle" fill="#D97706" fontSize="22" fontWeight="700">DEVELOP</text>
+              <text x="165" y="120" textAnchor="middle" fill="#D97706" fontSize="13">High Priority</text>
               
-              <text x="375" y="85" textAnchor="middle" fill="#059669" fontSize="18" fontWeight="700">MAINTAIN</text>
-              <text x="375" y="105" textAnchor="middle" fill="#059669" fontSize="11">Protect Strengths</text>
+              <text x="495" y="95" textAnchor="middle" fill="#059669" fontSize="22" fontWeight="700">MAINTAIN</text>
+              <text x="495" y="120" textAnchor="middle" fill="#059669" fontSize="13">Protect Strengths</text>
               
-              <text x="125" y="255" textAnchor="middle" fill="#64748B" fontSize="18" fontWeight="700">MONITOR</text>
-              <text x="125" y="275" textAnchor="middle" fill="#64748B" fontSize="11">Watch and Wait</text>
+              <text x="165" y="285" textAnchor="middle" fill="#64748B" fontSize="22" fontWeight="700">MONITOR</text>
+              <text x="165" y="310" textAnchor="middle" fill="#64748B" fontSize="13">Watch and Wait</text>
               
-              <text x="375" y="255" textAnchor="middle" fill="#0284C7" fontSize="18" fontWeight="700">LEVERAGE</text>
-              <text x="375" y="275" textAnchor="middle" fill="#0284C7" fontSize="11">Quick Wins</text>
+              <text x="495" y="285" textAnchor="middle" fill="#0284C7" fontSize="22" fontWeight="700">LEVERAGE</text>
+              <text x="495" y="310" textAnchor="middle" fill="#0284C7" fontSize="13">Quick Wins</text>
             </g>
             
             {/* Data points */}
             {dimensionAnalysis.map((d) => {
-              const xPos = (d.score / 100) * 500;
-              const yPos = 340 - (((d.weight - minWeight) / weightRange) * 340);
+              const xPos = (d.score / 100) * 660;
+              const yPos = 380 - (((d.weight - minWeight) / weightRange) * 380);
               
               return (
                 <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
                   {/* Outer ring */}
-                  <circle r="22" fill="white" filter="url(#dropShadow)" />
+                  <circle r="26" fill="white" filter="url(#dropShadow)" />
                   {/* Inner circle */}
-                  <circle r="18" fill={getScoreColor(d.score)} />
+                  <circle r="22" fill={getScoreColor(d.score)} />
                   {/* Dimension number */}
                   <text 
                     textAnchor="middle" 
                     dominantBaseline="central" 
                     fill="white" 
-                    fontSize="12" 
+                    fontSize="14" 
                     fontWeight="700"
                   >
                     D{d.dim}
@@ -495,43 +504,43 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
             })}
             
             {/* X-axis ticks and labels */}
-            <g transform="translate(0, 340)">
-              <line x1="0" y1="0" x2="500" y2="0" stroke="#94A3B8" strokeWidth="1.5" />
+            <g transform="translate(0, 380)">
+              <line x1="0" y1="0" x2="660" y2="0" stroke="#94A3B8" strokeWidth="2" />
               {[0, 25, 50, 75, 100].map((val, i) => (
-                <g key={val} transform={`translate(${val * 5}, 0)`}>
-                  <line y1="0" y2="6" stroke="#94A3B8" strokeWidth="1.5" />
-                  <text y="20" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text>
+                <g key={val} transform={`translate(${val * 6.6}, 0)`}>
+                  <line y1="0" y2="8" stroke="#94A3B8" strokeWidth="2" />
+                  <text y="24" textAnchor="middle" fill="#64748B" fontSize="13">{val}</text>
                 </g>
               ))}
-              <text x="250" y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="600">
+              <text x="330" y="48" textAnchor="middle" fill="#475569" fontSize="14" fontWeight="600">
                 CURRENT PERFORMANCE
               </text>
             </g>
           </g>
           
           {/* Y-axis */}
-          <g transform="translate(60, 20)">
-            <line x1="0" y1="0" x2="0" y2="340" stroke="#94A3B8" strokeWidth="1.5" />
+          <g transform="translate(70, 20)">
+            <line x1="0" y1="0" x2="0" y2="380" stroke="#94A3B8" strokeWidth="2" />
             {/* Y-axis ticks */}
             <g>
-              <line x1="-6" y1="0" x2="0" y2="0" stroke="#94A3B8" strokeWidth="1.5" />
-              <text x="-10" y="4" textAnchor="end" fill="#64748B" fontSize="11">{maxWeight}%</text>
+              <line x1="-8" y1="0" x2="0" y2="0" stroke="#94A3B8" strokeWidth="2" />
+              <text x="-12" y="5" textAnchor="end" fill="#64748B" fontSize="13">{maxWeight}%</text>
               
-              <line x1="-6" y1="170" x2="0" y2="170" stroke="#94A3B8" strokeWidth="1.5" />
-              <text x="-10" y="174" textAnchor="end" fill="#64748B" fontSize="11">{Math.round(weightThreshold)}%</text>
+              <line x1="-8" y1="190" x2="0" y2="190" stroke="#94A3B8" strokeWidth="2" />
+              <text x="-12" y="195" textAnchor="end" fill="#64748B" fontSize="13">{Math.round(weightThreshold)}%</text>
               
-              <line x1="-6" y1="340" x2="0" y2="340" stroke="#94A3B8" strokeWidth="1.5" />
-              <text x="-10" y="344" textAnchor="end" fill="#64748B" fontSize="11">{minWeight}%</text>
+              <line x1="-8" y1="380" x2="0" y2="380" stroke="#94A3B8" strokeWidth="2" />
+              <text x="-12" y="385" textAnchor="end" fill="#64748B" fontSize="13">{minWeight}%</text>
             </g>
             
             {/* Y-axis label */}
             <text 
               transform="rotate(-90)" 
-              x="-170" 
-              y="-40" 
+              x="-190" 
+              y="-50" 
               textAnchor="middle" 
               fill="#475569" 
-              fontSize="12" 
+              fontSize="14" 
               fontWeight="600"
             >
               STRATEGIC WEIGHT
@@ -540,18 +549,18 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
         </svg>
       </div>
       
-      {/* Legend */}
-      <div className="mt-6 pt-4 border-t border-slate-200">
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
+      {/* Legend - Larger */}
+      <div className="mt-8 pt-5 border-t border-slate-200">
+        <div className="flex flex-wrap gap-x-8 gap-y-3">
           {dimensionAnalysis.map(d => (
-            <div key={d.dim} className="flex items-center gap-2">
+            <div key={d.dim} className="flex items-center gap-3">
               <span 
-                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm"
                 style={{ backgroundColor: getScoreColor(d.score) }}
               >
                 D{d.dim}
               </span>
-              <span className="text-sm text-slate-600">{d.name}</span>
+              <span className="text-sm text-slate-600">{d.name.split('&')[0].trim()}</span>
             </div>
           ))}
         </div>
@@ -1172,19 +1181,19 @@ export default function CompanyReportPage() {
         {/* ============ DIMENSION PERFORMANCE ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="px-10 py-5 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-900">Dimension Performance Overview</h3>
+            <h3 className="font-semibold text-slate-900 text-lg">Dimension Performance Overview</h3>
             <p className="text-sm text-slate-500 mt-1">Detailed scores across all 13 assessment dimensions</p>
           </div>
           <div className="px-10 py-6">
             {/* Header row */}
-            <div className="flex items-center gap-4 pb-3 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              <div className="w-8 text-center">#</div>
+            <div className="flex items-center gap-4 pb-4 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <div className="w-10 text-center">#</div>
               <div className="flex-1">Dimension</div>
-              <div className="w-10 text-center">Wt%</div>
-              <div className="w-64 text-center">Score</div>
-              <div className="w-14 text-right">Score</div>
-              <div className="w-20 text-center">vs Bench</div>
-              <div className="w-20 text-center">Tier</div>
+              <div className="w-12 text-center">Wt%</div>
+              <div className="w-72 text-center">Score</div>
+              <div className="w-16 text-right">Score</div>
+              <div className="w-24 text-center">vs Bench</div>
+              <div className="w-24 text-center">Tier</div>
             </div>
             
             {/* Dimension rows - sorted by weight */}
@@ -1193,10 +1202,10 @@ export default function CompanyReportPage() {
               .map((d, idx) => {
                 const diff = d.benchmark ? d.score - d.benchmark : 0;
                 return (
-                  <div key={d.dim} className={`flex items-center gap-4 py-3 ${idx < dimensionAnalysis.length - 1 ? 'border-b border-slate-100' : ''}`}>
-                    <div className="w-8 text-center">
+                  <div key={d.dim} className={`flex items-center gap-4 py-4 ${idx < dimensionAnalysis.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                    <div className="w-10 text-center">
                       <span 
-                        className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
                         style={{ backgroundColor: getScoreColor(d.score) }}
                       >
                         {d.dim}
@@ -1205,9 +1214,9 @@ export default function CompanyReportPage() {
                     <div className="flex-1">
                       <span className="text-sm font-medium text-slate-700">{d.name}</span>
                     </div>
-                    <div className="w-10 text-center text-xs text-slate-500">{d.weight}%</div>
-                    <div className="w-64">
-                      <div className="relative h-4 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-12 text-center text-sm text-slate-500 font-medium">{d.weight}%</div>
+                    <div className="w-72">
+                      <div className="relative h-5 bg-slate-100 rounded-full">
                         <div 
                           className="absolute left-0 top-0 h-full rounded-full transition-all"
                           style={{ 
@@ -1215,27 +1224,30 @@ export default function CompanyReportPage() {
                             backgroundColor: getScoreColor(d.score) 
                           }}
                         />
+                        {/* Benchmark triangle indicator - positioned OUTSIDE overflow container */}
                         {d.benchmark && (
                           <div 
-                            className="absolute -top-1 flex flex-col items-center"
-                            style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
+                            className="absolute flex flex-col items-center z-10"
+                            style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '-10px', transform: 'translateX(-50%)' }}
                           >
-                            <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500" />
+                            <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[10px] border-l-transparent border-r-transparent border-t-slate-600 drop-shadow-sm" />
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="w-14 text-right">
-                      <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                    <div className="w-16 text-right">
+                      <span className="text-base font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                     </div>
-                    <div className="w-20 text-center">
-                      <span className="text-xs text-slate-500">{d.benchmark}</span>
-                      <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                        ({diff >= 0 ? '+' : ''}{diff})
-                      </span>
+                    <div className="w-24 text-center">
+                      <span className="text-sm text-slate-500">{d.benchmark ?? '—'}</span>
+                      {d.benchmark && (
+                        <span className={`text-sm ml-1 font-medium ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                          ({diff >= 0 ? '+' : ''}{diff})
+                        </span>
+                      )}
                     </div>
-                    <div className="w-20 text-center">
-                      <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>
+                    <div className="w-24 text-center">
+                      <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${d.tier.bgColor} ${d.tier.textColor}`}>
                         {d.tier.name}
                       </span>
                     </div>
@@ -1244,10 +1256,10 @@ export default function CompanyReportPage() {
               })}
             
             {/* Legend */}
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-4 text-xs text-slate-400">
+            <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-end gap-6 text-sm text-slate-500">
               <span>Scores out of 100</span>
-              <span className="flex items-center gap-1">
-                <span className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
+              <span className="flex items-center gap-2">
+                <span className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[10px] border-l-transparent border-r-transparent border-t-slate-600 inline-block"></span>
                 Benchmark
               </span>
             </div>
@@ -1269,31 +1281,38 @@ export default function CompanyReportPage() {
         {/* ============ QUICK WINS SECTION ============ */}
         {quickWinOpportunities.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div className="px-10 py-5 border-b border-slate-100 bg-emerald-50">
-              <div className="flex items-center gap-3">
-                <LightbulbIcon className="w-5 h-5 text-emerald-600" />
+            <div className="px-10 py-6 border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-teal-50">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                  <LightbulbIcon className="w-6 h-6 text-emerald-600" />
+                </div>
                 <div>
-                  <h3 className="font-semibold text-emerald-900">Quick Win Opportunities</h3>
-                  <p className="text-sm text-emerald-700 mt-0.5">Initiatives already in progress that could accelerate score improvement</p>
+                  <h3 className="font-bold text-emerald-900 text-lg">Quick Win Opportunities</h3>
+                  <p className="text-sm text-emerald-700 mt-1">Initiatives already in progress that could accelerate score improvement</p>
                 </div>
               </div>
             </div>
-            <div className="px-10 py-6">
-              <p className="text-slate-600 mb-6">
+            <div className="px-10 py-8">
+              <p className="text-slate-600 mb-8 text-base leading-relaxed">
                 The following items are currently in planning or assessment phases. Converting these to active programs 
                 represents the fastest path to improving your composite score, as the organizational groundwork is already underway.
               </p>
-              <div className="grid grid-cols-2 gap-4">
-                {quickWinOpportunities.map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className={`text-xs font-medium px-2 py-1 rounded flex-shrink-0 ${
-                      item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-sky-100 text-sky-700'
+              <div className="grid grid-cols-2 gap-6">
+                {quickWinOpportunities.slice(0, 8).map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                    <span className={`text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 ${
+                      item.type === 'Planning' 
+                        ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                        : 'bg-teal-100 text-teal-700 border border-teal-200'
                     }`}>
                       {item.type}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-700">{item.name}</p>
-                      <p className="text-xs text-slate-500 mt-1">D{item.dimNum}: {item.dimName}</p>
+                      <p className="text-sm text-slate-800 font-medium leading-snug">{item.name}</p>
+                      <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
+                        <span className="w-5 h-5 rounded bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-[10px]">D{item.dimNum}</span>
+                        <span className="text-slate-400">{item.dimName}</span>
+                      </p>
                     </div>
                   </div>
                 ))}
