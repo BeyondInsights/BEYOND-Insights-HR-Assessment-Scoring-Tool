@@ -271,7 +271,8 @@ export default function CompanyReportPage() {
       const result = calculateDimensionGridScore(dimData, dim);
       dimensionScores[dim] = result?.score ?? null;
       
-      if (result?.score !== null) {
+      // Fixed: check result exists AND score is not null
+      if (result && result.score !== null && result.score !== undefined) {
         const weight = DEFAULT_DIMENSION_WEIGHTS[dim];
         weightedSum += result.score * weight;
         weightTotal += weight;
