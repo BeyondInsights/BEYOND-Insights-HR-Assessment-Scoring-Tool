@@ -238,10 +238,18 @@ function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>)
 // Maturity = OR1 only - FIXED: Legal minimum = 0 points
 function calculateMaturityScore(assessment: Record<string, any>): number {
   const currentSupport = assessment.current_support_data || {};
-  const or1 = currentSupport.or1 || '';
-  const v = String(or1).toLowerCase();
+  const or1 = currentSupport.or1;
   
-  // Map or1 text to scores (order matters - check most specific first)
+  // Handle numeric codes first (from imported data)
+  if (or1 === 6 || or1 === '6') return 100; // Comprehensive/Leading-edge
+  if (or1 === 5 || or1 === '5') return 80;  // Enhanced/Strong
+  if (or1 === 4 || or1 === '4') return 50;  // Moderate
+  if (or1 === 3 || or1 === '3') return 20;  // Developing/Basic
+  if (or1 === 2 || or1 === '2') return 0;   // Legal minimum only
+  if (or1 === 1 || or1 === '1') return 0;   // No formal approach
+  
+  // Fall back to text matching for survey app entries
+  const v = String(or1 || '').toLowerCase();
   if (v.includes('leading-edge') || v.includes('leading edge')) return 100;
   if (v.includes('comprehensive')) return 100;
   if (v.includes('enhanced') || v.includes('strong')) return 80;
@@ -262,12 +270,25 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
   const scores: number[] = [];
   
   // CB3a: Check both sources, prefer current_support_data if present
-  const cb3a = currentSupport.cb3a || generalBenefits.cb3a || '';
-  const v = String(cb3a).toLowerCase();
-  if (v.includes('yes') && v.includes('additional support')) {
-    scores.push(100);
-  } else if (v.includes('developing') || v.includes('currently developing')) {
-    scores.push(50);
+  const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
+  
+  // Handle numeric codes first (from imported data)
+  if (cb3a === 3 || cb3a === '3') {
+    scores.push(100); // Yes, we offer additional support
+  } else if (cb3a === 2 || cb3a === '2') {
+    scores.push(50); // Currently developing
+  } else if (cb3a === 1 || cb3a === '1') {
+    scores.push(0); // No additional support
+  } else if (cb3a !== undefined && cb3a !== null) {
+    // Fall back to text matching for survey app entries
+    const v = String(cb3a).toLowerCase();
+    if (v.includes('yes') && v.includes('additional support')) {
+      scores.push(100);
+    } else if (v.includes('developing') || v.includes('currently developing')) {
+      scores.push(50);
+    } else {
+      scores.push(0);
+    }
   } else {
     scores.push(0);
   }
