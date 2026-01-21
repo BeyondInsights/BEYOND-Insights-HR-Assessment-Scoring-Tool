@@ -2753,7 +2753,7 @@ export default function AggregateScoringReport() {
       
       {/* Blend Weight Settings Modal */}
       {showBlendSettings && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200]">
           <div className="bg-white rounded-xl shadow-2xl w-[600px] max-w-[90vw]">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-purple-50 rounded-t-xl">
               <div className="flex items-center gap-3">
