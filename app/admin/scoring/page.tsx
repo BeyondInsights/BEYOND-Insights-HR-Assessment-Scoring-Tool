@@ -2750,6 +2750,84 @@ export default function AggregateScoringReport() {
       {showSensitivityModal && <SensitivityAnalysisModal onClose={() => setShowSensitivityModal(false)} companyScores={companyScores} weights={weights} includePanel={includePanel} assessments={assessments} />}
       {showReliabilityModal && <ReliabilityDiagnosticsModal onClose={() => setShowReliabilityModal(false)} companyScores={companyScores} assessments={assessments} includePanel={includePanel} />}
       {showMethodologyModal && <TechnicalMethodologyModal onClose={() => setShowMethodologyModal(false)} />}
+      
+      {/* Blend Weight Settings Modal */}
+      {showBlendSettings && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-xl shadow-2xl w-[600px] max-w-[90vw]">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-purple-50 rounded-t-xl">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">S</span>
+                <div>
+                  <h3 className="font-semibold text-purple-900">Blend Weight Settings</h3>
+                  <p className="text-purple-600 text-xs">D1, D3, D12, D13 use Grid + Follow-up blend</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowBlendSettings(false)}
+                className="text-gray-400 hover:text-gray-600 p-1"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-2 gap-4">
+                {(['d1', 'd3', 'd12', 'd13'] as const).map((key) => {
+                  const dimNum = parseInt(key.substring(1));
+                  return (
+                    <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="font-semibold text-gray-800 mb-3">
+                        D{dimNum}: {DIMENSION_NAMES[dimNum].split(' ')[0]}
+                      </div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <label className="text-sm text-gray-600 w-16">Grid:</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={blendWeights[key].grid}
+                          onChange={(e) => {
+                            const newGrid = Math.max(0, Math.min(100, parseInt(e.target.value) || 0));
+                            setBlendWeights(prev => ({
+                              ...prev,
+                              [key]: { grid: newGrid, followUp: 100 - newGrid }
+                            }));
+                          }}
+                          className="w-16 px-2 py-1.5 text-center border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                        <span className="text-sm text-gray-500">%</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <label className="text-sm text-gray-600 w-16">Follow-up:</label>
+                        <span className="w-16 px-2 py-1.5 text-center bg-gray-200 rounded text-gray-700">
+                          {blendWeights[key].followUp}
+                        </span>
+                        <span className="text-sm text-gray-500">%</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-6 flex justify-between items-center">
+                <button
+                  onClick={() => setBlendWeights({ ...DEFAULT_BLEND_WEIGHTS })}
+                  className="px-4 py-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded-lg hover:bg-purple-50"
+                >
+                  Reset All to 85/15
+                </button>
+                <button
+                  onClick={() => setShowBlendSettings(false)}
+                  className="px-6 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-5 px-8 shadow-xl sticky top-0 z-40">
@@ -2978,83 +3056,7 @@ export default function AggregateScoringReport() {
         </div>
       </header>
 
-      {/* Blend Weight Settings Modal */}
-      {showBlendSettings && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-[600px] max-w-[90vw]">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-purple-50 rounded-t-xl">
-              <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">S</span>
-                <div>
-                  <h3 className="font-semibold text-purple-900">Blend Weight Settings</h3>
-                  <p className="text-purple-600 text-xs">D1, D3, D12, D13 use Grid + Follow-up blend</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowBlendSettings(false)}
-                className="text-gray-400 hover:text-gray-600 p-1"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-2 gap-4">
-                {(['d1', 'd3', 'd12', 'd13'] as const).map((key) => {
-                  const dimNum = parseInt(key.substring(1));
-                  return (
-                    <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="font-semibold text-gray-800 mb-3">
-                        D{dimNum}: {DIMENSION_NAMES[dimNum].split(' ')[0]}
-                      </div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <label className="text-sm text-gray-600 w-16">Grid:</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={blendWeights[key].grid}
-                          onChange={(e) => {
-                            const newGrid = Math.max(0, Math.min(100, parseInt(e.target.value) || 0));
-                            setBlendWeights(prev => ({
-                              ...prev,
-                              [key]: { grid: newGrid, followUp: 100 - newGrid }
-                            }));
-                          }}
-                          className="w-16 px-2 py-1.5 text-center border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        />
-                        <span className="text-sm text-gray-500">%</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <label className="text-sm text-gray-600 w-16">Follow-up:</label>
-                        <span className="w-16 px-2 py-1.5 text-center bg-gray-200 rounded text-gray-700">
-                          {blendWeights[key].followUp}
-                        </span>
-                        <span className="text-sm text-gray-500">%</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="mt-6 flex justify-between items-center">
-                <button
-                  onClick={() => setBlendWeights({ ...DEFAULT_BLEND_WEIGHTS })}
-                  className="px-4 py-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded-lg hover:bg-purple-50"
-                >
-                  Reset All to 85/15
-                </button>
-                <button
-                  onClick={() => setShowBlendSettings(false)}
-                  className="px-6 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Main Content */}
 
       {/* Main Content */}
       <main className="p-6">
