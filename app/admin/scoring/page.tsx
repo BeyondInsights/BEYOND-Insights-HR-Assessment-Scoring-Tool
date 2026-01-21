@@ -1974,10 +1974,10 @@ function ReliabilityDiagnosticsModal({
                             <td className="py-2 px-2 text-center text-red-600">{Math.round(min)}</td>
                             <td className="py-2 px-2 text-center text-green-600">{Math.round(max)}</td>
                             <td className={`py-2 px-2 text-center ${floor > 0 ? 'text-red-600 font-bold' : 'text-gray-400'}`}>
-                              {floor}
+                              {floor > 0 ? `${floor} (${Math.round(floor / n * 100)}%)` : '0'}
                             </td>
                             <td className={`py-2 px-2 text-center ${ceiling > n * 0.3 ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>
-                              {ceiling}
+                              {ceiling > 0 ? `${ceiling} (${Math.round(ceiling / n * 100)}%)` : '0'}
                             </td>
                           </tr>
                         );
@@ -1988,7 +1988,7 @@ function ReliabilityDiagnosticsModal({
               </section>
               
               <div className="bg-gray-100 rounded-lg p-4 text-xs text-gray-600 space-y-2">
-                <p><strong>Floor/Ceiling Effects:</strong> High counts indicate poor differentiation at score extremes.</p>
+                <p><strong>Floor/Ceiling Effects:</strong> High percentages indicate poor differentiation at score extremes. Floor &gt;10% or Ceiling &gt;30% may warrant item review.</p>
                 <p><strong>Standard Deviation:</strong> Low SD suggests limited variability (potential measurement issue).</p>
               </div>
             </div>
@@ -2561,6 +2561,9 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                   <li><strong>Tier thresholds are crossing points</strong> — companies near boundaries shift tiers when scores compress</li>
                   <li><strong>Status point values reflect design intent</strong> — the index deliberately values companies actively planning or assessing improvements</li>
                 </ol>
+                <p className="text-sm text-blue-800 mt-2 italic">
+                  A reviewer who argues for different point values is proposing a different construct definition (e.g., "only implemented policies matter"), not exposing a methodological flaw.
+                </p>
               </div>
             </div>
           )}
