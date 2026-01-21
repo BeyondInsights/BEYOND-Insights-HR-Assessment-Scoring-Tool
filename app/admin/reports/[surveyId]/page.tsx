@@ -517,8 +517,10 @@ export default function CompanyReportPage() {
   }
 
   const companyName = company.company_name || 'Company';
-  const contactName = company.contact_name || company.firmographics_data?.contact_name || '';
-  const contactEmail = company.contact_email || company.firmographics_data?.contact_email || '';
+  // Check multiple possible locations for contact info
+  const firmographics = company.firmographics_data || {};
+  const contactName = company.contact_name || firmographics.f2 || firmographics.contact_name || firmographics.respondent_name || '';
+  const contactEmail = company.contact_email || firmographics.f3 || firmographics.contact_email || firmographics.respondent_email || firmographics.email || '';
   const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, tier } = companyScores;
 
   // Analyze dimensions
@@ -980,6 +982,81 @@ export default function CompanyReportPage() {
             </div>
           </div>
         )}
+
+        {/* ============ HOW CAC CAN HELP ============ */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
+          <div className="px-10 py-6 bg-gradient-to-r from-purple-700 to-purple-600">
+            <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help</h3>
+            <p className="text-purple-200 text-sm mt-1">Tailored support to enhance the employee experience</p>
+          </div>
+          <div className="px-10 py-6">
+            <p className="text-slate-600 mb-6 leading-relaxed">
+              Every organization enters this work from a different place. Cancer and Careers' consulting practice 
+              helps organizations understand where they are, identify where they want to be, and build a realistic 
+              path to get there—shaped by two decades of frontline experience with employees navigating cancer 
+              and the HR teams supporting them.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* Manager Training */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h4 className="font-semibold text-amber-800 text-sm mb-2">Manager Preparedness & Training</h4>
+                <p className="text-xs text-slate-600 mb-2">76% of employees go to their manager first at disclosure—yet only 48% believe their manager has received training.</p>
+                <ul className="text-xs text-slate-500 space-y-1">
+                  <li>• Live training sessions with case studies</li>
+                  <li>• Manager toolkit & conversation guides</li>
+                  <li>• Train-the-trainer programs</li>
+                </ul>
+              </div>
+              
+              {/* Navigation */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-800 text-sm mb-2">Navigation & Resource Architecture</h4>
+                <p className="text-xs text-slate-600 mb-2">Only 34% of employees know where to find resources. Programs exist but can be difficult to access when needed most.</p>
+                <ul className="text-xs text-slate-500 space-y-1">
+                  <li>• Resource audit & gap analysis</li>
+                  <li>• Single-entry-point design</li>
+                  <li>• Communication strategy</li>
+                </ul>
+              </div>
+              
+              {/* Return to Work */}
+              <div className="bg-rose-50 border border-rose-200 rounded-lg p-4">
+                <h4 className="font-semibold text-rose-800 text-sm mb-2">Return-to-Work Excellence</h4>
+                <p className="text-xs text-slate-600 mb-2">Support ratings drop from 54% during treatment to 22% after—the largest variance in the employee experience.</p>
+                <ul className="text-xs text-slate-500 space-y-1">
+                  <li>• Phased return protocols</li>
+                  <li>• Check-in cadence design</li>
+                  <li>• Career continuity planning</li>
+                </ul>
+              </div>
+              
+              {/* Policy Assessment */}
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                <h4 className="font-semibold text-emerald-800 text-sm mb-2">Policy & Program Assessment</h4>
+                <p className="text-xs text-slate-600 mb-2">Many organizations have policies that look comprehensive on paper but fall short in practice.</p>
+                <ul className="text-xs text-slate-500 space-y-1">
+                  <li>• Comprehensive policy review</li>
+                  <li>• Implementation audit</li>
+                  <li>• Business case development</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-700">Ready to take the next step?</p>
+                  <p className="text-xs text-slate-500 mt-1">Contact Cancer and Careers to discuss how we can support your organization's journey.</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-purple-700">cancerandcareers.org</p>
+                  <p className="text-xs text-slate-500">bestcompanies@cew.org</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* ============ FOOTER ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
