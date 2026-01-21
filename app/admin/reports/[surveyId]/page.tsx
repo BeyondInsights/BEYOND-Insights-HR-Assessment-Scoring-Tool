@@ -519,8 +519,21 @@ export default function CompanyReportPage() {
   const companyName = company.company_name || 'Company';
   // Check multiple possible locations for contact info
   const firmographics = company.firmographics_data || {};
-  const contactName = company.contact_name || firmographics.f2 || firmographics.contact_name || firmographics.respondent_name || '';
-  const contactEmail = company.contact_email || firmographics.f3 || firmographics.contact_email || firmographics.respondent_email || firmographics.email || '';
+  
+  // The firmographics uses firstName and lastName (not contact_name)
+  const firstName = firmographics.firstName || '';
+  const lastName = firmographics.lastName || '';
+  const contactName = firstName && lastName 
+    ? `${firstName} ${lastName}` 
+    : (company.contact_name || firmographics.contact_name || '');
+    
+  // Email might be stored at top level or in firmographics
+  const contactEmail = company.contact_email 
+    || company.email
+    || firmographics.email
+    || firmographics.contact_email 
+    || '';
+  
   const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, tier } = companyScores;
 
   // Analyze dimensions
