@@ -67,7 +67,7 @@ export const SCORING_CONFIG = {
     9: 'Executive Commitment & Resources',
     10: 'Caregiver & Family Support',
     11: 'Prevention & Wellness',
-    12: 'Continuous Improvement & Outcomes',
+    12: 'Continuous Improvement',
     13: 'Communication & Awareness',
   } as Record<number, string>,
 };
