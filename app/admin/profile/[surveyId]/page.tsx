@@ -308,51 +308,78 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
   const currentSupport = assessment.current_support_data || {};
   const generalBenefits = assessment.general_benefits_data || {};
   
+  // DEBUG: Log what we're getting
+  console.log('=== BREADTH DEBUG ===');
+  console.log('current_support_data.cb3a:', currentSupport.cb3a);
+  console.log('general_benefits_data.cb3a:', generalBenefits.cb3a);
+  console.log('current_support_data.cb3b:', currentSupport.cb3b);
+  console.log('general_benefits_data.cb3b:', generalBenefits.cb3b);
+  console.log('current_support_data.cb3c:', currentSupport.cb3c);
+  console.log('general_benefits_data.cb3c:', generalBenefits.cb3c);
+  
   const scores: number[] = [];
   
   // CB3a: Check both sources, prefer current_support_data if present
   const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
+  console.log('Final cb3a:', cb3a);
   
   // Handle numeric codes first (from imported data)
   if (cb3a === 3 || cb3a === '3') {
     scores.push(100); // Yes, we offer additional support
+    console.log('cb3a score: 100 (numeric 3)');
   } else if (cb3a === 2 || cb3a === '2') {
     scores.push(50); // Currently developing
+    console.log('cb3a score: 50 (numeric 2)');
   } else if (cb3a === 1 || cb3a === '1') {
     scores.push(0); // No additional support
+    console.log('cb3a score: 0 (numeric 1)');
   } else if (cb3a !== undefined && cb3a !== null) {
     // Fall back to text matching for survey app entries
     const v = String(cb3a).toLowerCase();
     if (v.includes('yes') && v.includes('additional support')) {
       scores.push(100);
+      console.log('cb3a score: 100 (text match)');
     } else if (v.includes('developing') || v.includes('currently developing')) {
       scores.push(50);
+      console.log('cb3a score: 50 (text match)');
     } else {
       scores.push(0);
+      console.log('cb3a score: 0 (no text match, value was:', v, ')');
     }
   } else {
     scores.push(0);
+    console.log('cb3a score: 0 (undefined/null)');
   }
   
   // CB3b: Check both sources
   const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
+  console.log('Final cb3b:', cb3b);
   if (cb3b && Array.isArray(cb3b)) {
     const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
     scores.push(cb3bScore);
+    console.log('cb3b score:', cb3bScore, '(', cb3b.length, 'items)');
   } else {
     scores.push(0);
+    console.log('cb3b score: 0 (not array or empty)');
   }
   
   // CB3c: Check both sources
   const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
+  console.log('Final cb3c:', cb3c);
   if (cb3c && Array.isArray(cb3c)) {
     const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
     scores.push(cb3cScore);
+    console.log('cb3c score:', cb3cScore, '(', cb3c.length, 'items)');
   } else {
     scores.push(0);
+    console.log('cb3c score: 0 (not array or empty)');
   }
   
-  return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+  const finalScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+  console.log('Final breadth score:', finalScore, 'from scores:', scores);
+  console.log('=== END BREADTH DEBUG ===');
+  
+  return finalScore;
 }
 
 // ============================================
