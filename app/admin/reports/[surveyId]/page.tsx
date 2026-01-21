@@ -377,11 +377,14 @@ export default function CompanyReportPage() {
           const benchmarkScores = calculateBenchmarks(allAssessments);
           setBenchmarks(benchmarkScores);
           
-          // Calculate percentile ranking (only complete assessments with all 13 dimensions)
+          // Calculate percentile ranking - same filter as benchmarks
           const completeAssessments = allAssessments.filter(a => {
             let completedDims = 0;
             for (let dim = 1; dim <= 13; dim++) {
-              if (a[`dimension${dim}_data`]?.[`d${dim}a`]) completedDims++;
+              const mainGrid = a[`dimension${dim}_data`]?.[`d${dim}a`];
+              if (mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0) {
+                completedDims++;
+              }
             }
             return completedDims === 13;
           });
@@ -517,13 +520,19 @@ export default function CompanyReportPage() {
   }
 
   function calculateBenchmarks(assessments: any[]) {
-    // Filter for COMPLETE assessments only (all 13 dimensions) - matches scoring page
+    // Filter for COMPLETE assessments - must have items in ALL 13 dimensions
+    // This matches the scoring page's isComplete = completedDimCount === 13
+    // where a dimension is counted if totalItems > 0
     const complete = assessments.filter(a => {
       let completedDims = 0;
       for (let dim = 1; dim <= 13; dim++) {
-        if (a[`dimension${dim}_data`]?.[`d${dim}a`]) completedDims++;
+        const mainGrid = a[`dimension${dim}_data`]?.[`d${dim}a`];
+        // Must be a non-empty object (has at least one item)
+        if (mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0) {
+          completedDims++;
+        }
       }
-      return completedDims === 13; // Must have ALL 13 dimensions (not >= 10)
+      return completedDims === 13;
     });
     
     if (complete.length === 0) return null;
@@ -789,28 +798,28 @@ export default function CompanyReportPage() {
               )}.
             </p>
             
-            <div className="mt-6 flex items-center gap-8">
-              <div className="flex items-center gap-3">
-                {tierCounts.exemplary + tierCounts.leading > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-3xl font-bold text-emerald-600">{tierCounts.exemplary + tierCounts.leading}</span>
-                    <span className="text-sm text-slate-500">dimensions at<br/>Leading or above</span>
-                  </div>
-                )}
-              </div>
-              <div className="h-10 w-px bg-slate-200"></div>
-              <div className="flex items-center gap-3">
-                {tierCounts.progressing + tierCounts.emerging + tierCounts.developing > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-3xl font-bold text-amber-600">{tierCounts.progressing + tierCounts.emerging + tierCounts.developing}</span>
-                    <span className="text-sm text-slate-500">dimensions with<br/>growth opportunity</span>
-                  </div>
-                )}
-              </div>
+            <div className="mt-6 flex items-center gap-12">
+              {tierCounts.exemplary + tierCounts.leading > 0 && (
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl font-bold text-emerald-600">{tierCounts.exemplary + tierCounts.leading}</span>
+                  <span className="text-sm text-slate-500">dimensions at<br/>Leading or above</span>
+                </div>
+              )}
+              {tierCounts.exemplary + tierCounts.leading > 0 && (tierCounts.progressing + tierCounts.emerging + tierCounts.developing > 0 || percentileRank !== null) && (
+                <div className="h-10 w-px bg-slate-200"></div>
+              )}
+              {tierCounts.progressing + tierCounts.emerging + tierCounts.developing > 0 && (
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl font-bold text-amber-600">{tierCounts.progressing + tierCounts.emerging + tierCounts.developing}</span>
+                  <span className="text-sm text-slate-500">dimensions with<br/>growth opportunity</span>
+                </div>
+              )}
               {percentileRank !== null && (
                 <>
-                  <div className="h-10 w-px bg-slate-200"></div>
-                  <div className="flex items-center gap-2">
+                  {(tierCounts.progressing + tierCounts.emerging + tierCounts.developing > 0 || tierCounts.exemplary + tierCounts.leading > 0) && (
+                    <div className="h-10 w-px bg-slate-200"></div>
+                  )}
+                  <div className="flex items-center gap-3">
                     <span className="text-3xl font-bold text-purple-600">{percentileRank}<sup className="text-lg">th</sup></span>
                     <span className="text-sm text-slate-500">percentile<br/>of {totalCompanies} companies</span>
                   </div>
