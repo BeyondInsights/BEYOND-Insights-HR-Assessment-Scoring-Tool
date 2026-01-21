@@ -1884,20 +1884,20 @@ function ReliabilityDiagnosticsModal({
                         const quality = getAlphaQuality(stat.alpha);
                         return (
                           <tr key={stat.dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                            <td className="py-2.5 px-4 font-medium">
+                            <td className="py-2 px-4 font-medium">
                               <span className="text-cyan-600 font-bold">D{stat.dim}:</span>{' '}
                               {stat.name.length > 20 ? stat.name.substring(0, 20) + '...' : stat.name}
                             </td>
-                            <td className="py-2.5 px-3 text-center">{stat.itemCount}</td>
-                            <td className="py-2.5 px-3 text-center text-gray-500">{stat.validN}</td>
-                            <td className="py-2.5 px-3 text-center font-bold text-lg">{stat.alpha.toFixed(2)}</td>
-                            <td className="py-2.5 px-3 text-center">
+                            <td className="py-2 px-3 text-center">{stat.itemCount}</td>
+                            <td className="py-2 px-3 text-center text-gray-500">{stat.validN}</td>
+                            <td className="py-2 px-3 text-center font-bold text-lg">{stat.alpha.toFixed(2)}</td>
+                            <td className="py-2 px-3 text-center">
                               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${quality.color}`}>
                                 {quality.label}
                               </span>
                             </td>
-                            <td className="py-2.5 px-3 text-center">{stat.mean}</td>
-                            <td className="py-2.5 px-3 text-center text-gray-500">{stat.std}</td>
+                            <td className="py-2 px-3 text-center">{stat.mean}</td>
+                            <td className="py-2 px-3 text-center text-gray-500">{stat.std}</td>
                           </tr>
                         );
                       })}
@@ -2124,8 +2124,7 @@ function ScoreCell({
   isProvisional, 
   size = 'normal',
   viewMode = 'score',
-  benchmark = null,
-  showBar = false
+  benchmark = null
 }: { 
   score: number | null; 
   isComplete: boolean; 
@@ -2133,7 +2132,6 @@ function ScoreCell({
   size?: 'normal' | 'large';
   viewMode?: 'score' | 'index';
   benchmark?: number | null;
-  showBar?: boolean;
 }) {
   if (score === null || score === undefined || isNaN(score)) {
     return <span className="text-gray-300 text-xs">—</span>;
@@ -2152,23 +2150,13 @@ function ScoreCell({
   const color = getScoreColor(safeScore);
   const isHighUnsure = isProvisional;
   
-  // Mini bar background for visual context
-  const barWidth = Math.min(100, Math.max(0, safeScore));
-  const barColor = safeScore >= 80 ? 'bg-emerald-200' : safeScore >= 60 ? 'bg-blue-200' : safeScore >= 40 ? 'bg-amber-200' : 'bg-red-200';
-  
   return (
     <span 
-      className={`relative font-bold ${size === 'large' ? 'text-xl' : 'text-sm'} ${isHighUnsure ? 'ring-2 ring-amber-400 ring-offset-1 rounded px-1' : ''}`}
+      className={`font-bold ${size === 'large' ? 'text-xl' : 'text-sm'} ${isHighUnsure ? 'ring-2 ring-amber-400 ring-offset-1 rounded px-1' : ''}`}
       style={{ color }}
-      title={isHighUnsure ? 'High % of "Unsure" responses - Provisional' : `Score: ${safeScore}`}
+      title={isHighUnsure ? 'High % of "Unsure" responses - Provisional' : undefined}
     >
-      {showBar && (
-        <span 
-          className={`absolute inset-0 ${barColor} opacity-30 rounded-sm`}
-          style={{ width: `${barWidth}%`, left: 0 }}
-        />
-      )}
-      <span className="relative z-10">{displayValue}</span>
+      {displayValue}
     </span>
   );
 }
@@ -2763,26 +2751,6 @@ export default function AggregateScoringReport() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Global styles for enhanced table appearance */}
-      <style jsx global>{`
-        /* Shadow on last sticky column for visual separation */
-        td[style*="left: ${STICKY_LEFT_9}"], th[style*="left: ${STICKY_LEFT_9}"] {
-          box-shadow: 4px 0 8px -4px rgba(0, 0, 0, 0.15);
-        }
-        /* Smooth row transitions */
-        tr {
-          transition: background-color 0.15s ease;
-        }
-        /* Score cell hover effect */
-        td:hover .score-bar {
-          opacity: 0.5;
-        }
-        /* Print styles */
-        @media print {
-          .no-print { display: none !important; }
-          tr { break-inside: avoid; }
-        }
-      `}</style>
       {showDimensionModal && <DimensionScoringModal onClose={() => setShowDimensionModal(false)} defaultWeights={DEFAULT_DIMENSION_WEIGHTS} />}
       {showCompositeModal && <CompositeModal onClose={() => setShowCompositeModal(false)} compositeWeights={compositeWeights} />}
       {showTierStatsModal && <TierStatsModal onClose={() => setShowTierStatsModal(false)} companyScores={companyScores} includePanel={includePanel} />}
@@ -3189,12 +3157,10 @@ export default function AggregateScoringReport() {
                     </th>
                     {sortedCompanies.map(company => (
                       <th key={company.surveyId} 
-                          className="px-2 py-2 text-center font-medium border-r last:border-r-0 text-white group/header"
-                          style={{ position: 'sticky', top: 36, zIndex: 100, backgroundColor: company.isPanel ? '#D97706' : company.isFoundingPartner ? '#7C3AED' : '#475569', minWidth: '85px' }}>
-                        <Link href={`/admin/profile/${company.surveyId}`} className="text-xs hover:underline block text-white" title={company.companyName}>
-                          <span className="block truncate max-w-[80px]" style={{ writingMode: company.companyName.length > 15 ? 'vertical-rl' : 'horizontal-tb', textOrientation: 'mixed', transform: company.companyName.length > 15 ? 'rotate(180deg)' : 'none', height: company.companyName.length > 15 ? '70px' : 'auto', lineHeight: company.companyName.length > 15 ? '1' : 'inherit' }}>
-                            {company.companyName.length > 18 ? company.companyName.substring(0, 16) + '…' : company.companyName}
-                          </span>
+                          className="px-2 py-2 text-center font-medium border-r last:border-r-0 text-white relative group/header"
+                          style={{ position: 'sticky', top: 36, zIndex: 100, backgroundColor: company.isPanel ? '#D97706' : company.isFoundingPartner ? '#7C3AED' : '#475569', minWidth: '80px' }}>
+                        <Link href={`/admin/profile/${company.surveyId}`} className="text-xs hover:underline block truncate text-white" title={company.companyName}>
+                          {company.companyName.length > 12 ? company.companyName.substring(0, 11) + '…' : company.companyName}
                         </Link>
                         <div className="flex items-center justify-center gap-1 mt-0.5">
                           <span className="text-[10px] opacity-70">{company.completedDimCount}/13</span>
@@ -3326,7 +3292,7 @@ export default function AggregateScoringReport() {
                   
                   <tr>
                     <td colSpan={9 + sortedCompanies.length} className="bg-gradient-to-r from-purple-100 to-indigo-100 border-y-2 border-purple-300">
-                      <div className="px-4 py-2.5 flex items-center gap-3">
+                      <div className="px-4 py-2 flex items-center gap-3">
                         <span className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">★</span>
                         <div>
                           <span className="font-bold text-purple-900 text-lg">Composite Score</span>
@@ -3403,44 +3369,44 @@ export default function AggregateScoringReport() {
                   {/* Composite Tier Row */}
                   {compositeWeightsValid && weightsValid && (
                     <tr className="bg-white border-b-2 border-purple-200">
-                      <td className="px-4 py-2.5 bg-white border-r border-gray-200"
+                      <td className="px-4 py-2 bg-white border-r border-gray-200"
                           style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                         <span className="font-semibold text-gray-700 flex items-center gap-2 ml-8">
                           Composite Tier
                         </span>
                       </td>
-                      <td className="px-2 py-2.5 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
+                      <td className="px-2 py-2 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
                           style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}></td>
-                      <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
+                      <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
                         {averages.composite.total !== null && <TierBadge score={averages.composite.total} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-violet-50 border-r border-violet-100"
+                      <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
                         {averages.composite.fp !== null && <TierBadge score={averages.composite.fp} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
                         {averages.composite.std !== null && <TierBadge score={averages.composite.std} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
+                      <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
                         {averages.composite.panel !== null && <TierBadge score={averages.composite.panel} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
                         {averages.composite.single !== null && <TierBadge score={averages.composite.single} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-blue-50 border-r border-blue-100"
+                      <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
                         {averages.composite.regional !== null && <TierBadge score={averages.composite.regional} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-purple-50 border-r border-purple-100"
+                      <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                         {averages.composite.global !== null && <TierBadge score={averages.composite.global} isComplete={true} size="small" />}
                       </td>
                       {sortedCompanies.map(company => (
-                        <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${
+                        <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
                           company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
                         }`}>
                           <TierBadge score={company.compositeScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="small" />
@@ -3628,19 +3594,14 @@ export default function AggregateScoringReport() {
                   {/* SECTION 2: DIMENSION SCORES */}
                   {/* ============================================ */}
                   
-                  {/* Visual break / spacer between sections */}
-                  <tr>
-                    <td colSpan={9 + sortedCompanies.length} className="h-3 bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100"></td>
-                  </tr>
-                  
                   <tr>
                     <td colSpan={9 + sortedCompanies.length} className="bg-gradient-to-r from-blue-100 to-indigo-100 border-y-2 border-blue-300">
-                      <div className="px-4 py-3 flex items-center gap-3">
-                        <span className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-lg">D</span>
+                      <div className="px-4 py-2 flex items-center gap-3">
+                        <span className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">D</span>
                         <div>
                           <span className="font-bold text-blue-900 text-lg">Dimension Scores</span>
                           <span className="text-blue-600 text-sm ml-2">(13 Assessment Areas)</span>
-                          <span className="text-blue-500 text-xs ml-3 italic">Click dimension name to sort</span>
+                          <span className="text-blue-500 text-xs ml-3 opacity-70">Click dimension name to sort</span>
                         </div>
                       </div>
                     </td>
@@ -3649,7 +3610,7 @@ export default function AggregateScoringReport() {
                   {/* Dimension Rows */}
                   {DIMENSION_ORDER.map((dim, idx) => (
                     <tr key={dim} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/70'} hover:bg-blue-50/50 transition-colors group/row`}>
-                      <td className={`px-4 py-2.5 border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/70'} group-hover/row:bg-blue-50/50 transition-colors`}
+                      <td className={`px-4 py-2 border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/70'} group-hover/row:bg-blue-50/50 transition-colors`}
                           style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                         <button 
                           onClick={() => handleSort(`dim${dim}` as `dim${number}`)}
@@ -3678,36 +3639,36 @@ export default function AggregateScoringReport() {
                           }`}
                         />
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
+                      <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.total ?? null} isComplete={true} showBar />
+                        <ScoreCell score={averages.dimensions[dim]?.total ?? null} isComplete={true} />
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-violet-50 border-r border-violet-100"
+                      <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.fp ?? null} isComplete={true} showBar />
+                        <ScoreCell score={averages.dimensions[dim]?.fp ?? null} isComplete={true} />
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.std ?? null} isComplete={true} showBar />
+                        <ScoreCell score={averages.dimensions[dim]?.std ?? null} isComplete={true} />
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
+                      <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.panel ?? null} isComplete={true} showBar />
+                        <ScoreCell score={averages.dimensions[dim]?.panel ?? null} isComplete={true} />
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.single ?? null} isComplete={true} showBar />
+                        <ScoreCell score={averages.dimensions[dim]?.single ?? null} isComplete={true} />
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-blue-50 border-r border-blue-100"
+                      <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.regional ?? null} isComplete={true} showBar />
+                        <ScoreCell score={averages.dimensions[dim]?.regional ?? null} isComplete={true} />
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-purple-50 border-r border-purple-100"
+                      <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.global ?? null} isComplete={true} showBar />
+                        <ScoreCell score={averages.dimensions[dim]?.global ?? null} isComplete={true} />
                       </td>
                       {sortedCompanies.map(company => (
-                        <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-gray-100 last:border-r-0 group-hover/row:bg-blue-50/30 transition-colors ${
+                        <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 group-hover/row:bg-blue-50/30 transition-colors ${
                           company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
                         }`}>
                           <ScoreCell 
@@ -3716,7 +3677,7 @@ export default function AggregateScoringReport() {
                             isProvisional={company.dimensions[dim].isInsufficientData}
                             viewMode={viewMode}
                             benchmark={averages.dimensions[dim]?.total}
-                            showBar
+                           
                           />
                         </td>
                       ))}
@@ -3758,42 +3719,42 @@ export default function AggregateScoringReport() {
                   
                   {/* Unweighted Average Row */}
                   <tr className="bg-blue-50 border-t-2 border-blue-200 hover:bg-blue-100/70 transition-colors group/row">
-                    <td className="px-4 py-2.5 border-r border-blue-200 bg-blue-50"
+                    <td className="px-4 py-2 border-r border-blue-200 bg-blue-50"
                         style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                       <span className="font-semibold text-blue-800">Unweighted Dimension Score</span>
                     </td>
-                    <td className="px-2 py-2.5 text-center text-xs text-blue-600 border-r border-blue-200 bg-blue-50"
+                    <td className="px-2 py-2 text-center text-xs text-blue-600 border-r border-blue-200 bg-blue-50"
                         style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>avg</td>
-                    <td className="px-2 py-2.5 text-center bg-indigo-100 border-r border-indigo-200 font-bold"
+                    <td className="px-2 py-2 text-center bg-indigo-100 border-r border-indigo-200 font-bold"
                         style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5, color: getScoreColor(averages.unweighted.total ?? 0) }}>
                       {averages.unweighted.total ?? '—'}
                     </td>
-                    <td className="px-2 py-2.5 text-center bg-violet-100 border-r border-violet-200 font-bold"
+                    <td className="px-2 py-2 text-center bg-violet-100 border-r border-violet-200 font-bold"
                         style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5, color: getScoreColor(averages.unweighted.fp ?? 0) }}>
                       {averages.unweighted.fp ?? '—'}
                     </td>
-                    <td className="px-2 py-2.5 text-center bg-slate-100 border-r border-slate-200 font-bold"
+                    <td className="px-2 py-2 text-center bg-slate-100 border-r border-slate-200 font-bold"
                         style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5, color: getScoreColor(averages.unweighted.std ?? 0) }}>
                       {averages.unweighted.std ?? '—'}
                     </td>
-                    <td className="px-2 py-2.5 text-center bg-amber-100 border-r border-amber-200 font-bold"
+                    <td className="px-2 py-2 text-center bg-amber-100 border-r border-amber-200 font-bold"
                         style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5, color: getScoreColor(averages.unweighted.panel ?? 0) }}>
                       {averages.unweighted.panel ?? '—'}
                     </td>
-                    <td className="px-2 py-2.5 text-center bg-slate-100 border-r border-slate-200 font-bold"
+                    <td className="px-2 py-2 text-center bg-slate-100 border-r border-slate-200 font-bold"
                         style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5, color: getScoreColor(averages.unweighted.single ?? 0) }}>
                       {averages.unweighted.single ?? '—'}
                     </td>
-                    <td className="px-2 py-2.5 text-center bg-blue-100 border-r border-blue-200 font-bold"
+                    <td className="px-2 py-2 text-center bg-blue-100 border-r border-blue-200 font-bold"
                         style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5, color: getScoreColor(averages.unweighted.regional ?? 0) }}>
                       {averages.unweighted.regional ?? '—'}
                     </td>
-                    <td className="px-2 py-2.5 text-center bg-purple-100 border-r border-purple-200 font-bold"
+                    <td className="px-2 py-2 text-center bg-purple-100 border-r border-purple-200 font-bold"
                         style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.unweighted.global ?? 0) }}>
                       {averages.unweighted.global ?? '—'}
                     </td>
                     {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-blue-100 last:border-r-0 ${
+                      <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-blue-100 last:border-r-0 ${
                         company.isPanel ? 'bg-amber-100/50' : company.isFoundingPartner ? 'bg-violet-100/50' : 'bg-blue-50'
                       }`}>
                         <ScoreCell score={company.unweightedScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.unweighted.total} />
@@ -3863,44 +3824,44 @@ export default function AggregateScoringReport() {
                   {/* Dimension Tier Row */}
                   {weightsValid && (
                     <tr className="bg-white hover:bg-gray-50/70 transition-colors group/row">
-                      <td className="px-4 py-2.5 bg-white border-r border-gray-200"
+                      <td className="px-4 py-2 bg-white border-r border-gray-200"
                           style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
                         <span className="font-semibold text-gray-700 flex items-center gap-2 ml-8">
                           Dimension Tier
                         </span>
                       </td>
-                      <td className="px-2 py-2.5 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
+                      <td className="px-2 py-2 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
                           style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}></td>
-                      <td className="px-2 py-2.5 text-center bg-indigo-50 border-r border-indigo-100"
+                      <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
                         {averages.weighted.total !== null && <TierBadge score={averages.weighted.total} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-violet-50 border-r border-violet-100"
+                      <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
                         {averages.weighted.fp !== null && <TierBadge score={averages.weighted.fp} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
                         {averages.weighted.std !== null && <TierBadge score={averages.weighted.std} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-amber-50 border-r border-amber-100"
+                      <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
                         {averages.weighted.panel !== null && <TierBadge score={averages.weighted.panel} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-slate-50 border-r border-slate-100"
+                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
                         {averages.weighted.single !== null && <TierBadge score={averages.weighted.single} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-blue-50 border-r border-blue-100"
+                      <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
                         {averages.weighted.regional !== null && <TierBadge score={averages.weighted.regional} isComplete={true} size="small" />}
                       </td>
-                      <td className="px-2 py-2.5 text-center bg-purple-50 border-r border-purple-100"
+                      <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
                           style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                         {averages.weighted.global !== null && <TierBadge score={averages.weighted.global} isComplete={true} size="small" />}
                       </td>
                       {sortedCompanies.map(company => (
-                        <td key={company.surveyId} className={`px-2 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${
+                        <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
                           company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
                         }`}>
                           <TierBadge score={company.weightedScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="small" />
