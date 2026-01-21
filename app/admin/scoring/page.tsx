@@ -3216,7 +3216,7 @@ export default function AggregateScoringReport() {
                       REG
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-purple-500"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#9333EA', boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.6)', borderRight: '2px solid #1e293b' }}
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#9333EA' }}
                         title="Global (10+ countries)">
                       GLB
                     </th>
@@ -3267,7 +3267,7 @@ export default function AggregateScoringReport() {
                       <span className="text-[10px] text-slate-400">n={averages.counts.regional}</span>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155', boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.6)', borderRight: '2px solid #1e293b' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.global}</span>
                     </th>
                     {sortedCompanies.map(company => (
@@ -3329,7 +3329,7 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', top: 124, left: STICKY_LEFT_8, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155', boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.6)', borderRight: '2px solid #1e293b' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     {sortedCompanies.map(company => {
                       const conf = company.dataConfidence.percent;
@@ -3408,7 +3408,7 @@ export default function AggregateScoringReport() {
                           {averages.composite.regional ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-purple-100 border-r border-purple-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.composite.global ?? 0), boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.5)', borderRight: '2px solid #cbd5e1' }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.composite.global ?? 0) }}>
                           {averages.composite.global ?? '—'}
                         </td>
                         {sortedCompanies.map(company => (
@@ -3467,7 +3467,7 @@ export default function AggregateScoringReport() {
                         {averages.composite.regional !== null && <TierBadge score={averages.composite.regional} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.5)', borderRight: '2px solid #cbd5e1' }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                         {averages.composite.global !== null && <TierBadge score={averages.composite.global} isComplete={true} size="small" />}
                       </td>
                       {sortedCompanies.map(company => (
@@ -3533,7 +3533,7 @@ export default function AggregateScoringReport() {
                       <ScoreCell score={averages.weighted.regional} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.5)', borderRight: '2px solid #cbd5e1' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                       <ScoreCell score={averages.weighted.global} isComplete={true} />
                     </td>
                     {sortedCompanies.map(company => (
@@ -3588,7 +3588,7 @@ export default function AggregateScoringReport() {
                       <ScoreCell score={averages.maturity.regional} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.5)', borderRight: '2px solid #cbd5e1' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                       <ScoreCell score={averages.maturity.global} isComplete={true} />
                     </td>
                     {sortedCompanies.map(company => (
@@ -3643,7 +3643,7 @@ export default function AggregateScoringReport() {
                       <ScoreCell score={averages.breadth.regional} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.5)', borderRight: '2px solid #cbd5e1' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                       <ScoreCell score={averages.breadth.global} isComplete={true} />
                     </td>
                     {sortedCompanies.map(company => (
@@ -3729,7 +3729,7 @@ export default function AggregateScoringReport() {
                         <ScoreCell score={averages.dimensions[dim]?.regional ?? null} isComplete={true} />
                       </td>
                       <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.5)', borderRight: '2px solid #cbd5e1' }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                         <ScoreCell score={averages.dimensions[dim]?.global ?? null} isComplete={true} />
                       </td>
                       {sortedCompanies.map(company => (
@@ -3815,7 +3815,7 @@ export default function AggregateScoringReport() {
                       {averages.unweighted.regional ?? '—'}
                     </td>
                     <td className="px-2 py-2 text-center bg-purple-100 border-r border-purple-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.unweighted.global ?? 0), boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.5)', borderRight: '2px solid #cbd5e1' }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.unweighted.global ?? 0) }}>
                       {averages.unweighted.global ?? '—'}
                     </td>
                     {sortedCompanies.map(company => (
@@ -3868,7 +3868,7 @@ export default function AggregateScoringReport() {
                           {averages.weighted.regional ?? '—'}
                         </td>
                         <td className="px-2 py-3 text-center bg-purple-100 border-r border-purple-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.weighted.global ?? 0), boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.5)', borderRight: '2px solid #cbd5e1' }}>
+                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.weighted.global ?? 0) }}>
                           {averages.weighted.global ?? '—'}
                         </td>
                         {sortedCompanies.map(company => (
@@ -3922,7 +3922,7 @@ export default function AggregateScoringReport() {
                         {averages.weighted.regional !== null && <TierBadge score={averages.weighted.regional} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '8px 0 16px -4px rgba(0, 0, 0, 0.5)', borderRight: '2px solid #cbd5e1' }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
                         {averages.weighted.global !== null && <TierBadge score={averages.weighted.global} isComplete={true} size="small" />}
                       </td>
                       {sortedCompanies.map(company => (
