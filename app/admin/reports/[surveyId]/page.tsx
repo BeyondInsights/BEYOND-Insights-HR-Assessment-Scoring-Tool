@@ -110,19 +110,20 @@ const DIMENSION_QUESTION_COUNTS: Record<number, number> = {
 // ============================================
 
 function getTier(score: number): { name: string; color: string; bgColor: string; textColor: string; borderColor: string } {
-  if (score >= 90) return { name: 'Exemplary', color: '#7C3AED', bgColor: 'bg-purple-50', textColor: 'text-purple-700', borderColor: 'border-purple-200' };
-  if (score >= 75) return { name: 'Leading', color: '#059669', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200' };
-  if (score >= 60) return { name: 'Progressing', color: '#0284C7', bgColor: 'bg-sky-50', textColor: 'text-sky-700', borderColor: 'border-sky-200' };
-  if (score >= 40) return { name: 'Emerging', color: '#D97706', bgColor: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200' };
-  return { name: 'Developing', color: '#DC2626', bgColor: 'bg-red-50', textColor: 'text-red-700', borderColor: 'border-red-200' };
+  // Match scoring page getPerformanceTier exactly
+  if (score >= 90) return { name: 'Exemplary', color: '#065F46', bgColor: 'bg-emerald-100', textColor: 'text-emerald-800', borderColor: 'border-emerald-300' };
+  if (score >= 75) return { name: 'Leading', color: '#1E40AF', bgColor: 'bg-blue-100', textColor: 'text-blue-800', borderColor: 'border-blue-300' };
+  if (score >= 60) return { name: 'Progressing', color: '#92400E', bgColor: 'bg-amber-100', textColor: 'text-amber-800', borderColor: 'border-amber-300' };
+  if (score >= 40) return { name: 'Emerging', color: '#9A3412', bgColor: 'bg-orange-100', textColor: 'text-orange-800', borderColor: 'border-orange-300' };
+  return { name: 'Beginning', color: '#374151', bgColor: 'bg-gray-100', textColor: 'text-gray-700', borderColor: 'border-gray-300' };
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 90) return '#7C3AED';
-  if (score >= 75) return '#059669';
-  if (score >= 60) return '#0284C7';
-  if (score >= 40) return '#D97706';
-  return '#DC2626';
+  // Match scoring page getScoreColor exactly
+  if (score >= 80) return '#059669';  // emerald
+  if (score >= 60) return '#0284C7';  // sky
+  if (score >= 40) return '#D97706';  // amber
+  return '#DC2626';  // red
 }
 
 function getGeoMultiplier(geoResponse: any): number {
@@ -423,86 +424,111 @@ export default function CompanyReportPage() {
   }, [surveyId]);
 
   function calculateCompanyScores(assessment: Record<string, any>) {
+    // EXACT MATCH to scoring page calculateCompanyScores
     const dimensionScores: Record<number, number | null> = {};
     const followUpScores: Record<number, number | null> = {};
     const elementsByDim: Record<number, any[]> = {};
-    let weightedSum = 0;
-    let weightTotal = 0;
+    const blendedScores: Record<number, number> = {};
     
     const gridPct = 85;
     const followUpPct = 15;
     
+    let completedDimCount = 0;
+    
+    // First pass: calculate all dimension scores
     for (let dim = 1; dim <= 13; dim++) {
       const dimData = assessment[`dimension${dim}_data`];
       const mainGrid = dimData?.[`d${dim}a`];
       
+      elementsByDim[dim] = [];
+      blendedScores[dim] = 0;
+      
       if (!mainGrid || typeof mainGrid !== 'object') {
         dimensionScores[dim] = null;
-        elementsByDim[dim] = [];
         continue;
       }
       
       let earnedPoints = 0;
-      let answeredCount = 0;
-      const elements: any[] = [];
+      let totalItems = 0;
+      let answeredItems = 0;
+      let unsureCount = 0;
       
       Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+        totalItems++;
         const result = statusToPoints(status);
-        if (result.points !== null || result.isUnsure) {
-          answeredCount++;
-          if (!result.isUnsure && result.points !== null) {
-            earnedPoints += result.points;
-          }
-          elements.push({
-            name: itemKey,
-            status: getStatusText(status),
-            category: result.category,
-            points: result.points ?? 0,
-            maxPoints: 5,
-            isStrength: result.points === 5,
-            isPlanning: result.category === 'planning',
-            isAssessing: result.category === 'assessing',
-            isGap: result.category === 'not_able',
-            isUnsure: result.isUnsure
-          });
+        
+        if (result.isUnsure) {
+          unsureCount++;
+          answeredItems++;
+        } else if (result.points !== null) {
+          answeredItems++;
+          earnedPoints += result.points;
         }
+        
+        elementsByDim[dim].push({
+          name: itemKey,
+          status: getStatusText(status),
+          category: result.category,
+          points: result.points ?? 0,
+          maxPoints: 5,
+          isStrength: result.points === 5,
+          isPlanning: result.category === 'planning',
+          isAssessing: result.category === 'assessing',
+          isGap: result.category === 'not_able',
+          isUnsure: result.isUnsure
+        });
       });
       
-      elementsByDim[dim] = elements;
+      if (totalItems > 0) completedDimCount++;
       
-      if (answeredCount === 0) {
-        dimensionScores[dim] = null;
-        continue;
-      }
-      
-      const maxPoints = answeredCount * 5;
+      const maxPoints = answeredItems * 5;
       const rawScore = maxPoints > 0 ? Math.round((earnedPoints / maxPoints) * 100) : 0;
       
       const geoResponse = dimData[`d${dim}aa`] || dimData[`D${dim}aa`];
       const geoMultiplier = getGeoMultiplier(geoResponse);
-      let finalScore = Math.round(rawScore * geoMultiplier);
+      const adjustedScore = Math.round(rawScore * geoMultiplier);
       
+      // Apply blend for D1, D3, D12, D13
+      let blendedScore = adjustedScore;
       if ([1, 3, 12, 13].includes(dim)) {
         const followUp = calculateFollowUpScore(dim, assessment);
         followUpScores[dim] = followUp;
         if (followUp !== null) {
-          finalScore = Math.round((finalScore * (gridPct / 100)) + (followUp * (followUpPct / 100)));
+          blendedScore = Math.round((adjustedScore * (gridPct / 100)) + (followUp * (followUpPct / 100)));
         }
       }
       
-      dimensionScores[dim] = finalScore;
-      
-      const weight = DEFAULT_DIMENSION_WEIGHTS[dim];
-      weightedSum += finalScore * weight;
-      weightTotal += weight;
+      dimensionScores[dim] = blendedScore;
+      blendedScores[dim] = blendedScore;
     }
     
-    const weightedDimScore = weightTotal > 0 ? Math.round(weightedSum / weightTotal) : null;
+    const isComplete = completedDimCount === 13;
+    
+    let weightedDimScore: number | null = null;
+    
+    if (isComplete) {
+      // EXACT scoring page formula: sum all weights first, then divide
+      const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((sum, w) => sum + w, 0);
+      let weightedScore = 0;
+      
+      if (totalWeight > 0) {
+        for (let i = 1; i <= 13; i++) {
+          const weight = DEFAULT_DIMENSION_WEIGHTS[i] || 0;
+          weightedScore += blendedScores[i] * (weight / totalWeight);
+        }
+      }
+      weightedDimScore = Math.round(weightedScore);
+    }
+    
     const maturityScore = calculateMaturityScore(assessment);
     const breadthScore = calculateBreadthScore(assessment);
     
-    const compositeScore = weightedDimScore !== null 
-      ? Math.round(weightedDimScore * 0.90 + maturityScore * 0.05 + breadthScore * 0.05)
+    const compositeScore = isComplete && weightedDimScore !== null
+      ? Math.round(
+          (weightedDimScore * 0.90) +
+          (maturityScore * 0.05) +
+          (breadthScore * 0.05)
+        )
       : null;
     
     return {
@@ -517,6 +543,7 @@ export default function CompanyReportPage() {
       },
       elements: elementsByDim
     };
+  }
   }
 
   function calculateBenchmarks(assessments: any[]) {
@@ -646,7 +673,7 @@ export default function CompanyReportPage() {
     leading: dimensionAnalysis.filter(d => d.tier.name === 'Leading').length,
     progressing: dimensionAnalysis.filter(d => d.tier.name === 'Progressing').length,
     emerging: dimensionAnalysis.filter(d => d.tier.name === 'Emerging').length,
-    developing: dimensionAnalysis.filter(d => d.tier.name === 'Developing').length
+    developing: dimensionAnalysis.filter(d => d.tier.name === 'Beginning').length
   };
 
   // Strengths: Exemplary or Leading dimensions
@@ -1566,7 +1593,7 @@ export default function CompanyReportPage() {
                   <span className="text-blue-600 font-medium">Leading</span> (75-89): Above average<br/>
                   <span className="text-amber-600 font-medium">Progressing</span> (60-74): Meeting expectations<br/>
                   <span className="text-orange-600 font-medium">Emerging</span> (40-59): Developing capabilities<br/>
-                  <span className="text-slate-500 font-medium">Developing</span> (&lt;40): Early stage
+                  <span className="text-slate-500 font-medium">Beginning</span> (&lt;40): Early stage
                 </p>
               </div>
             </div>
