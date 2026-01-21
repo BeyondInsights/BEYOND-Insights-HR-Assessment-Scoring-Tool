@@ -2837,90 +2837,90 @@ export default function AggregateScoringReport() {
       )}
 
       {/* Header */}
-      <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-5 px-8 shadow-xl sticky top-0 z-40">
+      <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-4 px-4 lg:px-8 shadow-xl sticky top-0 z-40">
         <div className="max-w-full mx-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-3">
+          {/* Top row - Title and main controls */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex-shrink-0">
+              <h1 className="text-xl lg:text-2xl font-bold flex items-center gap-3">
                 <span className="p-2 bg-white/10 rounded-xl">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </span>
                 Best Companies Scoring Report
               </h1>
-              <p className="text-indigo-200 text-sm mt-1">Workplace Support Excellence Index</p>
+              <p className="text-indigo-200 text-xs lg:text-sm mt-1">Workplace Support Excellence Index</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1 bg-white/10 rounded-lg p-1">
-                <button onClick={scrollLeft} className="p-2 hover:bg-white/20 rounded transition-colors" title="Scroll Left">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button onClick={scrollLeft} className="p-1.5 lg:p-2 hover:bg-white/20 rounded transition-colors" title="Scroll Left">
+                  <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <span className="text-xs px-2">Scroll</span>
-                <button onClick={scrollRight} className="p-2 hover:bg-white/20 rounded transition-colors" title="Scroll Right">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="text-xs px-1 hidden sm:inline">Scroll</span>
+                <button onClick={scrollRight} className="p-1.5 lg:p-2 hover:bg-white/20 rounded transition-colors" title="Scroll Right">
+                  <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
-              <button onClick={() => window.print()} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors">
+              <button onClick={() => window.print()} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs lg:text-sm font-medium transition-colors">
                 Print
               </button>
-              <button onClick={() => router.push('/admin')} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors">
+              <button onClick={() => router.push('/admin')} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs lg:text-sm font-medium transition-colors">
                 ← Back
               </button>
             </div>
           </div>
           
           {/* Stats Row */}
-          <div className="mt-4 flex items-center justify-between bg-white/5 rounded-xl px-5 py-3">
-            <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-indigo-300">Total:</span>
-                <span className="font-bold text-xl">{companyScores.filter(c => includePanel || !c.isPanel).length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-violet-500/30 border border-violet-400/50 text-violet-200 text-xs font-bold">FP</span>
-                <span className="font-bold">{companyScores.filter(c => c.isFoundingPartner && !c.isPanel).length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-slate-500/30 border border-slate-400/50 text-slate-200 text-xs font-bold">STD</span>
-                <span className="font-bold">{companyScores.filter(c => !c.isFoundingPartner && !c.isPanel).length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-amber-500/30 border border-amber-400/50 text-amber-200 text-xs font-bold">PANEL</span>
-                <span className="font-bold">{companyScores.filter(c => c.isPanel).length}</span>
-              </div>
-              <div className="border-l border-white/20 pl-4 flex items-center gap-2">
-                <span className="text-green-300">Complete:</span>
-                <span className="font-bold">{companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
-              </div>
-              <div className="border-l border-white/20 pl-4 flex items-center gap-3 text-xs">
-                <span className="text-gray-400">Footprint:</span>
-                <span className="px-1.5 py-0.5 rounded bg-slate-500 text-white flex items-center gap-1" title="Single country">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                  1
-                </span>
-                <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex items-center gap-1" title="Regional (2-10 countries)">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
-                  2-10
-                </span>
-                <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center gap-1" title="Global (11+ countries)">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                  11+
-                </span>
-              </div>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 bg-white/5 rounded-xl px-4 py-2.5 text-xs lg:text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-indigo-300">Total:</span>
+              <span className="font-bold text-lg lg:text-xl">{companyScores.filter(c => includePanel || !c.isPanel).length}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-full bg-violet-500/30 border border-violet-400/50 text-violet-200 text-xs font-bold">FP</span>
+              <span className="font-bold">{companyScores.filter(c => c.isFoundingPartner && !c.isPanel).length}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-full bg-slate-500/30 border border-slate-400/50 text-slate-200 text-xs font-bold">STD</span>
+              <span className="font-bold">{companyScores.filter(c => !c.isFoundingPartner && !c.isPanel).length}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/30 border border-amber-400/50 text-amber-200 text-xs font-bold">PANEL</span>
+              <span className="font-bold">{companyScores.filter(c => c.isPanel).length}</span>
+            </div>
+            <div className="border-l border-white/20 pl-3 flex items-center gap-2">
+              <span className="text-green-300">Complete:</span>
+              <span className="font-bold">{companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
+            </div>
+            <div className="border-l border-white/20 pl-3 flex items-center gap-2 text-xs">
+              <span className="text-gray-400">Footprint:</span>
+              <span className="px-1.5 py-0.5 rounded bg-slate-500 text-white flex items-center gap-1" title="Single country">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                1
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex items-center gap-1" title="Regional (2-10 countries)">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                2-10
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center gap-1" title="Global (11+ countries)">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                11+
+              </span>
             </div>
             
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-sm cursor-pointer bg-amber-500/20 px-3 py-1.5 rounded-lg border border-amber-400/30">
+            {/* Filters - right side */}
+            <div className="ml-auto flex items-center gap-3 flex-wrap">
+              <label className="flex items-center gap-2 text-xs cursor-pointer bg-amber-500/20 px-2.5 py-1.5 rounded-lg border border-amber-400/30">
                 <input
                   type="checkbox"
                   checked={includePanel}
                   onChange={(e) => setIncludePanel(e.target.checked)}
-                  className="rounded border-amber-400/50 bg-white/10 text-amber-400"
+                  className="rounded border-amber-400/50 bg-white/10 text-amber-400 w-3.5 h-3.5"
                 />
                 <span className="text-amber-200">Include Panel</span>
               </label>
@@ -2928,7 +2928,7 @@ export default function AggregateScoringReport() {
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value as any)}
-                className="bg-white/10 text-white border-0 rounded-lg px-3 py-1.5 text-sm"
+                className="bg-white/10 text-white border-0 rounded-lg px-2.5 py-1.5 text-xs"
               >
                 <option value="all" className="text-gray-900">All</option>
                 <option value="fp" className="text-gray-900">FP Only</option>
@@ -2936,137 +2936,118 @@ export default function AggregateScoringReport() {
                 <option value="panel" className="text-gray-900">Panel Only</option>
               </select>
               
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
                 <input
                   type="checkbox"
                   checked={filterComplete}
                   onChange={(e) => setFilterComplete(e.target.checked)}
-                  className="rounded border-white/30 bg-white/10 text-indigo-400"
+                  className="rounded border-white/30 bg-white/10 text-indigo-400 w-3.5 h-3.5"
                 />
                 <span>Complete Only</span>
               </label>
-              
-              <div className="flex bg-white/10 rounded-lg p-0.5">
-                <button
-                  onClick={() => setViewMode('score')}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${viewMode === 'score' ? 'bg-white text-indigo-900' : 'text-white hover:bg-white/10'}`}
-                >
-                  Scores
-                </button>
-                <button
-                  onClick={() => setViewMode('index')}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${viewMode === 'index' ? 'bg-white text-indigo-900' : 'text-white hover:bg-white/10'}`}
-                >
-                  Index
-                </button>
-              </div>
-              
-              {/* Scoring Info & Reset */}
-              <div className="border-l border-white/20 pl-4 flex items-center gap-2">
-                <button 
-                  onClick={() => setShowCompositeModal(true)}
-                  className="px-3 py-1.5 bg-purple-500 hover:bg-purple-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Composite Scoring
-                </button>
-                <button 
-                  onClick={() => setShowDimensionModal(true)}
-                  className="px-3 py-1.5 bg-blue-500 hover:bg-blue-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Dimension Scoring
-                </button>
-                <button 
-                  onClick={() => setShowTierStatsModal(true)}
-                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Tier Stats
-                </button>
-                <button 
-                  onClick={() => setShowSensitivityModal(true)}
-                  className="px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Sensitivity
-                </button>
-                <button 
-                  onClick={() => setShowReliabilityModal(true)}
-                  className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Reliability
-                </button>
-                <button 
-                  onClick={() => setShowBlendSettings(true)}
-                  className="px-3 py-1.5 bg-fuchsia-500 hover:bg-fuchsia-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Blend Weights
-                </button>
-                <button 
-                  onClick={() => setShowMethodologyModal(true)}
-                  className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Methodology
-                </button>
-                <button 
-                  onClick={() => {
-                    setCompositeWeights({ ...DEFAULT_COMPOSITE_WEIGHTS });
-                    setBlendWeights({ ...DEFAULT_BLEND_WEIGHTS });
-                    setWeights({ ...DEFAULT_DIMENSION_WEIGHTS });
-                  }}
-                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Reset All Weights
-                </button>
-              </div>
             </div>
           </div>
           
-          {/* Legend Row - Score Colors, Data Quality, Provisional Status */}
-          <div className="mt-2 flex items-center justify-between bg-white/5 rounded-xl px-5 py-2">
-            <div className="flex items-center gap-8 text-xs">
-              {/* Score Colors */}
-              <div className="flex items-center gap-3">
-                <span className="text-gray-400 font-medium">Score Colors:</span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#059669' }} />
-                  <span className="text-gray-300">80-100</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#0284C7' }} />
-                  <span className="text-gray-300">60-79</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#D97706' }} />
-                  <span className="text-gray-300">40-59</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#DC2626' }} />
-                  <span className="text-gray-300">0-39</span>
-                </span>
-              </div>
-              
-              {/* Data Quality */}
-              <div className="flex items-center gap-2 border-l border-white/20 pl-6">
-                <span className="text-gray-400 font-medium">Data Quality:</span>
-                <span className="ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900 rounded px-2 py-0.5 font-bold text-amber-300 bg-white/10">42</span>
-                <span className="text-gray-400">= Over 40% "Unsure"</span>
-              </div>
-              
-              {/* Provisional Status */}
-              <div className="flex items-center gap-2 border-l border-white/20 pl-6">
-                <span className="text-gray-400 font-medium">Provisional:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 border-2 border-dashed border-amber-400 bg-amber-500/20 rounded-full text-amber-300 font-bold">
-                  Leading<span className="text-amber-400">*</span>
-                </span>
-                <span className="text-gray-400">= 4+ dims have high Unsure</span>
-              </div>
+          {/* Toolbar Row - Buttons */}
+          <div className="mt-2 flex flex-wrap items-center gap-2 bg-white/5 rounded-xl px-4 py-2">
+            <div className="flex bg-white/10 rounded-lg p-0.5">
+              <button
+                onClick={() => setViewMode('score')}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${viewMode === 'score' ? 'bg-white text-indigo-900' : 'text-white hover:bg-white/10'}`}
+              >
+                Scores
+              </button>
+              <button
+                onClick={() => setViewMode('index')}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${viewMode === 'index' ? 'bg-white text-indigo-900' : 'text-white hover:bg-white/10'}`}
+              >
+                Index
+              </button>
+            </div>
+            
+            <div className="h-5 w-px bg-white/20 mx-1"></div>
+            
+            <button 
+              onClick={() => setShowCompositeModal(true)}
+              className="px-2.5 py-1 bg-purple-500 hover:bg-purple-400 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              Composite Scoring
+            </button>
+            <button 
+              onClick={() => setShowDimensionModal(true)}
+              className="px-2.5 py-1 bg-blue-500 hover:bg-blue-400 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              Dimension Scoring
+            </button>
+            <button 
+              onClick={() => setShowTierStatsModal(true)}
+              className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              Tier Stats
+            </button>
+            <button 
+              onClick={() => setShowSensitivityModal(true)}
+              className="px-2.5 py-1 bg-orange-500 hover:bg-orange-400 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              Sensitivity
+            </button>
+            <button 
+              onClick={() => setShowReliabilityModal(true)}
+              className="px-2.5 py-1 bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              Reliability
+            </button>
+            <button 
+              onClick={() => setShowBlendSettings(true)}
+              className="px-2.5 py-1 bg-fuchsia-500 hover:bg-fuchsia-400 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              Blend Weights
+            </button>
+            <button 
+              onClick={() => setShowMethodologyModal(true)}
+              className="px-2.5 py-1 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              Methodology
+            </button>
+            <button 
+              onClick={() => {
+                setCompositeWeights({ ...DEFAULT_COMPOSITE_WEIGHTS });
+                setBlendWeights({ ...DEFAULT_BLEND_WEIGHTS });
+                setWeights({ ...DEFAULT_DIMENSION_WEIGHTS });
+              }}
+              className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              Reset All Weights
+            </button>
+          </div>
+          
+          {/* Legend Row - Compact */}
+          <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 bg-white/5 rounded-xl px-4 py-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400 font-medium">Score Colors:</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#059669' }} /><span className="text-gray-300">80-100</span></span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#0284C7' }} /><span className="text-gray-300">60-79</span></span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#D97706' }} /><span className="text-gray-300">40-59</span></span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#DC2626' }} /><span className="text-gray-300">0-39</span></span>
+            </div>
+            <div className="flex items-center gap-2 border-l border-white/20 pl-4">
+              <span className="text-gray-400 font-medium">Data Quality:</span>
+              <span className="ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900 rounded px-1.5 py-0.5 font-bold text-amber-300 bg-white/10 text-[11px]">42</span>
+              <span className="text-gray-400">= Over 40% "Unsure"</span>
+            </div>
+            <div className="flex items-center gap-2 border-l border-white/20 pl-4">
+              <span className="text-gray-400 font-medium">Provisional:</span>
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 border-2 border-dashed border-amber-400 bg-amber-500/20 rounded-full text-amber-300 font-bold text-[11px]">
+                Leading<span className="text-amber-400">*</span>
+              </span>
+              <span className="text-gray-400">= 4+ dims have high Unsure</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-
-      {/* Main Content */}
-      <main className="p-6">
+      <main className="p-4 lg:p-6">
 
         {sortedCompanies.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
@@ -3151,7 +3132,7 @@ export default function AggregateScoringReport() {
                       REG
                     </th>
                     <th className="px-2 py-3 text-center font-semibold border-r border-purple-500"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#9333EA' }}
+                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#9333EA', boxShadow: '4px 0 8px -2px rgba(0, 0, 0, 0.3)' }}
                         title="Global (10+ countries)">
                       GLB
                     </th>
@@ -3202,7 +3183,7 @@ export default function AggregateScoringReport() {
                       <span className="text-[10px] text-slate-400">n={averages.counts.regional}</span>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155', boxShadow: '4px 0 8px -2px rgba(0, 0, 0, 0.3)' }}>
                       <span className="text-[10px] text-slate-400">n={averages.counts.global}</span>
                     </th>
                     {sortedCompanies.map(company => (
@@ -3264,7 +3245,7 @@ export default function AggregateScoringReport() {
                         style={{ position: 'sticky', top: 124, left: STICKY_LEFT_8, zIndex: 110, backgroundColor: '#334155' }}>
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155' }}>
+                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155', boxShadow: '4px 0 8px -2px rgba(0, 0, 0, 0.3)' }}>
                     </th>
                     {sortedCompanies.map(company => {
                       const conf = company.dataConfidence.percent;
@@ -3402,7 +3383,7 @@ export default function AggregateScoringReport() {
                         {averages.composite.regional !== null && <TierBadge score={averages.composite.regional} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '4px 0 8px -2px rgba(0,0,0,0.15)' }}>
                         {averages.composite.global !== null && <TierBadge score={averages.composite.global} isComplete={true} size="small" />}
                       </td>
                       {sortedCompanies.map(company => (
@@ -3468,7 +3449,7 @@ export default function AggregateScoringReport() {
                       <ScoreCell score={averages.weighted.regional} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '4px 0 8px -2px rgba(0,0,0,0.15)' }}>
                       <ScoreCell score={averages.weighted.global} isComplete={true} />
                     </td>
                     {sortedCompanies.map(company => (
@@ -3523,7 +3504,7 @@ export default function AggregateScoringReport() {
                       <ScoreCell score={averages.maturity.regional} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '4px 0 8px -2px rgba(0,0,0,0.15)' }}>
                       <ScoreCell score={averages.maturity.global} isComplete={true} />
                     </td>
                     {sortedCompanies.map(company => (
@@ -3578,7 +3559,7 @@ export default function AggregateScoringReport() {
                       <ScoreCell score={averages.breadth.regional} isComplete={true} />
                     </td>
                     <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
+                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '4px 0 8px -2px rgba(0,0,0,0.15)' }}>
                       <ScoreCell score={averages.breadth.global} isComplete={true} />
                     </td>
                     {sortedCompanies.map(company => (
@@ -3664,7 +3645,7 @@ export default function AggregateScoringReport() {
                         <ScoreCell score={averages.dimensions[dim]?.regional ?? null} isComplete={true} />
                       </td>
                       <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '4px 0 8px -2px rgba(0,0,0,0.15)' }}>
                         <ScoreCell score={averages.dimensions[dim]?.global ?? null} isComplete={true} />
                       </td>
                       {sortedCompanies.map(company => (
@@ -3857,7 +3838,7 @@ export default function AggregateScoringReport() {
                         {averages.weighted.regional !== null && <TierBadge score={averages.weighted.regional} isComplete={true} size="small" />}
                       </td>
                       <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
+                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, boxShadow: '4px 0 8px -2px rgba(0,0,0,0.15)' }}>
                         {averages.weighted.global !== null && <TierBadge score={averages.weighted.global} isComplete={true} size="small" />}
                       </td>
                       {sortedCompanies.map(company => (
