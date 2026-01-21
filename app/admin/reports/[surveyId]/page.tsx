@@ -147,13 +147,15 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   if (typeof status === 'string') {
     const s = status.toLowerCase().trim();
     if (s.includes('not able')) return { points: 0, isUnsure: false, category: 'not_able' };
-    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true, category: 'unsure' };
+    if (s === 'unsure' || s.includes('unsure')) return { points: null, isUnsure: true, category: 'unsure' };
     if (s.includes('currently') || s.includes('offer') || s.includes('provide') || 
         s.includes('use') || s.includes('track') || s.includes('measure')) {
       return { points: 5, isUnsure: false, category: 'currently_offer' };
     }
     if (s.includes('planning') || s.includes('development')) return { points: 3, isUnsure: false, category: 'planning' };
-    if (s.includes('assessing') || s.includes('feasibility') || s.includes('considering')) return { points: 2, isUnsure: false, category: 'assessing' };
+    if (s.includes('assessing') || s.includes('feasibility')) return { points: 2, isUnsure: false, category: 'assessing' };
+    // Any other non-empty string = NOT_ABLE (matches scoring page)
+    if (s.length > 0) return { points: 0, isUnsure: false, category: 'not_able' };
   }
   return { points: null, isUnsure: false, category: 'unknown' };
 }
@@ -263,34 +265,26 @@ function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>)
 
 function calculateMaturityScore(assessment: Record<string, any>): number {
   const currentSupport = assessment.current_support_data || {};
-  const generalBenefits = assessment.general_benefits_data || {};
-  const or1 = currentSupport.or1 || generalBenefits.or1 || '';
+  const or1 = currentSupport.or1 || '';
   const v = String(or1).toLowerCase();
   
-  // Text-based matching (matches scoring page)
-  if (v.includes('comprehensive') || v.includes('leading')) return 100;
-  if (v.includes('enhanced') || v.includes('strong')) return 80;
+  // Text-based matching (matches scoring page exactly)
+  if (v.includes('comprehensive')) return 100;
+  if (v.includes('enhanced')) return 80;
   if (v.includes('moderate')) return 50;
-  if (v.includes('developing') || v.includes('basic')) return 20;
-  if (v.includes('legal minimum') || v.includes('no formal')) return 0;
-  
-  // Numeric fallback
-  if (or1 === 6 || or1 === '6') return 100;
-  if (or1 === 5 || or1 === '5') return 80;
-  if (or1 === 4 || or1 === '4') return 50;
-  if (or1 === 3 || or1 === '3') return 20;
-  if (or1 === 2 || or1 === '2' || or1 === 1 || or1 === '1') return 0;
-  
+  if (v.includes('developing')) return 20;
+  if (v.includes('legal minimum')) return 0;
+  if (v.includes('no formal')) return 0;
   return 0;
 }
 
 function calculateBreadthScore(assessment: Record<string, any>): number {
   const currentSupport = assessment.current_support_data || {};
-  const generalBenefits = assessment.general_benefits_data || {};
   const scores: number[] = [];
   
   // Handle CB3a - can be numeric code (1,2,3) or text
-  const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
+  // ONLY check currentSupport (matches scoring page)
+  const cb3a = currentSupport.cb3a;
   if (cb3a !== undefined && cb3a !== null) {
     // Check for numeric codes first
     if (cb3a === 3 || cb3a === '3') {
@@ -306,10 +300,6 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
         scores.push(100);
       } else if (v.includes('developing') || v.includes('currently developing')) {
         scores.push(50);
-      } else if (v.includes('go well beyond') || v.includes('significantly exceed')) {
-        scores.push(100);
-      } else if (v.includes('go somewhat beyond') || v.includes('somewhat exceed')) {
-        scores.push(50);
       } else {
         scores.push(0);
       }
@@ -318,7 +308,8 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  const cb3b = currentSupport.cb3b ?? generalBenefits.cb3b;
+  // CB3b - ONLY check currentSupport
+  const cb3b = currentSupport.cb3b;
   if (cb3b && Array.isArray(cb3b)) {
     const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
     scores.push(cb3bScore);
@@ -326,7 +317,8 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  const cb3c = currentSupport.cb3c ?? generalBenefits.cb3c;
+  // CB3c - ONLY check currentSupport
+  const cb3c = currentSupport.cb3c;
   if (cb3c && Array.isArray(cb3c)) {
     const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
     scores.push(cb3cScore);
@@ -334,8 +326,7 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  if (scores.length === 0) return 0;
-  return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
 }
 
 // ============================================
@@ -385,8 +376,16 @@ export default function CompanyReportPage() {
           const benchmarkScores = calculateBenchmarks(allAssessments);
           setBenchmarks(benchmarkScores);
           
-          // Calculate percentile ranking (including all companies)
-          const allComposites = allAssessments
+          // Calculate percentile ranking (only complete assessments with all 13 dimensions)
+          const completeAssessments = allAssessments.filter(a => {
+            let completedDims = 0;
+            for (let dim = 1; dim <= 13; dim++) {
+              if (a[`dimension${dim}_data`]?.[`d${dim}a`]) completedDims++;
+            }
+            return completedDims === 13;
+          });
+          
+          const allComposites = completeAssessments
             .map(a => {
               try {
                 const { scores: s } = calculateCompanyScores(a);
@@ -499,7 +498,7 @@ export default function CompanyReportPage() {
     const breadthScore = calculateBreadthScore(assessment);
     
     const compositeScore = weightedDimScore !== null 
-      ? Math.round(weightedDimScore * 0.95 + maturityScore * 0.03 + breadthScore * 0.02)
+      ? Math.round(weightedDimScore * 0.90 + maturityScore * 0.05 + breadthScore * 0.05)
       : null;
     
     return {
@@ -517,14 +516,13 @@ export default function CompanyReportPage() {
   }
 
   function calculateBenchmarks(assessments: any[]) {
-    // Filter for complete assessments - INCLUDING panel data (matches ALL column on scoring page)
+    // Filter for COMPLETE assessments only (all 13 dimensions) - matches scoring page
     const complete = assessments.filter(a => {
-      // Must have 10+ completed dimensions
       let completedDims = 0;
       for (let dim = 1; dim <= 13; dim++) {
         if (a[`dimension${dim}_data`]?.[`d${dim}a`]) completedDims++;
       }
-      return completedDims >= 10;
+      return completedDims === 13; // Must have ALL 13 dimensions (not >= 10)
     });
     
     if (complete.length === 0) return null;
@@ -875,9 +873,9 @@ export default function CompanyReportPage() {
             <div className="grid grid-cols-4 gap-6">
               {[
                 { label: 'Overall Composite', score: compositeScore, weight: '100%', benchmark: benchmarks?.compositeScore },
-                { label: 'Weighted Dimension Score', score: weightedDimScore, weight: '95%', benchmark: benchmarks?.weightedDimScore },
-                { label: 'Program Maturity', score: maturityScore, weight: '3%', benchmark: benchmarks?.maturityScore },
-                { label: 'Support Breadth', score: breadthScore, weight: '2%', benchmark: benchmarks?.breadthScore },
+                { label: 'Weighted Dimension Score', score: weightedDimScore, weight: '90%', benchmark: benchmarks?.weightedDimScore },
+                { label: 'Program Maturity', score: maturityScore, weight: '5%', benchmark: benchmarks?.maturityScore },
+                { label: 'Support Breadth', score: breadthScore, weight: '5%', benchmark: benchmarks?.breadthScore },
               ].map((item, idx) => {
                 const itemTier = item.score !== null && item.score !== undefined ? getTier(item.score) : null;
                 const diff = item.score && item.benchmark ? item.score - item.benchmark : null;
