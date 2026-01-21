@@ -215,7 +215,8 @@ function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>)
       return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
     }
     case 3: {
-      const d31 = dimData?.d31;
+      // Check both key formats: d31 (correct) and d3_1 (legacy migration)
+      const d31 = dimData?.d31 ?? dimData?.d3_1;
       return d31 ? scoreD3Training(d31) : null;
     }
     case 12: {
