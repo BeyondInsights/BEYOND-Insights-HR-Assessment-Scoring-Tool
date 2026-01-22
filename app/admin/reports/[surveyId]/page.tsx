@@ -1025,6 +1025,9 @@ export default function CompanyReportPage() {
           left: -9999px;
           font-family: system-ui, -apple-system, sans-serif;
         }
+        .ppt-slide * {
+          text-decoration: none !important;
+        }
         .export-mode .ppt-slide {
           position: relative;
           left: 0;
@@ -1806,31 +1809,31 @@ export default function CompanyReportPage() {
           {/* SLIDE 2: Executive Summary */}
           <div className="ppt-slide">
             <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '30px' }}>Executive Summary</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
-              <div style={{ background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B' }}>{currentlyOffering}</p>
-                <p style={{ fontSize: '11px', color: '#64748B' }}>of {totalElements} elements offered</p>
+            <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
+              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{currentlyOffering}</p>
+                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>of {totalElements} elements offered</p>
               </div>
-              <div style={{ background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B' }}>{planningItems + assessingItems}</p>
-                <p style={{ fontSize: '11px', color: '#64748B' }}>in development</p>
+              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{planningItems + assessingItems}</p>
+                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>in development</p>
               </div>
-              <div style={{ background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B' }}>{gapItems}</p>
-                <p style={{ fontSize: '11px', color: '#64748B' }}>identified gaps</p>
+              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{gapItems}</p>
+                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>identified gaps</p>
               </div>
-              <div style={{ background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B' }}>{tierCounts.exemplary + tierCounts.leading}</p>
-                <p style={{ fontSize: '11px', color: '#64748B' }}>at Leading+</p>
+              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{tierCounts.exemplary + tierCounts.leading}</p>
+                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>at Leading+</p>
               </div>
             </div>
             <div style={{ background: '#EDE9FE', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-              <p style={{ fontSize: '16px', fontWeight: 600, color: '#5B21B6' }}>
+              <p style={{ fontSize: '16px', fontWeight: 600, color: '#5B21B6', textDecoration: 'none' }}>
                 {nextTierUp && pointsToNextTier 
                   ? `${pointsToNextTier} points from ${nextTierUp.name}${nextTierUp.name !== 'Exemplary' ? ` · ${90 - (compositeScore || 0)} points from Exemplary` : ''}`
                   : 'Exemplary tier achieved'}
               </p>
-              <p style={{ fontSize: '12px', color: '#7C3AED', marginTop: '4px' }}>
+              <p style={{ fontSize: '12px', color: '#7C3AED', marginTop: '4px', textDecoration: 'none' }}>
                 Focus areas: {allDimensionsByScore.slice(0, 3).map(d => d.name).join(', ')}
               </p>
             </div>
@@ -1839,53 +1842,61 @@ export default function CompanyReportPage() {
           {/* SLIDE 3: Dimension Performance */}
           <div className="ppt-slide">
             <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Dimension Performance</h2>
-            <div style={{ fontSize: '11px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 60px 60px 100px', gap: '8px', padding: '10px', background: '#1E293B', color: 'white', borderRadius: '4px 4px 0 0' }}>
-                <span>#</span><span>Dimension</span><span>Weight</span><span>Score</span><span>Tier</span>
-              </div>
-              {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, i) => (
-                <div key={d.dim} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 60px 60px 100px', gap: '8px', padding: '8px 10px', background: i % 2 === 0 ? '#F8FAFC' : 'white' }}>
-                  <span style={{ color: '#64748B' }}>D{d.dim}</span>
-                  <span style={{ color: '#1E293B' }}>{d.name}</span>
-                  <span style={{ color: '#64748B' }}>{d.weight}%</span>
-                  <span style={{ color: getScoreColor(d.score), fontWeight: 'bold' }}>{d.score}</span>
-                  <span style={{ color: '#64748B' }}>{d.tier.name}</span>
-                </div>
-              ))}
-            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <thead>
+                <tr style={{ background: '#1E293B', color: 'white' }}>
+                  <th style={{ padding: '10px', textAlign: 'left', width: '50px' }}>#</th>
+                  <th style={{ padding: '10px', textAlign: 'left' }}>Dimension</th>
+                  <th style={{ padding: '10px', textAlign: 'center', width: '70px' }}>Weight</th>
+                  <th style={{ padding: '10px', textAlign: 'center', width: '70px' }}>Score</th>
+                  <th style={{ padding: '10px', textAlign: 'left', width: '100px' }}>Tier</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, i) => (
+                  <tr key={d.dim} style={{ background: i % 2 === 0 ? '#F8FAFC' : 'white' }}>
+                    <td style={{ padding: '8px 10px', color: '#64748B', textDecoration: 'none' }}>D{d.dim}</td>
+                    <td style={{ padding: '8px 10px', color: '#1E293B', textDecoration: 'none' }}>{d.name}</td>
+                    <td style={{ padding: '8px 10px', color: '#64748B', textAlign: 'center', textDecoration: 'none' }}>{d.weight}%</td>
+                    <td style={{ padding: '8px 10px', color: getScoreColor(d.score), fontWeight: 'bold', textAlign: 'center', textDecoration: 'none' }}>{d.score}</td>
+                    <td style={{ padding: '8px 10px', color: '#64748B', textDecoration: 'none' }}>{d.tier.name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           {/* SLIDE 4: Matrix - Static version to avoid oklch color parsing issues */}
           <div className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '10px' }}>Strategic Priority Matrix</h2>
-            <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '20px' }}>Performance vs Strategic Weight</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
-              <div style={{ background: '#FEE2E2', padding: '20px', borderRadius: '8px' }}>
-                <p style={{ fontWeight: 'bold', color: '#991B1B', marginBottom: '10px' }}>PRIORITY GAPS</p>
-                <p style={{ fontSize: '11px', color: '#7F1D1D' }}>High weight, lower performance - focus here first</p>
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '10px', textDecoration: 'none' }}>Strategic Priority Matrix</h2>
+            <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '20px', textDecoration: 'none' }}>Performance vs Strategic Weight</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '15px', marginTop: '20px' }}>
+              <div style={{ flex: '1 1 45%', background: '#FEE2E2', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+                <p style={{ fontWeight: 'bold', color: '#991B1B', marginBottom: '10px', textDecoration: 'none' }}>PRIORITY GAPS</p>
+                <p style={{ fontSize: '11px', color: '#7F1D1D', textDecoration: 'none' }}>High weight, lower performance - focus here first</p>
                 {dimensionAnalysis.filter(d => d.weight >= 7 && d.score < 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px' }}>• {d.name} ({d.score})</p>
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
                 ))}
               </div>
-              <div style={{ background: '#D1FAE5', padding: '20px', borderRadius: '8px' }}>
-                <p style={{ fontWeight: 'bold', color: '#065F46', marginBottom: '10px' }}>CORE STRENGTHS</p>
-                <p style={{ fontSize: '11px', color: '#047857' }}>High weight, strong performance - maintain these</p>
+              <div style={{ flex: '1 1 45%', background: '#D1FAE5', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+                <p style={{ fontWeight: 'bold', color: '#065F46', marginBottom: '10px', textDecoration: 'none' }}>CORE STRENGTHS</p>
+                <p style={{ fontSize: '11px', color: '#047857', textDecoration: 'none' }}>High weight, strong performance - maintain these</p>
                 {dimensionAnalysis.filter(d => d.weight >= 7 && d.score >= 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px' }}>• {d.name} ({d.score})</p>
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
                 ))}
               </div>
-              <div style={{ background: '#FEF3C7', padding: '20px', borderRadius: '8px' }}>
-                <p style={{ fontWeight: 'bold', color: '#92400E', marginBottom: '10px' }}>SECONDARY GAPS</p>
-                <p style={{ fontSize: '11px', color: '#B45309' }}>Lower weight, needs improvement</p>
+              <div style={{ flex: '1 1 45%', background: '#FEF3C7', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+                <p style={{ fontWeight: 'bold', color: '#92400E', marginBottom: '10px', textDecoration: 'none' }}>SECONDARY GAPS</p>
+                <p style={{ fontSize: '11px', color: '#B45309', textDecoration: 'none' }}>Lower weight, needs improvement</p>
                 {dimensionAnalysis.filter(d => d.weight < 7 && d.score < 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px' }}>• {d.name} ({d.score})</p>
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
                 ))}
               </div>
-              <div style={{ background: '#DBEAFE', padding: '20px', borderRadius: '8px' }}>
-                <p style={{ fontWeight: 'bold', color: '#1E40AF', marginBottom: '10px' }}>MAINTAIN</p>
-                <p style={{ fontSize: '11px', color: '#1D4ED8' }}>Lower weight, performing well</p>
+              <div style={{ flex: '1 1 45%', background: '#DBEAFE', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+                <p style={{ fontWeight: 'bold', color: '#1E40AF', marginBottom: '10px', textDecoration: 'none' }}>MAINTAIN</p>
+                <p style={{ fontSize: '11px', color: '#1D4ED8', textDecoration: 'none' }}>Lower weight, performing well</p>
                 {dimensionAnalysis.filter(d => d.weight < 7 && d.score >= 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px' }}>• {d.name} ({d.score})</p>
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
                 ))}
               </div>
             </div>
@@ -1893,29 +1904,29 @@ export default function CompanyReportPage() {
 
           {/* SLIDE 5: Strengths & Opportunities */}
           <div className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Strengths & Opportunities</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-              <div>
-                <div style={{ background: '#059669', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600 }}>Areas of Excellence</div>
-                <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Strengths & Opportunities</h2>
+            <div style={{ display: 'flex', gap: '30px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ background: '#059669', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600, textDecoration: 'none' }}>Areas of Excellence</div>
+                <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '350px' }}>
                   {strengthDimensions.slice(0, 4).map(d => (
                     <div key={d.dim} style={{ marginBottom: '12px' }}>
-                      <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px' }}>{d.name} ({d.score})</p>
+                      <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
                       {d.strengths.slice(0, 2).map((s: any, i: number) => (
-                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px' }}>✓ {s.name}</p>
+                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>✓ {s.name}</p>
                       ))}
                     </div>
                   ))}
                 </div>
               </div>
-              <div>
-                <div style={{ background: '#D97706', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600 }}>Improvement Opportunities</div>
-                <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ background: '#D97706', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600, textDecoration: 'none' }}>Improvement Opportunities</div>
+                <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '350px' }}>
                   {allDimensionsByScore.slice(0, 4).map(d => (
                     <div key={d.dim} style={{ marginBottom: '12px' }}>
-                      <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px' }}>{d.name} ({d.score})</p>
+                      <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
                       {d.needsAttention.slice(0, 2).map((g: any, i: number) => (
-                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px' }}>• {g.name}</p>
+                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>• {g.name}</p>
                       ))}
                     </div>
                   ))}
@@ -1926,38 +1937,38 @@ export default function CompanyReportPage() {
 
           {/* SLIDE 6: Roadmap */}
           <div className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Implementation Roadmap</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-              <div>
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Implementation Roadmap</h2>
+            <div style={{ display: 'flex', gap: '15px' }}>
+              <div style={{ flex: 1 }}>
                 <div style={{ background: '#1E293B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
-                  <p style={{ fontWeight: 600, fontSize: '16px' }}>Quick Wins</p>
-                  <p style={{ fontSize: '11px', color: '#CBD5E1' }}>Immediate</p>
+                  <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Quick Wins</p>
+                  <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>Immediate</p>
                 </div>
-                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '250px' }}>
+                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
                   {quickWinItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px' }}>• {item.name}</p>
+                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
                   ))}
                 </div>
               </div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div style={{ background: '#475569', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
-                  <p style={{ fontWeight: 600, fontSize: '16px' }}>Foundation</p>
-                  <p style={{ fontSize: '11px', color: '#CBD5E1' }}>6-12 months</p>
+                  <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Foundation</p>
+                  <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>6-12 months</p>
                 </div>
-                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '250px' }}>
+                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
                   {foundationItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px' }}>• {item.name}</p>
+                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
                   ))}
                 </div>
               </div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div style={{ background: '#64748B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
-                  <p style={{ fontWeight: 600, fontSize: '16px' }}>Long-Term</p>
-                  <p style={{ fontSize: '11px', color: '#CBD5E1' }}>12+ months</p>
+                  <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Long-Term</p>
+                  <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>12+ months</p>
                 </div>
-                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '250px' }}>
+                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
                   {excellenceItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px' }}>• {item.name}</p>
+                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
                   ))}
                 </div>
               </div>
