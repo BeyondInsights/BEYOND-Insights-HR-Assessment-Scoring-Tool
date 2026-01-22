@@ -2,30 +2,35 @@ const PptxGenJS = require('pptxgenjs');
 
 // ============================================
 // SCREENSHOT-BASED PPT EXPORT - FULL REPORT
-// All sections included
+// With better error handling and logging
 // ============================================
 
 exports.handler = async (event) => {
+  console.log('=== PPT Export Started ===');
+  
   try {
     const surveyId = event.queryStringParameters?.surveyId;
     if (!surveyId) {
+      console.error('Missing surveyId');
       return { statusCode: 400, body: JSON.stringify({ error: 'Missing surveyId' }) };
     }
+    console.log('Survey ID:', surveyId);
 
     const browserlessToken = process.env.BROWSERLESS_TOKEN;
     const browserlessBase = process.env.BROWSERLESS_BASE || 'https://production-sfo.browserless.io';
     
     if (!browserlessToken) {
+      console.error('Missing BROWSERLESS_TOKEN');
       return { statusCode: 500, body: JSON.stringify({ error: 'Missing BROWSERLESS_TOKEN' }) };
     }
+    console.log('Browserless configured:', browserlessBase);
 
     const host = event.headers['x-forwarded-host'] || event.headers.host;
     const proto = event.headers['x-forwarded-proto'] || 'https';
     const origin = `${proto}://${host}`;
     
     const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1`;
-    
-    console.log('Generating full PPT from:', reportUrl);
+    console.log('Report URL:', reportUrl);
     
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
@@ -51,8 +56,35 @@ exports.handler = async (event) => {
       { name: 'Methodology', y: 8100, h: 350 },
     ];
     
+    // First test: Can we reach the page at all?
+    console.log('Testing page accessibility...');
+    const testRes = await fetch(`${browserlessBase}/content?token=${browserlessToken}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: reportUrl,
+        gotoOptions: { waitUntil: 'networkidle0', timeout: 30000 }
+      })
+    });
+    
+    if (!testRes.ok) {
+      const errText = await testRes.text();
+      console.error('Page test failed:', errText);
+      return { statusCode: 500, body: JSON.stringify({ error: 'Cannot access report page', details: errText }) };
+    }
+    
+    const pageContent = await testRes.text();
+    console.log('Page loaded, content length:', pageContent.length);
+    
+    if (pageContent.includes('error') && pageContent.length < 1000) {
+      console.error('Page returned error:', pageContent.substring(0, 500));
+      return { statusCode: 500, body: JSON.stringify({ error: 'Report page error', details: pageContent.substring(0, 500) }) };
+    }
+    
     // Capture function
-    const captureSection = async (section) => {
+    const captureSection = async (section, index) => {
+      console.log(`[${index + 1}/${sections.length}] Capturing: ${section.name}`);
+      
       try {
         const res = await fetch(`${browserlessBase}/screenshot?token=${browserlessToken}`, {
           method: 'POST',
@@ -70,24 +102,36 @@ exports.handler = async (event) => {
         });
         
         if (!res.ok) {
-          console.error(`Failed: ${section.name}`);
+          const errText = await res.text();
+          console.error(`Screenshot failed for ${section.name}:`, errText);
           return null;
         }
+        
+        const buffer = await res.arrayBuffer();
+        console.log(`[${index + 1}] ${section.name}: ${buffer.byteLength} bytes`);
         
         return {
           name: section.name,
           h: section.h,
-          imgB64: Buffer.from(await res.arrayBuffer()).toString('base64')
+          imgB64: Buffer.from(buffer).toString('base64')
         };
       } catch (err) {
-        console.error(`Error: ${section.name}:`, err.message);
+        console.error(`Error capturing ${section.name}:`, err.message);
         return null;
       }
     };
     
     // Run ALL screenshots in parallel
     console.log('Capturing all 13 sections in parallel...');
-    const results = await Promise.all(sections.map(captureSection));
+    const results = await Promise.all(sections.map((s, i) => captureSection(s, i)));
+    
+    const successCount = results.filter(r => r !== null).length;
+    console.log(`Screenshots complete: ${successCount}/${sections.length} succeeded`);
+    
+    if (successCount === 0) {
+      console.error('All screenshots failed!');
+      return { statusCode: 500, body: JSON.stringify({ error: 'All screenshots failed - check report page rendering' }) };
+    }
     
     // Add slides in order
     for (const result of results) {
@@ -108,8 +152,9 @@ exports.handler = async (event) => {
       });
     }
     
-    console.log(`Generated ${pptx.slides.length} slides`);
+    console.log(`Generated ${pptx.slides.length} slides, creating file...`);
     const outB64 = await pptx.write({ outputType: 'base64' });
+    console.log('PPT file created, size:', outB64.length);
     
     return {
       statusCode: 200,
@@ -124,6 +169,6 @@ exports.handler = async (event) => {
     
   } catch (err) {
     console.error('PPT export error:', err);
-    return { statusCode: 500, body: JSON.stringify({ error: 'PPT export failed', details: err.message }) };
+    return { statusCode: 500, body: JSON.stringify({ error: 'PPT export failed', details: err.message, stack: err.stack }) };
   }
 };
