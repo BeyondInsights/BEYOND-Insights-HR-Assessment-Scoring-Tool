@@ -853,6 +853,19 @@ export default function CompanyReportPage() {
     }
   }
 
+  // ============================================
+  // SERVER-SIDE EXPORT (Netlify Functions) - More Reliable
+  // ============================================
+  function handleServerExportPDF() {
+    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(surveyId)}`;
+    window.open(url, '_blank');
+  }
+
+  function handleServerExportPPT() {
+    const url = `/.netlify/functions/export-pptx?surveyId=${encodeURIComponent(surveyId)}`;
+    window.open(url, '_blank');
+  }
+
 
   if (loading) {
     return (
@@ -1025,6 +1038,7 @@ export default function CompanyReportPage() {
             Back to Scoring
           </button>
           <div className="flex items-center gap-3">
+            {/* Client-side exports */}
             <button 
               onClick={handleExportPPT} 
               disabled={exportingPPT}
@@ -1045,7 +1059,7 @@ export default function CompanyReportPage() {
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                  Export PowerPoint
+                  Export PPT
                 </>
               )}
             </button>
@@ -1073,11 +1087,31 @@ export default function CompanyReportPage() {
                 </>
               )}
             </button>
+            {/* Server-side exports (more reliable - requires Netlify Functions setup) */}
+            <div className="border-l border-slate-300 pl-3 flex items-center gap-2">
+              <span className="text-xs text-slate-400">Server:</span>
+              <button 
+                onClick={handleServerExportPPT}
+                className="px-3 py-2 rounded-lg text-sm font-medium bg-violet-500 hover:bg-violet-600 text-white flex items-center gap-1"
+                title="Server-side export (more reliable)"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" /></svg>
+                PPT
+              </button>
+              <button 
+                onClick={handleServerExportPDF}
+                className="px-3 py-2 rounded-lg text-sm font-medium bg-violet-700 hover:bg-violet-800 text-white flex items-center gap-1"
+                title="Server-side export (more reliable)"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" /></svg>
+                PDF
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div ref={printRef} className="max-w-6xl mx-auto py-10 px-8">
+      <div ref={printRef} id="report-root" className="max-w-6xl mx-auto py-10 px-8">
         
         {/* ============ HEADER ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
@@ -1329,7 +1363,7 @@ export default function CompanyReportPage() {
             <h3 className="font-semibold text-slate-900">Strategic Priority Matrix</h3>
             <p className="text-sm text-slate-500 mt-1">Dimensions plotted by current performance versus strategic weight. Hover over any dimension for details.</p>
           </div>
-          <div ref={matrixRef}>
+          <div ref={matrixRef} id="export-matrix">
             <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
           </div>
         </div>
