@@ -312,80 +312,94 @@ const TrendUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 );
 
 // ============================================
-// STRATEGIC PRIORITY MATRIX - INTERACTIVE WITH HOVER
+// STRATEGIC PRIORITY MATRIX - WIDE, VIBRANT, INTERACTIVE
 // ============================================
 
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
   const [hoveredDim, setHoveredDim] = useState<number | null>(null);
   const MAX_WEIGHT = 15;
   
-  const PADDING = 60;
-  const CHART_WIDTH = 900;
-  const CHART_HEIGHT = 480;
-  const PLOT_WIDTH = CHART_WIDTH - (PADDING * 2);
-  const PLOT_HEIGHT = CHART_HEIGHT - (PADDING * 2);
+  // Wider aspect ratio - use full width
+  const PADDING_LEFT = 55;
+  const PADDING_RIGHT = 20;
+  const PADDING_TOP = 20;
+  const PADDING_BOTTOM = 50;
+  const CHART_WIDTH = 1000;
+  const CHART_HEIGHT = 420;
+  const PLOT_WIDTH = CHART_WIDTH - PADDING_LEFT - PADDING_RIGHT;
+  const PLOT_HEIGHT = CHART_HEIGHT - PADDING_TOP - PADDING_BOTTOM;
   
   // Find hovered dimension data
   const hoveredData = hoveredDim !== null ? dimensionAnalysis.find(d => d.dim === hoveredDim) : null;
   
   return (
-    <div className="px-6 py-6">
-      <div className="relative w-full" style={{ height: '580px' }}>
-        {/* Quadrant labels OUTSIDE the chart */}
-        <div className="absolute top-2 left-1/4 transform -translate-x-1/2 text-center z-10">
-          <span className="text-xs font-bold tracking-wider px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">DEVELOP</span>
-        </div>
-        <div className="absolute top-2 right-1/4 transform translate-x-1/2 text-center z-10">
-          <span className="text-xs font-bold tracking-wider px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">MAINTAIN</span>
-        </div>
-        <div className="absolute bottom-24 left-1/4 transform -translate-x-1/2 text-center z-10">
-          <span className="text-xs font-bold tracking-wider px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">MONITOR</span>
-        </div>
-        <div className="absolute bottom-24 right-1/4 transform translate-x-1/2 text-center z-10">
-          <span className="text-xs font-bold tracking-wider px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">LEVERAGE</span>
-        </div>
-        
-        <svg className="w-full h-full" viewBox={`0 0 ${CHART_WIDTH + 100} ${CHART_HEIGHT + 60}`} preserveAspectRatio="xMidYMid meet">
+    <div className="px-4 py-4">
+      <div className="relative w-full" style={{ height: '520px' }}>
+        <svg className="w-full" style={{ height: '440px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
           <defs>
             <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15"/>
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.2"/>
             </filter>
+            {/* Vibrant quadrant colors */}
             <linearGradient id="quadrantTopLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FEF3C7" stopOpacity="0.6"/>
-              <stop offset="100%" stopColor="#FEF9C3" stopOpacity="0.3"/>
+              <stop offset="0%" stopColor="#FEE2E2" stopOpacity="0.9"/>
+              <stop offset="100%" stopColor="#FECACA" stopOpacity="0.5"/>
             </linearGradient>
             <linearGradient id="quadrantTopRight" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#D1FAE5" stopOpacity="0.6"/>
-              <stop offset="100%" stopColor="#ECFDF5" stopOpacity="0.3"/>
+              <stop offset="0%" stopColor="#D1FAE5" stopOpacity="0.9"/>
+              <stop offset="100%" stopColor="#A7F3D0" stopOpacity="0.5"/>
             </linearGradient>
             <linearGradient id="quadrantBottomLeft" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#F1F5F9" stopOpacity="0.8"/>
-              <stop offset="100%" stopColor="#F8FAFC" stopOpacity="0.4"/>
+              <stop offset="0%" stopColor="#E2E8F0" stopOpacity="0.7"/>
+              <stop offset="100%" stopColor="#F1F5F9" stopOpacity="0.4"/>
             </linearGradient>
             <linearGradient id="quadrantBottomRight" x1="100%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stopColor="#DBEAFE" stopOpacity="0.6"/>
-              <stop offset="100%" stopColor="#EFF6FF" stopOpacity="0.3"/>
+              <stop offset="0%" stopColor="#DDD6FE" stopOpacity="0.8"/>
+              <stop offset="100%" stopColor="#EDE9FE" stopOpacity="0.5"/>
             </linearGradient>
           </defs>
           
-          <g transform="translate(70, 35)">
-            {/* Quadrant backgrounds with gradients */}
-            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantTopLeft)" rx="4" />
-            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantTopRight)" rx="4" />
-            <rect x={PADDING} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantBottomLeft)" rx="4" />
-            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantBottomRight)" rx="4" />
+          <g transform={`translate(${PADDING_LEFT}, ${PADDING_TOP})`}>
+            {/* Quadrant backgrounds - vibrant */}
+            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantTopLeft)" />
+            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantTopRight)" />
+            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantBottomLeft)" />
+            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantBottomRight)" />
             
-            {/* Grid lines - dashed for visual interest */}
-            <line x1={PADDING} y1={PADDING + PLOT_HEIGHT/2} x2={PADDING + PLOT_WIDTH} y2={PADDING + PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1" strokeDasharray="6,4" />
-            <line x1={PADDING + PLOT_WIDTH/2} y1={PADDING} x2={PADDING + PLOT_WIDTH/2} y2={PADDING + PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1" strokeDasharray="6,4" />
+            {/* Grid lines - SOLID */}
+            <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#64748B" strokeWidth="1.5" />
+            <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#64748B" strokeWidth="1.5" />
             
             {/* Border */}
-            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#CBD5E1" strokeWidth="1.5" rx="4" />
+            <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#475569" strokeWidth="2" />
+            
+            {/* Quadrant labels - INSIDE the quadrants, positioned well */}
+            <g>
+              {/* Top Left - PRIORITY GAPS */}
+              <rect x={12} y={12} width={130} height={42} rx="6" fill="#DC2626" fillOpacity="0.9" />
+              <text x={77} y={28} textAnchor="middle" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
+              <text x={77} y={42} textAnchor="middle" fill="white" fontSize="8" fontFamily="system-ui" opacity="0.9">High Impact · Low Score</text>
+              
+              {/* Top Right - CORE STRENGTHS */}
+              <rect x={PLOT_WIDTH - 142} y={12} width={130} height={42} rx="6" fill="#059669" fillOpacity="0.9" />
+              <text x={PLOT_WIDTH - 77} y={28} textAnchor="middle" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
+              <text x={PLOT_WIDTH - 77} y={42} textAnchor="middle" fill="white" fontSize="8" fontFamily="system-ui" opacity="0.9">High Impact · High Score</text>
+              
+              {/* Bottom Left - MONITOR */}
+              <rect x={12} y={PLOT_HEIGHT - 54} width={130} height={42} rx="6" fill="#64748B" fillOpacity="0.85" />
+              <text x={77} y={PLOT_HEIGHT - 38} textAnchor="middle" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">MONITOR</text>
+              <text x={77} y={PLOT_HEIGHT - 24} textAnchor="middle" fill="white" fontSize="8" fontFamily="system-ui" opacity="0.9">Lower Impact · Lower Score</text>
+              
+              {/* Bottom Right - LEVERAGE */}
+              <rect x={PLOT_WIDTH - 142} y={PLOT_HEIGHT - 54} width={130} height={42} rx="6" fill="#7C3AED" fillOpacity="0.9" />
+              <text x={PLOT_WIDTH - 77} y={PLOT_HEIGHT - 38} textAnchor="middle" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
+              <text x={PLOT_WIDTH - 77} y={PLOT_HEIGHT - 24} textAnchor="middle" fill="white" fontSize="8" fontFamily="system-ui" opacity="0.9">Efficiency Opportunity</text>
+            </g>
             
             {/* Data points */}
             {dimensionAnalysis.map((d) => {
-              const xPos = PADDING + (d.score / 100) * PLOT_WIDTH;
-              const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+              const xPos = (d.score / 100) * PLOT_WIDTH;
+              const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
               const isHovered = hoveredDim === d.dim;
               
               return (
@@ -396,9 +410,9 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                   onMouseLeave={() => setHoveredDim(null)}
                   style={{ cursor: 'pointer' }}
                 >
-                  <circle r={isHovered ? 26 : 22} fill="white" filter="url(#dropShadow)" style={{ transition: 'r 0.2s ease' }} />
-                  <circle r={isHovered ? 21 : 18} fill={getScoreColor(d.score)} style={{ transition: 'r 0.2s ease' }} />
-                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="11" fontWeight="600" fontFamily="system-ui">
+                  <circle r={isHovered ? 24 : 20} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
+                  <circle r={isHovered ? 20 : 17} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
+                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">
                     D{d.dim}
                   </text>
                 </g>
@@ -406,83 +420,82 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             })}
             
             {/* X-axis */}
-            <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>
+            <g transform={`translate(0, ${PLOT_HEIGHT})`}>
               {[0, 25, 50, 75, 100].map((val) => (
-                <g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}>
-                  <line y1="0" y2="6" stroke="#94A3B8" strokeWidth="1" />
-                  <text y="22" textAnchor="middle" fill="#64748B" fontSize="11" fontFamily="system-ui">{val}</text>
+                <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
+                  <line y1="0" y2="5" stroke="#64748B" strokeWidth="1" />
+                  <text y="18" textAnchor="middle" fill="#475569" fontSize="10" fontFamily="system-ui">{val}</text>
                 </g>
               ))}
-              <text x={PADDING + PLOT_WIDTH/2} y="45" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="600" fontFamily="system-ui">
-                Performance Score
+              <text x={PLOT_WIDTH/2} y="38" textAnchor="middle" fill="#1E293B" fontSize="11" fontWeight="600" fontFamily="system-ui">
+                PERFORMANCE SCORE →
               </text>
             </g>
             
             {/* Y-axis */}
-            <g transform={`translate(${PADDING}, 0)`}>
+            <g>
               {[0, 5, 10, 15].map((val) => {
-                const yPos = PADDING + PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
+                const yPos = PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
                 return (
                   <g key={val}>
-                    <line x1="-6" y1={yPos} x2="0" y2={yPos} stroke="#94A3B8" strokeWidth="1" />
-                    <text x="-12" y={yPos + 4} textAnchor="end" fill="#64748B" fontSize="11" fontFamily="system-ui">{val}%</text>
+                    <line x1="-5" y1={yPos} x2="0" y2={yPos} stroke="#64748B" strokeWidth="1" />
+                    <text x="-10" y={yPos + 3} textAnchor="end" fill="#475569" fontSize="10" fontFamily="system-ui">{val}%</text>
                   </g>
                 );
               })}
             </g>
             
             {/* Y-axis label */}
-            <text transform="rotate(-90)" x={-(PADDING + PLOT_HEIGHT/2)} y="10" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="600" fontFamily="system-ui">
-              Strategic Weight
+            <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-40" textAnchor="middle" fill="#1E293B" fontSize="11" fontWeight="600" fontFamily="system-ui">
+              ↑ STRATEGIC IMPORTANCE
             </text>
           </g>
         </svg>
         
         {/* Hover tooltip card */}
         {hoveredData && (
-          <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg border border-slate-200 p-4 w-64 z-20">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: getScoreColor(hoveredData.score) }}>
-                {hoveredData.dim}
+          <div className="absolute top-2 right-2 bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-56 z-20">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md" style={{ backgroundColor: getScoreColor(hoveredData.score) }}>
+                D{hoveredData.dim}
               </span>
               <div className="flex-1">
-                <p className="font-semibold text-slate-800 text-sm">{hoveredData.name}</p>
+                <p className="font-semibold text-slate-800 text-sm leading-tight">{hoveredData.name}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="bg-slate-50 rounded px-2 py-1.5">
-                <p className="text-slate-500 text-xs">Score</p>
-                <p className="font-bold" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p>
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg px-3 py-2">
+                <p className="text-slate-500 text-xs font-medium">Score</p>
+                <p className="font-bold text-lg" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p>
               </div>
-              <div className="bg-slate-50 rounded px-2 py-1.5">
-                <p className="text-slate-500 text-xs">Weight</p>
-                <p className="font-bold text-slate-700">{hoveredData.weight}%</p>
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg px-3 py-2">
+                <p className="text-slate-500 text-xs font-medium">Weight</p>
+                <p className="font-bold text-lg text-slate-700">{hoveredData.weight}%</p>
               </div>
-              <div className="col-span-2 bg-slate-50 rounded px-2 py-1.5">
-                <p className="text-slate-500 text-xs">Tier</p>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded ${hoveredData.tier.bgColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
-              </div>
+            </div>
+            <div className="mt-2 pt-2 border-t border-slate-100">
+              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${hoveredData.tier.bgColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
             </div>
           </div>
         )}
-      </div>
-      
-      {/* Legend - compact */}
-      <div className="mt-2 pt-4 border-t border-slate-100">
-        <div className="grid grid-cols-7 gap-x-3 gap-y-2">
-          {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
-            <div 
-              key={d.dim} 
-              className={`flex items-center gap-1.5 px-1.5 py-1 rounded transition-colors cursor-pointer ${hoveredDim === d.dim ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
-              onMouseEnter={() => setHoveredDim(d.dim)}
-              onMouseLeave={() => setHoveredDim(null)}
-            >
-              <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0" style={{ backgroundColor: getScoreColor(d.score) }}>
-                {d.dim}
-              </span>
-              <span className="text-xs text-slate-600 truncate">{DIMENSION_SHORT_NAMES[d.dim]}</span>
-            </div>
-          ))}
+        
+        {/* Legend - below chart */}
+        <div className="mt-1 pt-3 border-t border-slate-200">
+          <div className="grid grid-cols-7 gap-x-2 gap-y-1.5">
+            {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
+              <div 
+                key={d.dim} 
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all cursor-pointer ${hoveredDim === d.dim ? 'bg-slate-200 shadow-sm' : 'hover:bg-slate-100'}`}
+                onMouseEnter={() => setHoveredDim(d.dim)}
+                onMouseLeave={() => setHoveredDim(null)}
+              >
+                <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
+                  {d.dim}
+                </span>
+                <span className="text-xs text-slate-700 truncate font-medium">{DIMENSION_SHORT_NAMES[d.dim]}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
