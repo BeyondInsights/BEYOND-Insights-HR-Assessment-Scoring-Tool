@@ -974,7 +974,12 @@ export default function CompanyReportPage() {
               <div>
                 {nextTierUp && pointsToNextTier ? (
                   <>
-                    <p className="text-sm font-semibold text-violet-800">{pointsToNextTier} points from {nextTierUp.name} tier</p>
+                    <p className="text-sm font-semibold text-violet-800">
+                      {pointsToNextTier} points from {nextTierUp.name} tier
+                      {nextTierUp.name !== 'Exemplary' && (
+                        <span className="text-violet-600 font-normal"> · {90 - (compositeScore || 0)} points from Exemplary</span>
+                      )}
+                    </p>
                     <p className="text-xs text-violet-600 mt-1">Targeted improvements in {allDimensionsByScore[0]?.name} could elevate your overall standing.</p>
                   </>
                 ) : (
