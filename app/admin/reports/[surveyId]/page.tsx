@@ -586,11 +586,16 @@ export default function CompanyReportPage() {
         if (result.isUnsure) { answeredItems++; }
         else if (result.points !== null) { answeredItems++; earnedPoints += result.points; }
         
+        // Track if this item is NOT currently offered (anything less than full points)
+        const isNotOffered = result.category !== 'currently_offer';
+        
         elementsByDim[dim].push({
           name: itemKey, status: getStatusText(status), category: result.category,
           points: result.points ?? 0, maxPoints: 5, isStrength: result.points === 5,
           isPlanning: result.category === 'planning', isAssessing: result.category === 'assessing',
-          isGap: result.category === 'not_able', isUnsure: result.isUnsure
+          isGap: result.category === 'not_able' || result.category === 'unknown', 
+          isUnsure: result.isUnsure,
+          isNotOffered: isNotOffered
         });
       });
       
@@ -790,6 +795,8 @@ export default function CompanyReportPage() {
         assessing: elements.filter((e: any) => e.isAssessing),
         gaps: elements.filter((e: any) => e.isGap),
         unsure: elements.filter((e: any) => e.isUnsure),
+        // All items that aren't currently offered (strengths)
+        needsAttention: elements.filter((e: any) => !e.isStrength && !e.isPlanning),
       };
     })
     .sort((a, b) => b.score - a.score);
@@ -1053,13 +1060,13 @@ export default function CompanyReportPage() {
             <table className="w-full">
               <thead>
                 <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                  <th className="pb-3 text-center w-12">#</th>
-                  <th className="pb-3 text-left">Dimension</th>
-                  <th className="pb-3 text-center w-14">Wt%</th>
-                  <th className="pb-3 text-center w-40">Score</th>
-                  <th className="pb-3 text-right w-14">Score</th>
-                  <th className="pb-3 text-center w-24">vs Bench</th>
-                  <th className="pb-3 text-center w-24">Tier</th>
+                  <th className="pb-3 text-center w-10">#</th>
+                  <th className="pb-3 text-left w-56">Dimension</th>
+                  <th className="pb-3 text-center w-12">Wt%</th>
+                  <th className="pb-3 text-center">Score</th>
+                  <th className="pb-3 text-right w-12">Score</th>
+                  <th className="pb-3 text-center w-20">vs Bench</th>
+                  <th className="pb-3 text-center w-20">Tier</th>
                 </tr>
               </thead>
               <tbody>
@@ -1071,10 +1078,10 @@ export default function CompanyReportPage() {
                         <span className="w-7 h-7 rounded-full inline-flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
                       </td>
                       <td className="py-2.5 text-left">
-                        <span className="text-sm font-medium text-slate-700 whitespace-nowrap">{d.name}</span>
+                        <span className="text-sm font-medium text-slate-700">{d.name}</span>
                       </td>
                       <td className="py-2.5 text-center text-xs text-slate-500">{d.weight}%</td>
-                      <td className="py-2.5">
+                      <td className="py-2.5 px-2">
                         <div className="relative h-5">
                           {d.benchmark !== null && (
                             <div className="absolute" style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '0', transform: 'translateX(-50%)' }}>
@@ -1167,18 +1174,17 @@ export default function CompanyReportPage() {
             </div>
             <div className="divide-y divide-slate-100">
               {allDimensionsByScore.slice(0, 5).map((d) => {
-                const improvementItems = [...d.gaps, ...d.assessing].slice(0, 3);
                 return (
                   <div key={d.dim} className="px-6 py-4">
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-medium text-slate-800">{d.name}</p>
                       <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                     </div>
-                    {improvementItems.length > 0 ? (
+                    {d.needsAttention.length > 0 ? (
                       <ul className="space-y-1">
-                        {improvementItems.map((e: any, i: number) => (
+                        {d.needsAttention.slice(0, 4).map((e: any, i: number) => (
                           <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${e.isGap ? 'bg-red-400' : 'bg-amber-400'}`}></span>
+                            <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
                             <span>{e.name}</span>
                           </li>
                         ))}
@@ -1254,24 +1260,27 @@ export default function CompanyReportPage() {
                   <div className="px-10 py-6">
                     {/* Current State - 3 columns */}
                     <div className="grid grid-cols-3 gap-6 mb-6">
-                      {/* Gaps & Needs Attention */}
+                      {/* Gaps & Needs Attention - includes gaps, assessing, unsure, and any other non-offered items */}
                       <div className="border border-red-200 rounded-lg overflow-hidden">
                         <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                          <h5 className="font-semibold text-red-800 text-sm">Gaps ({d.gaps.length + d.assessing.length})</h5>
+                          <h5 className="font-semibold text-red-800 text-sm">Needs Attention ({d.needsAttention.length})</h5>
                         </div>
-                        <div className="p-4 bg-white">
-                          {(d.gaps.length > 0 || d.assessing.length > 0) ? (
+                        <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                          {d.needsAttention.length > 0 ? (
                             <ul className="space-y-2">
-                              {d.gaps.map((g: any, i: number) => (
-                                <li key={`gap-${i}`} className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 flex-shrink-0"></span>
-                                  <span>{g.name}</span>
-                                </li>
-                              ))}
-                              {d.assessing.map((a: any, i: number) => (
-                                <li key={`assess-${i}`} className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 flex-shrink-0"></span>
-                                  <span>{a.name} <span className="text-xs text-amber-600">(assessing)</span></span>
+                              {d.needsAttention.map((item: any, i: number) => (
+                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
+                                    item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : item.isUnsure ? 'bg-slate-400' : 'bg-red-400'
+                                  }`}></span>
+                                  <span>
+                                    {item.name}
+                                    <span className={`text-xs ml-1 ${
+                                      item.isGap ? 'text-red-500' : item.isAssessing ? 'text-amber-600' : item.isUnsure ? 'text-slate-500' : 'text-red-400'
+                                    }`}>
+                                      ({item.isGap ? 'not offered' : item.isAssessing ? 'assessing' : item.isUnsure ? 'to clarify' : 'gap'})
+                                    </span>
+                                  </span>
                                 </li>
                               ))}
                             </ul>
@@ -1284,7 +1293,7 @@ export default function CompanyReportPage() {
                         <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
                           <h5 className="font-semibold text-blue-800 text-sm">In Development ({d.planning.length})</h5>
                         </div>
-                        <div className="p-4 bg-white">
+                        <div className="p-4 bg-white max-h-64 overflow-y-auto">
                           {d.planning.length > 0 ? (
                             <ul className="space-y-2">
                               {d.planning.map((item: any, i: number) => (
@@ -1303,7 +1312,7 @@ export default function CompanyReportPage() {
                         <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
                           <h5 className="font-semibold text-emerald-800 text-sm">Strengths ({d.strengths.length})</h5>
                         </div>
-                        <div className="p-4 bg-white">
+                        <div className="p-4 bg-white max-h-64 overflow-y-auto">
                           {d.strengths.length > 0 ? (
                             <ul className="space-y-2">
                               {d.strengths.map((s: any, i: number) => (
