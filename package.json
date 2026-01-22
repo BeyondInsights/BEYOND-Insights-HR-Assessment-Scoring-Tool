@@ -13,8 +13,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^119.0.0",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.76.1",
+    "puppeteer-core": "^21.5.0",
+    "pptxgenjs": "^3.12.0",
     "resend": "^4.0.1",
     "lucide-react": "^0.544.0",
     "next": "14.2.29",
@@ -25,10 +28,7 @@
     "react-is": "^18.3.1",
     "survey-core": "^2.3.7",
     "xlsx": "^0.18.5",
-    "survey-react-ui": "^2.3.7", 
-    "@sparticuz/chromium": "^119.0.0",
-    "puppeteer-core": "^21.5.0",
-    "pptxgenjs": "^3.12.0"
+    "survey-react-ui": "^2.3.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
