@@ -186,6 +186,50 @@ async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
 async function syncFPToSupabase(surveyId: string): Promise<boolean> {
   console.log('🏢 AUTO-SYNC: Syncing FP data for:', surveyId)
   
+  // ============================================
+  // CRITICAL: Verify data belongs to this survey_id before syncing
+  // This prevents cross-contamination from stale browser sessions
+  // ============================================
+  try {
+    const { getFPCompanyName } = await import('@/lib/founding-partners')
+    const expectedCompany = getFPCompanyName(surveyId)
+    
+    const firmographicsRaw = localStorage.getItem('firmographics_data')
+    if (firmographicsRaw) {
+      try {
+        const firmographics = JSON.parse(firmographicsRaw)
+        const localCompany = firmographics.companyName || ''
+        
+        // If we have firmographics with a company name, verify it matches
+        if (localCompany && expectedCompany && localCompany !== expectedCompany && localCompany !== 'Founding Partner') {
+          console.error('🚨 AUTO-SYNC: BLOCKING SYNC - Company mismatch detected!')
+          console.error(`   Expected: "${expectedCompany}" (from survey_id ${surveyId})`)
+          console.error(`   Found in localStorage: "${localCompany}"`)
+          console.error('   This appears to be contaminated data from another company.')
+          console.error('   Clearing localStorage to prevent data corruption...')
+          
+          // Clear the contaminated data
+          const keysToClear = [
+            'firmographics_data', 'general_benefits_data', 'current_support_data',
+            'cross_dimensional_data', 'employee-impact-assessment_data',
+            ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`),
+            'firmographics_complete', 'general_benefits_complete', 'current_support_complete',
+            'cross_dimensional_complete', 'employee-impact-assessment_complete',
+            ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
+          ]
+          keysToClear.forEach(key => localStorage.removeItem(key))
+          
+          return false // Do NOT sync contaminated data
+        }
+      } catch (e) {
+        // Couldn't parse firmographics, continue with caution
+      }
+    }
+  } catch (e) {
+    // Couldn't import founding-partners, continue without check
+  }
+  // ============================================
+  
   const { data: updateData, hasData } = collectAllSurveyData()
   
   if (!hasData) {
