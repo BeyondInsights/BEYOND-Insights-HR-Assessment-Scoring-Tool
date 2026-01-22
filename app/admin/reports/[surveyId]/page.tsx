@@ -968,15 +968,23 @@ export default function CompanyReportPage() {
               )}
             </p>
             
-            {pointsToNextTier && nextTierUp && pointsToNextTier <= 15 && (
-              <div className="mt-4 p-4 bg-violet-50 border border-violet-200 rounded-lg flex items-start gap-3">
-                <TrendUpIcon className="w-5 h-5 text-violet-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-violet-800">{pointsToNextTier} points from {nextTierUp.name} tier</p>
-                  <p className="text-xs text-violet-600 mt-1">Targeted improvements in {allDimensionsByScore[0]?.name} could elevate your overall standing.</p>
-                </div>
+            {/* Always show tier progress message */}
+            <div className="mt-4 p-4 bg-violet-50 border border-violet-200 rounded-lg flex items-start gap-3">
+              <TrendUpIcon className="w-5 h-5 text-violet-600 flex-shrink-0 mt-0.5" />
+              <div>
+                {nextTierUp && pointsToNextTier ? (
+                  <>
+                    <p className="text-sm font-semibold text-violet-800">{pointsToNextTier} points from {nextTierUp.name} tier</p>
+                    <p className="text-xs text-violet-600 mt-1">Targeted improvements in {allDimensionsByScore[0]?.name} could elevate your overall standing.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-violet-800">Exemplary tier achieved</p>
+                    <p className="text-xs text-violet-600 mt-1">Continue strengthening {allDimensionsByScore[0]?.name} to maintain your leadership position.</p>
+                  </>
+                )}
               </div>
-            )}
+            </div>
             
             <div className="mt-6 grid grid-cols-4 gap-6">
               <div className="bg-white rounded-lg p-4 border border-slate-200">
