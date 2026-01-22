@@ -312,86 +312,48 @@ const TrendUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 );
 
 // ============================================
-// STRATEGIC PRIORITY MATRIX - REFINED COLORS
+// STRATEGIC PRIORITY MATRIX - LABELS OUTSIDE, CLEAN COLORS
 // ============================================
 
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
   const [hoveredDim, setHoveredDim] = useState<number | null>(null);
   const MAX_WEIGHT = 15;
   
-  // Wider aspect ratio - use full width
-  const PADDING_LEFT = 55;
-  const PADDING_RIGHT = 20;
-  const PADDING_TOP = 20;
-  const PADDING_BOTTOM = 50;
-  const CHART_WIDTH = 1000;
-  const CHART_HEIGHT = 420;
-  const PLOT_WIDTH = CHART_WIDTH - PADDING_LEFT - PADDING_RIGHT;
-  const PLOT_HEIGHT = CHART_HEIGHT - PADDING_TOP - PADDING_BOTTOM;
+  const CHART_WIDTH = 900;
+  const CHART_HEIGHT = 380;
+  const MARGIN = { top: 45, right: 45, bottom: 55, left: 60 };
+  const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
+  const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
   
-  // Find hovered dimension data
   const hoveredData = hoveredDim !== null ? dimensionAnalysis.find(d => d.dim === hoveredDim) : null;
   
   return (
     <div className="px-4 py-4">
-      <div className="relative w-full" style={{ height: '520px' }}>
-        <svg className="w-full" style={{ height: '440px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+      <div className="relative w-full" style={{ height: '500px' }}>
+        <svg className="w-full" style={{ height: '420px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
           <defs>
             <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.2"/>
-            </filter>
-            <filter id="labelShadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.3"/>
+              <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
             </filter>
           </defs>
           
-          <g transform={`translate(${PADDING_LEFT}, ${PADDING_TOP})`}>
-            {/* Quadrant backgrounds - MUTED SOPHISTICATED COLORS */}
-            {/* Top Left - Priority Gaps: Warm rose/blush */}
-            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FDF2F4" />
-            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#E11D48" fillOpacity="0.08" />
+          <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
+            {/* Quadrant backgrounds - VERY SUBTLE, professional */}
+            {/* Top Left - slight warm tint */}
+            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEF7F7" />
+            {/* Top Right - slight cool green tint */}
+            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F6FBF9" />
+            {/* Bottom Left - neutral */}
+            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FAFAFA" />
+            {/* Bottom Right - slight cool blue tint */}
+            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F7FAFC" />
             
-            {/* Top Right - Core Strengths: Cool sage green */}
-            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F0FDF4" />
-            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#059669" fillOpacity="0.1" />
-            
-            {/* Bottom Left - Monitor: Warm neutral */}
-            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FAFAF9" />
-            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#78716C" fillOpacity="0.06" />
-            
-            {/* Bottom Right - Leverage: Cool slate blue */}
-            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F8FAFC" />
-            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#3B82F6" fillOpacity="0.08" />
-            
-            {/* Grid lines - SOLID */}
-            <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1" />
-            <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1" />
+            {/* Grid lines */}
+            <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#D1D5DB" strokeWidth="1" />
+            <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#D1D5DB" strokeWidth="1" />
             
             {/* Border */}
-            <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#CBD5E1" strokeWidth="1.5" />
-            
-            {/* Quadrant labels - HIGH CONTRAST with shadows */}
-            <g filter="url(#labelShadow)">
-              {/* Top Left - PRIORITY GAPS */}
-              <rect x={10} y={10} width={115} height={38} rx="4" fill="#BE123C" />
-              <text x={67} y={25} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
-              <text x={67} y={37} textAnchor="middle" fill="white" fontSize="7" fontFamily="system-ui" opacity="0.85">High Impact · Low Score</text>
-              
-              {/* Top Right - CORE STRENGTHS */}
-              <rect x={PLOT_WIDTH - 125} y={10} width={115} height={38} rx="4" fill="#047857" />
-              <text x={PLOT_WIDTH - 67} y={25} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
-              <text x={PLOT_WIDTH - 67} y={37} textAnchor="middle" fill="white" fontSize="7" fontFamily="system-ui" opacity="0.85">High Impact · High Score</text>
-              
-              {/* Bottom Left - MONITOR */}
-              <rect x={10} y={PLOT_HEIGHT - 48} width={115} height={38} rx="4" fill="#57534E" />
-              <text x={67} y={PLOT_HEIGHT - 33} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">MONITOR</text>
-              <text x={67} y={PLOT_HEIGHT - 21} textAnchor="middle" fill="white" fontSize="7" fontFamily="system-ui" opacity="0.85">Lower Priority</text>
-              
-              {/* Bottom Right - LEVERAGE */}
-              <rect x={PLOT_WIDTH - 125} y={PLOT_HEIGHT - 48} width={115} height={38} rx="4" fill="#1D4ED8" />
-              <text x={PLOT_WIDTH - 67} y={PLOT_HEIGHT - 33} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
-              <text x={PLOT_WIDTH - 67} y={PLOT_HEIGHT - 21} textAnchor="middle" fill="white" fontSize="7" fontFamily="system-ui" opacity="0.85">Efficiency Wins</text>
-            </g>
+            <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#9CA3AF" strokeWidth="1" />
             
             {/* Data points */}
             {dimensionAnalysis.map((d) => {
@@ -407,9 +369,9 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                   onMouseLeave={() => setHoveredDim(null)}
                   style={{ cursor: 'pointer' }}
                 >
-                  <circle r={isHovered ? 24 : 20} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
-                  <circle r={isHovered ? 20 : 17} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
-                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">
+                  <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
+                  <circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
+                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">
                     D{d.dim}
                   </text>
                 </g>
@@ -420,11 +382,11 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             <g transform={`translate(0, ${PLOT_HEIGHT})`}>
               {[0, 25, 50, 75, 100].map((val) => (
                 <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
-                  <line y1="0" y2="5" stroke="#64748B" strokeWidth="1" />
-                  <text y="18" textAnchor="middle" fill="#475569" fontSize="10" fontFamily="system-ui">{val}</text>
+                  <line y1="0" y2="4" stroke="#9CA3AF" strokeWidth="1" />
+                  <text y="16" textAnchor="middle" fill="#6B7280" fontSize="10" fontFamily="system-ui">{val}</text>
                 </g>
               ))}
-              <text x={PLOT_WIDTH/2} y="38" textAnchor="middle" fill="#1E293B" fontSize="11" fontWeight="600" fontFamily="system-ui">
+              <text x={PLOT_WIDTH/2} y="38" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
                 PERFORMANCE SCORE →
               </text>
             </g>
@@ -435,17 +397,38 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 const yPos = PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
                 return (
                   <g key={val}>
-                    <line x1="-5" y1={yPos} x2="0" y2={yPos} stroke="#64748B" strokeWidth="1" />
-                    <text x="-10" y={yPos + 3} textAnchor="end" fill="#475569" fontSize="10" fontFamily="system-ui">{val}%</text>
+                    <line x1="-4" y1={yPos} x2="0" y2={yPos} stroke="#9CA3AF" strokeWidth="1" />
+                    <text x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10" fontFamily="system-ui">{val}%</text>
                   </g>
                 );
               })}
             </g>
             
             {/* Y-axis label */}
-            <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-40" textAnchor="middle" fill="#1E293B" fontSize="11" fontWeight="600" fontFamily="system-ui">
+            <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
               ↑ STRATEGIC IMPORTANCE
             </text>
+            
+            {/* QUADRANT LABELS - OUTSIDE the plot area */}
+            {/* Top Left label - above and left */}
+            <g transform={`translate(${PLOT_WIDTH/4}, -12)`}>
+              <text textAnchor="middle" fill="#DC2626" fontSize="10" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
+            </g>
+            
+            {/* Top Right label - above and right */}
+            <g transform={`translate(${PLOT_WIDTH*3/4}, -12)`}>
+              <text textAnchor="middle" fill="#059669" fontSize="10" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
+            </g>
+            
+            {/* Bottom Left label - below and left */}
+            <g transform={`translate(${PLOT_WIDTH/4}, ${PLOT_HEIGHT + 52})`}>
+              <text textAnchor="middle" fill="#6B7280" fontSize="10" fontWeight="700" fontFamily="system-ui">MONITOR</text>
+            </g>
+            
+            {/* Bottom Right label - below and right */}
+            <g transform={`translate(${PLOT_WIDTH*3/4}, ${PLOT_HEIGHT + 52})`}>
+              <text textAnchor="middle" fill="#2563EB" fontSize="10" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
+            </g>
           </g>
         </svg>
         
@@ -461,11 +444,11 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg px-3 py-2">
+              <div className="bg-slate-50 rounded-lg px-3 py-2">
                 <p className="text-slate-500 text-xs font-medium">Score</p>
                 <p className="font-bold text-lg" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p>
               </div>
-              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg px-3 py-2">
+              <div className="bg-slate-50 rounded-lg px-3 py-2">
                 <p className="text-slate-500 text-xs font-medium">Weight</p>
                 <p className="font-bold text-lg text-slate-700">{hoveredData.weight}%</p>
               </div>
