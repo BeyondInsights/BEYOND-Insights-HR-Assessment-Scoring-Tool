@@ -25,7 +25,7 @@ exports.handler = async (event) => {
       args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
       defaultViewport: { width: 1200, height: 800 },
       executablePath,
-      headless: 'new',
+      headless: chromium.headless
     });
 
     const page = await browser.newPage();
