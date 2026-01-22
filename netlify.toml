@@ -7,3 +7,14 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Add these lines for the export functions
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[functions."export-pdf"]
+  timeout = 60
+
+[functions."export-pptx"]
+  timeout = 60
