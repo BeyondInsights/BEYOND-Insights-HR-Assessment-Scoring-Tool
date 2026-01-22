@@ -11,7 +11,6 @@ exports.handler = async (event) => {
 
     const token = process.env.BROWSERLESS_TOKEN;
     const base = process.env.BROWSERLESS_BASE || 'https://production-sfo.browserless.io';
-    const exportToken = process.env.EXPORT_SECRET_TOKEN;
     
     if (!token) {
       return { statusCode: 500, body: JSON.stringify({ error: 'Missing BROWSERLESS_TOKEN' }) };
@@ -29,12 +28,22 @@ exports.handler = async (event) => {
         options: {
           printBackground: true,
           format: 'Letter',
-          margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
+          margin: { 
+            top: '0.4in', 
+            right: '0.4in', 
+            bottom: '0.4in', 
+            left: '0.4in' 
+          },
+          displayHeaderFooter: false,
+          preferCSSPageSize: true, // Respect CSS @page rules
+          scale: 0.9 // Slightly smaller to fit better
         },
         gotoOptions: {
           waitUntil: 'networkidle0',
-          timeout: 30000
-        }
+          timeout: 60000
+        },
+        // Wait for fonts and images to load
+        waitForTimeout: 2000
       })
     });
 
