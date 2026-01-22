@@ -307,76 +307,97 @@ const CheckIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
 );
 
-const ArrowRightIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-);
-
 const TrendUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" /></svg>
 );
 
-const AlertIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-);
-
-const LightbulbIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zm4.657 2.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zm3 6v-1h4v1a2 2 0 11-4 0zm4-2c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" /></svg>
-);
-
 // ============================================
-// STRATEGIC PRIORITY MATRIX - CLEAN PROFESSIONAL
+// STRATEGIC PRIORITY MATRIX - INTERACTIVE WITH HOVER
 // ============================================
 
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
+  const [hoveredDim, setHoveredDim] = useState<number | null>(null);
   const MAX_WEIGHT = 15;
   
-  const PADDING = 50;
-  const CHART_WIDTH = 1000;
-  const CHART_HEIGHT = 520;
+  const PADDING = 60;
+  const CHART_WIDTH = 900;
+  const CHART_HEIGHT = 480;
   const PLOT_WIDTH = CHART_WIDTH - (PADDING * 2);
   const PLOT_HEIGHT = CHART_HEIGHT - (PADDING * 2);
   
+  // Find hovered dimension data
+  const hoveredData = hoveredDim !== null ? dimensionAnalysis.find(d => d.dim === hoveredDim) : null;
+  
   return (
     <div className="px-6 py-6">
-      <div className="relative w-full" style={{ height: '600px' }}>
-        <svg className="w-full h-full" viewBox={`0 0 ${CHART_WIDTH + 80} ${CHART_HEIGHT + 80}`} preserveAspectRatio="xMidYMid meet">
+      <div className="relative w-full" style={{ height: '580px' }}>
+        {/* Quadrant labels OUTSIDE the chart */}
+        <div className="absolute top-2 left-1/4 transform -translate-x-1/2 text-center z-10">
+          <span className="text-xs font-bold tracking-wider px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">DEVELOP</span>
+        </div>
+        <div className="absolute top-2 right-1/4 transform translate-x-1/2 text-center z-10">
+          <span className="text-xs font-bold tracking-wider px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">MAINTAIN</span>
+        </div>
+        <div className="absolute bottom-24 left-1/4 transform -translate-x-1/2 text-center z-10">
+          <span className="text-xs font-bold tracking-wider px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">MONITOR</span>
+        </div>
+        <div className="absolute bottom-24 right-1/4 transform translate-x-1/2 text-center z-10">
+          <span className="text-xs font-bold tracking-wider px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">LEVERAGE</span>
+        </div>
+        
+        <svg className="w-full h-full" viewBox={`0 0 ${CHART_WIDTH + 100} ${CHART_HEIGHT + 60}`} preserveAspectRatio="xMidYMid meet">
           <defs>
-            <filter id="subtleShadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.1"/>
+            <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15"/>
             </filter>
+            <linearGradient id="quadrantTopLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#FEF3C7" stopOpacity="0.6"/>
+              <stop offset="100%" stopColor="#FEF9C3" stopOpacity="0.3"/>
+            </linearGradient>
+            <linearGradient id="quadrantTopRight" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#D1FAE5" stopOpacity="0.6"/>
+              <stop offset="100%" stopColor="#ECFDF5" stopOpacity="0.3"/>
+            </linearGradient>
+            <linearGradient id="quadrantBottomLeft" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#F1F5F9" stopOpacity="0.8"/>
+              <stop offset="100%" stopColor="#F8FAFC" stopOpacity="0.4"/>
+            </linearGradient>
+            <linearGradient id="quadrantBottomRight" x1="100%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="#DBEAFE" stopOpacity="0.6"/>
+              <stop offset="100%" stopColor="#EFF6FF" stopOpacity="0.3"/>
+            </linearGradient>
           </defs>
           
-          <g transform="translate(60, 25)">
-            {/* Quadrant backgrounds - VERY SUBTLE */}
-            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFCE8" opacity="0.5" />
-            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F0FDF4" opacity="0.5" />
-            <rect x={PADDING} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F8FAFC" />
-            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#EFF6FF" opacity="0.5" />
+          <g transform="translate(70, 35)">
+            {/* Quadrant backgrounds with gradients */}
+            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantTopLeft)" rx="4" />
+            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantTopRight)" rx="4" />
+            <rect x={PADDING} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantBottomLeft)" rx="4" />
+            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantBottomRight)" rx="4" />
             
-            {/* Grid lines - subtle */}
-            <line x1={PADDING} y1={PADDING + PLOT_HEIGHT/2} x2={PADDING + PLOT_WIDTH} y2={PADDING + PLOT_HEIGHT/2} stroke="#E2E8F0" strokeWidth="1" />
-            <line x1={PADDING + PLOT_WIDTH/2} y1={PADDING} x2={PADDING + PLOT_WIDTH/2} y2={PADDING + PLOT_HEIGHT} stroke="#E2E8F0" strokeWidth="1" />
+            {/* Grid lines - dashed for visual interest */}
+            <line x1={PADDING} y1={PADDING + PLOT_HEIGHT/2} x2={PADDING + PLOT_WIDTH} y2={PADDING + PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1" strokeDasharray="6,4" />
+            <line x1={PADDING + PLOT_WIDTH/2} y1={PADDING} x2={PADDING + PLOT_WIDTH/2} y2={PADDING + PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1" strokeDasharray="6,4" />
             
             {/* Border */}
-            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#CBD5E1" strokeWidth="1" />
-            
-            {/* Quadrant labels - very subtle */}
-            <g opacity="0.4">
-              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + 30} textAnchor="middle" fill="#78350F" fontSize="13" fontWeight="600" fontFamily="system-ui">DEVELOP</text>
-              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + 30} textAnchor="middle" fill="#14532D" fontSize="13" fontWeight="600" fontFamily="system-ui">MAINTAIN</text>
-              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT - 15} textAnchor="middle" fill="#475569" fontSize="13" fontWeight="600" fontFamily="system-ui">MONITOR</text>
-              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT - 15} textAnchor="middle" fill="#1E3A8A" fontSize="13" fontWeight="600" fontFamily="system-ui">LEVERAGE</text>
-            </g>
+            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#CBD5E1" strokeWidth="1.5" rx="4" />
             
             {/* Data points */}
             {dimensionAnalysis.map((d) => {
               const xPos = PADDING + (d.score / 100) * PLOT_WIDTH;
               const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+              const isHovered = hoveredDim === d.dim;
               
               return (
-                <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
-                  <circle r="22" fill="white" filter="url(#subtleShadow)" />
-                  <circle r="18" fill={getScoreColor(d.score)} />
+                <g 
+                  key={d.dim} 
+                  transform={`translate(${xPos}, ${yPos})`}
+                  onMouseEnter={() => setHoveredDim(d.dim)}
+                  onMouseLeave={() => setHoveredDim(null)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <circle r={isHovered ? 26 : 22} fill="white" filter="url(#dropShadow)" style={{ transition: 'r 0.2s ease' }} />
+                  <circle r={isHovered ? 21 : 18} fill={getScoreColor(d.score)} style={{ transition: 'r 0.2s ease' }} />
                   <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="11" fontWeight="600" fontFamily="system-ui">
                     D{d.dim}
                   </text>
@@ -389,10 +410,10 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               {[0, 25, 50, 75, 100].map((val) => (
                 <g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}>
                   <line y1="0" y2="6" stroke="#94A3B8" strokeWidth="1" />
-                  <text y="22" textAnchor="middle" fill="#64748B" fontSize="12" fontFamily="system-ui">{val}</text>
+                  <text y="22" textAnchor="middle" fill="#64748B" fontSize="11" fontFamily="system-ui">{val}</text>
                 </g>
               ))}
-              <text x={PADDING + PLOT_WIDTH/2} y="48" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="500" fontFamily="system-ui">
+              <text x={PADDING + PLOT_WIDTH/2} y="45" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="600" fontFamily="system-ui">
                 Performance Score
               </text>
             </g>
@@ -404,25 +425,58 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 return (
                   <g key={val}>
                     <line x1="-6" y1={yPos} x2="0" y2={yPos} stroke="#94A3B8" strokeWidth="1" />
-                    <text x="-12" y={yPos + 4} textAnchor="end" fill="#64748B" fontSize="12" fontFamily="system-ui">{val}%</text>
+                    <text x="-12" y={yPos + 4} textAnchor="end" fill="#64748B" fontSize="11" fontFamily="system-ui">{val}%</text>
                   </g>
                 );
               })}
             </g>
             
             {/* Y-axis label */}
-            <text transform="rotate(-90)" x={-(PADDING + PLOT_HEIGHT/2)} y="12" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="500" fontFamily="system-ui">
+            <text transform="rotate(-90)" x={-(PADDING + PLOT_HEIGHT/2)} y="10" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="600" fontFamily="system-ui">
               Strategic Weight
             </text>
           </g>
         </svg>
+        
+        {/* Hover tooltip card */}
+        {hoveredData && (
+          <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg border border-slate-200 p-4 w-64 z-20">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: getScoreColor(hoveredData.score) }}>
+                {hoveredData.dim}
+              </span>
+              <div className="flex-1">
+                <p className="font-semibold text-slate-800 text-sm">{hoveredData.name}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="bg-slate-50 rounded px-2 py-1.5">
+                <p className="text-slate-500 text-xs">Score</p>
+                <p className="font-bold" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p>
+              </div>
+              <div className="bg-slate-50 rounded px-2 py-1.5">
+                <p className="text-slate-500 text-xs">Weight</p>
+                <p className="font-bold text-slate-700">{hoveredData.weight}%</p>
+              </div>
+              <div className="col-span-2 bg-slate-50 rounded px-2 py-1.5">
+                <p className="text-slate-500 text-xs">Tier</p>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded ${hoveredData.tier.bgColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Legend - compact */}
       <div className="mt-2 pt-4 border-t border-slate-100">
         <div className="grid grid-cols-7 gap-x-3 gap-y-2">
           {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
-            <div key={d.dim} className="flex items-center gap-1.5">
+            <div 
+              key={d.dim} 
+              className={`flex items-center gap-1.5 px-1.5 py-1 rounded transition-colors cursor-pointer ${hoveredDim === d.dim ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
+              onMouseEnter={() => setHoveredDim(d.dim)}
+              onMouseLeave={() => setHoveredDim(null)}
+            >
               <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0" style={{ backgroundColor: getScoreColor(d.score) }}>
                 {d.dim}
               </span>
@@ -444,7 +498,7 @@ export default function CompanyReportPage() {
   const router = useRouter();
   const surveyId = Array.isArray(params.surveyId) ? params.surveyId[0] : params.surveyId;
   const printRef = useRef<HTMLDivElement>(null);
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<any>(null);
@@ -651,25 +705,28 @@ export default function CompanyReportPage() {
     );
   }
 
-  const companyName = company.company_name || 'Company';
-  const firmographics = company.firmographics_data || {};
-  const firstName = firmographics.firstName || '';
-  const lastName = firmographics.lastName || '';
-  const contactName = firstName && lastName ? `${firstName} ${lastName}` : (firstName || lastName || firmographics.contact_name || '');
-  const contactEmail = firmographics.email || firmographics.contact_email || '';
-  
   const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, tier } = companyScores;
+  const companyName = company.firmographics_data?.company_name || company.company_name || 'Unknown Company';
+  const contactName = company.firmographics_data?.primary_contact_name || '';
+  const contactEmail = company.firmographics_data?.primary_contact_email || '';
   
   const dimensionAnalysis = Object.entries(dimensionScores)
     .map(([dim, score]) => {
       const dimNum = parseInt(dim);
       const elements = elementDetails?.[dimNum] || [];
-      const benchmark = benchmarks?.dimensionScores?.[dimNum] ?? null;
       return {
-        dim: dimNum, name: DIMENSION_NAMES[dimNum] || `Dimension ${dimNum}`, score: score ?? 0,
-        benchmark, weight: DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0, tier: getTier(score ?? 0), elements,
-        strengths: elements.filter((e: any) => e.isStrength), planning: elements.filter((e: any) => e.isPlanning),
-        assessing: elements.filter((e: any) => e.isAssessing), gaps: elements.filter((e: any) => e.isGap),
+        dim: dimNum,
+        name: DIMENSION_NAMES[dimNum],
+        score: score ?? 0,
+        weight: DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0,
+        weightPct: Math.round((DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0) / Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0) * 100),
+        tier: getTier(score ?? 0),
+        benchmark: benchmarks?.dimensionScores?.[dimNum] ?? null,
+        elements,
+        strengths: elements.filter((e: any) => e.isStrength),
+        planning: elements.filter((e: any) => e.isPlanning),
+        assessing: elements.filter((e: any) => e.isAssessing),
+        gaps: elements.filter((e: any) => e.isGap),
         unsure: elements.filter((e: any) => e.isUnsure),
       };
     })
@@ -850,13 +907,13 @@ export default function CompanyReportPage() {
                 <p className="text-slate-300 text-sm mt-1">Score: {topDimension?.score}</p>
               </div>
               <div className="bg-white/10 rounded-lg p-4">
-                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Priority Focus</p>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Growth Opportunity</p>
                 <p className="text-white font-semibold">{bottomDimension?.name || 'N/A'}</p>
                 <p className="text-slate-300 text-sm mt-1">Score: {bottomDimension?.score}</p>
               </div>
               <div className="bg-white/10 rounded-lg p-4">
-                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">In Development</p>
-                <p className="text-white font-semibold">{planningItems + assessingItems} initiatives</p>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">In Progress</p>
+                <p className="text-white font-semibold">{planningItems + assessingItems} items</p>
                 <p className="text-slate-300 text-sm mt-1">{planningItems} planning, {assessingItems} assessing</p>
               </div>
               <div className="bg-white/10 rounded-lg p-4">
@@ -891,7 +948,7 @@ export default function CompanyReportPage() {
           </div>
         </div>
 
-        {/* ============ DIMENSION PERFORMANCE ============ */}
+        {/* ============ DIMENSION PERFORMANCE - FIXED TRIANGLE POSITION ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Dimension Performance Overview</h3>
@@ -917,15 +974,18 @@ export default function CompanyReportPage() {
                   <div className="flex-1"><span className="text-sm font-medium text-slate-700">{d.name}</span></div>
                   <div className="w-10 text-center text-xs text-slate-500">{d.weight}%</div>
                   <div className="w-64">
-                    <div className="relative h-5">
-                      <div className="absolute inset-x-0 top-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="absolute left-0 top-0 h-full rounded-full transition-all" style={{ width: `${d.score}%`, backgroundColor: getScoreColor(d.score) }} />
-                      </div>
+                    {/* FIXED: Triangle now sits ABOVE the bar, not bleeding into it */}
+                    <div className="relative h-6">
+                      {/* Benchmark triangle - positioned at top */}
                       {d.benchmark !== null && (
-                        <div className="absolute top-0" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}>
-                          <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-600" />
+                        <div className="absolute" style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '0', transform: 'translateX(-50%)' }}>
+                          <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500" />
                         </div>
                       )}
+                      {/* Bar - positioned below triangle */}
+                      <div className="absolute inset-x-0 top-2 h-4 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="absolute left-0 top-0 h-full rounded-full transition-all" style={{ width: `${d.score}%`, backgroundColor: getScoreColor(d.score) }} />
+                      </div>
                     </div>
                   </div>
                   <div className="w-14 text-right"><span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span></div>
@@ -958,18 +1018,18 @@ export default function CompanyReportPage() {
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Strategic Priority Matrix</h3>
-            <p className="text-sm text-slate-500 mt-1">Dimensions plotted by current performance versus strategic weight</p>
+            <p className="text-sm text-slate-500 mt-1">Dimensions plotted by current performance versus strategic weight. Hover over any dimension for details.</p>
           </div>
           <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
         </div>
 
-        {/* ============ AREAS OF EXCELLENCE & GROWTH - PROFESSIONAL TABLE LAYOUT ============ */}
+        {/* ============ AREAS OF EXCELLENCE & GROWTH - WITH COLORED HEADERS ============ */}
         <div className="grid grid-cols-2 gap-6 mb-8">
           {/* Areas of Excellence */}
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100">
-              <h3 className="font-semibold text-slate-900">Areas of Excellence</h3>
-              <p className="text-sm text-slate-500">{strengthDimensions.length} dimensions at Leading or above</p>
+            <div className="px-6 py-4 bg-emerald-700">
+              <h3 className="font-semibold text-white">Areas of Excellence</h3>
+              <p className="text-emerald-200 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
             </div>
             <div className="divide-y divide-slate-100">
               {strengthDimensions.length > 0 ? (
@@ -999,9 +1059,9 @@ export default function CompanyReportPage() {
 
           {/* Growth Opportunities */}
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100">
-              <h3 className="font-semibold text-slate-900">Growth Opportunities</h3>
-              <p className="text-sm text-slate-500">Dimensions with improvement potential</p>
+            <div className="px-6 py-4 bg-amber-600">
+              <h3 className="font-semibold text-white">Growth Opportunities</h3>
+              <p className="text-amber-100 text-sm">Dimensions with improvement potential</p>
             </div>
             <div className="divide-y divide-slate-100">
               {allDimensionsByScore.slice(0, 5).map((d) => (
@@ -1027,9 +1087,9 @@ export default function CompanyReportPage() {
         {/* ============ INITIATIVES IN PROGRESS ============ */}
         {quickWinOpportunities.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div className="px-10 py-5 border-b border-slate-100">
-              <h3 className="font-semibold text-slate-900">Initiatives In Progress</h3>
-              <p className="text-sm text-slate-500 mt-0.5">Programs currently in planning or under consideration</p>
+            <div className="px-10 py-5 bg-blue-700">
+              <h3 className="font-semibold text-white">Initiatives In Progress</h3>
+              <p className="text-blue-200 text-sm mt-0.5">Programs currently in planning or under consideration</p>
             </div>
             <div className="px-10 py-6">
               <p className="text-slate-600 mb-6">
@@ -1038,7 +1098,7 @@ export default function CompanyReportPage() {
               <div className="grid grid-cols-2 gap-4">
                 {quickWinOpportunities.map((item, idx) => (
                   <div key={idx} className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className={`text-xs font-medium px-2 py-1 rounded flex-shrink-0 ${item.type === 'Planning' ? 'bg-slate-200 text-slate-700' : 'bg-slate-300 text-slate-800'}`}>{item.type}</span>
+                    <span className={`text-xs font-medium px-2 py-1 rounded flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700'}`}>{item.type}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-slate-700">{item.name}</p>
                       <p className="text-xs text-slate-500 mt-1">D{item.dimNum}: {item.dimName}</p>
@@ -1050,113 +1110,126 @@ export default function CompanyReportPage() {
           </div>
         )}
 
-        {/* ============ STRATEGIC RECOMMENDATIONS - CLEAN PROFESSIONAL ============ */}
+        {/* ============ STRATEGIC RECOMMENDATIONS - BETTER SEPARATION ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">Strategic Recommendations</h3>
             <p className="text-slate-400 text-sm mt-1">Detailed analysis and action plans for priority dimensions</p>
           </div>
           
-          <div className="divide-y divide-slate-200">
+          <div className="divide-y-4 divide-slate-100">
             {allDimensionsByScore.slice(0, 4).map((d, idx) => {
               const insight = DIMENSION_STRATEGIC_INSIGHTS[d.dim];
+              // Alternate between different accent colors for clear separation
+              const accentColors = [
+                { border: 'border-l-red-500', bg: 'bg-red-50', headerBg: 'bg-red-600' },
+                { border: 'border-l-orange-500', bg: 'bg-orange-50', headerBg: 'bg-orange-600' },
+                { border: 'border-l-amber-500', bg: 'bg-amber-50', headerBg: 'bg-amber-600' },
+                { border: 'border-l-yellow-500', bg: 'bg-yellow-50', headerBg: 'bg-yellow-600' },
+              ];
+              const accent = accentColors[idx % accentColors.length];
+              
               return (
-                <div key={d.dim} className="px-10 py-8">
-                  {/* Dimension Header */}
-                  <div className="flex items-start gap-4 mb-6">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>
-                      {idx + 1}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-xl font-semibold text-slate-900">{d.name}</h4>
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
-                        <span className="text-sm text-slate-500">Score: <strong className="text-slate-700">{d.score}</strong></span>
-                        <span className="text-sm text-slate-500">Weight: <strong className="text-slate-700">{d.weight}%</strong></span>
+                <div key={d.dim} className={`border-l-4 ${accent.border}`}>
+                  {/* Dimension Header - Full width colored bar */}
+                  <div className={`px-10 py-4 ${accent.bg} border-b border-slate-200`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold ${accent.headerBg}`}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-xl font-semibold text-slate-900">{d.name}</h4>
+                        <div className="flex items-center gap-4 mt-1">
+                          <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                          <span className="text-sm text-slate-600">Score: <strong>{d.score}</strong></span>
+                          <span className="text-sm text-slate-600">Weight: <strong>{d.weight}%</strong></span>
+                        </div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Current State - 3 columns - CLEAN TABLES */}
-                  <div className="grid grid-cols-3 gap-6 mb-6">
-                    {/* Gaps */}
-                    <div className="border border-slate-200 rounded-lg overflow-hidden">
-                      <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-                        <h5 className="font-semibold text-slate-700 text-sm">Gaps ({d.gaps.length})</h5>
+                  <div className="px-10 py-6">
+                    {/* Current State - 3 columns */}
+                    <div className="grid grid-cols-3 gap-6 mb-6">
+                      {/* Gaps */}
+                      <div className="border border-red-200 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-red-50 border-b border-red-200">
+                          <h5 className="font-semibold text-red-800 text-sm">Gaps ({d.gaps.length})</h5>
+                        </div>
+                        <div className="p-4 bg-white">
+                          {d.gaps.length > 0 ? (
+                            <ul className="space-y-2">
+                              {d.gaps.map((g: any, i: number) => (
+                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 flex-shrink-0"></span>
+                                  <span>{g.name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : <p className="text-sm text-slate-400 italic">No critical gaps</p>}
+                        </div>
                       </div>
-                      <div className="p-4">
-                        {d.gaps.length > 0 ? (
-                          <ul className="space-y-2">
-                            {d.gaps.map((g: any, i: number) => (
-                              <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 flex-shrink-0"></span>
-                                <span>{g.name}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : <p className="text-sm text-slate-400 italic">No critical gaps</p>}
+                      
+                      {/* In Progress */}
+                      <div className="border border-blue-200 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
+                          <h5 className="font-semibold text-blue-800 text-sm">In Progress ({d.planning.length + d.assessing.length})</h5>
+                        </div>
+                        <div className="p-4 bg-white">
+                          {(d.planning.length > 0 || d.assessing.length > 0) ? (
+                            <ul className="space-y-2">
+                              {[...d.planning, ...d.assessing].map((item: any, i: number) => (
+                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
+                                  <span>{item.name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : <p className="text-sm text-slate-400 italic">No initiatives in progress</p>}
+                        </div>
+                      </div>
+                      
+                      {/* Strengths */}
+                      <div className="border border-emerald-200 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
+                          <h5 className="font-semibold text-emerald-800 text-sm">Strengths ({d.strengths.length})</h5>
+                        </div>
+                        <div className="p-4 bg-white">
+                          {d.strengths.length > 0 ? (
+                            <ul className="space-y-2">
+                              {d.strengths.map((s: any, i: number) => (
+                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
+                                  <span>{s.name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : <p className="text-sm text-slate-400 italic">Building toward first strengths</p>}
+                        </div>
                       </div>
                     </div>
                     
-                    {/* In Progress */}
-                    <div className="border border-slate-200 rounded-lg overflow-hidden">
-                      <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-                        <h5 className="font-semibold text-slate-700 text-sm">In Progress ({d.planning.length + d.assessing.length})</h5>
+                    {/* Strategic Insight & CAC Help */}
+                    {insight && (
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="border border-slate-200 rounded-lg p-5 bg-white">
+                          <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
+                          <p className="text-sm text-slate-600 leading-relaxed">{insight.insight}</p>
+                        </div>
+                        <div className="border border-violet-200 rounded-lg p-5 bg-violet-50">
+                          <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                          <p className="text-sm text-slate-600 leading-relaxed">{insight.cacHelp}</p>
+                        </div>
                       </div>
-                      <div className="p-4">
-                        {(d.planning.length > 0 || d.assessing.length > 0) ? (
-                          <ul className="space-y-2">
-                            {[...d.planning, ...d.assessing].map((item: any, i: number) => (
-                              <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
-                                <span>{item.name}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : <p className="text-sm text-slate-400 italic">No initiatives in progress</p>}
-                      </div>
-                    </div>
-                    
-                    {/* Strengths */}
-                    <div className="border border-slate-200 rounded-lg overflow-hidden">
-                      <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-                        <h5 className="font-semibold text-slate-700 text-sm">Strengths ({d.strengths.length})</h5>
-                      </div>
-                      <div className="p-4">
-                        {d.strengths.length > 0 ? (
-                          <ul className="space-y-2">
-                            {d.strengths.map((s: any, i: number) => (
-                              <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
-                                <span>{s.name}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : <p className="text-sm text-slate-400 italic">Building toward first strengths</p>}
-                      </div>
-                    </div>
+                    )}
                   </div>
-                  
-                  {/* Strategic Insight & CAC Help */}
-                  {insight && (
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="border border-slate-200 rounded-lg p-5">
-                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
-                        <p className="text-sm text-slate-600 leading-relaxed">{insight.insight}</p>
-                      </div>
-                      <div className="border border-slate-200 rounded-lg p-5 bg-slate-50">
-                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
-                        <p className="text-sm text-slate-600 leading-relaxed">{insight.cacHelp}</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* ============ IMPLEMENTATION ROADMAP - CLEAN PROFESSIONAL ============ */}
+        {/* ============ IMPLEMENTATION ROADMAP ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="px-10 py-6 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Implementation Roadmap</h3>
@@ -1199,7 +1272,7 @@ export default function CompanyReportPage() {
                     <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">2</span>
                     <div>
                       <h4 className="font-semibold text-white">Foundation Building</h4>
-                      <p className="text-slate-400 text-xs">Core infrastructure</p>
+                      <p className="text-slate-400 text-xs">6-12 months</p>
                     </div>
                   </div>
                 </div>
@@ -1215,7 +1288,7 @@ export default function CompanyReportPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-slate-400 italic">Foundation already strong - focus on refinement</p>
+                    <p className="text-sm text-slate-400 italic">Focus on navigation and insurance resources</p>
                   )}
                 </div>
               </div>
@@ -1226,13 +1299,13 @@ export default function CompanyReportPage() {
                   <div className="flex items-center gap-3">
                     <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">3</span>
                     <div>
-                      <h4 className="font-semibold text-white">Excellence & Culture</h4>
-                      <p className="text-slate-400 text-xs">Industry leadership</p>
+                      <h4 className="font-semibold text-white">Excellence</h4>
+                      <p className="text-slate-400 text-xs">12+ months</p>
                     </div>
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Elevate strengths to industry-leading</p>
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Enhance areas of strength</p>
                   {excellenceItems.length > 0 ? (
                     <ul className="space-y-3">
                       {excellenceItems.map((item, idx) => (
