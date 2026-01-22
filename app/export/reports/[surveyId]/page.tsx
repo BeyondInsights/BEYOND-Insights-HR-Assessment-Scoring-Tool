@@ -367,7 +367,7 @@ export default function ExportReportPage() {
   
   // Validate token
   useEffect(() => {
-    const validToken = process.env.NEXT_PUBLIC_EXPORT_SECRET_TOKEN || 'cac-export-2026';
+    const validToken = process.env.NEXT_PUBLIC_EXPORT_SECRET_TOKEN;
     if (token === validToken) {
       setAuthorized(true);
     } else {
