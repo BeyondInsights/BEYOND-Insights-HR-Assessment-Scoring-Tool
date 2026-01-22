@@ -1004,6 +1004,16 @@ export default function CompanyReportPage() {
         /* SVG filters can cause odd clipping/blur */
         .export-mode svg filter { display: none !important; }
         
+        /* Fix for html2canvas - it can't parse oklch colors from Tailwind v4 */
+        .ppt-slide, .ppt-slide * {
+          --tw-bg-opacity: 1 !important;
+          --tw-text-opacity: 1 !important;
+        }
+        .ppt-slides-container * {
+          color: inherit;
+          background-color: inherit;
+        }
+        
         /* PPT slide sections - hidden by default, shown for capture */
         .ppt-slide {
           width: 1280px;
@@ -1845,12 +1855,39 @@ export default function CompanyReportPage() {
             </div>
           </div>
 
-          {/* SLIDE 4: Matrix */}
+          {/* SLIDE 4: Matrix - Static version to avoid oklch color parsing issues */}
           <div className="ppt-slide">
             <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '10px' }}>Strategic Priority Matrix</h2>
             <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '20px' }}>Performance vs Strategic Weight</p>
-            <div style={{ transform: 'scale(0.9)', transformOrigin: 'top left' }}>
-              <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+              <div style={{ background: '#FEE2E2', padding: '20px', borderRadius: '8px' }}>
+                <p style={{ fontWeight: 'bold', color: '#991B1B', marginBottom: '10px' }}>PRIORITY GAPS</p>
+                <p style={{ fontSize: '11px', color: '#7F1D1D' }}>High weight, lower performance - focus here first</p>
+                {dimensionAnalysis.filter(d => d.weight >= 7 && d.score < 70).slice(0, 3).map(d => (
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px' }}>• {d.name} ({d.score})</p>
+                ))}
+              </div>
+              <div style={{ background: '#D1FAE5', padding: '20px', borderRadius: '8px' }}>
+                <p style={{ fontWeight: 'bold', color: '#065F46', marginBottom: '10px' }}>CORE STRENGTHS</p>
+                <p style={{ fontSize: '11px', color: '#047857' }}>High weight, strong performance - maintain these</p>
+                {dimensionAnalysis.filter(d => d.weight >= 7 && d.score >= 70).slice(0, 3).map(d => (
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px' }}>• {d.name} ({d.score})</p>
+                ))}
+              </div>
+              <div style={{ background: '#FEF3C7', padding: '20px', borderRadius: '8px' }}>
+                <p style={{ fontWeight: 'bold', color: '#92400E', marginBottom: '10px' }}>SECONDARY GAPS</p>
+                <p style={{ fontSize: '11px', color: '#B45309' }}>Lower weight, needs improvement</p>
+                {dimensionAnalysis.filter(d => d.weight < 7 && d.score < 70).slice(0, 3).map(d => (
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px' }}>• {d.name} ({d.score})</p>
+                ))}
+              </div>
+              <div style={{ background: '#DBEAFE', padding: '20px', borderRadius: '8px' }}>
+                <p style={{ fontWeight: 'bold', color: '#1E40AF', marginBottom: '10px' }}>MAINTAIN</p>
+                <p style={{ fontSize: '11px', color: '#1D4ED8' }}>Lower weight, performing well</p>
+                {dimensionAnalysis.filter(d => d.weight < 7 && d.score >= 70).slice(0, 3).map(d => (
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px' }}>• {d.name} ({d.score})</p>
+                ))}
+              </div>
             </div>
           </div>
 
