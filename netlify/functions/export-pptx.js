@@ -1,8 +1,8 @@
 const PptxGenJS = require('pptxgenjs');
 
 // ============================================
-// SCREENSHOT-BASED PPT EXPORT - SEQUENTIAL
-// One screenshot at a time to avoid rate limits
+// SCROLL-BASED PPT EXPORT
+// Scroll page and capture viewport for each slide
 // ============================================
 
 exports.handler = async (event) => {
@@ -13,7 +13,6 @@ exports.handler = async (event) => {
     if (!surveyId) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Missing surveyId' }) };
     }
-    console.log('Survey ID:', surveyId);
 
     const browserlessToken = process.env.BROWSERLESS_TOKEN;
     const browserlessBase = process.env.BROWSERLESS_BASE || 'https://production-sfo.browserless.io';
@@ -34,79 +33,87 @@ exports.handler = async (event) => {
     pptx.title = 'Cancer Support Assessment Report';
     pptx.author = 'Cancer and Careers';
     
-    const SLIDE_WIDTH = 1200;
+    // 16:9 viewport - 1200 x 675
+    const VIEWPORT_W = 1200;
+    const VIEWPORT_H = 675;
     
-    // Key sections only (6 slides to fit in timeout)
-    const sections = [
-      { name: 'Executive Summary', y: 0, h: 950 },
-      { name: 'Dimension Performance', y: 1540, h: 820 },
-      { name: 'Strategic Matrix', y: 2330, h: 750 },
-      { name: 'Excellence & Growth', y: 3050, h: 850 },
-      { name: 'Implementation Roadmap', y: 6890, h: 620 },
-      { name: 'How CAC Can Help', y: 7480, h: 650 },
-    ];
+    // First, get page height
+    console.log('Getting page height...');
+    const heightRes = await fetch(`${browserlessBase}/function?token=${browserlessToken}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: `
+          module.exports = async ({ page }) => {
+            await page.goto('${reportUrl}', { waitUntil: 'networkidle2', timeout: 25000 });
+            const height = await page.evaluate(() => document.body.scrollHeight);
+            return { height };
+          };
+        `
+      })
+    });
     
-    // Sequential capture with delay
-    for (let i = 0; i < sections.length; i++) {
-      const section = sections[i];
-      console.log(`[${i + 1}/${sections.length}] Capturing: ${section.name}`);
+    let pageHeight = 8500; // default
+    if (heightRes.ok) {
+      const data = await heightRes.json();
+      pageHeight = data.height || 8500;
+      console.log('Page height:', pageHeight);
+    }
+    
+    const numSlides = Math.min(Math.ceil(pageHeight / VIEWPORT_H), 15);
+    console.log(`Creating ${numSlides} slides`);
+    
+    // Take screenshots by scrolling
+    for (let i = 0; i < numSlides; i++) {
+      const scrollY = i * VIEWPORT_H;
+      console.log(`Slide ${i + 1}: scrollY = ${scrollY}`);
       
-      try {
-        const res = await fetch(`${browserlessBase}/screenshot?token=${browserlessToken}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: reportUrl,
-            options: {
-              type: 'png',
-              clip: { x: 0, y: section.y, width: SLIDE_WIDTH, height: section.h }
-            },
-            gotoOptions: { waitUntil: 'networkidle2', timeout: 20000 },
-            viewport: { width: SLIDE_WIDTH, height: 8500 }
-          })
-        });
-        
-        if (!res.ok) {
-          const errText = await res.text();
-          console.error(`Screenshot failed for ${section.name}:`, res.status, errText.substring(0, 200));
-          continue;
-        }
-        
-        const buffer = await res.arrayBuffer();
-        const imgB64 = Buffer.from(buffer).toString('base64');
-        console.log(`[${i + 1}] ${section.name}: ${buffer.byteLength} bytes`);
-        
-        // Add slide
-        const slide = pptx.addSlide();
-        const imgAspect = SLIDE_WIDTH / section.h;
-        let w = 13.333, h = 13.333 / imgAspect;
-        if (h > 7.5) { h = 7.5; w = 7.5 * imgAspect; }
-        
-        slide.addImage({
-          data: `data:image/png;base64,${imgB64}`,
-          x: (13.333 - w) / 2,
-          y: (7.5 - h) / 2,
-          w, h
-        });
-        
-        // Small delay between requests
-        if (i < sections.length - 1) {
-          await new Promise(r => setTimeout(r, 500));
-        }
-        
-      } catch (err) {
-        console.error(`Error capturing ${section.name}:`, err.message);
+      const res = await fetch(`${browserlessBase}/function?token=${browserlessToken}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: `
+            module.exports = async ({ page }) => {
+              await page.setViewport({ width: ${VIEWPORT_W}, height: ${VIEWPORT_H} });
+              await page.goto('${reportUrl}', { waitUntil: 'networkidle2', timeout: 20000 });
+              await page.evaluate((y) => window.scrollTo(0, y), ${scrollY});
+              await new Promise(r => setTimeout(r, 300));
+              const screenshot = await page.screenshot({ type: 'png' });
+              return { screenshot: screenshot.toString('base64') };
+            };
+          `
+        })
+      });
+      
+      if (!res.ok) {
+        console.error(`Slide ${i + 1} failed:`, res.status);
+        continue;
       }
+      
+      const data = await res.json();
+      if (data.screenshot) {
+        const slide = pptx.addSlide();
+        slide.addImage({
+          data: `data:image/png;base64,${data.screenshot}`,
+          x: 0,
+          y: 0,
+          w: 13.333,
+          h: 7.5
+        });
+        console.log(`Slide ${i + 1} added`);
+      }
+      
+      // Small delay
+      await new Promise(r => setTimeout(r, 200));
     }
     
     console.log(`Generated ${pptx.slides.length} slides`);
     
     if (pptx.slides.length === 0) {
-      return { statusCode: 500, body: JSON.stringify({ error: 'No slides generated - all screenshots failed' }) };
+      return { statusCode: 500, body: JSON.stringify({ error: 'No slides generated' }) };
     }
     
     const outB64 = await pptx.write({ outputType: 'base64' });
-    console.log('PPT complete');
     
     return {
       statusCode: 200,
