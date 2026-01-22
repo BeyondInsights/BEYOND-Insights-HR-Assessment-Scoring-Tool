@@ -17,7 +17,7 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ error: 'Missing BROWSERLESS_TOKEN' }) };
     }
 
-    const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?token=${exportToken}&export=1`;
+    const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1`;
 
     console.log(`Generating PDF for: ${reportUrl}`);
 
