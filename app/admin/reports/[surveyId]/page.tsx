@@ -1751,7 +1751,7 @@ export default function CompanyReportPage() {
                 <p style={{ fontSize: '12px' }}>Score</p>
               </div>
               <div style={{ background: '#374151', padding: '12px 24px', borderRadius: '6px' }}>
-                <p style={{ fontSize: '18px', fontWeight: 600 }}>{tier}</p>
+                <p style={{ fontSize: '18px', fontWeight: 600 }}>{tier?.name}</p>
               </div>
             </div>
             <p style={{ position: 'absolute' as const, bottom: '40px', left: '60px', fontSize: '12px', color: '#64748B' }}>
