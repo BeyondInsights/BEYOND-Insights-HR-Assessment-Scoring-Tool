@@ -671,6 +671,26 @@ export default function CompanyReportPage() {
     return { compositeScore: avg(allScores.map(s => s?.compositeScore)), weightedDimScore: avg(allScores.map(s => s?.weightedDimScore)), maturityScore: avg(allScores.map(s => s?.maturityScore)), breadthScore: avg(allScores.map(s => s?.breadthScore)), dimensionScores: dimensionBenchmarks, companyCount: complete.length };
   }
 
+  // ============================================
+  // EXPORT HELPERS
+  // ============================================
+  async function waitForFonts() {
+    if ((document as any).fonts?.ready) {
+      await (document as any).fonts.ready;
+    }
+  }
+
+  async function waitForImages(root: HTMLElement) {
+    const imgs = Array.from(root.querySelectorAll('img')) as HTMLImageElement[];
+    await Promise.all(imgs.map(img => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise<void>(resolve => {
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+      });
+    }));
+  }
+
   async function handleExportPDF() {
     setExporting(true);
     
@@ -684,10 +704,8 @@ export default function CompanyReportPage() {
             script.onload = () => resolve();
             script.onerror = () => reject(new Error('Failed to load PDF library'));
             document.head.appendChild(script);
-            // Timeout after 5 seconds
             setTimeout(() => reject(new Error('Timeout loading PDF library')), 5000);
           });
-          // Brief pause to let library initialize
           await new Promise(r => setTimeout(r, 200));
         } catch (loadErr) {
           console.error('Could not load PDF library, falling back to print:', loadErr);
@@ -704,17 +722,24 @@ export default function CompanyReportPage() {
         return;
       }
       
+      // Add export mode to fix scroll containers, sticky elements, etc.
+      document.body.classList.add('export-mode');
+      await waitForFonts();
+      await waitForImages(element);
+      
       const filename = `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_Cancer_Support_Report.pdf`;
       
       const opt = {
         margin: [0.3, 0.3, 0.3, 0.3],
         filename: filename,
-        image: { type: 'jpeg', quality: 0.90 },
+        image: { type: 'jpeg', quality: 0.95 },
         html2canvas: { 
-          scale: 1.5,
+          scale: 2,
           useCORS: true,
           logging: false,
-          windowWidth: 1100
+          backgroundColor: '#FFFFFF',
+          windowWidth: 1100,
+          scrollY: 0
         },
         jsPDF: { 
           unit: 'in', 
@@ -722,278 +747,112 @@ export default function CompanyReportPage() {
           orientation: 'portrait'
         },
         pagebreak: { 
-          mode: ['css', 'legacy'],
+          mode: ['css', 'avoid-all'],
           before: '.pdf-break-before',
           avoid: '.pdf-no-break'
         }
       };
       
-      // Use promise chain to avoid blocking
+      // Use promise chain
       (window as any).html2pdf()
         .set(opt)
         .from(element)
         .save()
         .then(() => {
+          document.body.classList.remove('export-mode');
           setExporting(false);
         })
         .catch((err: any) => {
           console.error('PDF error:', err);
+          document.body.classList.remove('export-mode');
           setExporting(false);
-          // Fallback to print
           window.print();
         });
         
     } catch (err) {
       console.error('PDF export error:', err);
+      document.body.classList.remove('export-mode');
       setExporting(false);
-      // Fallback to print
       window.print();
     }
   }
 
   // ============================================
-  // POWERPOINT EXPORT FUNCTION
+  // POWERPOINT EXPORT - DOM → PNG → PPT METHOD
   // ============================================
   async function handleExportPPT() {
     setExportingPPT(true);
     
     try {
-      // Load PptxGenJS from CDN
-      if (typeof window !== 'undefined' && !(window as any).PptxGenJS) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js';
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error('Failed to load PptxGenJS'));
-          document.head.appendChild(script);
-          setTimeout(() => reject(new Error('Timeout')), 10000);
-        });
-        await new Promise(r => setTimeout(r, 300));
+      // Load PptxGenJS
+      if (!(window as any).PptxGenJS) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js';
+        document.head.appendChild(script);
+        await new Promise(r => setTimeout(r, 1500));
       }
       
       // Load html2canvas
-      if (typeof window !== 'undefined' && !(window as any).html2canvas) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error('Failed to load html2canvas'));
-          document.head.appendChild(script);
-          setTimeout(() => reject(new Error('Timeout')), 10000);
-        });
-        await new Promise(r => setTimeout(r, 200));
+      if (!(window as any).html2canvas) {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        document.head.appendChild(script);
+        await new Promise(r => setTimeout(r, 1000));
       }
+      
+      // Add export mode class to fix scroll containers, sticky elements, etc.
+      document.body.classList.add('export-mode');
+      
+      await waitForFonts();
       
       const pptx = new (window as any).PptxGenJS();
       pptx.layout = 'LAYOUT_16x9';
-      pptx.title = companyName + ' - Cancer Support Assessment';
+      pptx.title = (companyName || 'Company') + ' - Cancer Support Assessment';
       pptx.author = 'Cancer and Careers';
       
-      const getTierColorHex = (score: number) => {
-        if (score >= 90) return '059669';
-        if (score >= 75) return '0D9488';
-        if (score >= 60) return '2563EB';
-        if (score >= 40) return 'D97706';
-        return 'DC2626';
-      };
+      // Find all PPT slide sections
+      const slideNodes = Array.from(document.querySelectorAll('.ppt-slide')) as HTMLElement[];
       
-      const safeScore = compositeScore || 0;
-      const safeTier = tier || 'Emerging';
-      const scoreColor = getTierColorHex(safeScore);
-
-      // ============ SLIDE 1: TITLE ============
-      let slide = pptx.addSlide();
-      slide.addShape('rect', { x: 0, y: 0, w: '100%', h: '100%', fill: { color: '1E293B' } });
-      slide.addShape('rect', { x: 0.5, y: 1.5, w: 1.5, h: 1.5, fill: { color: 'FFFFFF' } });
-      slide.addText('CAC', { x: 0.5, y: 1.9, w: 1.5, h: 0.5, align: 'center', fontSize: 18, color: '1E293B', bold: true });
-      slide.addText('Best Companies for Working with Cancer', { x: 2.2, y: 1.5, w: 7, h: 0.6, fontSize: 24, color: 'FFFFFF', bold: true });
-      slide.addText('Index 2026 - Performance Assessment', { x: 2.2, y: 2.1, w: 7, h: 0.4, fontSize: 14, color: 'CBD5E1' });
-      slide.addText(companyName || 'Company', { x: 0.5, y: 3.5, w: 9, h: 0.8, fontSize: 36, color: 'FFFFFF', bold: true });
-      slide.addShape('rect', { x: 0.5, y: 4.5, w: 1.8, h: 1.2, fill: { color: scoreColor } });
-      slide.addText(String(safeScore), { x: 0.5, y: 4.6, w: 1.8, h: 0.7, align: 'center', fontSize: 40, color: 'FFFFFF', bold: true });
-      slide.addText('Score', { x: 0.5, y: 5.25, w: 1.8, h: 0.3, align: 'center', fontSize: 11, color: 'FFFFFF' });
-      slide.addShape('rect', { x: 2.5, y: 4.7, w: 1.8, h: 0.6, fill: { color: '374151' } });
-      slide.addText(safeTier, { x: 2.5, y: 4.75, w: 1.8, h: 0.5, align: 'center', fontSize: 14, color: 'FFFFFF', bold: true });
-      slide.addText(new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), { x: 0.5, y: 6.8, w: 3, h: 0.3, fontSize: 12, color: '94A3B8' });
-
-      // ============ SLIDE 2: EXECUTIVE SUMMARY ============
-      slide = pptx.addSlide();
-      slide.addText('Executive Summary', { x: 0.5, y: 0.3, w: 9, h: 0.5, fontSize: 24, color: '1E293B', bold: true });
-      
-      // Metrics
-      const safeCurrently = currentlyOffering || 0;
-      const safeTotal = totalElements || 0;
-      const safePlanning = (planningItems || 0) + (assessingItems || 0);
-      const safeGaps = gapItems || 0;
-      const safeLeading = (tierCounts?.exemplary || 0) + (tierCounts?.leading || 0);
-      
-      slide.addShape('rect', { x: 0.5, y: 1, w: 2.2, h: 1.1, fill: { color: 'F1F5F9' } });
-      slide.addText(String(safeCurrently), { x: 0.5, y: 1.05, w: 2.2, h: 0.6, align: 'center', fontSize: 28, color: '1E293B', bold: true });
-      slide.addText('of ' + safeTotal + ' elements offered', { x: 0.6, y: 1.6, w: 2, h: 0.4, align: 'center', fontSize: 9, color: '475569' });
-      
-      slide.addShape('rect', { x: 2.9, y: 1, w: 2.2, h: 1.1, fill: { color: 'F1F5F9' } });
-      slide.addText(String(safePlanning), { x: 2.9, y: 1.05, w: 2.2, h: 0.6, align: 'center', fontSize: 28, color: '1E293B', bold: true });
-      slide.addText('in development', { x: 3, y: 1.6, w: 2, h: 0.4, align: 'center', fontSize: 9, color: '475569' });
-      
-      slide.addShape('rect', { x: 5.3, y: 1, w: 2.2, h: 1.1, fill: { color: 'F1F5F9' } });
-      slide.addText(String(safeGaps), { x: 5.3, y: 1.05, w: 2.2, h: 0.6, align: 'center', fontSize: 28, color: '1E293B', bold: true });
-      slide.addText('identified gaps', { x: 5.4, y: 1.6, w: 2, h: 0.4, align: 'center', fontSize: 9, color: '475569' });
-      
-      slide.addShape('rect', { x: 7.7, y: 1, w: 2.2, h: 1.1, fill: { color: 'F1F5F9' } });
-      slide.addText(String(safeLeading), { x: 7.7, y: 1.05, w: 2.2, h: 0.6, align: 'center', fontSize: 28, color: '1E293B', bold: true });
-      slide.addText('at Leading+', { x: 7.8, y: 1.6, w: 2, h: 0.4, align: 'center', fontSize: 9, color: '475569' });
-      
-      // Tier progress
-      slide.addShape('rect', { x: 0.5, y: 2.3, w: 9.4, h: 0.9, fill: { color: 'EDE9FE' } });
-      let tierText = nextTierUp && pointsToNextTier 
-        ? pointsToNextTier + ' points from ' + nextTierUp.name + (nextTierUp.name !== 'Exemplary' ? ' | ' + (90 - safeScore) + ' from Exemplary' : '')
-        : 'Exemplary tier achieved';
-      slide.addText(tierText, { x: 0.7, y: 2.4, w: 9, h: 0.35, fontSize: 13, color: '5B21B6', bold: true });
-      
-      const growthNames = (allDimensionsByScore || []).slice(0, 3).map((d: any) => d?.name || '').filter(Boolean).join(', ');
-      slide.addText('Focus areas: ' + (growthNames || 'See dimension analysis'), { x: 0.7, y: 2.75, w: 9, h: 0.35, fontSize: 10, color: '7C3AED' });
-
-      // ============ SLIDE 3: DIMENSION PERFORMANCE ============
-      slide = pptx.addSlide();
-      slide.addText('Dimension Performance Overview', { x: 0.5, y: 0.3, w: 9, h: 0.5, fontSize: 24, color: '1E293B', bold: true });
-      
-      // Simple table without complex formatting
-      const rows: any[] = [];
-      rows.push(['#', 'Dimension', 'Weight', 'Score', 'Tier']);
-      
-      const sortedDims = [...(dimensionAnalysis || [])].sort((a: any, b: any) => (b?.weight || 0) - (a?.weight || 0));
-      sortedDims.forEach((d: any) => {
-        rows.push([
-          'D' + (d?.dim || ''),
-          d?.name || '',
-          (d?.weight || 0) + '%',
-          String(d?.score || 0),
-          d?.tier?.name || ''
-        ]);
-      });
-      
-      slide.addTable(rows, {
-        x: 0.5, y: 0.9, w: 9.4,
-        colW: [0.6, 4.5, 0.8, 0.8, 1.5],
-        fontSize: 9,
-        color: '1E293B',
-        border: { type: 'solid', pt: 0.5, color: 'E2E8F0' },
-        autoPage: false
-      });
-
-      // ============ SLIDE 4: STRATEGIC MATRIX ============
-      slide = pptx.addSlide();
-      slide.addText('Strategic Priority Matrix', { x: 0.5, y: 0.3, w: 9, h: 0.5, fontSize: 24, color: '1E293B', bold: true });
-      slide.addText('Performance vs Strategic Weight', { x: 0.5, y: 0.75, w: 9, h: 0.3, fontSize: 11, color: '475569' });
-      
-      // Try to capture matrix image
-      let captured = false;
-      if (matrixRef.current && (window as any).html2canvas) {
-        try {
-          const canvas = await (window as any).html2canvas(matrixRef.current, { scale: 2, backgroundColor: '#FFFFFF', logging: false });
-          slide.addImage({ data: canvas.toDataURL('image/png'), x: 0.3, y: 1.1, w: 9.4, h: 4.2 });
-          captured = true;
-        } catch (e) { console.log('Matrix capture failed'); }
+      if (slideNodes.length === 0) {
+        throw new Error('No .ppt-slide sections found');
       }
       
-      if (!captured) {
-        slide.addShape('rect', { x: 0.5, y: 1.3, w: 4.3, h: 0.4, fill: { color: 'FEE2E2' } });
-        slide.addText('PRIORITY GAPS', { x: 0.5, y: 1.35, w: 4.3, h: 0.3, align: 'center', fontSize: 10, color: '991B1B', bold: true });
-        slide.addShape('rect', { x: 5, y: 1.3, w: 4.3, h: 0.4, fill: { color: 'D1FAE5' } });
-        slide.addText('CORE STRENGTHS', { x: 5, y: 1.35, w: 4.3, h: 0.3, align: 'center', fontSize: 10, color: '065F46', bold: true });
-        slide.addText('See PDF for interactive chart', { x: 0.5, y: 3, w: 9, h: 0.5, align: 'center', fontSize: 14, color: '64748B' });
+      // Capture each slide section as an image
+      for (const node of slideNodes) {
+        await waitForImages(node);
+        
+        // Small delay to ensure rendering is complete
+        await new Promise(r => setTimeout(r, 100));
+        
+        const canvas = await (window as any).html2canvas(node, {
+          scale: 2,
+          backgroundColor: '#FFFFFF',
+          logging: false,
+          scrollY: 0
+        });
+        
+        const slide = pptx.addSlide();
+        slide.addImage({
+          data: canvas.toDataURL('image/png'),
+          x: 0,
+          y: 0,
+          w: 13.333, // full 16:9 width in inches for LAYOUT_16x9
+          h: 7.5
+        });
       }
-
-      // ============ SLIDE 5: EXCELLENCE & GROWTH ============
-      slide = pptx.addSlide();
-      slide.addText('Areas of Excellence & Growth Opportunities', { x: 0.5, y: 0.3, w: 9, h: 0.5, fontSize: 24, color: '1E293B', bold: true });
       
-      // Excellence
-      slide.addShape('rect', { x: 0.5, y: 0.9, w: 4.3, h: 0.5, fill: { color: '059669' } });
-      slide.addText('Areas of Excellence', { x: 0.5, y: 0.95, w: 4.3, h: 0.4, align: 'center', fontSize: 14, color: 'FFFFFF', bold: true });
+      const fileName = ((companyName || 'Company').replace(/[^a-zA-Z0-9]/g, '_')) + '_Report.pptx';
+      await pptx.writeFile({ fileName });
       
-      const strengths = (strengthDimensions || []).slice(0, 4);
-      strengths.forEach((d: any, i: number) => {
-        const yPos = 1.5 + (i * 0.9);
-        slide.addText((d?.name || '') + ' (' + (d?.score || 0) + ')', { x: 0.6, y: yPos, w: 4, h: 0.3, fontSize: 11, color: '1E293B', bold: true });
-        const sItems = (d?.strengths || []).slice(0, 2);
-        sItems.forEach((s: any, j: number) => {
-          slide.addText('✓ ' + (s?.name || ''), { x: 0.6, y: yPos + 0.28 + (j * 0.25), w: 4, h: 0.25, fontSize: 8, color: '475569' });
-        });
-      });
-      
-      // Growth
-      slide.addShape('rect', { x: 5.2, y: 0.9, w: 4.3, h: 0.5, fill: { color: 'D97706' } });
-      slide.addText('Opportunities to Improve', { x: 5.2, y: 0.95, w: 4.3, h: 0.4, align: 'center', fontSize: 14, color: 'FFFFFF', bold: true });
-      
-      const growth = (allDimensionsByScore || []).slice(0, 4);
-      growth.forEach((d: any, i: number) => {
-        const yPos = 1.5 + (i * 0.9);
-        slide.addText((d?.name || '') + ' (' + (d?.score || 0) + ')', { x: 5.3, y: yPos, w: 4, h: 0.3, fontSize: 11, color: '1E293B', bold: true });
-        const gItems = (d?.needsAttention || []).slice(0, 2);
-        gItems.forEach((g: any, j: number) => {
-          slide.addText('• ' + (g?.name || ''), { x: 5.3, y: yPos + 0.28 + (j * 0.25), w: 4, h: 0.25, fontSize: 8, color: '475569' });
-        });
-      });
-
-      // ============ SLIDE 6: ROADMAP ============
-      slide = pptx.addSlide();
-      slide.addText('Implementation Roadmap', { x: 0.5, y: 0.3, w: 9, h: 0.5, fontSize: 24, color: '1E293B', bold: true });
-      
-      // Phase 1
-      slide.addShape('rect', { x: 0.5, y: 1, w: 2.9, h: 0.6, fill: { color: '1E293B' } });
-      slide.addText('Quick Wins', { x: 0.5, y: 1.05, w: 2.9, h: 0.5, align: 'center', fontSize: 14, color: 'FFFFFF', bold: true });
-      slide.addShape('rect', { x: 0.5, y: 1.7, w: 2.9, h: 3.5, fill: { color: 'F1F5F9' } });
-      (quickWinItems || []).slice(0, 5).forEach((item: any, i: number) => {
-        slide.addText('• ' + (item?.name || ''), { x: 0.6, y: 1.8 + (i * 0.5), w: 2.7, h: 0.45, fontSize: 8, color: '1E293B' });
-      });
-      
-      // Phase 2
-      slide.addShape('rect', { x: 3.55, y: 1, w: 2.9, h: 0.6, fill: { color: '475569' } });
-      slide.addText('Foundation (6-12mo)', { x: 3.55, y: 1.05, w: 2.9, h: 0.5, align: 'center', fontSize: 14, color: 'FFFFFF', bold: true });
-      slide.addShape('rect', { x: 3.55, y: 1.7, w: 2.9, h: 3.5, fill: { color: 'F1F5F9' } });
-      (foundationItems || []).slice(0, 5).forEach((item: any, i: number) => {
-        slide.addText('• ' + (item?.name || ''), { x: 3.65, y: 1.8 + (i * 0.5), w: 2.7, h: 0.45, fontSize: 8, color: '1E293B' });
-      });
-      
-      // Phase 3
-      slide.addShape('rect', { x: 6.6, y: 1, w: 2.9, h: 0.6, fill: { color: '64748B' } });
-      slide.addText('Long-Term (12+mo)', { x: 6.6, y: 1.05, w: 2.9, h: 0.5, align: 'center', fontSize: 14, color: 'FFFFFF', bold: true });
-      slide.addShape('rect', { x: 6.6, y: 1.7, w: 2.9, h: 3.5, fill: { color: 'F1F5F9' } });
-      (excellenceItems || []).slice(0, 5).forEach((item: any, i: number) => {
-        slide.addText('• ' + (item?.name || ''), { x: 6.7, y: 1.8 + (i * 0.5), w: 2.7, h: 0.45, fontSize: 8, color: '1E293B' });
-      });
-
-      // ============ SLIDE 7: CAC HELP ============
-      slide = pptx.addSlide();
-      slide.addShape('rect', { x: 0, y: 0, w: '100%', h: 1.2, fill: { color: '1E293B' } });
-      slide.addText('How Cancer and Careers Can Help', { x: 0.5, y: 0.35, w: 9, h: 0.5, fontSize: 24, color: 'FFFFFF', bold: true });
-      
-      slide.addText('Every organization enters this work from a different place. Our consulting practice helps you understand where you are, identify where you want to be, and build a path to get there.', { x: 0.5, y: 1.5, w: 9.4, h: 0.7, fontSize: 11, color: '475569' });
-      
-      slide.addText('For HR & Benefits Teams', { x: 0.5, y: 2.4, w: 4.5, h: 0.4, fontSize: 14, color: '1E293B', bold: true });
-      slide.addText('✓ Policy gap analysis', { x: 0.5, y: 2.85, w: 4.5, h: 0.3, fontSize: 11, color: '475569' });
-      slide.addText('✓ Benefits benchmarking', { x: 0.5, y: 3.15, w: 4.5, h: 0.3, fontSize: 11, color: '475569' });
-      slide.addText('✓ Manager training programs', { x: 0.5, y: 3.45, w: 4.5, h: 0.3, fontSize: 11, color: '475569' });
-      
-      slide.addText('For Employees', { x: 5.2, y: 2.4, w: 4.5, h: 0.4, fontSize: 14, color: '1E293B', bold: true });
-      slide.addText('✓ Educational materials', { x: 5.2, y: 2.85, w: 4.5, h: 0.3, fontSize: 11, color: '475569' });
-      slide.addText('✓ Navigation support', { x: 5.2, y: 3.15, w: 4.5, h: 0.3, fontSize: 11, color: '475569' });
-      slide.addText('✓ Peer support networks', { x: 5.2, y: 3.45, w: 4.5, h: 0.3, fontSize: 11, color: '475569' });
-      
-      slide.addShape('rect', { x: 0.5, y: 4.2, w: 9.4, h: 0.9, fill: { color: 'F5F3FF' } });
-      slide.addText('Ready to take the next step? Contact consulting@cancerandcareers.org', { x: 0.7, y: 4.4, w: 9, h: 0.5, fontSize: 12, color: '5B21B6', bold: true });
-
-      // Save
-      await pptx.writeFile({ fileName: (companyName || 'Company').replace(/[^a-zA-Z0-9]/g, '_') + '_Report.pptx' });
-      setExportingPPT(false);
-      
-    } catch (err) {
-      console.error('PPT export error:', err);
-      alert('PowerPoint export failed. Please try again.');
+    } catch (e) {
+      console.error('PPT export error:', e);
+      alert('PowerPoint export failed: ' + (e as Error).message);
+    } finally {
+      document.body.classList.remove('export-mode');
       setExportingPPT(false);
     }
   }
+
 
   if (loading) {
     return (
@@ -1107,11 +966,54 @@ export default function CompanyReportPage() {
           .pdf-break-before { page-break-before: always; }
           .pdf-no-break { page-break-inside: avoid; }
         }
-        /* PDF export specific styles */
-        .pdf-export-mode .dimension-name {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+        
+        /* Export mode: PDF + PPT - fixes scroll containers, stickies, filters */
+        .export-mode * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .export-mode .no-print { display: none !important; }
+        
+        /* Kill sticky/fixed during capture */
+        .export-mode .sticky,
+        .export-mode [class*="sticky"] {
+          position: static !important;
+        }
+        
+        /* Expand scroll containers so html2canvas captures full content */
+        .export-mode [class*="overflow-y-auto"],
+        .export-mode [class*="overflow-auto"],
+        .export-mode [class*="max-h-"] {
+          overflow: visible !important;
+          max-height: none !important;
+        }
+        
+        /* SVG filters can cause odd clipping/blur */
+        .export-mode svg filter { display: none !important; }
+        
+        /* PPT slide sections - hidden by default, shown for capture */
+        .ppt-slide {
+          width: 1280px;
+          height: 720px;
+          background: white;
+          padding: 40px;
+          box-sizing: border-box;
+          position: absolute;
+          left: -9999px;
+          font-family: system-ui, -apple-system, sans-serif;
+        }
+        .export-mode .ppt-slide {
+          position: relative;
+          left: 0;
+          margin-bottom: 20px;
+        }
+        .ppt-slides-container {
+          position: absolute;
+          left: -9999px;
+        }
+        .export-mode .ppt-slides-container {
+          position: relative;
+          left: 0;
         }
       `}</style>
 
@@ -1830,6 +1732,193 @@ export default function CompanyReportPage() {
                   <span style={{ color: '#B45309' }} className="font-medium"> Emerging</span> (40-59) · 
                   <span style={{ color: '#B91C1C' }} className="font-medium"> Developing</span> (&lt;40)
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ============ PPT SLIDE SECTIONS (hidden, captured for export) ============ */}
+        <div className="ppt-slides-container">
+          {/* SLIDE 1: Title */}
+          <div className="ppt-slide" style={{ background: '#1E293B', color: 'white', padding: '60px' }}>
+            <p style={{ fontSize: '14px', color: '#94A3B8', marginBottom: '8px' }}>PERFORMANCE ASSESSMENT</p>
+            <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>Best Companies for Working with Cancer</h1>
+            <p style={{ fontSize: '16px', color: '#CBD5E1', marginBottom: '60px' }}>Index 2026</p>
+            <h2 style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '40px' }}>{companyName}</h2>
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+              <div style={{ background: getScoreColor(compositeScore || 0), padding: '20px 30px', borderRadius: '8px', textAlign: 'center' as const }}>
+                <p style={{ fontSize: '48px', fontWeight: 'bold' }}>{compositeScore || 0}</p>
+                <p style={{ fontSize: '12px' }}>Score</p>
+              </div>
+              <div style={{ background: '#374151', padding: '12px 24px', borderRadius: '6px' }}>
+                <p style={{ fontSize: '18px', fontWeight: 600 }}>{tier}</p>
+              </div>
+            </div>
+            <p style={{ position: 'absolute' as const, bottom: '40px', left: '60px', fontSize: '12px', color: '#64748B' }}>
+              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </p>
+          </div>
+
+          {/* SLIDE 2: Executive Summary */}
+          <div className="ppt-slide">
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '30px' }}>Executive Summary</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
+              <div style={{ background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B' }}>{currentlyOffering}</p>
+                <p style={{ fontSize: '11px', color: '#64748B' }}>of {totalElements} elements offered</p>
+              </div>
+              <div style={{ background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B' }}>{planningItems + assessingItems}</p>
+                <p style={{ fontSize: '11px', color: '#64748B' }}>in development</p>
+              </div>
+              <div style={{ background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B' }}>{gapItems}</p>
+                <p style={{ fontSize: '11px', color: '#64748B' }}>identified gaps</p>
+              </div>
+              <div style={{ background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B' }}>{tierCounts.exemplary + tierCounts.leading}</p>
+                <p style={{ fontSize: '11px', color: '#64748B' }}>at Leading+</p>
+              </div>
+            </div>
+            <div style={{ background: '#EDE9FE', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+              <p style={{ fontSize: '16px', fontWeight: 600, color: '#5B21B6' }}>
+                {nextTierUp && pointsToNextTier 
+                  ? `${pointsToNextTier} points from ${nextTierUp.name}${nextTierUp.name !== 'Exemplary' ? ` · ${90 - (compositeScore || 0)} points from Exemplary` : ''}`
+                  : 'Exemplary tier achieved'}
+              </p>
+              <p style={{ fontSize: '12px', color: '#7C3AED', marginTop: '4px' }}>
+                Focus areas: {allDimensionsByScore.slice(0, 3).map(d => d.name).join(', ')}
+              </p>
+            </div>
+          </div>
+
+          {/* SLIDE 3: Dimension Performance */}
+          <div className="ppt-slide">
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Dimension Performance</h2>
+            <div style={{ fontSize: '11px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 60px 60px 100px', gap: '8px', padding: '10px', background: '#1E293B', color: 'white', borderRadius: '4px 4px 0 0' }}>
+                <span>#</span><span>Dimension</span><span>Weight</span><span>Score</span><span>Tier</span>
+              </div>
+              {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, i) => (
+                <div key={d.dim} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 60px 60px 100px', gap: '8px', padding: '8px 10px', background: i % 2 === 0 ? '#F8FAFC' : 'white' }}>
+                  <span style={{ color: '#64748B' }}>D{d.dim}</span>
+                  <span style={{ color: '#1E293B' }}>{d.name}</span>
+                  <span style={{ color: '#64748B' }}>{d.weight}%</span>
+                  <span style={{ color: getScoreColor(d.score), fontWeight: 'bold' }}>{d.score}</span>
+                  <span style={{ color: '#64748B' }}>{d.tier.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SLIDE 4: Matrix */}
+          <div className="ppt-slide">
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '10px' }}>Strategic Priority Matrix</h2>
+            <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '20px' }}>Performance vs Strategic Weight</p>
+            <div style={{ transform: 'scale(0.9)', transformOrigin: 'top left' }}>
+              <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
+            </div>
+          </div>
+
+          {/* SLIDE 5: Strengths & Opportunities */}
+          <div className="ppt-slide">
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Strengths & Opportunities</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+              <div>
+                <div style={{ background: '#059669', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600 }}>Areas of Excellence</div>
+                <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px' }}>
+                  {strengthDimensions.slice(0, 4).map(d => (
+                    <div key={d.dim} style={{ marginBottom: '12px' }}>
+                      <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px' }}>{d.name} ({d.score})</p>
+                      {d.strengths.slice(0, 2).map((s: any, i: number) => (
+                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px' }}>✓ {s.name}</p>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div style={{ background: '#D97706', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600 }}>Improvement Opportunities</div>
+                <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px' }}>
+                  {allDimensionsByScore.slice(0, 4).map(d => (
+                    <div key={d.dim} style={{ marginBottom: '12px' }}>
+                      <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px' }}>{d.name} ({d.score})</p>
+                      {d.needsAttention.slice(0, 2).map((g: any, i: number) => (
+                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px' }}>• {g.name}</p>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SLIDE 6: Roadmap */}
+          <div className="ppt-slide">
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Implementation Roadmap</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+              <div>
+                <div style={{ background: '#1E293B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
+                  <p style={{ fontWeight: 600, fontSize: '16px' }}>Quick Wins</p>
+                  <p style={{ fontSize: '11px', color: '#CBD5E1' }}>Immediate</p>
+                </div>
+                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '250px' }}>
+                  {quickWinItems.slice(0, 5).map((item: any, i: number) => (
+                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px' }}>• {item.name}</p>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div style={{ background: '#475569', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
+                  <p style={{ fontWeight: 600, fontSize: '16px' }}>Foundation</p>
+                  <p style={{ fontSize: '11px', color: '#CBD5E1' }}>6-12 months</p>
+                </div>
+                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '250px' }}>
+                  {foundationItems.slice(0, 5).map((item: any, i: number) => (
+                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px' }}>• {item.name}</p>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div style={{ background: '#64748B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
+                  <p style={{ fontWeight: 600, fontSize: '16px' }}>Long-Term</p>
+                  <p style={{ fontSize: '11px', color: '#CBD5E1' }}>12+ months</p>
+                </div>
+                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '250px' }}>
+                  {excellenceItems.slice(0, 5).map((item: any, i: number) => (
+                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px' }}>• {item.name}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SLIDE 7: How CAC Can Help */}
+          <div className="ppt-slide" style={{ padding: 0 }}>
+            <div style={{ background: '#1E293B', padding: '30px 40px' }}>
+              <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>How Cancer and Careers Can Help</h2>
+            </div>
+            <div style={{ padding: '30px 40px' }}>
+              <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '30px' }}>
+                Our consulting practice helps organizations understand where they are, identify where they want to be, and build a realistic path to get there.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '30px' }}>
+                <div>
+                  <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For HR & Benefits Teams</p>
+                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Policy gap analysis</p>
+                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Benefits benchmarking</p>
+                  <p style={{ fontSize: '13px', color: '#64748B' }}>✓ Manager training programs</p>
+                </div>
+                <div>
+                  <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For Employees</p>
+                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Educational materials</p>
+                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Navigation support</p>
+                  <p style={{ fontSize: '13px', color: '#64748B' }}>✓ Peer support networks</p>
+                </div>
+              </div>
+              <div style={{ background: '#F5F3FF', padding: '20px', borderRadius: '8px' }}>
+                <p style={{ fontWeight: 600, color: '#5B21B6', fontSize: '16px' }}>Ready to take the next step?</p>
+                <p style={{ fontSize: '13px', color: '#7C3AED' }}>Contact: consulting@cancerandcareers.org</p>
               </div>
             </div>
           </div>
