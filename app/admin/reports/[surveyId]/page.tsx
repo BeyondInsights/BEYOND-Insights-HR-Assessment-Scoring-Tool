@@ -326,88 +326,66 @@ const LightbulbIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 // ============================================
 // STRATEGIC PRIORITY MATRIX - PROFESSIONAL
 // ============================================
-
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
-  const maxWeight = Math.max(...dimensionAnalysis.map(d => d.weight));
-  const minWeight = Math.min(...dimensionAnalysis.map(d => d.weight));
-  const weightRange = maxWeight - minWeight || 1;
-  const weightThreshold = (maxWeight + minWeight) / 2;
+  // Fixed Y-axis: 0 to 20%
+  const MAX_WEIGHT = 20;
   
-  // Add padding so circles don't go off edges
-  const PADDING = 30;
-  const CHART_WIDTH = 800;
-  const CHART_HEIGHT = 440;
+  // Much wider chart
+  const PADDING = 40;
+  const CHART_WIDTH = 1000;
+  const CHART_HEIGHT = 500;
   const PLOT_WIDTH = CHART_WIDTH - (PADDING * 2);
   const PLOT_HEIGHT = CHART_HEIGHT - (PADDING * 2);
   
   return (
-    <div className="px-8 py-6">
-      <div className="relative w-full" style={{ height: '540px' }}>
-        <svg className="w-full h-full" viewBox={`0 0 ${CHART_WIDTH + 80} ${CHART_HEIGHT + 80}`} preserveAspectRatio="xMidYMid meet">
+    <div className="px-4 py-6">
+      <div className="relative w-full" style={{ height: '600px' }}>
+        <svg className="w-full h-full" viewBox={`0 0 ${CHART_WIDTH + 60} ${CHART_HEIGHT + 60}`} preserveAspectRatio="xMidYMid meet">
           <defs>
-            {/* Refined, professional color palette */}
-            <linearGradient id="developGradNew" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FDF4E7" />
-              <stop offset="100%" stopColor="#FCE7C8" />
-            </linearGradient>
-            <linearGradient id="maintainGradNew" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#E8F5EE" />
-              <stop offset="100%" stopColor="#D1EDDB" />
-            </linearGradient>
-            <linearGradient id="monitorGradNew" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#F8FAFC" />
-              <stop offset="100%" stopColor="#F1F5F9" />
-            </linearGradient>
-            <linearGradient id="leverageGradNew" x1="100%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stopColor="#EEF6FC" />
-              <stop offset="100%" stopColor="#DBEAFE" />
-            </linearGradient>
             <filter id="dropShadowNew" x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.15"/>
             </filter>
           </defs>
           
-          <g transform="translate(55, 25)">
-            {/* Quadrant backgrounds */}
-            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#developGradNew)" />
-            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#maintainGradNew)" />
-            <rect x={PADDING} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#monitorGradNew)" />
-            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#leverageGradNew)" />
+          <g transform="translate(45, 15)">
+            {/* Quadrant backgrounds - cleaner, more professional colors */}
+            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEF9E7" /> {/* Develop - soft warm yellow */}
+            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#E8F8F5" /> {/* Maintain - soft teal */}
+            <rect x={PADDING} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F4F6F7" /> {/* Monitor - light gray */}
+            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#EBF5FB" /> {/* Leverage - soft blue */}
             
             {/* Border */}
-            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#E2E8F0" strokeWidth="1" />
+            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#D5D8DC" strokeWidth="1" />
             
             {/* Center lines */}
-            <line x1={PADDING + PLOT_WIDTH/2} y1={PADDING} x2={PADDING + PLOT_WIDTH/2} y2={PADDING + PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1" />
-            <line x1={PADDING} y1={PADDING + PLOT_HEIGHT/2} x2={PADDING + PLOT_WIDTH} y2={PADDING + PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1" />
+            <line x1={PADDING + PLOT_WIDTH/2} y1={PADDING} x2={PADDING + PLOT_WIDTH/2} y2={PADDING + PLOT_HEIGHT} stroke="#BDC3C7" strokeWidth="1.5" strokeDasharray="6,4" />
+            <line x1={PADDING} y1={PADDING + PLOT_HEIGHT/2} x2={PADDING + PLOT_WIDTH} y2={PADDING + PLOT_HEIGHT/2} stroke="#BDC3C7" strokeWidth="1.5" strokeDasharray="6,4" />
             
-            {/* Quadrant labels - subtle */}
-            <g opacity="0.5">
-              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT/4 - 10} textAnchor="middle" fill="#92400E" fontSize="14" fontWeight="600">DEVELOP</text>
-              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT/4 + 8} textAnchor="middle" fill="#92400E" fontSize="10">High Priority</text>
+            {/* Quadrant labels */}
+            <g opacity="0.6">
+              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT/4 - 8} textAnchor="middle" fill="#9A7B4F" fontSize="16" fontWeight="600">DEVELOP</text>
+              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT/4 + 12} textAnchor="middle" fill="#9A7B4F" fontSize="11">High Priority</text>
               
-              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT/4 - 10} textAnchor="middle" fill="#065F46" fontSize="14" fontWeight="600">MAINTAIN</text>
-              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT/4 + 8} textAnchor="middle" fill="#065F46" fontSize="10">Protect Strengths</text>
+              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT/4 - 8} textAnchor="middle" fill="#1E8449" fontSize="16" fontWeight="600">MAINTAIN</text>
+              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT/4 + 12} textAnchor="middle" fill="#1E8449" fontSize="11">Protect Strengths</text>
               
-              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT*3/4 - 10} textAnchor="middle" fill="#64748B" fontSize="14" fontWeight="600">MONITOR</text>
-              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT*3/4 + 8} textAnchor="middle" fill="#64748B" fontSize="10">Lower Priority</text>
+              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT*3/4 - 8} textAnchor="middle" fill="#707B7C" fontSize="16" fontWeight="600">MONITOR</text>
+              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT*3/4 + 12} textAnchor="middle" fill="#707B7C" fontSize="11">Lower Priority</text>
               
-              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT*3/4 - 10} textAnchor="middle" fill="#0369A1" fontSize="14" fontWeight="600">LEVERAGE</text>
-              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT*3/4 + 8} textAnchor="middle" fill="#0369A1" fontSize="10">Quick Wins</text>
+              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT*3/4 - 8} textAnchor="middle" fill="#2471A3" fontSize="16" fontWeight="600">LEVERAGE</text>
+              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT*3/4 + 12} textAnchor="middle" fill="#2471A3" fontSize="11">Quick Wins</text>
             </g>
             
-            {/* Data points - positioned with padding */}
+            {/* Data points */}
             {dimensionAnalysis.map((d) => {
-              // Map score 0-100 to PADDING to PADDING+PLOT_WIDTH
               const xPos = PADDING + (d.score / 100) * PLOT_WIDTH;
-              // Map weight to y position (inverted: high weight = top)
-              const yPos = PADDING + PLOT_HEIGHT - (((d.weight - minWeight) / weightRange) * PLOT_HEIGHT);
+              const yPos = PADDING + PLOT_HEIGHT - ((d.weight / MAX_WEIGHT) * PLOT_HEIGHT);
               
               return (
                 <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
-                  <circle r="20" fill="white" filter="url(#dropShadowNew)" />
-                  <circle r="17" fill={getScoreColor(d.score)} />
-                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="11" fontWeight="700">
+                  <circle r="24" fill="white" filter="url(#dropShadowNew)" />
+                  <circle r="20" fill={getScoreColor(d.score)} />
+                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="12" fontWeight="700">
                     D{d.dim}
                   </text>
                 </g>
@@ -418,30 +396,29 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>
               {[0, 25, 50, 75, 100].map((val) => (
                 <g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}>
-                  <line y1="0" y2="6" stroke="#94A3B8" strokeWidth="1" />
-                  <text y="20" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text>
+                  <line y1="0" y2="6" stroke="#7F8C8D" strokeWidth="1" />
+                  <text y="22" textAnchor="middle" fill="#5D6D7E" fontSize="12">{val}</text>
                 </g>
               ))}
-              <text x={PADDING + PLOT_WIDTH/2} y="42" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">
+              <text x={PADDING + PLOT_WIDTH/2} y="46" textAnchor="middle" fill="#34495E" fontSize="13" fontWeight="500">
                 PERFORMANCE SCORE
               </text>
             </g>
             
-            {/* Y-axis */}
+            {/* Y-axis - Fixed 0 to 20% */}
             <g transform={`translate(${PADDING}, 0)`}>
-              <line x1="0" y1={PADDING} x2="0" y2={PADDING + PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1" />
-              <g>
-                <line x1="-6" y1={PADDING} x2="0" y2={PADDING} stroke="#94A3B8" strokeWidth="1" />
-                <text x="-10" y={PADDING + 4} textAnchor="end" fill="#64748B" fontSize="11">{maxWeight}%</text>
-                
-                <line x1="-6" y1={PADDING + PLOT_HEIGHT/2} x2="0" y2={PADDING + PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1" />
-                <text x="-10" y={PADDING + PLOT_HEIGHT/2 + 4} textAnchor="end" fill="#64748B" fontSize="11">{Math.round(weightThreshold)}%</text>
-                
-                <line x1="-6" y1={PADDING + PLOT_HEIGHT} x2="0" y2={PADDING + PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1" />
-                <text x="-10" y={PADDING + PLOT_HEIGHT + 4} textAnchor="end" fill="#64748B" fontSize="11">{minWeight}%</text>
-              </g>
+              <line x1="0" y1={PADDING} x2="0" y2={PADDING + PLOT_HEIGHT} stroke="#7F8C8D" strokeWidth="1" />
+              {[0, 5, 10, 15, 20].map((val) => {
+                const yPos = PADDING + PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
+                return (
+                  <g key={val}>
+                    <line x1="-6" y1={yPos} x2="0" y2={yPos} stroke="#7F8C8D" strokeWidth="1" />
+                    <text x="-10" y={yPos + 4} textAnchor="end" fill="#5D6D7E" fontSize="12">{val}%</text>
+                  </g>
+                );
+              })}
               
-              <text transform="rotate(-90)" x={-(PADDING + PLOT_HEIGHT/2)} y="-38" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">
+              <text transform="rotate(-90)" x={-(PADDING + PLOT_HEIGHT/2)} y="-32" textAnchor="middle" fill="#34495E" fontSize="13" fontWeight="500">
                 STRATEGIC WEIGHT
               </text>
             </g>
@@ -449,7 +426,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         </svg>
       </div>
       
-      {/* Legend - 2 rows */}
+      {/* Legend */}
       <div className="mt-2 pt-4 border-t border-slate-200">
         <div className="grid grid-cols-7 gap-x-3 gap-y-2">
           {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
@@ -465,7 +442,6 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
     </div>
   );
 }
-
 // ============================================
 // MAIN COMPONENT
 // ============================================
@@ -1222,7 +1198,6 @@ export default function CompanyReportPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-900">Quick Wins</h4>
-                    <p className="text-xs text-slate-500">0-3 months</p>
                   </div>
                 </div>
                 <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-100 min-h-[180px]">
@@ -1250,7 +1225,6 @@ export default function CompanyReportPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-900">Foundation Building</h4>
-                    <p className="text-xs text-slate-500">3-9 months</p>
                   </div>
                 </div>
                 <div className="bg-blue-50 rounded-lg p-4 border border-blue-100 min-h-[180px]">
@@ -1278,7 +1252,6 @@ export default function CompanyReportPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-900">Excellence & Culture</h4>
-                    <p className="text-xs text-slate-500">9-18 months</p>
                   </div>
                 </div>
                 <div className="bg-purple-50 rounded-lg p-4 border border-purple-100 min-h-[180px]">
