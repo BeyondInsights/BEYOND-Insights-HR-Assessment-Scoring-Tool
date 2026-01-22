@@ -312,7 +312,7 @@ const TrendUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 );
 
 // ============================================
-// STRATEGIC PRIORITY MATRIX - WIDE, VIBRANT, INTERACTIVE
+// STRATEGIC PRIORITY MATRIX - REFINED COLORS
 // ============================================
 
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
@@ -340,60 +340,57 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.2"/>
             </filter>
-            {/* Vibrant quadrant colors */}
-            <linearGradient id="quadrantTopLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FEE2E2" stopOpacity="0.9"/>
-              <stop offset="100%" stopColor="#FECACA" stopOpacity="0.5"/>
-            </linearGradient>
-            <linearGradient id="quadrantTopRight" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#D1FAE5" stopOpacity="0.9"/>
-              <stop offset="100%" stopColor="#A7F3D0" stopOpacity="0.5"/>
-            </linearGradient>
-            <linearGradient id="quadrantBottomLeft" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#E2E8F0" stopOpacity="0.7"/>
-              <stop offset="100%" stopColor="#F1F5F9" stopOpacity="0.4"/>
-            </linearGradient>
-            <linearGradient id="quadrantBottomRight" x1="100%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stopColor="#DDD6FE" stopOpacity="0.8"/>
-              <stop offset="100%" stopColor="#EDE9FE" stopOpacity="0.5"/>
-            </linearGradient>
+            <filter id="labelShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.3"/>
+            </filter>
           </defs>
           
           <g transform={`translate(${PADDING_LEFT}, ${PADDING_TOP})`}>
-            {/* Quadrant backgrounds - vibrant */}
-            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantTopLeft)" />
-            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantTopRight)" />
-            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantBottomLeft)" />
-            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#quadrantBottomRight)" />
+            {/* Quadrant backgrounds - MUTED SOPHISTICATED COLORS */}
+            {/* Top Left - Priority Gaps: Warm rose/blush */}
+            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FDF2F4" />
+            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#E11D48" fillOpacity="0.08" />
+            
+            {/* Top Right - Core Strengths: Cool sage green */}
+            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F0FDF4" />
+            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#059669" fillOpacity="0.1" />
+            
+            {/* Bottom Left - Monitor: Warm neutral */}
+            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FAFAF9" />
+            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#78716C" fillOpacity="0.06" />
+            
+            {/* Bottom Right - Leverage: Cool slate blue */}
+            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F8FAFC" />
+            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#3B82F6" fillOpacity="0.08" />
             
             {/* Grid lines - SOLID */}
-            <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#64748B" strokeWidth="1.5" />
-            <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#64748B" strokeWidth="1.5" />
+            <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1" />
+            <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1" />
             
             {/* Border */}
-            <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#475569" strokeWidth="2" />
+            <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#CBD5E1" strokeWidth="1.5" />
             
-            {/* Quadrant labels - INSIDE the quadrants, positioned well */}
-            <g>
+            {/* Quadrant labels - HIGH CONTRAST with shadows */}
+            <g filter="url(#labelShadow)">
               {/* Top Left - PRIORITY GAPS */}
-              <rect x={12} y={12} width={130} height={42} rx="6" fill="#DC2626" fillOpacity="0.9" />
-              <text x={77} y={28} textAnchor="middle" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
-              <text x={77} y={42} textAnchor="middle" fill="white" fontSize="8" fontFamily="system-ui" opacity="0.9">High Impact · Low Score</text>
+              <rect x={10} y={10} width={115} height={38} rx="4" fill="#BE123C" />
+              <text x={67} y={25} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
+              <text x={67} y={37} textAnchor="middle" fill="white" fontSize="7" fontFamily="system-ui" opacity="0.85">High Impact · Low Score</text>
               
               {/* Top Right - CORE STRENGTHS */}
-              <rect x={PLOT_WIDTH - 142} y={12} width={130} height={42} rx="6" fill="#059669" fillOpacity="0.9" />
-              <text x={PLOT_WIDTH - 77} y={28} textAnchor="middle" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
-              <text x={PLOT_WIDTH - 77} y={42} textAnchor="middle" fill="white" fontSize="8" fontFamily="system-ui" opacity="0.9">High Impact · High Score</text>
+              <rect x={PLOT_WIDTH - 125} y={10} width={115} height={38} rx="4" fill="#047857" />
+              <text x={PLOT_WIDTH - 67} y={25} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
+              <text x={PLOT_WIDTH - 67} y={37} textAnchor="middle" fill="white" fontSize="7" fontFamily="system-ui" opacity="0.85">High Impact · High Score</text>
               
               {/* Bottom Left - MONITOR */}
-              <rect x={12} y={PLOT_HEIGHT - 54} width={130} height={42} rx="6" fill="#64748B" fillOpacity="0.85" />
-              <text x={77} y={PLOT_HEIGHT - 38} textAnchor="middle" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">MONITOR</text>
-              <text x={77} y={PLOT_HEIGHT - 24} textAnchor="middle" fill="white" fontSize="8" fontFamily="system-ui" opacity="0.9">Lower Impact · Lower Score</text>
+              <rect x={10} y={PLOT_HEIGHT - 48} width={115} height={38} rx="4" fill="#57534E" />
+              <text x={67} y={PLOT_HEIGHT - 33} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">MONITOR</text>
+              <text x={67} y={PLOT_HEIGHT - 21} textAnchor="middle" fill="white" fontSize="7" fontFamily="system-ui" opacity="0.85">Lower Priority</text>
               
               {/* Bottom Right - LEVERAGE */}
-              <rect x={PLOT_WIDTH - 142} y={PLOT_HEIGHT - 54} width={130} height={42} rx="6" fill="#7C3AED" fillOpacity="0.9" />
-              <text x={PLOT_WIDTH - 77} y={PLOT_HEIGHT - 38} textAnchor="middle" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
-              <text x={PLOT_WIDTH - 77} y={PLOT_HEIGHT - 24} textAnchor="middle" fill="white" fontSize="8" fontFamily="system-ui" opacity="0.9">Efficiency Opportunity</text>
+              <rect x={PLOT_WIDTH - 125} y={PLOT_HEIGHT - 48} width={115} height={38} rx="4" fill="#1D4ED8" />
+              <text x={PLOT_WIDTH - 67} y={PLOT_HEIGHT - 33} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
+              <text x={PLOT_WIDTH - 67} y={PLOT_HEIGHT - 21} textAnchor="middle" fill="white" fontSize="7" fontFamily="system-ui" opacity="0.85">Efficiency Wins</text>
             </g>
             
             {/* Data points */}
@@ -1123,7 +1120,7 @@ export default function CompanyReportPage() {
           </div>
         )}
 
-        {/* ============ STRATEGIC RECOMMENDATIONS - BETTER SEPARATION ============ */}
+        {/* ============ STRATEGIC RECOMMENDATIONS - CONSISTENT HEADERS ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">Strategic Recommendations</h3>
@@ -1133,29 +1130,23 @@ export default function CompanyReportPage() {
           <div className="divide-y-4 divide-slate-100">
             {allDimensionsByScore.slice(0, 4).map((d, idx) => {
               const insight = DIMENSION_STRATEGIC_INSIGHTS[d.dim];
-              // Alternate between different accent colors for clear separation
-              const accentColors = [
-                { border: 'border-l-red-500', bg: 'bg-red-50', headerBg: 'bg-red-600' },
-                { border: 'border-l-orange-500', bg: 'bg-orange-50', headerBg: 'bg-orange-600' },
-                { border: 'border-l-amber-500', bg: 'bg-amber-50', headerBg: 'bg-amber-600' },
-                { border: 'border-l-yellow-500', bg: 'bg-yellow-50', headerBg: 'bg-yellow-600' },
-              ];
-              const accent = accentColors[idx % accentColors.length];
+              // Use tier color for the accent, consistent dark header for all
+              const tierColor = getScoreColor(d.score);
               
               return (
-                <div key={d.dim} className={`border-l-4 ${accent.border}`}>
-                  {/* Dimension Header - Full width colored bar */}
-                  <div className={`px-10 py-4 ${accent.bg} border-b border-slate-200`}>
+                <div key={d.dim} className="border-l-4" style={{ borderLeftColor: tierColor }}>
+                  {/* Dimension Header - Consistent dark slate for all */}
+                  <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold ${accent.headerBg}`}>
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
                         {idx + 1}
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-xl font-semibold text-slate-900">{d.name}</h4>
+                        <h4 className="text-xl font-semibold text-white">{d.name}</h4>
                         <div className="flex items-center gap-4 mt-1">
                           <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
-                          <span className="text-sm text-slate-600">Score: <strong>{d.score}</strong></span>
-                          <span className="text-sm text-slate-600">Weight: <strong>{d.weight}%</strong></span>
+                          <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
+                          <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
                         </div>
                       </div>
                     </div>
