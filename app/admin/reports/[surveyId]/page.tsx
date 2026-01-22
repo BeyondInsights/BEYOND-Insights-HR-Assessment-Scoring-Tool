@@ -312,7 +312,7 @@ const TrendUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 );
 
 // ============================================
-// STRATEGIC PRIORITY MATRIX - LABELS OUTSIDE, CLEAN COLORS
+// STRATEGIC PRIORITY MATRIX - CLEAN WHITE
 // ============================================
 
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
@@ -320,8 +320,8 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
   const MAX_WEIGHT = 15;
   
   const CHART_WIDTH = 900;
-  const CHART_HEIGHT = 380;
-  const MARGIN = { top: 45, right: 45, bottom: 55, left: 60 };
+  const CHART_HEIGHT = 400;
+  const MARGIN = { top: 20, right: 20, bottom: 55, left: 60 };
   const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
   const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
   
@@ -330,7 +330,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
   return (
     <div className="px-4 py-4">
       <div className="relative w-full" style={{ height: '500px' }}>
-        <svg className="w-full" style={{ height: '420px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+        <svg className="w-full" style={{ height: '440px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
           <defs>
             <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
@@ -338,22 +338,24 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
           </defs>
           
           <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
-            {/* Quadrant backgrounds - VERY SUBTLE, professional */}
-            {/* Top Left - slight warm tint */}
-            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEF7F7" />
-            {/* Top Right - slight cool green tint */}
-            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F6FBF9" />
-            {/* Bottom Left - neutral */}
-            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FAFAFA" />
-            {/* Bottom Right - slight cool blue tint */}
-            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F7FAFC" />
+            {/* Quadrant backgrounds - simple alternating very light gray */}
+            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FAFAFA" />
+            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FFFFFF" />
+            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FFFFFF" />
+            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FAFAFA" />
             
             {/* Grid lines */}
-            <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#D1D5DB" strokeWidth="1" />
-            <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#D1D5DB" strokeWidth="1" />
+            <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#E5E7EB" strokeWidth="1" />
+            <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#E5E7EB" strokeWidth="1" />
             
             {/* Border */}
-            <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#9CA3AF" strokeWidth="1" />
+            <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#D1D5DB" strokeWidth="1" />
+            
+            {/* Quadrant labels - small, in corners inside each quadrant */}
+            <text x={8} y={18} fill="#9CA3AF" fontSize="9" fontWeight="600" fontFamily="system-ui">PRIORITY GAPS</text>
+            <text x={PLOT_WIDTH - 8} y={18} textAnchor="end" fill="#9CA3AF" fontSize="9" fontWeight="600" fontFamily="system-ui">CORE STRENGTHS</text>
+            <text x={8} y={PLOT_HEIGHT - 8} fill="#9CA3AF" fontSize="9" fontWeight="600" fontFamily="system-ui">MONITOR</text>
+            <text x={PLOT_WIDTH - 8} y={PLOT_HEIGHT - 8} textAnchor="end" fill="#9CA3AF" fontSize="9" fontWeight="600" fontFamily="system-ui">LEVERAGE</text>
             
             {/* Data points */}
             {dimensionAnalysis.map((d) => {
@@ -408,27 +410,6 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
               ↑ STRATEGIC IMPORTANCE
             </text>
-            
-            {/* QUADRANT LABELS - OUTSIDE the plot area */}
-            {/* Top Left label - above and left */}
-            <g transform={`translate(${PLOT_WIDTH/4}, -12)`}>
-              <text textAnchor="middle" fill="#DC2626" fontSize="10" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
-            </g>
-            
-            {/* Top Right label - above and right */}
-            <g transform={`translate(${PLOT_WIDTH*3/4}, -12)`}>
-              <text textAnchor="middle" fill="#059669" fontSize="10" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
-            </g>
-            
-            {/* Bottom Left label - below and left */}
-            <g transform={`translate(${PLOT_WIDTH/4}, ${PLOT_HEIGHT + 52})`}>
-              <text textAnchor="middle" fill="#6B7280" fontSize="10" fontWeight="700" fontFamily="system-ui">MONITOR</text>
-            </g>
-            
-            {/* Bottom Right label - below and right */}
-            <g transform={`translate(${PLOT_WIDTH*3/4}, ${PLOT_HEIGHT + 52})`}>
-              <text textAnchor="middle" fill="#2563EB" fontSize="10" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
-            </g>
           </g>
         </svg>
         
@@ -494,6 +475,7 @@ export default function CompanyReportPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
   const [company, setCompany] = useState<any>(null);
   const [benchmarks, setBenchmarks] = useState<any>(null);
   const [companyScores, setCompanyScores] = useState<any>(null);
@@ -673,7 +655,60 @@ export default function CompanyReportPage() {
     return { compositeScore: avg(allScores.map(s => s?.compositeScore)), weightedDimScore: avg(allScores.map(s => s?.weightedDimScore)), maturityScore: avg(allScores.map(s => s?.maturityScore)), breadthScore: avg(allScores.map(s => s?.breadthScore)), dimensionScores: dimensionBenchmarks, companyCount: complete.length };
   }
 
-  function handlePrint() { window.print(); }
+  async function handleExportPDF() {
+    setExporting(true);
+    
+    try {
+      // Dynamically load html2pdf.js
+      if (typeof window !== 'undefined' && !(window as any).html2pdf) {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        script.async = true;
+        document.body.appendChild(script);
+        await new Promise((resolve, reject) => { 
+          script.onload = resolve; 
+          script.onerror = reject;
+        });
+      }
+      
+      const element = printRef.current;
+      if (!element) {
+        setExporting(false);
+        return;
+      }
+      
+      const opt = {
+        margin: [0.4, 0.4, 0.4, 0.4],
+        filename: `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_Cancer_Support_Report.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          letterRendering: true,
+          logging: false,
+          windowWidth: 1200
+        },
+        jsPDF: { 
+          unit: 'in', 
+          format: 'letter', 
+          orientation: 'portrait',
+          compress: true
+        },
+        pagebreak: { 
+          mode: ['avoid-all', 'css', 'legacy'],
+          before: '.pdf-break-before',
+          after: '.pdf-break-after',
+          avoid: '.pdf-no-break'
+        }
+      };
+      
+      await (window as any).html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('PDF export error:', err);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -775,7 +810,19 @@ export default function CompanyReportPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <style jsx global>{`
-        @media print { @page { margin: 0.75in; size: letter; } body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } .no-print { display: none !important; } .print-break { page-break-before: always; } }
+        @media print { 
+          @page { margin: 0.5in; size: letter; } 
+          body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } 
+          .no-print { display: none !important; } 
+          .pdf-break-before { page-break-before: always; }
+          .pdf-no-break { page-break-inside: avoid; }
+        }
+        /* PDF export specific styles */
+        .pdf-export-mode .dimension-name {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       `}</style>
 
       {/* Action Bar */}
@@ -785,9 +832,29 @@ export default function CompanyReportPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             Back to Scoring
           </button>
-          <button onClick={handlePrint} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-            Export PDF
+          <button 
+            onClick={handleExportPDF} 
+            disabled={exporting}
+            className={`px-5 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
+              exporting 
+                ? 'bg-slate-400 text-slate-200 cursor-wait' 
+                : 'bg-slate-800 hover:bg-slate-700 text-white'
+            }`}
+          >
+            {exporting ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating PDF...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Export PDF
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -795,7 +862,7 @@ export default function CompanyReportPage() {
       <div ref={printRef} className="max-w-6xl mx-auto py-10 px-8">
         
         {/* ============ HEADER ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="bg-slate-800 px-10 py-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-8">
@@ -890,7 +957,7 @@ export default function CompanyReportPage() {
         </div>
 
         {/* ============ KEY FINDINGS ============ */}
-        <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden mb-8">
+        <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-6">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Key Findings at a Glance</h3>
             <div className="grid grid-cols-4 gap-6">
@@ -919,7 +986,7 @@ export default function CompanyReportPage() {
         </div>
 
         {/* ============ SCORE COMPOSITION ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Score Composition</h3>
           </div>
@@ -941,66 +1008,72 @@ export default function CompanyReportPage() {
           </div>
         </div>
 
-        {/* ============ DIMENSION PERFORMANCE - FIXED TRIANGLE POSITION ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
-          <div className="px-10 py-5 border-b border-slate-100">
+        {/* ============ DIMENSION PERFORMANCE - FIXED LAYOUT FOR PDF ============ */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="px-8 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Dimension Performance Overview</h3>
           </div>
-          <div className="px-10 py-6">
-            <div className="flex items-center gap-4 pb-3 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              <div className="w-8 text-center">#</div>
-              <div className="flex-1">Dimension</div>
-              <div className="w-10 text-center">Wt%</div>
-              <div className="w-64 text-center">Score</div>
-              <div className="w-14 text-right">Score</div>
-              <div className="w-20 text-center">vs Bench</div>
-              <div className="w-20 text-center">Tier</div>
-            </div>
-            
-            {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, idx) => {
-              const diff = d.benchmark !== null ? d.score - d.benchmark : 0;
-              return (
-                <div key={d.dim} className={`flex items-center gap-4 py-3 ${idx < dimensionAnalysis.length - 1 ? 'border-b border-slate-100' : ''}`}>
-                  <div className="w-8 text-center">
-                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
-                  </div>
-                  <div className="flex-1"><span className="text-sm font-medium text-slate-700">{d.name}</span></div>
-                  <div className="w-10 text-center text-xs text-slate-500">{d.weight}%</div>
-                  <div className="w-64">
-                    {/* FIXED: Triangle now sits ABOVE the bar, not bleeding into it */}
-                    <div className="relative h-6">
-                      {/* Benchmark triangle - positioned at top */}
-                      {d.benchmark !== null && (
-                        <div className="absolute" style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '0', transform: 'translateX(-50%)' }}>
-                          <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500" />
+          <div className="px-8 py-6">
+            <table className="w-full">
+              <thead>
+                <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                  <th className="pb-3 text-center w-12">#</th>
+                  <th className="pb-3 text-left">Dimension</th>
+                  <th className="pb-3 text-center w-14">Wt%</th>
+                  <th className="pb-3 text-center w-40">Score</th>
+                  <th className="pb-3 text-right w-14">Score</th>
+                  <th className="pb-3 text-center w-24">vs Bench</th>
+                  <th className="pb-3 text-center w-24">Tier</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, idx) => {
+                  const diff = d.benchmark !== null ? d.score - d.benchmark : 0;
+                  return (
+                    <tr key={d.dim} className={idx < dimensionAnalysis.length - 1 ? 'border-b border-slate-100' : ''}>
+                      <td className="py-2.5 text-center">
+                        <span className="w-7 h-7 rounded-full inline-flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
+                      </td>
+                      <td className="py-2.5 text-left">
+                        <span className="text-sm font-medium text-slate-700 whitespace-nowrap">{d.name}</span>
+                      </td>
+                      <td className="py-2.5 text-center text-xs text-slate-500">{d.weight}%</td>
+                      <td className="py-2.5">
+                        <div className="relative h-5">
+                          {d.benchmark !== null && (
+                            <div className="absolute" style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '0', transform: 'translateX(-50%)' }}>
+                              <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[5px] border-l-transparent border-r-transparent border-t-slate-500" />
+                            </div>
+                          )}
+                          <div className="absolute inset-x-0 top-1.5 h-3 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${d.score}%`, backgroundColor: getScoreColor(d.score) }} />
+                          </div>
                         </div>
-                      )}
-                      {/* Bar - positioned below triangle */}
-                      <div className="absolute inset-x-0 top-2 h-4 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="absolute left-0 top-0 h-full rounded-full transition-all" style={{ width: `${d.score}%`, backgroundColor: getScoreColor(d.score) }} />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="w-14 text-right"><span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span></div>
-                  <div className="w-20 text-center">
-                    {d.benchmark !== null ? (
-                      <>
-                        <span className="text-xs text-slate-500">{d.benchmark}</span>
-                        <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff >= 0 ? '+' : ''}{diff})</span>
-                      </>
-                    ) : <span className="text-xs text-slate-400">—</span>}
-                  </div>
-                  <div className="w-20 text-center">
-                    <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>{d.tier.name}</span>
-                  </div>
-                </div>
-              );
-            })}
+                      </td>
+                      <td className="py-2.5 text-right">
+                        <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                      </td>
+                      <td className="py-2.5 text-center">
+                        {d.benchmark !== null ? (
+                          <>
+                            <span className="text-xs text-slate-500">{d.benchmark}</span>
+                            <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff >= 0 ? '+' : ''}{diff})</span>
+                          </>
+                        ) : <span className="text-xs text-slate-400">—</span>}
+                      </td>
+                      <td className="py-2.5 text-center">
+                        <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>{d.tier.name}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
             
             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-4 text-xs text-slate-400">
               <span>Scores out of 100</span>
               <span className="flex items-center gap-1">
-                <span className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
+                <span className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[5px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
                 Benchmark
               </span>
             </div>
@@ -1008,7 +1081,7 @@ export default function CompanyReportPage() {
         </div>
 
         {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Strategic Priority Matrix</h3>
             <p className="text-sm text-slate-500 mt-1">Dimensions plotted by current performance versus strategic weight. Hover over any dimension for details.</p>
@@ -1017,7 +1090,7 @@ export default function CompanyReportPage() {
         </div>
 
         {/* ============ AREAS OF EXCELLENCE & GROWTH - WITH COLORED HEADERS ============ */}
-        <div className="grid grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-2 gap-6 mb-8 pdf-no-break">
           {/* Areas of Excellence */}
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
             <div className="px-6 py-4 bg-emerald-700">
@@ -1079,7 +1152,7 @@ export default function CompanyReportPage() {
 
         {/* ============ INITIATIVES IN PROGRESS ============ */}
         {quickWinOpportunities.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-10 py-5 bg-blue-700">
               <h3 className="font-semibold text-white">Initiatives In Progress</h3>
               <p className="text-blue-200 text-sm mt-0.5">Programs currently in planning or under consideration</p>
@@ -1104,7 +1177,7 @@ export default function CompanyReportPage() {
         )}
 
         {/* ============ STRATEGIC RECOMMENDATIONS - CONSISTENT HEADERS ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">Strategic Recommendations</h3>
             <p className="text-slate-400 text-sm mt-1">Detailed analysis and action plans for priority dimensions</p>
@@ -1117,7 +1190,7 @@ export default function CompanyReportPage() {
               const tierColor = getScoreColor(d.score);
               
               return (
-                <div key={d.dim} className="border-l-4" style={{ borderLeftColor: tierColor }}>
+                <div key={d.dim} className="border-l-4 pdf-no-break" style={{ borderLeftColor: tierColor }}>
                   {/* Dimension Header - Consistent dark slate for all */}
                   <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                     <div className="flex items-center gap-4">
@@ -1217,7 +1290,7 @@ export default function CompanyReportPage() {
         </div>
 
         {/* ============ IMPLEMENTATION ROADMAP ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
           <div className="px-10 py-6 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Implementation Roadmap</h3>
             <p className="text-sm text-slate-500 mt-1">Phased approach to strengthen your cancer support ecosystem</p>
@@ -1312,7 +1385,7 @@ export default function CompanyReportPage() {
         </div>
 
         {/* ============ HOW CAC CAN HELP ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help</h3>
             <p className="text-slate-400 text-sm mt-1">Tailored support to enhance your employee experience</p>
@@ -1376,7 +1449,7 @@ export default function CompanyReportPage() {
         </div>
 
         {/* ============ METHODOLOGY ============ */}
-        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-8">
+        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-200">
             <h3 className="font-semibold text-slate-700 text-sm">Assessment Methodology</h3>
           </div>
