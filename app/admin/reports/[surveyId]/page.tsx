@@ -326,6 +326,7 @@ const LightbulbIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 // ============================================
 // STRATEGIC PRIORITY MATRIX - PROFESSIONAL
 // ============================================
+
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
   const MAX_WEIGHT = 15;
   
@@ -441,6 +442,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
     </div>
   );
 }
+
 // ============================================
 // MAIN COMPONENT
 // ============================================
@@ -1084,209 +1086,213 @@ export default function CompanyReportPage() {
           
           <div className="divide-y divide-slate-200">
             {allDimensionsByScore.slice(0, 4).map((d, idx) => {
-  const insight = DIMENSION_STRATEGIC_INSIGHTS[d.dim];
-  return (
-    <div key={d.dim} className="px-10 py-8 border-b border-slate-100 last:border-b-0">
-      {/* Dimension Header */}
-      <div className="flex items-center gap-5 mb-6">
-        <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: getScoreColor(d.score) }}>
-          {idx + 1}
-        </div>
-        <div>
-          <h4 className="text-xl font-bold text-slate-900">{d.name}</h4>
-          <div className="flex items-center gap-4 mt-1.5">
-            <span className={`text-sm font-semibold px-3 py-1 rounded-full ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
-            <span className="text-sm text-slate-500">Score: <strong className="text-slate-700">{d.score}</strong></span>
-            <span className="text-sm text-slate-500">Weight: <strong className="text-slate-700">{d.weight}%</strong></span>
+              const insight = DIMENSION_STRATEGIC_INSIGHTS[d.dim];
+              return (
+                <div key={d.dim} className="px-10 py-8">
+                  {/* Dimension Header */}
+                  <div className="flex items-center gap-5 mb-6">
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: getScoreColor(d.score) }}>
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-bold text-slate-900">{d.name}</h4>
+                      <div className="flex items-center gap-4 mt-1.5">
+                        <span className={`text-sm font-semibold px-3 py-1 rounded-full ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                        <span className="text-sm text-slate-500">Score: <strong className="text-slate-700">{d.score}</strong></span>
+                        <span className="text-sm text-slate-500">Weight: <strong className="text-slate-700">{d.weight}%</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Current State - 3 columns */}
+                  <div className="grid grid-cols-3 gap-5 mb-6">
+                    {/* Gaps */}
+                    <div className="rounded-xl p-5 bg-gradient-to-br from-red-50 to-orange-50 border border-red-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                          <AlertIcon className="w-4 h-4 text-red-600" />
+                        </div>
+                        <h5 className="font-bold text-red-800">Gaps ({d.gaps.length})</h5>
+                      </div>
+                      {d.gaps.length > 0 ? (
+                        <ul className="space-y-2">
+                          {d.gaps.slice(0, 4).map((g: any, i: number) => (
+                            <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 flex-shrink-0"></span>
+                              <span>{g.name}</span>
+                            </li>
+                          ))}
+                          {d.gaps.length > 4 && <li className="text-sm text-red-600 font-medium pl-3.5">+{d.gaps.length - 4} more</li>}
+                        </ul>
+                      ) : <p className="text-sm text-slate-500 italic">No critical gaps identified</p>}
+                    </div>
+                    
+                    {/* In Progress */}
+                    <div className="rounded-xl p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                          <ArrowRightIcon className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <h5 className="font-bold text-blue-800">In Progress ({d.planning.length + d.assessing.length})</h5>
+                      </div>
+                      {(d.planning.length > 0 || d.assessing.length > 0) ? (
+                        <ul className="space-y-2">
+                          {[...d.planning.slice(0, 2), ...d.assessing.slice(0, 2)].slice(0, 4).map((item: any, i: number) => (
+                            <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.isPlanning ? 'bg-blue-200 text-blue-800' : 'bg-sky-200 text-sky-800'}`}>
+                                {item.isPlanning ? 'P' : 'A'}
+                              </span>
+                              <span>{item.name}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : <p className="text-sm text-slate-500 italic">No initiatives currently in progress</p>}
+                    </div>
+                    
+                    {/* Strengths */}
+                    <div className="rounded-xl p-5 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                          <CheckIcon className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <h5 className="font-bold text-emerald-800">Strengths ({d.strengths.length})</h5>
+                      </div>
+                      {d.strengths.length > 0 ? (
+                        <ul className="space-y-2">
+                          {d.strengths.slice(0, 4).map((s: any, i: number) => (
+                            <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
+                              <span>{s.name}</span>
+                            </li>
+                          ))}
+                          {d.strengths.length > 4 && <li className="text-sm text-emerald-600 font-medium pl-3.5">+{d.strengths.length - 4} more</li>}
+                        </ul>
+                      ) : <p className="text-sm text-slate-500 italic">Building toward first strengths</p>}
+                    </div>
+                  </div>
+                  
+                  {/* Strategic Insight & CAC Help */}
+                  {insight && (
+                    <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                      <div className="grid grid-cols-2">
+                        <div className="p-6 bg-slate-50">
+                          <h5 className="font-bold text-slate-800 mb-3">Strategic Insight</h5>
+                          <p className="text-sm text-slate-600 leading-relaxed">{insight.insight}</p>
+                        </div>
+                        <div className="p-6 bg-purple-50 border-l border-purple-100">
+                          <h5 className="font-bold text-purple-800 mb-3">How Cancer and Careers Can Help</h5>
+                          <p className="text-sm text-slate-600 leading-relaxed">{insight.cacHelp}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
-      </div>
-      
-      {/* Current State - 3 columns */}
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        {/* Gaps */}
-        <div className="rounded-xl p-5 bg-gradient-to-br from-red-50 to-orange-50 border border-red-100">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-              <AlertIcon className="w-4 h-4 text-red-600" />
-            </div>
-            <h5 className="font-bold text-red-800">Gaps ({d.gaps.length})</h5>
+
+        {/* ============ IMPLEMENTATION ROADMAP ============ */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="px-10 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+            <h3 className="text-lg font-bold text-slate-900">Implementation Roadmap</h3>
+            <p className="text-sm text-slate-500 mt-1">Phased approach to strengthen your cancer support ecosystem</p>
           </div>
-          {d.gaps.length > 0 ? (
-            <ul className="space-y-2">
-              {d.gaps.slice(0, 4).map((g: any, i: number) => (
-                <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 flex-shrink-0"></span>
-                  <span>{g.name}</span>
-                </li>
-              ))}
-              {d.gaps.length > 4 && <li className="text-sm text-red-600 font-medium pl-3.5">+{d.gaps.length - 4} more</li>}
-            </ul>
-          ) : <p className="text-sm text-slate-500 italic">No critical gaps identified</p>}
-        </div>
-        
-        {/* In Progress */}
-        <div className="rounded-xl p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-              <ArrowRightIcon className="w-4 h-4 text-blue-600" />
-            </div>
-            <h5 className="font-bold text-blue-800">In Progress ({d.planning.length + d.assessing.length})</h5>
-          </div>
-          {(d.planning.length > 0 || d.assessing.length > 0) ? (
-            <ul className="space-y-2">
-              {[...d.planning.slice(0, 2), ...d.assessing.slice(0, 2)].slice(0, 4).map((item: any, i: number) => (
-                <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.isPlanning ? 'bg-blue-200 text-blue-800' : 'bg-sky-200 text-sky-800'}`}>
-                    {item.isPlanning ? 'P' : 'A'}
-                  </span>
-                  <span>{item.name}</span>
-                </li>
-              ))}
-            </ul>
-          ) : <p className="text-sm text-slate-500 italic">No initiatives currently in progress</p>}
-        </div>
-        
-        {/* Strengths */}
-        <div className="rounded-xl p-5 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <CheckIcon className="w-4 h-4 text-emerald-600" />
-            </div>
-            <h5 className="font-bold text-emerald-800">Strengths ({d.strengths.length})</h5>
-          </div>
-          {d.strengths.length > 0 ? (
-            <ul className="space-y-2">
-              {d.strengths.slice(0, 4).map((s: any, i: number) => (
-                <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
-                  <span>{s.name}</span>
-                </li>
-              ))}
-              {d.strengths.length > 4 && <li className="text-sm text-emerald-600 font-medium pl-3.5">+{d.strengths.length - 4} more</li>}
-            </ul>
-          ) : <p className="text-sm text-slate-500 italic">Building toward first strengths</p>}
-        </div>
-      </div>
-      
-      {/* Strategic Insight & CAC Help */}
-      {insight && (
-        <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-          <div className="grid grid-cols-2">
-            <div className="p-6 bg-slate-50">
-              <h5 className="font-bold text-slate-800 mb-3">Strategic Insight</h5>
-              <p className="text-sm text-slate-600 leading-relaxed">{insight.insight}</p>
-            </div>
-            <div className="p-6 bg-purple-50 border-l border-purple-100">
-              <h5 className="font-bold text-purple-800 mb-3">How Cancer and Careers Can Help</h5>
-              <p className="text-sm text-slate-600 leading-relaxed">{insight.cacHelp}</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-})}
-{/* ============ IMPLEMENTATION ROADMAP ============ */}
-<div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-  <div className="px-10 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-    <h3 className="text-lg font-bold text-slate-900">Implementation Roadmap</h3>
-    <p className="text-sm text-slate-500 mt-1">Phased approach to strengthen your cancer support ecosystem</p>
-  </div>
-  <div className="px-10 py-8">
-    <div className="grid grid-cols-3 gap-6">
-      {/* Phase 1 */}
-      <div className="rounded-xl border-2 border-emerald-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">1</span>
-            </div>
-            <div>
-              <h4 className="font-bold text-white">Quick Wins</h4>
-              <p className="text-emerald-100 text-xs">Immediate impact</p>
+          <div className="px-10 py-8">
+            <div className="grid grid-cols-3 gap-6">
+              {/* Phase 1 */}
+              <div className="rounded-xl border-2 border-emerald-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">1</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white">Quick Wins</h4>
+                      <p className="text-emerald-100 text-xs">Immediate impact</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-b from-emerald-50 to-white min-h-[200px]">
+                  <p className="text-xs text-emerald-700 font-semibold uppercase tracking-wide mb-4">Accelerate items already in progress</p>
+                  {quickWinItems.length > 0 ? (
+                    <ul className="space-y-3">
+                      {quickWinItems.map((item, idx) => (
+                        <li key={idx} className="text-sm">
+                          <p className="font-medium text-slate-800">{item.name}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-slate-500 italic">Begin with communication and manager awareness initiatives</p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Phase 2 */}
+              <div className="rounded-xl border-2 border-blue-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">2</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white">Foundation Building</h4>
+                      <p className="text-blue-100 text-xs">Core infrastructure</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-b from-blue-50 to-white min-h-[200px]">
+                  <p className="text-xs text-blue-700 font-semibold uppercase tracking-wide mb-4">Address high-weight dimension gaps</p>
+                  {foundationItems.length > 0 ? (
+                    <ul className="space-y-3">
+                      {foundationItems.map((item, idx) => (
+                        <li key={idx} className="text-sm">
+                          <p className="font-medium text-slate-800">{item.name}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-slate-500 italic">Foundation already strong - focus on refinement</p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Phase 3 */}
+              <div className="rounded-xl border-2 border-purple-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">3</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white">Excellence & Culture</h4>
+                      <p className="text-purple-100 text-xs">Industry leadership</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-b from-purple-50 to-white min-h-[200px]">
+                  <p className="text-xs text-purple-700 font-semibold uppercase tracking-wide mb-4">Elevate strengths to industry-leading</p>
+                  {excellenceItems.length > 0 ? (
+                    <ul className="space-y-3">
+                      {excellenceItems.map((item, idx) => (
+                        <li key={idx} className="text-sm">
+                          <p className="font-medium text-slate-800">{item.name}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-slate-500 italic">Expand manager training and cultural initiatives</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="p-5 bg-gradient-to-b from-emerald-50 to-white min-h-[200px]">
-          <p className="text-xs text-emerald-700 font-semibold uppercase tracking-wide mb-4">Accelerate items already in progress</p>
-          {quickWinItems.length > 0 ? (
-            <ul className="space-y-3">
-              {quickWinItems.map((item, idx) => (
-                <li key={idx} className="text-sm">
-                  <p className="font-medium text-slate-800">{item.name}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-slate-500 italic">Begin with communication and manager awareness initiatives</p>
-          )}
-        </div>
-      </div>
-      
-      {/* Phase 2 */}
-      <div className="rounded-xl border-2 border-blue-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">2</span>
-            </div>
-            <div>
-              <h4 className="font-bold text-white">Foundation Building</h4>
-              <p className="text-blue-100 text-xs">Core infrastructure</p>
-            </div>
-          </div>
-        </div>
-        <div className="p-5 bg-gradient-to-b from-blue-50 to-white min-h-[200px]">
-          <p className="text-xs text-blue-700 font-semibold uppercase tracking-wide mb-4">Address high-weight dimension gaps</p>
-          {foundationItems.length > 0 ? (
-            <ul className="space-y-3">
-              {foundationItems.map((item, idx) => (
-                <li key={idx} className="text-sm">
-                  <p className="font-medium text-slate-800">{item.name}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-slate-500 italic">Foundation already strong - focus on refinement</p>
-          )}
-        </div>
-      </div>
-      
-      {/* Phase 3 */}
-      <div className="rounded-xl border-2 border-purple-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-5 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">3</span>
-            </div>
-            <div>
-              <h4 className="font-bold text-white">Excellence & Culture</h4>
-              <p className="text-purple-100 text-xs">Industry leadership</p>
-            </div>
-          </div>
-        </div>
-        <div className="p-5 bg-gradient-to-b from-purple-50 to-white min-h-[200px]">
-          <p className="text-xs text-purple-700 font-semibold uppercase tracking-wide mb-4">Elevate strengths to industry-leading</p>
-          {excellenceItems.length > 0 ? (
-            <ul className="space-y-3">
-              {excellenceItems.map((item, idx) => (
-                <li key={idx} className="text-sm">
-                  <p className="font-medium text-slate-800">{item.name}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-slate-500 italic">Expand manager training and cultural initiatives</p>
-          )}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+
         {/* ============ HOW CAC CAN HELP ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
           <div className="px-10 py-6 bg-gradient-to-r from-purple-700 to-purple-600">
@@ -1364,7 +1370,7 @@ export default function CompanyReportPage() {
               </div>
               <div>
                 <p className="font-medium text-slate-700 mb-2">Benchmarking</p>
-                <p className="leading-relaxed">Benchmark scores represent average performance across all Index participants. Percentile rankings indicate relative positioning within the cohort.</p>
+                <p className="leading-relaxed">Benchmark scores represent average performance across all organizations in the Index. Percentile rankings indicate relative positioning within the cohort.</p>
               </div>
               <div>
                 <p className="font-medium text-slate-700 mb-2">Performance Tiers</p>
