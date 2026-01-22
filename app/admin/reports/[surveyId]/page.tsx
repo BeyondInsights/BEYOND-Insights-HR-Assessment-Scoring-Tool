@@ -283,24 +283,24 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
 }
 
 // ============================================
-// UI HELPERS
+// UI HELPERS - MUTED PROFESSIONAL PALETTE
 // ============================================
 
 function getTier(score: number): { name: string; color: string; bgColor: string; textColor: string; borderColor: string } {
-  if (score >= 90) return { name: 'Exemplary', color: '#7C3AED', bgColor: 'bg-purple-50', textColor: 'text-purple-800', borderColor: 'border-purple-200' };
-  if (score >= 75) return { name: 'Leading', color: '#059669', bgColor: 'bg-emerald-50', textColor: 'text-emerald-800', borderColor: 'border-emerald-200' };
-  if (score >= 60) return { name: 'Progressing', color: '#0284C7', bgColor: 'bg-blue-50', textColor: 'text-blue-800', borderColor: 'border-blue-200' };
-  if (score >= 40) return { name: 'Emerging', color: '#D97706', bgColor: 'bg-amber-50', textColor: 'text-amber-800', borderColor: 'border-amber-200' };
-  return { name: 'Developing', color: '#DC2626', bgColor: 'bg-red-50', textColor: 'text-red-800', borderColor: 'border-red-200' };
+  if (score >= 90) return { name: 'Exemplary', color: '#5B21B6', bgColor: 'bg-violet-50', textColor: 'text-violet-900', borderColor: 'border-violet-200' };
+  if (score >= 75) return { name: 'Leading', color: '#047857', bgColor: 'bg-emerald-50', textColor: 'text-emerald-900', borderColor: 'border-emerald-200' };
+  if (score >= 60) return { name: 'Progressing', color: '#1D4ED8', bgColor: 'bg-blue-50', textColor: 'text-blue-900', borderColor: 'border-blue-200' };
+  if (score >= 40) return { name: 'Emerging', color: '#B45309', bgColor: 'bg-amber-50', textColor: 'text-amber-900', borderColor: 'border-amber-200' };
+  return { name: 'Developing', color: '#B91C1C', bgColor: 'bg-red-50', textColor: 'text-red-900', borderColor: 'border-red-200' };
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 90) return '#7C3AED'; if (score >= 75) return '#059669'; if (score >= 60) return '#0284C7';
-  if (score >= 40) return '#D97706'; return '#DC2626';
+  if (score >= 90) return '#5B21B6'; if (score >= 75) return '#047857'; if (score >= 60) return '#1D4ED8';
+  if (score >= 40) return '#B45309'; return '#B91C1C';
 }
 
 // ============================================
-// ICONS
+// ICONS - MINIMAL
 // ============================================
 
 const CheckIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -324,55 +324,48 @@ const LightbulbIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 );
 
 // ============================================
-// STRATEGIC PRIORITY MATRIX - PROFESSIONAL
+// STRATEGIC PRIORITY MATRIX - CLEAN PROFESSIONAL
 // ============================================
 
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
   const MAX_WEIGHT = 15;
   
-  const PADDING = 45;
+  const PADDING = 50;
   const CHART_WIDTH = 1000;
   const CHART_HEIGHT = 520;
   const PLOT_WIDTH = CHART_WIDTH - (PADDING * 2);
   const PLOT_HEIGHT = CHART_HEIGHT - (PADDING * 2);
   
   return (
-    <div className="px-4 py-6">
-      <div className="relative w-full" style={{ height: '620px' }}>
-        <svg className="w-full h-full" viewBox={`0 0 ${CHART_WIDTH + 70} ${CHART_HEIGHT + 70}`} preserveAspectRatio="xMidYMid meet">
+    <div className="px-6 py-6">
+      <div className="relative w-full" style={{ height: '600px' }}>
+        <svg className="w-full h-full" viewBox={`0 0 ${CHART_WIDTH + 80} ${CHART_HEIGHT + 80}`} preserveAspectRatio="xMidYMid meet">
           <defs>
-            <filter id="dropShadowNew" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.2"/>
+            <filter id="subtleShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.1"/>
             </filter>
           </defs>
           
-          <g transform="translate(55, 20)">
-            {/* Quadrant backgrounds */}
-            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FFF8E1" />
-            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#E0F2F1" />
-            <rect x={PADDING} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FAFAFA" />
-            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#E3F2FD" />
+          <g transform="translate(60, 25)">
+            {/* Quadrant backgrounds - VERY SUBTLE */}
+            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFCE8" opacity="0.5" />
+            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F0FDF4" opacity="0.5" />
+            <rect x={PADDING} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F8FAFC" />
+            <rect x={PADDING + PLOT_WIDTH/2} y={PADDING + PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#EFF6FF" opacity="0.5" />
+            
+            {/* Grid lines - subtle */}
+            <line x1={PADDING} y1={PADDING + PLOT_HEIGHT/2} x2={PADDING + PLOT_WIDTH} y2={PADDING + PLOT_HEIGHT/2} stroke="#E2E8F0" strokeWidth="1" />
+            <line x1={PADDING + PLOT_WIDTH/2} y1={PADDING} x2={PADDING + PLOT_WIDTH/2} y2={PADDING + PLOT_HEIGHT} stroke="#E2E8F0" strokeWidth="1" />
             
             {/* Border */}
-            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#90A4AE" strokeWidth="1.5" />
+            <rect x={PADDING} y={PADDING} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#CBD5E1" strokeWidth="1" />
             
-            {/* Center lines - SOLID */}
-            <line x1={PADDING + PLOT_WIDTH/2} y1={PADDING} x2={PADDING + PLOT_WIDTH/2} y2={PADDING + PLOT_HEIGHT} stroke="#90A4AE" strokeWidth="1.5" />
-            <line x1={PADDING} y1={PADDING + PLOT_HEIGHT/2} x2={PADDING + PLOT_WIDTH} y2={PADDING + PLOT_HEIGHT/2} stroke="#90A4AE" strokeWidth="1.5" />
-            
-            {/* Quadrant labels */}
-            <g>
-              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT/4 - 12} textAnchor="middle" fill="#E65100" fontSize="18" fontWeight="700" opacity="0.7">DEVELOP</text>
-              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT/4 + 10} textAnchor="middle" fill="#E65100" fontSize="11" opacity="0.6">High Priority</text>
-              
-              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT/4 - 12} textAnchor="middle" fill="#00695C" fontSize="18" fontWeight="700" opacity="0.7">MAINTAIN</text>
-              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT/4 + 10} textAnchor="middle" fill="#00695C" fontSize="11" opacity="0.6">Protect Strengths</text>
-              
-              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT*3/4 - 12} textAnchor="middle" fill="#546E7A" fontSize="18" fontWeight="700" opacity="0.7">MONITOR</text>
-              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT*3/4 + 10} textAnchor="middle" fill="#546E7A" fontSize="11" opacity="0.6">Lower Priority</text>
-              
-              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT*3/4 - 12} textAnchor="middle" fill="#1565C0" fontSize="18" fontWeight="700" opacity="0.7">LEVERAGE</text>
-              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT*3/4 + 10} textAnchor="middle" fill="#1565C0" fontSize="11" opacity="0.6">Quick Wins</text>
+            {/* Quadrant labels - very subtle */}
+            <g opacity="0.4">
+              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + 30} textAnchor="middle" fill="#78350F" fontSize="13" fontWeight="600" fontFamily="system-ui">DEVELOP</text>
+              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + 30} textAnchor="middle" fill="#14532D" fontSize="13" fontWeight="600" fontFamily="system-ui">MAINTAIN</text>
+              <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT - 15} textAnchor="middle" fill="#475569" fontSize="13" fontWeight="600" fontFamily="system-ui">MONITOR</text>
+              <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT - 15} textAnchor="middle" fill="#1E3A8A" fontSize="13" fontWeight="600" fontFamily="system-ui">LEVERAGE</text>
             </g>
             
             {/* Data points */}
@@ -382,9 +375,9 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               
               return (
                 <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
-                  <circle r="24" fill="white" filter="url(#dropShadowNew)" />
-                  <circle r="20" fill={getScoreColor(d.score)} />
-                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="12" fontWeight="700" fontFamily="system-ui, -apple-system, sans-serif">
+                  <circle r="22" fill="white" filter="url(#subtleShadow)" />
+                  <circle r="18" fill={getScoreColor(d.score)} />
+                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="11" fontWeight="600" fontFamily="system-ui">
                     D{d.dim}
                   </text>
                 </g>
@@ -395,46 +388,45 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>
               {[0, 25, 50, 75, 100].map((val) => (
                 <g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}>
-                  <line y1="0" y2="8" stroke="#546E7A" strokeWidth="1.5" />
-                  <text y="24" textAnchor="middle" fill="#37474F" fontSize="13" fontFamily="system-ui, -apple-system, sans-serif">{val}</text>
+                  <line y1="0" y2="6" stroke="#94A3B8" strokeWidth="1" />
+                  <text y="22" textAnchor="middle" fill="#64748B" fontSize="12" fontFamily="system-ui">{val}</text>
                 </g>
               ))}
-              <text x={PADDING + PLOT_WIDTH/2} y="50" textAnchor="middle" fill="#263238" fontSize="14" fontWeight="600" fontFamily="system-ui, -apple-system, sans-serif">
-                PERFORMANCE SCORE
+              <text x={PADDING + PLOT_WIDTH/2} y="48" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="500" fontFamily="system-ui">
+                Performance Score
               </text>
             </g>
             
-            {/* Y-axis - 0 to 15% */}
+            {/* Y-axis */}
             <g transform={`translate(${PADDING}, 0)`}>
-              <line x1="0" y1={PADDING} x2="0" y2={PADDING + PLOT_HEIGHT} stroke="#546E7A" strokeWidth="1.5" />
               {[0, 5, 10, 15].map((val) => {
                 const yPos = PADDING + PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
                 return (
                   <g key={val}>
-                    <line x1="-8" y1={yPos} x2="0" y2={yPos} stroke="#546E7A" strokeWidth="1.5" />
-                    <text x="-14" y={yPos + 4} textAnchor="end" fill="#37474F" fontSize="13" fontFamily="system-ui, -apple-system, sans-serif">{val}%</text>
+                    <line x1="-6" y1={yPos} x2="0" y2={yPos} stroke="#94A3B8" strokeWidth="1" />
+                    <text x="-12" y={yPos + 4} textAnchor="end" fill="#64748B" fontSize="12" fontFamily="system-ui">{val}%</text>
                   </g>
                 );
               })}
             </g>
             
-            {/* Y-axis label - positioned further left */}
-            <text transform="rotate(-90)" x={-(PADDING + PLOT_HEIGHT/2)} y="8" textAnchor="middle" fill="#263238" fontSize="14" fontWeight="600" fontFamily="system-ui, -apple-system, sans-serif">
-              STRATEGIC WEIGHT
+            {/* Y-axis label */}
+            <text transform="rotate(-90)" x={-(PADDING + PLOT_HEIGHT/2)} y="12" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="500" fontFamily="system-ui">
+              Strategic Weight
             </text>
           </g>
         </svg>
       </div>
       
-      {/* Legend */}
-      <div className="mt-3 pt-4 border-t border-slate-200">
-        <div className="grid grid-cols-7 gap-x-4 gap-y-3">
+      {/* Legend - compact */}
+      <div className="mt-2 pt-4 border-t border-slate-100">
+        <div className="grid grid-cols-7 gap-x-3 gap-y-2">
           {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
-            <div key={d.dim} className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
+            <div key={d.dim} className="flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0" style={{ backgroundColor: getScoreColor(d.score) }}>
                 {d.dim}
               </span>
-              <span className="text-sm text-slate-700 truncate">{DIMENSION_SHORT_NAMES[d.dim]}</span>
+              <span className="text-xs text-slate-600 truncate">{DIMENSION_SHORT_NAMES[d.dim]}</span>
             </div>
           ))}
         </div>
@@ -463,7 +455,7 @@ export default function CompanyReportPage() {
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
 
   useEffect(() => {
-    // CRITICAL: Reset ALL state when surveyId changes to prevent data contamination
+    // CRITICAL: Reset ALL state when surveyId changes
     setLoading(true);
     setError(null);
     setCompany(null);
@@ -703,7 +695,7 @@ export default function CompanyReportPage() {
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
   
-  // Initiatives in progress - all planning/assessing items
+  // Initiatives in progress
   const quickWinOpportunities = dimensionAnalysis
     .flatMap(d => [
       ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Assessing' })),
@@ -711,30 +703,27 @@ export default function CompanyReportPage() {
     ])
     .slice(0, 8);
   
-  // For roadmap - quick wins are assessing/planning items from low-weight dims
+  // Roadmap items
   const quickWinItems = dimensionAnalysis
     .flatMap(d => [...d.assessing, ...d.planning].map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, weight: d.weight })))
     .sort((a, b) => a.weight - b.weight)
-    .slice(0, 4);
+    .slice(0, 5);
   
-  // Foundation items - gaps from high-weight dims
   const foundationItems = allDimensionsByScore
     .filter(d => d.weight >= 10)
     .flatMap(d => d.gaps.slice(0, 2).map((g: any) => ({ ...g, dimNum: d.dim, dimName: d.name, weight: d.weight })))
-    .slice(0, 4);
+    .slice(0, 5);
   
-  // Excellence items - strengthen already strong dims
   const excellenceItems = strengthDimensions
     .flatMap(d => d.planning.slice(0, 1).map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name })))
-    .slice(0, 4);
+    .slice(0, 5);
 
-  // Tier thresholds for next tier calculation
   const tierThresholds = [{ name: 'Exemplary', min: 90 }, { name: 'Leading', min: 75 }, { name: 'Progressing', min: 60 }, { name: 'Emerging', min: 40 }, { name: 'Developing', min: 0 }];
   const nextTierUp = tierThresholds.find(t => t.min > (compositeScore || 0));
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-gray-50">
       <style jsx global>{`
         @media print { @page { margin: 0.75in; size: letter; } body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } .no-print { display: none !important; } .print-break { page-break-before: always; } }
       `}</style>
@@ -746,7 +735,7 @@ export default function CompanyReportPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             Back to Scoring
           </button>
-          <button onClick={handlePrint} className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium flex items-center gap-2">
+          <button onClick={handlePrint} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
             Export PDF
           </button>
@@ -757,7 +746,7 @@ export default function CompanyReportPage() {
         
         {/* ============ HEADER ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
-          <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-10 py-8">
+          <div className="bg-slate-800 px-10 py-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-8">
                 <div className="bg-white rounded-lg p-4">
@@ -811,39 +800,39 @@ export default function CompanyReportPage() {
               {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
               in supporting employees managing cancer, with a composite score of <strong>{compositeScore}</strong>
               {percentileRank !== null && totalCompanies > 1 && (
-                <span>, placing in the <strong className="text-purple-700">{percentileRank}th percentile</strong> among assessed organizations</span>
+                <span>, placing in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed organizations</span>
               )}.
               {topDimension && bottomDimension && (
-                <span> Your strongest dimension is <strong className="text-emerald-700">{topDimension.name}</strong> ({topDimension.score}), 
-                while <strong className="text-amber-700">{bottomDimension.name}</strong> ({bottomDimension.score}) represents your greatest opportunity for growth.</span>
+                <span> Your strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
+                while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) represents your greatest opportunity for growth.</span>
               )}
             </p>
             
             {pointsToNextTier && nextTierUp && pointsToNextTier <= 15 && (
-              <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg flex items-start gap-3">
-                <TrendUpIcon className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+              <div className="mt-4 p-4 bg-violet-50 border border-violet-200 rounded-lg flex items-start gap-3">
+                <TrendUpIcon className="w-5 h-5 text-violet-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-semibold text-purple-800">{pointsToNextTier} points from {nextTierUp.name} tier</p>
-                  <p className="text-xs text-purple-600 mt-1">Targeted improvements in {allDimensionsByScore[0]?.name} could elevate your overall standing.</p>
+                  <p className="text-sm font-semibold text-violet-800">{pointsToNextTier} points from {nextTierUp.name} tier</p>
+                  <p className="text-xs text-violet-600 mt-1">Targeted improvements in {allDimensionsByScore[0]?.name} could elevate your overall standing.</p>
                 </div>
               </div>
             )}
             
             <div className="mt-6 grid grid-cols-4 gap-6">
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-emerald-600">{currentlyOffering}</p>
+                <p className="text-3xl font-bold text-slate-800">{currentlyOffering}</p>
                 <p className="text-sm text-slate-500 mt-1">of {totalElements} elements offered</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-blue-600">{planningItems + assessingItems}</p>
+                <p className="text-3xl font-bold text-slate-800">{planningItems + assessingItems}</p>
                 <p className="text-sm text-slate-500 mt-1">initiatives in development</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-amber-600">{gapItems}</p>
+                <p className="text-3xl font-bold text-slate-800">{gapItems}</p>
                 <p className="text-sm text-slate-500 mt-1">identified gaps</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-purple-600">{tierCounts.exemplary + tierCounts.leading}</p>
+                <p className="text-3xl font-bold text-slate-800">{tierCounts.exemplary + tierCounts.leading}</p>
                 <p className="text-sm text-slate-500 mt-1">dimensions at Leading+</p>
               </div>
             </div>
@@ -851,29 +840,29 @@ export default function CompanyReportPage() {
         </div>
 
         {/* ============ KEY FINDINGS ============ */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg shadow-sm overflow-hidden mb-8">
+        <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden mb-8">
           <div className="px-10 py-6">
-            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">Key Findings at a Glance</h3>
+            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Key Findings at a Glance</h3>
             <div className="grid grid-cols-4 gap-6">
               <div className="bg-white/10 rounded-lg p-4">
-                <p className="text-xs text-emerald-300 font-medium uppercase tracking-wider mb-2">Strongest Area</p>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Strongest Area</p>
                 <p className="text-white font-semibold">{topDimension?.name || 'N/A'}</p>
-                <p className="text-emerald-300 text-sm mt-1">Score: {topDimension?.score}</p>
+                <p className="text-slate-300 text-sm mt-1">Score: {topDimension?.score}</p>
               </div>
               <div className="bg-white/10 rounded-lg p-4">
-                <p className="text-xs text-amber-300 font-medium uppercase tracking-wider mb-2">Priority Focus</p>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Priority Focus</p>
                 <p className="text-white font-semibold">{bottomDimension?.name || 'N/A'}</p>
-                <p className="text-amber-300 text-sm mt-1">Score: {bottomDimension?.score}</p>
+                <p className="text-slate-300 text-sm mt-1">Score: {bottomDimension?.score}</p>
               </div>
               <div className="bg-white/10 rounded-lg p-4">
-                <p className="text-xs text-blue-300 font-medium uppercase tracking-wider mb-2">In Development</p>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">In Development</p>
                 <p className="text-white font-semibold">{planningItems + assessingItems} initiatives</p>
-                <p className="text-blue-300 text-sm mt-1">{planningItems} planning, {assessingItems} assessing</p>
+                <p className="text-slate-300 text-sm mt-1">{planningItems} planning, {assessingItems} assessing</p>
               </div>
               <div className="bg-white/10 rounded-lg p-4">
-                <p className="text-xs text-purple-300 font-medium uppercase tracking-wider mb-2">Tier Distribution</p>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Tier Distribution</p>
                 <p className="text-white font-semibold">{tierCounts.exemplary + tierCounts.leading} / 13 Leading+</p>
-                <p className="text-purple-300 text-sm mt-1">{tierCounts.exemplary} Exemplary, {tierCounts.leading} Leading</p>
+                <p className="text-slate-300 text-sm mt-1">{tierCounts.exemplary} Exemplary, {tierCounts.leading} Leading</p>
               </div>
             </div>
           </div>
@@ -887,10 +876,10 @@ export default function CompanyReportPage() {
           <div className="px-10 py-6">
             <div className="grid grid-cols-4 gap-8">
               {[
-                { label: 'Composite Score', score: compositeScore, weight: null, benchmark: benchmarks?.compositeScore, isTotal: true },
-                { label: 'Weighted Dimension Score', score: weightedDimScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.weightedDim}%`, benchmark: benchmarks?.weightedDimScore },
-                { label: 'Program Maturity', score: maturityScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.maturity}%`, benchmark: benchmarks?.maturityScore },
-                { label: 'Support Breadth', score: breadthScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.breadth}%`, benchmark: benchmarks?.breadthScore },
+                { label: 'Composite Score', score: compositeScore, weight: null, isTotal: true },
+                { label: 'Weighted Dimension Score', score: weightedDimScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.weightedDim}%` },
+                { label: 'Program Maturity', score: maturityScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.maturity}%` },
+                { label: 'Support Breadth', score: breadthScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.breadth}%` },
               ].map((item, idx) => (
                 <div key={idx} className={`text-center ${item.isTotal ? 'bg-slate-50 rounded-lg p-4 border-2 border-slate-200' : ''}`}>
                   <p className="text-4xl font-bold" style={{ color: getScoreColor(item.score ?? 0) }}>{item.score ?? '—'}</p>
@@ -974,73 +963,63 @@ export default function CompanyReportPage() {
           <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
         </div>
 
-        {/* ============ AREAS OF EXCELLENCE & GROWTH ============ */}
+        {/* ============ AREAS OF EXCELLENCE & GROWTH - PROFESSIONAL TABLE LAYOUT ============ */}
         <div className="grid grid-cols-2 gap-6 mb-8">
+          {/* Areas of Excellence */}
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 bg-emerald-50 border-b border-emerald-100 flex items-center gap-3">
-              <CheckIcon className="w-5 h-5 text-emerald-600" />
-              <div>
-                <h3 className="font-semibold text-emerald-800">Areas of Excellence</h3>
-                <p className="text-sm text-emerald-600 mt-0.5">{strengthDimensions.length} dimensions at Leading or above</p>
-              </div>
+            <div className="px-6 py-4 border-b border-slate-100">
+              <h3 className="font-semibold text-slate-900">Areas of Excellence</h3>
+              <p className="text-sm text-slate-500">{strengthDimensions.length} dimensions at Leading or above</p>
             </div>
-            <div className="p-6">
+            <div className="divide-y divide-slate-100">
               {strengthDimensions.length > 0 ? (
-                <div className="space-y-4">
-                  {strengthDimensions.slice(0, 4).map((d) => (
-                    <div key={d.dim}>
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-slate-800 text-sm">{d.name}</p>
-                        <span className="text-xs font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                      </div>
-                      {d.strengths.length > 0 && (
-                        <ul className="mt-1.5 space-y-0.5">
-                          {d.strengths.slice(0, 2).map((e: any, i: number) => (
-                            <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
-                              <CheckIcon className="w-3 h-3 text-emerald-500 mt-0.5 flex-shrink-0" />
-                              <span className="line-clamp-1">{e.name}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                strengthDimensions.slice(0, 5).map((d) => (
+                  <div key={d.dim} className="px-6 py-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-medium text-slate-800">{d.name}</p>
+                      <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                     </div>
-                  ))}
-                </div>
+                    <ul className="space-y-1">
+                      {d.strengths.slice(0, 3).map((e: any, i: number) => (
+                        <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                          <CheckIcon className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                          <span>{e.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))
               ) : (
-                <p className="text-slate-500 text-sm">Focus on building foundational capabilities to reach Leading tier.</p>
+                <div className="px-6 py-8 text-center">
+                  <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
+                </div>
               )}
             </div>
           </div>
 
+          {/* Growth Opportunities */}
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 bg-amber-50 border-b border-amber-100 flex items-center gap-3">
-              <TrendUpIcon className="w-5 h-5 text-amber-600" />
-              <div>
-                <h3 className="font-semibold text-amber-800">Growth Opportunities</h3>
-                <p className="text-sm text-amber-600 mt-0.5">Dimensions with improvement potential</p>
-              </div>
+            <div className="px-6 py-4 border-b border-slate-100">
+              <h3 className="font-semibold text-slate-900">Growth Opportunities</h3>
+              <p className="text-sm text-slate-500">Dimensions with improvement potential</p>
             </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {allDimensionsByScore.slice(0, 4).map((d) => (
-                  <div key={d.dim}>
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-slate-800 text-sm">{d.name}</p>
-                      <span className="text-xs font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                    </div>
-                    {d.gaps.length > 0 && (
-                      <ul className="mt-1.5 space-y-0.5">
-                        {d.gaps.slice(0, 2).map((e: any, i: number) => (
-                          <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 flex-shrink-0"></span>
-                            <span className="line-clamp-1">{e.name}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+            <div className="divide-y divide-slate-100">
+              {allDimensionsByScore.slice(0, 5).map((d) => (
+                <div key={d.dim} className="px-6 py-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium text-slate-800">{d.name}</p>
+                    <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                   </div>
-                ))}
-              </div>
+                  <ul className="space-y-1">
+                    {d.gaps.slice(0, 3).map((e: any, i: number) => (
+                      <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 flex-shrink-0"></span>
+                        <span>{e.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -1048,24 +1027,18 @@ export default function CompanyReportPage() {
         {/* ============ INITIATIVES IN PROGRESS ============ */}
         {quickWinOpportunities.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div className="px-10 py-5 border-b border-slate-100 bg-blue-50">
-              <div className="flex items-center gap-3">
-                <LightbulbIcon className="w-5 h-5 text-blue-600" />
-                <div>
-                  <h3 className="font-semibold text-blue-900">Initiatives In Progress</h3>
-                  <p className="text-sm text-blue-700 mt-0.5">Programs currently in planning or under consideration</p>
-                </div>
-              </div>
+            <div className="px-10 py-5 border-b border-slate-100">
+              <h3 className="font-semibold text-slate-900">Initiatives In Progress</h3>
+              <p className="text-sm text-slate-500 mt-0.5">Programs currently in planning or under consideration</p>
             </div>
             <div className="px-10 py-6">
               <p className="text-slate-600 mb-6">
-                The following items are currently in planning or assessment phases. Converting these to active programs 
-                represents the fastest path to improving your composite score, as the organizational groundwork is already underway.
+                Converting these items to active programs represents the fastest path to improving your composite score.
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {quickWinOpportunities.map((item, idx) => (
                   <div key={idx} className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className={`text-xs font-medium px-2 py-1 rounded flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-sky-100 text-sky-700'}`}>{item.type}</span>
+                    <span className={`text-xs font-medium px-2 py-1 rounded flex-shrink-0 ${item.type === 'Planning' ? 'bg-slate-200 text-slate-700' : 'bg-slate-300 text-slate-800'}`}>{item.type}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-slate-700">{item.name}</p>
                       <p className="text-xs text-slate-500 mt-1">D{item.dimNum}: {item.dimName}</p>
@@ -1077,11 +1050,11 @@ export default function CompanyReportPage() {
           </div>
         )}
 
-        {/* ============ STRATEGIC RECOMMENDATIONS - MCKINSEY STYLE ============ */}
+        {/* ============ STRATEGIC RECOMMENDATIONS - CLEAN PROFESSIONAL ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">Strategic Recommendations</h3>
-            <p className="text-slate-300 text-sm mt-1">Detailed analysis and action plans for priority dimensions</p>
+            <p className="text-slate-400 text-sm mt-1">Detailed analysis and action plans for priority dimensions</p>
           </div>
           
           <div className="divide-y divide-slate-200">
@@ -1090,99 +1063,90 @@ export default function CompanyReportPage() {
               return (
                 <div key={d.dim} className="px-10 py-8">
                   {/* Dimension Header */}
-                  <div className="flex items-center gap-5 mb-6">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: getScoreColor(d.score) }}>
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>
                       {idx + 1}
                     </div>
-                    <div>
-                      <h4 className="text-xl font-bold text-slate-900">{d.name}</h4>
-                      <div className="flex items-center gap-4 mt-1.5">
-                        <span className={`text-sm font-semibold px-3 py-1 rounded-full ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                    <div className="flex-1">
+                      <h4 className="text-xl font-semibold text-slate-900">{d.name}</h4>
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
                         <span className="text-sm text-slate-500">Score: <strong className="text-slate-700">{d.score}</strong></span>
                         <span className="text-sm text-slate-500">Weight: <strong className="text-slate-700">{d.weight}%</strong></span>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Current State - 3 columns */}
-                  <div className="grid grid-cols-3 gap-5 mb-6">
+                  {/* Current State - 3 columns - CLEAN TABLES */}
+                  <div className="grid grid-cols-3 gap-6 mb-6">
                     {/* Gaps */}
-                    <div className="rounded-xl p-5 bg-gradient-to-br from-red-50 to-orange-50 border border-red-100">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-                          <AlertIcon className="w-4 h-4 text-red-600" />
-                        </div>
-                        <h5 className="font-bold text-red-800">Gaps ({d.gaps.length})</h5>
+                    <div className="border border-slate-200 rounded-lg overflow-hidden">
+                      <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                        <h5 className="font-semibold text-slate-700 text-sm">Gaps ({d.gaps.length})</h5>
                       </div>
-                      {d.gaps.length > 0 ? (
-                        <ul className="space-y-2">
-                          {d.gaps.slice(0, 4).map((g: any, i: number) => (
-                            <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 flex-shrink-0"></span>
-                              <span>{g.name}</span>
-                            </li>
-                          ))}
-                          {d.gaps.length > 4 && <li className="text-sm text-red-600 font-medium pl-3.5">+{d.gaps.length - 4} more</li>}
-                        </ul>
-                      ) : <p className="text-sm text-slate-500 italic">No critical gaps identified</p>}
+                      <div className="p-4">
+                        {d.gaps.length > 0 ? (
+                          <ul className="space-y-2">
+                            {d.gaps.map((g: any, i: number) => (
+                              <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 flex-shrink-0"></span>
+                                <span>{g.name}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : <p className="text-sm text-slate-400 italic">No critical gaps</p>}
+                      </div>
                     </div>
                     
                     {/* In Progress */}
-                    <div className="rounded-xl p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                          <ArrowRightIcon className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <h5 className="font-bold text-blue-800">In Progress ({d.planning.length + d.assessing.length})</h5>
+                    <div className="border border-slate-200 rounded-lg overflow-hidden">
+                      <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                        <h5 className="font-semibold text-slate-700 text-sm">In Progress ({d.planning.length + d.assessing.length})</h5>
                       </div>
-                      {(d.planning.length > 0 || d.assessing.length > 0) ? (
-                        <ul className="space-y-2">
-                          {[...d.planning.slice(0, 2), ...d.assessing.slice(0, 2)].slice(0, 4).map((item: any, i: number) => (
-                            <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.isPlanning ? 'bg-blue-200 text-blue-800' : 'bg-sky-200 text-sky-800'}`}>
-                                {item.isPlanning ? 'P' : 'A'}
-                              </span>
-                              <span>{item.name}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : <p className="text-sm text-slate-500 italic">No initiatives currently in progress</p>}
+                      <div className="p-4">
+                        {(d.planning.length > 0 || d.assessing.length > 0) ? (
+                          <ul className="space-y-2">
+                            {[...d.planning, ...d.assessing].map((item: any, i: number) => (
+                              <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
+                                <span>{item.name}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : <p className="text-sm text-slate-400 italic">No initiatives in progress</p>}
+                      </div>
                     </div>
                     
                     {/* Strengths */}
-                    <div className="rounded-xl p-5 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                          <CheckIcon className="w-4 h-4 text-emerald-600" />
-                        </div>
-                        <h5 className="font-bold text-emerald-800">Strengths ({d.strengths.length})</h5>
+                    <div className="border border-slate-200 rounded-lg overflow-hidden">
+                      <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                        <h5 className="font-semibold text-slate-700 text-sm">Strengths ({d.strengths.length})</h5>
                       </div>
-                      {d.strengths.length > 0 ? (
-                        <ul className="space-y-2">
-                          {d.strengths.slice(0, 4).map((s: any, i: number) => (
-                            <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
-                              <span>{s.name}</span>
-                            </li>
-                          ))}
-                          {d.strengths.length > 4 && <li className="text-sm text-emerald-600 font-medium pl-3.5">+{d.strengths.length - 4} more</li>}
-                        </ul>
-                      ) : <p className="text-sm text-slate-500 italic">Building toward first strengths</p>}
+                      <div className="p-4">
+                        {d.strengths.length > 0 ? (
+                          <ul className="space-y-2">
+                            {d.strengths.map((s: any, i: number) => (
+                              <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
+                                <span>{s.name}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : <p className="text-sm text-slate-400 italic">Building toward first strengths</p>}
+                      </div>
                     </div>
                   </div>
                   
                   {/* Strategic Insight & CAC Help */}
                   {insight && (
-                    <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                      <div className="grid grid-cols-2">
-                        <div className="p-6 bg-slate-50">
-                          <h5 className="font-bold text-slate-800 mb-3">Strategic Insight</h5>
-                          <p className="text-sm text-slate-600 leading-relaxed">{insight.insight}</p>
-                        </div>
-                        <div className="p-6 bg-purple-50 border-l border-purple-100">
-                          <h5 className="font-bold text-purple-800 mb-3">How Cancer and Careers Can Help</h5>
-                          <p className="text-sm text-slate-600 leading-relaxed">{insight.cacHelp}</p>
-                        </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="border border-slate-200 rounded-lg p-5">
+                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
+                        <p className="text-sm text-slate-600 leading-relaxed">{insight.insight}</p>
+                      </div>
+                      <div className="border border-slate-200 rounded-lg p-5 bg-slate-50">
+                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                        <p className="text-sm text-slate-600 leading-relaxed">{insight.cacHelp}</p>
                       </div>
                     </div>
                   )}
@@ -1192,100 +1156,94 @@ export default function CompanyReportPage() {
           </div>
         </div>
 
-        {/* ============ IMPLEMENTATION ROADMAP ============ */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-          <div className="px-10 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-            <h3 className="text-lg font-bold text-slate-900">Implementation Roadmap</h3>
+        {/* ============ IMPLEMENTATION ROADMAP - CLEAN PROFESSIONAL ============ */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="px-10 py-6 border-b border-slate-100">
+            <h3 className="font-semibold text-slate-900">Implementation Roadmap</h3>
             <p className="text-sm text-slate-500 mt-1">Phased approach to strengthen your cancer support ecosystem</p>
           </div>
           <div className="px-10 py-8">
             <div className="grid grid-cols-3 gap-6">
               {/* Phase 1 */}
-              <div className="rounded-xl border-2 border-emerald-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-4">
+              <div className="border border-slate-200 rounded-lg overflow-hidden">
+                <div className="bg-slate-800 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">1</span>
-                    </div>
+                    <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">1</span>
                     <div>
-                      <h4 className="font-bold text-white">Quick Wins</h4>
-                      <p className="text-emerald-100 text-xs">Immediate impact</p>
+                      <h4 className="font-semibold text-white">Quick Wins</h4>
+                      <p className="text-slate-400 text-xs">Immediate impact</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5 bg-gradient-to-b from-emerald-50 to-white min-h-[200px]">
-                  <p className="text-xs text-emerald-700 font-semibold uppercase tracking-wide mb-4">Accelerate items already in progress</p>
+                <div className="p-5">
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Accelerate items already in progress</p>
                   {quickWinItems.length > 0 ? (
                     <ul className="space-y-3">
                       {quickWinItems.map((item, idx) => (
                         <li key={idx} className="text-sm">
-                          <p className="font-medium text-slate-800">{item.name}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
+                          <p className="text-slate-700">{item.name}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-slate-500 italic">Begin with communication and manager awareness initiatives</p>
+                    <p className="text-sm text-slate-400 italic">Begin with communication and manager awareness initiatives</p>
                   )}
                 </div>
               </div>
               
               {/* Phase 2 */}
-              <div className="rounded-xl border-2 border-blue-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-4">
+              <div className="border border-slate-200 rounded-lg overflow-hidden">
+                <div className="bg-slate-700 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">2</span>
-                    </div>
+                    <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">2</span>
                     <div>
-                      <h4 className="font-bold text-white">Foundation Building</h4>
-                      <p className="text-blue-100 text-xs">Core infrastructure</p>
+                      <h4 className="font-semibold text-white">Foundation Building</h4>
+                      <p className="text-slate-400 text-xs">Core infrastructure</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5 bg-gradient-to-b from-blue-50 to-white min-h-[200px]">
-                  <p className="text-xs text-blue-700 font-semibold uppercase tracking-wide mb-4">Address high-weight dimension gaps</p>
+                <div className="p-5">
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Address high-weight dimension gaps</p>
                   {foundationItems.length > 0 ? (
                     <ul className="space-y-3">
                       {foundationItems.map((item, idx) => (
                         <li key={idx} className="text-sm">
-                          <p className="font-medium text-slate-800">{item.name}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
+                          <p className="text-slate-700">{item.name}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-slate-500 italic">Foundation already strong - focus on refinement</p>
+                    <p className="text-sm text-slate-400 italic">Foundation already strong - focus on refinement</p>
                   )}
                 </div>
               </div>
               
               {/* Phase 3 */}
-              <div className="rounded-xl border-2 border-purple-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-5 py-4">
+              <div className="border border-slate-200 rounded-lg overflow-hidden">
+                <div className="bg-slate-600 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">3</span>
-                    </div>
+                    <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">3</span>
                     <div>
-                      <h4 className="font-bold text-white">Excellence & Culture</h4>
-                      <p className="text-purple-100 text-xs">Industry leadership</p>
+                      <h4 className="font-semibold text-white">Excellence & Culture</h4>
+                      <p className="text-slate-400 text-xs">Industry leadership</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5 bg-gradient-to-b from-purple-50 to-white min-h-[200px]">
-                  <p className="text-xs text-purple-700 font-semibold uppercase tracking-wide mb-4">Elevate strengths to industry-leading</p>
+                <div className="p-5">
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Elevate strengths to industry-leading</p>
                   {excellenceItems.length > 0 ? (
                     <ul className="space-y-3">
                       {excellenceItems.map((item, idx) => (
                         <li key={idx} className="text-sm">
-                          <p className="font-medium text-slate-800">{item.name}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
+                          <p className="text-slate-700">{item.name}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-slate-500 italic">Expand manager training and cultural initiatives</p>
+                    <p className="text-sm text-slate-400 italic">Expand manager training and cultural initiatives</p>
                   )}
                 </div>
               </div>
@@ -1295,9 +1253,9 @@ export default function CompanyReportPage() {
 
         {/* ============ HOW CAC CAN HELP ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
-          <div className="px-10 py-6 bg-gradient-to-r from-purple-700 to-purple-600">
+          <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help</h3>
-            <p className="text-purple-200 text-sm mt-1">Tailored support to enhance your employee experience</p>
+            <p className="text-slate-400 text-sm mt-1">Tailored support to enhance your employee experience</p>
           </div>
           <div className="px-10 py-6">
             <p className="text-slate-600 mb-6 leading-relaxed">
@@ -1308,49 +1266,49 @@ export default function CompanyReportPage() {
             </p>
             
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <h4 className="font-semibold text-amber-800 text-sm mb-2">Manager Preparedness & Training</h4>
-                <ul className="text-xs text-slate-600 space-y-1">
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-amber-400 mt-1.5"></span>Live training sessions with case studies</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-amber-400 mt-1.5"></span>Manager toolkit and conversation guides</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-amber-400 mt-1.5"></span>Train the trainer programs</li>
+              <div className="border border-slate-200 rounded-lg p-5">
+                <h4 className="font-semibold text-slate-800 text-sm mb-3">Manager Preparedness & Training</h4>
+                <ul className="text-sm text-slate-600 space-y-1.5">
+                  <li>• Live training sessions with case studies</li>
+                  <li>• Manager toolkit and conversation guides</li>
+                  <li>• Train the trainer programs</li>
                 </ul>
               </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-800 text-sm mb-2">Navigation & Resource Architecture</h4>
-                <ul className="text-xs text-slate-600 space-y-1">
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5"></span>Resource audit and gap analysis</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5"></span>Single entry point design</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5"></span>Communication strategy</li>
+              <div className="border border-slate-200 rounded-lg p-5">
+                <h4 className="font-semibold text-slate-800 text-sm mb-3">Navigation & Resource Architecture</h4>
+                <ul className="text-sm text-slate-600 space-y-1.5">
+                  <li>• Resource audit and gap analysis</li>
+                  <li>• Single entry point design</li>
+                  <li>• Communication strategy</li>
                 </ul>
               </div>
-              <div className="bg-rose-50 border border-rose-200 rounded-lg p-4">
-                <h4 className="font-semibold text-rose-800 text-sm mb-2">Return to Work Excellence</h4>
-                <ul className="text-xs text-slate-600 space-y-1">
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-rose-400 mt-1.5"></span>Phased return protocols</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-rose-400 mt-1.5"></span>Check-in cadence design</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-rose-400 mt-1.5"></span>Career continuity planning</li>
+              <div className="border border-slate-200 rounded-lg p-5">
+                <h4 className="font-semibold text-slate-800 text-sm mb-3">Return to Work Excellence</h4>
+                <ul className="text-sm text-slate-600 space-y-1.5">
+                  <li>• Phased return protocols</li>
+                  <li>• Check-in cadence design</li>
+                  <li>• Career continuity planning</li>
                 </ul>
               </div>
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                <h4 className="font-semibold text-emerald-800 text-sm mb-2">Policy & Program Assessment</h4>
-                <ul className="text-xs text-slate-600 space-y-1">
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5"></span>Comprehensive policy review</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5"></span>Implementation audit</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5"></span>Business case development</li>
+              <div className="border border-slate-200 rounded-lg p-5">
+                <h4 className="font-semibold text-slate-800 text-sm mb-3">Policy & Program Assessment</h4>
+                <ul className="text-sm text-slate-600 space-y-1.5">
+                  <li>• Comprehensive policy review</li>
+                  <li>• Implementation audit</li>
+                  <li>• Business case development</li>
                 </ul>
               </div>
             </div>
             
-            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+            <div className="bg-slate-50 rounded-lg p-5 border border-slate-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-700">Ready to take the next step?</p>
-                  <p className="text-xs text-slate-500 mt-1">Contact Cancer and Careers to discuss how we can support your organization.</p>
+                  <p className="font-medium text-slate-700">Ready to take the next step?</p>
+                  <p className="text-sm text-slate-500 mt-1">Contact Cancer and Careers to discuss how we can support your organization.</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-purple-700">cancerandcareers.org</p>
-                  <p className="text-xs text-slate-500">cacbestcompanies@cew.org</p>
+                  <p className="font-medium text-slate-700">cancerandcareers.org</p>
+                  <p className="text-sm text-slate-500">cacbestcompanies@cew.org</p>
                 </div>
               </div>
             </div>
@@ -1375,11 +1333,11 @@ export default function CompanyReportPage() {
               <div>
                 <p className="font-medium text-slate-700 mb-2">Performance Tiers</p>
                 <p className="leading-relaxed">
-                  <span className="text-purple-600 font-medium">Exemplary</span> (90+) · 
-                  <span className="text-emerald-600 font-medium"> Leading</span> (75-89) · 
-                  <span className="text-blue-600 font-medium"> Progressing</span> (60-74) · 
-                  <span className="text-amber-600 font-medium"> Emerging</span> (40-59) · 
-                  <span className="text-red-600 font-medium"> Developing</span> (&lt;40)
+                  <span style={{ color: '#5B21B6' }} className="font-medium">Exemplary</span> (90+) · 
+                  <span style={{ color: '#047857' }} className="font-medium"> Leading</span> (75-89) · 
+                  <span style={{ color: '#1D4ED8' }} className="font-medium"> Progressing</span> (60-74) · 
+                  <span style={{ color: '#B45309' }} className="font-medium"> Emerging</span> (40-59) · 
+                  <span style={{ color: '#B91C1C' }} className="font-medium"> Developing</span> (&lt;40)
                 </p>
               </div>
             </div>
