@@ -846,7 +846,8 @@ export default function CompanyReportPage() {
     .flatMap(d => d.gaps.slice(0, 2).map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, weight: d.weight })))
     .slice(0, 5);
 
-  const tierThresholds = [{ name: 'Exemplary', min: 90 }, { name: 'Leading', min: 75 }, { name: 'Progressing', min: 60 }, { name: 'Emerging', min: 40 }, { name: 'Developing', min: 0 }];
+  // Order from lowest to highest so .find() returns the immediate next tier up
+  const tierThresholds = [{ name: 'Emerging', min: 40 }, { name: 'Progressing', min: 60 }, { name: 'Leading', min: 75 }, { name: 'Exemplary', min: 90 }];
   const nextTierUp = tierThresholds.find(t => t.min > (compositeScore || 0));
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
 
