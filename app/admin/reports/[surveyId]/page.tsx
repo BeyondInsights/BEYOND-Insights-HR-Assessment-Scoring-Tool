@@ -320,9 +320,9 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
   const MAX_WEIGHT = 15;
   
   const CHART_WIDTH = 900;
-  const CHART_HEIGHT = 380;
+  const CHART_HEIGHT = 420;
   const LABEL_HEIGHT = 24;
-  const MARGIN = { top: LABEL_HEIGHT + 10, right: 20, bottom: LABEL_HEIGHT + 45, left: 60 };
+  const MARGIN = { top: LABEL_HEIGHT + 10, right: 20, bottom: LABEL_HEIGHT + 55, left: 60 };
   const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
   const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
   
@@ -330,8 +330,8 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
   
   return (
     <div className="px-4 py-4">
-      <div className="relative w-full" style={{ height: '500px' }}>
-        <svg className="w-full" style={{ height: '440px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+      <div className="relative w-full" style={{ height: '580px' }}>
+        <svg className="w-full" style={{ height: '490px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
           <defs>
             <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
@@ -450,8 +450,8 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         )}
         
         {/* Legend - below chart */}
-        <div className="mt-1 pt-3 border-t border-slate-200">
-          <div className="grid grid-cols-7 gap-x-2 gap-y-1.5">
+        <div className="mt-3 pt-4 border-t border-slate-200">
+          <div className="grid grid-cols-7 gap-x-2 gap-y-2">
             {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
               <div 
                 key={d.dim} 
@@ -1117,7 +1117,7 @@ export default function CompanyReportPage() {
         </div>
 
         {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 mb-8 pdf-break-before pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Strategic Priority Matrix</h3>
             <p className="text-sm text-slate-500 mt-1">Dimensions plotted by current performance versus strategic weight. Hover over any dimension for details.</p>
