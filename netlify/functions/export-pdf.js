@@ -1,77 +1,79 @@
-const chromium = require('@sparticuz/chromium');
-const puppeteer = require('puppeteer-core');
+// netlify/functions/export-pdf.js
+// Uses Browserless for reliable PDF generation
 
 exports.handler = async (event) => {
-  const { surveyId } = event.queryStringParameters || {};
-  
-  if (!surveyId) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Missing surveyId' }) };
-  }
-
-  let browser = null;
-  
   try {
-    const origin = process.env.URL || 'https://effervescent-concha-95d2df.netlify.app';
-    const exportEmail = process.env.EXPORT_ADMIN_EMAIL || 'john.bekier@beyondinsights.com';
-    
-    // Fix for Netlify environment
-    const executablePath = await chromium.executablePath();
-    
-    if (!executablePath) {
-      throw new Error('Could not find Chromium executable');
+    const surveyId = event.queryStringParameters?.surveyId;
+    if (!surveyId) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Missing surveyId' }) };
     }
 
-    browser = await puppeteer.launch({
-      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
-      defaultViewport: { width: 1200, height: 800 },
-      executablePath,
-      headless: chromium.headless,
+    const host = event.headers['x-forwarded-host'] || event.headers.host;
+    const proto = event.headers['x-forwarded-proto'] || 'https';
+    const origin = `${proto}://${host}`;
+
+    const token = process.env.BROWSERLESS_TOKEN;
+    const base = process.env.BROWSERLESS_BASE || 'https://chrome.browserless.io';
+    const exportToken = process.env.EXPORT_SECRET_TOKEN || 'cac-export-2026';
+    
+    if (!token) {
+      return { statusCode: 500, body: JSON.stringify({ error: 'Missing BROWSERLESS_TOKEN environment variable' }) };
+    }
+
+    // Use the token-protected export route
+    const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?token=${exportToken}&export=1`;
+
+    console.log(`Generating PDF for: ${reportUrl}`);
+
+    const res = await fetch(`${base}/pdf?token=${token}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: reportUrl,
+        options: {
+          printBackground: true,
+          format: 'Letter',
+          margin: { 
+            top: '0.5in', 
+            right: '0.5in', 
+            bottom: '0.5in', 
+            left: '0.5in' 
+          },
+          displayHeaderFooter: false,
+          preferCSSPageSize: true
+        },
+        gotoOptions: {
+          waitUntil: 'networkidle2',
+          timeout: 30000
+        }
+      })
     });
 
-    const page = await browser.newPage();
-    
-    await page.evaluateOnNewDocument((email) => {
-      try {
-        sessionStorage.setItem('adminAuth', JSON.stringify({
-          email,
-          timestamp: Date.now()
-        }));
-      } catch (e) {}
-    }, exportEmail);
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('Browserless PDF failed:', text);
+      return { statusCode: 500, body: JSON.stringify({ error: `Browserless PDF failed: ${text}` }) };
+    }
 
-    const url = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1`;
-    console.log('Navigating to:', url);
-    
-    await page.goto(url, { waitUntil: 'networkidle0', timeout: 45000 });
-    await page.waitForSelector('#report-root', { timeout: 30000 });
-    
-    await page.addStyleTag({
-      content: `.no-print, .ppt-slides-container { display: none !important; }`
-    });
-    
-    await new Promise(r => setTimeout(r, 2000));
+    const pdfArrayBuf = await res.arrayBuffer();
+    const pdfB64 = Buffer.from(pdfArrayBuf).toString('base64');
 
-    const pdf = await page.pdf({
-      format: 'Letter',
-      printBackground: true,
-      margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
-    });
-
-    await browser.close();
+    // Get company name for filename (optional enhancement - could fetch from Supabase)
+    const filename = `Cancer_Support_Report_${surveyId}.pdf`;
 
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="Report_${surveyId}.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Cache-Control': 'no-store',
       },
-      body: pdf.toString('base64'),
-      isBase64Encoded: true
+      body: pdfB64,
+      isBase64Encoded: true,
     };
-
-  } catch (error) {
-    console.error('PDF export error:', error);
-    if (browser) await browser.close();
-    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
+    
+  } catch (err) {
+    console.error('PDF export error:', err);
+    return { statusCode: 500, body: JSON.stringify({ error: 'PDF export failed', details: err.message }) };
   }
 };
