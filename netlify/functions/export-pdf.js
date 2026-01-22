@@ -1,6 +1,3 @@
-// netlify/functions/export-pdf.js
-// Uses Browserless for reliable PDF generation
-
 exports.handler = async (event) => {
   try {
     const surveyId = event.queryStringParameters?.surveyId;
@@ -17,10 +14,9 @@ exports.handler = async (event) => {
     const exportToken = process.env.EXPORT_SECRET_TOKEN;
     
     if (!token) {
-      return { statusCode: 500, body: JSON.stringify({ error: 'Missing BROWSERLESS_TOKEN environment variable' }) };
+      return { statusCode: 500, body: JSON.stringify({ error: 'Missing BROWSERLESS_TOKEN' }) };
     }
 
-    // Use the token-protected export route
     const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?token=${exportToken}&export=1`;
 
     console.log(`Generating PDF for: ${reportUrl}`);
@@ -29,28 +25,22 @@ exports.handler = async (event) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-  url: reportUrl,
-  options: {
-    printBackground: true,
-    format: 'Letter',
-    margin: { 
-      top: '0.5in', 
-      right: '0.5in', 
-      bottom: '0.5in', 
-      left: '0.5in' 
-    },
-    displayHeaderFooter: false,
-    preferCSSPageSize: true
-  },
-  gotoOptions: {
-    waitUntil: 'networkidle0',
-    timeout: 60000
-  },
-  waitForSelector: {
-    selector: '#export-matrix',
-    timeout: 30000
-  }
-})
+        url: reportUrl,
+        options: {
+          printBackground: true,
+          format: 'Letter',
+          margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
+        },
+        gotoOptions: {
+          waitUntil: 'networkidle0',
+          timeout: 60000
+        },
+        waitForSelector: {
+          selector: '#export-matrix',
+          timeout: 30000
+        }
+      })
+    });
 
     if (!res.ok) {
       const text = await res.text();
@@ -61,14 +51,11 @@ exports.handler = async (event) => {
     const pdfArrayBuf = await res.arrayBuffer();
     const pdfB64 = Buffer.from(pdfArrayBuf).toString('base64');
 
-    // Get company name for filename (optional enhancement - could fetch from Supabase)
-    const filename = `Cancer_Support_Report_${surveyId}.pdf`;
-
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Disposition': `attachment; filename="Cancer_Support_Report_${surveyId}.pdf"`,
         'Cache-Control': 'no-store',
       },
       body: pdfB64,
