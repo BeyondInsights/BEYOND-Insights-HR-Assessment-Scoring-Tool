@@ -312,7 +312,7 @@ const TrendUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 );
 
 // ============================================
-// STRATEGIC PRIORITY MATRIX - CLEAN WHITE
+// STRATEGIC PRIORITY MATRIX - CLEAN WITH LABEL BARS
 // ============================================
 
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
@@ -320,8 +320,9 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
   const MAX_WEIGHT = 15;
   
   const CHART_WIDTH = 900;
-  const CHART_HEIGHT = 400;
-  const MARGIN = { top: 20, right: 20, bottom: 55, left: 60 };
+  const CHART_HEIGHT = 380;
+  const LABEL_HEIGHT = 24;
+  const MARGIN = { top: LABEL_HEIGHT + 10, right: 20, bottom: LABEL_HEIGHT + 45, left: 60 };
   const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
   const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
   
@@ -338,24 +339,25 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
           </defs>
           
           <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
-            {/* Quadrant backgrounds - simple alternating very light gray */}
-            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FAFAFA" />
-            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FFFFFF" />
-            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FFFFFF" />
-            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FAFAFA" />
+            {/* TOP LABEL BARS - above the chart */}
+            <rect x={0} y={-LABEL_HEIGHT - 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#FEE2E2" />
+            <text x={PLOT_WIDTH/4} y={-LABEL_HEIGHT/2 - 4 + 1} textAnchor="middle" dominantBaseline="middle" fill="#991B1B" fontSize="10" fontWeight="600" fontFamily="system-ui">PRIORITY GAPS</text>
+            
+            <rect x={PLOT_WIDTH/2 + 2} y={-LABEL_HEIGHT - 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#D1FAE5" />
+            <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 4 + 1} textAnchor="middle" dominantBaseline="middle" fill="#065F46" fontSize="10" fontWeight="600" fontFamily="system-ui">CORE STRENGTHS</text>
+            
+            {/* Quadrant backgrounds - clean white/light gray */}
+            <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
+            <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
+            <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
+            <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
             
             {/* Grid lines */}
-            <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#E5E7EB" strokeWidth="1" />
-            <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#E5E7EB" strokeWidth="1" />
+            <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4 4" />
+            <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4 4" />
             
             {/* Border */}
             <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#D1D5DB" strokeWidth="1" />
-            
-            {/* Quadrant labels - small, in corners inside each quadrant */}
-            <text x={8} y={18} fill="#9CA3AF" fontSize="9" fontWeight="600" fontFamily="system-ui">PRIORITY GAPS</text>
-            <text x={PLOT_WIDTH - 8} y={18} textAnchor="end" fill="#9CA3AF" fontSize="9" fontWeight="600" fontFamily="system-ui">CORE STRENGTHS</text>
-            <text x={8} y={PLOT_HEIGHT - 8} fill="#9CA3AF" fontSize="9" fontWeight="600" fontFamily="system-ui">MONITOR</text>
-            <text x={PLOT_WIDTH - 8} y={PLOT_HEIGHT - 8} textAnchor="end" fill="#9CA3AF" fontSize="9" fontWeight="600" fontFamily="system-ui">LEVERAGE</text>
             
             {/* Data points */}
             {dimensionAnalysis.map((d) => {
@@ -380,15 +382,22 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               );
             })}
             
+            {/* BOTTOM LABEL BARS - below the chart */}
+            <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#F3F4F6" />
+            <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 4 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#4B5563" fontSize="10" fontWeight="600" fontFamily="system-ui">MONITOR</text>
+            
+            <rect x={PLOT_WIDTH/2 + 2} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#DBEAFE" />
+            <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 4 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="10" fontWeight="600" fontFamily="system-ui">LEVERAGE</text>
+            
             {/* X-axis */}
-            <g transform={`translate(0, ${PLOT_HEIGHT})`}>
+            <g transform={`translate(0, ${PLOT_HEIGHT + LABEL_HEIGHT + 8})`}>
               {[0, 25, 50, 75, 100].map((val) => (
                 <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
                   <line y1="0" y2="4" stroke="#9CA3AF" strokeWidth="1" />
                   <text y="16" textAnchor="middle" fill="#6B7280" fontSize="10" fontFamily="system-ui">{val}</text>
                 </g>
               ))}
-              <text x={PLOT_WIDTH/2} y="38" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
+              <text x={PLOT_WIDTH/2} y="34" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
                 PERFORMANCE SCORE →
               </text>
             </g>
@@ -799,8 +808,10 @@ export default function CompanyReportPage() {
     .flatMap(d => d.gaps.slice(0, 2).map((g: any) => ({ ...g, dimNum: d.dim, dimName: d.name, weight: d.weight })))
     .slice(0, 5);
   
-  const excellenceItems = strengthDimensions
-    .flatMap(d => d.planning.slice(0, 1).map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name })))
+  // Excellence items: remaining gaps in lower-weight dimensions (things to address in 12+ months)
+  const excellenceItems = [...dimensionAnalysis]
+    .sort((a, b) => a.weight - b.weight) // Lower weight first
+    .flatMap(d => d.gaps.slice(0, 2).map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, weight: d.weight })))
     .slice(0, 5);
 
   const tierThresholds = [{ name: 'Exemplary', min: 90 }, { name: 'Leading', min: 75 }, { name: 'Progressing', min: 60 }, { name: 'Emerging', min: 40 }, { name: 'Developing', min: 0 }];
@@ -1359,13 +1370,13 @@ export default function CompanyReportPage() {
                   <div className="flex items-center gap-3">
                     <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">3</span>
                     <div>
-                      <h4 className="font-semibold text-white">Excellence</h4>
+                      <h4 className="font-semibold text-white">Long-Term Enhancement</h4>
                       <p className="text-slate-400 text-xs">12+ months</p>
                     </div>
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Enhance areas of strength</p>
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Address remaining lower-priority gaps</p>
                   {excellenceItems.length > 0 ? (
                     <ul className="space-y-3">
                       {excellenceItems.map((item, idx) => (
@@ -1376,7 +1387,7 @@ export default function CompanyReportPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-slate-400 italic">Expand manager training and cultural initiatives</p>
+                    <p className="text-sm text-slate-400 italic">Continue expanding strengths and monitoring program effectiveness</p>
                   )}
                 </div>
               </div>
