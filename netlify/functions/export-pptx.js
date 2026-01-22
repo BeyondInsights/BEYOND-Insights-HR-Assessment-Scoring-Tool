@@ -1,8 +1,8 @@
 const PptxGenJS = require('pptxgenjs');
 
 // ============================================
-// SCREENSHOT-BASED PPT EXPORT
-// Parallel screenshots for speed
+// SCREENSHOT-BASED PPT EXPORT - FULL REPORT
+// All sections included
 // ============================================
 
 exports.handler = async (event) => {
@@ -25,7 +25,7 @@ exports.handler = async (event) => {
     
     const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1`;
     
-    console.log('Generating PPT from:', reportUrl);
+    console.log('Generating full PPT from:', reportUrl);
     
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
@@ -34,17 +34,24 @@ exports.handler = async (event) => {
     
     const SLIDE_WIDTH = 1200;
     
-    // Key sections - 6 slides covering the essential content
+    // ALL sections of the report
     const sections = [
-      { name: 'Executive Summary', y: 0, h: 1000 },
-      { name: 'Dimension Performance', y: 1550, h: 800 },
-      { name: 'Strategic Matrix', y: 2300, h: 800 },
-      { name: 'Excellence & Growth', y: 3050, h: 900 },
-      { name: 'Implementation Roadmap', y: 6900, h: 700 },
-      { name: 'How CAC Can Help', y: 7550, h: 700 },
+      { name: 'Executive Summary', y: 0, h: 950 },
+      { name: 'Key Findings & Score', y: 920, h: 650 },
+      { name: 'Dimension Performance', y: 1540, h: 820 },
+      { name: 'Strategic Matrix', y: 2330, h: 750 },
+      { name: 'Excellence & Growth', y: 3050, h: 850 },
+      { name: 'Initiatives In Progress', y: 3870, h: 450 },
+      { name: 'Strategic Recs 1', y: 4290, h: 680 },
+      { name: 'Strategic Recs 2', y: 4940, h: 680 },
+      { name: 'Strategic Recs 3', y: 5590, h: 680 },
+      { name: 'Strategic Recs 4', y: 6240, h: 680 },
+      { name: 'Implementation Roadmap', y: 6890, h: 620 },
+      { name: 'How CAC Can Help', y: 7480, h: 650 },
+      { name: 'Methodology', y: 8100, h: 350 },
     ];
     
-    // Helper function to capture a section
+    // Capture function
     const captureSection = async (section) => {
       try {
         const res = await fetch(`${browserlessBase}/screenshot?token=${browserlessToken}`, {
@@ -57,7 +64,7 @@ exports.handler = async (event) => {
               fullPage: true,
               clip: { x: 0, y: section.y, width: SLIDE_WIDTH, height: section.h }
             },
-            gotoOptions: { waitUntil: 'networkidle0', timeout: 30000 },
+            gotoOptions: { waitUntil: 'networkidle0', timeout: 25000 },
             viewport: { width: SLIDE_WIDTH, height: 800 }
           })
         });
@@ -73,13 +80,13 @@ exports.handler = async (event) => {
           imgB64: Buffer.from(await res.arrayBuffer()).toString('base64')
         };
       } catch (err) {
-        console.error(`Error capturing ${section.name}:`, err.message);
+        console.error(`Error: ${section.name}:`, err.message);
         return null;
       }
     };
     
-    // Run all screenshots in parallel
-    console.log('Capturing all sections in parallel...');
+    // Run ALL screenshots in parallel
+    console.log('Capturing all 13 sections in parallel...');
     const results = await Promise.all(sections.map(captureSection));
     
     // Add slides in order
@@ -101,7 +108,7 @@ exports.handler = async (event) => {
       });
     }
     
-    console.log('Generating PPT...');
+    console.log(`Generated ${pptx.slides.length} slides`);
     const outB64 = await pptx.write({ outputType: 'base64' });
     
     return {
