@@ -3,17 +3,15 @@
   publish = ".next"
 
 [functions]
-  # Extend timeout for export functions (requires Pro plan for >10s)
-  # Free: 10s, Pro: 26s, Enterprise: 60s
   directory = "netlify/functions"
 
+# Pro plan = 26 second timeout
 [functions."export-pptx"]
-  # PPT export needs more time for screenshots
   external_node_modules = ["pptxgenjs"]
+  timeout = 26
 
 [functions."export-pdf"]
-  # PDF export via Browserless
-  external_node_modules = []
+  timeout = 26
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
