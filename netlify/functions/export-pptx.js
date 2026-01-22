@@ -484,7 +484,7 @@ exports.handler = async (event) => {
     let matrixImageAdded = false;
     const token = process.env.BROWSERLESS_TOKEN;
     const base = process.env.BROWSERLESS_BASE || 'https://chrome.browserless.io';
-    const exportToken = process.env.EXPORT_SECRET_TOKEN || 'cac-export-2026';
+    const exportToken = process.env.EXPORT_SECRET_TOKEN;
     
     if (token) {
       try {
