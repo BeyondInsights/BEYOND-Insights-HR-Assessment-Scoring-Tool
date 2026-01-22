@@ -668,54 +668,79 @@ export default function CompanyReportPage() {
     setExporting(true);
     
     try {
-      // Dynamically load html2pdf.js
+      // Dynamically load html2pdf.js if not loaded
       if (typeof window !== 'undefined' && !(window as any).html2pdf) {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-        script.async = true;
-        document.body.appendChild(script);
-        await new Promise((resolve, reject) => { 
-          script.onload = resolve; 
-          script.onerror = reject;
-        });
+        try {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Failed to load PDF library'));
+            document.head.appendChild(script);
+            // Timeout after 5 seconds
+            setTimeout(() => reject(new Error('Timeout loading PDF library')), 5000);
+          });
+          // Brief pause to let library initialize
+          await new Promise(r => setTimeout(r, 200));
+        } catch (loadErr) {
+          console.error('Could not load PDF library, falling back to print:', loadErr);
+          setExporting(false);
+          window.print();
+          return;
+        }
       }
       
       const element = printRef.current;
       if (!element) {
+        alert('Unable to find report content');
         setExporting(false);
         return;
       }
       
+      const filename = `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_Cancer_Support_Report.pdf`;
+      
       const opt = {
-        margin: [0.4, 0.4, 0.4, 0.4],
-        filename: `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_Cancer_Support_Report.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
+        margin: [0.3, 0.3, 0.3, 0.3],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.90 },
         html2canvas: { 
-          scale: 2, 
+          scale: 1.5,
           useCORS: true,
-          letterRendering: true,
           logging: false,
-          windowWidth: 1200
+          windowWidth: 1100
         },
         jsPDF: { 
           unit: 'in', 
           format: 'letter', 
-          orientation: 'portrait',
-          compress: true
+          orientation: 'portrait'
         },
         pagebreak: { 
-          mode: ['avoid-all', 'css', 'legacy'],
+          mode: ['css', 'legacy'],
           before: '.pdf-break-before',
-          after: '.pdf-break-after',
           avoid: '.pdf-no-break'
         }
       };
       
-      await (window as any).html2pdf().set(opt).from(element).save();
+      // Use promise chain to avoid blocking
+      (window as any).html2pdf()
+        .set(opt)
+        .from(element)
+        .save()
+        .then(() => {
+          setExporting(false);
+        })
+        .catch((err: any) => {
+          console.error('PDF error:', err);
+          setExporting(false);
+          // Fallback to print
+          window.print();
+        });
+        
     } catch (err) {
       console.error('PDF export error:', err);
-    } finally {
       setExporting(false);
+      // Fallback to print
+      window.print();
     }
   }
 
@@ -1141,22 +1166,29 @@ export default function CompanyReportPage() {
               <p className="text-amber-100 text-sm">Dimensions with improvement potential</p>
             </div>
             <div className="divide-y divide-slate-100">
-              {allDimensionsByScore.slice(0, 5).map((d) => (
-                <div key={d.dim} className="px-6 py-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-medium text-slate-800">{d.name}</p>
-                    <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+              {allDimensionsByScore.slice(0, 5).map((d) => {
+                const improvementItems = [...d.gaps, ...d.assessing].slice(0, 3);
+                return (
+                  <div key={d.dim} className="px-6 py-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-medium text-slate-800">{d.name}</p>
+                      <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                    </div>
+                    {improvementItems.length > 0 ? (
+                      <ul className="space-y-1">
+                        {improvementItems.map((e: any, i: number) => (
+                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                            <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${e.isGap ? 'bg-red-400' : 'bg-amber-400'}`}></span>
+                            <span>{e.name}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
+                    )}
                   </div>
-                  <ul className="space-y-1">
-                    {d.gaps.slice(0, 3).map((e: any, i: number) => (
-                      <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 flex-shrink-0"></span>
-                        <span>{e.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1222,41 +1254,47 @@ export default function CompanyReportPage() {
                   <div className="px-10 py-6">
                     {/* Current State - 3 columns */}
                     <div className="grid grid-cols-3 gap-6 mb-6">
-                      {/* Gaps */}
+                      {/* Gaps & Needs Attention */}
                       <div className="border border-red-200 rounded-lg overflow-hidden">
                         <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                          <h5 className="font-semibold text-red-800 text-sm">Gaps ({d.gaps.length})</h5>
+                          <h5 className="font-semibold text-red-800 text-sm">Gaps ({d.gaps.length + d.assessing.length})</h5>
                         </div>
                         <div className="p-4 bg-white">
-                          {d.gaps.length > 0 ? (
+                          {(d.gaps.length > 0 || d.assessing.length > 0) ? (
                             <ul className="space-y-2">
                               {d.gaps.map((g: any, i: number) => (
-                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 flex-shrink-0"></span>
+                                <li key={`gap-${i}`} className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 flex-shrink-0"></span>
                                   <span>{g.name}</span>
                                 </li>
                               ))}
+                              {d.assessing.map((a: any, i: number) => (
+                                <li key={`assess-${i}`} className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 flex-shrink-0"></span>
+                                  <span>{a.name} <span className="text-xs text-amber-600">(assessing)</span></span>
+                                </li>
+                              ))}
                             </ul>
-                          ) : <p className="text-sm text-slate-400 italic">No critical gaps</p>}
+                          ) : <p className="text-sm text-slate-400 italic">No identified gaps</p>}
                         </div>
                       </div>
                       
-                      {/* In Progress */}
+                      {/* In Progress - Planning only */}
                       <div className="border border-blue-200 rounded-lg overflow-hidden">
                         <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-                          <h5 className="font-semibold text-blue-800 text-sm">In Progress ({d.planning.length + d.assessing.length})</h5>
+                          <h5 className="font-semibold text-blue-800 text-sm">In Development ({d.planning.length})</h5>
                         </div>
                         <div className="p-4 bg-white">
-                          {(d.planning.length > 0 || d.assessing.length > 0) ? (
+                          {d.planning.length > 0 ? (
                             <ul className="space-y-2">
-                              {[...d.planning, ...d.assessing].map((item: any, i: number) => (
+                              {d.planning.map((item: any, i: number) => (
                                 <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
                                   <span>{item.name}</span>
                                 </li>
                               ))}
                             </ul>
-                          ) : <p className="text-sm text-slate-400 italic">No initiatives in progress</p>}
+                          ) : <p className="text-sm text-slate-400 italic">No initiatives in planning</p>}
                         </div>
                       </div>
                       
