@@ -133,14 +133,23 @@ export default function LoginPage() {
       return
     }
 
+    const trimmedSurveyId = surveyId.trim().toUpperCase()
+
     // ============================================
     // CLEAR OLD USER DATA ONLY IF DIFFERENT USER
     // ============================================
     const currentEmail = (email || '').toLowerCase().trim()
     const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
+    const currentStoredSurveyId = localStorage.getItem('survey_id') || ''
 
-    if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
-      console.log('Different user logging in - clearing old data')
+    // Clear data if EITHER email OR survey_id is different
+    const emailChanged = lastUserEmail && currentEmail && lastUserEmail !== currentEmail
+    const surveyIdChanged = !isNewUser && currentStoredSurveyId && trimmedSurveyId && currentStoredSurveyId !== trimmedSurveyId
+
+    if (emailChanged || surveyIdChanged) {
+      console.log('Different user/survey logging in - clearing old data')
+      if (emailChanged) console.log(`  Email changed: ${lastUserEmail} → ${currentEmail}`)
+      if (surveyIdChanged) console.log(`  Survey ID changed: ${currentStoredSurveyId} → ${trimmedSurveyId}`)
       clearLocalStoragePreserveAuth()
       localStorage.setItem('auth_email', currentEmail)
       localStorage.setItem('last_user_email', currentEmail)
@@ -151,8 +160,6 @@ export default function LoginPage() {
       console.log('Same user returning - keeping all data')
     }
     // ============================================
-
-    const trimmedSurveyId = surveyId.trim().toUpperCase()
 
     // ============================================
     // CHECK FOR COMP'D USERS FIRST (Best Buy, etc.)
