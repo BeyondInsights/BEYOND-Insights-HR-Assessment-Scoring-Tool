@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 
 // ============================================
-// CORRECT SCORING FUNCTIONS (from scoring page)
+// CONSTANTS - EXACT COPY FROM SCORING PAGE
 // ============================================
 
 const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
@@ -42,25 +42,35 @@ const DIMENSION_NAMES: Record<number, string> = {
   13: 'Communication & Awareness',
 };
 
+const DIMENSION_SHORT_NAMES: Record<number, string> = {
+  1: 'Leave & Flexibility',
+  2: 'Insurance & Financial',
+  3: 'Manager Preparedness',
+  4: 'Navigation',
+  5: 'Accommodations',
+  6: 'Culture',
+  7: 'Career Continuity',
+  8: 'Work Continuation',
+  9: 'Executive Commitment',
+  10: 'Caregiver Support',
+  11: 'Prevention & Wellness',
+  12: 'Continuous Improvement',
+  13: 'Communication',
+};
+
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
-const INSUFFICIENT_DATA_THRESHOLD = 0.40;
 
 const D10_EXCLUDED_ITEMS = [
   'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
 ];
 
+// ============================================
+// SCORING FUNCTIONS - EXACT COPY FROM SCORING PAGE
+// ============================================
+
 function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean; category: string } {
-  // Normalize: convert string numbers to actual numbers first
-  let normalizedStatus = status;
-  if (typeof status === 'string') {
-    const parsed = parseInt(status, 10);
-    if (!isNaN(parsed) && String(parsed) === status.trim()) {
-      normalizedStatus = parsed;
-    }
-  }
-  
-  if (typeof normalizedStatus === 'number') {
-    switch (normalizedStatus) {
+  if (typeof status === 'number') {
+    switch (status) {
       case 4: return { points: POINTS.CURRENTLY_OFFER, isUnsure: false, category: 'currently_offer' };
       case 3: return { points: POINTS.PLANNING, isUnsure: false, category: 'planning' };
       case 2: return { points: POINTS.ASSESSING, isUnsure: false, category: 'assessing' };
@@ -69,8 +79,8 @@ function statusToPoints(status: string | number): { points: number | null; isUns
       default: return { points: null, isUnsure: false, category: 'unknown' };
     }
   }
-  if (typeof normalizedStatus === 'string') {
-    const s = normalizedStatus.toLowerCase().trim();
+  if (typeof status === 'string') {
+    const s = status.toLowerCase().trim();
     if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false, category: 'not_able' };
     if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true, category: 'unsure' };
     if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {
@@ -85,25 +95,15 @@ function statusToPoints(status: string | number): { points: number | null; isUns
 
 function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
   if (geoResponse === undefined || geoResponse === null) return 1.0;
-  
-  // Normalize string numbers to actual numbers
-  let normalized = geoResponse;
-  if (typeof geoResponse === 'string') {
-    const parsed = parseInt(geoResponse, 10);
-    if (!isNaN(parsed) && String(parsed) === geoResponse.trim()) {
-      normalized = parsed;
-    }
-  }
-  
-  if (typeof normalized === 'number') {
-    switch (normalized) {
+  if (typeof geoResponse === 'number') {
+    switch (geoResponse) {
       case 1: return 0.75;
       case 2: return 0.90;
       case 3: return 1.0;
       default: return 1.0;
     }
   }
-  const s = String(normalized).toLowerCase();
+  const s = String(geoResponse).toLowerCase();
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
   if (s.includes('vary') || s.includes('varies')) return 0.90;
   if (s.includes('select') || s.includes('only available in select')) return 0.75;
@@ -111,17 +111,8 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
 }
 
 function getStatusText(status: string | number): string {
-  // Normalize string numbers
-  let normalized = status;
-  if (typeof status === 'string') {
-    const parsed = parseInt(status, 10);
-    if (!isNaN(parsed) && String(parsed) === status.trim()) {
-      normalized = parsed;
-    }
-  }
-  
-  if (typeof normalized === 'number') {
-    switch (normalized) {
+  if (typeof status === 'number') {
+    switch (status) {
       case 4: return 'Currently offer';
       case 3: return 'Planning';
       case 2: return 'Assessing';
@@ -258,7 +249,6 @@ function calculateMaturityScore(assessment: Record<string, any>): number {
   return 0;
 }
 
-// CRITICAL: Check BOTH current_support_data AND general_benefits_data
 function calculateBreadthScore(assessment: Record<string, any>): number {
   const currentSupport = assessment.current_support_data || {};
   const generalBenefits = assessment.general_benefits_data || {};
@@ -306,32 +296,267 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
 }
 
 // ============================================
-// ICONS
+// STRATEGIC INSIGHT GENERATION ENGINE
+// This is where McKinsey-level analysis happens
 // ============================================
 
-const CheckIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-  </svg>
-);
+interface DimensionAnalysis {
+  dim: number;
+  name: string;
+  shortName: string;
+  score: number;
+  weight: number;
+  benchmark: number;
+  tier: { name: string; color: string; bgColor: string; textColor: string; borderColor: string };
+  elements: any[];
+  strengths: any[];
+  planning: any[];
+  assessing: any[];
+  gaps: any[];
+  unsure: any[];
+  unsureRate: number; // % of items marked unsure
+  gapRate: number; // % of items marked gap
+}
 
-const ArrowRightIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-  </svg>
-);
+interface StrategicPattern {
+  type: 'strength_gap_mismatch' | 'visibility_blind_spot' | 'access_barrier' | 'investment_underutilization' | 'foundation_missing' | 'quick_win_available';
+  severity: 'critical' | 'high' | 'medium';
+  title: string;
+  insight: string;
+  affectedDimensions: number[];
+  cacRecommendation: string;
+}
 
-const TrendUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
-  </svg>
-);
+function generateStrategicPatterns(dimensionAnalysis: DimensionAnalysis[], companyName: string): StrategicPattern[] {
+  const patterns: StrategicPattern[] = [];
+  
+  const sorted = [...dimensionAnalysis].sort((a, b) => b.score - a.score);
+  const strongest = sorted.slice(0, 3);
+  const weakest = sorted.slice(-3).reverse();
+  
+  // Get high-weight dimensions (strategic importance)
+  const highWeightDims = dimensionAnalysis.filter(d => d.weight >= 10); // D4, D8, D3, D2, D13
+  const highWeightWeak = highWeightDims.filter(d => d.score < 50);
+  
+  // Pattern 1: High-weight dimensions that are weak (CRITICAL)
+  if (highWeightWeak.length > 0) {
+    const dims = highWeightWeak.map(d => d.dim);
+    const dimNames = highWeightWeak.map(d => d.shortName).join(', ');
+    const totalWeight = highWeightWeak.reduce((sum, d) => sum + d.weight, 0);
+    
+    patterns.push({
+      type: 'foundation_missing',
+      severity: 'critical',
+      title: 'Strategic Foundation Gaps',
+      insight: `${companyName}'s weakest scores are in dimensions that carry ${totalWeight}% of the total assessment weight: ${dimNames}. These are not peripheral concerns—they represent the core infrastructure of workplace cancer support. Until these foundations are addressed, investments in other areas will yield diminished returns.`,
+      affectedDimensions: dims,
+      cacRecommendation: `Cancer and Careers recommends prioritizing ${highWeightWeak[0]?.shortName || 'foundational dimensions'} as the first phase of your improvement roadmap. Our consultants can conduct a rapid diagnostic to identify the specific gaps preventing progress and design an implementation plan that builds these critical capabilities.`
+    });
+  }
+  
+  // Pattern 2: High "Unsure" rate indicates visibility blind spot
+  const highUnsureDims = dimensionAnalysis.filter(d => d.unsureRate >= 40);
+  if (highUnsureDims.length > 0) {
+    const dims = highUnsureDims.map(d => d.dim);
+    const dimNames = highUnsureDims.map(d => `${d.shortName} (${Math.round(d.unsureRate)}% unsure)`).join(', ');
+    
+    patterns.push({
+      type: 'visibility_blind_spot',
+      severity: 'high',
+      title: 'Organizational Visibility Gap',
+      insight: `High "Unsure" response rates in ${dimNames} reveal a critical visibility gap. This typically indicates one of three scenarios: programs exist but leadership lacks awareness; program ownership is fragmented across departments; or there's a disconnect between policy documentation and actual practice. This uncertainty itself creates risk—employees may not know what support is available, and the organization cannot measure what it cannot see.`,
+      affectedDimensions: dims,
+      cacRecommendation: `Cancer and Careers can help ${companyName} conduct a program audit to map existing resources, clarify ownership, and identify communication gaps. Our experience shows that many organizations discover they have more support infrastructure than they realized—the challenge is making it visible and accessible.`
+    });
+  }
+  
+  // Pattern 3: Strong policies but weak access (D1/D2 strong but D4 weak)
+  const d1Score = dimensionAnalysis.find(d => d.dim === 1)?.score || 0;
+  const d2Score = dimensionAnalysis.find(d => d.dim === 2)?.score || 0;
+  const d4Score = dimensionAnalysis.find(d => d.dim === 4)?.score || 0;
+  
+  if ((d1Score >= 50 || d2Score >= 50) && d4Score < 40) {
+    patterns.push({
+      type: 'access_barrier',
+      severity: 'high',
+      title: 'Benefits Access Barrier',
+      insight: `${companyName} has invested in ${d1Score >= 50 ? 'leave policies' : ''}${d1Score >= 50 && d2Score >= 50 ? ' and ' : ''}${d2Score >= 50 ? 'financial protection' : ''}, but your Navigation & Expert Resources score of ${d4Score} suggests employees may struggle to access these benefits. Research consistently shows that benefit utilization rates are directly tied to navigation support. Your current investment in policies may be underperforming simply because employees don't know how to use them.`,
+      affectedDimensions: [4, ...(d1Score >= 50 ? [1] : []), ...(d2Score >= 50 ? [2] : [])],
+      cacRecommendation: `Cancer and Careers can help design a single-entry-point navigation model that maximizes utilization of your existing benefits investment. Our approach includes resource mapping, communication strategy, and—where appropriate—connecting you with navigation service providers.`
+    });
+  }
+  
+  // Pattern 4: Manager training gap with strong policies
+  const d3Score = dimensionAnalysis.find(d => d.dim === 3)?.score || 0;
+  const d8Score = dimensionAnalysis.find(d => d.dim === 8)?.score || 0;
+  
+  if (d3Score < 40 && (d1Score >= 50 || d8Score >= 50)) {
+    patterns.push({
+      type: 'investment_underutilization',
+      severity: 'high',
+      title: 'Manager Capability Gap',
+      insight: `${companyName} has strong ${d1Score >= 50 ? 'leave policies' : ''}${d1Score >= 50 && d8Score >= 50 ? ' and ' : ''}${d8Score >= 50 ? 'return-to-work programs' : ''}, but a Manager Preparedness score of ${d3Score} means front-line managers may lack the confidence and skills to have supportive conversations with affected employees. Managers are the primary interface between employees and organizational support—their preparedness directly determines whether policies translate into positive employee experiences.`,
+      affectedDimensions: [3, ...(d1Score >= 50 ? [1] : []), ...(d8Score >= 50 ? [8] : [])],
+      cacRecommendation: `Cancer and Careers' signature manager training program equips managers with conversation frameworks, scenario-based learning, and practical toolkits. Organizations that complete our training report significant improvements in manager confidence and employee satisfaction with support.`
+    });
+  }
+  
+  // Pattern 5: Quick wins available (planning/assessing items in high-weight dimensions)
+  const quickWinDims = dimensionAnalysis.filter(d => 
+    d.weight >= 8 && (d.planning.length > 0 || d.assessing.length > 0)
+  );
+  
+  if (quickWinDims.length > 0) {
+    const totalInProgress = quickWinDims.reduce((sum, d) => sum + d.planning.length + d.assessing.length, 0);
+    const dimNames = quickWinDims.map(d => d.shortName).slice(0, 3).join(', ');
+    
+    patterns.push({
+      type: 'quick_win_available',
+      severity: 'medium',
+      title: 'Conversion Opportunities',
+      insight: `${companyName} has ${totalInProgress} initiatives currently in planning or assessment phases across ${dimNames}. Converting these to active programs represents the fastest path to score improvement—the organizational groundwork and stakeholder buy-in already exist. Each converted initiative could add 2-3 points per item to the affected dimension score.`,
+      affectedDimensions: quickWinDims.map(d => d.dim),
+      cacRecommendation: `Cancer and Careers can help accelerate implementation of in-progress initiatives by providing implementation playbooks, vendor evaluation support, and change management guidance.`
+    });
+  }
+  
+  // Pattern 6: Culture and Communication alignment
+  const d6Score = dimensionAnalysis.find(d => d.dim === 6)?.score || 0;
+  const d13Score = dimensionAnalysis.find(d => d.dim === 13)?.score || 0;
+  
+  if (d6Score < 50 && d13Score < 50) {
+    patterns.push({
+      type: 'strength_gap_mismatch',
+      severity: 'medium',
+      title: 'Cultural Foundation Gap',
+      insight: `Both Culture & Psychological Safety (${d6Score}) and Communication & Awareness (${d13Score}) score below 50, indicating a foundational challenge. Employees may not feel safe disclosing a cancer diagnosis, and even when they do, they may not know what support is available. This creates a compounding effect where organizational resources remain underutilized and employees navigate their journey alone.`,
+      affectedDimensions: [6, 13],
+      cacRecommendation: `Cancer and Careers can help ${companyName} develop a stigma-reduction initiative combined with a communication strategy that normalizes seeking support. Our approach includes leadership messaging, employee resource group guidance, and awareness campaign frameworks.`
+    });
+  }
+  
+  return patterns.sort((a, b) => {
+    const severityOrder = { critical: 0, high: 1, medium: 2 };
+    return severityOrder[a.severity] - severityOrder[b.severity];
+  });
+}
 
-const LightbulbIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zm4.657 2.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zm3 6v-1h4v1a2 2 0 11-4 0zm4-2c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
-  </svg>
-);
+// Generate the executive narrative based on patterns
+function generateExecutiveNarrative(
+  companyName: string,
+  compositeScore: number,
+  tier: any,
+  dimensionAnalysis: DimensionAnalysis[],
+  patterns: StrategicPattern[]
+): string {
+  const sorted = [...dimensionAnalysis].sort((a, b) => b.score - a.score);
+  const strongest = sorted[0];
+  const weakest = sorted[sorted.length - 1];
+  
+  const highUnsureCount = dimensionAnalysis.filter(d => d.unsureRate >= 40).length;
+  const criticalPatterns = patterns.filter(p => p.severity === 'critical');
+  
+  let narrative = `${companyName} achieves a composite score of ${compositeScore}, placing the organization in the ${tier?.name || 'Emerging'} performance tier. `;
+  
+  // Add strength acknowledgment
+  if (strongest && strongest.score >= 60) {
+    narrative += `The organization demonstrates notable capability in ${strongest.name} (${strongest.score}), `;
+    if (strongest.strengths.length > 0) {
+      narrative += `with established programs including ${strongest.strengths.slice(0, 2).map((s: any) => s.name.toLowerCase()).join(' and ')}. `;
+    }
+  }
+  
+  // Add critical gap callout
+  if (weakest && weakest.score < 40) {
+    narrative += `However, ${weakest.name} represents a significant opportunity for improvement at ${weakest.score}. `;
+  }
+  
+  // Add visibility concern if applicable
+  if (highUnsureCount >= 2) {
+    narrative += `A notable finding is the high proportion of "Unsure" responses across ${highUnsureCount} dimensions, suggesting potential gaps in organizational visibility into existing programs. `;
+  }
+  
+  // Add strategic framing
+  if (criticalPatterns.length > 0) {
+    narrative += `The assessment identifies ${criticalPatterns.length} critical strategic ${criticalPatterns.length === 1 ? 'issue' : 'issues'} requiring immediate attention. `;
+  }
+  
+  return narrative;
+}
+
+// Generate CAC help section tailored to the company's specific gaps
+function generateTailoredCACHelp(patterns: StrategicPattern[], weakestDims: DimensionAnalysis[]): { title: string; services: string[]; color: string }[] {
+  const cacHelp: { title: string; services: string[]; color: string }[] = [];
+  
+  // Map specific dimension gaps to CAC service offerings
+  const dimServiceMap: Record<number, { title: string; services: string[]; color: string }> = {
+    1: {
+      title: 'Leave Policy Enhancement',
+      services: ['Leave policy benchmarking analysis', 'Flexibility framework design', 'FMLA+ enhancement strategies'],
+      color: 'emerald'
+    },
+    2: {
+      title: 'Financial Protection Advisory',
+      services: ['Benefits gap analysis', 'Supplemental coverage recommendations', 'Financial wellness integration planning'],
+      color: 'blue'
+    },
+    3: {
+      title: 'Manager Training & Development',
+      services: ['Live training with case studies', 'Manager conversation toolkit', 'Train-the-trainer certification'],
+      color: 'amber'
+    },
+    4: {
+      title: 'Navigation Architecture Design',
+      services: ['Resource audit and mapping', 'Single entry point design', 'Vendor evaluation support'],
+      color: 'purple'
+    },
+    5: {
+      title: 'Accommodations Framework',
+      services: ['Accommodation workflow design', 'Interactive process guidance', 'Technology accommodation planning'],
+      color: 'teal'
+    },
+    6: {
+      title: 'Culture & Stigma Reduction',
+      services: ['Psychological safety assessment', 'Stigma reduction initiative design', 'ERG development support'],
+      color: 'indigo'
+    },
+    7: {
+      title: 'Career Continuity Planning',
+      services: ['Career protection frameworks', 'Performance review guidance', 'Advancement pathway design'],
+      color: 'sky'
+    },
+    8: {
+      title: 'Return-to-Work Excellence',
+      services: ['Phased return protocols', 'Check-in cadence design', 'Reintegration planning'],
+      color: 'rose'
+    },
+    9: {
+      title: 'Executive Engagement',
+      services: ['Leadership briefing materials', 'Business case development', 'Sponsor engagement strategy'],
+      color: 'slate'
+    },
+    10: {
+      title: 'Caregiver Support Programs',
+      services: ['Caregiver resource mapping', 'Flexible work arrangement guidance', 'Support group facilitation'],
+      color: 'pink'
+    },
+    13: {
+      title: 'Communication Strategy',
+      services: ['Awareness campaign design', 'Resource communication planning', 'Leadership messaging frameworks'],
+      color: 'orange'
+    }
+  };
+  
+  // Add services for the weakest dimensions
+  weakestDims.slice(0, 4).forEach(dim => {
+    const service = dimServiceMap[dim.dim];
+    if (service) {
+      cacHelp.push(service);
+    }
+  });
+  
+  return cacHelp;
+}
 
 // ============================================
 // UI HELPERS
@@ -353,11 +578,29 @@ function getScoreColor(score: number): string {
   return '#DC2626';
 }
 
+const CheckIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+  </svg>
+);
+
+const AlertIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+  </svg>
+);
+
+const LightbulbIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
+    <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zm4.657 2.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zm3 6v-1h4v1a2 2 0 11-4 0zm4-2c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
+  </svg>
+);
+
 // ============================================
-// STRATEGIC PRIORITY MATRIX - WIDER/TALLER
+// STRATEGIC PRIORITY MATRIX
 // ============================================
 
-function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
+function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: DimensionAnalysis[]; getScoreColor: (score: number) => string }) {
   const maxWeight = Math.max(...dimensionAnalysis.map(d => d.weight));
   const minWeight = Math.min(...dimensionAnalysis.map(d => d.weight));
   const weightRange = maxWeight - minWeight || 1;
@@ -390,13 +633,11 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
           </defs>
           
           <g transform="translate(70, 20)">
-            {/* Quadrant backgrounds - larger */}
             <rect x="0" y="0" width="360" height="195" fill="url(#developGrad)" rx="6" />
             <rect x="360" y="0" width="360" height="195" fill="url(#maintainGrad)" rx="6" />
             <rect x="0" y="195" width="360" height="195" fill="url(#monitorGrad)" rx="6" />
             <rect x="360" y="195" width="360" height="195" fill="url(#leverageGrad)" rx="6" />
             
-            {/* Grid lines */}
             <g stroke="#CBD5E1" strokeWidth="0.5" strokeDasharray="4,4" opacity="0.6">
               <line x1="180" y1="0" x2="180" y2="390" />
               <line x1="540" y1="0" x2="540" y2="390" />
@@ -404,14 +645,11 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               <line x1="0" y1="292.5" x2="720" y2="292.5" />
             </g>
             
-            {/* Center axis lines */}
             <line x1="360" y1="0" x2="360" y2="390" stroke="#94A3B8" strokeWidth="2" />
             <line x1="0" y1="195" x2="720" y2="195" stroke="#94A3B8" strokeWidth="2" />
             
-            {/* Outer border */}
             <rect x="0" y="0" width="720" height="390" fill="none" stroke="#CBD5E1" strokeWidth="2" rx="6" />
             
-            {/* Quadrant labels */}
             <g opacity="0.3">
               <text x="180" y="90" textAnchor="middle" fill="#B45309" fontSize="20" fontWeight="700">DEVELOP</text>
               <text x="180" y="112" textAnchor="middle" fill="#B45309" fontSize="12">High Priority Gaps</text>
@@ -426,7 +664,6 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               <text x="540" y="307" textAnchor="middle" fill="#0369A1" fontSize="12">Quick Wins</text>
             </g>
             
-            {/* Data points */}
             {dimensionAnalysis.map((d) => {
               const xPos = (d.score / 100) * 720;
               const yPos = 390 - (((d.weight - minWeight) / weightRange) * 390);
@@ -442,7 +679,6 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               );
             })}
             
-            {/* X-axis */}
             <g transform="translate(0, 390)">
               <line x1="0" y1="0" x2="720" y2="0" stroke="#94A3B8" strokeWidth="2" />
               {[0, 25, 50, 75, 100].map((val) => (
@@ -457,7 +693,6 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             </g>
           </g>
           
-          {/* Y-axis */}
           <g transform="translate(70, 20)">
             <line x1="0" y1="0" x2="0" y2="390" stroke="#94A3B8" strokeWidth="2" />
             <g>
@@ -478,7 +713,6 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         </svg>
       </div>
       
-      {/* Legend */}
       <div className="mt-6 pt-4 border-t border-slate-200">
         <div className="grid grid-cols-4 gap-3">
           {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
@@ -486,7 +720,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               <span className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
                 D{d.dim}
               </span>
-              <span className="text-sm text-slate-600 truncate">{d.name}</span>
+              <span className="text-sm text-slate-600 truncate">{d.shortName}</span>
             </div>
           ))}
         </div>
@@ -510,7 +744,8 @@ export default function CompanyReportPage() {
   const [company, setCompany] = useState<any>(null);
   const [benchmarks, setBenchmarks] = useState<any>(null);
   const [companyScores, setCompanyScores] = useState<any>(null);
-  const [elementDetails, setElementDetails] = useState<any>(null);
+  const [dimensionAnalysis, setDimensionAnalysis] = useState<DimensionAnalysis[]>([]);
+  const [strategicPatterns, setStrategicPatterns] = useState<StrategicPattern[]>([]);
   const [percentileRank, setPercentileRank] = useState<number | null>(null);
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
 
@@ -531,10 +766,14 @@ export default function CompanyReportPage() {
         
         const { data: allAssessments } = await supabase.from('assessments').select('*');
         
-        const { scores, elements } = calculateCompanyScores(assessment);
+        const { scores, analysis } = calculateCompanyScores(assessment);
         setCompanyScores(scores);
-        setElementDetails(elements);
+        setDimensionAnalysis(analysis);
         setCompany(assessment);
+        
+        // Generate strategic patterns
+        const patterns = generateStrategicPatterns(analysis, assessment.company_name || 'Company');
+        setStrategicPatterns(patterns);
         
         if (allAssessments) {
           const benchmarkScores = calculateBenchmarks(allAssessments);
@@ -577,8 +816,8 @@ export default function CompanyReportPage() {
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
     const followUpScores: Record<number, number | null> = {};
-    const elementsByDim: Record<number, any[]> = {};
     const blendedScores: Record<number, number> = {};
+    const analysis: DimensionAnalysis[] = [];
     
     let completedDimCount = 0;
     
@@ -586,17 +825,42 @@ export default function CompanyReportPage() {
       const dimData = assessment[`dimension${dim}_data`];
       const mainGrid = dimData?.[`d${dim}a`];
       
-      elementsByDim[dim] = [];
+      const elements: any[] = [];
       blendedScores[dim] = 0;
       
       if (!mainGrid || typeof mainGrid !== 'object') {
         dimensionScores[dim] = null;
+        analysis.push({
+          dim,
+          name: DIMENSION_NAMES[dim] || `Dimension ${dim}`,
+          shortName: DIMENSION_SHORT_NAMES[dim] || `D${dim}`,
+          score: 0,
+          weight: DEFAULT_DIMENSION_WEIGHTS[dim] || 0,
+          benchmark: 0,
+          tier: getTier(0),
+          elements: [],
+          strengths: [],
+          planning: [],
+          assessing: [],
+          gaps: [],
+          unsure: [],
+          unsureRate: 0,
+          gapRate: 0,
+        });
         continue;
       }
       
       let earnedPoints = 0;
       let totalItems = 0;
       let answeredItems = 0;
+      let unsureCount = 0;
+      let gapCount = 0;
+      
+      const strengths: any[] = [];
+      const planning: any[] = [];
+      const assessing: any[] = [];
+      const gaps: any[] = [];
+      const unsure: any[] = [];
       
       Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
         if (dim === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) return;
@@ -604,25 +868,32 @@ export default function CompanyReportPage() {
         totalItems++;
         const result = statusToPoints(status);
         
-        if (result.isUnsure) {
-          answeredItems++;
-        } else if (result.points !== null) {
-          answeredItems++;
-          earnedPoints += result.points;
-        }
-        
-        elementsByDim[dim].push({
+        const element = {
           name: itemKey,
           status: getStatusText(status),
           category: result.category,
           points: result.points ?? 0,
           maxPoints: 5,
-          isStrength: result.points === 5,
-          isPlanning: result.category === 'planning',
-          isAssessing: result.category === 'assessing',
-          isGap: result.category === 'not_able',
-          isUnsure: result.isUnsure
-        });
+        };
+        
+        elements.push(element);
+        
+        if (result.isUnsure) {
+          answeredItems++;
+          unsureCount++;
+          unsure.push(element);
+        } else if (result.points !== null) {
+          answeredItems++;
+          earnedPoints += result.points;
+          
+          if (result.category === 'currently_offer') strengths.push(element);
+          else if (result.category === 'planning') planning.push(element);
+          else if (result.category === 'assessing') assessing.push(element);
+          else if (result.category === 'not_able') {
+            gaps.push(element);
+            gapCount++;
+          }
+        }
       });
       
       if (totalItems > 0) completedDimCount++;
@@ -648,6 +919,24 @@ export default function CompanyReportPage() {
       
       dimensionScores[dim] = blendedScore;
       blendedScores[dim] = blendedScore;
+      
+      analysis.push({
+        dim,
+        name: DIMENSION_NAMES[dim] || `Dimension ${dim}`,
+        shortName: DIMENSION_SHORT_NAMES[dim] || `D${dim}`,
+        score: blendedScore,
+        weight: DEFAULT_DIMENSION_WEIGHTS[dim] || 0,
+        benchmark: 0,
+        tier: getTier(blendedScore),
+        elements,
+        strengths,
+        planning,
+        assessing,
+        gaps,
+        unsure,
+        unsureRate: totalItems > 0 ? (unsureCount / totalItems) * 100 : 0,
+        gapRate: totalItems > 0 ? (gapCount / totalItems) * 100 : 0,
+      });
     }
     
     const isComplete = completedDimCount === 13;
@@ -686,7 +975,7 @@ export default function CompanyReportPage() {
         followUpScores,
         tier: compositeScore !== null ? getTier(compositeScore) : null
       },
-      elements: elementsByDim
+      analysis: analysis.sort((a, b) => b.score - a.score)
     };
   }
 
@@ -731,7 +1020,7 @@ export default function CompanyReportPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Generating report...</p>
+          <p className="mt-4 text-slate-600">Generating strategic report...</p>
         </div>
       </div>
     );
@@ -758,72 +1047,22 @@ export default function CompanyReportPage() {
   
   const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, tier } = companyScores;
   
-  // Element statistics
-  const allElements = Object.values(elementDetails || {}).flat() as any[];
+  // Statistics
+  const allElements = dimensionAnalysis.flatMap(d => d.elements);
   const totalElements = allElements.length;
-  const currentlyOffering = allElements.filter(e => e.isStrength).length;
-  const planningItems = allElements.filter(e => e.isPlanning).length;
-  const assessingItems = allElements.filter(e => e.isAssessing).length;
-  const gapItems = allElements.filter(e => e.isGap).length;
-  
-  // Tier distance
-  const tierThresholds = [
-    { name: 'Exemplary', min: 90 },
-    { name: 'Leading', min: 75 },
-    { name: 'Progressing', min: 60 },
-    { name: 'Emerging', min: 40 },
-    { name: 'Developing', min: 0 }
-  ];
-  const nextTierUp = tierThresholds.find(t => t.min > (compositeScore || 0));
-  const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
-  
-  // Build dimension analysis with ACTUAL element data
-  const dimensionAnalysis = Object.entries(dimensionScores)
-    .map(([dim, score]) => {
-      const dimNum = parseInt(dim);
-      const elements = elementDetails?.[dimNum] || [];
-      const benchmark = benchmarks?.dimensionScores?.[dimNum] ?? 0;
-      
-      return {
-        dim: dimNum,
-        name: DIMENSION_NAMES[dimNum] || `Dimension ${dimNum}`,
-        score: score ?? 0,
-        benchmark,
-        weight: DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0,
-        tier: getTier(score ?? 0),
-        elements,
-        strengths: elements.filter((e: any) => e.isStrength),
-        planning: elements.filter((e: any) => e.isPlanning),
-        assessing: elements.filter((e: any) => e.isAssessing),
-        gaps: elements.filter((e: any) => e.isGap),
-        unsure: elements.filter((e: any) => e.isUnsure),
-      };
-    })
-    .sort((a, b) => b.score - a.score);
-  
-  const tierCounts = {
-    exemplary: dimensionAnalysis.filter(d => d.tier.name === 'Exemplary').length,
-    leading: dimensionAnalysis.filter(d => d.tier.name === 'Leading').length,
-    progressing: dimensionAnalysis.filter(d => d.tier.name === 'Progressing').length,
-    emerging: dimensionAnalysis.filter(d => d.tier.name === 'Emerging').length,
-    developing: dimensionAnalysis.filter(d => d.tier.name === 'Developing').length,
-  };
-  
-  const topDimension = dimensionAnalysis[0];
-  const bottomDimension = dimensionAnalysis[dimensionAnalysis.length - 1];
+  const currentlyOffering = dimensionAnalysis.reduce((sum, d) => sum + d.strengths.length, 0);
+  const planningItems = dimensionAnalysis.reduce((sum, d) => sum + d.planning.length, 0);
+  const assessingItems = dimensionAnalysis.reduce((sum, d) => sum + d.assessing.length, 0);
+  const gapItems = dimensionAnalysis.reduce((sum, d) => sum + d.gaps.length, 0);
   
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
-  const opportunityDimensions = dimensionAnalysis
-    .filter(d => d.tier.name !== 'Exemplary' && d.tier.name !== 'Leading')
-    .sort((a, b) => a.score - b.score);
-
-  // Quick wins from ACTUAL data
-  const quickWinOpportunities = dimensionAnalysis
-    .flatMap(d => [
-      ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Assessing' })),
-      ...d.planning.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Planning' }))
-    ])
-    .slice(0, 8);
+  const opportunityDimensions = [...dimensionAnalysis].filter(d => d.tier.name !== 'Exemplary' && d.tier.name !== 'Leading').sort((a, b) => a.score - b.score);
+  
+  // Generate executive narrative
+  const executiveNarrative = generateExecutiveNarrative(companyName, compositeScore || 0, tier, dimensionAnalysis, strategicPatterns);
+  
+  // Generate tailored CAC help
+  const tailoredCACHelp = generateTailoredCACHelp(strategicPatterns, opportunityDimensions);
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -861,7 +1100,7 @@ export default function CompanyReportPage() {
                   <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={120} height={120} className="object-contain" />
                 </div>
                 <div>
-                  <p className="text-slate-400 text-sm font-medium tracking-wider uppercase">Performance Assessment</p>
+                  <p className="text-slate-400 text-sm font-medium tracking-wider uppercase">Strategic Assessment</p>
                   <h1 className="text-2xl font-semibold text-white mt-1">Best Companies for Working with Cancer</h1>
                   <p className="text-slate-300 mt-1">Index 2026</p>
                 </div>
@@ -901,30 +1140,12 @@ export default function CompanyReportPage() {
             </div>
           </div>
 
-          {/* Executive Summary */}
+          {/* STRATEGIC EXECUTIVE SUMMARY - The McKinsey narrative */}
           <div className="px-10 py-8 bg-slate-50">
-            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
+            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Strategic Assessment</h3>
             <p className="text-slate-700 leading-relaxed text-lg">
-              {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
-              in supporting employees managing cancer, with a composite score of <strong>{compositeScore}</strong>
-              {percentileRank !== null && totalCompanies > 1 && (
-                <span>, placing in the <strong className="text-purple-700">{percentileRank}th percentile</strong> among assessed organizations</span>
-              )}.
-              {topDimension && bottomDimension && (
-                <span> Your strongest dimension is <strong className="text-emerald-700">{topDimension.name}</strong> ({topDimension.score}), 
-                while <strong className="text-amber-700">{bottomDimension.name}</strong> ({bottomDimension.score}) represents your greatest opportunity for growth.</span>
-              )}
+              {executiveNarrative}
             </p>
-            
-            {pointsToNextTier && nextTierUp && pointsToNextTier <= 10 && (
-              <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg flex items-start gap-3">
-                <TrendUpIcon className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-purple-800">{pointsToNextTier} points from {nextTierUp.name} tier</p>
-                  <p className="text-xs text-purple-600 mt-1">Targeted improvements in {opportunityDimensions[0]?.name} and {opportunityDimensions[1]?.name} could elevate your overall standing.</p>
-                </div>
-              </div>
-            )}
             
             <div className="mt-6 grid grid-cols-4 gap-6">
               <div className="bg-white rounded-lg p-4 border border-slate-200">
@@ -933,80 +1154,55 @@ export default function CompanyReportPage() {
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
                 <p className="text-3xl font-bold text-blue-600">{planningItems + assessingItems}</p>
-                <p className="text-sm text-slate-500 mt-1">initiatives in planning or under assessment</p>
+                <p className="text-sm text-slate-500 mt-1">initiatives in pipeline</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
                 <p className="text-3xl font-bold text-amber-600">{gapItems}</p>
-                <p className="text-sm text-slate-500 mt-1">identified gaps for consideration</p>
+                <p className="text-sm text-slate-500 mt-1">identified gaps</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-purple-600">{tierCounts.exemplary + tierCounts.leading}</p>
-                <p className="text-sm text-slate-500 mt-1">dimensions at Leading or above</p>
+                <p className="text-3xl font-bold text-purple-600">{strengthDimensions.length}</p>
+                <p className="text-sm text-slate-500 mt-1">dimensions at Leading+</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ============ KEY FINDINGS AT A GLANCE ============ */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg shadow-sm overflow-hidden mb-8">
-          <div className="px-10 py-6">
-            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">Key Findings at a Glance</h3>
-            <div className="grid grid-cols-4 gap-6">
-              <div className="bg-white/10 rounded-lg p-4">
-                <p className="text-xs text-emerald-300 font-medium uppercase tracking-wider mb-2">Strongest Area</p>
-                <p className="text-white font-semibold">{topDimension?.name || 'N/A'}</p>
-                <p className="text-emerald-300 text-sm mt-1">Score: {topDimension?.score} {topDimension?.benchmark && topDimension.score > topDimension.benchmark && `(+${topDimension.score - topDimension.benchmark} vs benchmark)`}</p>
-              </div>
-              <div className="bg-white/10 rounded-lg p-4">
-                <p className="text-xs text-amber-300 font-medium uppercase tracking-wider mb-2">Priority Focus</p>
-                <p className="text-white font-semibold">{bottomDimension?.name || 'N/A'}</p>
-                <p className="text-amber-300 text-sm mt-1">Score: {bottomDimension?.score} {bottomDimension?.benchmark && `(${bottomDimension.score - bottomDimension.benchmark} vs benchmark)`}</p>
-              </div>
-              <div className="bg-white/10 rounded-lg p-4">
-                <p className="text-xs text-blue-300 font-medium uppercase tracking-wider mb-2">In Development</p>
-                <p className="text-white font-semibold">{planningItems + assessingItems} initiatives</p>
-                <p className="text-blue-300 text-sm mt-1">{planningItems} planning, {assessingItems} assessing</p>
-              </div>
-              <div className="bg-white/10 rounded-lg p-4">
-                <p className="text-xs text-purple-300 font-medium uppercase tracking-wider mb-2">Tier Distribution</p>
-                <p className="text-white font-semibold">{tierCounts.exemplary + tierCounts.leading} / 13 Leading+</p>
-                <p className="text-purple-300 text-sm mt-1">{tierCounts.exemplary} Exemplary, {tierCounts.leading} Leading</p>
-              </div>
+        {/* ============ STRATEGIC PATTERNS - The McKinsey insights ============ */}
+        {strategicPatterns.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div className="px-10 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
+              <h3 className="font-semibold text-white text-lg">Strategic Analysis</h3>
+              <p className="text-slate-300 text-sm mt-1">Key patterns and insights from your assessment data</p>
             </div>
-          </div>
-        </div>
-
-        {/* ============ SCORE COMPOSITION ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
-          <div className="px-10 py-5 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-900">Score Composition</h3>
-            <p className="text-sm text-slate-500 mt-1">How your composite score is calculated</p>
-          </div>
-          <div className="px-10 py-6">
-            <div className="grid grid-cols-4 gap-8">
-              {[
-                { label: 'Composite Score', score: compositeScore, weight: null, benchmark: benchmarks?.compositeScore, isTotal: true },
-                { label: 'Weighted Dimension Score', score: weightedDimScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.weightedDim}%`, benchmark: benchmarks?.weightedDimScore },
-                { label: 'Program Maturity', score: maturityScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.maturity}%`, benchmark: benchmarks?.maturityScore },
-                { label: 'Support Breadth', score: breadthScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.breadth}%`, benchmark: benchmarks?.breadthScore },
-              ].map((item, idx) => (
-                <div key={idx} className={`text-center ${item.isTotal ? 'bg-slate-50 rounded-lg p-4 border-2 border-slate-200' : ''}`}>
-                  <p className="text-4xl font-bold" style={{ color: getScoreColor(item.score ?? 0) }}>{item.score ?? '—'}</p>
-                  <p className="text-sm text-slate-600 mt-2">{item.label}</p>
-                  {item.weight && <p className="text-xs text-slate-400">Weight: {item.weight}</p>}
-                  {item.benchmark !== null && item.benchmark !== undefined && (
-                    <p className="text-xs text-slate-400 mt-1">
-                      Benchmark: {item.benchmark}
-                      <span className={`ml-1 ${(item.score ?? 0) >= item.benchmark ? 'text-emerald-600' : 'text-amber-600'}`}>
-                        ({(item.score ?? 0) >= item.benchmark ? '+' : ''}{(item.score ?? 0) - item.benchmark})
-                      </span>
-                    </p>
-                  )}
+            <div className="px-10 py-6 space-y-8">
+              {strategicPatterns.map((pattern, idx) => (
+                <div key={idx} className={`border-l-4 pl-6 py-2 ${
+                  pattern.severity === 'critical' ? 'border-red-500' :
+                  pattern.severity === 'high' ? 'border-amber-500' : 'border-blue-500'
+                }`}>
+                  <div className="flex items-center gap-3 mb-3">
+                    {pattern.severity === 'critical' && <AlertIcon className="w-5 h-5 text-red-500" />}
+                    {pattern.severity === 'high' && <AlertIcon className="w-5 h-5 text-amber-500" />}
+                    {pattern.severity === 'medium' && <LightbulbIcon className="w-5 h-5 text-blue-500" />}
+                    <h4 className="font-semibold text-slate-800">{pattern.title}</h4>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      pattern.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                      pattern.severity === 'high' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {pattern.severity}
+                    </span>
+                  </div>
+                  <p className="text-slate-600 leading-relaxed mb-4">{pattern.insight}</p>
+                  <div className="bg-purple-50 border border-purple-100 rounded-lg p-4">
+                    <p className="text-sm text-purple-800 font-medium mb-1">How Cancer and Careers Can Help</p>
+                    <p className="text-sm text-purple-700">{pattern.cacRecommendation}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        )}
 
         {/* ============ DIMENSION PERFORMANCE ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
@@ -1026,7 +1222,8 @@ export default function CompanyReportPage() {
             </div>
             
             {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, idx) => {
-              const diff = d.benchmark ? d.score - d.benchmark : 0;
+              const benchmark = benchmarks?.dimensionScores?.[d.dim] ?? 0;
+              const diff = benchmark ? d.score - benchmark : 0;
               return (
                 <div key={d.dim} className={`flex items-center gap-4 py-3 ${idx < dimensionAnalysis.length - 1 ? 'border-b border-slate-100' : ''}`}>
                   <div className="w-8 text-center">
@@ -1037,8 +1234,8 @@ export default function CompanyReportPage() {
                   <div className="w-64">
                     <div className="relative h-4 bg-slate-100 rounded-full overflow-hidden">
                       <div className="absolute left-0 top-0 h-full rounded-full transition-all" style={{ width: `${d.score}%`, backgroundColor: getScoreColor(d.score) }} />
-                      {d.benchmark && (
-                        <div className="absolute -top-1 flex flex-col items-center" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}>
+                      {benchmark > 0 && (
+                        <div className="absolute -top-1 flex flex-col items-center" style={{ left: `${Math.min(benchmark, 100)}%`, transform: 'translateX(-50%)' }}>
                           <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500" />
                         </div>
                       )}
@@ -1046,8 +1243,8 @@ export default function CompanyReportPage() {
                   </div>
                   <div className="w-14 text-right"><span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span></div>
                   <div className="w-20 text-center">
-                    <span className="text-xs text-slate-500">{d.benchmark}</span>
-                    <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff >= 0 ? '+' : ''}{diff})</span>
+                    <span className="text-xs text-slate-500">{benchmark || '—'}</span>
+                    {benchmark > 0 && <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff >= 0 ? '+' : ''}{diff})</span>}
                   </div>
                   <div className="w-20 text-center">
                     <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>{d.tier.name}</span>
@@ -1055,14 +1252,6 @@ export default function CompanyReportPage() {
                 </div>
               );
             })}
-            
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-4 text-xs text-slate-400">
-              <span>Scores out of 100</span>
-              <span className="flex items-center gap-1">
-                <span className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
-                Benchmark
-              </span>
-            </div>
           </div>
         </div>
 
@@ -1075,331 +1264,38 @@ export default function CompanyReportPage() {
           <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
         </div>
 
-        {/* ============ QUICK WINS - ACTUAL DATA ============ */}
-        {quickWinOpportunities.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div className="px-10 py-5 border-b border-slate-100 bg-emerald-50">
-              <div className="flex items-center gap-3">
-                <LightbulbIcon className="w-5 h-5 text-emerald-600" />
-                <div>
-                  <h3 className="font-semibold text-emerald-900">Quick Win Opportunities</h3>
-                  <p className="text-sm text-emerald-700 mt-0.5">Initiatives already in progress that could accelerate score improvement</p>
-                </div>
-              </div>
-            </div>
-            <div className="px-10 py-6">
-              <p className="text-slate-600 mb-6">
-                The following items are currently in planning or assessment phases. Converting these to active programs 
-                represents the fastest path to improving your composite score, as the organizational groundwork is already underway.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                {quickWinOpportunities.map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className={`text-xs font-medium px-2 py-1 rounded flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-sky-100 text-sky-700'}`}>{item.type}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-700">{item.name}</p>
-                      <p className="text-xs text-slate-500 mt-1">D{item.dimNum}: {item.dimName}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ============ STRENGTHS & OPPORTUNITIES - ACTUAL DATA ============ */}
-        <div className="grid grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 bg-emerald-50 border-b border-emerald-100 flex items-center gap-3">
-              <CheckIcon className="w-5 h-5 text-emerald-600" />
-              <div>
-                <h3 className="font-semibold text-emerald-800">Areas of Excellence</h3>
-                <p className="text-sm text-emerald-600 mt-0.5">{strengthDimensions.length} dimensions performing at Leading or above</p>
-              </div>
-            </div>
-            <div className="p-6">
-              {strengthDimensions.length > 0 ? (
-                <div className="space-y-5">
-                  {strengthDimensions.slice(0, 4).map((d) => (
-                    <div key={d.dim}>
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-slate-800 text-sm">{d.name}</p>
-                        <span className="text-xs font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                      </div>
-                      {d.strengths.length > 0 && (
-                        <ul className="mt-2 space-y-1">
-                          {d.strengths.slice(0, 3).map((e: any, i: number) => (
-                            <li key={i} className="text-xs text-slate-600 flex items-start gap-2">
-                              <CheckIcon className="w-3 h-3 text-emerald-500 mt-0.5 flex-shrink-0" />
-                              <span className="line-clamp-1">{e.name}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-slate-500 text-sm">No dimensions at Leading or Exemplary level yet. Focus on building foundational capabilities first.</p>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 bg-amber-50 border-b border-amber-100 flex items-center gap-3">
-              <TrendUpIcon className="w-5 h-5 text-amber-600" />
-              <div>
-                <h3 className="font-semibold text-amber-800">Growth Opportunities</h3>
-                <p className="text-sm text-amber-600 mt-0.5">{opportunityDimensions.length} dimensions with improvement potential</p>
-              </div>
-            </div>
-            <div className="p-6">
-              {opportunityDimensions.length > 0 ? (
-                <div className="space-y-5">
-                  {opportunityDimensions.slice(0, 5).map((d) => (
-                    <div key={d.dim}>
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-slate-800 text-sm">{d.name}</p>
-                        <span className="text-xs font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                      </div>
-                      {(d.gaps.length > 0 || d.unsure.length > 0) && (
-                        <ul className="mt-2 space-y-1">
-                          {[...d.gaps, ...d.unsure].slice(0, 3).map((e: any, i: number) => (
-                            <li key={i} className="text-xs text-slate-600 flex items-start gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 flex-shrink-0"></span>
-                              <span className="line-clamp-1">{e.name}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-emerald-600 text-sm">All dimensions at Leading or above!</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ============ STRATEGIC RECOMMENDATIONS - TAILORED WITH ACTUAL GAPS ============ */}
-        {opportunityDimensions.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
-            <div className="px-10 py-5 border-b border-slate-100 bg-slate-800">
-              <h3 className="font-semibold text-white">Strategic Recommendations</h3>
-              <p className="text-sm text-slate-300 mt-1">Priority actions based on your specific assessment results</p>
-            </div>
-            <div className="px-10 py-6">
-              <div className="space-y-6">
-                {opportunityDimensions.slice(0, 4).map((d, idx) => (
-                  <div key={d.dim} className="border-l-4 pl-6 py-2" style={{ borderColor: getScoreColor(d.score) }}>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-semibold text-slate-800">{idx + 1}. {d.name}</p>
-                        <p className="text-sm text-slate-500 mt-1">
-                          Score: {d.score} | Weight: {d.weight}% | {d.gaps.length} gaps identified
-                        </p>
-                      </div>
-                      <div className="text-right flex-shrink-0 ml-4">
-                        <span className="text-lg font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                        <p className={`text-xs ${d.tier.textColor}`}>{d.tier.name}</p>
-                      </div>
-                    </div>
-                    
-                    {/* ACTUAL GAPS FROM THIS COMPANY'S DATA */}
-                    {d.gaps.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Specific Gaps to Address</p>
-                        <ul className="space-y-1">
-                          {d.gaps.slice(0, 4).map((g: any, i: number) => (
-                            <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 flex-shrink-0"></span>
-                              <span>{g.name}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {/* ACTUAL PLANNING/ASSESSING ITEMS - things already in progress */}
-                    {(d.planning.length > 0 || d.assessing.length > 0) && (
-                      <div className="mt-4">
-                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Items Already In Progress</p>
-                        <ul className="space-y-1">
-                          {[...d.planning, ...d.assessing].slice(0, 3).map((item: any, i: number) => (
-                            <li key={i} className="text-sm text-emerald-700 flex items-start gap-2">
-                              <ArrowRightIcon className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                              <span>{item.name} <span className="text-xs text-slate-400">({item.isPlanning ? 'Planning' : 'Assessing'})</span></span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ============ ACTION ROADMAP - ACTUAL DATA ============ */}
-        {opportunityDimensions.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div className="px-10 py-5 border-b border-slate-100">
-              <h3 className="font-semibold text-slate-900">Suggested Action Roadmap</h3>
-              <p className="text-sm text-slate-500 mt-1">Phased approach based on your specific assessment results</p>
-            </div>
-            <div className="px-10 py-6">
-              {(() => {
-                const assessingItemsList = dimensionAnalysis.flatMap(d => d.assessing.map((item: any) => ({ text: item.name, dimNum: d.dim, dimName: d.name.split('&')[0].trim() }))).slice(0, 3);
-                const lowWeightGaps = opportunityDimensions.filter(d => d.weight <= 7).flatMap(d => d.gaps.slice(0, 1).map((g: any) => ({ text: g.name, dimNum: d.dim, dimName: d.name.split('&')[0].trim() }))).slice(0, 3 - assessingItemsList.length);
-                const quickWins = [...assessingItemsList, ...lowWeightGaps].slice(0, 3);
-                
-                const highWeightGaps = opportunityDimensions.filter(d => d.weight >= 10).flatMap(d => d.gaps.slice(0, 2).map((g: any) => ({ text: g.name, dimNum: d.dim, dimName: d.name.split('&')[0].trim(), weight: d.weight }))).sort((a, b) => b.weight - a.weight).slice(0, 3);
-                
-                const planningItemsList = dimensionAnalysis.flatMap(d => d.planning.map((item: any) => ({ text: item.name, dimNum: d.dim, dimName: d.name.split('&')[0].trim() }))).slice(0, 2);
-                const strengthImprovements = strengthDimensions.flatMap(d => {
-                  const nonStrengthItems = d.elements.filter((e: any) => !e.isStrength && !e.isUnsure && e.category !== 'currently_offer').slice(0, 1);
-                  return nonStrengthItems.map((e: any) => ({ text: e.name, dimNum: d.dim, dimName: d.name.split('&')[0].trim() }));
-                }).slice(0, 3 - planningItemsList.length);
-                const excellence = [...planningItemsList, ...strengthImprovements].slice(0, 3);
-                
-                return (
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="relative">
-                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-emerald-400 rounded-full"></div>
-                      <div className="bg-emerald-50 rounded-lg p-5 border border-emerald-100 h-full">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center">1</span>
-                          <h4 className="font-semibold text-emerald-800 text-sm">Quick Wins</h4>
-                        </div>
-                        <p className="text-xs text-slate-500 mb-3">Low effort, high visibility</p>
-                        {quickWins.length > 0 ? (
-                          <ul className="space-y-2 text-xs text-slate-600">
-                            {quickWins.map((item, idx) => (
-                              <li key={idx} className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></span>
-                                <span className="line-clamp-2">{item.text}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : <p className="text-xs text-slate-400">No immediate quick wins identified</p>}
-                        {quickWins.length > 0 && <p className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-emerald-100">Focus: {[...new Set(quickWins.map(q => `D${q.dimNum}`))].join(', ')}</p>}
-                      </div>
-                    </div>
-                    
-                    <div className="relative">
-                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-sky-400 rounded-full"></div>
-                      <div className="bg-sky-50 rounded-lg p-5 border border-sky-100 h-full">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="w-6 h-6 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center justify-center">2</span>
-                          <h4 className="font-semibold text-sky-800 text-sm">Foundation Building</h4>
-                        </div>
-                        <p className="text-xs text-slate-500 mb-3">High impact structural changes</p>
-                        {highWeightGaps.length > 0 ? (
-                          <ul className="space-y-2 text-xs text-slate-600">
-                            {highWeightGaps.map((item, idx) => (
-                              <li key={idx} className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-1.5 flex-shrink-0"></span>
-                                <span className="line-clamp-2">{item.text}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : <p className="text-xs text-slate-400">Strong foundation already in place</p>}
-                        {highWeightGaps.length > 0 && <p className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-sky-100">Focus: {[...new Set(highWeightGaps.map(g => `D${g.dimNum}`))].join(', ')}</p>}
-                      </div>
-                    </div>
-                    
-                    <div className="relative">
-                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-purple-400 rounded-full"></div>
-                      <div className="bg-purple-50 rounded-lg p-5 border border-purple-100 h-full">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center">3</span>
-                          <h4 className="font-semibold text-purple-800 text-sm">Excellence & Culture</h4>
-                        </div>
-                        <p className="text-xs text-slate-500 mb-3">Long term transformation</p>
-                        {excellence.length > 0 ? (
-                          <ul className="space-y-2 text-xs text-slate-600">
-                            {excellence.map((item, idx) => (
-                              <li key={idx} className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 flex-shrink-0"></span>
-                                <span className="line-clamp-2">{item.text}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : <p className="text-xs text-slate-400">Continue current excellence initiatives</p>}
-                        {excellence.length > 0 && <p className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-purple-100">Focus: {[...new Set(excellence.map(e => `D${e.dimNum}`))].join(', ')}</p>}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-              
-              <div className="flex items-center justify-center mt-6 gap-2 text-xs text-slate-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <div className="h-px w-16 bg-slate-200"></div>
-                <span className="w-2 h-2 rounded-full bg-sky-400"></span>
-                <div className="h-px w-16 bg-slate-200"></div>
-                <span className="w-2 h-2 rounded-full bg-purple-400"></span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ============ HOW CAC CAN HELP ============ */}
+        {/* ============ TAILORED CAC SERVICES ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 print-break">
           <div className="px-10 py-6 bg-gradient-to-r from-purple-700 to-purple-600">
-            <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help</h3>
-            <p className="text-purple-200 text-sm mt-1">Tailored support to enhance the employee experience</p>
+            <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help {companyName}</h3>
+            <p className="text-purple-200 text-sm mt-1">Tailored services based on your specific assessment results</p>
           </div>
           <div className="px-10 py-6">
             <p className="text-slate-600 mb-6 leading-relaxed">
-              Every organization enters this work from a different place. Cancer and Careers consulting practice 
-              helps organizations understand where they are, identify where they want to be, and build a realistic 
-              path to get there, shaped by two decades of frontline experience with employees navigating cancer 
-              and the HR teams supporting them.
+              Based on {companyName}'s assessment results, Cancer and Careers recommends focusing on the following service areas to maximize impact on your workplace cancer support capabilities.
             </p>
             
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <h4 className="font-semibold text-amber-800 text-sm mb-2">Manager Preparedness & Training</h4>
-                <ul className="text-xs text-slate-600 space-y-1">
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-amber-400 mt-1.5"></span>Live training sessions with case studies</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-amber-400 mt-1.5"></span>Manager toolkit and conversation guides</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-amber-400 mt-1.5"></span>Train the trainer programs</li>
-                </ul>
-              </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-800 text-sm mb-2">Navigation & Resource Architecture</h4>
-                <ul className="text-xs text-slate-600 space-y-1">
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5"></span>Resource audit and gap analysis</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5"></span>Single entry point design</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5"></span>Communication strategy</li>
-                </ul>
-              </div>
-              <div className="bg-rose-50 border border-rose-200 rounded-lg p-4">
-                <h4 className="font-semibold text-rose-800 text-sm mb-2">Return to Work Excellence</h4>
-                <ul className="text-xs text-slate-600 space-y-1">
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-rose-400 mt-1.5"></span>Phased return protocols</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-rose-400 mt-1.5"></span>Check in cadence design</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-rose-400 mt-1.5"></span>Career continuity planning</li>
-                </ul>
-              </div>
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                <h4 className="font-semibold text-emerald-800 text-sm mb-2">Policy & Program Assessment</h4>
-                <ul className="text-xs text-slate-600 space-y-1">
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5"></span>Comprehensive policy review</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5"></span>Implementation audit</li>
-                  <li className="flex items-start gap-2"><span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5"></span>Business case development</li>
-                </ul>
-              </div>
+              {tailoredCACHelp.map((service, idx) => (
+                <div key={idx} className={`bg-${service.color}-50 border border-${service.color}-200 rounded-lg p-4`}>
+                  <h4 className={`font-semibold text-${service.color}-800 text-sm mb-2`}>{service.title}</h4>
+                  <ul className="text-xs text-slate-600 space-y-1">
+                    {service.services.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className={`w-1 h-1 rounded-full bg-${service.color}-400 mt-1.5`}></span>
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
             
             <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-700">Ready to take the next step?</p>
-                  <p className="text-xs text-slate-500 mt-1">Contact Cancer and Careers to discuss how we can support your organization.</p>
+                  <p className="text-xs text-slate-500 mt-1">Contact Cancer and Careers to discuss a customized engagement.</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-purple-700">cancerandcareers.org</p>
