@@ -50,8 +50,17 @@ const D10_EXCLUDED_ITEMS = [
 ];
 
 function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean; category: string } {
-  if (typeof status === 'number') {
-    switch (status) {
+  // Normalize: convert string numbers to actual numbers first
+  let normalizedStatus = status;
+  if (typeof status === 'string') {
+    const parsed = parseInt(status, 10);
+    if (!isNaN(parsed) && String(parsed) === status.trim()) {
+      normalizedStatus = parsed;
+    }
+  }
+  
+  if (typeof normalizedStatus === 'number') {
+    switch (normalizedStatus) {
       case 4: return { points: POINTS.CURRENTLY_OFFER, isUnsure: false, category: 'currently_offer' };
       case 3: return { points: POINTS.PLANNING, isUnsure: false, category: 'planning' };
       case 2: return { points: POINTS.ASSESSING, isUnsure: false, category: 'assessing' };
@@ -60,8 +69,8 @@ function statusToPoints(status: string | number): { points: number | null; isUns
       default: return { points: null, isUnsure: false, category: 'unknown' };
     }
   }
-  if (typeof status === 'string') {
-    const s = status.toLowerCase().trim();
+  if (typeof normalizedStatus === 'string') {
+    const s = normalizedStatus.toLowerCase().trim();
     if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false, category: 'not_able' };
     if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true, category: 'unsure' };
     if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {
@@ -76,15 +85,25 @@ function statusToPoints(status: string | number): { points: number | null; isUns
 
 function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
   if (geoResponse === undefined || geoResponse === null) return 1.0;
-  if (typeof geoResponse === 'number') {
-    switch (geoResponse) {
+  
+  // Normalize string numbers to actual numbers
+  let normalized = geoResponse;
+  if (typeof geoResponse === 'string') {
+    const parsed = parseInt(geoResponse, 10);
+    if (!isNaN(parsed) && String(parsed) === geoResponse.trim()) {
+      normalized = parsed;
+    }
+  }
+  
+  if (typeof normalized === 'number') {
+    switch (normalized) {
       case 1: return 0.75;
       case 2: return 0.90;
       case 3: return 1.0;
       default: return 1.0;
     }
   }
-  const s = String(geoResponse).toLowerCase();
+  const s = String(normalized).toLowerCase();
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
   if (s.includes('vary') || s.includes('varies')) return 0.90;
   if (s.includes('select') || s.includes('only available in select')) return 0.75;
@@ -92,8 +111,17 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
 }
 
 function getStatusText(status: string | number): string {
-  if (typeof status === 'number') {
-    switch (status) {
+  // Normalize string numbers
+  let normalized = status;
+  if (typeof status === 'string') {
+    const parsed = parseInt(status, 10);
+    if (!isNaN(parsed) && String(parsed) === status.trim()) {
+      normalized = parsed;
+    }
+  }
+  
+  if (typeof normalized === 'number') {
+    switch (normalized) {
       case 4: return 'Currently offer';
       case 3: return 'Planning';
       case 2: return 'Assessing';
