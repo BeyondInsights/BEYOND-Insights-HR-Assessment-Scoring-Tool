@@ -10,7 +10,7 @@ exports.handler = async (event) => {
     const origin = `${proto}://${host}`;
 
     const token = process.env.BROWSERLESS_TOKEN;
-    const base = process.env.BROWSERLESS_BASE || 'https://chrome.browserless.io';
+    const base = process.env.BROWSERLESS_BASE || 'https://production-sfo.browserless.io';
     const exportToken = process.env.EXPORT_SECRET_TOKEN;
     
     if (!token) {
@@ -33,10 +33,6 @@ exports.handler = async (event) => {
         },
         gotoOptions: {
           waitUntil: 'networkidle0',
-          timeout: 60000
-        },
-        waitForSelector: {
-          selector: '#export-matrix',
           timeout: 30000
         }
       })
