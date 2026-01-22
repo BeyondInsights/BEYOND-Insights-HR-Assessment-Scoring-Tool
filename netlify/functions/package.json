@@ -1,1 +1,10 @@
 
+{
+  "name": "cac-export-functions",
+  "version": "1.0.0",
+  "dependencies": {
+    "@sparticuz/chromium": "^119.0.0",
+    "puppeteer-core": "^21.5.0",
+    "pptxgenjs": "^3.12.0"
+  }
+}
