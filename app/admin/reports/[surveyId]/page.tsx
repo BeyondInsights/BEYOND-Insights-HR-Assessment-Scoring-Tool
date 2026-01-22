@@ -336,17 +336,12 @@ function calculateMaturityScore(assessment: Record<string, any>): number {
   return 0;
 }
 
-// FIX 1: calculateBreadthScore - now checks BOTH data sources
 function calculateBreadthScore(assessment: Record<string, any>): number {
-  // Check BOTH current_support_data AND general_benefits_data for cb3 fields
   const currentSupport = assessment.current_support_data || {};
-  const generalBenefits = assessment.general_benefits_data || {};
   
   const scores: number[] = [];
   
-  // CB3a: Check both sources, prefer current_support_data if present
-  const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
-  
+  const cb3a = currentSupport.cb3a;
   if (cb3a === 3 || cb3a === '3') {
     scores.push(100);
   } else if (cb3a === 2 || cb3a === '2') {
@@ -366,18 +361,18 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
     scores.push(0);
   }
   
-  // CB3b: Check both sources
-  const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
+  const cb3b = currentSupport.cb3b;
   if (cb3b && Array.isArray(cb3b)) {
-    scores.push(Math.min(100, Math.round((cb3b.length / 6) * 100)));
+    const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
+    scores.push(cb3bScore);
   } else {
     scores.push(0);
   }
   
-  // CB3c: Check both sources
-  const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
+  const cb3c = currentSupport.cb3c;
   if (cb3c && Array.isArray(cb3c)) {
-    scores.push(Math.min(100, Math.round((cb3c.length / 13) * 100)));
+    const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
+    scores.push(cb3cScore);
   } else {
     scores.push(0);
   }
@@ -394,7 +389,6 @@ interface MatrixProps {
   getScoreColor: (score: number) => string;
 }
 
-// FIX 2: Wider matrix - changed viewBox and height
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixProps) {
   const maxWeight = Math.max(...dimensionAnalysis.map(d => d.weight));
   const minWeight = Math.min(...dimensionAnalysis.map(d => d.weight));
@@ -405,10 +399,10 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
   const weightThreshold = (maxWeight + minWeight) / 2;
   
   return (
-    <div className="px-6 py-8">
-      <div className="relative" style={{ height: '480px' }}>
-        {/* SVG-based chart - WIDER viewBox */}
-        <svg className="w-full h-full" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet">
+    <div className="px-10 py-8">
+      <div className="relative" style={{ height: '420px' }}>
+        {/* SVG-based chart for professional appearance */}
+        <svg className="w-full h-full" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
           {/* Definitions */}
           <defs>
             {/* Gradients for quadrants */}
@@ -435,50 +429,50 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
             </filter>
           </defs>
           
-          {/* Chart background and quadrants - WIDER */}
-          <g transform="translate(70, 20)">
+          {/* Chart background and quadrants */}
+          <g transform="translate(60, 20)">
             {/* Quadrant backgrounds */}
-            <rect x="0" y="0" width="330" height="190" fill="url(#developGrad)" rx="4" />
-            <rect x="330" y="0" width="330" height="190" fill="url(#maintainGrad)" rx="4" />
-            <rect x="0" y="190" width="330" height="190" fill="url(#monitorGrad)" rx="4" />
-            <rect x="330" y="190" width="330" height="190" fill="url(#leverageGrad)" rx="4" />
+            <rect x="0" y="0" width="250" height="170" fill="url(#developGrad)" rx="4" />
+            <rect x="250" y="0" width="250" height="170" fill="url(#maintainGrad)" rx="4" />
+            <rect x="0" y="170" width="250" height="170" fill="url(#monitorGrad)" rx="4" />
+            <rect x="250" y="170" width="250" height="170" fill="url(#leverageGrad)" rx="4" />
             
             {/* Grid lines */}
             <g stroke="#CBD5E1" strokeWidth="0.5" strokeDasharray="4,4" opacity="0.6">
               {/* Vertical gridlines */}
-              <line x1="165" y1="0" x2="165" y2="380" />
-              <line x1="495" y1="0" x2="495" y2="380" />
+              <line x1="125" y1="0" x2="125" y2="340" />
+              <line x1="375" y1="0" x2="375" y2="340" />
               {/* Horizontal gridlines */}
-              <line x1="0" y1="95" x2="660" y2="95" />
-              <line x1="0" y1="285" x2="660" y2="285" />
+              <line x1="0" y1="85" x2="500" y2="85" />
+              <line x1="0" y1="255" x2="500" y2="255" />
             </g>
             
             {/* Center axis lines */}
-            <line x1="330" y1="0" x2="330" y2="380" stroke="#94A3B8" strokeWidth="1.5" />
-            <line x1="0" y1="190" x2="660" y2="190" stroke="#94A3B8" strokeWidth="1.5" />
+            <line x1="250" y1="0" x2="250" y2="340" stroke="#94A3B8" strokeWidth="1.5" />
+            <line x1="0" y1="170" x2="500" y2="170" stroke="#94A3B8" strokeWidth="1.5" />
             
             {/* Outer border */}
-            <rect x="0" y="0" width="660" height="380" fill="none" stroke="#CBD5E1" strokeWidth="1.5" rx="4" />
+            <rect x="0" y="0" width="500" height="340" fill="none" stroke="#CBD5E1" strokeWidth="1.5" rx="4" />
             
             {/* Quadrant labels */}
             <g className="text-sm font-semibold" opacity="0.25">
-              <text x="165" y="95" textAnchor="middle" fill="#D97706" fontSize="18" fontWeight="700">DEVELOP</text>
-              <text x="165" y="115" textAnchor="middle" fill="#D97706" fontSize="11">High Priority</text>
+              <text x="125" y="85" textAnchor="middle" fill="#D97706" fontSize="18" fontWeight="700">DEVELOP</text>
+              <text x="125" y="105" textAnchor="middle" fill="#D97706" fontSize="11">High Priority</text>
               
-              <text x="495" y="95" textAnchor="middle" fill="#059669" fontSize="18" fontWeight="700">MAINTAIN</text>
-              <text x="495" y="115" textAnchor="middle" fill="#059669" fontSize="11">Protect Strengths</text>
+              <text x="375" y="85" textAnchor="middle" fill="#059669" fontSize="18" fontWeight="700">MAINTAIN</text>
+              <text x="375" y="105" textAnchor="middle" fill="#059669" fontSize="11">Protect Strengths</text>
               
-              <text x="165" y="285" textAnchor="middle" fill="#64748B" fontSize="18" fontWeight="700">MONITOR</text>
-              <text x="165" y="305" textAnchor="middle" fill="#64748B" fontSize="11">Watch and Wait</text>
+              <text x="125" y="255" textAnchor="middle" fill="#64748B" fontSize="18" fontWeight="700">MONITOR</text>
+              <text x="125" y="275" textAnchor="middle" fill="#64748B" fontSize="11">Watch and Wait</text>
               
-              <text x="495" y="285" textAnchor="middle" fill="#0284C7" fontSize="18" fontWeight="700">LEVERAGE</text>
-              <text x="495" y="305" textAnchor="middle" fill="#0284C7" fontSize="11">Quick Wins</text>
+              <text x="375" y="255" textAnchor="middle" fill="#0284C7" fontSize="18" fontWeight="700">LEVERAGE</text>
+              <text x="375" y="275" textAnchor="middle" fill="#0284C7" fontSize="11">Quick Wins</text>
             </g>
             
             {/* Data points */}
             {dimensionAnalysis.map((d) => {
-              const xPos = (d.score / 100) * 660;
-              const yPos = 380 - (((d.weight - minWeight) / weightRange) * 380);
+              const xPos = (d.score / 100) * 500;
+              const yPos = 340 - (((d.weight - minWeight) / weightRange) * 340);
               
               return (
                 <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
@@ -501,40 +495,40 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
             })}
             
             {/* X-axis ticks and labels */}
-            <g transform="translate(0, 380)">
-              <line x1="0" y1="0" x2="660" y2="0" stroke="#94A3B8" strokeWidth="1.5" />
+            <g transform="translate(0, 340)">
+              <line x1="0" y1="0" x2="500" y2="0" stroke="#94A3B8" strokeWidth="1.5" />
               {[0, 25, 50, 75, 100].map((val, i) => (
-                <g key={val} transform={`translate(${val * 6.6}, 0)`}>
+                <g key={val} transform={`translate(${val * 5}, 0)`}>
                   <line y1="0" y2="6" stroke="#94A3B8" strokeWidth="1.5" />
                   <text y="20" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text>
                 </g>
               ))}
-              <text x="330" y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="600">
+              <text x="250" y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="600">
                 CURRENT PERFORMANCE
               </text>
             </g>
           </g>
           
           {/* Y-axis */}
-          <g transform="translate(70, 20)">
-            <line x1="0" y1="0" x2="0" y2="380" stroke="#94A3B8" strokeWidth="1.5" />
+          <g transform="translate(60, 20)">
+            <line x1="0" y1="0" x2="0" y2="340" stroke="#94A3B8" strokeWidth="1.5" />
             {/* Y-axis ticks */}
             <g>
               <line x1="-6" y1="0" x2="0" y2="0" stroke="#94A3B8" strokeWidth="1.5" />
               <text x="-10" y="4" textAnchor="end" fill="#64748B" fontSize="11">{maxWeight}%</text>
               
-              <line x1="-6" y1="190" x2="0" y2="190" stroke="#94A3B8" strokeWidth="1.5" />
-              <text x="-10" y="194" textAnchor="end" fill="#64748B" fontSize="11">{Math.round(weightThreshold)}%</text>
+              <line x1="-6" y1="170" x2="0" y2="170" stroke="#94A3B8" strokeWidth="1.5" />
+              <text x="-10" y="174" textAnchor="end" fill="#64748B" fontSize="11">{Math.round(weightThreshold)}%</text>
               
-              <line x1="-6" y1="380" x2="0" y2="380" stroke="#94A3B8" strokeWidth="1.5" />
-              <text x="-10" y="384" textAnchor="end" fill="#64748B" fontSize="11">{minWeight}%</text>
+              <line x1="-6" y1="340" x2="0" y2="340" stroke="#94A3B8" strokeWidth="1.5" />
+              <text x="-10" y="344" textAnchor="end" fill="#64748B" fontSize="11">{minWeight}%</text>
             </g>
             
             {/* Y-axis label */}
             <text 
               transform="rotate(-90)" 
-              x="-190" 
-              y="-45" 
+              x="-170" 
+              y="-40" 
               textAnchor="middle" 
               fill="#475569" 
               fontSize="12" 
@@ -1176,7 +1170,6 @@ export default function CompanyReportPage() {
         </div>
 
         {/* ============ DIMENSION PERFORMANCE ============ */}
-        {/* FIX 3: Removed overflow-hidden from progress bar so benchmark triangles show */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Dimension Performance Overview</h3>
@@ -1214,8 +1207,7 @@ export default function CompanyReportPage() {
                     </div>
                     <div className="w-10 text-center text-xs text-slate-500">{d.weight}%</div>
                     <div className="w-64">
-                      {/* NO overflow-hidden here so triangles show */}
-                      <div className="relative h-4 bg-slate-100 rounded-full">
+                      <div className="relative h-4 bg-slate-100 rounded-full overflow-hidden">
                         <div 
                           className="absolute left-0 top-0 h-full rounded-full transition-all"
                           style={{ 
@@ -1228,7 +1220,7 @@ export default function CompanyReportPage() {
                             className="absolute -top-1 flex flex-col items-center"
                             style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
                           >
-                            <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[8px] border-l-transparent border-r-transparent border-t-slate-600" />
+                            <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500" />
                           </div>
                         )}
                       </div>
@@ -1255,7 +1247,7 @@ export default function CompanyReportPage() {
             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-4 text-xs text-slate-400">
               <span>Scores out of 100</span>
               <span className="flex items-center gap-1">
-                <span className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[8px] border-l-transparent border-r-transparent border-t-slate-600 inline-block"></span>
+                <span className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
                 Benchmark
               </span>
             </div>
