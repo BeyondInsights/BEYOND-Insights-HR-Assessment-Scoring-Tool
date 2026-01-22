@@ -3,7 +3,17 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { SCORING_CONFIG, getTierFromScore, getTotalDimensionWeight } from '@/lib/scoring-config';
+import { 
+  SCORING_CONFIG, 
+  getTierFromScore, 
+  getTotalDimensionWeight,
+  statusToPoints,
+  getGeoMultiplier,
+  getStatusText,
+  calculateFollowUpScore,
+  calculateMaturityScore,
+  calculateBreadthScore
+} from '@/lib/scoring-config';
 import Image from 'next/image';
 
 // ============================================
@@ -122,12 +132,8 @@ const DIMENSION_RECOMMENDATIONS: Record<number, { focus: string; actions: string
 const DEFAULT_DIMENSION_WEIGHTS = SCORING_CONFIG.dimensionWeights;
 const DIMENSION_NAMES = SCORING_CONFIG.dimensionNames;
 
-const DIMENSION_QUESTION_COUNTS: Record<number, number> = {
-  1: 9, 2: 12, 3: 8, 4: 13, 5: 11, 6: 7, 7: 5, 8: 10, 9: 5, 10: 7, 11: 3, 12: 7, 13: 7
-};
-
 // ============================================
-// SCORING FUNCTIONS
+// LOCAL HELPER FUNCTIONS (report-specific)
 // ============================================
 
 function getTier(score: number): { name: string; color: string; bgColor: string; textColor: string; borderColor: string } {
@@ -156,230 +162,6 @@ function getScoreColor(score: number): string {
   return '#DC2626';
 }
 
-function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
-  if (geoResponse === undefined || geoResponse === null) return 1.0;
-  
-  if (typeof geoResponse === 'number') {
-    switch (geoResponse) {
-      case 1: return 0.75;
-      case 2: return 0.90;
-      case 3: return 1.0;
-      default: return 1.0;
-    }
-  }
-  
-  const s = String(geoResponse).toLowerCase();
-  if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
-  if (s.includes('vary') || s.includes('varies')) return 0.90;
-  if (s.includes('select') || s.includes('only available in select')) return 0.75;
-  return 1.0;
-}
-
-function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean; category: string } {
-  if (typeof status === 'number') {
-    switch (status) {
-      case 4: return { points: 5, isUnsure: false, category: 'currently_offer' };
-      case 3: return { points: 3, isUnsure: false, category: 'planning' };
-      case 2: return { points: 2, isUnsure: false, category: 'assessing' };
-      case 1: return { points: 0, isUnsure: false, category: 'not_able' };
-      case 5: return { points: null, isUnsure: true, category: 'unsure' };
-      default: return { points: null, isUnsure: false, category: 'unknown' };
-    }
-  }
-  if (typeof status === 'string') {
-    const s = status.toLowerCase().trim();
-    if (s.includes('not able')) return { points: 0, isUnsure: false, category: 'not_able' };
-    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true, category: 'unsure' };
-    if (s.includes('currently') || s.includes('offer') || s.includes('provide') || 
-        s.includes('use') || s.includes('track') || s.includes('measure')) {
-      return { points: 5, isUnsure: false, category: 'currently_offer' };
-    }
-    if (s.includes('planning') || s.includes('development')) return { points: 3, isUnsure: false, category: 'planning' };
-    if (s.includes('assessing') || s.includes('feasibility')) return { points: 2, isUnsure: false, category: 'assessing' };
-    if (s.length > 0) return { points: 0, isUnsure: false, category: 'not_able' };
-  }
-  return { points: null, isUnsure: false, category: 'unknown' };
-}
-
-function getStatusText(status: string | number): string {
-  if (typeof status === 'number') {
-    switch (status) {
-      case 4: return 'Currently offer';
-      case 3: return 'Planning';
-      case 2: return 'Assessing';
-      case 1: return 'Gap';
-      case 5: return 'To clarify';
-      default: return 'Unknown';
-    }
-  }
-  return String(status);
-}
-
-// Follow up scoring functions
-function scoreD1PaidLeave(value: string | undefined): number {
-  if (!value) return 0;
-  const v = String(value).toLowerCase();
-  if (v.includes('13') || v.includes('more')) return 100;
-  if (v.includes('9') && v.includes('13')) return 70;
-  if (v.includes('5') && v.includes('9')) return 40;
-  if (v.includes('3') && v.includes('5')) return 20;
-  if (v.includes('1') && v.includes('3')) return 10;
-  if (v.includes('does not apply')) return 0;
-  return 0;
-}
-
-function scoreD1PartTime(value: string | undefined): number {
-  if (!value) return 0;
-  const v = String(value).toLowerCase();
-  if (v.includes('medically necessary')) return 100;
-  if (v.includes('26') || (v.includes('26') && v.includes('more'))) return 80;
-  if (v.includes('13') && v.includes('26')) return 50;
-  if (v.includes('5') && v.includes('13')) return 30;
-  if (v.includes('4 weeks') || v.includes('up to 4')) return 10;
-  if (v.includes('case-by-case')) return 40;
-  if (v.includes('no additional')) return 0;
-  return 0;
-}
-
-function scoreD3Training(value: string | undefined): number {
-  if (!value) return 0;
-  const v = String(value).toLowerCase();
-  if (v === '100%' || v.includes('100%')) return 100;
-  if (v.includes('mandatory for all')) return 100;
-  if (v.includes('mandatory for new')) return 60;
-  if (v.includes('voluntary')) return 30;
-  if (v.includes('varies')) return 40;
-  return 0;
-}
-
-function scoreD12CaseReview(value: string | undefined): number {
-  if (!value) return 0;
-  const v = String(value).toLowerCase();
-  if (v.includes('systematic')) return 100;
-  if (v.includes('ad hoc')) return 50;
-  if (v.includes('aggregate') || v.includes('only review aggregate')) return 20;
-  return 0;
-}
-
-function scoreD13Communication(value: string | undefined): number {
-  if (!value) return 0;
-  const v = String(value).toLowerCase();
-  if (v.includes('monthly')) return 100;
-  if (v.includes('quarterly')) return 70;
-  if (v.includes('twice')) return 40;
-  if (v.includes('annually') || v.includes('world cancer day')) return 20;
-  if (v.includes('only when asked')) return 0;
-  if (v.includes('do not actively')) return 0;
-  return 0;
-}
-
-function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>): number | null {
-  const dimData = assessment[`dimension${dimNum}_data`];
-  
-  switch (dimNum) {
-    case 1: {
-      const d1_1_usa = dimData?.d1_1_usa;
-      const d1_1_non_usa = dimData?.d1_1_non_usa;
-      const d1_4b = dimData?.d1_4b;
-      const scores: number[] = [];
-      if (d1_1_usa) scores.push(scoreD1PaidLeave(d1_1_usa));
-      if (d1_1_non_usa) scores.push(scoreD1PaidLeave(d1_1_non_usa));
-      if (d1_4b) scores.push(scoreD1PartTime(d1_4b));
-      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-    }
-    case 3: {
-      const d31 = dimData?.d31 ?? dimData?.d3_1;
-      return d31 ? scoreD3Training(d31) : null;
-    }
-    case 12: {
-      const d12_1 = dimData?.d12_1;
-      const d12_2 = dimData?.d12_2;
-      const scores: number[] = [];
-      if (d12_1) scores.push(scoreD12CaseReview(d12_1));
-      if (d12_2) {
-        const v = String(d12_2).toLowerCase();
-        if (v.includes('significant') || v.includes('major')) scores.push(100);
-        else if (v.includes('some') || v.includes('minor')) scores.push(60);
-        else scores.push(20);
-      }
-      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-    }
-    case 13: {
-      const d13_1 = dimData?.d13_1;
-      return d13_1 ? scoreD13Communication(d13_1) : null;
-    }
-    default:
-      return null;
-  }
-}
-
-function calculateMaturityScore(assessment: Record<string, any>): number {
-  const currentSupport = assessment.current_support_data || {};
-  const or1 = currentSupport.or1;
-  
-  if (or1 === 6 || or1 === '6') return 100;
-  if (or1 === 5 || or1 === '5') return 80;
-  if (or1 === 4 || or1 === '4') return 50;
-  if (or1 === 3 || or1 === '3') return 20;
-  if (or1 === 2 || or1 === '2') return 0;
-  if (or1 === 1 || or1 === '1') return 0;
-  
-  const v = String(or1 || '').toLowerCase();
-  if (v.includes('leading-edge') || v.includes('leading edge')) return 100;
-  if (v.includes('comprehensive')) return 100;
-  if (v.includes('enhanced') || v.includes('strong')) return 80;
-  if (v.includes('moderate')) return 50;
-  if (v.includes('basic')) return 20;
-  if (v.includes('developing')) return 20;
-  if (v.includes('legal minimum')) return 0;
-  if (v.includes('no formal')) return 0;
-  return 0;
-}
-
-function calculateBreadthScore(assessment: Record<string, any>): number {
-  const currentSupport = assessment.current_support_data || {};
-  
-  const scores: number[] = [];
-  
-  const cb3a = currentSupport.cb3a;
-  if (cb3a === 3 || cb3a === '3') {
-    scores.push(100);
-  } else if (cb3a === 2 || cb3a === '2') {
-    scores.push(50);
-  } else if (cb3a === 1 || cb3a === '1') {
-    scores.push(0);
-  } else if (cb3a !== undefined && cb3a !== null) {
-    const v = String(cb3a).toLowerCase();
-    if (v.includes('yes') && v.includes('additional support')) {
-      scores.push(100);
-    } else if (v.includes('developing') || v.includes('currently developing')) {
-      scores.push(50);
-    } else {
-      scores.push(0);
-    }
-  } else {
-    scores.push(0);
-  }
-  
-  const cb3b = currentSupport.cb3b;
-  if (cb3b && Array.isArray(cb3b)) {
-    const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
-    scores.push(cb3bScore);
-  } else {
-    scores.push(0);
-  }
-  
-  const cb3c = currentSupport.cb3c;
-  if (cb3c && Array.isArray(cb3c)) {
-    const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
-    scores.push(cb3cScore);
-  } else {
-    scores.push(0);
-  }
-  
-  return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
-}
-
 // ============================================
 // STRATEGIC PRIORITY MATRIX COMPONENT
 // ============================================
@@ -394,18 +176,14 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
   const minWeight = Math.min(...dimensionAnalysis.map(d => d.weight));
   const weightRange = maxWeight - minWeight || 1;
   
-  // Calculate quadrant thresholds
-  const scoreThreshold = 60; // Midpoint for score
+  const scoreThreshold = 60;
   const weightThreshold = (maxWeight + minWeight) / 2;
   
   return (
     <div className="px-10 py-8">
-      <div className="relative" style={{ height: '420px' }}>
-        {/* SVG-based chart for professional appearance */}
-        <svg className="w-full h-full" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
-          {/* Definitions */}
+      <div className="relative" style={{ height: '480px' }}>
+        <svg className="w-full h-full" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet">
           <defs>
-            {/* Gradients for quadrants */}
             <linearGradient id="developGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#FEF3C7" />
               <stop offset="100%" stopColor="#FDE68A" stopOpacity="0.3" />
@@ -423,64 +201,51 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
               <stop offset="100%" stopColor="#BFDBFE" stopOpacity="0.3" />
             </linearGradient>
             
-            {/* Drop shadow for circles */}
             <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.25"/>
             </filter>
           </defs>
           
-          {/* Chart background and quadrants */}
-          <g transform="translate(60, 20)">
-            {/* Quadrant backgrounds */}
-            <rect x="0" y="0" width="250" height="170" fill="url(#developGrad)" rx="4" />
-            <rect x="250" y="0" width="250" height="170" fill="url(#maintainGrad)" rx="4" />
-            <rect x="0" y="170" width="250" height="170" fill="url(#monitorGrad)" rx="4" />
-            <rect x="250" y="170" width="250" height="170" fill="url(#leverageGrad)" rx="4" />
+          <g transform="translate(80, 20)">
+            <rect x="0" y="0" width="325" height="195" fill="url(#developGrad)" rx="4" />
+            <rect x="325" y="0" width="325" height="195" fill="url(#maintainGrad)" rx="4" />
+            <rect x="0" y="195" width="325" height="195" fill="url(#monitorGrad)" rx="4" />
+            <rect x="325" y="195" width="325" height="195" fill="url(#leverageGrad)" rx="4" />
             
-            {/* Grid lines */}
             <g stroke="#CBD5E1" strokeWidth="0.5" strokeDasharray="4,4" opacity="0.6">
-              {/* Vertical gridlines */}
-              <line x1="125" y1="0" x2="125" y2="340" />
-              <line x1="375" y1="0" x2="375" y2="340" />
-              {/* Horizontal gridlines */}
-              <line x1="0" y1="85" x2="500" y2="85" />
-              <line x1="0" y1="255" x2="500" y2="255" />
+              <line x1="162.5" y1="0" x2="162.5" y2="390" />
+              <line x1="487.5" y1="0" x2="487.5" y2="390" />
+              <line x1="0" y1="97.5" x2="650" y2="97.5" />
+              <line x1="0" y1="292.5" x2="650" y2="292.5" />
             </g>
             
-            {/* Center axis lines */}
-            <line x1="250" y1="0" x2="250" y2="340" stroke="#94A3B8" strokeWidth="1.5" />
-            <line x1="0" y1="170" x2="500" y2="170" stroke="#94A3B8" strokeWidth="1.5" />
+            <line x1="325" y1="0" x2="325" y2="390" stroke="#94A3B8" strokeWidth="1.5" />
+            <line x1="0" y1="195" x2="650" y2="195" stroke="#94A3B8" strokeWidth="1.5" />
             
-            {/* Outer border */}
-            <rect x="0" y="0" width="500" height="340" fill="none" stroke="#CBD5E1" strokeWidth="1.5" rx="4" />
+            <rect x="0" y="0" width="650" height="390" fill="none" stroke="#CBD5E1" strokeWidth="1.5" rx="4" />
             
-            {/* Quadrant labels */}
             <g className="text-sm font-semibold" opacity="0.25">
-              <text x="125" y="85" textAnchor="middle" fill="#D97706" fontSize="18" fontWeight="700">DEVELOP</text>
-              <text x="125" y="105" textAnchor="middle" fill="#D97706" fontSize="11">High Priority</text>
+              <text x="162.5" y="97.5" textAnchor="middle" fill="#D97706" fontSize="18" fontWeight="700">DEVELOP</text>
+              <text x="162.5" y="117.5" textAnchor="middle" fill="#D97706" fontSize="11">High Priority</text>
               
-              <text x="375" y="85" textAnchor="middle" fill="#059669" fontSize="18" fontWeight="700">MAINTAIN</text>
-              <text x="375" y="105" textAnchor="middle" fill="#059669" fontSize="11">Protect Strengths</text>
+              <text x="487.5" y="97.5" textAnchor="middle" fill="#059669" fontSize="18" fontWeight="700">MAINTAIN</text>
+              <text x="487.5" y="117.5" textAnchor="middle" fill="#059669" fontSize="11">Protect Strengths</text>
               
-              <text x="125" y="255" textAnchor="middle" fill="#64748B" fontSize="18" fontWeight="700">MONITOR</text>
-              <text x="125" y="275" textAnchor="middle" fill="#64748B" fontSize="11">Watch and Wait</text>
+              <text x="162.5" y="292.5" textAnchor="middle" fill="#64748B" fontSize="18" fontWeight="700">MONITOR</text>
+              <text x="162.5" y="312.5" textAnchor="middle" fill="#64748B" fontSize="11">Watch and Wait</text>
               
-              <text x="375" y="255" textAnchor="middle" fill="#0284C7" fontSize="18" fontWeight="700">LEVERAGE</text>
-              <text x="375" y="275" textAnchor="middle" fill="#0284C7" fontSize="11">Quick Wins</text>
+              <text x="487.5" y="292.5" textAnchor="middle" fill="#0284C7" fontSize="18" fontWeight="700">LEVERAGE</text>
+              <text x="487.5" y="312.5" textAnchor="middle" fill="#0284C7" fontSize="11">Quick Wins</text>
             </g>
             
-            {/* Data points */}
             {dimensionAnalysis.map((d) => {
-              const xPos = (d.score / 100) * 500;
-              const yPos = 340 - (((d.weight - minWeight) / weightRange) * 340);
+              const xPos = (d.score / 100) * 650;
+              const yPos = 390 - (((d.weight - minWeight) / weightRange) * 390);
               
               return (
                 <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
-                  {/* Outer ring */}
                   <circle r="22" fill="white" filter="url(#dropShadow)" />
-                  {/* Inner circle */}
                   <circle r="18" fill={getScoreColor(d.score)} />
-                  {/* Dimension number */}
                   <text 
                     textAnchor="middle" 
                     dominantBaseline="central" 
@@ -494,41 +259,37 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
               );
             })}
             
-            {/* X-axis ticks and labels */}
-            <g transform="translate(0, 340)">
-              <line x1="0" y1="0" x2="500" y2="0" stroke="#94A3B8" strokeWidth="1.5" />
-              {[0, 25, 50, 75, 100].map((val, i) => (
-                <g key={val} transform={`translate(${val * 5}, 0)`}>
+            <g transform="translate(0, 390)">
+              <line x1="0" y1="0" x2="650" y2="0" stroke="#94A3B8" strokeWidth="1.5" />
+              {[0, 25, 50, 75, 100].map((val) => (
+                <g key={val} transform={`translate(${val * 6.5}, 0)`}>
                   <line y1="0" y2="6" stroke="#94A3B8" strokeWidth="1.5" />
                   <text y="20" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text>
                 </g>
               ))}
-              <text x="250" y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="600">
+              <text x="325" y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="600">
                 CURRENT PERFORMANCE
               </text>
             </g>
           </g>
           
-          {/* Y-axis */}
-          <g transform="translate(60, 20)">
-            <line x1="0" y1="0" x2="0" y2="340" stroke="#94A3B8" strokeWidth="1.5" />
-            {/* Y-axis ticks */}
+          <g transform="translate(80, 20)">
+            <line x1="0" y1="0" x2="0" y2="390" stroke="#94A3B8" strokeWidth="1.5" />
             <g>
               <line x1="-6" y1="0" x2="0" y2="0" stroke="#94A3B8" strokeWidth="1.5" />
               <text x="-10" y="4" textAnchor="end" fill="#64748B" fontSize="11">{maxWeight}%</text>
               
-              <line x1="-6" y1="170" x2="0" y2="170" stroke="#94A3B8" strokeWidth="1.5" />
-              <text x="-10" y="174" textAnchor="end" fill="#64748B" fontSize="11">{Math.round(weightThreshold)}%</text>
+              <line x1="-6" y1="195" x2="0" y2="195" stroke="#94A3B8" strokeWidth="1.5" />
+              <text x="-10" y="199" textAnchor="end" fill="#64748B" fontSize="11">{Math.round(weightThreshold)}%</text>
               
-              <line x1="-6" y1="340" x2="0" y2="340" stroke="#94A3B8" strokeWidth="1.5" />
-              <text x="-10" y="344" textAnchor="end" fill="#64748B" fontSize="11">{minWeight}%</text>
+              <line x1="-6" y1="390" x2="0" y2="390" stroke="#94A3B8" strokeWidth="1.5" />
+              <text x="-10" y="394" textAnchor="end" fill="#64748B" fontSize="11">{minWeight}%</text>
             </g>
             
-            {/* Y-axis label */}
             <text 
               transform="rotate(-90)" 
-              x="-170" 
-              y="-40" 
+              x="-195" 
+              y="-50" 
               textAnchor="middle" 
               fill="#475569" 
               fontSize="12" 
@@ -540,7 +301,6 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: MatrixPro
         </svg>
       </div>
       
-      {/* Legend */}
       <div className="mt-6 pt-4 border-t border-slate-200">
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           {dimensionAnalysis.map(d => (
@@ -651,6 +411,8 @@ export default function CompanyReportPage() {
     }
   }, [surveyId]);
 
+  // Uses imported lib functions: statusToPoints, getGeoMultiplier, getStatusText, 
+  // calculateFollowUpScore, calculateMaturityScore, calculateBreadthScore
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
     const followUpScores: Record<number, number | null> = {};
@@ -746,6 +508,7 @@ export default function CompanyReportPage() {
       weightedDimScore = Math.round(weightedScore);
     }
     
+    // Use imported lib functions
     const maturityScore = calculateMaturityScore(assessment);
     const breadthScore = calculateBreadthScore(assessment);
     
@@ -855,7 +618,6 @@ export default function CompanyReportPage() {
   
   const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, tier } = companyScores;
   
-  // Calculate element statistics
   const allElements = Object.values(elementDetails || {}).flat() as any[];
   const totalElements = allElements.length;
   const currentlyOffering = allElements.filter(e => e.isStrength).length;
@@ -864,7 +626,6 @@ export default function CompanyReportPage() {
   const gapItems = allElements.filter(e => e.isGap).length;
   const unsureItems = allElements.filter(e => e.isUnsure).length;
   
-  // Calculate tier distance
   const tierThresholds = [
     { name: 'Exemplary', min: 90 },
     { name: 'Leading', min: 75 },
@@ -876,7 +637,6 @@ export default function CompanyReportPage() {
   const nextTierUp = tierThresholds.find(t => t.min > (compositeScore || 0));
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
   
-  // Build dimension analysis
   const dimensionAnalysis = Object.entries(dimensionScores)
     .map(([dim, score]) => {
       const dimNum = parseInt(dim);
@@ -901,7 +661,6 @@ export default function CompanyReportPage() {
     })
     .sort((a, b) => b.score - a.score);
   
-  // Count tiers
   const tierCounts = {
     exemplary: dimensionAnalysis.filter(d => d.tier.name === 'Exemplary').length,
     leading: dimensionAnalysis.filter(d => d.tier.name === 'Leading').length,
@@ -910,17 +669,14 @@ export default function CompanyReportPage() {
     developing: dimensionAnalysis.filter(d => d.tier.name === 'Developing').length,
   };
   
-  // Get top and bottom performers
   const topDimension = dimensionAnalysis[0];
   const bottomDimension = dimensionAnalysis[dimensionAnalysis.length - 1];
   
-  // Strength and opportunity dimensions
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
   const opportunityDimensions = dimensionAnalysis
     .filter(d => d.tier.name !== 'Exemplary' && d.tier.name !== 'Leading')
     .sort((a, b) => a.score - b.score);
 
-  // Quick wins: items in Assessing or Planning status
   const quickWinOpportunities = dimensionAnalysis
     .flatMap(d => [
       ...d.assessing.map((item: any) => ({ 
@@ -928,14 +684,14 @@ export default function CompanyReportPage() {
         dimNum: d.dim, 
         dimName: d.name,
         type: 'Assessing',
-        potentialPoints: 3 // Moving from 2 to 5
+        potentialPoints: 3
       })),
       ...d.planning.map((item: any) => ({ 
         ...item, 
         dimNum: d.dim, 
         dimName: d.name,
         type: 'Planning',
-        potentialPoints: 2 // Moving from 3 to 5
+        potentialPoints: 2
       }))
     ])
     .slice(0, 8);
@@ -1040,7 +796,7 @@ export default function CompanyReportPage() {
             </div>
           </div>
 
-          {/* ENHANCED Executive Summary */}
+          {/* Executive Summary */}
           <div className="px-10 py-8 bg-slate-50">
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
             <p className="text-slate-700 leading-relaxed text-lg">
@@ -1055,7 +811,6 @@ export default function CompanyReportPage() {
               )}
             </p>
             
-            {/* Tier Distance Alert */}
             {pointsToNextTier && nextTierUp && pointsToNextTier <= 10 && (
               <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg flex items-start gap-3">
                 <TrendUpIcon className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
@@ -1176,7 +931,6 @@ export default function CompanyReportPage() {
             <p className="text-sm text-slate-500 mt-1">Detailed scores across all 13 assessment dimensions</p>
           </div>
           <div className="px-10 py-6">
-            {/* Header row */}
             <div className="flex items-center gap-4 pb-3 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <div className="w-8 text-center">#</div>
               <div className="flex-1">Dimension</div>
@@ -1187,7 +941,6 @@ export default function CompanyReportPage() {
               <div className="w-20 text-center">Tier</div>
             </div>
             
-            {/* Dimension rows - sorted by weight */}
             {[...dimensionAnalysis]
               .sort((a, b) => b.weight - a.weight)
               .map((d, idx) => {
@@ -1206,8 +959,8 @@ export default function CompanyReportPage() {
                       <span className="text-sm font-medium text-slate-700">{d.name}</span>
                     </div>
                     <div className="w-10 text-center text-xs text-slate-500">{d.weight}%</div>
-                    <div className="w-64">
-                      <div className="relative h-4 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-64 relative">
+                      <div className="relative h-4 bg-slate-100 rounded-full">
                         <div 
                           className="absolute left-0 top-0 h-full rounded-full transition-all"
                           style={{ 
@@ -1217,8 +970,8 @@ export default function CompanyReportPage() {
                         />
                         {d.benchmark && (
                           <div 
-                            className="absolute -top-1 flex flex-col items-center"
-                            style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
+                            className="absolute flex flex-col items-center"
+                            style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '-4px', transform: 'translateX(-50%)' }}
                           >
                             <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500" />
                           </div>
@@ -1243,7 +996,6 @@ export default function CompanyReportPage() {
                 );
               })}
             
-            {/* Legend */}
             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-4 text-xs text-slate-400">
               <span>Scores out of 100</span>
               <span className="flex items-center gap-1">
@@ -1266,45 +1018,8 @@ export default function CompanyReportPage() {
           />
         </div>
 
-        {/* ============ QUICK WINS SECTION ============ */}
-        {quickWinOpportunities.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div className="px-10 py-5 border-b border-slate-100 bg-emerald-50">
-              <div className="flex items-center gap-3">
-                <LightbulbIcon className="w-5 h-5 text-emerald-600" />
-                <div>
-                  <h3 className="font-semibold text-emerald-900">Quick Win Opportunities</h3>
-                  <p className="text-sm text-emerald-700 mt-0.5">Initiatives already in progress that could accelerate score improvement</p>
-                </div>
-              </div>
-            </div>
-            <div className="px-10 py-6">
-              <p className="text-slate-600 mb-6">
-                The following items are currently in planning or assessment phases. Converting these to active programs 
-                represents the fastest path to improving your composite score, as the organizational groundwork is already underway.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                {quickWinOpportunities.map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className={`text-xs font-medium px-2 py-1 rounded flex-shrink-0 ${
-                      item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-sky-100 text-sky-700'
-                    }`}>
-                      {item.type}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-700">{item.name}</p>
-                      <p className="text-xs text-slate-500 mt-1">D{item.dimNum}: {item.dimName}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* ============ STRENGTHS & OPPORTUNITIES ============ */}
         <div className="grid grid-cols-2 gap-6 mb-8">
-          {/* Strengths */}
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
             <div className="px-6 py-4 bg-emerald-50 border-b border-emerald-100 flex items-center gap-3">
               <CheckIcon className="w-5 h-5 text-emerald-600" />
@@ -1341,7 +1056,6 @@ export default function CompanyReportPage() {
             </div>
           </div>
 
-          {/* Opportunities */}
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
             <div className="px-6 py-4 bg-amber-50 border-b border-amber-100 flex items-center gap-3">
               <TrendUpIcon className="w-5 h-5 text-amber-600" />
@@ -1378,6 +1092,38 @@ export default function CompanyReportPage() {
             </div>
           </div>
         </div>
+
+        {/* ============ QUICK WINS ============ */}
+        {quickWinOpportunities.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div className="px-10 py-5 border-b border-slate-100 bg-emerald-50">
+              <div className="flex items-center gap-3">
+                <LightbulbIcon className="w-5 h-5 text-emerald-600" />
+                <div>
+                  <h3 className="font-semibold text-emerald-900">Initiatives in Progress</h3>
+                  <p className="text-sm text-emerald-700 mt-0.5">Items currently in planning or assessment phases</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-10 py-6">
+              <div className="grid grid-cols-2 gap-4">
+                {quickWinOpportunities.map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className={`text-xs font-medium px-2 py-1 rounded flex-shrink-0 ${
+                      item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-sky-100 text-sky-700'
+                    }`}>
+                      {item.type}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-slate-700">{item.name}</p>
+                      <p className="text-xs text-slate-500 mt-1">D{item.dimNum}: {item.dimName}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ============ STRATEGIC RECOMMENDATIONS ============ */}
         {opportunityDimensions.length > 0 && (
@@ -1505,7 +1251,6 @@ export default function CompanyReportPage() {
                 
                 return (
                   <div className="grid grid-cols-3 gap-6">
-                    {/* Phase 1 */}
                     <div className="relative">
                       <div className="absolute -left-3 top-0 bottom-0 w-1 bg-emerald-400 rounded-full"></div>
                       <div className="bg-emerald-50 rounded-lg p-5 border border-emerald-100 h-full">
@@ -1526,15 +1271,9 @@ export default function CompanyReportPage() {
                         ) : (
                           <p className="text-xs text-slate-400">No immediate quick wins identified</p>
                         )}
-                        {quickWins.length > 0 && (
-                          <p className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-emerald-100">
-                            Focus: {[...new Set(quickWins.map(q => `D${q.dimNum}`))].join(', ')}
-                          </p>
-                        )}
                       </div>
                     </div>
                     
-                    {/* Phase 2 */}
                     <div className="relative">
                       <div className="absolute -left-3 top-0 bottom-0 w-1 bg-sky-400 rounded-full"></div>
                       <div className="bg-sky-50 rounded-lg p-5 border border-sky-100 h-full">
@@ -1555,15 +1294,9 @@ export default function CompanyReportPage() {
                         ) : (
                           <p className="text-xs text-slate-400">Strong foundation already in place</p>
                         )}
-                        {highWeightGaps.length > 0 && (
-                          <p className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-sky-100">
-                            Focus: {[...new Set(highWeightGaps.map(g => `D${g.dimNum}`))].join(', ')}
-                          </p>
-                        )}
                       </div>
                     </div>
                     
-                    {/* Phase 3 */}
                     <div className="relative">
                       <div className="absolute -left-3 top-0 bottom-0 w-1 bg-purple-400 rounded-full"></div>
                       <div className="bg-purple-50 rounded-lg p-5 border border-purple-100 h-full">
@@ -1584,18 +1317,12 @@ export default function CompanyReportPage() {
                         ) : (
                           <p className="text-xs text-slate-400">Continue current excellence initiatives</p>
                         )}
-                        {excellence.length > 0 && (
-                          <p className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-purple-100">
-                            Focus: {[...new Set(excellence.map(e => `D${e.dimNum}`))].join(', ')}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>
                 );
               })()}
               
-              {/* Progress connector */}
               <div className="flex items-center justify-center mt-6 gap-2 text-xs text-slate-400">
                 <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                 <div className="h-px w-16 bg-slate-200"></div>
@@ -1634,16 +1361,12 @@ export default function CompanyReportPage() {
                     <span className="w-1 h-1 rounded-full bg-amber-400 mt-1.5"></span>
                     Manager toolkit and conversation guides
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-1 h-1 rounded-full bg-amber-400 mt-1.5"></span>
-                    Train the trainer programs
-                  </li>
                 </ul>
               </div>
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h4 className="font-semibold text-blue-800 text-sm mb-2">Navigation and Resource Architecture</h4>
-                <p className="text-xs text-slate-600 mb-2">Only 34% of employees know where to find resources. Programs exist but can be difficult to access when needed most.</p>
+                <p className="text-xs text-slate-600 mb-2">Only 34% of employees know where to find resources. Programs exist but can be difficult to access.</p>
                 <ul className="text-xs text-slate-500 space-y-1">
                   <li className="flex items-start gap-2">
                     <span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5"></span>
@@ -1652,10 +1375,6 @@ export default function CompanyReportPage() {
                   <li className="flex items-start gap-2">
                     <span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5"></span>
                     Single entry point design
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5"></span>
-                    Communication strategy
                   </li>
                 </ul>
               </div>
@@ -1672,10 +1391,6 @@ export default function CompanyReportPage() {
                     <span className="w-1 h-1 rounded-full bg-rose-400 mt-1.5"></span>
                     Check in cadence design
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-1 h-1 rounded-full bg-rose-400 mt-1.5"></span>
-                    Career continuity planning
-                  </li>
                 </ul>
               </div>
               
@@ -1690,10 +1405,6 @@ export default function CompanyReportPage() {
                   <li className="flex items-start gap-2">
                     <span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5"></span>
                     Implementation audit
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5"></span>
-                    Business case development
                   </li>
                 </ul>
               </div>
