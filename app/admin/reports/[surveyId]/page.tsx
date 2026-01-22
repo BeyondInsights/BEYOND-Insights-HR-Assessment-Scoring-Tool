@@ -1289,7 +1289,7 @@ export default function CompanyReportPage() {
                       {/* Gaps & Needs Attention - includes gaps, assessing, unsure, and any other non-offered items */}
                       <div className="border border-red-200 rounded-lg overflow-hidden">
                         <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                          <h5 className="font-semibold text-red-800 text-sm">Needs Attention ({d.needsAttention.length})</h5>
+                          <h5 className="font-semibold text-red-800 text-sm">Focus Areas ({d.needsAttention.length})</h5>
                         </div>
                         <div className="p-4 bg-white max-h-64 overflow-y-auto">
                           {d.needsAttention.length > 0 ? (
