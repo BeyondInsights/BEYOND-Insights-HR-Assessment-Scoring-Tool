@@ -26,6 +26,74 @@ function FPRegisterContent() {
   const isValidCode = isFoundingPartner(code)
 
   // ============================================
+  // CRITICAL: Clear stale localStorage data when survey_id changes
+  // This prevents cross-contamination between different companies
+  // ============================================
+  const clearStaleLocalStorageData = () => {
+    const currentStoredId = localStorage.getItem('survey_id')
+    
+    // If there's existing data for a DIFFERENT survey_id, clear it all
+    if (currentStoredId && currentStoredId !== code) {
+      console.log(`🧹 FP-REGISTER: Clearing stale data from previous session`)
+      console.log(`   Previous survey_id: ${currentStoredId}`)
+      console.log(`   New survey_id: ${code}`)
+      
+      // Clear all survey data keys
+      const dataKeysToClear = [
+        'firmographics_data',
+        'general_benefits_data',
+        'current_support_data',
+        'cross_dimensional_data',
+        'employee-impact-assessment_data',
+        ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
+      ]
+      
+      // Clear all completion flags
+      const completeKeysToClear = [
+        'firmographics_complete',
+        'general_benefits_complete',
+        'current_support_complete',
+        'cross_dimensional_complete',
+        'employee-impact-assessment_complete',
+        ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
+      ]
+      
+      // Clear auth/login keys that might carry over
+      const authKeysToClear = [
+        'survey_id',
+        'login_Survey_id',
+        'login_email',
+        'auth_email',
+        'login_company_name',
+        'login_first_name',
+        'login_last_name',
+        'login_title',
+        'user_authenticated',
+        'auth_completed',
+        'payment_completed',
+        'payment_method',
+        'last_user_email',
+      ]
+      
+      const allKeysToClear = [...dataKeysToClear, ...completeKeysToClear, ...authKeysToClear]
+      
+      let clearedCount = 0
+      allKeysToClear.forEach(key => {
+        if (localStorage.getItem(key) !== null) {
+          localStorage.removeItem(key)
+          clearedCount++
+        }
+      })
+      
+      console.log(`🧹 FP-REGISTER: Cleared ${clearedCount} localStorage keys to prevent cross-contamination`)
+      return true // Data was cleared
+    }
+    
+    return false // No stale data to clear
+  }
+  // ============================================
+
+  // ============================================
   // CHECK FOR EXISTING REGISTRATION ON LOAD
   // ============================================
   useEffect(() => {
@@ -34,6 +102,9 @@ function FPRegisterContent() {
         setLoading(false)
         return
       }
+
+      // CRITICAL: Clear any stale data from a different survey FIRST
+      clearStaleLocalStorageData()
 
       try {
         // Check if this FP code already has contact info registered
@@ -234,6 +305,32 @@ function FPRegisterContent() {
         if (insertError) throw insertError
       }
 
+      // ============================================
+      // CRITICAL: Clear ALL survey data before setting new session
+      // This prevents auto-sync from picking up stale data
+      // ============================================
+      console.log('🧹 FP-REGISTER: Clearing any remaining survey data before new session...')
+      const dataKeysToClear = [
+        'firmographics_data',
+        'general_benefits_data',
+        'current_support_data',
+        'cross_dimensional_data',
+        'employee-impact-assessment_data',
+        ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
+      ]
+      const completeKeysToClear = [
+        'firmographics_complete',
+        'general_benefits_complete',
+        'current_support_complete',
+        'cross_dimensional_complete',
+        'employee-impact-assessment_complete',
+        ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
+      ]
+      ;[...dataKeysToClear, ...completeKeysToClear].forEach(key => {
+        localStorage.removeItem(key)
+      })
+      // ============================================
+
       // Auto-login and redirect
       localStorage.setItem('login_email', formData.email.toLowerCase().trim())
       localStorage.setItem('auth_email', formData.email.toLowerCase().trim())
@@ -259,6 +356,31 @@ function FPRegisterContent() {
 
   // Handle "No consent" - still let them access dashboard
   const handleNoConsent = () => {
+    // Clear any stale data first
+    console.log('🧹 FP-REGISTER: Clearing any stale data (no consent flow)...')
+    const dataKeysToClear = [
+      'firmographics_data',
+      'general_benefits_data',
+      'current_support_data',
+      'cross_dimensional_data',
+      'employee-impact-assessment_data',
+      ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
+    ]
+    const completeKeysToClear = [
+      'firmographics_complete',
+      'general_benefits_complete',
+      'current_support_complete',
+      'cross_dimensional_complete',
+      'employee-impact-assessment_complete',
+      ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
+    ]
+    const currentStoredId = localStorage.getItem('survey_id')
+    if (currentStoredId && currentStoredId !== code) {
+      ;[...dataKeysToClear, ...completeKeysToClear].forEach(key => {
+        localStorage.removeItem(key)
+      })
+    }
+    
     localStorage.setItem('survey_id', code)
     localStorage.setItem('login_Survey_id', code)
     localStorage.setItem('user_authenticated', 'true')
