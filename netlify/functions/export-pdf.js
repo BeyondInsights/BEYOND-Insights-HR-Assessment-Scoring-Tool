@@ -14,16 +14,22 @@ exports.handler = async (event) => {
     const origin = process.env.URL || 'https://effervescent-concha-95d2df.netlify.app';
     const exportEmail = process.env.EXPORT_ADMIN_EMAIL || 'john.bekier@beyondinsights.com';
     
+    // Fix for Netlify environment
+    const executablePath = await chromium.executablePath();
+    
+    if (!executablePath) {
+      throw new Error('Could not find Chromium executable');
+    }
+
     browser = await puppeteer.launch({
-      args: chromium.args,
+      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
       defaultViewport: { width: 1200, height: 800 },
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+      executablePath,
+      headless: 'new',
     });
 
     const page = await browser.newPage();
     
-    // Pre-seed sessionStorage to bypass admin auth
     await page.evaluateOnNewDocument((email) => {
       try {
         sessionStorage.setItem('adminAuth', JSON.stringify({
@@ -39,12 +45,11 @@ exports.handler = async (event) => {
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 45000 });
     await page.waitForSelector('#report-root', { timeout: 30000 });
     
-    // Hide non-print elements
     await page.addStyleTag({
       content: `.no-print, .ppt-slides-container { display: none !important; }`
     });
     
-    await page.waitForTimeout(2000);
+    await new Promise(r => setTimeout(r, 2000));
 
     const pdf = await page.pdf({
       format: 'Letter',
