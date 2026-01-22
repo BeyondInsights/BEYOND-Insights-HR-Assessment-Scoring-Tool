@@ -456,7 +456,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         
         {/* Legend - below chart */}
         <div className="mt-3 pt-4 border-t border-slate-200">
-          <div className="grid grid-cols-7 gap-x-2 gap-y-2">
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
             {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
               <div 
                 key={d.dim} 
@@ -467,7 +467,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
                   {d.dim}
                 </span>
-                <span className="text-xs text-slate-700 truncate font-medium">{DIMENSION_SHORT_NAMES[d.dim]}</span>
+                <span className="text-xs text-slate-700 whitespace-nowrap font-medium">{DIMENSION_SHORT_NAMES[d.dim]}</span>
               </div>
             ))}
           </div>
@@ -801,11 +801,45 @@ export default function ExportReportPage() {
     <div className="min-h-screen bg-gray-50">
       <style jsx global>{`
         @media print { 
-          @page { margin: 0.5in; size: letter; } 
-          body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } 
+          @page { margin: 0.4in; size: letter; } 
+          body { 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important;
+          } 
           .no-print { display: none !important; } 
-          .pdf-break-before { page-break-before: always; }
-          .pdf-no-break { page-break-inside: avoid; }
+          .pdf-break-before { page-break-before: always; break-before: page; }
+          .pdf-break-after { page-break-after: always; break-after: page; }
+          .pdf-no-break { 
+            page-break-inside: avoid !important; 
+            break-inside: avoid !important;
+          }
+          
+          /* Force backgrounds to print */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+        
+        /* Browserless PDF capture mode */
+        .bg-gray-50 {
+          background-color: #f9fafb !important;
+        }
+        
+        /* Force all content sections to avoid page breaks */
+        .rounded-lg {
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+        
+        /* Strategic Priority Matrix - ensure legend is not truncated */
+        .matrix-legend {
+          flex-wrap: wrap !important;
+        }
+        .matrix-legend span {
+          white-space: nowrap !important;
+          overflow: visible !important;
+          text-overflow: clip !important;
         }
         
         /* Export mode: PDF + PPT - fixes scroll containers, stickies, filters */
