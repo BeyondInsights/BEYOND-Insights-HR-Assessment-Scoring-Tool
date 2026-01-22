@@ -481,10 +481,12 @@ export default function CompanyReportPage() {
   const router = useRouter();
   const surveyId = Array.isArray(params.surveyId) ? params.surveyId[0] : params.surveyId;
   const printRef = useRef<HTMLDivElement>(null);
+  const matrixRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [exportingPPT, setExportingPPT] = useState(false);
   const [company, setCompany] = useState<any>(null);
   const [benchmarks, setBenchmarks] = useState<any>(null);
   const [companyScores, setCompanyScores] = useState<any>(null);
@@ -749,6 +751,314 @@ export default function CompanyReportPage() {
     }
   }
 
+  // ============================================
+  // POWERPOINT EXPORT FUNCTION
+  // ============================================
+  async function handleExportPPT() {
+    setExportingPPT(true);
+    
+    try {
+      // Load PptxGenJS from CDN if not already loaded
+      if (typeof window !== 'undefined' && !(window as any).PptxGenJS) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js';
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Failed to load PptxGenJS'));
+          document.head.appendChild(script);
+          setTimeout(() => reject(new Error('Timeout loading PptxGenJS')), 10000);
+        });
+        await new Promise(r => setTimeout(r, 300));
+      }
+      
+      // Load html2canvas for matrix capture
+      if (typeof window !== 'undefined' && !(window as any).html2canvas) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Failed to load html2canvas'));
+          document.head.appendChild(script);
+          setTimeout(() => reject(new Error('Timeout loading html2canvas')), 10000);
+        });
+        await new Promise(r => setTimeout(r, 200));
+      }
+      
+      const PptxGenJS = (window as any).PptxGenJS;
+      const pptx = new PptxGenJS();
+      
+      // Presentation settings
+      pptx.layout = 'LAYOUT_16x9';
+      pptx.title = `${companyName} - Cancer Support Assessment`;
+      pptx.author = 'Cancer and Careers';
+      
+      // Color definitions
+      const colors = {
+        dark: '1E293B',      // slate-800
+        medium: '475569',    // slate-600
+        light: 'F1F5F9',     // slate-100
+        white: 'FFFFFF',
+        accent: '7C3AED',    // violet-600
+        green: '059669',     // emerald-600
+        red: 'DC2626',       // red-600
+        amber: 'D97706',     // amber-600
+        blue: '2563EB',      // blue-600
+      };
+      
+      // Get tier color
+      const getTierColorHex = (score: number) => {
+        if (score >= 90) return '059669';
+        if (score >= 75) return '0D9488';
+        if (score >= 60) return '2563EB';
+        if (score >= 40) return 'D97706';
+        return 'DC2626';
+      };
+
+      // ============ SLIDE 1: TITLE ============
+      const slide1 = pptx.addSlide();
+      slide1.addShape('rect', { x: 0, y: 0, w: '100%', h: '100%', fill: { color: colors.dark } });
+      
+      // Logo placeholder
+      slide1.addShape('rect', { x: 0.5, y: 1.5, w: 1.5, h: 1.5, fill: { color: colors.white }, rounding: true });
+      slide1.addText('CAC', { x: 0.5, y: 1.9, w: 1.5, h: 0.5, align: 'center', fontSize: 18, color: colors.dark, bold: true });
+      
+      // Title text
+      slide1.addText('Best Companies for Working with Cancer', { x: 2.2, y: 1.5, w: 7, h: 0.6, fontSize: 24, color: colors.white, bold: true });
+      slide1.addText('Index 2026 · Performance Assessment', { x: 2.2, y: 2.1, w: 7, h: 0.4, fontSize: 14, color: 'CBD5E1' });
+      
+      // Company name and score
+      slide1.addText(companyName, { x: 0.5, y: 3.5, w: 9, h: 0.8, fontSize: 36, color: colors.white, bold: true });
+      
+      // Score badge
+      const scoreColor = getTierColorHex(compositeScore || 0);
+      slide1.addShape('rect', { x: 0.5, y: 4.5, w: 1.8, h: 1.2, fill: { color: scoreColor }, rounding: true });
+      slide1.addText(String(compositeScore || 0), { x: 0.5, y: 4.55, w: 1.8, h: 0.8, align: 'center', fontSize: 40, color: colors.white, bold: true });
+      slide1.addText('Score', { x: 0.5, y: 5.25, w: 1.8, h: 0.3, align: 'center', fontSize: 11, color: colors.white });
+      
+      // Tier badge
+      slide1.addShape('rect', { x: 2.5, y: 4.7, w: 1.8, h: 0.6, fill: { color: '374151' }, rounding: true });
+      slide1.addText(tier || 'Emerging', { x: 2.5, y: 4.75, w: 1.8, h: 0.5, align: 'center', fontSize: 14, color: colors.white, bold: true });
+      
+      // Date
+      slide1.addText(new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), { x: 0.5, y: 6.8, w: 3, h: 0.3, fontSize: 12, color: '94A3B8' });
+
+      // ============ SLIDE 2: EXECUTIVE SUMMARY ============
+      const slide2 = pptx.addSlide();
+      slide2.addText('Executive Summary', { x: 0.5, y: 0.3, w: 9, h: 0.5, fontSize: 24, color: colors.dark, bold: true });
+      
+      // Key metrics boxes
+      const metrics = [
+        { value: String(currentlyOffering), label: `of ${totalElements} elements offered` },
+        { value: String(planningItems + assessingItems), label: 'initiatives in development' },
+        { value: String(gapItems), label: 'identified gaps' },
+        { value: String(tierCounts.exemplary + tierCounts.leading), label: 'dimensions at Leading+' },
+      ];
+      
+      metrics.forEach((m, i) => {
+        const xPos = 0.5 + (i * 2.4);
+        slide2.addShape('rect', { x: xPos, y: 1, w: 2.2, h: 1.1, fill: { color: colors.light }, line: { color: 'E2E8F0', pt: 1 }, rounding: true });
+        slide2.addText(m.value, { x: xPos, y: 1.05, w: 2.2, h: 0.6, align: 'center', fontSize: 28, color: colors.dark, bold: true });
+        slide2.addText(m.label, { x: xPos + 0.1, y: 1.6, w: 2, h: 0.4, align: 'center', fontSize: 9, color: colors.medium });
+      });
+      
+      // Tier progress box
+      const topGrowthDims = allDimensionsByScore.slice(0, 3).map((d: any) => d.name);
+      const dimListText = topGrowthDims.join(', ');
+      
+      slide2.addShape('rect', { x: 0.5, y: 2.3, w: 9, h: 0.9, fill: { color: 'EDE9FE' }, rounding: true });
+      if (nextTierUp && pointsToNextTier) {
+        let tierText = `${pointsToNextTier} points from ${nextTierUp.name} tier`;
+        if (nextTierUp.name !== 'Exemplary') {
+          tierText += ` · ${90 - (compositeScore || 0)} points from Exemplary`;
+        }
+        slide2.addText(tierText, { x: 0.7, y: 2.4, w: 8.6, h: 0.35, fontSize: 13, color: '5B21B6', bold: true });
+      } else {
+        slide2.addText('Exemplary tier achieved', { x: 0.7, y: 2.4, w: 8.6, h: 0.35, fontSize: 13, color: '5B21B6', bold: true });
+      }
+      slide2.addText(`Targeted improvements in ${dimListText} could elevate your standing.`, { x: 0.7, y: 2.75, w: 8.6, h: 0.35, fontSize: 10, color: '7C3AED' });
+      
+      // Benchmark comparison
+      slide2.addText('Benchmark Comparison', { x: 0.5, y: 3.4, w: 4, h: 0.4, fontSize: 14, color: colors.dark, bold: true });
+      
+      const benchmarkData = [
+        { label: 'Your Score', value: compositeScore || 0, color: scoreColor },
+        { label: 'Cohort Average', value: benchmarks?.compositeScore || 65, color: colors.medium },
+        { label: 'Industry Median', value: benchmarks?.industryMedian || 60, color: '94A3B8' },
+        { label: 'Best-in-Class', value: benchmarks?.bestInClass || 85, color: colors.green },
+      ];
+      
+      benchmarkData.forEach((b, i) => {
+        const yPos = 3.9 + (i * 0.45);
+        slide2.addText(b.label, { x: 0.5, y: yPos, w: 2, h: 0.35, fontSize: 11, color: colors.medium });
+        slide2.addShape('rect', { x: 2.5, y: yPos + 0.05, w: 4, h: 0.25, fill: { color: colors.light }, rounding: true });
+        slide2.addShape('rect', { x: 2.5, y: yPos + 0.05, w: (b.value / 100) * 4, h: 0.25, fill: { color: b.color }, rounding: true });
+        slide2.addText(String(b.value), { x: 6.6, y: yPos, w: 0.6, h: 0.35, fontSize: 11, color: b.color, bold: true });
+      });
+
+      // ============ SLIDE 3: DIMENSION PERFORMANCE ============
+      const slide3 = pptx.addSlide();
+      slide3.addText('Dimension Performance Overview', { x: 0.5, y: 0.3, w: 9, h: 0.5, fontSize: 24, color: colors.dark, bold: true });
+      
+      // Table header
+      const tableHeader = [
+        { text: '#', options: { bold: true, fill: { color: colors.dark }, color: colors.white, align: 'center' } },
+        { text: 'Dimension', options: { bold: true, fill: { color: colors.dark }, color: colors.white } },
+        { text: 'Wt%', options: { bold: true, fill: { color: colors.dark }, color: colors.white, align: 'center' } },
+        { text: 'Score', options: { bold: true, fill: { color: colors.dark }, color: colors.white, align: 'center' } },
+        { text: 'Tier', options: { bold: true, fill: { color: colors.dark }, color: colors.white, align: 'center' } },
+      ];
+      
+      const sortedDims = [...dimensionAnalysis].sort((a: any, b: any) => b.weight - a.weight);
+      const tableRows = sortedDims.map((d: any) => [
+        { text: `D${d.dim}`, options: { align: 'center', fontSize: 9 } },
+        { text: d.name, options: { fontSize: 9 } },
+        { text: `${d.weight}%`, options: { align: 'center', fontSize: 9 } },
+        { text: String(d.score), options: { align: 'center', fontSize: 9, bold: true, color: getTierColorHex(d.score) } },
+        { text: d.tier.name, options: { align: 'center', fontSize: 8 } },
+      ]);
+      
+      slide3.addTable([tableHeader, ...tableRows], {
+        x: 0.5, y: 0.9, w: 9, h: 4.5,
+        colW: [0.5, 4.5, 0.7, 0.8, 1.2],
+        fontSize: 10,
+        border: { pt: 0.5, color: 'E2E8F0' },
+        rowH: 0.32,
+      });
+
+      // ============ SLIDE 4: STRATEGIC PRIORITY MATRIX ============
+      const slide4 = pptx.addSlide();
+      slide4.addText('Strategic Priority Matrix', { x: 0.5, y: 0.3, w: 9, h: 0.5, fontSize: 24, color: colors.dark, bold: true });
+      slide4.addText('Dimensions plotted by performance score (x-axis) vs strategic weight (y-axis)', { x: 0.5, y: 0.75, w: 9, h: 0.3, fontSize: 11, color: colors.medium });
+      
+      // Try to capture matrix as image
+      if (matrixRef.current && (window as any).html2canvas) {
+        try {
+          const canvas = await (window as any).html2canvas(matrixRef.current, { 
+            scale: 2, 
+            backgroundColor: '#FFFFFF',
+            logging: false 
+          });
+          const imgData = canvas.toDataURL('image/png');
+          slide4.addImage({ data: imgData, x: 0.3, y: 1.1, w: 9.4, h: 4.2 });
+        } catch (e) {
+          // Fallback: create simplified text-based matrix representation
+          slide4.addText('Matrix visualization - see PDF export for full chart', { x: 0.5, y: 2.5, w: 9, h: 0.5, align: 'center', fontSize: 14, color: colors.medium, italic: true });
+          
+          // Add quadrant labels
+          slide4.addShape('rect', { x: 0.5, y: 1.3, w: 4.3, h: 0.4, fill: { color: 'FEE2E2' }, rounding: true });
+          slide4.addText('PRIORITY GAPS', { x: 0.5, y: 1.35, w: 4.3, h: 0.3, align: 'center', fontSize: 10, color: '991B1B', bold: true });
+          
+          slide4.addShape('rect', { x: 5, y: 1.3, w: 4.3, h: 0.4, fill: { color: 'D1FAE5' }, rounding: true });
+          slide4.addText('CORE STRENGTHS', { x: 5, y: 1.35, w: 4.3, h: 0.3, align: 'center', fontSize: 10, color: '065F46', bold: true });
+        }
+      }
+      
+      // Legend at bottom
+      const legendY = 5.5;
+      dimensionAnalysis.slice(0, 7).forEach((d: any, i: number) => {
+        const xPos = 0.5 + (i * 1.35);
+        slide4.addShape('rect', { x: xPos, y: legendY, w: 0.25, h: 0.25, fill: { color: getTierColorHex(d.score) }, rounding: true });
+        slide4.addText(`${d.dim}`, { x: xPos + 0.3, y: legendY, w: 1, h: 0.25, fontSize: 8, color: colors.dark });
+      });
+      dimensionAnalysis.slice(7, 13).forEach((d: any, i: number) => {
+        const xPos = 0.5 + (i * 1.35);
+        slide4.addShape('rect', { x: xPos, y: legendY + 0.35, w: 0.25, h: 0.25, fill: { color: getTierColorHex(d.score) }, rounding: true });
+        slide4.addText(`${d.dim}`, { x: xPos + 0.3, y: legendY + 0.35, w: 1, h: 0.25, fontSize: 8, color: colors.dark });
+      });
+
+      // ============ SLIDE 5: AREAS OF EXCELLENCE & GROWTH ============
+      const slide5 = pptx.addSlide();
+      slide5.addText('Areas of Excellence & Growth Opportunities', { x: 0.5, y: 0.3, w: 9, h: 0.5, fontSize: 24, color: colors.dark, bold: true });
+      
+      // Excellence column
+      slide5.addShape('rect', { x: 0.5, y: 0.9, w: 4.3, h: 0.5, fill: { color: '059669' }, rounding: true });
+      slide5.addText('Areas of Excellence', { x: 0.5, y: 0.95, w: 4.3, h: 0.4, align: 'center', fontSize: 14, color: colors.white, bold: true });
+      
+      strengthDimensions.slice(0, 4).forEach((d: any, i: number) => {
+        const yPos = 1.5 + (i * 1);
+        slide5.addText(d.name, { x: 0.6, y: yPos, w: 4, h: 0.3, fontSize: 12, color: colors.dark, bold: true });
+        slide5.addText(String(d.score), { x: 4.3, y: yPos, w: 0.5, h: 0.3, fontSize: 12, color: colors.green, bold: true, align: 'right' });
+        const strengths = d.strengths.slice(0, 2).map((s: any) => `✓ ${s.name}`).join('\n');
+        slide5.addText(strengths || 'Building capabilities', { x: 0.6, y: yPos + 0.3, w: 4, h: 0.6, fontSize: 9, color: colors.medium });
+      });
+      
+      // Growth column
+      slide5.addShape('rect', { x: 5.2, y: 0.9, w: 4.3, h: 0.5, fill: { color: 'D97706' }, rounding: true });
+      slide5.addText('Growth Opportunities', { x: 5.2, y: 0.95, w: 4.3, h: 0.4, align: 'center', fontSize: 14, color: colors.white, bold: true });
+      
+      allDimensionsByScore.slice(0, 4).forEach((d: any, i: number) => {
+        const yPos = 1.5 + (i * 1);
+        slide5.addText(d.name, { x: 5.3, y: yPos, w: 4, h: 0.3, fontSize: 12, color: colors.dark, bold: true });
+        slide5.addText(String(d.score), { x: 9, y: yPos, w: 0.5, h: 0.3, fontSize: 12, color: colors.amber, bold: true, align: 'right' });
+        const gaps = d.needsAttention.slice(0, 2).map((g: any) => `• ${g.name}`).join('\n');
+        slide5.addText(gaps || 'Focus on planned initiatives', { x: 5.3, y: yPos + 0.3, w: 4, h: 0.6, fontSize: 9, color: colors.medium });
+      });
+
+      // ============ SLIDE 6: IMPLEMENTATION ROADMAP ============
+      const slide6 = pptx.addSlide();
+      slide6.addText('Implementation Roadmap', { x: 0.5, y: 0.3, w: 9, h: 0.5, fontSize: 24, color: colors.dark, bold: true });
+      slide6.addText('Phased approach to strengthen your cancer support ecosystem', { x: 0.5, y: 0.75, w: 9, h: 0.3, fontSize: 11, color: colors.medium });
+      
+      // Phase boxes
+      const phases = [
+        { title: 'Quick Wins', subtitle: 'Immediate impact', color: colors.dark, items: quickWinItems },
+        { title: 'Foundation', subtitle: '6-12 months', color: '475569', items: foundationItems },
+        { title: 'Long-Term', subtitle: '12+ months', color: '64748B', items: excellenceItems },
+      ];
+      
+      phases.forEach((phase, i) => {
+        const xPos = 0.5 + (i * 3.1);
+        slide6.addShape('rect', { x: xPos, y: 1.2, w: 2.9, h: 0.7, fill: { color: phase.color }, rounding: true });
+        slide6.addText(phase.title, { x: xPos, y: 1.25, w: 2.9, h: 0.4, align: 'center', fontSize: 14, color: colors.white, bold: true });
+        slide6.addText(phase.subtitle, { x: xPos, y: 1.6, w: 2.9, h: 0.25, align: 'center', fontSize: 10, color: 'CBD5E1' });
+        
+        slide6.addShape('rect', { x: xPos, y: 2, w: 2.9, h: 3.3, fill: { color: colors.light }, line: { color: 'E2E8F0', pt: 1 }, rounding: true });
+        
+        const itemText = phase.items.slice(0, 4).map((item: any) => `• ${item.name}`).join('\n') || '• Focus on core initiatives';
+        slide6.addText(itemText, { x: xPos + 0.15, y: 2.15, w: 2.6, h: 3, fontSize: 9, color: colors.dark, valign: 'top' });
+      });
+
+      // ============ SLIDE 7: HOW CAC CAN HELP ============
+      const slide7 = pptx.addSlide();
+      slide7.addShape('rect', { x: 0, y: 0, w: '100%', h: 1.2, fill: { color: colors.dark } });
+      slide7.addText('How Cancer and Careers Can Help', { x: 0.5, y: 0.35, w: 9, h: 0.5, fontSize: 24, color: colors.white, bold: true });
+      
+      slide7.addText(
+        'Every organization enters this work from a different place. Cancer and Careers consulting practice helps organizations understand where they are, identify where they want to be, and build a realistic path to get there—shaped by two decades of frontline experience.',
+        { x: 0.5, y: 1.5, w: 9, h: 0.8, fontSize: 12, color: colors.medium }
+      );
+      
+      const services = [
+        { title: 'For Your HR & Benefits Team', items: ['Policy gap analysis', 'Benefits benchmarking', 'Manager training programs'] },
+        { title: 'Supportive Resources for Employees', items: ['Educational materials', 'Navigation support', 'Peer support networks'] },
+      ];
+      
+      services.forEach((svc, i) => {
+        const xPos = 0.5 + (i * 4.7);
+        slide7.addText(svc.title, { x: xPos, y: 2.5, w: 4.3, h: 0.4, fontSize: 14, color: colors.dark, bold: true });
+        svc.items.forEach((item, j) => {
+          slide7.addText(`✓ ${item}`, { x: xPos, y: 2.95 + (j * 0.35), w: 4.3, h: 0.3, fontSize: 11, color: colors.medium });
+        });
+      });
+      
+      // Contact info
+      slide7.addShape('rect', { x: 0.5, y: 4.5, w: 9, h: 1, fill: { color: 'F5F3FF' }, rounding: true });
+      slide7.addText('Ready to take the next step?', { x: 0.7, y: 4.6, w: 8.6, h: 0.35, fontSize: 14, color: '5B21B6', bold: true });
+      slide7.addText('Contact us at consulting@cancerandcareers.org to schedule a consultation.', { x: 0.7, y: 4.95, w: 8.6, h: 0.35, fontSize: 11, color: '7C3AED' });
+
+      // Save the presentation
+      const filename = `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_Cancer_Support_Report.pptx`;
+      await pptx.writeFile({ fileName: filename });
+      
+      setExportingPPT(false);
+      
+    } catch (err) {
+      console.error('PPT export error:', err);
+      alert('PowerPoint export failed. Please try again.');
+      setExportingPPT(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -876,30 +1186,56 @@ export default function CompanyReportPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             Back to Scoring
           </button>
-          <button 
-            onClick={handleExportPDF} 
-            disabled={exporting}
-            className={`px-5 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
-              exporting 
-                ? 'bg-slate-400 text-slate-200 cursor-wait' 
-                : 'bg-slate-800 hover:bg-slate-700 text-white'
-            }`}
-          >
-            {exporting ? (
-              <>
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Generating PDF...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                Export PDF
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleExportPPT} 
+              disabled={exportingPPT}
+              className={`px-5 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
+                exportingPPT 
+                  ? 'bg-orange-300 text-orange-100 cursor-wait' 
+                  : 'bg-orange-500 hover:bg-orange-600 text-white'
+              }`}
+            >
+              {exportingPPT ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating PPT...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  Export PowerPoint
+                </>
+              )}
+            </button>
+            <button 
+              onClick={handleExportPDF} 
+              disabled={exporting}
+              className={`px-5 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
+                exporting 
+                  ? 'bg-slate-400 text-slate-200 cursor-wait' 
+                  : 'bg-slate-800 hover:bg-slate-700 text-white'
+              }`}
+            >
+              {exporting ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating PDF...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  Export PDF
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1155,7 +1491,9 @@ export default function CompanyReportPage() {
             <h3 className="font-semibold text-slate-900">Strategic Priority Matrix</h3>
             <p className="text-sm text-slate-500 mt-1">Dimensions plotted by current performance versus strategic weight. Hover over any dimension for details.</p>
           </div>
-          <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
+          <div ref={matrixRef}>
+            <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
+          </div>
         </div>
 
         {/* ============ AREAS OF EXCELLENCE & GROWTH - WITH COLORED HEADERS ============ */}
@@ -1289,7 +1627,7 @@ export default function CompanyReportPage() {
                       {/* Gaps & Needs Attention - includes gaps, assessing, unsure, and any other non-offered items */}
                       <div className="border border-red-200 rounded-lg overflow-hidden">
                         <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                          <h5 className="font-semibold text-red-800 text-sm">Focus Areas ({d.needsAttention.length})</h5>
+                          <h5 className="font-semibold text-red-800 text-sm">Needs Attention ({d.needsAttention.length})</h5>
                         </div>
                         <div className="p-4 bg-white max-h-64 overflow-y-auto">
                           {d.needsAttention.length > 0 ? (
