@@ -2,19 +2,18 @@
   command = "npm run build"
   publish = ".next"
 
-[build.environment]
-  SECRETS_SCAN_OMIT_PATHS = ".env.local,.netlify/**"
+[functions]
+  # Extend timeout for export functions (requires Pro plan for >10s)
+  # Free: 10s, Pro: 26s, Enterprise: 60s
+  directory = "netlify/functions"
+
+[functions."export-pptx"]
+  # PPT export needs more time for screenshots
+  external_node_modules = ["pptxgenjs"]
+
+[functions."export-pdf"]
+  # PDF export via Browserless
+  external_node_modules = []
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "zisi"
-  included_files = ["node_modules/@sparticuz/chromium/**"]
-
-[functions."export-pdf"]
-  timeout = 60
-
-[functions."export-pptx"]
-  timeout = 60
