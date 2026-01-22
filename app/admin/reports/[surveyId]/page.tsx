@@ -398,7 +398,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 </g>
               ))}
               <text x={PLOT_WIDTH/2} y="34" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-                PERFORMANCE SCORE →
+                PERFORMANCE SCORE â†’
               </text>
             </g>
             
@@ -417,7 +417,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             
             {/* Y-axis label */}
             <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-              ↑ STRATEGIC IMPORTANCE
+              â†‘ STRATEGIC IMPORTANCE
             </text>
           </g>
         </svg>
@@ -485,8 +485,6 @@ export default function CompanyReportPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [exporting, setExporting] = useState(false);
-  const [exportingPPT, setExportingPPT] = useState(false);
   const [company, setCompany] = useState<any>(null);
   const [benchmarks, setBenchmarks] = useState<any>(null);
   const [companyScores, setCompanyScores] = useState<any>(null);
@@ -691,177 +689,15 @@ export default function CompanyReportPage() {
     }));
   }
 
-  async function handleExportPDF() {
-    setExporting(true);
-    
-    try {
-      // Dynamically load html2pdf.js if not loaded
-      if (typeof window !== 'undefined' && !(window as any).html2pdf) {
-        try {
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error('Failed to load PDF library'));
-            document.head.appendChild(script);
-            setTimeout(() => reject(new Error('Timeout loading PDF library')), 5000);
-          });
-          await new Promise(r => setTimeout(r, 200));
-        } catch (loadErr) {
-          console.error('Could not load PDF library, falling back to print:', loadErr);
-          setExporting(false);
-          window.print();
-          return;
-        }
-      }
-      
-      const element = printRef.current;
-      if (!element) {
-        alert('Unable to find report content');
-        setExporting(false);
-        return;
-      }
-      
-      // Add export mode to fix scroll containers, sticky elements, etc.
-      document.body.classList.add('export-mode');
-      await waitForFonts();
-      await waitForImages(element);
-      
-      const filename = `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_Cancer_Support_Report.pdf`;
-      
-      const opt = {
-        margin: [0.3, 0.3, 0.3, 0.3],
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#FFFFFF',
-          windowWidth: 1100,
-          scrollY: 0
-        },
-        jsPDF: { 
-          unit: 'in', 
-          format: 'letter', 
-          orientation: 'portrait'
-        },
-        pagebreak: { 
-          mode: ['css', 'avoid-all'],
-          before: '.pdf-break-before',
-          avoid: '.pdf-no-break'
-        }
-      };
-      
-      // Use promise chain
-      (window as any).html2pdf()
-        .set(opt)
-        .from(element)
-        .save()
-        .then(() => {
-          document.body.classList.remove('export-mode');
-          setExporting(false);
-        })
-        .catch((err: any) => {
-          console.error('PDF error:', err);
-          document.body.classList.remove('export-mode');
-          setExporting(false);
-          window.print();
-        });
-        
-    } catch (err) {
-      console.error('PDF export error:', err);
-      document.body.classList.remove('export-mode');
-      setExporting(false);
-      window.print();
-    }
-  }
-
   // ============================================
-  // POWERPOINT EXPORT - DOM → PNG → PPT METHOD
+  // SERVER-SIDE EXPORT (Netlify Functions)
   // ============================================
-  async function handleExportPPT() {
-    setExportingPPT(true);
-    
-    try {
-      // Load PptxGenJS
-      if (!(window as any).PptxGenJS) {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js';
-        document.head.appendChild(script);
-        await new Promise(r => setTimeout(r, 1500));
-      }
-      
-      // Load html2canvas
-      if (!(window as any).html2canvas) {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-        document.head.appendChild(script);
-        await new Promise(r => setTimeout(r, 1000));
-      }
-      
-      // Add export mode class to fix scroll containers, sticky elements, etc.
-      document.body.classList.add('export-mode');
-      
-      await waitForFonts();
-      
-      const pptx = new (window as any).PptxGenJS();
-      pptx.layout = 'LAYOUT_16x9';
-      pptx.title = (companyName || 'Company') + ' - Cancer Support Assessment';
-      pptx.author = 'Cancer and Careers';
-      
-      // Find all PPT slide sections
-      const slideNodes = Array.from(document.querySelectorAll('.ppt-slide')) as HTMLElement[];
-      
-      if (slideNodes.length === 0) {
-        throw new Error('No .ppt-slide sections found');
-      }
-      
-      // Capture each slide section as an image
-      for (const node of slideNodes) {
-        await waitForImages(node);
-        
-        // Small delay to ensure rendering is complete
-        await new Promise(r => setTimeout(r, 100));
-        
-        const canvas = await (window as any).html2canvas(node, {
-          scale: 2,
-          backgroundColor: '#FFFFFF',
-          logging: false,
-          scrollY: 0
-        });
-        
-        const slide = pptx.addSlide();
-        slide.addImage({
-          data: canvas.toDataURL('image/png'),
-          x: 0,
-          y: 0,
-          w: 13.333, // full 16:9 width in inches for LAYOUT_16x9
-          h: 7.5
-        });
-      }
-      
-      const fileName = ((companyName || 'Company').replace(/[^a-zA-Z0-9]/g, '_')) + '_Report.pptx';
-      await pptx.writeFile({ fileName });
-      
-    } catch (e) {
-      console.error('PPT export error:', e);
-      alert('PowerPoint export failed: ' + (e as Error).message);
-    } finally {
-      document.body.classList.remove('export-mode');
-      setExportingPPT(false);
-    }
-  }
-
-  // ============================================
-  // SERVER-SIDE EXPORT (Netlify Functions) - More Reliable
-  // ============================================
-  function handleServerExportPDF() {
+  function handleExportPDF() {
     const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(surveyId)}`;
     window.open(url, '_blank');
   }
 
-  function handleServerExportPPT() {
+  function handleExportPPT() {
     const url = `/.netlify/functions/export-pptx?surveyId=${encodeURIComponent(surveyId)}`;
     window.open(url, '_blank');
   }
@@ -1051,75 +887,20 @@ export default function CompanyReportPage() {
             Back to Scoring
           </button>
           <div className="flex items-center gap-3">
-            {/* Client-side exports */}
             <button 
-              onClick={handleExportPPT} 
-              disabled={exportingPPT}
-              className={`px-5 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
-                exportingPPT 
-                  ? 'bg-orange-300 text-orange-100 cursor-wait' 
-                  : 'bg-orange-500 hover:bg-orange-600 text-white'
-              }`}
+              onClick={handleExportPPT}
+              className="px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-colors bg-orange-500 hover:bg-orange-600 text-white"
             >
-              {exportingPPT ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Generating PPT...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                  Export PPT
-                </>
-              )}
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              Export PPT
             </button>
             <button 
-              onClick={handleExportPDF} 
-              disabled={exporting}
-              className={`px-5 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
-                exporting 
-                  ? 'bg-slate-400 text-slate-200 cursor-wait' 
-                  : 'bg-slate-800 hover:bg-slate-700 text-white'
-              }`}
+              onClick={handleExportPDF}
+              className="px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-colors bg-slate-800 hover:bg-slate-700 text-white"
             >
-              {exporting ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Generating PDF...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                  Export PDF
-                </>
-              )}
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              Export PDF
             </button>
-            {/* Server-side exports (more reliable - requires Netlify Functions setup) */}
-            <div className="border-l border-slate-300 pl-3 flex items-center gap-2">
-              <span className="text-xs text-slate-400">Server:</span>
-              <button 
-                onClick={handleServerExportPPT}
-                className="px-3 py-2 rounded-lg text-sm font-medium bg-violet-500 hover:bg-violet-600 text-white flex items-center gap-1"
-                title="Server-side export (more reliable)"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" /></svg>
-                PPT
-              </button>
-              <button 
-                onClick={handleServerExportPDF}
-                className="px-3 py-2 rounded-lg text-sm font-medium bg-violet-700 hover:bg-violet-800 text-white flex items-center gap-1"
-                title="Server-side export (more reliable)"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" /></svg>
-                PDF
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -1163,7 +944,7 @@ export default function CompanyReportPage() {
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <p className="text-slate-500 text-sm">Composite Score</p>
-                  <p className="text-5xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
+                  <p className="text-5xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? 'â€”'}</p>
                 </div>
                 {tier && (
                   <div className={`px-5 py-3 rounded-lg ${tier.bgColor} border ${tier.borderColor}`}>
@@ -1209,7 +990,7 @@ export default function CompanyReportPage() {
                         <p className="text-sm font-semibold text-violet-800">
                           {pointsToNextTier} points from {nextTierUp.name} tier
                           {nextTierUp.name !== 'Exemplary' && (
-                            <span className="text-violet-600 font-normal"> · {90 - (compositeScore || 0)} points from Exemplary</span>
+                            <span className="text-violet-600 font-normal"> Â· {90 - (compositeScore || 0)} points from Exemplary</span>
                           )}
                         </p>
                         <p className="text-xs text-violet-600 mt-1">Targeted improvements in {dimList} could elevate your overall standing.</p>
@@ -1289,7 +1070,7 @@ export default function CompanyReportPage() {
                 { label: 'Support Breadth', score: breadthScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.breadth}%` },
               ].map((item, idx) => (
                 <div key={idx} className={`text-center ${item.isTotal ? 'bg-slate-50 rounded-lg p-4 border-2 border-slate-200' : ''}`}>
-                  <p className="text-4xl font-bold" style={{ color: getScoreColor(item.score ?? 0) }}>{item.score ?? '—'}</p>
+                  <p className="text-4xl font-bold" style={{ color: getScoreColor(item.score ?? 0) }}>{item.score ?? 'â€”'}</p>
                   <p className="text-sm text-slate-600 mt-2">{item.label}</p>
                   {item.weight && <p className="text-xs text-slate-400">Weight: {item.weight}</p>}
                 </div>
@@ -1349,7 +1130,7 @@ export default function CompanyReportPage() {
                             <span className="text-xs text-slate-500">{d.benchmark}</span>
                             <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff >= 0 ? '+' : ''}{diff})</span>
                           </>
-                        ) : <span className="text-xs text-slate-400">—</span>}
+                        ) : <span className="text-xs text-slate-400">â€”</span>}
                       </td>
                       <td className="py-2.5 text-center">
                         <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>{d.tier.name}</span>
@@ -1701,7 +1482,7 @@ export default function CompanyReportPage() {
             <p className="text-slate-600 mb-6 leading-relaxed">
               Every organization enters this work from a different place. Cancer and Careers consulting practice 
               helps organizations understand where they are, identify where they want to be, and build a realistic 
-              path to get there—shaped by two decades of frontline experience with employees navigating cancer 
+              path to get thereâ€”shaped by two decades of frontline experience with employees navigating cancer 
               and the HR teams supporting them.
             </p>
             
@@ -1709,33 +1490,33 @@ export default function CompanyReportPage() {
               <div className="border border-slate-200 rounded-lg p-5">
                 <h4 className="font-semibold text-slate-800 text-sm mb-3">Manager Preparedness & Training</h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>• Live training sessions with case studies</li>
-                  <li>• Manager toolkit and conversation guides</li>
-                  <li>• Train the trainer programs</li>
+                  <li>â€¢ Live training sessions with case studies</li>
+                  <li>â€¢ Manager toolkit and conversation guides</li>
+                  <li>â€¢ Train the trainer programs</li>
                 </ul>
               </div>
               <div className="border border-slate-200 rounded-lg p-5">
                 <h4 className="font-semibold text-slate-800 text-sm mb-3">Navigation & Resource Architecture</h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>• Resource audit and gap analysis</li>
-                  <li>• Single entry point design</li>
-                  <li>• Communication strategy</li>
+                  <li>â€¢ Resource audit and gap analysis</li>
+                  <li>â€¢ Single entry point design</li>
+                  <li>â€¢ Communication strategy</li>
                 </ul>
               </div>
               <div className="border border-slate-200 rounded-lg p-5">
                 <h4 className="font-semibold text-slate-800 text-sm mb-3">Return to Work Excellence</h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>• Phased return protocols</li>
-                  <li>• Check-in cadence design</li>
-                  <li>• Career continuity planning</li>
+                  <li>â€¢ Phased return protocols</li>
+                  <li>â€¢ Check-in cadence design</li>
+                  <li>â€¢ Career continuity planning</li>
                 </ul>
               </div>
               <div className="border border-slate-200 rounded-lg p-5">
                 <h4 className="font-semibold text-slate-800 text-sm mb-3">Policy & Program Assessment</h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>• Comprehensive policy review</li>
-                  <li>• Implementation audit</li>
-                  <li>• Business case development</li>
+                  <li>â€¢ Comprehensive policy review</li>
+                  <li>â€¢ Implementation audit</li>
+                  <li>â€¢ Business case development</li>
                 </ul>
               </div>
             </div>
@@ -1773,10 +1554,10 @@ export default function CompanyReportPage() {
               <div>
                 <p className="font-medium text-slate-700 mb-2">Performance Tiers</p>
                 <p className="leading-relaxed">
-                  <span style={{ color: '#5B21B6' }} className="font-medium">Exemplary</span> (90+) · 
-                  <span style={{ color: '#047857' }} className="font-medium"> Leading</span> (75-89) · 
-                  <span style={{ color: '#1D4ED8' }} className="font-medium"> Progressing</span> (60-74) · 
-                  <span style={{ color: '#B45309' }} className="font-medium"> Emerging</span> (40-59) · 
+                  <span style={{ color: '#5B21B6' }} className="font-medium">Exemplary</span> (90+) Â· 
+                  <span style={{ color: '#047857' }} className="font-medium"> Leading</span> (75-89) Â· 
+                  <span style={{ color: '#1D4ED8' }} className="font-medium"> Progressing</span> (60-74) Â· 
+                  <span style={{ color: '#B45309' }} className="font-medium"> Emerging</span> (40-59) Â· 
                   <span style={{ color: '#B91C1C' }} className="font-medium"> Developing</span> (&lt;40)
                 </p>
               </div>
@@ -1830,7 +1611,7 @@ export default function CompanyReportPage() {
             <div style={{ background: '#EDE9FE', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
               <p style={{ fontSize: '16px', fontWeight: 600, color: '#5B21B6', textDecoration: 'none' }}>
                 {nextTierUp && pointsToNextTier 
-                  ? `${pointsToNextTier} points from ${nextTierUp.name}${nextTierUp.name !== 'Exemplary' ? ` · ${90 - (compositeScore || 0)} points from Exemplary` : ''}`
+                  ? `${pointsToNextTier} points from ${nextTierUp.name}${nextTierUp.name !== 'Exemplary' ? ` Â· ${90 - (compositeScore || 0)} points from Exemplary` : ''}`
                   : 'Exemplary tier achieved'}
               </p>
               <p style={{ fontSize: '12px', color: '#7C3AED', marginTop: '4px', textDecoration: 'none' }}>
@@ -1875,28 +1656,28 @@ export default function CompanyReportPage() {
                 <p style={{ fontWeight: 'bold', color: '#991B1B', marginBottom: '10px', textDecoration: 'none' }}>PRIORITY GAPS</p>
                 <p style={{ fontSize: '11px', color: '#7F1D1D', textDecoration: 'none' }}>High weight, lower performance - focus here first</p>
                 {dimensionAnalysis.filter(d => d.weight >= 7 && d.score < 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>â€¢ {d.name} ({d.score})</p>
                 ))}
               </div>
               <div style={{ flex: '1 1 45%', background: '#D1FAE5', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
                 <p style={{ fontWeight: 'bold', color: '#065F46', marginBottom: '10px', textDecoration: 'none' }}>CORE STRENGTHS</p>
                 <p style={{ fontSize: '11px', color: '#047857', textDecoration: 'none' }}>High weight, strong performance - maintain these</p>
                 {dimensionAnalysis.filter(d => d.weight >= 7 && d.score >= 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>â€¢ {d.name} ({d.score})</p>
                 ))}
               </div>
               <div style={{ flex: '1 1 45%', background: '#FEF3C7', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
                 <p style={{ fontWeight: 'bold', color: '#92400E', marginBottom: '10px', textDecoration: 'none' }}>SECONDARY GAPS</p>
                 <p style={{ fontSize: '11px', color: '#B45309', textDecoration: 'none' }}>Lower weight, needs improvement</p>
                 {dimensionAnalysis.filter(d => d.weight < 7 && d.score < 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>â€¢ {d.name} ({d.score})</p>
                 ))}
               </div>
               <div style={{ flex: '1 1 45%', background: '#DBEAFE', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
                 <p style={{ fontWeight: 'bold', color: '#1E40AF', marginBottom: '10px', textDecoration: 'none' }}>MAINTAIN</p>
                 <p style={{ fontSize: '11px', color: '#1D4ED8', textDecoration: 'none' }}>Lower weight, performing well</p>
                 {dimensionAnalysis.filter(d => d.weight < 7 && d.score >= 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>â€¢ {d.name} ({d.score})</p>
                 ))}
               </div>
             </div>
@@ -1913,7 +1694,7 @@ export default function CompanyReportPage() {
                     <div key={d.dim} style={{ marginBottom: '12px' }}>
                       <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
                       {d.strengths.slice(0, 2).map((s: any, i: number) => (
-                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>✓ {s.name}</p>
+                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>âœ“ {s.name}</p>
                       ))}
                     </div>
                   ))}
@@ -1926,7 +1707,7 @@ export default function CompanyReportPage() {
                     <div key={d.dim} style={{ marginBottom: '12px' }}>
                       <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
                       {d.needsAttention.slice(0, 2).map((g: any, i: number) => (
-                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>• {g.name}</p>
+                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>â€¢ {g.name}</p>
                       ))}
                     </div>
                   ))}
@@ -1946,7 +1727,7 @@ export default function CompanyReportPage() {
                 </div>
                 <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
                   {quickWinItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>â€¢ {item.name}</p>
                   ))}
                 </div>
               </div>
@@ -1957,7 +1738,7 @@ export default function CompanyReportPage() {
                 </div>
                 <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
                   {foundationItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>â€¢ {item.name}</p>
                   ))}
                 </div>
               </div>
@@ -1968,7 +1749,7 @@ export default function CompanyReportPage() {
                 </div>
                 <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
                   {excellenceItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>â€¢ {item.name}</p>
                   ))}
                 </div>
               </div>
@@ -1987,15 +1768,15 @@ export default function CompanyReportPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '30px' }}>
                 <div>
                   <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For HR & Benefits Teams</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Policy gap analysis</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Benefits benchmarking</p>
-                  <p style={{ fontSize: '13px', color: '#64748B' }}>✓ Manager training programs</p>
+                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>âœ“ Policy gap analysis</p>
+                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>âœ“ Benefits benchmarking</p>
+                  <p style={{ fontSize: '13px', color: '#64748B' }}>âœ“ Manager training programs</p>
                 </div>
                 <div>
                   <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For Employees</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Educational materials</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Navigation support</p>
-                  <p style={{ fontSize: '13px', color: '#64748B' }}>✓ Peer support networks</p>
+                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>âœ“ Educational materials</p>
+                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>âœ“ Navigation support</p>
+                  <p style={{ fontSize: '13px', color: '#64748B' }}>âœ“ Peer support networks</p>
                 </div>
               </div>
               <div style={{ background: '#F5F3FF', padding: '20px', borderRadius: '8px' }}>
@@ -2014,7 +1795,7 @@ export default function CompanyReportPage() {
                 <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={140} height={45} className="object-contain" />
                 <div className="border-l border-slate-200 pl-6">
                   <p className="text-sm font-medium text-slate-700">Best Companies for Working with Cancer Index</p>
-                  <p className="text-xs text-slate-400">© 2026 Cancer and Careers. All rights reserved.</p>
+                  <p className="text-xs text-slate-400">Â© 2026 Cancer and Careers. All rights reserved.</p>
                 </div>
               </div>
               <div className="text-right">
