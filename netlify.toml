@@ -8,12 +8,10 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[[plugins]]
-  package = "@netlify/plugin-functions-install-core"
-
 [functions]
   directory = "netlify/functions"
-  node_bundler = "esbuild"
+  node_bundler = "zisi"
+  included_files = ["node_modules/@sparticuz/chromium/**"]
 
 [functions."export-pdf"]
   timeout = 60
