@@ -1296,10 +1296,10 @@ export default function ExportReportPage() {
                         <div className="px-4 py-3 bg-red-50 border-b border-red-200">
                           <h5 className="font-semibold text-red-800 text-sm">Improvement Opportunities ({d.needsAttention.length})</h5>
                         </div>
-                        <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                        <div className="p-4 bg-white">
                           {d.needsAttention.length > 0 ? (
                             <ul className="space-y-2">
-                              {d.needsAttention.map((item: any, i: number) => (
+                              {d.needsAttention.slice(0, 6).map((item: any, i: number) => (
                                 <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
                                     item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : item.isUnsure ? 'bg-slate-400' : 'bg-red-400'
@@ -1324,10 +1324,10 @@ export default function ExportReportPage() {
                         <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
                           <h5 className="font-semibold text-blue-800 text-sm">In Development ({d.planning.length})</h5>
                         </div>
-                        <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                        <div className="p-4 bg-white">
                           {d.planning.length > 0 ? (
                             <ul className="space-y-2">
-                              {d.planning.map((item: any, i: number) => (
+                              {d.planning.slice(0, 6).map((item: any, i: number) => (
                                 <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
                                   <span>{item.name}</span>
@@ -1343,10 +1343,10 @@ export default function ExportReportPage() {
                         <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
                           <h5 className="font-semibold text-emerald-800 text-sm">Strengths ({d.strengths.length})</h5>
                         </div>
-                        <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                        <div className="p-4 bg-white">
                           {d.strengths.length > 0 ? (
                             <ul className="space-y-2">
-                              {d.strengths.map((s: any, i: number) => (
+                              {d.strengths.slice(0, 6).map((s: any, i: number) => (
                                 <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
                                   <span>{s.name}</span>
@@ -1537,8 +1537,8 @@ export default function ExportReportPage() {
           </div>
         </div>
 
-        {/* ============ METHODOLOGY ============ */}
-        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        {/* ============ METHODOLOGY & FOOTER ============ */}
+        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-0 pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-200">
             <h3 className="font-semibold text-slate-700 text-sm">Assessment Methodology</h3>
           </div>
@@ -1561,6 +1561,20 @@ export default function ExportReportPage() {
                   <span style={{ color: '#B45309' }} className="font-medium"> Emerging</span> (40-59) · 
                   <span style={{ color: '#B91C1C' }} className="font-medium"> Developing</span> (&lt;40)
                 </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Footer integrated */}
+          <div className="px-10 py-4 border-t border-slate-200 bg-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <p className="text-sm font-medium text-slate-700">Best Companies for Working with Cancer Index</p>
+                <p className="text-xs text-slate-400">© 2026 Cancer and Careers. All rights reserved.</p>
+              </div>
+              <div className="flex items-center gap-4 text-right">
+                <p className="text-xs text-slate-400">Survey ID: {surveyId}</p>
+                <p className="text-xs text-slate-400">Confidential</p>
               </div>
             </div>
           </div>
@@ -1788,24 +1802,7 @@ export default function ExportReportPage() {
           </div>
         </div>
 
-        {/* ============ FOOTER ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-10 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={140} height={45} className="object-contain" />
-                <div className="border-l border-slate-200 pl-6">
-                  <p className="text-sm font-medium text-slate-700">Best Companies for Working with Cancer Index</p>
-                  <p className="text-xs text-slate-400">© 2026 Cancer and Careers. All rights reserved.</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-slate-400">Survey ID: {surveyId}</p>
-                <p className="text-xs text-slate-400">Confidential</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* PPT slides hidden */}
 
       </div>
     </div>
