@@ -1,172 +1,163 @@
 // netlify/functions/export-pptx.js
-//
-// Captures full report using .ppt-break markers for intelligent slide breaks
-// Auto-downloads the result
-//
-
 const PptxGenJS = require("pptxgenjs");
 const { createClient } = require("@supabase/supabase-js");
+
+function json(statusCode, obj) {
+  return {
+    statusCode,
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    body: JSON.stringify(obj),
+  };
+}
 
 exports.handler = async (event) => {
   try {
     const surveyId = event.queryStringParameters?.surveyId;
-    if (!surveyId) {
-      return { statusCode: 400, body: "Missing surveyId" };
-    }
+    if (!surveyId) return json(400, { error: "Missing surveyId" });
 
     const token = process.env.BROWSERLESS_TOKEN;
     const base = process.env.BROWSERLESS_BASE || "https://production-sfo.browserless.io";
-    if (!token) {
-      return { statusCode: 500, body: "Missing BROWSERLESS_TOKEN" };
-    }
+    if (!token) return json(500, { error: "Missing BROWSERLESS_TOKEN env var" });
 
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Supabase env (support both naming conventions)
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY;
     const bucket = process.env.SUPABASE_EXPORT_BUCKET || "exports";
+
     if (!supabaseUrl || !serviceKey) {
-      return { statusCode: 500, body: "Missing Supabase credentials" };
+      return json(500, { error: "Missing SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) or SUPABASE_SERVICE_ROLE_KEY" });
     }
 
     const host = event.headers["x-forwarded-host"] || event.headers.host;
     const proto = event.headers["x-forwarded-proto"] || "https";
     const origin = `${proto}://${host}`;
 
-    // Load the report in export mode
+    // Capture-friendly mode
     const url = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1&mode=pptreport`;
 
-    // Browserless function: capture using .ppt-break markers
     const browserlessFn = [
       "export default async function ({ page, context }) {",
       "  const url = context.url;",
-      "",
-      "  // 16:9 slide dimensions",
+
       "  const W = 1920;",
       "  const H = 1080;",
-      "",
+      "  const REPORT_W = 1700;",
+      "  const LEFT = Math.round((W - REPORT_W) / 2);",
+
       "  await page.setViewport({ width: W, height: H, deviceScaleFactor: 2 });",
       "  await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });",
-      "",
-      "  // Wait for report to render",
-      "  try {",
-      "    await page.waitForSelector('#report-root', { timeout: 30000 });",
-      "  } catch (e) {",
-      "    return { data: { ok: false, error: 'Report not found' }, type: 'application/json' };",
-      "  }",
-      "",
-      "  // Wait for fonts and extra render time",
-      "  try {",
-      "    await page.evaluate(async () => {",
-      "      if (document.fonts && document.fonts.ready) await document.fonts.ready;",
-      "    });",
-      "  } catch (e) {}",
-      "  await new Promise(r => setTimeout(r, 1000));",
-      "",
-      "  // Inject styles for clean capture",
+      "  await page.waitForSelector('#report-root', { timeout: 60000 });",
+
       "  await page.addStyleTag({",
       "    content: [",
-      "      'html, body { margin: 0 !important; padding: 0 !important; background: #f8fafc !important; overflow: hidden !important; }',",
-      "      '.no-print { display: none !important; }',",
-      "      '.sticky, [class*=\"sticky\"], .fixed, nav { position: static !important; }',",
-      "      '.ppt-slides-container, .ppt-slide { display: none !important; }',",
-      "      '#report-root { position: absolute !important; left: 50% !important; transform: translateX(-50%) !important; width: 1700px !important; max-width: 1700px !important; padding: 0 !important; margin: 0 !important; }'",
+      "      'html, body { margin:0 !important; padding:0 !important; background:#fff !important; }',",
+      "      '.no-print { display:none !important; }',",
+      "      '.sticky, [class*=\"sticky\"], .fixed { position: static !important; }',",
+      "      '[class*=\"overflow-y-auto\"], [class*=\"overflow-auto\"] { overflow: visible !important; max-height: none !important; }',",
+      "      '.ppt-slides-container, .ppt-slide { display:none !important; }',",
+      "      '#report-root { width: ' + REPORT_W + 'px !important; max-width: ' + REPORT_W + 'px !important; margin: 0 !important; padding: 12px !important; }'",
       "    ].join('\\n')",
       "  });",
-      "",
-      "  // Find all section break positions",
-      "  const sections = await page.evaluate(() => {",
+
+      "  try {",
+      "    await page.evaluate(async () => { if (document.fonts && document.fonts.ready) await document.fonts.ready; });",
+      "  } catch (e) {}",
+
+      // Collect breakpoints and FILTER out those too close together (prevents duplicate slides)
+      "  const breaks = await page.evaluate(() => {",
       "    const root = document.querySelector('#report-root');",
       "    if (!root) return null;",
-      "",
-      "    // Get all ppt-break elements",
-      "    const breaks = Array.from(root.querySelectorAll('.ppt-break'));",
-      "    if (!breaks.length) return null;",
-      "",
-      "    // Get position and height of each section",
-      "    const sectionData = breaks.map((el, i) => {",
-      "      const rect = el.getBoundingClientRect();",
-      "      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;",
-      "      return {",
-      "        index: i,",
-      "        top: rect.top + scrollTop,",
-      "        height: el.offsetHeight",
-      "      };",
-      "    });",
-      "",
-      "    return {",
-      "      totalHeight: root.scrollHeight,",
-      "      sections: sectionData",
-      "    };",
+      "    const totalHeight = root.scrollHeight;",
+      "    const pts = Array.from(root.querySelectorAll('.ppt-break'))",
+      "      .map(el => el.offsetTop || 0)",
+      "      .filter(v => typeof v === 'number' && v >= 0)",
+      "      .sort((a,b) => a-b);",
+      "    const list = pts.length ? pts : [0];",
+      "    return { totalHeight, pts: Array.from(new Set([0, ...list])).sort((a,b)=>a-b) };",
       "  });",
-      "",
-      "  if (!sections || !sections.sections.length) {",
-      "    return { data: { ok: false, error: 'No sections found' }, type: 'application/json' };",
+      "  if (!breaks || !breaks.totalHeight) return { data: { ok:false, error:'Missing/empty report-root' }, type:'application/json' };",
+
+      // Filter: keep only breakpoints at least ~80% of a slide apart
+      "  const MIN_GAP = Math.round(H * 0.80);",
+      "  const filtered = [];",
+      "  for (const p of breaks.pts) {",
+      "    if (!filtered.length) { filtered.push(p); continue; }",
+      "    if (p - filtered[filtered.length - 1] >= MIN_GAP) filtered.push(p);",
       "  }",
-      "",
-      "  // Create a fixed viewport container",
-      "  await page.evaluate((W, H) => {",
+      "  // Always include the end so we can build sections",
+      "  const tops = filtered;",
+      "  const totalHeight = breaks.totalHeight;",
+
+      // Build merged sections [top, nextTop)
+      "  const sections = tops.map((t, i) => ({",
+      "    top: t,",
+      "    end: (i < tops.length - 1 ? tops[i+1] : totalHeight)",
+      "  }));",
+
+      // Create a fixed camera viewport and shift the report using TOP (not transform) to keep it crisp
+      "  await page.evaluate((LEFT, W, H, REPORT_W) => {",
       "    const root = document.querySelector('#report-root');",
       "    if (!root) return;",
-      "",
-      "    // Create viewport wrapper",
-      "    const viewport = document.createElement('div');",
-      "    viewport.id = '__capture_viewport__';",
-      "    viewport.style.cssText = 'position:fixed; left:0; top:0; width:' + W + 'px; height:' + H + 'px; overflow:hidden; background:#f8fafc; z-index:999999;';",
-      "",
-      "    // Move root into viewport",
-      "    document.body.appendChild(viewport);",
-      "    viewport.appendChild(root);",
-      "",
-      "    // Position root for capture",
+      "    const wrapper = document.createElement('div');",
+      "    wrapper.id = '__ppt_capture_viewport__';",
+      "    wrapper.style.position = 'fixed';",
+      "    wrapper.style.left = '0';",
+      "    wrapper.style.top = '0';",
+      "    wrapper.style.width = W + 'px';",
+      "    wrapper.style.height = H + 'px';",
+      "    wrapper.style.overflow = 'hidden';",
+      "    wrapper.style.background = '#ffffff';",
+      "    wrapper.style.zIndex = '999999';",
+      "    document.documentElement.style.overflow = 'hidden';",
+      "    document.body.style.overflow = 'hidden';",
+      "    document.body.appendChild(wrapper);",
+      "    wrapper.appendChild(root);",
       "    root.style.position = 'absolute';",
-      "    root.style.left = '50%';",
-      "    root.style.transform = 'translateX(-50%)';",
+      "    root.style.left = LEFT + 'px';",
       "    root.style.top = '0px';",
-      "  }, W, H);",
-      "",
-      "  const results = [];",
-      "  const maxSlides = 35;",
-      "",
-      "  // Capture each section",
-      "  for (let i = 0; i < sections.sections.length && results.length < maxSlides; i++) {",
-      "    const section = sections.sections[i];",
-      "    const nextSection = sections.sections[i + 1];",
-      "    const sectionEnd = nextSection ? nextSection.top : sections.totalHeight;",
-      "    const sectionHeight = sectionEnd - section.top;",
-      "",
-      "    // If section fits in one slide, capture it centered",
-      "    if (sectionHeight <= H) {",
-      "      // Center the section vertically in the slide",
-      "      const offset = section.top - Math.max(0, (H - sectionHeight) / 2);",
-      "      await page.evaluate((y) => {",
-      "        const root = document.querySelector('#report-root');",
-      "        if (root) root.style.top = (-y) + 'px';",
-      "      }, Math.max(0, offset));",
-      "",
-      "      await new Promise(r => setTimeout(r, 150));",
-      "      const viewport = await page.$('#__capture_viewport__');",
-      "      const buf = await viewport.screenshot({ type: 'jpeg', quality: 90 });",
-      "      results.push({ index: results.length + 1, section: i, jpegB64: buf.toString('base64') });",
-      "    } else {",
-      "      // Section is taller than one slide - capture in chunks",
-      "      for (let y = section.top; y < sectionEnd && results.length < maxSlides; y += H - 100) {",
-      "        await page.evaluate((yy) => {",
-      "          const root = document.querySelector('#report-root');",
-      "          if (root) root.style.top = (-yy) + 'px';",
-      "        }, y);",
-      "",
-      "        await new Promise(r => setTimeout(r, 150));",
-      "        const viewport = await page.$('#__capture_viewport__');",
-      "        const buf = await viewport.screenshot({ type: 'jpeg', quality: 90 });",
-      "        results.push({ index: results.length + 1, section: i, y: y, jpegB64: buf.toString('base64') });",
-      "      }",
+      "    root.style.width = REPORT_W + 'px';",
+      "    root.style.maxWidth = REPORT_W + 'px';",
+      "    root.style.margin = '0';",
+      "  }, LEFT, W, H, REPORT_W);",
+
+      // Build offsets by section start, then page inside section if section is taller than one slide
+      "  const maxSlides = 40;",
+      "  const offsets = [];",
+      "  for (const s of sections) {",
+      "    for (let y = s.top; y < s.end; y += H) {",
+      "      offsets.push(y);",
+      "      if (offsets.length >= maxSlides) break;",
       "    }",
+      "    if (offsets.length >= maxSlides) break;",
       "  }",
-      "",
-      "  return { data: { ok: true, slideCount: results.length, sectionCount: sections.sections.length, results }, type: 'application/json' };",
+
+      // De-dupe offsets (extra safety)
+      "  const deduped = [];",
+      "  for (const y of offsets) {",
+      "    if (!deduped.length || deduped[deduped.length - 1] !== y) deduped.push(y);",
+      "  }",
+
+      "  const viewport = await page.$('#__ppt_capture_viewport__');",
+      "  if (!viewport) return { data: { ok:false, error:'Missing viewport' }, type:'application/json' };",
+
+      "  const results = [];",
+      "  for (let i = 0; i < deduped.length; i++) {",
+      "    const y = deduped[i];",
+      "    await page.evaluate((yy) => {",
+      "      const root = document.querySelector('#report-root');",
+      "      if (root) root.style.top = (-yy) + 'px';",
+      "    }, y);",
+      "    await new Promise(r => setTimeout(r, 140));",
+      "    const buf = await viewport.screenshot({ type: 'jpeg', quality: 92 });",
+      "    results.push({ index: i+1, y, jpegB64: buf.toString('base64') });",
+      "  }",
+
+      "  return { data: { ok:true, results }, type:'application/json' };",
       "}",
     ].join("\n");
 
-    // Call Browserless
     const capRes = await fetch(`${base}/function?token=${token}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -175,19 +166,19 @@ exports.handler = async (event) => {
 
     if (!capRes.ok) {
       const text = await capRes.text();
-      return { statusCode: 500, body: `Browserless failed: ${text}` };
+      return json(capRes.status, { error: "Browserless function failed", details: text });
     }
 
     const capPayload = await capRes.json();
     const capData = capPayload?.data && typeof capPayload.data === "object" ? capPayload.data : capPayload;
 
-    if (!capData?.ok || !Array.isArray(capData.results) || capData.results.length === 0) {
-      return { statusCode: 500, body: `Capture failed: ${JSON.stringify(capData)}` };
+    if (!capData?.ok || !Array.isArray(capData.results)) {
+      return json(500, { error: "Unexpected Browserless payload", capPayload });
     }
 
     // Build PPTX
     const pptx = new PptxGenJS();
-    pptx.layout = "LAYOUT_WIDE"; // 13.333 x 7.5 inches (16:9)
+    pptx.layout = "LAYOUT_WIDE";
 
     for (const r of capData.results) {
       const slide = pptx.addSlide();
@@ -200,11 +191,11 @@ exports.handler = async (event) => {
       });
     }
 
-    // Write PPTX buffer
+    // Write and upload
     const pptBuffer = await pptx.write("nodebuffer");
-
-    // Upload to Supabase Storage
     const supabase = createClient(supabaseUrl, serviceKey);
+
+    // Upload bucket must exist; if not, you’ll see “bucket not found”
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
     const filePath = `ppt/${surveyId}/Report_${surveyId}_${ts}.pptx`;
 
@@ -216,27 +207,21 @@ exports.handler = async (event) => {
       });
 
     if (up.error) {
-      return { statusCode: 500, body: `Upload failed: ${up.error.message}` };
+      return json(500, { error: "Upload failed", details: up.error.message, bucket });
     }
 
-    // Create signed download URL (1 hour)
     const signed = await supabase.storage.from(bucket).createSignedUrl(filePath, 60 * 60);
     if (signed.error) {
-      return { statusCode: 500, body: `Signed URL failed: ${signed.error.message}` };
+      return json(500, { error: "Signed URL failed", details: signed.error.message });
     }
 
-    // REDIRECT to download URL
     return {
-      statusCode: 302,
-      headers: {
-        Location: signed.data.signedUrl,
-        "Cache-Control": "no-store",
-      },
-      body: "",
+      statusCode: 200,
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+      body: JSON.stringify({ ok: true, downloadUrl: signed.data.signedUrl, filePath }),
     };
-
   } catch (err) {
     console.error(err);
-    return { statusCode: 500, body: `Error: ${err?.message || err}` };
+    return json(500, { error: "PPT export failed", details: String(err?.message || err) });
   }
 };
