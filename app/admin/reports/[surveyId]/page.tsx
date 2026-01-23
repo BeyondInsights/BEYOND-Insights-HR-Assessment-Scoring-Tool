@@ -1,9 +1,14 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import { useParams, useSearchParams } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
+
+// Create Supabase client directly
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // ============================================
 // CONSTANTS
@@ -398,7 +403,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 </g>
               ))}
               <text x={PLOT_WIDTH/2} y="34" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-                PERFORMANCE SCORE â†’
+                PERFORMANCE SCORE →
               </text>
             </g>
             
@@ -417,7 +422,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             
             {/* Y-axis label */}
             <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-              â†‘ STRATEGIC IMPORTANCE
+              ↑ STRATEGIC IMPORTANCE
             </text>
           </g>
         </svg>
@@ -451,7 +456,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         
         {/* Legend - below chart */}
         <div className="mt-3 pt-4 border-t border-slate-200">
-          <div className="grid grid-cols-7 gap-x-2 gap-y-2">
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
             {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
               <div 
                 key={d.dim} 
@@ -462,7 +467,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
                   {d.dim}
                 </span>
-                <span className="text-xs text-slate-700 truncate font-medium">{DIMENSION_SHORT_NAMES[d.dim]}</span>
+                <span className="text-xs text-slate-700 whitespace-nowrap font-medium">{DIMENSION_SHORT_NAMES[d.dim]}</span>
               </div>
             ))}
           </div>
@@ -476,9 +481,15 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
 // MAIN COMPONENT
 // ============================================
 
-export default function CompanyReportPage() {
+export default function ExportReportPage() {
   const params = useParams();
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const exportMode = searchParams?.get('export') === '1';
+  const mode = (searchParams?.get('mode') || '').toLowerCase();
+  const isPdf = exportMode && mode === 'pdf';
+  const isPpt = exportMode && (mode === 'ppt' || mode === 'pptslides');
+  const isPptReport = exportMode && mode === 'pptreport';
+
   const surveyId = Array.isArray(params.surveyId) ? params.surveyId[0] : params.surveyId;
   const printRef = useRef<HTMLDivElement>(null);
   const matrixRef = useRef<HTMLDivElement>(null);
@@ -689,19 +700,6 @@ export default function CompanyReportPage() {
     }));
   }
 
-  // ============================================
-  // SERVER-SIDE EXPORT (Netlify Functions)
-  // ============================================
-  function handleExportPDF() {
-    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(surveyId)}`;
-    window.open(url, '_blank');
-  }
-
-  function handleExportPPT() {
-    const url = `/.netlify/functions/export-pptx?surveyId=${encodeURIComponent(surveyId)}`;
-    window.open(url, '_blank');
-  }
-
 
   if (loading) {
     return (
@@ -719,8 +717,7 @@ export default function CompanyReportPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 text-center max-w-md">
           <p className="text-red-600 text-lg mb-2">{error || 'Unable to generate report'}</p>
-          <p className="text-slate-500 text-sm mb-4">Survey ID: {surveyId || 'not provided'}</p>
-          <button onClick={() => router.push('/admin/scoring')} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700">Return to Scoring</button>
+          <p className="text-slate-500 text-sm">Survey ID: {surveyId || 'not provided'}</p>
         </div>
       </div>
     );
@@ -806,14 +803,62 @@ export default function CompanyReportPage() {
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''}`}>
       <style jsx global>{`
         @media print { 
-          @page { margin: 0.5in; size: letter; } 
-          body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } 
+          @page { margin: 0.4in; size: letter; } 
+          body { 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important;
+          } 
           .no-print { display: none !important; } 
-          .pdf-break-before { page-break-before: always; }
-          .pdf-no-break { page-break-inside: avoid; }
+          .pdf-break-before { page-break-before: always; break-before: page; }
+          .pdf-break-after { page-break-after: always; break-after: page; }
+          .pdf-no-break { 
+            page-break-inside: avoid !important; 
+            break-inside: avoid !important;
+          }
+          
+          /* Force backgrounds to print */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+        
+        /* Browserless PDF capture mode */
+        /* PPT report capture mode: render the full report as a 1280px canvas for scrolling screenshots */
+        .ppt-report-mode {
+          background: #ffffff !important;
+        }
+        .ppt-report-mode .bg-gray-50 {
+          background: #ffffff !important;
+        }
+        .ppt-report-mode #report-root {
+          width: 1280px !important;
+          max-width: 1280px !important;
+          margin: 0 auto !important;
+          padding: 20px !important;
+        }
+
+        .bg-gray-50 {
+          background-color: #f9fafb !important;
+        }
+        
+        /* Force all content sections to avoid page breaks */
+        .rounded-lg {
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+        
+        /* Strategic Priority Matrix - ensure legend is not truncated */
+        .matrix-legend {
+          flex-wrap: wrap !important;
+        }
+        .matrix-legend span {
+          white-space: nowrap !important;
+          overflow: visible !important;
+          text-overflow: clip !important;
         }
         
         /* Export mode: PDF + PPT - fixes scroll containers, stickies, filters */
@@ -850,6 +895,14 @@ export default function CompanyReportPage() {
           background-color: inherit;
         }
         
+
+        /* Hide PPT slide DOM in PDF exports and in pptreport capture */
+        .pdf-export-mode .ppt-slides-container,
+        .pdf-export-mode .ppt-slide,
+        .ppt-report-mode .ppt-slides-container,
+        .ppt-report-mode .ppt-slide {
+          display: none !important;
+        }
         /* PPT slide sections - hidden by default, shown for capture */
         .ppt-slide {
           width: 1280px;
@@ -864,7 +917,7 @@ export default function CompanyReportPage() {
         .ppt-slide * {
           text-decoration: none !important;
         }
-        .export-mode .ppt-slide {
+        .ppt-export-mode .ppt-slide {
           position: relative;
           left: 0;
           margin-bottom: 20px;
@@ -873,37 +926,12 @@ export default function CompanyReportPage() {
           position: absolute;
           left: -9999px;
         }
-        .export-mode .ppt-slides-container {
+        .ppt-export-mode .ppt-slides-container {
           position: relative;
           left: 0;
         }
       `}</style>
 
-      {/* Action Bar */}
-      <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
-          <button onClick={() => router.push('/admin/scoring')} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            Back to Scoring
-          </button>
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={handleExportPPT}
-              className="px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-colors bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              Export PPT
-            </button>
-            <button 
-              onClick={handleExportPDF}
-              className="px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-colors bg-slate-800 hover:bg-slate-700 text-white"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-              Export PDF
-            </button>
-          </div>
-        </div>
-      </div>
 
       <div ref={printRef} id="report-root" className="max-w-6xl mx-auto py-10 px-8">
         
@@ -944,7 +972,7 @@ export default function CompanyReportPage() {
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <p className="text-slate-500 text-sm">Composite Score</p>
-                  <p className="text-5xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? 'â€”'}</p>
+                  <p className="text-5xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
                 </div>
                 {tier && (
                   <div className={`px-5 py-3 rounded-lg ${tier.bgColor} border ${tier.borderColor}`}>
@@ -990,7 +1018,7 @@ export default function CompanyReportPage() {
                         <p className="text-sm font-semibold text-violet-800">
                           {pointsToNextTier} points from {nextTierUp.name} tier
                           {nextTierUp.name !== 'Exemplary' && (
-                            <span className="text-violet-600 font-normal"> Â· {90 - (compositeScore || 0)} points from Exemplary</span>
+                            <span className="text-violet-600 font-normal"> · {90 - (compositeScore || 0)} points from Exemplary</span>
                           )}
                         </p>
                         <p className="text-xs text-violet-600 mt-1">Targeted improvements in {dimList} could elevate your overall standing.</p>
@@ -1070,7 +1098,7 @@ export default function CompanyReportPage() {
                 { label: 'Support Breadth', score: breadthScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.breadth}%` },
               ].map((item, idx) => (
                 <div key={idx} className={`text-center ${item.isTotal ? 'bg-slate-50 rounded-lg p-4 border-2 border-slate-200' : ''}`}>
-                  <p className="text-4xl font-bold" style={{ color: getScoreColor(item.score ?? 0) }}>{item.score ?? 'â€”'}</p>
+                  <p className="text-4xl font-bold" style={{ color: getScoreColor(item.score ?? 0) }}>{item.score ?? '—'}</p>
                   <p className="text-sm text-slate-600 mt-2">{item.label}</p>
                   {item.weight && <p className="text-xs text-slate-400">Weight: {item.weight}</p>}
                 </div>
@@ -1130,7 +1158,7 @@ export default function CompanyReportPage() {
                             <span className="text-xs text-slate-500">{d.benchmark}</span>
                             <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff >= 0 ? '+' : ''}{diff})</span>
                           </>
-                        ) : <span className="text-xs text-slate-400">â€”</span>}
+                        ) : <span className="text-xs text-slate-400">—</span>}
                       </td>
                       <td className="py-2.5 text-center">
                         <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>{d.tier.name}</span>
@@ -1295,10 +1323,10 @@ export default function CompanyReportPage() {
                         <div className="px-4 py-3 bg-red-50 border-b border-red-200">
                           <h5 className="font-semibold text-red-800 text-sm">Improvement Opportunities ({d.needsAttention.length})</h5>
                         </div>
-                        <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                        <div className="p-4 bg-white">
                           {d.needsAttention.length > 0 ? (
                             <ul className="space-y-2">
-                              {d.needsAttention.map((item: any, i: number) => (
+                              {d.needsAttention.slice(0, 6).map((item: any, i: number) => (
                                 <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
                                     item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : item.isUnsure ? 'bg-slate-400' : 'bg-red-400'
@@ -1323,10 +1351,10 @@ export default function CompanyReportPage() {
                         <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
                           <h5 className="font-semibold text-blue-800 text-sm">In Development ({d.planning.length})</h5>
                         </div>
-                        <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                        <div className="p-4 bg-white">
                           {d.planning.length > 0 ? (
                             <ul className="space-y-2">
-                              {d.planning.map((item: any, i: number) => (
+                              {d.planning.slice(0, 6).map((item: any, i: number) => (
                                 <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
                                   <span>{item.name}</span>
@@ -1342,10 +1370,10 @@ export default function CompanyReportPage() {
                         <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
                           <h5 className="font-semibold text-emerald-800 text-sm">Strengths ({d.strengths.length})</h5>
                         </div>
-                        <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                        <div className="p-4 bg-white">
                           {d.strengths.length > 0 ? (
                             <ul className="space-y-2">
-                              {d.strengths.map((s: any, i: number) => (
+                              {d.strengths.slice(0, 6).map((s: any, i: number) => (
                                 <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
                                   <span>{s.name}</span>
@@ -1482,7 +1510,7 @@ export default function CompanyReportPage() {
             <p className="text-slate-600 mb-6 leading-relaxed">
               Every organization enters this work from a different place. Cancer and Careers consulting practice 
               helps organizations understand where they are, identify where they want to be, and build a realistic 
-              path to get thereâ€”shaped by two decades of frontline experience with employees navigating cancer 
+              path to get there—shaped by two decades of frontline experience with employees navigating cancer 
               and the HR teams supporting them.
             </p>
             
@@ -1490,33 +1518,33 @@ export default function CompanyReportPage() {
               <div className="border border-slate-200 rounded-lg p-5">
                 <h4 className="font-semibold text-slate-800 text-sm mb-3">Manager Preparedness & Training</h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>â€¢ Live training sessions with case studies</li>
-                  <li>â€¢ Manager toolkit and conversation guides</li>
-                  <li>â€¢ Train the trainer programs</li>
+                  <li>• Live training sessions with case studies</li>
+                  <li>• Manager toolkit and conversation guides</li>
+                  <li>• Train the trainer programs</li>
                 </ul>
               </div>
               <div className="border border-slate-200 rounded-lg p-5">
                 <h4 className="font-semibold text-slate-800 text-sm mb-3">Navigation & Resource Architecture</h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>â€¢ Resource audit and gap analysis</li>
-                  <li>â€¢ Single entry point design</li>
-                  <li>â€¢ Communication strategy</li>
+                  <li>• Resource audit and gap analysis</li>
+                  <li>• Single entry point design</li>
+                  <li>• Communication strategy</li>
                 </ul>
               </div>
               <div className="border border-slate-200 rounded-lg p-5">
                 <h4 className="font-semibold text-slate-800 text-sm mb-3">Return to Work Excellence</h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>â€¢ Phased return protocols</li>
-                  <li>â€¢ Check-in cadence design</li>
-                  <li>â€¢ Career continuity planning</li>
+                  <li>• Phased return protocols</li>
+                  <li>• Check-in cadence design</li>
+                  <li>• Career continuity planning</li>
                 </ul>
               </div>
               <div className="border border-slate-200 rounded-lg p-5">
                 <h4 className="font-semibold text-slate-800 text-sm mb-3">Policy & Program Assessment</h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>â€¢ Comprehensive policy review</li>
-                  <li>â€¢ Implementation audit</li>
-                  <li>â€¢ Business case development</li>
+                  <li>• Comprehensive policy review</li>
+                  <li>• Implementation audit</li>
+                  <li>• Business case development</li>
                 </ul>
               </div>
             </div>
@@ -1536,8 +1564,8 @@ export default function CompanyReportPage() {
           </div>
         </div>
 
-        {/* ============ METHODOLOGY ============ */}
-        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        {/* ============ METHODOLOGY & FOOTER ============ */}
+        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-0 pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-200">
             <h3 className="font-semibold text-slate-700 text-sm">Assessment Methodology</h3>
           </div>
@@ -1554,251 +1582,24 @@ export default function CompanyReportPage() {
               <div>
                 <p className="font-medium text-slate-700 mb-2">Performance Tiers</p>
                 <p className="leading-relaxed">
-                  <span style={{ color: '#5B21B6' }} className="font-medium">Exemplary</span> (90+) Â· 
-                  <span style={{ color: '#047857' }} className="font-medium"> Leading</span> (75-89) Â· 
-                  <span style={{ color: '#1D4ED8' }} className="font-medium"> Progressing</span> (60-74) Â· 
-                  <span style={{ color: '#B45309' }} className="font-medium"> Emerging</span> (40-59) Â· 
+                  <span style={{ color: '#5B21B6' }} className="font-medium">Exemplary</span> (90+) · 
+                  <span style={{ color: '#047857' }} className="font-medium"> Leading</span> (75-89) · 
+                  <span style={{ color: '#1D4ED8' }} className="font-medium"> Progressing</span> (60-74) · 
+                  <span style={{ color: '#B45309' }} className="font-medium"> Emerging</span> (40-59) · 
                   <span style={{ color: '#B91C1C' }} className="font-medium"> Developing</span> (&lt;40)
                 </p>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ============ PPT SLIDE SECTIONS (hidden, captured for export) ============ */}
-        <div className="ppt-slides-container">
-          {/* SLIDE 1: Title */}
-          <div className="ppt-slide" style={{ background: '#1E293B', color: 'white', padding: '60px' }}>
-            <p style={{ fontSize: '14px', color: '#94A3B8', marginBottom: '8px' }}>PERFORMANCE ASSESSMENT</p>
-            <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>Best Companies for Working with Cancer</h1>
-            <p style={{ fontSize: '16px', color: '#CBD5E1', marginBottom: '60px' }}>Index 2026</p>
-            <h2 style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '40px' }}>{companyName}</h2>
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-              <div style={{ background: getScoreColor(compositeScore || 0), padding: '20px 30px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '48px', fontWeight: 'bold' }}>{compositeScore || 0}</p>
-                <p style={{ fontSize: '12px' }}>Score</p>
-              </div>
-              <div style={{ background: '#374151', padding: '12px 24px', borderRadius: '6px' }}>
-                <p style={{ fontSize: '18px', fontWeight: 600 }}>{tier?.name}</p>
-              </div>
-            </div>
-            <p style={{ position: 'absolute' as const, bottom: '40px', left: '60px', fontSize: '12px', color: '#64748B' }}>
-              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </p>
-          </div>
-
-          {/* SLIDE 2: Executive Summary */}
-          <div className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '30px' }}>Executive Summary</h2>
-            <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
-              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{currentlyOffering}</p>
-                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>of {totalElements} elements offered</p>
-              </div>
-              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{planningItems + assessingItems}</p>
-                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>in development</p>
-              </div>
-              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{gapItems}</p>
-                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>identified gaps</p>
-              </div>
-              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{tierCounts.exemplary + tierCounts.leading}</p>
-                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>at Leading+</p>
-              </div>
-            </div>
-            <div style={{ background: '#EDE9FE', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-              <p style={{ fontSize: '16px', fontWeight: 600, color: '#5B21B6', textDecoration: 'none' }}>
-                {nextTierUp && pointsToNextTier 
-                  ? `${pointsToNextTier} points from ${nextTierUp.name}${nextTierUp.name !== 'Exemplary' ? ` Â· ${90 - (compositeScore || 0)} points from Exemplary` : ''}`
-                  : 'Exemplary tier achieved'}
-              </p>
-              <p style={{ fontSize: '12px', color: '#7C3AED', marginTop: '4px', textDecoration: 'none' }}>
-                Focus areas: {allDimensionsByScore.slice(0, 3).map(d => d.name).join(', ')}
-              </p>
-            </div>
-          </div>
-
-          {/* SLIDE 3: Dimension Performance */}
-          <div className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Dimension Performance</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-              <thead>
-                <tr style={{ background: '#1E293B', color: 'white' }}>
-                  <th style={{ padding: '10px', textAlign: 'left', width: '50px' }}>#</th>
-                  <th style={{ padding: '10px', textAlign: 'left' }}>Dimension</th>
-                  <th style={{ padding: '10px', textAlign: 'center', width: '70px' }}>Weight</th>
-                  <th style={{ padding: '10px', textAlign: 'center', width: '70px' }}>Score</th>
-                  <th style={{ padding: '10px', textAlign: 'left', width: '100px' }}>Tier</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, i) => (
-                  <tr key={d.dim} style={{ background: i % 2 === 0 ? '#F8FAFC' : 'white' }}>
-                    <td style={{ padding: '8px 10px', color: '#64748B', textDecoration: 'none' }}>D{d.dim}</td>
-                    <td style={{ padding: '8px 10px', color: '#1E293B', textDecoration: 'none' }}>{d.name}</td>
-                    <td style={{ padding: '8px 10px', color: '#64748B', textAlign: 'center', textDecoration: 'none' }}>{d.weight}%</td>
-                    <td style={{ padding: '8px 10px', color: getScoreColor(d.score), fontWeight: 'bold', textAlign: 'center', textDecoration: 'none' }}>{d.score}</td>
-                    <td style={{ padding: '8px 10px', color: '#64748B', textDecoration: 'none' }}>{d.tier.name}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* SLIDE 4: Matrix - Static version to avoid oklch color parsing issues */}
-          <div className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '10px', textDecoration: 'none' }}>Strategic Priority Matrix</h2>
-            <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '20px', textDecoration: 'none' }}>Performance vs Strategic Weight</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '15px', marginTop: '20px' }}>
-              <div style={{ flex: '1 1 45%', background: '#FEE2E2', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
-                <p style={{ fontWeight: 'bold', color: '#991B1B', marginBottom: '10px', textDecoration: 'none' }}>PRIORITY GAPS</p>
-                <p style={{ fontSize: '11px', color: '#7F1D1D', textDecoration: 'none' }}>High weight, lower performance - focus here first</p>
-                {dimensionAnalysis.filter(d => d.weight >= 7 && d.score < 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>â€¢ {d.name} ({d.score})</p>
-                ))}
-              </div>
-              <div style={{ flex: '1 1 45%', background: '#D1FAE5', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
-                <p style={{ fontWeight: 'bold', color: '#065F46', marginBottom: '10px', textDecoration: 'none' }}>CORE STRENGTHS</p>
-                <p style={{ fontSize: '11px', color: '#047857', textDecoration: 'none' }}>High weight, strong performance - maintain these</p>
-                {dimensionAnalysis.filter(d => d.weight >= 7 && d.score >= 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>â€¢ {d.name} ({d.score})</p>
-                ))}
-              </div>
-              <div style={{ flex: '1 1 45%', background: '#FEF3C7', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
-                <p style={{ fontWeight: 'bold', color: '#92400E', marginBottom: '10px', textDecoration: 'none' }}>SECONDARY GAPS</p>
-                <p style={{ fontSize: '11px', color: '#B45309', textDecoration: 'none' }}>Lower weight, needs improvement</p>
-                {dimensionAnalysis.filter(d => d.weight < 7 && d.score < 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>â€¢ {d.name} ({d.score})</p>
-                ))}
-              </div>
-              <div style={{ flex: '1 1 45%', background: '#DBEAFE', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
-                <p style={{ fontWeight: 'bold', color: '#1E40AF', marginBottom: '10px', textDecoration: 'none' }}>MAINTAIN</p>
-                <p style={{ fontSize: '11px', color: '#1D4ED8', textDecoration: 'none' }}>Lower weight, performing well</p>
-                {dimensionAnalysis.filter(d => d.weight < 7 && d.score >= 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>â€¢ {d.name} ({d.score})</p>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* SLIDE 5: Strengths & Opportunities */}
-          <div className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Strengths & Opportunities</h2>
-            <div style={{ display: 'flex', gap: '30px' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#059669', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600, textDecoration: 'none' }}>Areas of Excellence</div>
-                <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '350px' }}>
-                  {strengthDimensions.slice(0, 4).map(d => (
-                    <div key={d.dim} style={{ marginBottom: '12px' }}>
-                      <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
-                      {d.strengths.slice(0, 2).map((s: any, i: number) => (
-                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>âœ“ {s.name}</p>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#D97706', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600, textDecoration: 'none' }}>Improvement Opportunities</div>
-                <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '350px' }}>
-                  {allDimensionsByScore.slice(0, 4).map(d => (
-                    <div key={d.dim} style={{ marginBottom: '12px' }}>
-                      <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
-                      {d.needsAttention.slice(0, 2).map((g: any, i: number) => (
-                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>â€¢ {g.name}</p>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SLIDE 6: Roadmap */}
-          <div className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Implementation Roadmap</h2>
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#1E293B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
-                  <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Quick Wins</p>
-                  <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>Immediate</p>
-                </div>
-                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
-                  {quickWinItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>â€¢ {item.name}</p>
-                  ))}
-                </div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#475569', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
-                  <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Foundation</p>
-                  <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>6-12 months</p>
-                </div>
-                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
-                  {foundationItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>â€¢ {item.name}</p>
-                  ))}
-                </div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#64748B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
-                  <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Long-Term</p>
-                  <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>12+ months</p>
-                </div>
-                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
-                  {excellenceItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>â€¢ {item.name}</p>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SLIDE 7: How CAC Can Help */}
-          <div className="ppt-slide" style={{ padding: 0 }}>
-            <div style={{ background: '#1E293B', padding: '30px 40px' }}>
-              <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>How Cancer and Careers Can Help</h2>
-            </div>
-            <div style={{ padding: '30px 40px' }}>
-              <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '30px' }}>
-                Our consulting practice helps organizations understand where they are, identify where they want to be, and build a realistic path to get there.
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '30px' }}>
-                <div>
-                  <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For HR & Benefits Teams</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>âœ“ Policy gap analysis</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>âœ“ Benefits benchmarking</p>
-                  <p style={{ fontSize: '13px', color: '#64748B' }}>âœ“ Manager training programs</p>
-                </div>
-                <div>
-                  <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For Employees</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>âœ“ Educational materials</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>âœ“ Navigation support</p>
-                  <p style={{ fontSize: '13px', color: '#64748B' }}>âœ“ Peer support networks</p>
-                </div>
-              </div>
-              <div style={{ background: '#F5F3FF', padding: '20px', borderRadius: '8px' }}>
-                <p style={{ fontWeight: 600, color: '#5B21B6', fontSize: '16px' }}>Ready to take the next step?</p>
-                <p style={{ fontSize: '13px', color: '#7C3AED' }}>Contact: consulting@cancerandcareers.org</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ============ FOOTER ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-10 py-6">
+          
+          {/* Footer integrated */}
+          <div className="px-10 py-4 border-t border-slate-200 bg-white">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={140} height={45} className="object-contain" />
-                <div className="border-l border-slate-200 pl-6">
-                  <p className="text-sm font-medium text-slate-700">Best Companies for Working with Cancer Index</p>
-                  <p className="text-xs text-slate-400">Â© 2026 Cancer and Careers. All rights reserved.</p>
-                </div>
+              <div className="flex items-center gap-4">
+                <p className="text-sm font-medium text-slate-700">Best Companies for Working with Cancer Index</p>
+                <p className="text-xs text-slate-400">© 2026 Cancer and Careers. All rights reserved.</p>
               </div>
-              <div className="text-right">
+              <div className="flex items-center gap-4 text-right">
                 <p className="text-xs text-slate-400">Survey ID: {surveyId}</p>
                 <p className="text-xs text-slate-400">Confidential</p>
               </div>
@@ -1806,7 +1607,234 @@ export default function CompanyReportPage() {
           </div>
         </div>
 
+        
+
+
+
       </div>
+
+{/* ============ PPT SLIDE SECTIONS (hidden, captured for export) ============ */}
+      <div className="ppt-slides-container">
+        {/* SLIDE 1: Title */}
+        <div id="ppt-slide-1" className="ppt-slide" style={{ background: '#1E293B', color: 'white', padding: '60px' }}>
+          <p style={{ fontSize: '14px', color: '#94A3B8', marginBottom: '8px' }}>PERFORMANCE ASSESSMENT</p>
+          <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>Best Companies for Working with Cancer</h1>
+          <p style={{ fontSize: '16px', color: '#CBD5E1', marginBottom: '60px' }}>Index 2026</p>
+          <h2 style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '40px' }}>{companyName}</h2>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <div style={{ background: getScoreColor(compositeScore || 0), padding: '20px 30px', borderRadius: '8px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '48px', fontWeight: 'bold' }}>{compositeScore || 0}</p>
+              <p style={{ fontSize: '12px' }}>Score</p>
+            </div>
+            <div style={{ background: '#374151', padding: '12px 24px', borderRadius: '6px' }}>
+              <p style={{ fontSize: '18px', fontWeight: 600 }}>{tier?.name}</p>
+            </div>
+          </div>
+          <p style={{ position: 'absolute' as const, bottom: '40px', left: '60px', fontSize: '12px', color: '#64748B' }}>
+            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+
+        {/* SLIDE 2: Executive Summary */}
+        <div id="ppt-slide-2" className="ppt-slide">
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '30px' }}>Executive Summary</h2>
+          <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
+            <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{currentlyOffering}</p>
+              <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>of {totalElements} elements offered</p>
+            </div>
+            <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{planningItems + assessingItems}</p>
+              <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>in development</p>
+            </div>
+            <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{gapItems}</p>
+              <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>identified gaps</p>
+            </div>
+            <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{tierCounts.exemplary + tierCounts.leading}</p>
+              <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>at Leading+</p>
+            </div>
+          </div>
+          <div style={{ background: '#EDE9FE', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+            <p style={{ fontSize: '16px', fontWeight: 600, color: '#5B21B6', textDecoration: 'none' }}>
+              {nextTierUp && pointsToNextTier 
+                ? `${pointsToNextTier} points from ${nextTierUp.name}${nextTierUp.name !== 'Exemplary' ? ` · ${90 - (compositeScore || 0)} points from Exemplary` : ''}`
+                : 'Exemplary tier achieved'}
+            </p>
+            <p style={{ fontSize: '12px', color: '#7C3AED', marginTop: '4px', textDecoration: 'none' }}>
+              Focus areas: {allDimensionsByScore.slice(0, 3).map(d => d.name).join(', ')}
+            </p>
+          </div>
+        </div>
+
+        {/* SLIDE 3: Dimension Performance */}
+        <div id="ppt-slide-3" className="ppt-slide">
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Dimension Performance</h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+            <thead>
+              <tr style={{ background: '#1E293B', color: 'white' }}>
+                <th style={{ padding: '10px', textAlign: 'left', width: '50px' }}>#</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Dimension</th>
+                <th style={{ padding: '10px', textAlign: 'center', width: '70px' }}>Weight</th>
+                <th style={{ padding: '10px', textAlign: 'center', width: '70px' }}>Score</th>
+                <th style={{ padding: '10px', textAlign: 'left', width: '100px' }}>Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, i) => (
+                <tr key={d.dim} style={{ background: i % 2 === 0 ? '#F8FAFC' : 'white' }}>
+                  <td style={{ padding: '8px 10px', color: '#64748B', textDecoration: 'none' }}>D{d.dim}</td>
+                  <td style={{ padding: '8px 10px', color: '#1E293B', textDecoration: 'none' }}>{d.name}</td>
+                  <td style={{ padding: '8px 10px', color: '#64748B', textAlign: 'center', textDecoration: 'none' }}>{d.weight}%</td>
+                  <td style={{ padding: '8px 10px', color: getScoreColor(d.score), fontWeight: 'bold', textAlign: 'center', textDecoration: 'none' }}>{d.score}</td>
+                  <td style={{ padding: '8px 10px', color: '#64748B', textDecoration: 'none' }}>{d.tier.name}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* SLIDE 4: Matrix - Static version to avoid oklch color parsing issues */}
+        <div id="ppt-slide-4" className="ppt-slide">
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '10px', textDecoration: 'none' }}>Strategic Priority Matrix</h2>
+          <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '20px', textDecoration: 'none' }}>Performance vs Strategic Weight</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '15px', marginTop: '20px' }}>
+            <div style={{ flex: '1 1 45%', background: '#FEE2E2', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+              <p style={{ fontWeight: 'bold', color: '#991B1B', marginBottom: '10px', textDecoration: 'none' }}>PRIORITY GAPS</p>
+              <p style={{ fontSize: '11px', color: '#7F1D1D', textDecoration: 'none' }}>High weight, lower performance - focus here first</p>
+              {dimensionAnalysis.filter(d => d.weight >= 7 && d.score < 70).slice(0, 3).map(d => (
+                <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+              ))}
+            </div>
+            <div style={{ flex: '1 1 45%', background: '#D1FAE5', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+              <p style={{ fontWeight: 'bold', color: '#065F46', marginBottom: '10px', textDecoration: 'none' }}>CORE STRENGTHS</p>
+              <p style={{ fontSize: '11px', color: '#047857', textDecoration: 'none' }}>High weight, strong performance - maintain these</p>
+              {dimensionAnalysis.filter(d => d.weight >= 7 && d.score >= 70).slice(0, 3).map(d => (
+                <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+              ))}
+            </div>
+            <div style={{ flex: '1 1 45%', background: '#FEF3C7', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+              <p style={{ fontWeight: 'bold', color: '#92400E', marginBottom: '10px', textDecoration: 'none' }}>SECONDARY GAPS</p>
+              <p style={{ fontSize: '11px', color: '#B45309', textDecoration: 'none' }}>Lower weight, needs improvement</p>
+              {dimensionAnalysis.filter(d => d.weight < 7 && d.score < 70).slice(0, 3).map(d => (
+                <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+              ))}
+            </div>
+            <div style={{ flex: '1 1 45%', background: '#DBEAFE', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+              <p style={{ fontWeight: 'bold', color: '#1E40AF', marginBottom: '10px', textDecoration: 'none' }}>MAINTAIN</p>
+              <p style={{ fontSize: '11px', color: '#1D4ED8', textDecoration: 'none' }}>Lower weight, performing well</p>
+              {dimensionAnalysis.filter(d => d.weight < 7 && d.score >= 70).slice(0, 3).map(d => (
+                <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* SLIDE 5: Strengths & Opportunities */}
+        <div id="ppt-slide-5" className="ppt-slide">
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Strengths & Opportunities</h2>
+          <div style={{ display: 'flex', gap: '30px' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#059669', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600, textDecoration: 'none' }}>Areas of Excellence</div>
+              <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '350px' }}>
+                {strengthDimensions.slice(0, 4).map(d => (
+                  <div key={d.dim} style={{ marginBottom: '12px' }}>
+                    <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
+                    {d.strengths.slice(0, 2).map((s: any, i: number) => (
+                      <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>✓ {s.name}</p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#D97706', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600, textDecoration: 'none' }}>Improvement Opportunities</div>
+              <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '350px' }}>
+                {allDimensionsByScore.slice(0, 4).map(d => (
+                  <div key={d.dim} style={{ marginBottom: '12px' }}>
+                    <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
+                    {d.needsAttention.slice(0, 2).map((g: any, i: number) => (
+                      <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>• {g.name}</p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SLIDE 6: Roadmap */}
+        <div id="ppt-slide-6" className="ppt-slide">
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Implementation Roadmap</h2>
+          <div style={{ display: 'flex', gap: '15px' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#1E293B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
+                <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Quick Wins</p>
+                <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>Immediate</p>
+              </div>
+              <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
+                {quickWinItems.slice(0, 5).map((item: any, i: number) => (
+                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                ))}
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#475569', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
+                <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Foundation</p>
+                <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>6-12 months</p>
+              </div>
+              <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
+                {foundationItems.slice(0, 5).map((item: any, i: number) => (
+                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                ))}
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#64748B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
+                <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Long-Term</p>
+                <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>12+ months</p>
+              </div>
+              <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
+                {excellenceItems.slice(0, 5).map((item: any, i: number) => (
+                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SLIDE 7: How CAC Can Help */}
+        <div id="ppt-slide-7" className="ppt-slide" style={{ padding: 0 }}>
+          <div style={{ background: '#1E293B', padding: '30px 40px' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>How Cancer and Careers Can Help</h2>
+          </div>
+          <div style={{ padding: '30px 40px' }}>
+            <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '30px' }}>
+              Our consulting practice helps organizations understand where they are, identify where they want to be, and build a realistic path to get there.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '30px' }}>
+              <div>
+                <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For HR & Benefits Teams</p>
+                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Policy gap analysis</p>
+                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Benefits benchmarking</p>
+                <p style={{ fontSize: '13px', color: '#64748B' }}>✓ Manager training programs</p>
+              </div>
+              <div>
+                <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For Employees</p>
+                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Educational materials</p>
+                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Navigation support</p>
+                <p style={{ fontSize: '13px', color: '#64748B' }}>✓ Peer support networks</p>
+              </div>
+            </div>
+            <div style={{ background: '#F5F3FF', padding: '20px', borderRadius: '8px' }}>
+              <p style={{ fontWeight: 600, color: '#5B21B6', fontSize: '16px' }}>Ready to take the next step?</p>
+              <p style={{ fontSize: '13px', color: '#7C3AED' }}>Contact: consulting@cancerandcareers.org</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
