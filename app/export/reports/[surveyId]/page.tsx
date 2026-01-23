@@ -456,7 +456,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         
         {/* Legend - below chart */}
         <div className="mt-3 pt-4 border-t border-slate-200">
-          <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
+          <div className="matrix-legend flex flex-wrap justify-center gap-x-3 gap-y-2">
             {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
               <div 
                 key={d.dim} 
@@ -484,7 +484,10 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
 export default function ExportReportPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const exportMode = searchParams?.get('export') === '1';
+  const exportFlag = searchParams?.get('export') === '1';
+  const mode = (searchParams?.get('mode') || '').toLowerCase();
+  const isPdfExport = exportFlag && mode === 'pdf';
+  const isPptExport = exportFlag && mode === 'ppt';
   const surveyId = Array.isArray(params.surveyId) ? params.surveyId[0] : params.surveyId;
   const printRef = useRef<HTMLDivElement>(null);
   const matrixRef = useRef<HTMLDivElement>(null);
@@ -798,10 +801,10 @@ export default function ExportReportPage() {
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''}`}>
+    <div className={`min-h-screen bg-gray-50 ${exportFlag ? 'export-mode' : ''} ${isPdfExport ? 'pdf-export-mode' : ''} ${isPptExport ? 'ppt-export-mode' : ''}`}>
       <style jsx global>{`
         @media print { 
-          @page { margin: 0.4in; size: letter; } 
+          @page { margin: 0.25in; size: letter; } 
           body { 
             -webkit-print-color-adjust: exact !important; 
             print-color-adjust: exact !important;
@@ -813,74 +816,66 @@ export default function ExportReportPage() {
             page-break-inside: avoid !important; 
             break-inside: avoid !important;
           }
-          
-          /* Force backgrounds to print */
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
         }
-        
-        /* Browserless PDF capture mode */
-        .bg-gray-50 {
-          background-color: #f9fafb !important;
-        }
-        
-        /* Force all content sections to avoid page breaks */
-        .rounded-lg {
-          page-break-inside: avoid !important;
-          break-inside: avoid !important;
-        }
-        
-        /* Strategic Priority Matrix - ensure legend is not truncated */
-        .matrix-legend {
-          flex-wrap: wrap !important;
-        }
-        .matrix-legend span {
-          white-space: nowrap !important;
-          overflow: visible !important;
-          text-overflow: clip !important;
-        }
-        
-        /* Export mode: PDF + PPT - fixes scroll containers, stickies, filters */
+
+        /* ========== EXPORT MODE (COMMON) ========== */
         .export-mode * {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
         .export-mode .no-print { display: none !important; }
-        
+
         /* Kill sticky/fixed during capture */
         .export-mode .sticky,
-        .export-mode [class*="sticky"] {
+        .export-mode [class*="sticky"],
+        .export-mode .fixed,
+        .export-mode [class*="fixed"] {
           position: static !important;
         }
-        
-        /* Expand scroll containers so html2canvas captures full content */
+
+        /* Expand scroll containers (only overflow-based; avoid broad max-h rules) */
         .export-mode [class*="overflow-y-auto"],
-        .export-mode [class*="overflow-auto"],
-        .export-mode [class*="max-h-"] {
+        .export-mode [class*="overflow-auto"] {
           overflow: visible !important;
           max-height: none !important;
         }
-        
-        /* SVG filters can cause odd clipping/blur */
+
+        /* SVG filters can cause odd clipping/blur in headless renderers */
         .export-mode svg filter { display: none !important; }
-        
-        /* Fix for html2canvas - it can't parse oklch colors from Tailwind v4 */
-        .ppt-slide, .ppt-slide * {
-          --tw-bg-opacity: 1 !important;
-          --tw-text-opacity: 1 !important;
+
+        /* ========== PDF EXPORT MODE ========== */
+        .pdf-export-mode {
+          background: #fff !important;
         }
-        .ppt-slides-container * {
-          color: inherit;
-          background-color: inherit;
+        .pdf-export-mode .min-h-screen {
+          background: #fff !important;
         }
-        
-        /* PPT slide sections - hidden by default, shown for capture */
+        /* Remove the max-width constraint and reclaim page real-estate */
+        .pdf-export-mode #report-root .report-inner {
+          max-width: none !important;
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 0.15in !important;
+        }
+        .pdf-export-mode .shadow-sm { box-shadow: none !important; }
+
+        /* Ensure PPT slide DOM never prints in PDF mode */
+        .pdf-export-mode .ppt-slides-container,
+        .pdf-export-mode .ppt-slide {
+          display: none !important;
+        }
+
+        /* ========== PPT SLIDE DOM (FOR SCREENSHOT CAPTURE) ========== */
+        /* Hidden by default */
+        .ppt-slides-container {
+          position: absolute;
+          left: -9999px;
+          top: 0;
+        }
         .ppt-slide {
           width: 1280px;
           height: 720px;
-          background: white;
+          background: #fff;
           padding: 40px;
           box-sizing: border-box;
           position: absolute;
@@ -890,23 +885,31 @@ export default function ExportReportPage() {
         .ppt-slide * {
           text-decoration: none !important;
         }
-        .export-mode .ppt-slide {
+
+        /* Show slides only during PPT export mode */
+        .ppt-export-mode .ppt-slides-container {
+          position: relative;
+          left: 0;
+        }
+        .ppt-export-mode .ppt-slide {
           position: relative;
           left: 0;
           margin-bottom: 20px;
         }
-        .ppt-slides-container {
-          position: absolute;
-          left: -9999px;
+
+        /* Strategic Priority Matrix legend: allow wrapping so it is not truncated */
+        .matrix-legend {
+          flex-wrap: wrap !important;
         }
-        .export-mode .ppt-slides-container {
-          position: relative;
-          left: 0;
+        .matrix-legend span {
+          white-space: nowrap !important;
+          overflow: visible !important;
+          text-overflow: clip !important;
         }
       `}</style>
 
 
-      <div ref={printRef} id="report-root" className="max-w-6xl mx-auto py-10 px-8">
+      <div ref={printRef} id="report-root"><div className="report-inner max-w-6xl mx-auto py-10 px-8">
         
         {/* ============ HEADER ============ */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
@@ -1580,7 +1583,10 @@ export default function ExportReportPage() {
           </div>
         </div>
 
-        {/* ============ PPT SLIDE SECTIONS (hidden, captured for export) ============ */}
+        </div>
+      </div>
+
+      {/* ============ PPT SLIDE SECTIONS (hidden, captured for export) ============ */}
         <div className="ppt-slides-container">
           {/* SLIDE 1: Title */}
           <div id="ppt-slide-1" className="ppt-slide" style={{ background: '#1E293B', color: 'white', padding: '60px' }}>
@@ -1802,9 +1808,6 @@ export default function ExportReportPage() {
           </div>
         </div>
 
-        {/* PPT slides hidden */}
-
-      </div>
     </div>
   );
 }
