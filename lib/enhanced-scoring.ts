@@ -572,6 +572,15 @@ function scoreD12CaseReview(value: string | undefined): number {
   return 0;
 }
 
+function scoreD12PolicyChanges(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('significant') || v.includes('major')) return 100;
+  if (v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
+  if (v.includes('no change') || v.includes('not yet') || v.includes('none')) return 20;
+  return 0;
+}
+
 function scoreD13Communication(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
@@ -600,12 +609,18 @@ function calculateFollowUpScoreForBlend(dimNum: number, assessment: any): number
       return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
     }
     case 3: {
-      const d31 = dimData.d31;
+      // Check both key formats: d31 (correct) and d3_1 (legacy migration)
+      const d31 = dimData.d31 ?? dimData.d3_1;
       return d31 ? scoreD3Training(d31) : null;
     }
     case 12: {
+      // D12 uses both D12_1 (case review method) and D12_2 (policy changes) - averaged
       const d12_1 = dimData.d12_1;
-      return d12_1 ? scoreD12CaseReview(d12_1) : null;
+      const d12_2 = dimData.d12_2;
+      const scores: number[] = [];
+      if (d12_1) scores.push(scoreD12CaseReview(d12_1));
+      if (d12_2) scores.push(scoreD12PolicyChanges(d12_2));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
     }
     case 13: {
       const d13_1 = dimData.d13_1;
