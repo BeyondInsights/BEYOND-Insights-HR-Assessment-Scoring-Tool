@@ -1,6 +1,8 @@
 // netlify/functions/export-pptx.js
 //
-// Scrolls each .ppt-break element into view and captures
+// Captures pre-designed PPT slides (.ppt-slide elements)
+// Adds 'export-mode' class to body to make slides visible
+// Captures each slide by bounding box for clean screenshots
 //
 
 const PptxGenJS = require("pptxgenjs");
@@ -30,76 +32,98 @@ exports.handler = async (event) => {
     const proto = event.headers["x-forwarded-proto"] || "https";
     const origin = `${proto}://${host}`;
 
-    const url = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1&mode=pptreport`;
+    // Just use export=1, the Browserless function will add export-mode class
+    const url = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1`;
 
-    const browserlessFn = [
-      "export default async function ({ page, context }) {",
-      "  const url = context.url;",
-      "  const W = 1920;",
-      "  const H = 1080;",
-      "",
-      "  await page.setViewport({ width: W, height: H, deviceScaleFactor: 2 });",
-      "  await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });",
-      "",
-      "  try {",
-      "    await page.waitForSelector('#report-root', { timeout: 30000 });",
-      "  } catch (e) {",
-      "    return { data: { ok: false, error: 'Report not found' }, type: 'application/json' };",
-      "  }",
-      "",
-      "  // Wait for fonts",
-      "  try {",
-      "    await page.evaluate(async () => {",
-      "      if (document.fonts && document.fonts.ready) await document.fonts.ready;",
-      "    });",
-      "  } catch (e) {}",
-      "  await new Promise(r => setTimeout(r, 1500));",
-      "",
-      "  // Clean up styles",
-      "  await page.addStyleTag({",
-      "    content: [",
-      "      'html, body { margin:0 !important; padding:0 !important; background:#f8fafc !important; scroll-behavior:auto !important; }',",
-      "      '.no-print { display:none !important; }',",
-      "      '.sticky, [class*=\"sticky\"], .fixed, nav { position:static !important; }',",
-      "      '.ppt-slides-container, .ppt-slide { display:none !important; }',",
-      "      '#report-root { width:1700px !important; max-width:1700px !important; margin:0 auto !important; padding:20px !important; }'",
-      "    ].join('\\n')",
-      "  });",
-      "",
-      "  // Count ppt-break elements",
-      "  const breakCount = await page.evaluate(() => {",
-      "    return document.querySelectorAll('#report-root .ppt-break').length;",
-      "  });",
-      "",
-      "  if (!breakCount) {",
-      "    return { data: { ok: false, error: 'No ppt-break elements found' }, type: 'application/json' };",
-      "  }",
-      "",
-      "  const results = [];",
-      "",
-      "  // Capture each section by scrolling that element to top of viewport",
-      "  for (let i = 0; i < breakCount && results.length < 35; i++) {",
-      "    // Scroll this ppt-break element to top of viewport",
-      "    await page.evaluate((index) => {",
-      "      const breaks = document.querySelectorAll('#report-root .ppt-break');",
-      "      const el = breaks[index];",
-      "      if (el) {",
-      "        el.scrollIntoView({ behavior: 'instant', block: 'start' });",
-      "      }",
-      "    }, i);",
-      "",
-      "    await new Promise(r => setTimeout(r, 300));",
-      "",
-      "    const buf = await page.screenshot({ type: 'jpeg', quality: 90 });",
-      "    results.push({",
-      "      index: i + 1,",
-      "      jpegB64: buf.toString('base64')",
-      "    });",
-      "  }",
-      "",
-      "  return { data: { ok: true, slideCount: results.length, breakCount, results }, type: 'application/json' };",
-      "}",
-    ].join("\n");
+    // Browserless function to capture each slide
+    const browserlessFn = `
+export default async function ({ page, context }) {
+  const url = context.url;
+
+  // Slide dimensions: 1280x720 (16:9) - matches the CSS
+  const W = 1280;
+  const H = 720;
+
+  await page.setViewport({ width: W + 100, height: H + 100, deviceScaleFactor: 2 });
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+
+  // Wait for report to load
+  try {
+    await page.waitForSelector('#report-root', { timeout: 30000 });
+  } catch (e) {
+    return { data: { ok: false, error: 'Report root not found' }, type: 'application/json' };
+  }
+
+  // Add export-mode class to body - this makes .ppt-slides-container and .ppt-slide visible
+  await page.evaluate(() => {
+    document.body.classList.add('export-mode');
+  });
+
+  // Wait for fonts to load
+  try {
+    await page.evaluate(async () => {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    });
+  } catch (e) {}
+
+  // Extra rendering time for slides to appear
+  await new Promise(r => setTimeout(r, 1500));
+
+  // Count slides
+  const slideCount = await page.evaluate(() => {
+    return document.querySelectorAll('.ppt-slide').length;
+  });
+
+  if (!slideCount) {
+    return { data: { ok: false, error: 'No .ppt-slide elements found' }, type: 'application/json' };
+  }
+
+  const results = [];
+
+  // Capture each slide by index
+  for (let i = 0; i < slideCount; i++) {
+    // Get the slide element handle
+    const slideEl = await page.evaluateHandle((index) => {
+      return document.querySelectorAll('.ppt-slide')[index];
+    }, i);
+
+    if (!slideEl) continue;
+
+    // Get bounding box
+    const box = await slideEl.boundingBox();
+    if (!box) continue;
+
+    // Screenshot just this slide
+    const buf = await page.screenshot({
+      type: 'jpeg',
+      quality: 92,
+      clip: {
+        x: box.x,
+        y: box.y,
+        width: box.width,
+        height: box.height
+      }
+    });
+
+    results.push({
+      index: i + 1,
+      jpegB64: buf.toString('base64')
+    });
+  }
+
+  return { 
+    data: { 
+      ok: true, 
+      slideCount: results.length, 
+      totalSlides: slideCount,
+      results 
+    }, 
+    type: 'application/json' 
+  };
+}
+`;
+
+    console.log('Calling Browserless for PPT export:', url);
 
     const capRes = await fetch(`${base}/function?token=${token}`, {
       method: "POST",
@@ -109,19 +133,29 @@ exports.handler = async (event) => {
 
     if (!capRes.ok) {
       const text = await capRes.text();
+      console.error('Browserless error:', text);
       return { statusCode: 500, body: `Browserless failed: ${text}` };
     }
 
     const capPayload = await capRes.json();
     const capData = capPayload?.data && typeof capPayload.data === "object" ? capPayload.data : capPayload;
 
-    if (!capData?.ok || !Array.isArray(capData.results) || capData.results.length === 0) {
-      return { statusCode: 500, body: `Capture failed: ${JSON.stringify(capData)}` };
+    console.log('Browserless response:', { ok: capData?.ok, slideCount: capData?.slideCount, totalSlides: capData?.totalSlides });
+
+    if (!capData?.ok) {
+      return { statusCode: 500, body: `Capture failed: ${capData?.error || JSON.stringify(capData)}` };
     }
 
-    // Build PPTX
+    if (!Array.isArray(capData.results) || capData.results.length === 0) {
+      return { statusCode: 500, body: `No slides captured. totalSlides: ${capData?.totalSlides}` };
+    }
+
+    // Build PPTX - 16:9 widescreen
     const pptx = new PptxGenJS();
-    pptx.layout = "LAYOUT_WIDE";
+    pptx.layout = "LAYOUT_WIDE"; // 13.333 x 7.5 inches
+    pptx.title = `Cancer Support Assessment - ${surveyId}`;
+    pptx.author = "Cancer and Careers";
+    pptx.company = "Best Companies for Working with Cancer Index";
 
     for (const r of capData.results) {
       const slide = pptx.addSlide();
@@ -136,6 +170,7 @@ exports.handler = async (event) => {
 
     const pptBuffer = await pptx.write("nodebuffer");
 
+    // Upload to Supabase
     const supabase = createClient(supabaseUrl, serviceKey);
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
     const filePath = `ppt/${surveyId}/Report_${surveyId}_${ts}.pptx`;
@@ -148,13 +183,17 @@ exports.handler = async (event) => {
       });
 
     if (up.error) {
+      console.error('Upload error:', up.error);
       return { statusCode: 500, body: `Upload failed: ${up.error.message}` };
     }
 
+    // Generate signed URL (1 hour)
     const signed = await supabase.storage.from(bucket).createSignedUrl(filePath, 60 * 60);
     if (signed.error) {
       return { statusCode: 500, body: `Signed URL failed: ${signed.error.message}` };
     }
+
+    console.log('PPT export success:', { slideCount: capData.results.length, filePath });
 
     return {
       statusCode: 302,
@@ -163,7 +202,7 @@ exports.handler = async (event) => {
     };
 
   } catch (err) {
-    console.error(err);
+    console.error('PPT export error:', err);
     return { statusCode: 500, body: `Error: ${err?.message || err}` };
   }
 };
