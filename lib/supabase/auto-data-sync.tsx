@@ -8,6 +8,7 @@
  * 4. Dirty queue with retries for failed syncs
  * 5. Stable hash for change detection
  * 6. All existing business logic preserved (comp'd users, FP contamination check, shared FP, etc.)
+ * 7. SECURITY: Sends accessToken for regular authenticated users
  */
 
 'use client'
@@ -55,6 +56,7 @@ interface PendingOp {
   timestamp: number
   retryCount: number
   userType: 'compd' | 'fp' | 'sharedFp' | 'regular'
+  accessToken?: string
 }
 
 function getPendingOps(): PendingOp[] {
@@ -76,7 +78,7 @@ function savePendingOps(ops: PendingOp[]): void {
   }
 }
 
-function addPendingOp(surveyId: string, data: Record<string, any>, userType: PendingOp['userType']): void {
+function addPendingOp(surveyId: string, data: Record<string, any>, userType: PendingOp['userType'], accessToken?: string): void {
   const ops = getPendingOps()
   const existingIdx = ops.findIndex(op => op.surveyId === surveyId)
   const newOp: PendingOp = {
@@ -85,6 +87,7 @@ function addPendingOp(surveyId: string, data: Record<string, any>, userType: Pen
     timestamp: Date.now(),
     retryCount: 0,
     userType,
+    accessToken,
   }
   if (existingIdx >= 0) {
     ops[existingIdx] = newOp
@@ -197,13 +200,25 @@ function hasDataChanged(newData: Record<string, any>): boolean {
 
 // ============================================
 // NETLIFY FUNCTION SYNC (PRIMARY)
+// accessToken is REQUIRED for regular users (UUID surveyId)
 // ============================================
-async function syncViaNetlifyFunction(surveyId: string, data: Record<string, any>): Promise<boolean> {
+async function syncViaNetlifyFunction(surveyId: string, data: Record<string, any>, accessToken?: string): Promise<boolean> {
   try {
+    const payload: Record<string, any> = { 
+      surveyId, 
+      data, 
+      timestamp: Date.now() 
+    }
+    
+    // Include accessToken if provided (required for regular users)
+    if (accessToken) {
+      payload.accessToken = accessToken
+    }
+    
     const response = await fetch('/.netlify/functions/sync-assessment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ surveyId, data, timestamp: Date.now() }),
+      body: JSON.stringify(payload),
     })
     
     if (!response.ok) {
@@ -213,7 +228,7 @@ async function syncViaNetlifyFunction(surveyId: string, data: Record<string, any
     }
     
     const result = await response.json()
-    console.log('✅ AUTO-SYNC: Synced via Netlify function:', result.surveyId)
+    console.log('✅ AUTO-SYNC: Synced via Netlify function:', result.surveyId, result.action)
     return true
   } catch (e) {
     console.error('[AutoSync] Netlify function failed:', e)
@@ -251,7 +266,7 @@ async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
   
   updateData.updated_at = new Date().toISOString()
   
-  // Try Netlify function first
+  // Try Netlify function first (no accessToken needed for comp'd users)
   if (await syncViaNetlifyFunction(normalized, updateData)) {
     removePendingOp(normalized)
     return true
@@ -329,7 +344,7 @@ async function syncFPToSupabase(surveyId: string): Promise<boolean> {
   
   updateData.updated_at = new Date().toISOString()
   
-  // Try Netlify function first
+  // Try Netlify function first (no accessToken needed for FP)
   if (await syncViaNetlifyFunction(surveyId, updateData)) {
     removePendingOp(surveyId)
     return true
@@ -381,14 +396,19 @@ async function syncFPToSupabase(surveyId: string): Promise<boolean> {
 }
 
 // ============================================
-// SYNC REGULAR USER
+// SYNC REGULAR USER - NOW SENDS ACCESS TOKEN
 // ============================================
 async function syncRegularUserToSupabase(): Promise<boolean> {
-  const { data: { user } } = await supabase.auth.getUser()
+  // Get current session for auth token
+  const { data: sessionData } = await supabase.auth.getSession()
+  const session = sessionData?.session
   
-  if (!user) {
-    return true
+  if (!session?.user) {
+    return true // No user, nothing to sync
   }
+  
+  const userId = session.user.id
+  const accessToken = session.access_token
   
   console.log('👤 AUTO-SYNC: Syncing regular user...')
   
@@ -400,26 +420,26 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
   
   updateData.updated_at = new Date().toISOString()
   
-  // Try Netlify function first (using user.id as surveyId)
-  if (await syncViaNetlifyFunction(user.id, updateData)) {
-    removePendingOp(user.id)
+  // Try Netlify function first WITH ACCESS TOKEN
+  if (await syncViaNetlifyFunction(userId, updateData, accessToken)) {
+    removePendingOp(userId)
     return true
   }
   
-  // Fallback to direct Supabase
+  // Fallback to direct Supabase (RLS will validate)
   const { error } = await supabase
     .from('assessments')
     .update(updateData)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
   
   if (error) {
     console.error('❌ AUTO-SYNC: Regular user sync failed:', error.message)
-    addPendingOp(user.id, updateData, 'regular')
+    addPendingOp(userId, updateData, 'regular', accessToken)
     return false
   }
   
   console.log('✅ AUTO-SYNC: Regular user sync successful!')
-  removePendingOp(user.id)
+  removePendingOp(userId)
   return true
 }
 
@@ -486,8 +506,19 @@ async function processPendingOps(): Promise<void> {
       continue
     }
     
+    // For regular users, we need a fresh token (old one may have expired)
+    let accessToken = op.accessToken
+    if (op.userType === 'regular') {
+      const { data: sessionData } = await supabase.auth.getSession()
+      accessToken = sessionData?.session?.access_token
+      if (!accessToken) {
+        console.warn(`⚠️ AUTO-SYNC: No valid session for regular user ${op.surveyId}, skipping`)
+        continue
+      }
+    }
+    
     // Try Netlify function
-    const success = await syncViaNetlifyFunction(op.surveyId, op.data)
+    const success = await syncViaNetlifyFunction(op.surveyId, op.data, accessToken)
     
     if (success) {
       removePendingOp(op.surveyId)
@@ -502,7 +533,7 @@ async function processPendingOps(): Promise<void> {
 // ============================================
 // BEACON SYNC FOR PAGE CLOSE
 // ============================================
-function syncWithBeacon(): void {
+async function syncWithBeacon(): Promise<void> {
   const surveyId = localStorage.getItem('survey_id') || ''
   if (!surveyId) return
   
@@ -511,12 +542,38 @@ function syncWithBeacon(): void {
   
   updateData.updated_at = new Date().toISOString()
   
-  const payload = JSON.stringify({ surveyId, data: updateData, timestamp: Date.now() })
+  // Build payload
+  const payload: Record<string, any> = { 
+    surveyId, 
+    data: updateData, 
+    timestamp: Date.now() 
+  }
+  
+  // For regular users (UUID surveyId), try to include access token
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(surveyId)
+  if (isUUID) {
+    // Can't await in beforeunload, but we can try to get cached session
+    try {
+      const sessionStr = localStorage.getItem('sb-auth-token') || 
+                         sessionStorage.getItem('sb-auth-token')
+      if (sessionStr) {
+        const sessionData = JSON.parse(sessionStr)
+        if (sessionData?.access_token) {
+          payload.accessToken = sessionData.access_token
+        }
+      }
+    } catch (e) {
+      // Can't get token, beacon will fail auth for regular users
+      // They'll need to rely on pending ops queue
+    }
+  }
+  
+  const payloadStr = JSON.stringify(payload)
   
   // Try sendBeacon to Netlify function (most reliable for unload)
   const beaconSent = navigator.sendBeacon(
     '/.netlify/functions/sync-assessment',
-    new Blob([payload], { type: 'application/json' })
+    new Blob([payloadStr], { type: 'application/json' })
   )
   
   if (beaconSent) {
@@ -528,10 +585,10 @@ function syncWithBeacon(): void {
   fetch('/.netlify/functions/sync-assessment', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: payload,
+    body: payloadStr,
     keepalive: true,
   }).catch(() => {
-    // Last resort: direct to Supabase with keepalive
+    // Last resort: direct to Supabase with keepalive (only works for FP/comp'd)
     const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/assessments?survey_id=eq.${surveyId}`
     fetch(url, {
       method: 'PATCH',
@@ -543,8 +600,9 @@ function syncWithBeacon(): void {
       body: JSON.stringify(updateData),
       keepalive: true,
     }).catch(() => {
-      // If all else fails, add to pending queue for next load
-      addPendingOp(surveyId, updateData, 'fp')
+      // Add to pending queue for next load
+      const userType = surveyId.startsWith('FP-') ? 'fp' : (isUUID ? 'regular' : 'compd')
+      addPendingOp(surveyId, updateData, userType as any)
     })
   })
 }
