@@ -798,7 +798,7 @@ export default function ExportReportPage() {
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''}`}>
       <style jsx global>{`
         @media print { 
           @page { margin: 0.4in; size: letter; } 
@@ -1583,7 +1583,7 @@ export default function ExportReportPage() {
         {/* ============ PPT SLIDE SECTIONS (hidden, captured for export) ============ */}
         <div className="ppt-slides-container">
           {/* SLIDE 1: Title */}
-          <div className="ppt-slide" style={{ background: '#1E293B', color: 'white', padding: '60px' }}>
+          <div id="ppt-slide-1" className="ppt-slide" style={{ background: '#1E293B', color: 'white', padding: '60px' }}>
             <p style={{ fontSize: '14px', color: '#94A3B8', marginBottom: '8px' }}>PERFORMANCE ASSESSMENT</p>
             <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>Best Companies for Working with Cancer</h1>
             <p style={{ fontSize: '16px', color: '#CBD5E1', marginBottom: '60px' }}>Index 2026</p>
@@ -1603,7 +1603,7 @@ export default function ExportReportPage() {
           </div>
 
           {/* SLIDE 2: Executive Summary */}
-          <div className="ppt-slide">
+          <div id="ppt-slide-2" className="ppt-slide">
             <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '30px' }}>Executive Summary</h2>
             <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
               <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
@@ -1636,7 +1636,7 @@ export default function ExportReportPage() {
           </div>
 
           {/* SLIDE 3: Dimension Performance */}
-          <div className="ppt-slide">
+          <div id="ppt-slide-3" className="ppt-slide">
             <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Dimension Performance</h2>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
@@ -1663,7 +1663,7 @@ export default function ExportReportPage() {
           </div>
 
           {/* SLIDE 4: Matrix - Static version to avoid oklch color parsing issues */}
-          <div className="ppt-slide">
+          <div id="ppt-slide-4" className="ppt-slide">
             <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '10px', textDecoration: 'none' }}>Strategic Priority Matrix</h2>
             <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '20px', textDecoration: 'none' }}>Performance vs Strategic Weight</p>
             <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '15px', marginTop: '20px' }}>
@@ -1699,7 +1699,7 @@ export default function ExportReportPage() {
           </div>
 
           {/* SLIDE 5: Strengths & Opportunities */}
-          <div className="ppt-slide">
+          <div id="ppt-slide-5" className="ppt-slide">
             <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Strengths & Opportunities</h2>
             <div style={{ display: 'flex', gap: '30px' }}>
               <div style={{ flex: 1 }}>
@@ -1732,7 +1732,7 @@ export default function ExportReportPage() {
           </div>
 
           {/* SLIDE 6: Roadmap */}
-          <div className="ppt-slide">
+          <div id="ppt-slide-6" className="ppt-slide">
             <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Implementation Roadmap</h2>
             <div style={{ display: 'flex', gap: '15px' }}>
               <div style={{ flex: 1 }}>
@@ -1772,7 +1772,7 @@ export default function ExportReportPage() {
           </div>
 
           {/* SLIDE 7: How CAC Can Help */}
-          <div className="ppt-slide" style={{ padding: 0 }}>
+          <div id="ppt-slide-7" className="ppt-slide" style={{ padding: 0 }}>
             <div style={{ background: '#1E293B', padding: '30px 40px' }}>
               <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>How Cancer and Careers Can Help</h2>
             </div>
