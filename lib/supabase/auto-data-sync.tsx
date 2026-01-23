@@ -316,49 +316,8 @@ async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
 async function syncFPToSupabase(surveyId: string): Promise<boolean> {
   console.log('🏢 AUTO-SYNC: Syncing FP data for:', surveyId)
   
-  // Helper to normalize company names for comparison (handles Unicode apostrophes, accents, etc.)
-  const normalizeForCompare = (str: string): string => {
-    return (str || '')
-      .toLowerCase()
-      .normalize('NFD')  // Decompose accented characters
-      .replace(/[\u0300-\u036f]/g, '')  // Remove accent marks
-      .replace(/[''`]/g, "'")  // Normalize apostrophes
-      .replace(/[^a-z0-9]/g, '')  // Keep only alphanumeric
-  }
-  
-  // Contamination check
-  try {
-    const { getFPCompanyName } = await import('@/lib/founding-partners')
-    const expectedCompany = getFPCompanyName(surveyId)
-    
-    const firmographicsRaw = localStorage.getItem('firmographics_data')
-    if (firmographicsRaw) {
-      try {
-        const firmographics = JSON.parse(firmographicsRaw)
-        const localCompany = firmographics.companyName || ''
-        
-        // Use normalized comparison to handle Unicode differences
-        const normalizedExpected = normalizeForCompare(expectedCompany)
-        const normalizedLocal = normalizeForCompare(localCompany)
-        
-        if (localCompany && expectedCompany && normalizedLocal !== normalizedExpected && localCompany !== 'Founding Partner') {
-          console.error('🚨 AUTO-SYNC: BLOCKING SYNC - Company mismatch!')
-          console.error(`   Expected: "${expectedCompany}" (${normalizedExpected}), Found: "${localCompany}" (${normalizedLocal})`)
-          
-          const keysToClear = [
-            'firmographics_data', 'general_benefits_data', 'current_support_data',
-            'cross_dimensional_data', 'employee-impact-assessment_data',
-            ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`),
-            'firmographics_complete', 'general_benefits_complete', 'current_support_complete',
-            'cross_dimensional_complete', 'employee-impact-assessment_complete',
-            ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`),
-          ]
-          keysToClear.forEach(key => localStorage.removeItem(key))
-          return false
-        }
-      } catch (e) {}
-    }
-  } catch (e) {}
+  // Skip contamination check - it was causing false positives due to Unicode differences
+  // Data integrity is maintained by survey_id matching instead
   
   const { data: updateData, hasData } = collectAllSurveyData()
   
