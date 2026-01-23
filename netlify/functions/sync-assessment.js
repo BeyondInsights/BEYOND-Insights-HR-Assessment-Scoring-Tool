@@ -4,6 +4,7 @@
 // - CORS restricted to known origins
 // - Access token required for regular users
 // - Server owns updated_at
+// - *** COMPANY VERIFICATION to prevent cross-contamination ***
 //
 
 const { createClient } = require('@supabase/supabase-js');
@@ -46,6 +47,82 @@ function json(statusCode, obj, event) {
 // Validate UUID format
 function isUUID(str) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
+// ============================================
+// COMPANY VERIFICATION
+// Checks if incoming data's company matches existing record
+// ============================================
+async function verifyCompanyMatch(supabase, matchColumn, matchValue, incomingData) {
+  // Skip verification if no firmographics data in the update
+  if (!incomingData.firmographics_data) {
+    return { valid: true };
+  }
+  
+  // Get incoming company name
+  const incomingCompanyName = incomingData.firmographics_data?.companyName || 
+                              incomingData.firmographics_data?.company_name || '';
+  
+  if (!incomingCompanyName) {
+    return { valid: true }; // No company name to verify
+  }
+  
+  // Fetch existing record
+  const { data: existing, error } = await supabase
+    .from('assessments')
+    .select('company_name, firmographics_data')
+    .eq(matchColumn, matchValue)
+    .maybeSingle();
+  
+  if (error) {
+    console.error('[sync-assessment] Error fetching existing record:', error.message);
+    return { valid: true }; // Allow on error (fail open for existing functionality)
+  }
+  
+  if (!existing) {
+    return { valid: true }; // No existing record, this is a new insert
+  }
+  
+  // Get existing company name
+  const existingCompanyName = existing.company_name || 
+                              existing.firmographics_data?.companyName ||
+                              existing.firmographics_data?.company_name || '';
+  
+  if (!existingCompanyName) {
+    return { valid: true }; // No existing company name to compare against
+  }
+  
+  // Normalize for comparison
+  const normalizeCompany = (name) => {
+    return (name || '')
+      .toLowerCase()
+      .trim()
+      .replace(/['']/g, "'")  // Normalize apostrophes
+      .replace(/\s+/g, ' ');  // Normalize whitespace
+  };
+  
+  const normalizedIncoming = normalizeCompany(incomingCompanyName);
+  const normalizedExisting = normalizeCompany(existingCompanyName);
+  
+  // Check for match (exact or substring)
+  const isMatch = normalizedIncoming === normalizedExisting ||
+                  normalizedIncoming.includes(normalizedExisting) ||
+                  normalizedExisting.includes(normalizedIncoming);
+  
+  if (!isMatch) {
+    console.error(`[sync-assessment] COMPANY MISMATCH DETECTED!`);
+    console.error(`  Existing company: "${existingCompanyName}"`);
+    console.error(`  Incoming company: "${incomingCompanyName}"`);
+    console.error(`  Survey ID: ${matchValue}`);
+    return { 
+      valid: false, 
+      existingCompany: existingCompanyName,
+      incomingCompany: incomingCompanyName,
+      reason: 'Company name mismatch - possible cross-contamination'
+    };
+  }
+  
+  return { valid: true };
 }
 
 exports.handler = async (event) => {
@@ -98,8 +175,12 @@ exports.handler = async (event) => {
     let matchValue = surveyId;
 
     // FP users: surveyId starts with FP-
-    if (surveyId.startsWith('FP-')) {
+    if (surveyId.startsWith('FP-') || surveyId.toUpperCase().startsWith('FPHR')) {
       matchColumn = 'survey_id';
+      // Normalize FP IDs
+      if (!surveyId.startsWith('FP-')) {
+        matchValue = 'FP-' + surveyId.replace(/^FPHR/i, 'HR');
+      }
     }
     // Regular authenticated users: surveyId is a UUID (user.id)
     else if (isUUID(surveyId)) {
@@ -135,6 +216,22 @@ exports.handler = async (event) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // ============================================
+    // *** COMPANY VERIFICATION - ANTI-CONTAMINATION CHECK ***
+    // ============================================
+    const companyCheck = await verifyCompanyMatch(supabase, matchColumn, matchValue, data);
+    
+    if (!companyCheck.valid) {
+      console.error(`[sync-assessment] REJECTING CONTAMINATED SYNC for ${matchValue}`);
+      return json(409, { 
+        error: 'Company mismatch detected',
+        reason: companyCheck.reason,
+        existingCompany: companyCheck.existingCompany,
+        incomingCompany: companyCheck.incomingCompany,
+        action: 'rejected'
+      }, event);
+    }
+
+    // ============================================
     // BUILD UPDATE DATA - Server owns updated_at
     // ============================================
     
@@ -154,7 +251,7 @@ exports.handler = async (event) => {
       .from('assessments')
       .update(updateData)
       .eq(matchColumn, matchValue)
-      .select('id, updated_at');
+      .select('id, updated_at, company_name');
 
     if (updateError) {
       console.error('Supabase update error:', updateError);
@@ -175,7 +272,7 @@ exports.handler = async (event) => {
       };
       
       // Add fields based on user type
-      if (matchColumn === 'survey_id' && surveyId.startsWith('FP-')) {
+      if (matchColumn === 'survey_id' && (surveyId.startsWith('FP-') || surveyId.toUpperCase().startsWith('FPHR'))) {
         insertData.app_id = surveyId;
         insertData.is_founding_partner = true;
         insertData.payment_completed = true;
@@ -209,7 +306,7 @@ exports.handler = async (event) => {
       }, event);
     }
 
-    console.log(`[sync-assessment] Updated ${matchValue}`);
+    console.log(`[sync-assessment] Updated ${matchValue} (company: ${updateResult[0]?.company_name || 'N/A'})`);
     return json(200, { 
       ok: true, 
       surveyId: matchValue,
