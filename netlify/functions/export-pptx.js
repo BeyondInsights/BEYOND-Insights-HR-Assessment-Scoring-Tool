@@ -26,17 +26,13 @@ exports.handler = async (event) => {
     const proto = event.headers["x-forwarded-proto"] || "https";
     const origin = proto + "://" + host;
 
-    // Hybrid deck reads your report page and creates:
-    // - 6 editable summary slides
-    // - matrix image slide
-    // - appendix image pages
     const reportUrl =
       origin +
       "/admin/reports/" +
       encodeURIComponent(surveyId) +
       "?export=1&mode=pptdeck";
 
-    // IMPORTANT: Build Browserless function string without backtick nesting
+    // Build Browserless Function code without nested template literals
     const browserlessFn = [
       "export default async function ({ page, context }) {",
       "  const url = context.url;",
@@ -68,11 +64,10 @@ exports.handler = async (event) => {
       "    if (!root) return null;",
       "    const t = (el) => (el && el.textContent ? el.textContent.trim() : '');",
       "    const numFrom = (s) => {",
-      "      const m = String(s || '').replace(/,/g,'').match(/-?\\d+(\\.\\d+)?/);",
+      "      const m = String(s || '').replace(/,/g,'').match(/-?\\\\d+(\\\\.\\\\d+)?/);",
       "      return m ? Number(m[0]) : null;",
       "    };",
       "    const byExport = (key) => root.querySelector('[data-export=\"' + key + '\"]');",
-
       "    const companyName = t(byExport('company-name')) || t(root.querySelector('h2')) || 'Company';",
       "    const compositeScore = numFrom(t(byExport('composite-score')));",
       "    const tierName = t(byExport('tier-name')) || '';",
@@ -98,9 +93,7 @@ exports.handler = async (event) => {
       "      }).filter(x => x.name);",
       "    }",
 
-      "    const scored = dimRows",
-      "      .map(d => ({ ...d, scoreN: (typeof d.score === 'number' ? d.score : null) }))",
-      "      .filter(d => d.scoreN !== null);",
+      "    const scored = dimRows.map(d => ({ ...d, scoreN: (typeof d.score === 'number' ? d.score : null) })).filter(d => d.scoreN !== null);",
       "    const strengths = scored.slice().sort((a,b)=>b.scoreN-a.scoreN).slice(0,4);",
       "    const growth = scored.slice().sort((a,b)=>a.scoreN-b.scoreN).slice(0,4);",
 
@@ -113,12 +106,7 @@ exports.handler = async (event) => {
       "    appendixStart = Math.max(0, appendixStart);",
       "    appendixEnd = Math.max(appendixStart + 1, appendixEnd);",
 
-      "    return {",
-      "      companyName, compositeScore, tierName,",
-      "      metricCurrently, metricDev, metricGaps, metricLeading,",
-      "      execSummary, dimRows, strengths, growth,",
-      "      appendixStart, appendixEnd",
-      "    };",
+      "    return { companyName, compositeScore, tierName, metricCurrently, metricDev, metricGaps, metricLeading, execSummary, dimRows, strengths, growth, appendixStart, appendixEnd };",
       "  });",
 
       "  if (!model) return { data: { ok: false, error: 'Could not read #report-root' }, type: 'application/json' };",
@@ -161,7 +149,6 @@ exports.handler = async (event) => {
       "  const step = 1080;",
       "  const maxAppendixSlides = 18;",
       "  const appendixImgs = [];",
-
       "  if (viewport) {",
       "    for (let y = startY; y < endY && appendixImgs.length < maxAppendixSlides; y += step) {",
       "      await page.evaluate((yy) => {",
@@ -191,18 +178,12 @@ exports.handler = async (event) => {
 
     const payload = await res.json();
     const data = payload && payload.data && typeof payload.data === "object" ? payload.data : payload;
-
-    if (!data || !data.ok || !data.model) {
-      return json(500, { error: "Unexpected Browserless payload", payload });
-    }
+    if (!data || !data.ok || !data.model) return json(500, { error: "Unexpected Browserless payload", payload });
 
     const m = data.model;
 
-    // Build PPTX
     const pptx = new PptxGenJS();
     pptx.layout = "LAYOUT_WIDE";
-    pptx.author = "Cancer and Careers";
-    pptx.title = safeText(m.companyName) + " - Cancer Support Assessment";
 
     const inchesW = 13.333;
     const inchesH = 7.5;
@@ -212,7 +193,7 @@ exports.handler = async (event) => {
       if (subtitle) slide.addText(subtitle, { x: 0.7, y: 0.92, w: 12.0, h: 0.35, fontSize: 12, color: "475569" });
     };
 
-    // Slide 1: Title
+    // Slide 1
     {
       const slide = pptx.addSlide();
       slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: inchesW, h: inchesH, fill: { color: "1E293B" } });
@@ -229,10 +210,10 @@ exports.handler = async (event) => {
       slide.addText(safeText(m.tierName || ""), { x: 3.2, y: 4.28, w: 2.6, h: 0.5, fontSize: 16, color: "FFFFFF", bold: true, align: "center" });
     }
 
-    // Slide 2: Metrics + summary
+    // Slide 2
     {
       const slide = pptx.addSlide();
-      addTitle(slide, "Executive Summary", "Key metrics and performance snapshot");
+      addTitle(slide, "Executive Summary", "Key metrics and snapshot");
 
       const metric = (x, label, val) => {
         slide.addShape(pptx.ShapeType.roundRect, { x, y: 1.4, w: 3.0, h: 1.2, fill: { color: "F1F5F9" }, line: { color: "E2E8F0" } });
@@ -247,13 +228,10 @@ exports.handler = async (event) => {
 
       const summary = safeText(m.execSummary || "");
       slide.addShape(pptx.ShapeType.roundRect, { x: 0.7, y: 2.9, w: 12.0, h: 4.3, fill: { color: "FFFFFF" }, line: { color: "E2E8F0" } });
-      slide.addText(
-        summary || "Detailed narrative and recommendations are included in the appendix.",
-        { x: 1.0, y: 3.15, w: 11.4, h: 4.0, fontSize: 12, color: "334155" }
-      );
+      slide.addText(summary || "Detailed narrative and recommendations are included in the appendix.", { x: 1.0, y: 3.15, w: 11.4, h: 4.0, fontSize: 12, color: "334155" });
     }
 
-    // Slide 3: Dimension Performance (editable)
+    // Slide 3: Dimension table
     {
       const slide = pptx.addSlide();
       addTitle(slide, "Dimension Performance", "Scores by dimension");
@@ -262,15 +240,15 @@ exports.handler = async (event) => {
       rows.push(["#", "Dimension", "Wt", "Score", "Tier"]);
 
       const dimRows = Array.isArray(m.dimRows) ? m.dimRows : [];
-      const top13 = dimRows.slice(0, 13).map((d) => ([
-        d.dimNum ? "D" + d.dimNum : "",
-        safeText(d.name),
-        (typeof d.weight === "number" ? d.weight + "%" : ""),
-        (typeof d.score === "number" ? String(d.score) : ""),
-        safeText(d.tier)
-      ]));
-
-      rows.push(...top13);
+      dimRows.slice(0, 13).forEach((d) => {
+        rows.push([
+          d.dimNum ? "D" + d.dimNum : "",
+          safeText(d.name),
+          (typeof d.weight === "number" ? d.weight + "%" : ""),
+          (typeof d.score === "number" ? String(d.score) : ""),
+          safeText(d.tier)
+        ]);
+      });
 
       slide.addTable(rows, {
         x: 0.7,
@@ -287,57 +265,13 @@ exports.handler = async (event) => {
       const slide = pptx.addSlide();
       addTitle(slide, "Strategic Priority Matrix", "Performance vs strategic importance");
       if (data.matrixPngB64) {
-        slide.addImage({
-          data: "data:image/png;base64," + data.matrixPngB64,
-          x: 0.6,
-          y: 1.25,
-          w: 12.1,
-          h: 6.1
-        });
+        slide.addImage({ data: "data:image/png;base64," + data.matrixPngB64, x: 0.6, y: 1.25, w: 12.1, h: 6.1 });
       } else {
         slide.addText("Matrix unavailable in export. See appendix.", { x: 0.7, y: 2.5, w: 12, h: 0.5, fontSize: 14, color: "64748B" });
       }
     }
 
-    // Slide 5: Strengths & improvements
-    {
-      const slide = pptx.addSlide();
-      addTitle(slide, "Strengths & Priority Improvements", "Highest and lowest scoring dimensions");
-
-      const strengths = Array.isArray(m.strengths) ? m.strengths : [];
-      const growth = Array.isArray(m.growth) ? m.growth : [];
-
-      slide.addShape(pptx.ShapeType.roundRect, { x: 0.7, y: 1.35, w: 6.0, h: 5.9, fill: { color: "ECFDF5" }, line: { color: "A7F3D0" } });
-      slide.addText("Areas of Excellence", { x: 1.0, y: 1.55, w: 5.5, h: 0.3, fontSize: 14, color: "047857", bold: true });
-      slide.addText(
-        strengths.map(s => "• " + safeText(s.name) + " (" + safeText(s.scoreN ?? s.score) + ")").join("\n") || "—",
-        { x: 1.0, y: 1.95, w: 5.5, h: 5.0, fontSize: 12, color: "065F46" }
-      );
-
-      slide.addShape(pptx.ShapeType.roundRect, { x: 6.9, y: 1.35, w: 5.8, h: 5.9, fill: { color: "FFFBEB" }, line: { color: "FDE68A" } });
-      slide.addText("Priority Improvements", { x: 7.2, y: 1.55, w: 5.2, h: 0.3, fontSize: 14, color: "B45309", bold: true });
-      slide.addText(
-        growth.map(g => "• " + safeText(g.name) + " (" + safeText(g.scoreN ?? g.score) + ")").join("\n") || "—",
-        { x: 7.2, y: 1.95, w: 5.2, h: 5.0, fontSize: 12, color: "92400E" }
-      );
-    }
-
-    // Slide 6: How CAC can help
-    {
-      const slide = pptx.addSlide();
-      slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: inchesW, h: 1.2, fill: { color: "1E293B" } });
-      slide.addText("How Cancer and Careers Can Help", { x: 0.7, y: 0.35, w: 12, h: 0.5, fontSize: 24, color: "FFFFFF", bold: true });
-
-      slide.addText(
-        "Tailored consulting to benchmark, prioritize, and implement improvements across policy, navigation, and manager enablement.",
-        { x: 0.7, y: 1.6, w: 12, h: 0.8, fontSize: 12, color: "475569" }
-      );
-
-      slide.addShape(pptx.ShapeType.roundRect, { x: 0.7, y: 2.7, w: 12.0, h: 1.1, fill: { color: "F5F3FF" }, line: { color: "E9D5FF" } });
-      slide.addText("consulting@cancerandcareers.org", { x: 1.0, y: 3.0, w: 11.4, h: 0.6, fontSize: 18, color: "5B21B6", bold: true });
-    }
-
-    // Slide 7: Appendix title
+    // Slide 5: Appendix title
     {
       const slide = pptx.addSlide();
       slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: inchesW, h: inchesH, fill: { color: "0F172A" } });
@@ -345,26 +279,21 @@ exports.handler = async (event) => {
       slide.addText("Detailed recommendations and supporting pages", { x: 0.9, y: 3.6, w: 12, h: 0.4, fontSize: 16, color: "CBD5E1" });
     }
 
-    // Appendix slides (images)
+    // Appendix images
     const appendixImgs = Array.isArray(data.appendixImgs) ? data.appendixImgs : [];
-    for (const img of appendixImgs) {
+    appendixImgs.forEach((img) => {
       const slide = pptx.addSlide();
-      slide.addImage({
-        data: "data:image/jpeg;base64," + img.jpegB64,
-        x: 0,
-        y: 0,
-        w: 13.333,
-        h: 7.5,
-      });
-    }
+      slide.addImage({ data: "data:image/jpeg;base64," + img.jpegB64, x: 0, y: 0, w: 13.333, h: 7.5 });
+    });
 
     const outB64 = await pptx.write("base64");
 
+    // FIXED: Content-Disposition string must be quoted
     return {
       statusCode: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        "Content-Disposition": "attachment; filename=\\"Report_" + surveyId + ".pptx\\"",
+        "Content-Disposition": `attachment; filename="Report_${surveyId}.pptx"`,
         "Cache-Control": "no-store",
       },
       body: outB64,
