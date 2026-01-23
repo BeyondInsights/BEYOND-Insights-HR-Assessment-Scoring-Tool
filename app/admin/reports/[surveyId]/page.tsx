@@ -1154,22 +1154,22 @@ export default function ExportReportPage() {
           </div>
         </div>
 
-        {/* ============ DIMENSION PERFORMANCE - FIXED LAYOUT FOR PDF ============ */}
+        {/* ============ DIMENSION PERFORMANCE - COMPACT FOR PPT ============ */}
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-          <div className="px-8 py-5 border-b border-slate-100">
+          <div className="px-8 py-3 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Dimension Performance Overview</h3>
           </div>
-          <div className="px-8 py-6">
+          <div className="px-8 py-4">
             <table className="w-full" id="dimension-performance-table" data-export="dimension-performance-table">
               <thead>
                 <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                  <th className="pb-3 text-center w-10">#</th>
-                  <th className="pb-3 text-left w-56">Dimension</th>
-                  <th className="pb-3 text-center w-12">Wt%</th>
-                  <th className="pb-3 text-center">Score</th>
-                  <th className="pb-3 text-right w-12">Score</th>
-                  <th className="pb-3 text-center w-20">vs Bench</th>
-                  <th className="pb-3 text-center w-20">Tier</th>
+                  <th className="pb-2 text-center w-8">#</th>
+                  <th className="pb-2 text-left">Dimension</th>
+                  <th className="pb-2 text-center w-10">Wt%</th>
+                  <th className="pb-2 text-center w-32">Score</th>
+                  <th className="pb-2 text-right w-10"></th>
+                  <th className="pb-2 text-center w-16">Bench</th>
+                  <th className="pb-2 text-center w-20">Tier</th>
                 </tr>
               </thead>
               <tbody>
@@ -1177,38 +1177,35 @@ export default function ExportReportPage() {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : 0;
                   return (
                     <tr key={d.dim} className={idx < dimensionAnalysis.length - 1 ? 'border-b border-slate-100' : ''}>
-                      <td className="py-2.5 text-center">
-                        <span className="w-7 h-7 rounded-full inline-flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
+                      <td className="py-1.5 text-center">
+                        <span className="w-6 h-6 rounded-full inline-flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
                       </td>
-                      <td className="py-2.5 text-left">
+                      <td className="py-1.5 text-left">
                         <span className="text-sm font-medium text-slate-700">{d.name}</span>
                       </td>
-                      <td className="py-2.5 text-center text-xs text-slate-500">{d.weight}%</td>
-                      <td className="py-2.5 px-2">
-                        <div className="relative h-5">
+                      <td className="py-1.5 text-center text-xs text-slate-500">{d.weight}%</td>
+                      <td className="py-1.5 px-2">
+                        <div className="relative h-4">
                           {d.benchmark !== null && (
                             <div className="absolute" style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '0', transform: 'translateX(-50%)' }}>
-                              <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[5px] border-l-transparent border-r-transparent border-t-slate-500" />
+                              <div className="w-0 h-0 border-l-[3px] border-r-[3px] border-t-[4px] border-l-transparent border-r-transparent border-t-slate-500" />
                             </div>
                           )}
-                          <div className="absolute inset-x-0 top-1.5 h-3 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="absolute inset-x-0 top-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
                             <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${d.score}%`, backgroundColor: getScoreColor(d.score) }} />
                           </div>
                         </div>
                       </td>
-                      <td className="py-2.5 text-right">
+                      <td className="py-1.5 text-right">
                         <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                       </td>
-                      <td className="py-2.5 text-center">
+                      <td className="py-1.5 text-center">
                         {d.benchmark !== null ? (
-                          <>
-                            <span className="text-xs text-slate-500">{d.benchmark}</span>
-                            <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff >= 0 ? '+' : ''}{diff})</span>
-                          </>
+                          <span className={`text-xs ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff >= 0 ? '+' : ''}{diff}</span>
                         ) : <span className="text-xs text-slate-400">—</span>}
                       </td>
-                      <td className="py-2.5 text-center">
-                        <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>{d.tier.name}</span>
+                      <td className="py-1.5 text-center">
+                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>{d.tier.name}</span>
                       </td>
                     </tr>
                   );
@@ -1216,10 +1213,10 @@ export default function ExportReportPage() {
               </tbody>
             </table>
             
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-4 text-xs text-slate-400">
+            <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-end gap-4 text-xs text-slate-400">
               <span>Scores out of 100</span>
               <span className="flex items-center gap-1">
-                <span className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[5px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
+                <span className="w-0 h-0 border-l-[3px] border-r-[3px] border-t-[4px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
                 Benchmark
               </span>
             </div>
