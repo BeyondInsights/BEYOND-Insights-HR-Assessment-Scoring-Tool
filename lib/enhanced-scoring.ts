@@ -874,23 +874,38 @@ function calculateMaturityScore(assessment: any): MaturityScore {
   const currentSupportData = assessment.current_support_data || {};
   
   // FIXED: Maturity is ONLY based on OR1, mapped to 0-100 scale
-  // This matches the scoring page formula exactly
-  const or1 = currentSupportData.or1 || '';
-  const v = String(or1).toLowerCase();
+  // Handle BOTH numeric and string values to match report page
+  const or1 = currentSupportData.or1;
   
   let percentage = 0;
-  if (v.includes('leading-edge') || v.includes('leading edge')) {
+  
+  // Handle numeric values first (from dropdown selections)
+  if (or1 === 6 || or1 === '6') {
     percentage = 100;
-  } else if (v.includes('comprehensive')) {
-    percentage = 100;
-  } else if (v.includes('enhanced') || v.includes('strong')) {
+  } else if (or1 === 5 || or1 === '5') {
     percentage = 80;
-  } else if (v.includes('moderate')) {
+  } else if (or1 === 4 || or1 === '4') {
     percentage = 50;
-  } else if (v.includes('basic') || v.includes('developing')) {
+  } else if (or1 === 3 || or1 === '3') {
     percentage = 20;
-  } else if (v.includes('legal minimum') || v.includes('no formal')) {
+  } else if (or1 === 2 || or1 === '2' || or1 === 1 || or1 === '1') {
     percentage = 0;
+  } else {
+    // Handle string values (from text-based responses)
+    const v = String(or1 || '').toLowerCase();
+    if (v.includes('leading-edge') || v.includes('leading edge')) {
+      percentage = 100;
+    } else if (v.includes('comprehensive')) {
+      percentage = 100;
+    } else if (v.includes('enhanced') || v.includes('strong')) {
+      percentage = 80;
+    } else if (v.includes('moderate')) {
+      percentage = 50;
+    } else if (v.includes('basic') || v.includes('developing')) {
+      percentage = 20;
+    } else if (v.includes('legal minimum') || v.includes('no formal')) {
+      percentage = 0;
+    }
   }
   
   details['or1'] = { value: percentage, maxValue: 100, source: `Approach: ${or1 || 'Not answered'}` };
@@ -914,16 +929,28 @@ function calculateBreadthScore(assessment: any): BreadthScore {
   const generalBenefitsData = assessment.general_benefits_data || {};
   
   // FIXED: Use same formula as scoring page - always average all 3 components on 0-100 scale
+  // Handle BOTH numeric and string values to match report page
   const scores: number[] = [];
   
   // CB3a - Beyond legal requirements (0-100)
-  const cb3a = currentSupportData.cb3a || generalBenefitsData.cb3a || '';
-  const cb3aLower = String(cb3a).toLowerCase();
+  const cb3a = currentSupportData.cb3a ?? generalBenefitsData.cb3a;
   let cb3aScore = 0;
-  if (cb3aLower.includes('yes') && cb3aLower.includes('additional support')) {
+  
+  // Handle numeric values first (from dropdown selections)
+  if (cb3a === 3 || cb3a === '3') {
     cb3aScore = 100;
-  } else if (cb3aLower.includes('developing')) {
+  } else if (cb3a === 2 || cb3a === '2') {
     cb3aScore = 50;
+  } else if (cb3a === 1 || cb3a === '1') {
+    cb3aScore = 0;
+  } else if (cb3a !== undefined && cb3a !== null) {
+    // Handle string values
+    const cb3aLower = String(cb3a).toLowerCase();
+    if (cb3aLower.includes('yes') && cb3aLower.includes('additional support')) {
+      cb3aScore = 100;
+    } else if (cb3aLower.includes('developing') || cb3aLower.includes('currently developing')) {
+      cb3aScore = 50;
+    }
   }
   scores.push(cb3aScore);
   details['cb3a'] = { value: cb3aScore, maxValue: 100, source: `Beyond legal: ${cb3a || 'Not answered'}` };
@@ -940,8 +967,8 @@ function calculateBreadthScore(assessment: any): BreadthScore {
   scores.push(cb3cScore);
   details['cb3c'] = { value: cb3cScore, maxValue: 100, source: `Conditions: ${cb3c && Array.isArray(cb3c) ? cb3c.length : 0} covered` };
   
-  // ALWAYS average all 3 components
-  const percentage = Math.round(scores.reduce((a, b) => a + b, 0) / 3);
+  // ALWAYS average all 3 components (matching report page behavior)
+  const percentage = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
   
   return {
     total: percentage,
