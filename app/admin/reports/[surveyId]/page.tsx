@@ -1237,23 +1237,22 @@ export default function ExportReportPage() {
           </div>
         </div>
 
-        {/* ============ AREAS OF EXCELLENCE & GROWTH - WITH COLORED HEADERS ============ */}
-        <div className="ppt-break grid grid-cols-2 gap-6 mb-8 pdf-no-break">
-          {/* Areas of Excellence */}
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 bg-emerald-700">
-              <h3 className="font-semibold text-white">Areas of Excellence</h3>
-              <p className="text-emerald-200 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {strengthDimensions.length > 0 ? (
-                strengthDimensions.slice(0, 5).map((d) => (
-                  <div key={d.dim} className="px-6 py-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-slate-800">{d.name}</p>
-                      <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+        {/* ============ AREAS OF EXCELLENCE ============ */}
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="px-10 py-5 bg-emerald-700">
+            <h3 className="font-semibold text-white text-lg">Areas of Excellence</h3>
+            <p className="text-emerald-200 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+          </div>
+          <div className="px-10 py-6">
+            {strengthDimensions.length > 0 ? (
+              <div className="grid grid-cols-2 gap-6">
+                {strengthDimensions.slice(0, 6).map((d) => (
+                  <div key={d.dim} className="border border-slate-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-semibold text-slate-800">{d.name}</p>
+                      <span className="text-lg font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                     </div>
-                    <ul className="space-y-1">
+                    <ul className="space-y-1.5">
                       {d.strengths.slice(0, 3).map((e: any, i: number) => (
                         <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                           <CheckIcon className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
@@ -1262,47 +1261,48 @@ export default function ExportReportPage() {
                       ))}
                     </ul>
                   </div>
-                ))
-              ) : (
-                <div className="px-6 py-8 text-center">
-                  <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Growth Opportunities */}
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 bg-amber-600">
-              <h3 className="font-semibold text-white">Growth Opportunities</h3>
-              <p className="text-amber-100 text-sm">Dimensions with improvement potential</p>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {allDimensionsByScore.slice(0, 5).map((d) => {
-                return (
-                  <div key={d.dim} className="px-6 py-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-slate-800">{d.name}</p>
-                      <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                    </div>
-                    {d.needsAttention.length > 0 ? (
-                      <ul className="space-y-1">
-                        {d.needsAttention.slice(0, 4).map((e: any, i: number) => (
-                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
-                            <span>{e.name}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
-                    )}
+        {/* ============ GROWTH OPPORTUNITIES ============ */}
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="px-10 py-5 bg-amber-600">
+            <h3 className="font-semibold text-white text-lg">Growth Opportunities</h3>
+            <p className="text-amber-100 text-sm">Dimensions with improvement potential</p>
+          </div>
+          <div className="px-10 py-6">
+            <div className="grid grid-cols-2 gap-6">
+              {allDimensionsByScore.slice(0, 6).map((d) => (
+                <div key={d.dim} className="border border-slate-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="font-semibold text-slate-800">{d.name}</p>
+                    <span className="text-lg font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                   </div>
-                );
-              })}
+                  {d.needsAttention.length > 0 ? (
+                    <ul className="space-y-1.5">
+                      {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
+                        <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                          <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
+                          <span>{e.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
+
 
         {/* ============ INITIATIVES IN PROGRESS ============ */}
         {quickWinOpportunities.length > 0 && (
@@ -1331,7 +1331,7 @@ export default function ExportReportPage() {
         )}
 
         {/* ============ STRATEGIC RECOMMENDATIONS - CONSISTENT HEADERS ============ */}
-        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">Strategic Recommendations</h3>
             <p className="text-slate-400 text-sm mt-1">Detailed analysis and action plans for priority dimensions</p>
@@ -1612,7 +1612,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ METHODOLOGY & FOOTER ============ */}
-        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-0 pdf-no-break" id="appendix-end" data-export="appendix-end">
+        <div className="ppt-break bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-0 pdf-no-break" id="appendix-end" data-export="appendix-end">
           <div className="px-10 py-5 border-b border-slate-200">
             <h3 className="font-semibold text-slate-700 text-sm">Assessment Methodology</h3>
           </div>
