@@ -899,6 +899,89 @@ export default function ExportReportPage() {
   const [elementDetails, setElementDetails] = useState<any>(null);
   const [percentileRank, setPercentileRank] = useState<number | null>(null);
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
+  
+  // Edit Mode State
+  const [editMode, setEditMode] = useState(false);
+  const [customInsights, setCustomInsights] = useState<Record<number, { insight: string; cacHelp: string }>>({});
+  const [customExecutiveSummary, setCustomExecutiveSummary] = useState<string>('');
+  const [customPatterns, setCustomPatterns] = useState<{ pattern: string; implication: string; recommendation: string }[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [savingEdits, setSavingEdits] = useState(false);
+  
+  // Helper to update custom insight for a dimension
+  const updateCustomInsight = (dimNum: number, field: 'insight' | 'cacHelp', value: string) => {
+    setCustomInsights(prev => ({
+      ...prev,
+      [dimNum]: {
+        ...prev[dimNum],
+        [field]: value
+      }
+    }));
+    setHasUnsavedChanges(true);
+  };
+  
+  // Get effective insight (custom or generated)
+  const getEffectiveInsight = (dimNum: number, generatedInsight: { insight: string; cacHelp: string }) => {
+    const custom = customInsights[dimNum];
+    return {
+      insight: custom?.insight || generatedInsight.insight,
+      cacHelp: custom?.cacHelp || generatedInsight.cacHelp
+    };
+  };
+  
+  // Save edits to database
+  const saveEdits = async () => {
+    if (!company?.id) return;
+    setSavingEdits(true);
+    try {
+      const { error } = await supabase
+        .from('assessments')
+        .update({
+          report_customizations: JSON.stringify({
+            customInsights,
+            customExecutiveSummary,
+            customPatterns,
+            lastEditedAt: new Date().toISOString()
+          })
+        })
+        .eq('id', company.id);
+      
+      if (error) throw error;
+      setHasUnsavedChanges(false);
+      alert('Customizations saved successfully!');
+    } catch (err) {
+      console.error('Save error:', err);
+      alert('Failed to save customizations');
+    } finally {
+      setSavingEdits(false);
+    }
+  };
+  
+  // Reset edits to generated defaults
+  const resetEdits = () => {
+    if (confirm('Reset all customizations to auto-generated content?')) {
+      setCustomInsights({});
+      setCustomExecutiveSummary('');
+      setCustomPatterns([]);
+      setHasUnsavedChanges(true);
+    }
+  };
+  
+  // Load saved customizations when company loads
+  useEffect(() => {
+    if (company?.report_customizations) {
+      try {
+        const saved = typeof company.report_customizations === 'string' 
+          ? JSON.parse(company.report_customizations)
+          : company.report_customizations;
+        if (saved.customInsights) setCustomInsights(saved.customInsights);
+        if (saved.customExecutiveSummary) setCustomExecutiveSummary(saved.customExecutiveSummary);
+        if (saved.customPatterns) setCustomPatterns(saved.customPatterns);
+      } catch (e) {
+        console.error('Error loading customizations:', e);
+      }
+    }
+  }, [company]);
 
   useEffect(() => {
     // CRITICAL: Reset ALL state when surveyId changes
@@ -1367,6 +1450,62 @@ export default function ExportReportPage() {
             Back
           </button>
           <div className="flex items-center gap-3">
+            {/* Edit Mode Toggle */}
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all ${
+                editMode 
+                  ? 'bg-amber-100 text-amber-800 border-2 border-amber-400' 
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border-2 border-transparent'
+              }`}
+              title={editMode ? 'Exit Edit Mode' : 'Enter Edit Mode'}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              {editMode ? 'Editing' : 'Edit'}
+            </button>
+            
+            {/* Save/Reset buttons - only show in edit mode */}
+            {editMode && (
+              <>
+                <button
+                  onClick={saveEdits}
+                  disabled={savingEdits || !hasUnsavedChanges}
+                  className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 ${
+                    hasUnsavedChanges 
+                      ? 'bg-green-600 hover:bg-green-700 text-white' 
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
+                  title="Save customizations"
+                >
+                  {savingEdits ? (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  Save
+                </button>
+                <button
+                  onClick={resetEdits}
+                  className="px-4 py-2 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-2"
+                  title="Reset to auto-generated content"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Reset
+                </button>
+              </>
+            )}
+            
+            <div className="w-px h-8 bg-slate-200" />
+            
             <button
               onClick={handleServerExportPPT}
               className="px-5 py-2 rounded-lg font-medium bg-orange-500 hover:bg-orange-600 text-white"
@@ -1383,6 +1522,21 @@ export default function ExportReportPage() {
             </button>
           </div>
         </div>
+        
+        {/* Edit Mode Banner */}
+        {editMode && (
+          <div className="bg-amber-50 border-t border-amber-200 px-8 py-3">
+            <div className="max-w-6xl mx-auto flex items-center gap-3">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-amber-800">
+                <strong>Edit Mode:</strong> Click on any insight text to customize it. Changes are saved to the database and will appear in exported reports.
+                {hasUnsavedChanges && <span className="ml-2 text-amber-600 font-medium">• Unsaved changes</span>}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div ref={printRef} id="report-root" className="max-w-6xl mx-auto py-10 px-8">
@@ -1995,15 +2149,61 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Strategic Insight & CAC Help - Now Dynamic */}
+                    {/* Strategic Insight & CAC Help - Now Dynamic & Editable */}
                     <div className="grid grid-cols-2 gap-6">
-                      <div className="border border-slate-200 rounded-lg p-5 bg-white">
-                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">Tailored Strategic Insight</h5>
-                        <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
+                      <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
+                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                          Tailored Strategic Insight
+                          {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
+                        </h5>
+                        {editMode ? (
+                          <textarea
+                            value={customInsights[d.dim]?.insight ?? dynamicInsight.insight}
+                            onChange={(e) => updateCustomInsight(d.dim, 'insight', e.target.value)}
+                            className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                            placeholder="Enter custom strategic insight..."
+                          />
+                        ) : (
+                          <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                        )}
+                        {editMode && customInsights[d.dim]?.insight && (
+                          <button 
+                            onClick={() => updateCustomInsight(d.dim, 'insight', '')}
+                            className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Reset to auto-generated
+                          </button>
+                        )}
                       </div>
-                      <div className="border border-violet-200 rounded-lg p-5 bg-violet-50">
-                        <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
-                        <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                      <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
+                        <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                          How Cancer and Careers Can Help
+                          {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
+                        </h5>
+                        {editMode ? (
+                          <textarea
+                            value={customInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
+                            onChange={(e) => updateCustomInsight(d.dim, 'cacHelp', e.target.value)}
+                            className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                            placeholder="Enter custom CAC help text..."
+                          />
+                        ) : (
+                          <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                        )}
+                        {editMode && customInsights[d.dim]?.cacHelp && (
+                          <button 
+                            onClick={() => updateCustomInsight(d.dim, 'cacHelp', '')}
+                            className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Reset to auto-generated
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
