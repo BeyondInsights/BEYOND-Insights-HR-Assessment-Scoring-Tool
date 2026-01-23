@@ -1,8 +1,7 @@
 const PptxGenJS = require('pptxgenjs');
 
 // ============================================
-// SIMPLE PPT - ONE FULL PAGE SCREENSHOT
-// Debug version to verify API works
+// PPT EXPORT - WAIT FOR CONTENT TO LOAD
 // ============================================
 
 exports.handler = async (event) => {
@@ -28,8 +27,8 @@ exports.handler = async (event) => {
     const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1`;
     console.log('Report URL:', reportUrl);
     
-    // Take ONE full-page screenshot - simplest possible call
-    console.log('Taking full page screenshot...');
+    // Take full-page screenshot - WAIT for content to load
+    console.log('Taking screenshot...');
     const res = await fetch(`${browserlessBase}/screenshot?token=${browserlessToken}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -40,9 +39,10 @@ exports.handler = async (event) => {
           fullPage: true
         },
         gotoOptions: { 
-          waitUntil: 'networkidle2', 
-          timeout: 25000 
-        }
+          waitUntil: 'networkidle0', 
+          timeout: 30000 
+        },
+        waitForTimeout: 5000 // Wait 5 seconds for React to load data and render
       })
     });
     
@@ -64,27 +64,48 @@ exports.handler = async (event) => {
     const imgBuffer = Buffer.from(await res.arrayBuffer());
     console.log('Screenshot buffer size:', imgBuffer.length);
     
-    if (imgBuffer.length < 1000) {
+    if (imgBuffer.length < 5000) {
       console.error('Screenshot too small - likely failed');
       return { statusCode: 500, body: JSON.stringify({ error: 'Screenshot too small', size: imgBuffer.length }) };
     }
     
-    // Create simple PPT with one slide
+    // Get dimensions from PNG header
+    const width = imgBuffer.readUInt32BE(16);
+    const height = imgBuffer.readUInt32BE(20);
+    console.log(`Image: ${width}x${height}`);
+    
+    // Create PPT
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
     pptx.title = 'Cancer Support Assessment Report';
     
-    const slide = pptx.addSlide();
-    slide.addImage({
-      data: `data:image/png;base64,${imgBuffer.toString('base64')}`,
-      x: 0,
-      y: 0,
-      w: 13.333,
-      h: 7.5,
-      sizing: { type: 'contain', w: 13.333, h: 7.5 }
-    });
+    const imgB64 = imgBuffer.toString('base64');
     
-    console.log('Created 1 slide PPT');
+    // Calculate how many slides we need (16:9 = 1200x675 per slide)
+    const slideHeightPx = 675;
+    const numSlides = Math.min(Math.ceil(height / slideHeightPx), 15);
+    console.log(`Creating ${numSlides} slides`);
+    
+    // Image dimensions in inches (slide is 13.333" x 7.5")
+    const imgWidthIn = 13.333;
+    const imgHeightIn = (height / width) * imgWidthIn;
+    
+    for (let i = 0; i < numSlides; i++) {
+      const slide = pptx.addSlide();
+      
+      // Offset to show different portion of image
+      const yOffsetIn = -(i * 7.5);
+      
+      slide.addImage({
+        data: `data:image/png;base64,${imgB64}`,
+        x: 0,
+        y: yOffsetIn,
+        w: imgWidthIn,
+        h: imgHeightIn
+      });
+    }
+    
+    console.log(`Generated ${pptx.slides.length} slides`);
     const outB64 = await pptx.write({ outputType: 'base64' });
     
     return {
