@@ -701,6 +701,24 @@ export default function ExportReportPage() {
   }
 
 
+  // ============================================
+  // SERVER EXPORT BUTTONS (Netlify Functions)
+  // ============================================
+  function handleServerExportPDF() {
+    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
+    window.open(url, '_blank');
+  }
+
+  function handleServerExportPPT() {
+    const url = `/.netlify/functions/export-pptx?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
+    window.open(url, '_blank');
+  }
+
+  function handleBack() {
+    if (typeof window !== 'undefined') window.history.back();
+  }
+
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -932,6 +950,35 @@ export default function ExportReportPage() {
         }
       `}</style>
 
+
+
+      {/* Action Bar */}
+      <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
+          <button onClick={handleBack} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleServerExportPPT}
+              className="px-5 py-2 rounded-lg font-medium bg-orange-500 hover:bg-orange-600 text-white"
+              title="Export PowerPoint"
+            >
+              Export PowerPoint
+            </button>
+            <button
+              onClick={handleServerExportPDF}
+              className="px-5 py-2 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-white"
+              title="Export PDF"
+            >
+              Export PDF
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div ref={printRef} id="report-root" className="max-w-6xl mx-auto py-10 px-8">
         
