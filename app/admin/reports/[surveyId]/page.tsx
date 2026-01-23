@@ -909,6 +909,13 @@ export default function ExportReportPage() {
   const [customCrossRecommendations, setCustomCrossRecommendations] = useState<Record<number, string>>({}); // pattern index -> custom recommendation
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
+  
+  // Show toast notification
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
   
   // Helper to update custom insight for a dimension
   const updateCustomInsight = (dimNum: number, field: 'insight' | 'cacHelp', value: string) => {
@@ -970,10 +977,10 @@ export default function ExportReportPage() {
       
       if (error) throw error;
       setHasUnsavedChanges(false);
-      alert('Customizations saved successfully!');
+      showToast('Customizations saved successfully!', 'success');
     } catch (err) {
       console.error('Save error:', err);
-      alert('Failed to save customizations');
+      showToast('Failed to save customizations', 'error');
     } finally {
       setSavingEdits(false);
     }
@@ -2719,6 +2726,37 @@ export default function ExportReportPage() {
           </div>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed bottom-6 right-6 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className={`flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border ${
+            toast.type === 'success' 
+              ? 'bg-white border-green-200' 
+              : 'bg-white border-red-200'
+          }`}>
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 p-1">
+              <Image src="/BI_LOGO_FINAL.png" alt="BEYOND Insights" width={36} height={36} className="object-contain" />
+            </div>
+            <div>
+              <p className={`font-semibold text-sm ${
+                toast.type === 'success' ? 'text-green-800' : 'text-red-800'
+              }`}>
+                {toast.type === 'success' ? 'Success' : 'Error'}
+              </p>
+              <p className="text-sm text-slate-600">{toast.message}</p>
+            </div>
+            <button 
+              onClick={() => setToast({ show: false, message: '', type: 'success' })}
+              className="ml-2 text-slate-400 hover:text-slate-600"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
