@@ -305,6 +305,230 @@ function getScoreColor(score: number): string {
 }
 
 // ============================================
+// DYNAMIC TAILORED ANALYSIS FUNCTIONS
+// ============================================
+
+// Generate tier-adaptive insights based on actual performance
+function getDynamicInsight(dimNum: number, score: number, tierName: string, benchmark: number | null, gaps: any[], strengths: any[], planning: any[]): { insight: string; cacHelp: string } {
+  const benchDiff = benchmark !== null ? score - benchmark : 0;
+  const isAboveBenchmark = benchDiff > 0;
+  const gapCount = gaps.length;
+  const strengthCount = strengths.length;
+  const planningCount = planning.length;
+  
+  // Dimension-specific context
+  const dimContext: Record<number, { focus: string; risk: string; opportunity: string; quickWin: string }> = {
+    1: { focus: 'leave policies and flexibility', risk: 'employees choosing between health and job', opportunity: 'industry-leading time-off benefits', quickWin: 'phased return-to-work options' },
+    2: { focus: 'insurance and financial protection', risk: 'financial toxicity derailing treatment', opportunity: 'comprehensive coverage removing barriers', quickWin: 'employee assistance fund or gap insurance' },
+    3: { focus: 'manager preparedness', risk: 'policy-to-practice gaps at the front line', opportunity: 'confident, trained managers', quickWin: 'conversation guide and scenario training' },
+    4: { focus: 'navigation and expert resources', risk: 'underutilized benefits investments', opportunity: 'single-entry-point access', quickWin: 'centralized resource hub or concierge' },
+    5: { focus: 'workplace accommodations', risk: 'preventable turnover during treatment', opportunity: 'flexibility that retains talent', quickWin: 'remote work and schedule flexibility policies' },
+    6: { focus: 'culture and psychological safety', risk: 'hidden struggles until crisis point', opportunity: 'early disclosure and intervention', quickWin: 'leadership storytelling and visibility' },
+    7: { focus: 'career continuity', risk: 'losing talent to fear of career damage', opportunity: 'loyalty through protected trajectories', quickWin: 'explicit promotion protection policy' },
+    8: { focus: 'return-to-work support', risk: 'failed transitions after treatment', opportunity: 'sustainable recovery and full productivity', quickWin: 'structured 90-day re-entry protocol' },
+    9: { focus: 'executive commitment', risk: 'cancer support seen as HR-only', opportunity: 'business-integrated health strategy', quickWin: 'executive sponsor and visible commitment' },
+    10: { focus: 'caregiver support', risk: 'losing productive employees who are caregivers', opportunity: 'holistic family support', quickWin: 'caregiver leave and flexible scheduling' },
+    11: { focus: 'prevention and wellness', risk: 'late detection and higher costs', opportunity: 'proactive health culture', quickWin: 'on-site screening events and incentives' },
+    12: { focus: 'continuous improvement', risk: 'static policies that don\'t evolve', opportunity: 'learning organization', quickWin: 'annual program review and employee feedback' },
+    13: { focus: 'communication and awareness', risk: 'excellent programs nobody knows about', opportunity: 'high utilization rates', quickWin: 'benefits awareness campaign at open enrollment' },
+  };
+  
+  const ctx = dimContext[dimNum] || { focus: 'this area', risk: 'gaps in support', opportunity: 'improved outcomes', quickWin: 'targeted improvements' };
+  
+  let insight = '';
+  let cacHelp = '';
+  
+  // Tier-based insight generation with specific data
+  if (tierName === 'Exemplary') {
+    insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the peer average of ${benchmark}, this is a genuine competitive differentiator.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
+    cacHelp = `Leverage your leadership position through case study development, industry speaking opportunities, and peer mentoring. We can help document your practices for the Best Companies recognition program and support knowledge transfer to other business units.`;
+  } else if (tierName === 'Leading') {
+    insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Exemplary status—consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Exemplary tier.'}`;
+    cacHelp = `We can conduct a gap-to-Exemplary analysis identifying the ${gapCount > 0 ? gapCount : 'few'} specific enhancements needed, with prioritized implementation roadmap. ${planningCount > 0 ? `Accelerating your ${planningCount} in-progress initiative${planningCount > 1 ? 's' : ''} could provide quick wins.` : ''}`;
+  } else if (tierName === 'Progressing') {
+    insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
+    cacHelp = `Our targeted assessment can prioritize which of your ${gapCount} improvement opportunities deliver the most impact. ${planningCount > 0 ? `Your ${planningCount} in-development initiative${planningCount > 1 ? 's' : ''} show${planningCount === 1 ? 's' : ''} momentum—we can help accelerate implementation.` : 'We recommend a phased approach starting with high-visibility, lower-effort improvements.'}`;
+  } else if (tierName === 'Emerging') {
+    insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, focused investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer average indicates this is an area where competitors may have an advantage.` : ''} Recommended quick win: ${ctx.quickWin}.`;
+    cacHelp = `We recommend a focused 90-day sprint to address the highest-impact gaps. ${planningCount > 0 ? `Prioritizing your ${planningCount} planned initiative${planningCount > 1 ? 's' : ''} can show visible progress quickly.` : 'Our rapid-start programs provide turnkey solutions for the most common gaps in this dimension.'}`;
+  } else {
+    insight = `Critical gap in ${ctx.focus} at ${score} points creates risk of ${ctx.risk}. ${gapCount > 0 ? `${gapCount} missing elements represent significant exposure.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap below the ${benchmark} peer average signals this as a priority area.` : ''} Employees facing health challenges may feel unsupported here, leading to disengagement, extended leave, or departure. Immediate action: implement ${ctx.quickWin}.`;
+    cacHelp = `Urgent intervention recommended. We can help build the business case for leadership buy-in, design a rapid implementation roadmap addressing the ${gapCount} gaps, and provide hands-on support. Our foundation-building programs are designed for organizations starting from this level.`;
+  }
+  
+  return { insight, cacHelp };
+}
+
+// Generate benchmark comparison narrative
+function getBenchmarkNarrative(score: number, benchmark: number | null, dimName: string): string {
+  if (benchmark === null) return '';
+  const diff = score - benchmark;
+  if (diff > 25) return `Significantly outperforming peers by ${diff} points—this represents a genuine organizational strength and potential competitive advantage in talent attraction.`;
+  if (diff > 15) return `Well above the ${benchmark} peer average by ${diff} points, indicating mature, established practices that employees likely recognize and value.`;
+  if (diff > 5) return `Above benchmark by ${diff} points (peer avg: ${benchmark}), showing solid foundation with room to extend your lead.`;
+  if (diff > 0) return `Slightly above the ${benchmark} peer average—a good foundation to build on for differentiation.`;
+  if (diff === 0) return `Matching the peer average of ${benchmark}—an opportunity to differentiate through targeted improvements.`;
+  if (diff > -10) return `${Math.abs(diff)} points below the ${benchmark} peer benchmark—targeted improvements can close this gap within 6-12 months.`;
+  if (diff > -20) return `Notable gap of ${Math.abs(diff)} points below the ${benchmark} peer average warrants focused strategic attention.`;
+  return `Significant ${Math.abs(diff)}-point gap below peers (avg: ${benchmark}) requires prioritization to reduce competitive disadvantage.`;
+}
+
+// Identify meaningful cross-dimension patterns
+function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; implication: string; recommendation: string }[] {
+  const patterns: { pattern: string; implication: string; recommendation: string }[] = [];
+  
+  const findDim = (num: number) => dimAnalysis.find(d => d.dim === num);
+  const culture = findDim(6);
+  const manager = findDim(3);
+  const navigation = findDim(4);
+  const communication = findDim(13);
+  const leave = findDim(1);
+  const returnToWork = findDim(8);
+  const insurance = findDim(2);
+  const executive = findDim(9);
+  const continuous = findDim(12);
+  const accommodations = findDim(5);
+  const career = findDim(7);
+  
+  // Pattern: Strong culture but weak manager training
+  if (culture && manager && culture.score >= 70 && manager.score < 55) {
+    patterns.push({
+      pattern: `Strong Culture (${culture.score}) paired with lower Manager Preparedness (${manager.score})`,
+      implication: 'Employees likely feel safe disclosing health challenges, but managers may lack confidence and tools to respond effectively. This creates risk of inconsistent support experiences.',
+      recommendation: 'Prioritize manager training with conversation guides and scenario practice. Your positive culture means managers want to help—give them the skills to do so effectively.'
+    });
+  }
+  
+  // Pattern: Good benefits but poor navigation  
+  if (insurance && navigation && insurance.score >= 65 && navigation.score < 50) {
+    patterns.push({
+      pattern: `Strong Insurance Benefits (${insurance.score}) with weaker Navigation (${navigation.score})`,
+      implication: 'You\'ve invested in comprehensive benefits, but employees may struggle to find and access them when needed. Benefits utilization is likely below potential, reducing ROI.',
+      recommendation: 'Implement a navigation solution—single entry point, benefits concierge, or resource hub. This maximizes return on your existing benefits investment.'
+    });
+  }
+  
+  // Pattern: Low communication with strong programs
+  if (communication && communication.score < 50) {
+    const strongDims = dimAnalysis.filter(d => d.score >= 70 && d.dim !== 13);
+    if (strongDims.length >= 2) {
+      patterns.push({
+        pattern: `${strongDims.length} dimensions at Leading+ level but Communication at only ${communication.score}`,
+        implication: `You have strong programs in ${strongDims.slice(0, 2).map(d => d.name).join(' and ')}, but low awareness may be limiting utilization. Employees may not know these resources exist when they need them.`,
+        recommendation: 'Launch targeted awareness campaigns highlighting your strongest offerings. This is a quick win—you already have the programs, just need visibility.'
+      });
+    }
+  }
+  
+  // Pattern: Strong leave but weak return-to-work
+  if (leave && returnToWork && leave.score >= 65 && returnToWork.score < 50) {
+    patterns.push({
+      pattern: `Good Leave Policies (${leave.score}) but weaker Return-to-Work Support (${returnToWork.score})`,
+      implication: 'Employees get the time they need for treatment, but may struggle with the transition back. This risks losing the investment made during leave through failed re-entry.',
+      recommendation: 'Implement structured return-to-work protocols: phased re-entry schedules, regular check-ins, and temporary accommodation plans. Protect your leave investment.'
+    });
+  }
+  
+  // Pattern: Accommodations strong but career weak
+  if (accommodations && career && accommodations.score >= 65 && career.score < 50) {
+    patterns.push({
+      pattern: `Good Accommodations (${accommodations.score}) but lower Career Continuity (${career.score})`,
+      implication: 'Employees can adjust their work during treatment, but may fear long-term career impact. This can lead to hidden diagnoses or premature departures despite good day-to-day support.',
+      recommendation: 'Add explicit career protection policies—promotion eligibility during medical leave, transparent communication about performance expectations, and success stories of career progression post-diagnosis.'
+    });
+  }
+  
+  // Pattern: Low executive commitment with other gaps
+  if (executive && executive.score < 45) {
+    const avgOtherScore = dimAnalysis.filter(d => d.dim !== 9).reduce((sum, d) => sum + d.score, 0) / 12;
+    if (avgOtherScore < 65) {
+      patterns.push({
+        pattern: `Low Executive Commitment (${executive.score}) correlating with program gaps`,
+        implication: 'Without visible leadership engagement, cancer support operates as an isolated HR initiative rather than organizational priority. This limits resources and cross-functional coordination.',
+        recommendation: 'Build the executive business case connecting cancer support to retention metrics, productivity data, and employer brand. Identify an executive sponsor to champion the program.'
+      });
+    }
+  }
+  
+  // Pattern: Consistently strong performance
+  const avgScore = dimAnalysis.reduce((sum, d) => sum + d.score, 0) / dimAnalysis.length;
+  const lowestDim = [...dimAnalysis].sort((a, b) => a.score - b.score)[0];
+  if (avgScore >= 72 && lowestDim.score >= 50) {
+    patterns.push({
+      pattern: `Consistently strong performance across dimensions (${Math.round(avgScore)} average)`,
+      implication: 'Your comprehensive, balanced approach to cancer support is a genuine organizational differentiator. This positions you well for employer brand recognition and talent attraction.',
+      recommendation: `Consider pursuing Best Companies certification to formalize recognition. Focus refinement on ${lowestDim.name} (${lowestDim.score}) to achieve full excellence across all dimensions.`
+    });
+  }
+  
+  // Pattern: High gaps with low continuous improvement
+  if (continuous && continuous.score < 45) {
+    const totalGaps = dimAnalysis.reduce((sum, d) => sum + d.gaps.length, 0);
+    if (totalGaps > 25) {
+      patterns.push({
+        pattern: `${totalGaps} total gaps with limited Continuous Improvement infrastructure (${continuous.score})`,
+        implication: 'Significant improvement opportunities exist, but without systematic review processes, progress may be slow and lessons from individual cases are lost.',
+        recommendation: 'Establish quarterly program reviews, employee feedback mechanisms, and case documentation practices. This creates the infrastructure to drive and sustain improvements.'
+      });
+    }
+  }
+  
+  return patterns.slice(0, 3); // Return top 3 most relevant
+}
+
+// Calculate impact-ranked improvement priorities
+function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; effort: string; recommendation: string; topGap: string }[] {
+  return dimAnalysis
+    .map(d => {
+      // Calculate potential composite score impact
+      const improvementPotential = Math.min(100 - d.score, 20); // Max 20 point improvement realistic
+      const weightedImpact = (improvementPotential * d.weight) / 100 * 0.9; // 90% dimension weight factor
+      const potentialGain = Math.round(weightedImpact * 10) / 10;
+      
+      // Determine effort based on gap count, current score, and planning items
+      let effort = 'Medium';
+      let effortScore = 2;
+      if (d.gaps.length > 6 || d.score < 35) { effort = 'High'; effortScore = 1; }
+      else if (d.gaps.length <= 2 && d.score >= 55) { effort = 'Low'; effortScore = 3; }
+      else if (d.planning.length >= 2) { effort = 'Low'; effortScore = 3; } // Already have momentum
+      
+      // Generate specific recommendation based on their data
+      let recommendation = '';
+      if (d.planning.length > 0) {
+        recommendation = `Accelerate ${d.planning.length} in-progress initiative${d.planning.length > 1 ? 's' : ''} for quickest impact`;
+      } else if (d.gaps.length > 0 && d.gaps[0]?.name) {
+        recommendation = `Start with: ${d.gaps[0].name}`;
+      } else if (d.assessing.length > 0) {
+        recommendation = `Move ${d.assessing.length} item${d.assessing.length > 1 ? 's' : ''} from assessment to planning`;
+      } else {
+        recommendation = `Optimize and document existing programs`;
+      }
+      
+      const topGap = d.gaps[0]?.name || d.needsAttention[0]?.name || 'No specific gaps identified';
+      
+      return {
+        dimName: d.name,
+        dimNum: d.dim,
+        currentScore: d.score,
+        tier: d.tier.name,
+        potentialGain,
+        effort,
+        effortScore,
+        recommendation,
+        topGap
+      };
+    })
+    .sort((a, b) => {
+      // Prioritize: high impact + low effort = best ROI
+      const aROI = a.potentialGain * a.effortScore;
+      const bROI = b.potentialGain * b.effortScore;
+      return bROI - aROI;
+    })
+    .map(({ effortScore, ...rest }) => rest) // Remove effortScore from output
+    .slice(0, 5);
+}
+
+// ============================================
 // ICONS - MINIMAL
 // ============================================
 
@@ -1234,6 +1458,101 @@ export default function ExportReportPage() {
           </div>
         </div>
 
+        {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
+        {(() => {
+          const patterns = getCrossDimensionPatterns(dimensionAnalysis);
+          if (patterns.length === 0) return null;
+          return (
+            <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+              <div className="px-10 py-5 bg-indigo-700">
+                <h3 className="font-semibold text-white text-lg">Cross-Dimension Insights</h3>
+                <p className="text-indigo-200 text-sm">Patterns identified across your assessment that reveal strategic opportunities</p>
+              </div>
+              <div className="px-10 py-6 space-y-6">
+                {patterns.map((p, idx) => (
+                  <div key={idx} className="border border-slate-200 rounded-lg overflow-hidden">
+                    <div className="px-5 py-3 bg-slate-50 border-b border-slate-200">
+                      <p className="font-semibold text-slate-800">{p.pattern}</p>
+                    </div>
+                    <div className="px-5 py-4 grid grid-cols-2 gap-6">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">What This Means</p>
+                        <p className="text-sm text-slate-600 leading-relaxed">{p.implication}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">Recommended Action</p>
+                        <p className="text-sm text-slate-600 leading-relaxed">{p.recommendation}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ============ IMPACT-RANKED PRIORITIES ============ */}
+        {(() => {
+          const rankings = getImpactRankings(dimensionAnalysis, compositeScore || 0);
+          return (
+            <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+              <div className="px-10 py-5 bg-cyan-700">
+                <h3 className="font-semibold text-white text-lg">Impact-Ranked Improvement Priorities</h3>
+                <p className="text-cyan-200 text-sm">Dimensions ranked by potential composite score impact relative to implementation effort</p>
+              </div>
+              <div className="px-10 py-6">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                      <th className="pb-3 text-left">Priority</th>
+                      <th className="pb-3 text-left">Dimension</th>
+                      <th className="pb-3 text-center">Current</th>
+                      <th className="pb-3 text-center">Impact</th>
+                      <th className="pb-3 text-center">Effort</th>
+                      <th className="pb-3 text-left">Recommended Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rankings.map((r, idx) => (
+                      <tr key={r.dimNum} className={idx < rankings.length - 1 ? 'border-b border-slate-100' : ''}>
+                        <td className="py-3">
+                          <span className={`w-7 h-7 rounded-full inline-flex items-center justify-center text-white text-sm font-bold ${
+                            idx === 0 ? 'bg-cyan-600' : idx === 1 ? 'bg-cyan-500' : 'bg-slate-400'
+                          }`}>
+                            {idx + 1}
+                          </span>
+                        </td>
+                        <td className="py-3">
+                          <p className="font-medium text-slate-800">{r.dimName}</p>
+                        </td>
+                        <td className="py-3 text-center">
+                          <span className="font-semibold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
+                          <span className="text-xs text-slate-400 ml-1">{r.tier}</span>
+                        </td>
+                        <td className="py-3 text-center">
+                          <span className="text-sm font-semibold text-emerald-600">+{r.potentialGain}</span>
+                          <span className="text-xs text-slate-400 ml-1">pts</span>
+                        </td>
+                        <td className="py-3 text-center">
+                          <span className={`text-xs font-medium px-2 py-1 rounded ${
+                            r.effort === 'Low' ? 'bg-emerald-50 text-emerald-700' :
+                            r.effort === 'Medium' ? 'bg-amber-50 text-amber-700' :
+                            'bg-red-50 text-red-700'
+                          }`}>{r.effort}</span>
+                        </td>
+                        <td className="py-3">
+                          <p className="text-sm text-slate-600">{r.recommendation}</p>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="text-xs text-slate-400 mt-4 italic">Impact calculated based on dimension weight and improvement potential. Effort assessed based on current gaps and in-progress initiatives.</p>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* ============ AREAS OF EXCELLENCE ============ */}
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-5 bg-emerald-700">
@@ -1336,7 +1655,9 @@ export default function ExportReportPage() {
           
           <div className="divide-y-4 divide-slate-100">
             {allDimensionsByScore.slice(0, 4).map((d, idx) => {
-              const insight = DIMENSION_STRATEGIC_INSIGHTS[d.dim];
+              // Generate dynamic insight based on actual performance
+              const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
+              const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
               // Use tier color for the accent, consistent dark header for all
               const tierColor = getScoreColor(d.score);
               
@@ -1354,10 +1675,20 @@ export default function ExportReportPage() {
                           <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
                           <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
                           <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                          {d.benchmark !== null && (
+                            <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Benchmark Narrative */}
+                  {benchmarkNarrative && (
+                    <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
+                      <p className="text-sm text-slate-600 italic">{benchmarkNarrative}</p>
+                    </div>
+                  )}
                   
                   <div className="px-10 py-6">
                     {/* Current State - 3 columns */}
@@ -1429,19 +1760,17 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Strategic Insight & CAC Help */}
-                    {insight && (
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="border border-slate-200 rounded-lg p-5 bg-white">
-                          <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
-                          <p className="text-sm text-slate-600 leading-relaxed">{insight.insight}</p>
-                        </div>
-                        <div className="border border-violet-200 rounded-lg p-5 bg-violet-50">
-                          <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
-                          <p className="text-sm text-slate-600 leading-relaxed">{insight.cacHelp}</p>
-                        </div>
+                    {/* Strategic Insight & CAC Help - Now Dynamic */}
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="border border-slate-200 rounded-lg p-5 bg-white">
+                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">Tailored Strategic Insight</h5>
+                        <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
                       </div>
-                    )}
+                      <div className="border border-violet-200 rounded-lg p-5 bg-violet-50">
+                        <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                        <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
