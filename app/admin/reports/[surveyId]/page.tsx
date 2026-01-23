@@ -1132,7 +1132,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ SCORE COMPOSITION ============ */}
-        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Score Composition</h3>
           </div>
@@ -1331,7 +1331,7 @@ export default function ExportReportPage() {
         )}
 
         {/* ============ STRATEGIC RECOMMENDATIONS - CONSISTENT HEADERS ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">Strategic Recommendations</h3>
             <p className="text-slate-400 text-sm mt-1">Detailed analysis and action plans for priority dimensions</p>
@@ -1344,7 +1344,7 @@ export default function ExportReportPage() {
               const tierColor = getScoreColor(d.score);
               
               return (
-                <div key={d.dim} className="ppt-break border-l-4 pdf-no-break" style={{ borderLeftColor: tierColor }}>
+                <div key={d.dim} className={`${idx > 0 ? 'ppt-break ' : ''}border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
                   {/* Dimension Header - Consistent dark slate for all */}
                   <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                     <div className="flex items-center gap-4">
