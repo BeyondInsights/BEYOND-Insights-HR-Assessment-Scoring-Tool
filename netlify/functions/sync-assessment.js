@@ -1,7 +1,8 @@
 // netlify/functions/sync-assessment.js
 // 
-// Receives assessment data from the client and writes to Supabase using service role.
-// This is more reliable than client-side Supabase calls, especially during page unload.
+// Secure assessment sync with service role.
+// Requires access token validation for regular users.
+// FP/comp'd users use survey_id/app_id as implicit auth.
 //
 
 const { createClient } = require('@supabase/supabase-js');
@@ -19,6 +20,11 @@ function json(statusCode, obj) {
   };
 }
 
+// Validate UUID format
+function isUUID(str) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
 exports.handler = async (event) => {
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
@@ -32,14 +38,12 @@ exports.handler = async (event) => {
   try {
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('Missing Supabase credentials');
       return json(500, { error: 'Server configuration error' });
     }
-
-    // Create Supabase client with service role (bypasses RLS)
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse request body
     let payload;
@@ -49,7 +53,7 @@ exports.handler = async (event) => {
       return json(400, { error: 'Invalid JSON body' });
     }
 
-    const { surveyId, data, timestamp } = payload;
+    const { surveyId, data, timestamp, accessToken } = payload;
 
     if (!surveyId) {
       return json(400, { error: 'Missing surveyId' });
@@ -59,9 +63,52 @@ exports.handler = async (event) => {
       return json(400, { error: 'Missing or invalid data object' });
     }
 
-    // Determine if FP (survey_id) or regular user (app_id)
-    const isFP = surveyId.startsWith('FP-');
-    const matchColumn = isFP ? 'survey_id' : 'app_id';
+    // ============================================
+    // DETERMINE MATCH COLUMN AND VALIDATE AUTH
+    // ============================================
+    
+    let matchColumn;
+    let matchValue = surveyId;
+
+    // FP users: surveyId starts with FP-
+    if (surveyId.startsWith('FP-')) {
+      matchColumn = 'survey_id';
+      // FP users use survey_id as implicit auth (shared secret)
+    }
+    // Regular authenticated users: surveyId is a UUID (user.id)
+    else if (isUUID(surveyId)) {
+      matchColumn = 'user_id';
+      
+      // REQUIRE access token for regular users
+      if (!accessToken) {
+        return json(401, { error: 'Authentication required for this user type' });
+      }
+      
+      // Validate the access token
+      const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
+      const { data: userData, error: authError } = await supabaseAuth.auth.getUser(accessToken);
+      
+      if (authError || !userData?.user) {
+        console.error('Auth validation failed:', authError?.message);
+        return json(401, { error: 'Invalid or expired access token' });
+      }
+      
+      // CRITICAL: Ensure the token belongs to the user they claim to be
+      if (userData.user.id !== surveyId) {
+        console.error('User ID mismatch:', userData.user.id, '!==', surveyId);
+        return json(403, { error: 'Access token does not match surveyId' });
+      }
+    }
+    // Comp'd users or other app_id based users
+    else {
+      matchColumn = 'app_id';
+      // Normalize the app_id (remove dashes, uppercase)
+      matchValue = surveyId.replace(/-/g, '').toUpperCase();
+      // These use app_id as implicit auth (like FP users)
+    }
+
+    // Create Supabase client with service role (bypasses RLS)
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Build update object
     const updateData = {
@@ -69,30 +116,76 @@ exports.handler = async (event) => {
       updated_at: new Date().toISOString(),
     };
 
-    // Perform upsert
-    const { data: result, error } = await supabase
+    // ============================================
+    // UPSERT: Try update first, insert if no rows affected
+    // ============================================
+    
+    const { data: updateResult, error: updateError } = await supabase
       .from('assessments')
       .update(updateData)
-      .eq(matchColumn, surveyId)
-      .select('id, updated_at')
-      .single();
+      .eq(matchColumn, matchValue)
+      .select('id, updated_at');
 
-    if (error) {
-      console.error('Supabase update error:', error);
+    if (updateError) {
+      console.error('Supabase update error:', updateError);
       return json(500, { 
         error: 'Database update failed', 
-        details: error.message,
-        code: error.code 
+        details: updateError.message,
+        code: updateError.code 
       });
     }
 
-    console.log(`[sync-assessment] Updated ${surveyId} at ${result.updated_at}`);
+    // If no rows updated, insert new record
+    if (!updateResult || updateResult.length === 0) {
+      console.log(`[sync-assessment] No existing record for ${matchColumn}=${matchValue}, inserting...`);
+      
+      const insertData = {
+        [matchColumn]: matchValue,
+        ...updateData,
+      };
+      
+      // Add fields based on user type
+      if (matchColumn === 'survey_id' && surveyId.startsWith('FP-')) {
+        insertData.app_id = surveyId;
+        insertData.is_founding_partner = true;
+        insertData.payment_completed = true;
+        insertData.payment_method = 'FP Comp';
+        insertData.payment_amount = 1250.00;
+      } else if (matchColumn === 'app_id') {
+        insertData.survey_id = matchValue;
+      }
+      
+      const { data: insertResult, error: insertError } = await supabase
+        .from('assessments')
+        .insert(insertData)
+        .select('id, updated_at');
+      
+      if (insertError) {
+        console.error('Supabase insert error:', insertError);
+        return json(500, { 
+          error: 'Database insert failed', 
+          details: insertError.message,
+          code: insertError.code 
+        });
+      }
+      
+      console.log(`[sync-assessment] Inserted new record for ${matchValue}`);
+      return json(200, { 
+        ok: true, 
+        surveyId: matchValue,
+        updatedAt: insertResult?.[0]?.updated_at,
+        recordId: insertResult?.[0]?.id,
+        action: 'insert'
+      });
+    }
 
+    console.log(`[sync-assessment] Updated ${matchValue}`);
     return json(200, { 
       ok: true, 
-      surveyId,
-      updatedAt: result.updated_at,
-      recordId: result.id
+      surveyId: matchValue,
+      updatedAt: updateResult[0]?.updated_at,
+      recordId: updateResult[0]?.id,
+      action: 'update'
     });
 
   } catch (err) {
