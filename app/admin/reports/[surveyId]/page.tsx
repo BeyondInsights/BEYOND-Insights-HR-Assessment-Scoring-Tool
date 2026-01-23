@@ -1526,8 +1526,10 @@ export default function ExportReportPage() {
                           <p className="font-medium text-slate-800">{r.dimName}</p>
                         </td>
                         <td className="py-3 text-center">
-                          <span className="font-semibold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
-                          <span className="text-xs text-slate-400 ml-1">{r.tier}</span>
+                          <div className="flex flex-col items-center">
+                            <span className="font-semibold text-lg" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
+                            <span className="text-xs text-slate-400">{r.tier}</span>
+                          </div>
                         </td>
                         <td className="py-3 text-center">
                           <span className="text-sm font-semibold text-emerald-600">+{r.potentialGain}</span>
@@ -1646,13 +1648,63 @@ export default function ExportReportPage() {
           </div>
         )}
 
-        {/* ============ STRATEGIC RECOMMENDATIONS - CONSISTENT HEADERS ============ */}
+        {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION SLIDE ============ */}
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
-          <div className="px-10 py-6 bg-slate-800">
-            <h3 className="font-semibold text-white text-lg">Strategic Recommendations</h3>
-            <p className="text-slate-400 text-sm mt-1">Detailed analysis and action plans for priority dimensions</p>
+          <div className="px-10 py-8 bg-slate-800">
+            <h3 className="font-semibold text-white text-2xl">Strategic Recommendations</h3>
+            <p className="text-slate-400 mt-2">Detailed analysis and action plans for your priority dimensions</p>
           </div>
-          
+          <div className="px-10 py-8">
+            <p className="text-slate-600 leading-relaxed mb-6">
+              The following pages provide in-depth analysis for your <strong>{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+              with the greatest opportunity for improvement. Each dimension includes:
+            </p>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-red-600 font-bold">!</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800">Improvement Opportunities</p>
+                  <p className="text-sm text-slate-500 mt-1">Specific gaps and areas needing attention, with status indicators</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600 font-bold">→</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800">In Development</p>
+                  <p className="text-sm text-slate-500 mt-1">Initiatives already in planning that can be accelerated</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800">Current Strengths</p>
+                  <p className="text-sm text-slate-500 mt-1">Elements you're already offering that form your foundation</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-violet-600 font-bold">★</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800">Tailored Insights & CAC Support</p>
+                  <p className="text-sm text-slate-500 mt-1">Custom analysis and how Cancer and Careers can help</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-slate-500 mt-6 italic">
+              Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
+            </p>
+          </div>
+        </div>
+        
+        {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="divide-y-4 divide-slate-100">
             {allDimensionsByScore.slice(0, 4).map((d, idx) => {
               // Generate dynamic insight based on actual performance
@@ -1662,7 +1714,7 @@ export default function ExportReportPage() {
               const tierColor = getScoreColor(d.score);
               
               return (
-                <div key={d.dim} className={`${idx > 0 ? 'ppt-break ' : ''}border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
+                <div key={d.dim} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
                   {/* Dimension Header - Consistent dark slate for all */}
                   <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                     <div className="flex items-center gap-4">
