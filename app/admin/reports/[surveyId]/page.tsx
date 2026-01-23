@@ -316,44 +316,216 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
   const strengthCount = strengths.length;
   const planningCount = planning.length;
   
-  // Dimension-specific context
-  const dimContext: Record<number, { focus: string; risk: string; opportunity: string; quickWin: string }> = {
-    1: { focus: 'leave policies and flexibility', risk: 'employees choosing between health and job', opportunity: 'industry-leading time-off benefits', quickWin: 'phased return-to-work options' },
-    2: { focus: 'insurance and financial protection', risk: 'financial toxicity derailing treatment', opportunity: 'comprehensive coverage removing barriers', quickWin: 'employee assistance fund or gap insurance' },
-    3: { focus: 'manager preparedness', risk: 'policy-to-practice gaps at the front line', opportunity: 'confident, trained managers', quickWin: 'conversation guide and scenario training' },
-    4: { focus: 'navigation and expert resources', risk: 'underutilized benefits investments', opportunity: 'single-entry-point access', quickWin: 'centralized resource hub or concierge' },
-    5: { focus: 'workplace accommodations', risk: 'preventable turnover during treatment', opportunity: 'flexibility that retains talent', quickWin: 'remote work and schedule flexibility policies' },
-    6: { focus: 'culture and psychological safety', risk: 'hidden struggles until crisis point', opportunity: 'early disclosure and intervention', quickWin: 'leadership storytelling and visibility' },
-    7: { focus: 'career continuity', risk: 'losing talent to fear of career damage', opportunity: 'loyalty through protected trajectories', quickWin: 'explicit promotion protection policy' },
-    8: { focus: 'return-to-work support', risk: 'failed transitions after treatment', opportunity: 'sustainable recovery and full productivity', quickWin: 'structured 90-day re-entry protocol' },
-    9: { focus: 'executive commitment', risk: 'cancer support seen as HR-only', opportunity: 'business-integrated health strategy', quickWin: 'executive sponsor and visible commitment' },
-    10: { focus: 'caregiver support', risk: 'losing productive employees who are caregivers', opportunity: 'holistic family support', quickWin: 'caregiver leave and flexible scheduling' },
-    11: { focus: 'prevention and wellness', risk: 'late detection and higher costs', opportunity: 'proactive health culture', quickWin: 'on-site screening events and incentives' },
-    12: { focus: 'continuous improvement', risk: 'static policies that don\'t evolve', opportunity: 'learning organization', quickWin: 'annual program review and employee feedback' },
-    13: { focus: 'communication and awareness', risk: 'excellent programs nobody knows about', opportunity: 'high utilization rates', quickWin: 'benefits awareness campaign at open enrollment' },
+  // Dimension-specific context with tailored CAC offerings
+  const dimContext: Record<number, { 
+    focus: string; 
+    risk: string; 
+    opportunity: string; 
+    quickWin: string;
+    cacPrograms: { exemplary: string; leading: string; progressing: string; emerging: string; developing: string };
+  }> = {
+    1: { 
+      focus: 'leave policies and flexibility', 
+      risk: 'employees choosing between health and job', 
+      opportunity: 'industry-leading time-off benefits', 
+      quickWin: 'phased return-to-work options',
+      cacPrograms: {
+        exemplary: 'Document your leave policies as a best-practice case study. We can facilitate peer learning sessions where you share your approach with other Index participants.',
+        leading: 'Our Leave Policy Enhancement workshop can identify the specific gaps preventing Exemplary status, with templates for policy language and implementation guides.',
+        progressing: 'CAC\'s Leave Policy Benchmarking service compares your policies against industry leaders, identifying specific enhancements like extended leave duration or job protection guarantees.',
+        emerging: 'Our Medical Leave Foundation program provides turnkey policy templates, legal compliance guidance, and manager training for leave administration.',
+        developing: 'Urgent: CAC\'s Leave Policy Accelerator builds compliant, competitive leave policies in 60 days, including FMLA+ enhancements and accommodation frameworks.'
+      }
+    },
+    2: { 
+      focus: 'insurance and financial protection', 
+      risk: 'financial toxicity derailing treatment', 
+      opportunity: 'comprehensive coverage removing barriers', 
+      quickWin: 'employee assistance fund or gap insurance',
+      cacPrograms: {
+        exemplary: 'Showcase your financial protection programs through CAC\'s Best Practices Library. We can connect you with benefits consultants seeking model programs to replicate.',
+        leading: 'Our Benefits Gap Analysis identifies specific coverage enhancements—like cancer-specific riders or out-of-pocket maximums—that would achieve Exemplary status.',
+        progressing: 'CAC\'s Financial Protection Assessment evaluates your insurance, disability, and supplemental coverage against cancer-specific needs, with vendor recommendations.',
+        emerging: 'Our Financial Wellness for Serious Illness program designs hardship funds, premium assistance, and navigation support to reduce financial barriers to care.',
+        developing: 'Critical: CAC\'s Emergency Benefits Review can identify immediate coverage gaps and design interim financial support while longer-term solutions are developed.'
+      }
+    },
+    3: { 
+      focus: 'manager preparedness', 
+      risk: 'policy-to-practice gaps at the front line', 
+      opportunity: 'confident, trained managers', 
+      quickWin: 'conversation guide and scenario training',
+      cacPrograms: {
+        exemplary: 'Your manager training could become a CAC-certified program. We can help scale your approach across business units and document for external recognition.',
+        leading: 'Our Advanced Manager Certification adds specialized modules on complex scenarios—recurrence, terminal diagnosis, grief—to achieve comprehensive preparedness.',
+        progressing: 'CAC\'s Manager Essentials Training provides 4-hour workshops with role-play scenarios, conversation scripts, and ongoing coaching support.',
+        emerging: 'Our Manager Quick-Start Kit includes conversation guides, FAQ documents, and 90-minute awareness training to build baseline confidence.',
+        developing: 'Urgent: CAC\'s Manager Emergency Toolkit provides immediate resources—scripts, escalation paths, HR support protocols—while comprehensive training is developed.'
+      }
+    },
+    4: { 
+      focus: 'navigation and expert resources', 
+      risk: 'underutilized benefits investments', 
+      opportunity: 'single-entry-point access', 
+      quickWin: 'centralized resource hub or concierge',
+      cacPrograms: {
+        exemplary: 'Partner with CAC to offer your navigation model as a benchmark for other organizations. We can facilitate knowledge-sharing with Index participants.',
+        leading: 'Our Navigation Enhancement service adds specialized resources—clinical trial matching, second opinion coordination—to achieve comprehensive support.',
+        progressing: 'CAC\'s Resource Hub Design creates a centralized portal mapping all your benefits, vendors, and support resources with clear access pathways.',
+        emerging: 'Our Navigation Foundation program implements a single point of contact model with trained navigators who connect employees to appropriate resources.',
+        developing: 'Critical: CAC\'s Navigation Quick-Start creates an immediate resource guide and trained HR liaison while comprehensive navigation is built.'
+      }
+    },
+    5: { 
+      focus: 'workplace accommodations', 
+      risk: 'preventable turnover during treatment', 
+      opportunity: 'flexibility that retains talent', 
+      quickWin: 'remote work and schedule flexibility policies',
+      cacPrograms: {
+        exemplary: 'Document your accommodation practices for CAC\'s Accommodation Best Practices guide. We can facilitate sessions sharing your interactive process approach.',
+        leading: 'Our Accommodation Excellence program addresses edge cases—cognitive impacts, fatigue management, role modifications—for comprehensive flexibility.',
+        progressing: 'CAC\'s Accommodation Framework Training teaches HR and managers the interactive process, with templates for common cancer-related accommodations.',
+        emerging: 'Our Flexibility Foundation program designs remote work, schedule modification, and workload adjustment policies specific to treatment needs.',
+        developing: 'Urgent: CAC\'s Accommodation Emergency Protocol creates immediate flexibility options while comprehensive policies are developed.'
+      }
+    },
+    6: { 
+      focus: 'culture and psychological safety', 
+      risk: 'hidden struggles until crisis point', 
+      opportunity: 'early disclosure and intervention', 
+      quickWin: 'leadership storytelling and visible commitment',
+      cacPrograms: {
+        exemplary: 'Your culture of openness is a model for others. CAC can help document and share your approach through speaking opportunities and case studies.',
+        leading: 'Our Culture Enhancement workshop addresses subtle barriers to disclosure, including peer support networks and ally training programs.',
+        progressing: 'CAC\'s Psychological Safety Assessment identifies disclosure barriers through confidential surveys and focus groups, with targeted interventions.',
+        emerging: 'Our Culture Foundation program implements leadership visibility, storytelling campaigns, and anti-stigma training to build trust.',
+        developing: 'Critical: CAC\'s Culture Quick-Start includes executive messaging, basic awareness training, and visible support commitments as foundation.'
+      }
+    },
+    7: { 
+      focus: 'career continuity', 
+      risk: 'losing talent to fear of career damage', 
+      opportunity: 'loyalty through protected trajectories', 
+      quickWin: 'explicit promotion protection policy',
+      cacPrograms: {
+        exemplary: 'Your career protection model could inform CAC\'s policy recommendations. We can facilitate peer learning on maintaining career momentum during treatment.',
+        leading: 'Our Career Assurance program adds re-entry coaching, skill maintenance support, and explicit promotion pathway protection.',
+        progressing: 'CAC\'s Career Continuity Framework designs policies protecting performance reviews, promotion eligibility, and professional development during treatment.',
+        emerging: 'Our Career Protection Foundation creates explicit policies ensuring medical leave doesn\'t impact career trajectory, with manager guidance.',
+        developing: 'Urgent: CAC\'s Career Safety Net establishes immediate protections against career penalty while comprehensive policies are developed.'
+      }
+    },
+    8: { 
+      focus: 'return-to-work support', 
+      risk: 'failed transitions after treatment', 
+      opportunity: 'sustainable recovery and full productivity', 
+      quickWin: 'structured 90-day re-entry protocol',
+      cacPrograms: {
+        exemplary: 'Your RTW program is a model. CAC can help document your protocols for our Best Practices Library and facilitate peer learning sessions.',
+        leading: 'Our RTW Excellence program adds specialized components—cognitive rehabilitation, stamina building, peer mentoring—for comprehensive re-entry.',
+        progressing: 'CAC\'s Return-to-Work Protocol Design creates phased re-entry templates, check-in schedules, and adjustment frameworks for sustainable transitions.',
+        emerging: 'Our RTW Foundation program implements basic phased return, temporary accommodations, and manager check-in protocols.',
+        developing: 'Urgent: CAC\'s RTW Quick-Start provides immediate guidance for current cases while comprehensive protocols are developed.'
+      }
+    },
+    9: { 
+      focus: 'executive commitment', 
+      risk: 'cancer support seen as HR-only', 
+      opportunity: 'business-integrated health strategy', 
+      quickWin: 'executive sponsor and visible commitment',
+      cacPrograms: {
+        exemplary: 'Connect your executives with CAC\'s Leadership Council for peer networking and industry visibility as champions of workplace cancer support.',
+        leading: 'Our Executive Engagement program develops board-level metrics, ESG integration, and external recognition strategies.',
+        progressing: 'CAC\'s Executive Briefing provides business case development, peer benchmarking data, and talking points for leadership engagement.',
+        emerging: 'Our Leadership Foundation program identifies an executive sponsor, develops initial messaging, and creates visibility opportunities.',
+        developing: 'Critical: CAC\'s Executive Quick-Brief provides immediate business case and ROI data to secure leadership attention and resources.'
+      }
+    },
+    10: { 
+      focus: 'caregiver support', 
+      risk: 'losing productive employees who are caregivers', 
+      opportunity: 'holistic family support', 
+      quickWin: 'caregiver leave and flexible scheduling',
+      cacPrograms: {
+        exemplary: 'Your caregiver support is a differentiator. CAC can document your approach for our Caregiver Support Guide and connect you with recognition opportunities.',
+        leading: 'Our Caregiver Excellence program adds specialized resources—backup care, support groups, navigation—for comprehensive family support.',
+        progressing: 'CAC\'s Caregiver Support Framework designs leave policies, flexibility options, and resource connections specific to caregiving needs.',
+        emerging: 'Our Caregiver Foundation program creates basic leave provisions, flexible scheduling, and EAP integration for caregiver support.',
+        developing: 'Urgent: CAC\'s Caregiver Quick-Start provides immediate flexibility guidelines while comprehensive support programs are developed.'
+      }
+    },
+    11: { 
+      focus: 'prevention and wellness', 
+      risk: 'late detection and higher costs', 
+      opportunity: 'proactive health culture', 
+      quickWin: 'on-site screening events and incentives',
+      cacPrograms: {
+        exemplary: 'Your prevention programs model early detection best practices. CAC can facilitate peer learning on driving screening participation.',
+        leading: 'Our Prevention Excellence program adds genetic risk assessment, personalized screening protocols, and survivorship wellness.',
+        progressing: 'CAC\'s Prevention Framework designs comprehensive screening campaigns, incentive structures, and awareness programming.',
+        emerging: 'Our Wellness Foundation program implements basic cancer awareness, screening promotion, and risk reduction education.',
+        developing: 'Critical: CAC\'s Prevention Quick-Start launches immediate screening awareness campaigns while comprehensive programs are built.'
+      }
+    },
+    12: { 
+      focus: 'continuous improvement', 
+      risk: 'static policies that don\'t evolve', 
+      opportunity: 'learning organization', 
+      quickWin: 'annual program review and employee feedback',
+      cacPrograms: {
+        exemplary: 'Your continuous improvement practices could inform CAC\'s assessment methodology. We welcome partnership on evolving best practice standards.',
+        leading: 'Our CI Excellence program adds case review protocols, outcome tracking, and systematic policy refinement processes.',
+        progressing: 'CAC\'s Continuous Improvement Framework designs feedback mechanisms, annual review cycles, and benchmarking practices.',
+        emerging: 'Our CI Foundation program implements basic feedback collection, annual policy review, and metric tracking.',
+        developing: 'Critical: CAC\'s CI Quick-Start establishes immediate feedback channels while systematic improvement processes are developed.'
+      }
+    },
+    13: { 
+      focus: 'communication and awareness', 
+      risk: 'excellent programs nobody knows about', 
+      opportunity: 'high utilization rates', 
+      quickWin: 'benefits awareness campaign at open enrollment',
+      cacPrograms: {
+        exemplary: 'Your communication approach drives strong utilization. CAC can document your strategies for our Communications Best Practices guide.',
+        leading: 'Our Communication Excellence program adds targeted outreach, utilization tracking, and personalized benefit recommendations.',
+        progressing: 'CAC\'s Communication Framework designs multi-channel awareness campaigns, manager talking points, and benefit navigation guides.',
+        emerging: 'Our Communication Foundation program creates basic benefit summaries, intranet content, and open enrollment messaging.',
+        developing: 'Urgent: CAC\'s Communication Quick-Start launches immediate awareness campaigns for critical benefits while comprehensive strategy develops.'
+      }
+    },
   };
   
-  const ctx = dimContext[dimNum] || { focus: 'this area', risk: 'gaps in support', opportunity: 'improved outcomes', quickWin: 'targeted improvements' };
+  const ctx = dimContext[dimNum] || { 
+    focus: 'this area', 
+    risk: 'gaps in support', 
+    opportunity: 'improved outcomes', 
+    quickWin: 'targeted improvements',
+    cacPrograms: { exemplary: '', leading: '', progressing: '', emerging: '', developing: '' }
+  };
   
   let insight = '';
   let cacHelp = '';
   
+  // Get the appropriate CAC program based on tier
+  const tierKey = tierName.toLowerCase() as 'exemplary' | 'leading' | 'progressing' | 'emerging' | 'developing';
+  const cacProgram = ctx.cacPrograms[tierKey] || ctx.cacPrograms.progressing;
+  
   // Tier-based insight generation with specific data
   if (tierName === 'Exemplary') {
     insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the peer average of ${benchmark}, this is a genuine competitive differentiator.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
-    cacHelp = `Leverage your leadership position through case study development, industry speaking opportunities, and peer mentoring. We can help document your practices for the Best Companies recognition program and support knowledge transfer to other business units.`;
+    cacHelp = cacProgram;
   } else if (tierName === 'Leading') {
     insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Exemplary status—consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Exemplary tier.'}`;
-    cacHelp = `We can conduct a gap-to-Exemplary analysis identifying the ${gapCount > 0 ? gapCount : 'few'} specific enhancements needed, with prioritized implementation roadmap. ${planningCount > 0 ? `Accelerating your ${planningCount} in-progress initiative${planningCount > 1 ? 's' : ''} could provide quick wins.` : ''}`;
+    cacHelp = cacProgram;
   } else if (tierName === 'Progressing') {
     insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
-    cacHelp = `Our targeted assessment can prioritize which of your ${gapCount} improvement opportunities deliver the most impact. ${planningCount > 0 ? `Your ${planningCount} in-development initiative${planningCount > 1 ? 's' : ''} show${planningCount === 1 ? 's' : ''} momentum—we can help accelerate implementation.` : 'We recommend a phased approach starting with high-visibility, lower-effort improvements.'}`;
+    cacHelp = cacProgram;
   } else if (tierName === 'Emerging') {
     insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, focused investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer average indicates this is an area where competitors may have an advantage.` : ''} Recommended quick win: ${ctx.quickWin}.`;
-    cacHelp = `We recommend a focused 90-day sprint to address the highest-impact gaps. ${planningCount > 0 ? `Prioritizing your ${planningCount} planned initiative${planningCount > 1 ? 's' : ''} can show visible progress quickly.` : 'Our rapid-start programs provide turnkey solutions for the most common gaps in this dimension.'}`;
+    cacHelp = cacProgram;
   } else {
     insight = `Critical gap in ${ctx.focus} at ${score} points creates risk of ${ctx.risk}. ${gapCount > 0 ? `${gapCount} missing elements represent significant exposure.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap below the ${benchmark} peer average signals this as a priority area.` : ''} Employees facing health challenges may feel unsupported here, leading to disengagement, extended leave, or departure. Immediate action: implement ${ctx.quickWin}.`;
-    cacHelp = `Urgent intervention recommended. We can help build the business case for leadership buy-in, design a rapid implementation roadmap addressing the ${gapCount} gaps, and provide hands-on support. Our foundation-building programs are designed for organizations starting from this level.`;
+    cacHelp = cacProgram;
   }
   
   return { insight, cacHelp };
@@ -1504,45 +1676,47 @@ export default function ExportReportPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                      <th className="pb-3 text-left">Priority</th>
+                      <th className="pb-3 text-left w-20">Priority</th>
                       <th className="pb-3 text-left">Dimension</th>
-                      <th className="pb-3 text-center">Current</th>
-                      <th className="pb-3 text-center">Impact</th>
-                      <th className="pb-3 text-center">Effort</th>
+                      <th className="pb-3 text-center w-28">Current</th>
+                      <th className="pb-3 text-center w-24">Impact</th>
+                      <th className="pb-3 text-center w-24">Effort</th>
                       <th className="pb-3 text-left">Recommended Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rankings.map((r, idx) => (
                       <tr key={r.dimNum} className={idx < rankings.length - 1 ? 'border-b border-slate-100' : ''}>
-                        <td className="py-3">
-                          <span className={`w-7 h-7 rounded-full inline-flex items-center justify-center text-white text-sm font-bold ${
+                        <td className="py-4">
+                          <span className={`w-8 h-8 rounded-full inline-flex items-center justify-center text-white text-sm font-bold ${
                             idx === 0 ? 'bg-cyan-600' : idx === 1 ? 'bg-cyan-500' : 'bg-slate-400'
                           }`}>
                             {idx + 1}
                           </span>
                         </td>
-                        <td className="py-3">
+                        <td className="py-4">
                           <p className="font-medium text-slate-800">{r.dimName}</p>
                         </td>
-                        <td className="py-3 text-center">
+                        <td className="py-4 text-center">
                           <div className="flex flex-col items-center">
-                            <span className="font-semibold text-lg" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
-                            <span className="text-xs text-slate-400">{r.tier}</span>
+                            <span className="font-semibold text-xl" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
+                            <span className="text-xs text-slate-400 mt-0.5">{r.tier}</span>
                           </div>
                         </td>
-                        <td className="py-3 text-center">
-                          <span className="text-sm font-semibold text-emerald-600">+{r.potentialGain}</span>
-                          <span className="text-xs text-slate-400 ml-1">pts</span>
+                        <td className="py-4 text-center">
+                          <div className="flex flex-col items-center">
+                            <span className="text-lg font-semibold text-emerald-600">+{r.potentialGain}</span>
+                            <span className="text-xs text-slate-400">pts</span>
+                          </div>
                         </td>
-                        <td className="py-3 text-center">
-                          <span className={`text-xs font-medium px-2 py-1 rounded ${
+                        <td className="py-4 text-center">
+                          <span className={`text-xs font-medium px-3 py-1.5 rounded ${
                             r.effort === 'Low' ? 'bg-emerald-50 text-emerald-700' :
                             r.effort === 'Medium' ? 'bg-amber-50 text-amber-700' :
                             'bg-red-50 text-red-700'
                           }`}>{r.effort}</span>
                         </td>
-                        <td className="py-3">
+                        <td className="py-4">
                           <p className="text-sm text-slate-600">{r.recommendation}</p>
                         </td>
                       </tr>
