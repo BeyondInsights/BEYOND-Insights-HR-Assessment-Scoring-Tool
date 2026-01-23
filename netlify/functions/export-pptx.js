@@ -1,8 +1,8 @@
 // netlify/functions/export-pptx.js
 //
-// Captures the FULL HTML report as PPT slides
-// Uses section-based capture to avoid duplicates/overlap
-// Each major section becomes its own slide(s)
+// Captures the FULL HTML report as polished PPT slides
+// Uses data-ppt-slide markers in HTML for clean, logical breaks
+// Each section becomes its own slide (or multiple slides if tall)
 //
 
 const PptxGenJS = require("pptxgenjs");
@@ -30,192 +30,203 @@ exports.handler = async (event) => {
 
     const host = event.headers["x-forwarded-host"] || event.headers.host;
     const proto = event.headers["x-forwarded-proto"] || "https";
-    const origin = `${proto}://${host}`;
+    const origin = proto + "://" + host;
 
-    const url = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1`;
+    const url = origin + "/admin/reports/" + encodeURIComponent(surveyId) + "?export=1";
 
-    // Browserless function - captures full page, splits into slides
-    const browserlessFn = `
-export default async function ({ page, context }) {
-  const url = context.url;
-
-  // PPT slide dimensions (16:9 widescreen)
-  const SLIDE_WIDTH = 1280;
-  const SLIDE_HEIGHT = 720;
-
-  // Use wider viewport for better content rendering
-  await page.setViewport({ width: 1400, height: 900, deviceScaleFactor: 2 });
-  await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
-
-  // Wait for report to load
-  try {
-    await page.waitForSelector('#report-root', { timeout: 30000 });
-  } catch (e) {
-    return { data: { ok: false, error: 'Report root not found' }, type: 'application/json' };
-  }
-
-  // Add export-mode class and inject PPT export styles
-  await page.evaluate(() => {
-    document.body.classList.add('export-mode');
-    
-    // Hide non-print elements and fix layout for export
-    const style = document.createElement('style');
-    style.textContent = \`
-      .no-print { display: none !important; }
-      .sticky, [class*="sticky"] { position: static !important; }
-      nav, header.sticky { display: none !important; }
-      
-      /* Ensure report root is full width for capture */
-      #report-root {
-        max-width: 1280px !important;
-        margin: 0 auto !important;
-        padding: 0 !important;
-      }
-      
-      /* Hide the pre-designed PPT slides - we're capturing the full HTML */
-      .ppt-slides-container { display: none !important; }
-      
-      /* Ensure all content is visible */
-      [class*="overflow-y-auto"],
-      [class*="overflow-auto"],
-      [class*="max-h-"] {
-        overflow: visible !important;
-        max-height: none !important;
-      }
-    \`;
-    document.head.appendChild(style);
-  });
-
-  // Wait for fonts
-  try {
-    await page.evaluate(async () => {
-      if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    });
-  } catch (e) {}
-
-  await new Promise(r => setTimeout(r, 1500));
-
-  // Get all section elements by their data-ppt-section attribute
-  // OR fall back to capturing by fixed height chunks
-  const sections = await page.evaluate(() => {
-    const sectionEls = document.querySelectorAll('[data-ppt-section]');
-    if (sectionEls.length > 0) {
-      return Array.from(sectionEls).map(el => {
-        const rect = el.getBoundingClientRect();
-        return {
-          id: el.getAttribute('data-ppt-section'),
-          top: rect.top + window.scrollY,
-          height: rect.height
-        };
-      });
-    }
-    return null;
-  });
-
-  // Get total page height
-  const pageHeight = await page.evaluate(() => {
-    return document.documentElement.scrollHeight;
-  });
-
-  const results = [];
-
-  if (sections && sections.length > 0) {
-    // Section-based capture
-    for (const section of sections) {
-      // For tall sections, split into multiple slides
-      let yOffset = 0;
-      while (yOffset < section.height) {
-        const captureHeight = Math.min(SLIDE_HEIGHT, section.height - yOffset);
-        
-        const buf = await page.screenshot({
-          type: 'jpeg',
-          quality: 92,
-          clip: {
-            x: 60, // Small margin from left
-            y: section.top + yOffset,
-            width: SLIDE_WIDTH,
-            height: captureHeight
-          }
-        });
-
-        results.push({
-          section: section.id,
-          part: Math.floor(yOffset / SLIDE_HEIGHT) + 1,
-          jpegB64: buf.toString('base64')
-        });
-
-        yOffset += SLIDE_HEIGHT;
-      }
-    }
-  } else {
-    // Fixed-height chunk capture - NO SCROLLING, pure clip coordinates
-    // This avoids all overlap issues
-    const numSlides = Math.ceil(pageHeight / SLIDE_HEIGHT);
-    
-    // First, scroll to bottom and back to trigger any lazy loading
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await new Promise(r => setTimeout(r, 500));
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await new Promise(r => setTimeout(r, 300));
-    
-    // Get the report container's position for proper centering
-    const reportBounds = await page.evaluate(() => {
-      const el = document.querySelector('#report-root');
-      if (!el) return { left: 0, width: 1280 };
-      const rect = el.getBoundingClientRect();
-      return { left: rect.left + window.scrollX, width: rect.width };
-    });
-    
-    // Center the capture on the report content
-    const captureX = Math.max(0, reportBounds.left);
-    
-    for (let i = 0; i < numSlides && i < 35; i++) {
-      const yPos = i * SLIDE_HEIGHT;
-      const remainingHeight = pageHeight - yPos;
-      const captureHeight = Math.min(SLIDE_HEIGHT, remainingHeight);
-      
-      // Skip if remaining content is too small (< 100px)
-      if (captureHeight < 100) break;
-
-      // Pure clip-based capture - no scrolling needed
-      // Puppeteer handles this with absolute page coordinates
-      const buf = await page.screenshot({
-        type: 'jpeg',
-        quality: 92,
-        fullPage: false, // We're using clip
-        captureBeyondViewport: true, // Important! Allows capturing outside viewport
-        clip: {
-          x: captureX,
-          y: yPos,
-          width: SLIDE_WIDTH,
-          height: captureHeight
-        }
-      });
-
-      results.push({
-        slide: i + 1,
-        yPos,
-        jpegB64: buf.toString('base64')
-      });
-    }
-  }
-
-  return { 
-    data: { 
-      ok: true, 
-      slideCount: results.length,
-      pageHeight,
-      usedSections: sections ? sections.length : 0,
-      results 
-    }, 
-    type: 'application/json' 
-  };
-}
-`;
+    // Browserless function - finds slide markers and captures each section
+    const browserlessFn = [
+      "export default async function ({ page, context }) {",
+      "  const url = context.url;",
+      "",
+      "  // PPT slide dimensions (16:9 widescreen)",
+      "  const SLIDE_WIDTH = 1280;",
+      "  const SLIDE_HEIGHT = 720;",
+      "",
+      "  // Use wider viewport for better content rendering",
+      "  await page.setViewport({ width: 1400, height: 900, deviceScaleFactor: 2 });",
+      "  await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });",
+      "",
+      "  // Wait for report to load",
+      "  try {",
+      "    await page.waitForSelector('#report-root', { timeout: 30000 });",
+      "  } catch (e) {",
+      "    return { data: { ok: false, error: 'Report root not found' }, type: 'application/json' };",
+      "  }",
+      "",
+      "  // Add export-mode class and inject PPT export styles",
+      "  await page.evaluate(() => {",
+      "    document.body.classList.add('export-mode');",
+      "    ",
+      "    const style = document.createElement('style');",
+      "    style.id = 'ppt-export-styles';",
+      "    style.textContent = [",
+      "      '.no-print { display: none !important; }',",
+      "      '.sticky, [class*=\"sticky\"] { position: static !important; }',",
+      "      'nav, header.sticky { display: none !important; }',",
+      "      '#report-root { max-width: 1280px !important; width: 1280px !important; margin: 0 auto !important; padding: 20px 40px !important; background: #f8fafc !important; }',",
+      "      '.ppt-slides-container { display: none !important; }',",
+      "      '[class*=\"overflow-y-auto\"], [class*=\"overflow-auto\"], [class*=\"max-h-\"] { overflow: visible !important; max-height: none !important; }',",
+      "      '.bg-white { background: white !important; }'",
+      "    ].join('\\n');",
+      "    document.head.appendChild(style);",
+      "  });",
+      "",
+      "  // Wait for fonts",
+      "  try {",
+      "    await page.evaluate(async () => {",
+      "      if (document.fonts && document.fonts.ready) await document.fonts.ready;",
+      "    });",
+      "  } catch (e) {}",
+      "",
+      "  // Scroll to bottom and back to trigger lazy loading",
+      "  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));",
+      "  await new Promise(r => setTimeout(r, 800));",
+      "  await page.evaluate(() => window.scrollTo(0, 0));",
+      "  await new Promise(r => setTimeout(r, 500));",
+      "",
+      "  // Get all slide marker positions",
+      "  const slideMarkers = await page.evaluate(() => {",
+      "    const markers = document.querySelectorAll('[data-ppt-slide]');",
+      "    if (markers.length === 0) return null;",
+      "    ",
+      "    return Array.from(markers).map(el => {",
+      "      const rect = el.getBoundingClientRect();",
+      "      return {",
+      "        id: el.getAttribute('data-ppt-slide'),",
+      "        top: rect.top + window.scrollY,",
+      "        height: rect.height,",
+      "        bottom: rect.top + window.scrollY + rect.height",
+      "      };",
+      "    });",
+      "  });",
+      "",
+      "  // Get report root bounds for centering",
+      "  const reportBounds = await page.evaluate(() => {",
+      "    const el = document.querySelector('#report-root');",
+      "    if (!el) return { left: 0, width: 1280, top: 0, bottom: 5000 };",
+      "    const rect = el.getBoundingClientRect();",
+      "    return { ",
+      "      left: rect.left + window.scrollX, ",
+      "      width: rect.width,",
+      "      top: rect.top + window.scrollY,",
+      "      bottom: rect.top + window.scrollY + rect.height",
+      "    };",
+      "  });",
+      "",
+      "  const captureX = Math.max(0, reportBounds.left - 20);",
+      "  const results = [];",
+      "",
+      "  if (slideMarkers && slideMarkers.length > 0) {",
+      "    // MARKER-BASED CAPTURE",
+      "    for (let i = 0; i < slideMarkers.length; i++) {",
+      "      const marker = slideMarkers[i];",
+      "      ",
+      "      const sectionTop = marker.top;",
+      "      const sectionBottom = (i < slideMarkers.length - 1) ",
+      "        ? slideMarkers[i + 1].top ",
+      "        : reportBounds.bottom;",
+      "      const sectionHeight = sectionBottom - sectionTop;",
+      "      ",
+      "      if (sectionHeight <= SLIDE_HEIGHT) {",
+      "        const buf = await page.screenshot({",
+      "          type: 'jpeg',",
+      "          quality: 92,",
+      "          captureBeyondViewport: true,",
+      "          clip: {",
+      "            x: captureX,",
+      "            y: sectionTop,",
+      "            width: SLIDE_WIDTH,",
+      "            height: Math.max(sectionHeight, 100)",
+      "          }",
+      "        });",
+      "",
+      "        results.push({",
+      "          slideId: marker.id,",
+      "          part: 1,",
+      "          sectionHeight,",
+      "          jpegB64: buf.toString('base64')",
+      "        });",
+      "      } else {",
+      "        let yOffset = 0;",
+      "        let partNum = 1;",
+      "        ",
+      "        while (yOffset < sectionHeight) {",
+      "          const captureHeight = Math.min(SLIDE_HEIGHT, sectionHeight - yOffset);",
+      "          ",
+      "          if (captureHeight < 50) break;",
+      "          ",
+      "          const buf = await page.screenshot({",
+      "            type: 'jpeg',",
+      "            quality: 92,",
+      "            captureBeyondViewport: true,",
+      "            clip: {",
+      "              x: captureX,",
+      "              y: sectionTop + yOffset,",
+      "              width: SLIDE_WIDTH,",
+      "              height: captureHeight",
+      "            }",
+      "          });",
+      "",
+      "          results.push({",
+      "            slideId: marker.id,",
+      "            part: partNum,",
+      "            sectionHeight: captureHeight,",
+      "            jpegB64: buf.toString('base64')",
+      "          });",
+      "",
+      "          yOffset += SLIDE_HEIGHT;",
+      "          partNum++;",
+      "        }",
+      "      }",
+      "    }",
+      "  } else {",
+      "    // FALLBACK: No markers - chunk by height",
+      "    const pageHeight = reportBounds.bottom - reportBounds.top;",
+      "    const numSlides = Math.ceil(pageHeight / SLIDE_HEIGHT);",
+      "    ",
+      "    for (let i = 0; i < numSlides && i < 40; i++) {",
+      "      const yPos = reportBounds.top + (i * SLIDE_HEIGHT);",
+      "      const remainingHeight = reportBounds.bottom - yPos;",
+      "      const captureHeight = Math.min(SLIDE_HEIGHT, remainingHeight);",
+      "      ",
+      "      if (captureHeight < 50) break;",
+      "",
+      "      const buf = await page.screenshot({",
+      "        type: 'jpeg',",
+      "        quality: 92,",
+      "        captureBeyondViewport: true,",
+      "        clip: {",
+      "          x: captureX,",
+      "          y: yPos,",
+      "          width: SLIDE_WIDTH,",
+      "          height: captureHeight",
+      "        }",
+      "      });",
+      "",
+      "      results.push({",
+      "        slideId: 'page',",
+      "        part: i + 1,",
+      "        jpegB64: buf.toString('base64')",
+      "      });",
+      "    }",
+      "  }",
+      "",
+      "  return { ",
+      "    data: { ",
+      "      ok: true, ",
+      "      slideCount: results.length,",
+      "      markersFound: slideMarkers ? slideMarkers.length : 0,",
+      "      results ",
+      "    }, ",
+      "    type: 'application/json' ",
+      "  };",
+      "}"
+    ].join("\n");
 
     console.log('Calling Browserless for PPT export:', url);
 
-    const capRes = await fetch(`${base}/function?token=${token}`, {
+    const capRes = await fetch(base + "/function?token=" + token, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code: browserlessFn, context: { url } }),
@@ -224,7 +235,7 @@ export default async function ({ page, context }) {
     if (!capRes.ok) {
       const text = await capRes.text();
       console.error('Browserless error:', text);
-      return { statusCode: 500, body: `Browserless failed: ${text}` };
+      return { statusCode: 500, body: "Browserless failed: " + text };
     }
 
     const capPayload = await capRes.json();
@@ -233,29 +244,28 @@ export default async function ({ page, context }) {
     console.log('Browserless response:', { 
       ok: capData?.ok, 
       slideCount: capData?.slideCount, 
-      pageHeight: capData?.pageHeight,
-      usedSections: capData?.usedSections 
+      markersFound: capData?.markersFound 
     });
 
     if (!capData?.ok) {
-      return { statusCode: 500, body: `Capture failed: ${capData?.error || JSON.stringify(capData)}` };
+      return { statusCode: 500, body: "Capture failed: " + (capData?.error || JSON.stringify(capData)) };
     }
 
     if (!Array.isArray(capData.results) || capData.results.length === 0) {
-      return { statusCode: 500, body: `No slides captured` };
+      return { statusCode: 500, body: "No slides captured" };
     }
 
     // Build PPTX - 16:9 widescreen
     const pptx = new PptxGenJS();
     pptx.layout = "LAYOUT_WIDE"; // 13.333 x 7.5 inches
-    pptx.title = `Cancer Support Assessment - ${surveyId}`;
+    pptx.title = "Cancer Support Assessment - " + surveyId;
     pptx.author = "Cancer and Careers";
     pptx.company = "Best Companies for Working with Cancer Index";
 
     for (const r of capData.results) {
       const slide = pptx.addSlide();
       slide.addImage({
-        data: `data:image/jpeg;base64,${r.jpegB64}`,
+        data: "data:image/jpeg;base64," + r.jpegB64,
         x: 0,
         y: 0,
         w: 13.333,
@@ -268,7 +278,7 @@ export default async function ({ page, context }) {
     // Upload to Supabase
     const supabase = createClient(supabaseUrl, serviceKey);
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    const filePath = `ppt/${surveyId}/Report_${surveyId}_${ts}.pptx`;
+    const filePath = "ppt/" + surveyId + "/Report_" + surveyId + "_" + ts + ".pptx";
 
     const up = await supabase.storage
       .from(bucket)
@@ -279,13 +289,13 @@ export default async function ({ page, context }) {
 
     if (up.error) {
       console.error('Upload error:', up.error);
-      return { statusCode: 500, body: `Upload failed: ${up.error.message}` };
+      return { statusCode: 500, body: "Upload failed: " + up.error.message };
     }
 
     // Generate signed URL (1 hour)
     const signed = await supabase.storage.from(bucket).createSignedUrl(filePath, 60 * 60);
     if (signed.error) {
-      return { statusCode: 500, body: `Signed URL failed: ${signed.error.message}` };
+      return { statusCode: 500, body: "Signed URL failed: " + signed.error.message };
     }
 
     console.log('PPT export success:', { slideCount: capData.results.length, filePath });
@@ -298,6 +308,6 @@ export default async function ({ page, context }) {
 
   } catch (err) {
     console.error('PPT export error:', err);
-    return { statusCode: 500, body: `Error: ${err?.message || err}` };
+    return { statusCode: 500, body: "Error: " + (err?.message || err) };
   }
 };
