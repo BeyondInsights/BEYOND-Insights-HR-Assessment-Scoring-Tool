@@ -16,17 +16,18 @@ import Footer from '@/components/Footer'
 // ============================================
 
 async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise<{ found: boolean; authCompleted: boolean }> {
+  const exact = surveyId?.trim() || ''
   const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
   const normalizedEmail = email?.toLowerCase().trim() || ''
   
   try {
-    console.log('📥 Checking for existing user by app_id:', normalized)
+    console.log('📥 Checking for existing user by app_id:', exact, 'or', normalized)
     
-    // Try to find by app_id
+    // Try BOTH exact and normalized - covers all legacy data formats
     const { data, error } = await supabase
       .from('assessments')
       .select('*')
-      .eq('app_id', normalized)
+      .or(`app_id.eq.${exact},app_id.eq.${normalized},survey_id.eq.${exact},survey_id.eq.${normalized}`)
       .maybeSingle()
     
     if (error) {
@@ -274,11 +275,12 @@ export default function LoginPage() {
         const { getFPCompanyName } = await import('@/lib/founding-partners')
         const companyName = getFPCompanyName(trimmedSurveyId)
         
-        // Check for existing record by survey_id
+        // Check for existing record by survey_id - try BOTH exact and normalized
+        const normalizedId = trimmedSurveyId.replace(/-/g, '').toUpperCase()
         const { data: existing } = await supabase
           .from('assessments')
           .select('*')
-          .eq('survey_id', trimmedSurveyId)
+          .or(`survey_id.eq.${trimmedSurveyId},survey_id.eq.${normalizedId},app_id.eq.${trimmedSurveyId},app_id.eq.${normalizedId}`)
           .maybeSingle()
         
         if (existing) {
