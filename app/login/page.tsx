@@ -11,37 +11,43 @@ import { loadUserDataFromSupabase } from '@/lib/supabase/load-data-from-supabase
 import Footer from '@/components/Footer'
 
 // ============================================
-// COMP'D USERS - Skip Supabase auth, load from assessments table
-// These are users who had issues and need special handling
+// LOAD USER DATA BY APP_ID - Works for ANY user with data in assessments table
+// This replaces the old hardcoded COMPD_USER_IDS list
 // ============================================
-const COMPD_USER_IDS = [
-  'CAC26010292641OB',  // Best Buy - Melanie Moriarty
-]
 
-function isCompdUser(surveyId: string): boolean {
+async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise<{ found: boolean; authCompleted: boolean }> {
   const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
-  return COMPD_USER_IDS.some(id => id.replace(/-/g, '').toUpperCase() === normalized)
-}
-
-async function loadCompdUserData(surveyId: string): Promise<boolean> {
-  const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
+  const normalizedEmail = email?.toLowerCase().trim() || ''
   
   try {
-    console.log('📥 Loading comp\'d user data for:', normalized)
+    console.log('📥 Checking for existing user by app_id:', normalized)
     
-    // Try to find by app_id (most reliable for standard users)
+    // Try to find by app_id
     const { data, error } = await supabase
       .from('assessments')
       .select('*')
       .eq('app_id', normalized)
-      .single()
+      .maybeSingle()
     
-    if (error || !data) {
-      console.error('Error loading comp\'d user data:', error)
-      return false
+    if (error) {
+      console.error('Error checking user by app_id:', error)
+      return { found: false, authCompleted: false }
     }
     
-    console.log('✅ Found comp\'d user record, populating localStorage...')
+    if (!data) {
+      console.log('No existing record found for app_id:', normalized)
+      return { found: false, authCompleted: false }
+    }
+    
+    // Verify email matches (security check)
+    const dbEmail = (data.email || '').toLowerCase().trim()
+    if (dbEmail && normalizedEmail && dbEmail !== normalizedEmail) {
+      console.error('Email mismatch - possible unauthorized access attempt')
+      console.error(`  DB email: ${dbEmail}, Provided: ${normalizedEmail}`)
+      return { found: false, authCompleted: false }
+    }
+    
+    console.log('✅ Found existing record, populating localStorage...')
     
     // Load DATA fields
     if (data.firmographics_data) localStorage.setItem('firmographics_data', JSON.stringify(data.firmographics_data))
@@ -66,13 +72,28 @@ async function loadCompdUserData(surveyId: string): Promise<boolean> {
       if (data[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true')
     }
     
-    console.log('✅ Comp\'d user data loaded successfully')
-    return true
+    // Also store payment info if present
+    if (data.payment_completed) localStorage.setItem('payment_completed', 'true')
+    if (data.payment_method) localStorage.setItem('payment_method', data.payment_method)
+    
+    console.log('✅ User data loaded successfully from Supabase')
+    return { found: true, authCompleted: !!data.auth_completed }
     
   } catch (error) {
-    console.error('Error in loadCompdUserData:', error)
-    return false
+    console.error('Error in checkAndLoadUserByAppId:', error)
+    return { found: false, authCompleted: false }
   }
+}
+
+// Legacy function name for backwards compatibility
+async function loadCompdUserData(surveyId: string): Promise<boolean> {
+  const result = await checkAndLoadUserByAppId(surveyId, '')
+  return result.found
+}
+
+// Legacy check - now always returns false since we check DB directly
+function isCompdUser(surveyId: string): boolean {
+  return false // No longer use hardcoded list
 }
 // ============================================
 
@@ -162,43 +183,40 @@ export default function LoginPage() {
     // ============================================
 
     // ============================================
-    // CHECK FOR COMP'D USERS FIRST (Best Buy, etc.)
-    // These users bypass Supabase auth entirely
+    // CHECK FOR ANY RETURNING USER BY APP_ID
+    // This checks the database for any user with matching app_id + email
+    // Works for comp'd users, regular users, anyone in the assessments table
     // ============================================
-    if (!isNewUser && isCompdUser(trimmedSurveyId)) {
-      console.log('🎫 Comp\'d user detected:', trimmedSurveyId)
+    if (!isNewUser && !isFoundingPartner(trimmedSurveyId) && !isSharedFP(trimmedSurveyId)) {
+      console.log('🔍 Checking database for returning user:', trimmedSurveyId)
       
-      // Store login info
-      localStorage.setItem('login_email', email)
-      localStorage.setItem('auth_email', email)
-      localStorage.setItem('survey_id', trimmedSurveyId.replace(/-/g, ''))
-      localStorage.setItem('user_authenticated', 'true')
-      localStorage.setItem('last_user_email', email)
-      localStorage.setItem('login_Survey_id', trimmedSurveyId)
-      localStorage.setItem('payment_completed', 'true')
-      localStorage.setItem('payment_method', 'Comp')
+      setSuccessMessage('Checking your progress...')
+      const result = await checkAndLoadUserByAppId(trimmedSurveyId, email)
       
-      // Load data from Supabase
-      setSuccessMessage('Loading your progress...')
-      const loaded = await loadCompdUserData(trimmedSurveyId)
-      
-      if (loaded) {
-        // Check if auth already completed
-        const authDone = localStorage.getItem('auth_completed') === 'true'
-        if (authDone) {
+      if (result.found) {
+        console.log('✅ Found existing user in database!')
+        
+        // Store login info
+        localStorage.setItem('login_email', email)
+        localStorage.setItem('auth_email', email)
+        localStorage.setItem('survey_id', trimmedSurveyId.replace(/-/g, '').toUpperCase())
+        localStorage.setItem('user_authenticated', 'true')
+        localStorage.setItem('last_user_email', email)
+        localStorage.setItem('login_Survey_id', trimmedSurveyId)
+        
+        if (result.authCompleted) {
           setSuccessMessage('✅ Welcome back! Redirecting to dashboard...')
           setTimeout(() => router.push('/dashboard'), 1500)
         } else {
           setSuccessMessage('✅ Found your progress! Redirecting...')
           setTimeout(() => router.push('/letter'), 1500)
         }
-      } else {
-        setSuccessMessage('✅ Access confirmed! Redirecting...')
-        setTimeout(() => router.push('/letter'), 1500)
+        
+        setLoading(false)
+        return
       }
-      
-      setLoading(false)
-      return
+      // If not found, continue to other checks (Supabase auth, etc.)
+      console.log('No existing record found, continuing to standard auth flow...')
     }
     // ============================================
 
