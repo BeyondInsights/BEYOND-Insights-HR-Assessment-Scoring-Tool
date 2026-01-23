@@ -22,26 +22,24 @@ exports.handler = async (event) => {
     const proto = event.headers["x-forwarded-proto"] || "https";
     const origin = `${proto}://${host}`;
 
-    // Use your report page (not the hidden ppt templates)
-    // mode=pptreport should hide action bar / sticky and keep report stable
+    // Report capture mode
     const url = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1&mode=pptreport`;
 
-    // Browserless function (avoid nested template literals)
+    // Browserless function code built without nested template literals
     const browserlessFn = [
       "export default async function ({ page, context }) {",
       "  const url = context.url;",
 
-      // Camera resolution (1920x1080, 2x DPR -> very crisp)
+      // 1920x1080 camera; DPR=2 yields 3840x2160 images in the PPT (sharp)
       "  const W = 1920;",
       "  const H = 1080;",
-      "  const REPORT_W = 1700; // makes content fill the slide better than 1280",
+      "  const REPORT_W = 1700;",
       "  const LEFT = Math.round((W - REPORT_W) / 2);",
 
       "  await page.setViewport({ width: W, height: H, deviceScaleFactor: 2 });",
       "  await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });",
       "  await page.waitForSelector('#report-root', { timeout: 60000 });",
 
-      // Deterministic capture CSS
       "  await page.addStyleTag({",
       "    content: [",
       "      'html, body { margin:0 !important; padding:0 !important; background:#fff !important; }',",
@@ -53,29 +51,34 @@ exports.handler = async (event) => {
       "    ].join('\\n')",
       "  });",
 
-      // Wait for fonts (best effort)
+      // Wait for fonts best-effort
       "  try {",
       "    await page.evaluate(async () => { if (document.fonts && document.fonts.ready) await document.fonts.ready; });",
       "  } catch (e) {}",
 
-      // Measure report height and anchor offsets for clean breaks
-      "  const metrics = await page.evaluate(() => {",
+      // Gather section breaks and their heights
+      "  const sections = await page.evaluate(() => {",
       "    const root = document.querySelector('#report-root');",
-      "    if (!root) return { totalHeight: 0, anchors: [] };",
+      "    if (!root) return null;",
+      "    const nodes = Array.from(root.querySelectorAll('.ppt-break'));",
+      "    const fallback = Array.from(root.querySelectorAll('.pdf-break-before'));",
+      "    const list = (nodes.length ? nodes : fallback);",
+      "    const sec = list.map(el => ({ top: el.offsetTop || 0, h: el.offsetHeight || 0 }))",
+      "      .filter(x => x.top >= 0)",
+      "      .sort((a,b) => a.top - b.top);",
+      "    // Ensure we always start at top",
+      "    if (!sec.length || sec[0].top !== 0) sec.unshift({ top: 0, h: root.scrollHeight });",
+      "    // Compute end bounds by next top (more reliable than offsetHeight)",
       "    const totalHeight = root.scrollHeight;",
-      "",
-      "    const anchorsA = Array.from(root.querySelectorAll('.ppt-break, .pdf-break-before')).map(el => el.offsetTop);",
-      "    const anchorsB = Array.from(root.querySelectorAll('div.bg-white.rounded-lg, div.bg-slate-800.rounded-lg')).map(el => el.offsetTop);",
-      "    const anchors = Array.from(new Set([0, ...anchorsA, ...anchorsB]))",
-      "      .filter(v => typeof v === 'number' && v >= 0)",
-      "      .sort((a,b) => a-b);",
-      "    return { totalHeight, anchors };",
+      "    const sec2 = sec.map((s, i) => {",
+      "      const nextTop = (i < sec.length - 1) ? sec[i+1].top : totalHeight;",
+      "      return { top: s.top, end: Math.max(s.top + 1, nextTop) };",
+      "    });",
+      "    return { totalHeight, sec: sec2 };",
       "  });",
-      "  const totalHeight = metrics.totalHeight || 0;",
-      "  const anchors = Array.isArray(metrics.anchors) ? metrics.anchors : [0];",
-      "  if (!totalHeight || totalHeight < 50) return { data: { ok:false, error:'Report height too small', totalHeight }, type:'application/json' };",
+      "  if (!sections) return { data: { ok:false, error:'Missing report-root' }, type:'application/json' };",
 
-      // Create a fixed camera viewport and move the report using top (NOT transform -> avoids blur)
+      // Create fixed camera viewport and move report by top (NOT transform)
       "  await page.evaluate((LEFT, W, H, REPORT_W) => {",
       "    const root = document.querySelector('#report-root');",
       "    if (!root) return;",
@@ -101,32 +104,33 @@ exports.handler = async (event) => {
       "    root.style.margin = '0';",
       "  }, LEFT, W, H, REPORT_W);",
 
-      // Build snapped offsets:
-      // desired = 0,1080,2160... ; snapped = nearest anchor <= desired
-      "  const maxSlides = 30;",
-      "  const desired = [];",
-      "  for (let y = 0; y < totalHeight && desired.length < maxSlides; y += H) desired.push(y);",
-      "  const snapped = desired.map(y => {",
-      "    let s = 0;",
-      "    for (let i = anchors.length - 1; i >= 0; i--) { if (anchors[i] <= y) { s = anchors[i]; break; } }",
-      "    return s;",
-      "  });",
+      // Build offsets by section, then page INSIDE the section if it is taller than one slide
+      "  const maxSlides = 40;",
       "  const offsets = [];",
-      "  for (const y of snapped) { if (!offsets.length || offsets[offsets.length - 1] !== y) offsets.push(y); }",
+      "  for (const s of sections.sec) {",
+      "    for (let y = s.top; y < s.end; y += H) {",
+      "      offsets.push(y);",
+      "      if (offsets.length >= maxSlides) break;",
+      "    }",
+      "    if (offsets.length >= maxSlides) break;",
+      "  }",
 
-      // Capture slices
       "  const viewport = await page.$('#__ppt_capture_viewport__');",
       "  if (!viewport) return { data: { ok:false, error:'Missing viewport' }, type:'application/json' };",
+
       "  const results = [];",
       "  for (let i = 0; i < offsets.length; i++) {",
       "    const y = offsets[i];",
-      "    await page.evaluate((yy) => { const root = document.querySelector('#report-root'); if (root) root.style.top = (-yy) + 'px'; }, y);",
+      "    await page.evaluate((yy) => {",
+      "      const root = document.querySelector('#report-root');",
+      "      if (root) root.style.top = (-yy) + 'px';",
+      "    }, y);",
       "    await new Promise(r => setTimeout(r, 140));",
       "    const buf = await viewport.screenshot({ type: 'jpeg', quality: 92 });",
       "    results.push({ index: i+1, y, jpegB64: buf.toString('base64') });",
       "  }",
 
-      "  return { data: { ok:true, totalHeight, offsets, results }, type:'application/json' };",
+      "  return { data: { ok:true, totalHeight: sections.totalHeight, offsets, results }, type:'application/json' };",
       "}",
     ].join("\n");
 
@@ -148,9 +152,9 @@ exports.handler = async (event) => {
       return json(500, { error: "Unexpected Browserless payload", payload });
     }
 
-    // Build PPTX (full-bleed images, one per slide)
+    // Build PPTX
     const pptx = new PptxGenJS();
-    pptx.layout = "LAYOUT_WIDE"; // 13.333 x 7.5 inches
+    pptx.layout = "LAYOUT_WIDE";
 
     for (const r of data.results) {
       const slide = pptx.addSlide();
