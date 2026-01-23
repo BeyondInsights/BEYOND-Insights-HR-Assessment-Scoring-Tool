@@ -56,7 +56,7 @@ exports.handler = async (event) => {
     console.log('Report URL:', reportUrl);
     // Run a single Browserless function to capture ALL slides
 
-    const browserlessFn = `
+const browserlessFn = `
 export default async function ({ page, context }) {
   const { url, selectors } = context;
   await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
@@ -73,7 +73,10 @@ export default async function ({ page, context }) {
       continue;
     }
     await el.evaluate(e => e.scrollIntoView({ block: 'start', inline: 'nearest' }));
-    await page.waitForTimeout(150);
+
+    // Puppeteer v24+ removed page.waitForTimeout
+    await new Promise(r => setTimeout(r, 150));
+
     const buf = await el.screenshot({ type: 'jpeg', quality: 72 });
     results.push({ selector: sel, jpegB64: buf.toString('base64') });
   }
