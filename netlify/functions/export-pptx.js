@@ -55,8 +55,8 @@ export default async function ({ page, context }) {
         padding: 0 !important;
         background: #fff !important;
         overflow: hidden !important;
-        width: ${W}px !important;
-        height: ${H}px !important;
+        width: \${W}px !important;
+        height: \${H}px !important;
       }
       
       /* Hide main report entirely - ppt-slides-container is a SIBLING of report-root */
@@ -70,8 +70,8 @@ export default async function ({ page, context }) {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
-        width: ${W}px !important;
-        height: ${H}px !important;
+        width: \${W}px !important;
+        height: \${H}px !important;
         overflow: hidden !important;
         z-index: 99999 !important;
         background: white !important;
@@ -83,8 +83,8 @@ export default async function ({ page, context }) {
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
-        width: ${W}px !important;
-        height: ${H}px !important;
+        width: \${W}px !important;
+        height: \${H}px !important;
         box-sizing: border-box !important;
         background: white !important;
         overflow: hidden !important;
