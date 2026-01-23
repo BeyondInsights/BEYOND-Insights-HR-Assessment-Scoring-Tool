@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import SavedToast from "@/components/SavedToast";
 import AutoDataSync from "@/lib/supabase/auto-data-sync";
+import SilentDataRecovery from "@/components/silent-data-recovery";
 
 const geistSans = Inter({
   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AutoDataSync />
+        <SilentDataRecovery />
         {children}
         <SavedToast />
       </body>
