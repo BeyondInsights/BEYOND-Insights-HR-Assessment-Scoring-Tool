@@ -905,6 +905,8 @@ export default function ExportReportPage() {
   const [customInsights, setCustomInsights] = useState<Record<number, { insight: string; cacHelp: string }>>({});
   const [customExecutiveSummary, setCustomExecutiveSummary] = useState<string>('');
   const [customPatterns, setCustomPatterns] = useState<{ pattern: string; implication: string; recommendation: string }[]>([]);
+  const [customRecommendations, setCustomRecommendations] = useState<Record<number, string>>({}); // dimNum -> custom recommendation
+  const [customCrossRecommendations, setCustomCrossRecommendations] = useState<Record<number, string>>({}); // pattern index -> custom recommendation
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
   
@@ -916,6 +918,24 @@ export default function ExportReportPage() {
         ...prev[dimNum],
         [field]: value
       }
+    }));
+    setHasUnsavedChanges(true);
+  };
+  
+  // Helper to update custom recommendation for a dimension
+  const updateCustomRecommendation = (dimNum: number, value: string) => {
+    setCustomRecommendations(prev => ({
+      ...prev,
+      [dimNum]: value
+    }));
+    setHasUnsavedChanges(true);
+  };
+  
+  // Helper to update custom cross-dimension recommendation
+  const updateCustomCrossRecommendation = (patternIdx: number, value: string) => {
+    setCustomCrossRecommendations(prev => ({
+      ...prev,
+      [patternIdx]: value
     }));
     setHasUnsavedChanges(true);
   };
@@ -941,6 +961,8 @@ export default function ExportReportPage() {
             customInsights,
             customExecutiveSummary,
             customPatterns,
+            customRecommendations,
+            customCrossRecommendations,
             lastEditedAt: new Date().toISOString()
           })
         })
@@ -963,6 +985,8 @@ export default function ExportReportPage() {
       setCustomInsights({});
       setCustomExecutiveSummary('');
       setCustomPatterns([]);
+      setCustomRecommendations({});
+      setCustomCrossRecommendations({});
       setHasUnsavedChanges(true);
     }
   };
@@ -977,6 +1001,8 @@ export default function ExportReportPage() {
         if (saved.customInsights) setCustomInsights(saved.customInsights);
         if (saved.customExecutiveSummary) setCustomExecutiveSummary(saved.customExecutiveSummary);
         if (saved.customPatterns) setCustomPatterns(saved.customPatterns);
+        if (saved.customRecommendations) setCustomRecommendations(saved.customRecommendations);
+        if (saved.customCrossRecommendations) setCustomCrossRecommendations(saved.customCrossRecommendations);
       } catch (e) {
         console.error('Error loading customizations:', e);
       }
@@ -1531,7 +1557,7 @@ export default function ExportReportPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="text-sm text-amber-800">
-                <strong>Edit Mode:</strong> Click on any insight text to customize it. Changes are saved to the database and will appear in exported reports.
+                <strong>Edit Mode:</strong> Edit strategic insights and recommended actions. Changes are saved to the database and will appear in exported reports.
                 {hasUnsavedChanges && <span className="ml-2 text-amber-600 font-medium">• Unsaved changes</span>}
               </p>
             </div>
@@ -1815,8 +1841,33 @@ export default function ExportReportPage() {
                         <p className="text-sm text-slate-600 leading-relaxed">{p.implication}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">Recommended Action</p>
-                        <p className="text-sm text-slate-600 leading-relaxed">{p.recommendation}</p>
+                        <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">
+                          Recommended Action
+                          {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
+                        </p>
+                        {editMode ? (
+                          <div className="flex flex-col gap-1">
+                            <textarea
+                              value={customCrossRecommendations[idx] ?? p.recommendation}
+                              onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
+                              className="w-full text-sm text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                              placeholder="Enter custom recommendation..."
+                            />
+                            {customCrossRecommendations[idx] && (
+                              <button 
+                                onClick={() => updateCustomCrossRecommendation(idx, '')}
+                                className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Reset
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-slate-600 leading-relaxed">{customCrossRecommendations[idx] || p.recommendation}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1844,7 +1895,10 @@ export default function ExportReportPage() {
                       <th className="pb-3 text-center w-28">Current</th>
                       <th className="pb-3 text-center w-24">Impact</th>
                       <th className="pb-3 text-center w-24">Effort</th>
-                      <th className="pb-3 text-left">Recommended Action</th>
+                      <th className="pb-3 text-left">
+                        Recommended Action
+                        {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1880,7 +1934,30 @@ export default function ExportReportPage() {
                           }`}>{r.effort}</span>
                         </td>
                         <td className="py-4">
-                          <p className="text-sm text-slate-600">{r.recommendation}</p>
+                          {editMode ? (
+                            <div className="flex flex-col gap-1">
+                              <input
+                                type="text"
+                                value={customRecommendations[r.dimNum] ?? r.recommendation}
+                                onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
+                                className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                placeholder="Enter custom recommendation..."
+                              />
+                              {customRecommendations[r.dimNum] && (
+                                <button 
+                                  onClick={() => updateCustomRecommendation(r.dimNum, '')}
+                                  className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                  Reset
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-slate-600">{customRecommendations[r.dimNum] || r.recommendation}</p>
+                          )}
                         </td>
                       </tr>
                     ))}
