@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
+import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
 
 // Create Supabase client directly
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -1054,12 +1055,12 @@ export default function ExportReportPage() {
       weightedDimScore = Math.round(weightedScore);
     }
     
-    const maturityScore = calculateMaturityScore(assessment);
-    const breadthScore = calculateBreadthScore(assessment);
-    
-    const compositeScore = isComplete && weightedDimScore !== null
-      ? Math.round((weightedDimScore * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) + (maturityScore * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) + (breadthScore * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100)))
-      : null;
+    // Use canonical enhanced-scoring library for composite score to ensure consistency
+    // across all pages (scoring page, profile page, report page)
+    const enhancedResult = calculateEnhancedScore(assessment);
+    const compositeScore = enhancedResult.isComplete ? enhancedResult.compositeScore : null;
+    const maturityScore = enhancedResult.maturityScore;
+    const breadthScore = enhancedResult.breadthScore;
     
     return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
   }
