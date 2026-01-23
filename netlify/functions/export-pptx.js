@@ -1,7 +1,7 @@
 // netlify/functions/export-pptx.js
 //
 // Captures the FULL HTML report as polished PPT slides
-// Uses data-ppt-slide markers in HTML for clean, logical breaks
+// Uses .ppt-break class markers in HTML for clean, logical breaks
 // Each section becomes its own slide (or multiple slides if tall)
 //
 
@@ -87,13 +87,13 @@ exports.handler = async (event) => {
       "",
       "  // Get all slide marker positions",
       "  const slideMarkers = await page.evaluate(() => {",
-      "    const markers = document.querySelectorAll('[data-ppt-slide]');",
+      "    const markers = document.querySelectorAll('.ppt-break');",
       "    if (markers.length === 0) return null;",
       "    ",
-      "    return Array.from(markers).map(el => {",
+      "    return Array.from(markers).map((el, idx) => {",
       "      const rect = el.getBoundingClientRect();",
       "      return {",
-      "        id: el.getAttribute('data-ppt-slide'),",
+      "        id: 'slide-' + (idx + 1),",
       "        top: rect.top + window.scrollY,",
       "        height: rect.height,",
       "        bottom: rect.top + window.scrollY + rect.height",
