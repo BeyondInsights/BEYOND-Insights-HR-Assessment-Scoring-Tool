@@ -2,7 +2,6 @@
 // 
 // Secure assessment sync with service role.
 // - CORS restricted to known origins
-// - Stale overwrite protection (rejects if client data older than DB)
 // - Access token required for regular users
 // - Server owns updated_at
 //
@@ -81,7 +80,7 @@ exports.handler = async (event) => {
       return json(400, { error: 'Invalid JSON body' }, event);
     }
 
-    const { surveyId, data, timestamp, accessToken } = payload;
+    const { surveyId, data, accessToken } = payload;
 
     if (!surveyId) {
       return json(400, { error: 'Missing surveyId' }, event);
@@ -101,8 +100,6 @@ exports.handler = async (event) => {
     // FP users: surveyId starts with FP-
     if (surveyId.startsWith('FP-')) {
       matchColumn = 'survey_id';
-      // NOTE: FP uses survey_id as implicit auth. 
-      // TODO: Add sync_token validation for stronger security.
     }
     // Regular authenticated users: surveyId is a UUID (user.id)
     else if (isUUID(surveyId)) {
@@ -132,42 +129,10 @@ exports.handler = async (event) => {
     else {
       matchColumn = 'app_id';
       matchValue = surveyId.replace(/-/g, '').toUpperCase();
-      // NOTE: Comp'd uses app_id as implicit auth.
-      // TODO: Add sync_token validation for stronger security.
     }
 
     // Create Supabase client with service role (bypasses RLS)
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // ============================================
-    // STALE OVERWRITE PROTECTION
-    // Reject if client timestamp is older than DB
-    // ============================================
-    const clientTs = Number(timestamp || 0);
-    
-    const { data: existing, error: fetchError } = await supabase
-      .from('assessments')
-      .select('updated_at')
-      .eq(matchColumn, matchValue)
-      .maybeSingle();
-    
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Fetch error:', fetchError);
-      return json(500, { error: 'Database fetch failed' }, event);
-    }
-    
-    if (existing?.updated_at && clientTs) {
-      const dbTs = Date.parse(existing.updated_at);
-      if (dbTs && clientTs < dbTs) {
-        console.warn(`[sync-assessment] Rejecting stale data for ${matchValue}: client=${clientTs}, db=${dbTs}`);
-        return json(409, { 
-          error: 'Stale client data; DB is newer', 
-          dbUpdatedAt: existing.updated_at,
-          clientTimestamp: clientTs,
-          dbTimestamp: dbTs,
-        }, event);
-      }
-    }
 
     // ============================================
     // BUILD UPDATE DATA - Server owns updated_at
