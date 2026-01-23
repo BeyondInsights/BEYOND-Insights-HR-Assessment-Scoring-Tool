@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useMemo } from 'react'
+import { calculateEnhancedScore } from '@/lib/enhanced-scoring'
 
 interface DetailedViewProps {
   assessment: any
@@ -272,80 +273,17 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
 
   // Calculate composite scores - EXACT SAME LOGIC AS SCORING PAGE
   const compositeScores = useMemo(() => {
-    let completedDimCount = 0
-    let insufficientDataCount = 0
+    // Use canonical enhanced-scoring library for consistent scores across all pages
+    const enhancedResult = calculateEnhancedScore(assessment)
     
-    for (let i = 1; i <= 13; i++) {
-      if (dimensionScores[i].totalItems > 0) {
-        completedDimCount++
-      }
-      if (dimensionScores[i].isInsufficientData) {
-        insufficientDataCount++
-      }
-    }
-    
-    const isComplete = completedDimCount === 13
-    const isProvisional = insufficientDataCount >= 4
-    
-    let unweightedScore = 0
-    let weightedScore = 0
-    
-    if (completedDimCount > 0) {
-      // Unweighted = average of adjusted scores
-      const dimsWithData = Object.values(dimensionScores).filter(d => d.totalItems > 0)
-      unweightedScore = dimsWithData.length > 0
-        ? Math.round(dimsWithData.reduce((sum, d) => sum + d.adjustedScore, 0) / dimsWithData.length)
-        : 0
-      
-      // Weighted score using default weights
-      const totalWeight = Object.values(DEFAULT_WEIGHTS).reduce((sum, w) => sum + w, 0)
-      if (totalWeight > 0) {
-        for (let i = 1; i <= 13; i++) {
-          const dim = dimensionScores[i]
-          const weight = DEFAULT_WEIGHTS[i] || 0
-          weightedScore += dim.adjustedScore * (weight / totalWeight)
-        }
-      }
-      weightedScore = Math.round(weightedScore)
-    }
-    
-    // Calculate Maturity Score from OR1
+    // Get CB3 individual scores for display
     const currentSupport = assessment.current_support_data || {}
     const generalBenefits = assessment.general_benefits_data || {}
-    const or1 = currentSupport.or1 || generalBenefits.or1 || ''
-    let maturityScore = 0
-    const or1Lower = String(or1).toLowerCase()
-    if (or1Lower.includes('comprehensive') || or1Lower.includes('leading') || or1Lower.includes('extensive')) {
-      maturityScore = 100
-    } else if (or1Lower.includes('enhanced') || or1Lower.includes('strong')) {
-      maturityScore = 80
-    } else if (or1Lower.includes('moderate')) {
-      maturityScore = 50
-    } else if (or1Lower.includes('basic') || or1Lower.includes('developing')) {
-      maturityScore = 20
-    }
+    const cb3aScore = enhancedResult.breadthDetails?.details?.cb3a?.value ?? 0
+    const cb3bScore = enhancedResult.breadthDetails?.details?.cb3b?.value ?? 0
+    const cb3cScore = enhancedResult.breadthDetails?.details?.cb3c?.value ?? 0
     
-    // Calculate Breadth Score from CB3a, CB3b, CB3c
-    const cb3a = currentSupport.cb3a || generalBenefits.cb3a || ''
-    const cb3b = currentSupport.cb3b || generalBenefits.cb3b || []
-    const cb3c = currentSupport.cb3c || generalBenefits.cb3c || []
-    
-    const cb3aLower = String(cb3a).toLowerCase()
-    let cb3aScore = 0
-    if (cb3aLower.includes('yes') && cb3aLower.includes('additional support')) {
-      cb3aScore = 100
-    } else if (cb3aLower.includes('developing')) {
-      cb3aScore = 50
-    }
-    
-    const cb3bScore = Array.isArray(cb3b) && cb3b.length > 0 ? Math.min(100, Math.round((cb3b.length / 6) * 100)) : 0
-    const cb3cScore = Array.isArray(cb3c) && cb3c.length > 0 ? Math.min(100, Math.round((cb3c.length / 13) * 100)) : 0
-    const breadthScore = Math.round((cb3aScore + cb3bScore + cb3cScore) / 3)
-    
-    // Composite = 90% weighted + 5% maturity + 5% breadth
-    const compositeScore = Math.round(weightedScore * 0.90 + maturityScore * 0.05 + breadthScore * 0.05)
-    
-    // Aggregate breakdown
+    // Calculate breakdown from dimension scores
     let totalCurrentlyOffer = 0
     let totalPlanning = 0
     let totalAssessing = 0
@@ -353,31 +291,36 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
     let totalUnsure = 0
     
     for (let i = 1; i <= 13; i++) {
-      const score = dimensionScores[i]
-      totalCurrentlyOffer += score.breakdown.currentlyOffer
-      totalPlanning += score.breakdown.planning
-      totalAssessing += score.breakdown.assessing
-      totalNotAble += score.breakdown.notAble
-      totalUnsure += score.breakdown.unsure
+      const dimScore = enhancedResult.dimensionScores[i]
+      if (dimScore?.breakdown) {
+        totalCurrentlyOffer += dimScore.breakdown.currentlyOffer || 0
+        totalPlanning += dimScore.breakdown.planning || 0
+        totalAssessing += dimScore.breakdown.assessing || 0
+        totalNotAble += dimScore.breakdown.notAble || 0
+        totalUnsure += dimScore.breakdown.unsure || 0
+      }
     }
     
-    // Use composite score for tier (not just weighted)
-    const tier = completedDimCount > 0 ? getPerformanceTier(compositeScore, isProvisional) : null
-    
+    // Map to existing interface
     return {
-      unweightedScore,
-      weightedScore,
-      compositeScore,
-      maturityScore,
-      breadthScore,
+      unweightedScore: Math.round(
+        Object.values(enhancedResult.dimensionScores)
+          .filter(d => d.totalItems > 0)
+          .reduce((sum, d) => sum + d.adjustedScore, 0) / 
+        Math.max(1, Object.values(enhancedResult.dimensionScores).filter(d => d.totalItems > 0).length)
+      ),
+      weightedScore: enhancedResult.baseScore,
+      compositeScore: enhancedResult.compositeScore,
+      maturityScore: enhancedResult.maturityScore,
+      breadthScore: enhancedResult.breadthScore,
       cb3aScore,
       cb3bScore,
       cb3cScore,
-      completedDimCount,
-      isComplete,
-      isProvisional,
-      insufficientDataCount,
-      tier,
+      completedDimCount: enhancedResult.completedDimensions,
+      isComplete: enhancedResult.isComplete,
+      isProvisional: enhancedResult.isProvisional,
+      insufficientDataCount: enhancedResult.insufficientDataCount,
+      tier: enhancedResult.tier,
       breakdown: {
         currentlyOffer: totalCurrentlyOffer,
         planning: totalPlanning,
@@ -386,7 +329,7 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
         unsure: totalUnsure
       }
     }
-  }, [dimensionScores, assessment])
+  }, [assessment])
 
   // Check if any dimension has data
   const hasAnyDimensionData = compositeScores.completedDimCount > 0
