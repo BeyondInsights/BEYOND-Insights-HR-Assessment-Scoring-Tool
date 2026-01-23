@@ -1388,9 +1388,9 @@ export default function ExportReportPage() {
               <thead>
                 <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
                   <th className="pb-2.5 text-center w-9">#</th>
-                  <th className="pb-2.5 text-left">Dimension</th>
+                  <th className="pb-2.5 text-left w-64">Dimension</th>
                   <th className="pb-2.5 text-center w-12">Wt%</th>
-                  <th className="pb-2.5 text-center w-36">Score</th>
+                  <th className="pb-2.5 text-center">Score</th>
                   <th className="pb-2.5 text-right w-12"></th>
                   <th className="pb-2.5 text-center w-16">Bench</th>
                   <th className="pb-2.5 text-center w-24">Tier</th>
