@@ -1,526 +1,494 @@
+'use client';
+
+import { useEffect, useRef, useCallback } from 'react';
+import { supabase } from '@/lib/supabase/client';
+
+// ============================================
+// CONFIGURATION
+// ============================================
+
+const SYNC_DEBOUNCE_MS = 300;
+const RETRY_INTERVAL_MS = 15000; // 15 seconds
+const MAX_RETRIES = 5;
+const PENDING_OPS_KEY = 'pending_sync_ops';
+const LAST_SYNC_HASH_KEY = 'last_sync_hash';
+
+// Data keys to sync
+const DATA_KEYS = [
+  'firmographics_data',
+  'general_benefits_data',
+  'current_support_data',
+  'cross_dimensional_data',
+  'employee-impact-assessment_data',
+  'dimension1_data', 'dimension2_data', 'dimension3_data', 'dimension4_data',
+  'dimension5_data', 'dimension6_data', 'dimension7_data', 'dimension8_data',
+  'dimension9_data', 'dimension10_data', 'dimension11_data', 'dimension12_data',
+  'dimension13_data',
+];
+
+// Map localStorage keys to database columns
+const DB_COLUMN_MAP: Record<string, string> = {
+  'firmographics_data': 'firmographics_data',
+  'general_benefits_data': 'general_benefits_data',
+  'current_support_data': 'current_support_data',
+  'cross_dimensional_data': 'cross_dimensional_data',
+  'employee-impact-assessment_data': 'employee_impact_data',
+  'dimension1_data': 'dimension1_data',
+  'dimension2_data': 'dimension2_data',
+  'dimension3_data': 'dimension3_data',
+  'dimension4_data': 'dimension4_data',
+  'dimension5_data': 'dimension5_data',
+  'dimension6_data': 'dimension6_data',
+  'dimension7_data': 'dimension7_data',
+  'dimension8_data': 'dimension8_data',
+  'dimension9_data': 'dimension9_data',
+  'dimension10_data': 'dimension10_data',
+  'dimension11_data': 'dimension11_data',
+  'dimension12_data': 'dimension12_data',
+  'dimension13_data': 'dimension13_data',
+};
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
 /**
- * AUTO DATA SYNC - RELIABLE VERSION
- * 
- * FIXES:
- * 1. Uses sendBeacon for reliable page-close sync
- * 2. Shorter debounce (250ms vs 500ms)
- * 3. Sync indicator via custom event
- * 4. Better hash comparison for change detection
- * 5. Force sync before any navigation
+ * Stable JSON stringify - sorts keys recursively for consistent hashing
  */
+function stableStringify(obj: any): string {
+  if (obj === null || obj === undefined) return String(obj);
+  if (typeof obj !== 'object') return JSON.stringify(obj);
+  if (Array.isArray(obj)) {
+    return '[' + obj.map(stableStringify).join(',') + ']';
+  }
+  const keys = Object.keys(obj).sort();
+  const pairs = keys.map(k => `${JSON.stringify(k)}:${stableStringify(obj[k])}`);
+  return '{' + pairs.join(',') + '}';
+}
 
-'use client'
+/**
+ * Simple hash for change detection
+ */
+function hashString(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(36);
+}
 
-import { useEffect, useRef, useCallback } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
-import { supabase } from './client'
+/**
+ * Get survey ID from localStorage
+ */
+function getSurveyId(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id');
+}
 
-// ============================================
-// COMP'D USERS - Same list as in login page
-// ============================================
-const COMPD_USER_IDS = [
-  'CAC26010292641OB',  // Best Buy - Melanie Moriarty
-]
-
-function isCompdUser(surveyId: string): boolean {
-  const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
-  return COMPD_USER_IDS.some(id => id.replace(/-/g, '').toUpperCase() === normalized)
+/**
+ * Check if user is a Founding Partner
+ */
+function isFP(surveyId: string): boolean {
+  return surveyId.startsWith('FP-');
 }
 
 // ============================================
-// SYNC INDICATOR - Dispatch events for UI
+// PENDING OPERATIONS QUEUE
 // ============================================
-function dispatchSyncEvent(status: 'start' | 'success' | 'error', message?: string) {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('sync-status', { 
-      detail: { status, message, timestamp: Date.now() } 
-    }))
+
+interface PendingOp {
+  surveyId: string;
+  data: Record<string, any>;
+  timestamp: number;
+  retryCount: number;
+}
+
+function getPendingOps(): PendingOp[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = localStorage.getItem(PENDING_OPS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
   }
 }
+
+function savePendingOps(ops: PendingOp[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PENDING_OPS_KEY, JSON.stringify(ops));
+  } catch (e) {
+    console.error('[AutoSync] Failed to save pending ops:', e);
+  }
+}
+
+function addPendingOp(surveyId: string, data: Record<string, any>): void {
+  const ops = getPendingOps();
+  // Replace existing op for same survey or add new
+  const existingIdx = ops.findIndex(op => op.surveyId === surveyId);
+  const newOp: PendingOp = {
+    surveyId,
+    data,
+    timestamp: Date.now(),
+    retryCount: 0,
+  };
+  if (existingIdx >= 0) {
+    ops[existingIdx] = newOp;
+  } else {
+    ops.push(newOp);
+  }
+  savePendingOps(ops);
+}
+
+function removePendingOp(surveyId: string): void {
+  const ops = getPendingOps().filter(op => op.surveyId !== surveyId);
+  savePendingOps(ops);
+}
+
+function incrementRetryCount(surveyId: string): void {
+  const ops = getPendingOps();
+  const op = ops.find(o => o.surveyId === surveyId);
+  if (op) {
+    op.retryCount++;
+    savePendingOps(ops);
+  }
+}
+
+// ============================================
+// SYNC FUNCTIONS
+// ============================================
 
 /**
  * Collect all survey data from localStorage
  */
-function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean } {
-  const updateData: Record<string, any> = {}
+function collectSurveyData(): Record<string, any> {
+  const data: Record<string, any> = {};
   
-  // Data keys
-  const dataKeys = [
-    'firmographics_data',
-    'general_benefits_data',
-    'current_support_data',
-    'cross_dimensional_data',
-    'employee-impact-assessment_data',
-    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
-  ]
-  
-  // Completion flags
-  const completeKeyMap: Record<string, string> = {
-    'firmographics_complete': 'firmographics_complete',
-    'auth_completed': 'auth_completed',
-    'general_benefits_complete': 'general_benefits_complete',
-    'current_support_complete': 'current_support_complete',
-    'cross_dimensional_complete': 'cross_dimensional_complete',
-    'employee-impact-assessment_complete': 'employee_impact_complete',
-  }
-  
-  for (let i = 1; i <= 13; i++) {
-    completeKeyMap[`dimension${i}_complete`] = `dimension${i}_complete`
-  }
-  
-  let itemCount = 0
-  
-  // Collect data
-  dataKeys.forEach(key => {
-    const value = localStorage.getItem(key)
+  for (const localKey of DATA_KEYS) {
+    const value = localStorage.getItem(localKey);
     if (value) {
       try {
-        const parsed = JSON.parse(value)
-        if (parsed && Object.keys(parsed).length > 0) {
-          const dbKey = key === 'employee-impact-assessment_data' ? 'employee_impact_data' : key
-          updateData[dbKey] = parsed
-          itemCount++
-        }
-      } catch (e) {
-        // Skip unparseable data
+        const dbColumn = DB_COLUMN_MAP[localKey] || localKey;
+        data[dbColumn] = JSON.parse(value);
+      } catch {
+        // Skip invalid JSON
       }
     }
-  })
+  }
   
-  // Collect completion flags
-  Object.entries(completeKeyMap).forEach(([localKey, dbKey]) => {
-    const value = localStorage.getItem(localKey)
+  // Also collect completion flags
+  for (const localKey of DATA_KEYS) {
+    const completeKey = localKey.replace('_data', '_complete');
+    const value = localStorage.getItem(completeKey);
     if (value === 'true') {
-      updateData[dbKey] = true
-      itemCount++
+      const dbColumn = (DB_COLUMN_MAP[localKey] || localKey).replace('_data', '_complete');
+      data[dbColumn] = true;
     }
-  })
+  }
   
-  return { data: updateData, hasData: itemCount > 0 }
-}
-
-// ============================================
-// BETTER HASH - Sort keys for consistent comparison
-// ============================================
-let lastSyncedDataHash: string = ''
-
-function getStableHash(data: Record<string, any>): string {
-  // Sort keys recursively for stable comparison
-  const sortObject = (obj: any): any => {
-    if (Array.isArray(obj)) {
-      return obj.map(sortObject)
-    }
-    if (obj && typeof obj === 'object') {
-      return Object.keys(obj).sort().reduce((acc: any, key) => {
-        acc[key] = sortObject(obj[key])
-        return acc
-      }, {})
-    }
-    return obj
-  }
-  return JSON.stringify(sortObject(data))
-}
-
-function hasDataChanged(newData: Record<string, any>): boolean {
-  const newHash = getStableHash(newData)
-  if (newHash === lastSyncedDataHash) {
-    return false
-  }
-  lastSyncedDataHash = newHash
-  return true
+  return data;
 }
 
 /**
- * Check if this is a Founding Partner
+ * Compute hash of current data for change detection
  */
-async function checkIsFoundingPartner(surveyId: string): Promise<boolean> {
-  if (!surveyId) return false
-  if (surveyId.startsWith('FP-')) return true
-  
+function computeDataHash(): string {
+  const data = collectSurveyData();
+  return hashString(stableStringify(data));
+}
+
+/**
+ * Check if data has changed since last sync
+ */
+function hasDataChanged(): boolean {
+  const currentHash = computeDataHash();
+  const lastHash = localStorage.getItem(LAST_SYNC_HASH_KEY);
+  return currentHash !== lastHash;
+}
+
+/**
+ * Update the last sync hash
+ */
+function updateSyncHash(): void {
+  const hash = computeDataHash();
+  localStorage.setItem(LAST_SYNC_HASH_KEY, hash);
+}
+
+/**
+ * Reset the sync hash to force next sync
+ */
+function resetSyncHash(): void {
+  localStorage.removeItem(LAST_SYNC_HASH_KEY);
+}
+
+/**
+ * Sync to Supabase via Netlify function (preferred)
+ */
+async function syncViaNetlifyFunction(surveyId: string, data: Record<string, any>): Promise<boolean> {
   try {
-    const { isFoundingPartner } = await import('@/lib/founding-partners')
-    return isFoundingPartner(surveyId)
-  } catch {
-    return surveyId.startsWith('FP-')
+    const response = await fetch('/.netlify/functions/sync-assessment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ surveyId, data, timestamp: Date.now() }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('[AutoSync] Netlify function error:', error);
+      return false;
+    }
+    
+    const result = await response.json();
+    console.log('[AutoSync] Synced via Netlify function:', result);
+    return true;
+  } catch (e) {
+    console.error('[AutoSync] Netlify function failed:', e);
+    return false;
   }
 }
 
 /**
- * Sync Comp'd User data to Supabase
+ * Sync directly to Supabase (fallback)
  */
-async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
-  const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
-  console.log('🎫 AUTO-SYNC: Syncing comp\'d user:', normalized)
-  
-  const { data: updateData, hasData } = collectAllSurveyData()
-  
-  if (!hasData || !hasDataChanged(updateData)) {
-    return true
-  }
-  
-  updateData.updated_at = new Date().toISOString()
-  
+async function syncDirectToSupabase(surveyId: string, data: Record<string, any>): Promise<boolean> {
   try {
-    const { data: result, error } = await supabase
+    const matchColumn = isFP(surveyId) ? 'survey_id' : 'app_id';
+    const updateData = { ...data, updated_at: new Date().toISOString() };
+    
+    const { error } = await supabase
       .from('assessments')
       .update(updateData)
-      .eq('app_id', normalized)
-      .select('id')
+      .eq(matchColumn, surveyId);
     
     if (error) {
-      console.error('❌ AUTO-SYNC: Comp\'d user sync failed:', error.message)
-      return false
+      console.error('[AutoSync] Direct Supabase error:', error);
+      return false;
     }
     
-    console.log('✅ AUTO-SYNC: Comp\'d user sync successful!')
-    return true
-  } catch (error) {
-    console.error('❌ AUTO-SYNC: Exception:', error)
-    return false
-  }
-}
-
-/**
- * Sync FP data to Supabase - WITH VERIFICATION
- */
-async function syncFPToSupabase(surveyId: string): Promise<boolean> {
-  console.log('🏢 AUTO-SYNC: Syncing FP data for:', surveyId)
-  
-  // Contamination check
-  try {
-    const { getFPCompanyName } = await import('@/lib/founding-partners')
-    const expectedCompany = getFPCompanyName(surveyId)
-    
-    const firmographicsRaw = localStorage.getItem('firmographics_data')
-    if (firmographicsRaw) {
-      try {
-        const firmographics = JSON.parse(firmographicsRaw)
-        const localCompany = firmographics.companyName || ''
-        
-        if (localCompany && expectedCompany && localCompany !== expectedCompany && localCompany !== 'Founding Partner') {
-          console.error('🚨 AUTO-SYNC: BLOCKING SYNC - Company mismatch!')
-          console.error(`   Expected: "${expectedCompany}", Found: "${localCompany}"`)
-          
-          // Clear contaminated data
-          const keysToClear = [
-            'firmographics_data', 'general_benefits_data', 'current_support_data',
-            'cross_dimensional_data', 'employee-impact-assessment_data',
-            ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`),
-            'firmographics_complete', 'general_benefits_complete', 'current_support_complete',
-            'cross_dimensional_complete', 'employee-impact-assessment_complete',
-            ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
-          ]
-          keysToClear.forEach(key => localStorage.removeItem(key))
-          return false
-        }
-      } catch (e) {}
-    }
-  } catch (e) {}
-  
-  const { data: updateData, hasData } = collectAllSurveyData()
-  
-  if (!hasData) {
-    return true
-  }
-  
-  if (!hasDataChanged(updateData)) {
-    console.log('⏭️ AUTO-SYNC: Data unchanged')
-    return true
-  }
-  
-  updateData.updated_at = new Date().toISOString()
-  
-  try {
-    const { data: updateResult, error: updateError } = await supabase
-      .from('assessments')
-      .update(updateData)
-      .eq('survey_id', surveyId)
-      .select('id')
-    
-    if (updateError) {
-      console.error('❌ AUTO-SYNC: Update failed:', updateError.message)
-      return false
-    }
-    
-    if (!updateResult || updateResult.length === 0) {
-      // Try to create record
-      console.log('🔄 AUTO-SYNC: No existing record, creating...')
-      const { error: insertError } = await supabase
-        .from('assessments')
-        .insert({
-          survey_id: surveyId,
-          app_id: surveyId,
-          is_founding_partner: true,
-          payment_completed: true,
-          payment_method: 'FP Comp',
-          payment_amount: 1250.00,
-          ...updateData
-        })
-      
-      if (insertError) {
-        console.error('❌ AUTO-SYNC: Insert failed:', insertError.message)
-        return false
-      }
-    }
-    
-    console.log('✅ AUTO-SYNC: FP sync successful!')
-    return true
-  } catch (error) {
-    console.error('❌ AUTO-SYNC: Exception:', error)
-    return false
-  }
-}
-
-/**
- * Sync regular user data
- */
-async function syncRegularUserToSupabase(): Promise<boolean> {
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return true
-  }
-  
-  console.log('👤 AUTO-SYNC: Syncing regular user...')
-  
-  const { data: updateData, hasData } = collectAllSurveyData()
-  
-  if (!hasData || !hasDataChanged(updateData)) {
-    return true
-  }
-  
-  updateData.updated_at = new Date().toISOString()
-  
-  const { error } = await supabase
-    .from('assessments')
-    .update(updateData)
-    .eq('user_id', user.id)
-  
-  if (error) {
-    console.error('❌ AUTO-SYNC: Regular user sync failed:', error.message)
-    return false
-  }
-  
-  console.log('✅ AUTO-SYNC: Regular user sync successful!')
-  return true
-}
-
-/**
- * Main sync function
- */
-async function syncToSupabase(): Promise<boolean> {
-  const surveyId = localStorage.getItem('survey_id') || ''
-  
-  dispatchSyncEvent('start')
-  
-  try {
-    // Comp'd users
-    if (isCompdUser(surveyId)) {
-      const result = await syncCompdUserToSupabase(surveyId)
-      dispatchSyncEvent(result ? 'success' : 'error')
-      return result
-    }
-    
-    // Shared FP
-    try {
-      const { isSharedFP, saveSharedFPData } = await import('./fp-shared-storage')
-      if (isSharedFP(surveyId)) {
-        const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email')
-        await saveSharedFPData(surveyId, email || undefined)
-        dispatchSyncEvent('success')
-        return true
-      }
-    } catch (e) {}
-    
-    // Regular FP
-    const isFP = await checkIsFoundingPartner(surveyId)
-    if (isFP) {
-      const result = await syncFPToSupabase(surveyId)
-      dispatchSyncEvent(result ? 'success' : 'error')
-      return result
-    }
-    
-    // Regular user
-    const result = await syncRegularUserToSupabase()
-    dispatchSyncEvent(result ? 'success' : 'error')
-    return result
-    
-  } catch (error) {
-    console.error('❌ AUTO-SYNC: Exception:', error)
-    dispatchSyncEvent('error', 'Sync failed')
-    return false
-  }
-}
-
-/**
- * Synchronous sync using sendBeacon for page close
- * This is more reliable than async operations during unload
- */
-function syncWithBeacon(): void {
-  const surveyId = localStorage.getItem('survey_id') || ''
-  if (!surveyId) return
-  
-  const { data: updateData, hasData } = collectAllSurveyData()
-  if (!hasData) return
-  
-  updateData.updated_at = new Date().toISOString()
-  
-  // Use sendBeacon for reliable delivery during page unload
-  const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/assessments?survey_id=eq.${surveyId}`
-  const headers = {
-    'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-    'Content-Type': 'application/json',
-    'Prefer': 'return=minimal'
-  }
-  
-  try {
-    const blob = new Blob([JSON.stringify(updateData)], { type: 'application/json' })
-    
-    // sendBeacon doesn't support custom headers, so we'll use fetch with keepalive
-    fetch(url, {
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify(updateData),
-      keepalive: true  // Ensures request completes even after page unload
-    }).catch(() => {
-      // Fallback to sendBeacon with simplified approach
-      // Note: sendBeacon has limitations but is more reliable for unload
-    })
+    console.log('[AutoSync] Synced directly to Supabase');
+    return true;
   } catch (e) {
-    console.log('Beacon sync failed, data may not have saved')
+    console.error('[AutoSync] Direct Supabase failed:', e);
+    return false;
   }
 }
 
 /**
- * Force sync - RETURNS A PROMISE that resolves when sync completes
+ * Main sync function with fallback
  */
-export async function forceSyncNow(): Promise<boolean> {
-  console.log('⚡ FORCE SYNC TRIGGERED')
-  // Reset hash to force sync even if data unchanged
-  lastSyncedDataHash = ''
-  return await syncToSupabase()
+async function performSync(force: boolean = false): Promise<boolean> {
+  const surveyId = getSurveyId();
+  if (!surveyId) {
+    console.log('[AutoSync] No survey ID, skipping sync');
+    return false;
+  }
+  
+  // Check if data changed (unless forced)
+  if (!force && !hasDataChanged()) {
+    console.log('[AutoSync] No changes detected, skipping sync');
+    return true;
+  }
+  
+  const data = collectSurveyData();
+  if (Object.keys(data).length === 0) {
+    console.log('[AutoSync] No data to sync');
+    return true;
+  }
+  
+  console.log('[AutoSync] Syncing data for', surveyId, '- Force:', force);
+  
+  // Try Netlify function first
+  let success = await syncViaNetlifyFunction(surveyId, data);
+  
+  // Fallback to direct Supabase if Netlify function fails
+  if (!success) {
+    console.log('[AutoSync] Falling back to direct Supabase');
+    success = await syncDirectToSupabase(surveyId, data);
+  }
+  
+  if (success) {
+    updateSyncHash();
+    removePendingOp(surveyId);
+    console.log('[AutoSync] Sync successful');
+  } else {
+    // Add to pending queue for retry
+    addPendingOp(surveyId, data);
+    console.warn('[AutoSync] Sync failed, added to pending queue');
+  }
+  
+  return success;
 }
 
 /**
- * Auto Data Sync Component
+ * Process pending operations queue
  */
-export default function AutoDataSync() {
-  const pathname = usePathname()
-  const lastPath = useRef<string>('')
-  const syncInProgress = useRef(false)
-  const pendingSync = useRef<NodeJS.Timeout | null>(null)
+async function processPendingOps(): Promise<void> {
+  const ops = getPendingOps();
+  if (ops.length === 0) return;
   
-  const doSync = useCallback(async (reason: string) => {
-    if (syncInProgress.current) {
-      return
-    }
-    
-    syncInProgress.current = true
-    console.log(`🔄 AUTO-SYNC: ${reason}`)
-    
-    try {
-      await syncToSupabase()
-    } finally {
-      syncInProgress.current = false
-    }
-  }, [])
+  console.log('[AutoSync] Processing', ops.length, 'pending operations');
   
-  // IMMEDIATE sync on mount
-  useEffect(() => {
-    doSync('Initial page load')
-    
-    // Also sync after a short delay
-    setTimeout(() => doSync('Delayed check'), 1000)
-  }, [doSync])
-  
-  // Sync on route change - BEFORE navigation completes
-  useEffect(() => {
-    if (pathname !== lastPath.current) {
-      const prevPath = lastPath.current
-      lastPath.current = pathname
-      
-      if (prevPath !== '') {
-        // Sync immediately when leaving a page
-        doSync(`Route: ${prevPath} → ${pathname}`)
-      }
-    }
-  }, [pathname, doSync])
-  
-  // INTERCEPT localStorage writes - sync with SHORTER debounce
-  useEffect(() => {
-    const originalSetItem = localStorage.setItem.bind(localStorage)
-    
-    localStorage.setItem = (key: string, value: string) => {
-      originalSetItem(key, value)
-      
-      if (key.includes('_data') || key.includes('_complete')) {
-        console.log(`📝 AUTO-SYNC: localStorage write: ${key}`)
-        
-        // Clear any pending sync
-        if (pendingSync.current) {
-          clearTimeout(pendingSync.current)
-        }
-        
-        // SHORTER debounce - 250ms instead of 500ms
-        pendingSync.current = setTimeout(() => {
-          doSync(`localStorage write: ${key}`)
-        }, 250)
-      }
+  for (const op of ops) {
+    if (op.retryCount >= MAX_RETRIES) {
+      console.warn('[AutoSync] Max retries exceeded for', op.surveyId);
+      continue;
     }
     
-    return () => {
-      localStorage.setItem = originalSetItem
-      if (pendingSync.current) {
-        clearTimeout(pendingSync.current)
-      }
-    }
-  }, [doSync])
-  
-  // Periodic sync every 10 seconds (faster than before)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      doSync('Periodic (10s)')
-    }, 10000)
+    const success = await syncViaNetlifyFunction(op.surveyId, op.data) ||
+                    await syncDirectToSupabase(op.surveyId, op.data);
     
-    return () => clearInterval(interval)
-  }, [doSync])
-  
-  // Sync on visibility change
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        doSync('Tab became visible')
-      } else {
-        // Sync when tab becomes hidden (user switching tabs)
-        doSync('Tab hidden - sync before leaving')
-      }
+    if (success) {
+      removePendingOp(op.surveyId);
+      console.log('[AutoSync] Pending op succeeded for', op.surveyId);
+    } else {
+      incrementRetryCount(op.surveyId);
     }
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [doSync])
-  
-  // RELIABLE sync on page close using keepalive fetch
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      console.log('👋 AUTO-SYNC: Page closing - reliable sync')
-      syncWithBeacon()
-    }
-    
-    // Also sync on pagehide (more reliable on mobile)
-    const handlePageHide = () => {
-      console.log('👋 AUTO-SYNC: Page hide - reliable sync')
-      syncWithBeacon()
-    }
-    
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    window.addEventListener('pagehide', handlePageHide)
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
-      window.removeEventListener('pagehide', handlePageHide)
-    }
-  }, [])
-  
-  return null
+  }
 }
+
+/**
+ * Emergency sync using sendBeacon (for page unload)
+ * Uses Netlify function which is more reliable than direct Supabase
+ */
+function emergencySync(): void {
+  const surveyId = getSurveyId();
+  if (!surveyId) return;
+  
+  const data = collectSurveyData();
+  if (Object.keys(data).length === 0) return;
+  
+  const payload = JSON.stringify({ surveyId, data, timestamp: Date.now() });
+  
+  // Try sendBeacon to Netlify function (most reliable for unload)
+  const beaconSent = navigator.sendBeacon(
+    '/.netlify/functions/sync-assessment',
+    new Blob([payload], { type: 'application/json' })
+  );
+  
+  if (beaconSent) {
+    console.log('[AutoSync] Emergency beacon sent');
+  } else {
+    // Fallback: keepalive fetch
+    fetch('/.netlify/functions/sync-assessment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true,
+    }).catch(() => {
+      // Last resort: add to pending queue
+      addPendingOp(surveyId, data);
+    });
+  }
+}
+
+// ============================================
+// REACT COMPONENT
+// ============================================
+
+export default function AutoDataSync() {
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const retryInterval = useRef<NodeJS.Timeout | null>(null);
+  const isSyncing = useRef(false);
+
+  // Debounced sync
+  const debouncedSync = useCallback(() => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    debounceTimer.current = setTimeout(async () => {
+      if (isSyncing.current) return;
+      isSyncing.current = true;
+      await performSync(false);
+      isSyncing.current = false;
+    }, SYNC_DEBOUNCE_MS);
+  }, []);
+
+  // Force sync (bypasses change detection)
+  const forceSyncNow = useCallback(async () => {
+    if (isSyncing.current) return;
+    isSyncing.current = true;
+    resetSyncHash(); // Ensure it actually syncs
+    await performSync(true);
+    isSyncing.current = false;
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // === STORAGE CHANGE LISTENER ===
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key && DATA_KEYS.some(k => e.key?.includes(k.replace('_data', '')))) {
+        debouncedSync();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // === LOCAL STORAGE INTERCEPT ===
+    const originalSetItem = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(key: string, value: string) {
+      originalSetItem(key, value);
+      if (DATA_KEYS.some(k => key.includes(k.replace('_data', '')))) {
+        debouncedSync();
+      }
+    };
+
+    // === PAGE VISIBILITY ===
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // User is leaving - try normal sync first, then emergency
+        performSync(true).catch(() => emergencySync());
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // === PAGE UNLOAD ===
+    const handleBeforeUnload = () => {
+      emergencySync();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    const handlePageHide = () => {
+      emergencySync();
+    };
+    window.addEventListener('pagehide', handlePageHide);
+
+    // === PERIODIC SYNC & RETRY ===
+    retryInterval.current = setInterval(() => {
+      // Sync any changes
+      performSync(false);
+      // Retry any failed operations
+      processPendingOps();
+    }, RETRY_INTERVAL_MS);
+
+    // === INITIAL LOAD ===
+    // Process any pending ops from previous session
+    setTimeout(() => {
+      processPendingOps();
+    }, 2000);
+
+    // === EXPOSE FORCE SYNC GLOBALLY ===
+    (window as any).forceSyncNow = forceSyncNow;
+    (window as any).checkPendingOps = () => {
+      const ops = getPendingOps();
+      console.log('[AutoSync] Pending operations:', ops);
+      return ops;
+    };
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      if (retryInterval.current) clearInterval(retryInterval.current);
+    };
+  }, [debouncedSync, forceSyncNow]);
+
+  // This component renders nothing
+  return null;
+}
+
+// Export for use elsewhere
+export { performSync, forceSyncNow, getPendingOps, processPendingOps };
