@@ -912,11 +912,19 @@ export default function ExportReportPage() {
     
     async function loadData() {
       try {
+        // Normalize survey ID for flexible matching
+        const normalizedId = surveyId.replace(/-/g, '').toUpperCase();
+        const fpFormat = surveyId.startsWith('FP-') ? surveyId : 
+                        surveyId.toUpperCase().startsWith('FPHR') ? 
+                        `FP-HR-${surveyId.replace(/^FPHR/i, '')}` : surveyId;
+        
+        // Try multiple formats: exact, normalized, FP format, and app_id
         const { data: assessment, error: assessmentError } = await supabase
           .from('assessments')
           .select('*')
-          .eq('survey_id', surveyId)
-          .single();
+          .or(`survey_id.eq.${surveyId},survey_id.eq.${normalizedId},survey_id.eq.${fpFormat},app_id.eq.${surveyId},app_id.eq.${normalizedId}`)
+          .limit(1)
+          .maybeSingle();
         
         if (assessmentError || !assessment) {
           setError(`Company not found: ${assessmentError?.message || 'No data'}`);
