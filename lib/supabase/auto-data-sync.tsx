@@ -601,7 +601,11 @@ function syncWithBeacon(): void {
   }).catch(() => {
     // Last resort: direct to Supabase with keepalive (only works for FP/comp'd)
     if (!isUUID) {
-      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/assessments?survey_id=eq.${surveyId}`
+      // FP uses survey_id, comp'd uses app_id (normalized)
+      const isFP = surveyId.startsWith('FP-')
+      const column = isFP ? 'survey_id' : 'app_id'
+      const value = isFP ? surveyId : surveyId.replace(/-/g, '').toUpperCase()
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/assessments?${column}=eq.${value}`
       fetch(url, {
         method: 'PATCH',
         headers: {
@@ -613,7 +617,7 @@ function syncWithBeacon(): void {
         keepalive: true,
       }).catch(() => {
         // Add to pending queue for next load
-        const userType = surveyId.startsWith('FP-') ? 'fp' : 'compd'
+        const userType = isFP ? 'fp' : 'compd'
         addPendingOp(surveyId, updateData, userType as any)
       })
     } else {
