@@ -26,9 +26,8 @@ exports.handler = async (event) => {
     const proto = event.headers['x-forwarded-proto'] || 'https';
     const origin = `${proto}://${host}`;
 
-    // IMPORTANT: Use your export-friendly route (NOT /admin/*)
-    // This must be accessible without sessionStorage auth.
-    const url = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1`;
+    // IMPORTANT: mode=ppt ensures slides are visible and positioned for capture
+    const url = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1&mode=ppt`;
 
     // Your export page should render these fixed-size slide sections
     const selectors = [
@@ -48,12 +47,24 @@ export default async function ({ page, context }) {
   const { url, selectors } = context;
 
   await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
+
+  // Reduce any layout timing issues
   await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
   // Ensure the first slide exists
   await page.waitForSelector(selectors[0], { timeout: 60000 });
 
+  // Wait for fonts (best-effort)
+  try {
+    await page.evaluate(async () => {
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+    });
+  } catch (e) {}
+
   const results = [];
+
   for (const sel of selectors) {
     const el = await page.$(sel);
     if (!el) {
@@ -61,15 +72,25 @@ export default async function ({ page, context }) {
       continue;
     }
 
+    // Ensure element has a non-zero bounding box before screenshot
+    let box = await el.boundingBox();
+    for (let i = 0; i < 10 && (!box || box.width < 10 || box.height < 10); i++) {
+      await new Promise(r => setTimeout(r, 150));
+      box = await el.boundingBox();
+    }
+
+    if (!box || box.width < 10 || box.height < 10) {
+      results.push({ selector: sel, error: 'zero_size' });
+      continue;
+    }
+
     await el.evaluate(e => e.scrollIntoView({ block: 'start', inline: 'nearest' }));
-    await new Promise(r => setTimeout(r, 150)); // replacement for waitForTimeout
+    await new Promise(r => setTimeout(r, 150));
 
     const buf = await el.screenshot({ type: 'jpeg', quality: 75 });
     results.push({ selector: sel, jpegB64: buf.toString('base64') });
   }
 
-  // Some Browserless clusters wrap return values; some don't.
-  // Returning {data, type} is acceptable, but the caller must handle both shapes.
   return { data: { ok: true, results }, type: 'application/json' };
 }
 `;
@@ -105,7 +126,7 @@ export default async function ({ page, context }) {
       return json(500, { error: 'One or more slide captures failed', missing });
     }
 
-    // Build PPTX (one image per slide). This is highly reliable.
+    // Build PPTX (one image per slide)
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_WIDE'; // 13.333 x 7.5 in
 
