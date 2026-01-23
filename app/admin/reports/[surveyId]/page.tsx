@@ -1007,7 +1007,7 @@ export default function ExportReportPage() {
             <div className="flex items-end justify-between">
               <div>
                 <p className="text-slate-500 text-sm font-medium uppercase tracking-wide">Prepared for</p>
-                <h2 className="text-3xl font-bold text-slate-900 mt-1">{companyName}</h2>
+                <h2 className="text-3xl font-bold text-slate-900 mt-1" data-export="company-name">{companyName}</h2>
                 {(contactName || contactEmail) && (
                   <div className="mt-2 text-sm text-slate-500">
                     {contactName && <span className="font-medium text-slate-600">{contactName}</span>}
@@ -1019,11 +1019,11 @@ export default function ExportReportPage() {
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <p className="text-slate-500 text-sm">Composite Score</p>
-                  <p className="text-5xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
+                  <p className="text-5xl font-bold mt-1" style={{ color: tier?.color || '#666' }} data-export="composite-score">{compositeScore ?? '—'}</p>
                 </div>
                 {tier && (
                   <div className={`px-5 py-3 rounded-lg ${tier.bgColor} border ${tier.borderColor}`}>
-                    <p className="text-lg font-bold" style={{ color: tier.color }}>{tier.name}</p>
+                    <p className="text-lg font-bold" style={{ color: tier.color }} data-export="tier-name">{tier.name}</p>
                     <p className="text-xs text-slate-500">Performance Tier</p>
                   </div>
                 )}
@@ -1034,7 +1034,7 @@ export default function ExportReportPage() {
           {/* Executive Summary */}
           <div className="px-10 py-8 bg-slate-50">
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
-            <p className="text-slate-700 leading-relaxed text-lg">
+            <p className="text-slate-700 leading-relaxed text-lg" data-export="executive-summary-text">
               {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
               in supporting employees managing cancer, with a composite score of <strong>{compositeScore}</strong>
               {percentileRank !== null && totalCompanies > 1 && (
@@ -1083,19 +1083,19 @@ export default function ExportReportPage() {
             
             <div className="mt-6 grid grid-cols-4 gap-6">
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-slate-800">{currentlyOffering}</p>
+                <p className="text-3xl font-bold text-slate-800" data-export="metric-currently-offering">{currentlyOffering}</p>
                 <p className="text-sm text-slate-500 mt-1">of {totalElements} elements offered</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-slate-800">{planningItems + assessingItems}</p>
+                <p className="text-3xl font-bold text-slate-800" data-export="metric-in-development">{planningItems + assessingItems}</p>
                 <p className="text-sm text-slate-500 mt-1">initiatives in development</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-slate-800">{gapItems}</p>
+                <p className="text-3xl font-bold text-slate-800" data-export="metric-gaps">{gapItems}</p>
                 <p className="text-sm text-slate-500 mt-1">identified gaps</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-slate-800">{tierCounts.exemplary + tierCounts.leading}</p>
+                <p className="text-3xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}</p>
                 <p className="text-sm text-slate-500 mt-1">dimensions at Leading+</p>
               </div>
             </div>
@@ -1160,7 +1160,7 @@ export default function ExportReportPage() {
             <h3 className="font-semibold text-slate-900">Dimension Performance Overview</h3>
           </div>
           <div className="px-8 py-6">
-            <table className="w-full">
+            <table className="w-full" id="dimension-performance-table" data-export="dimension-performance-table">
               <thead>
                 <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
                   <th className="pb-3 text-center w-10">#</th>
@@ -1331,7 +1331,7 @@ export default function ExportReportPage() {
         )}
 
         {/* ============ STRATEGIC RECOMMENDATIONS - CONSISTENT HEADERS ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">Strategic Recommendations</h3>
             <p className="text-slate-400 text-sm mt-1">Detailed analysis and action plans for priority dimensions</p>
@@ -1612,7 +1612,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ METHODOLOGY & FOOTER ============ */}
-        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-0 pdf-no-break">
+        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-0 pdf-no-break" id="appendix-end" data-export="appendix-end">
           <div className="px-10 py-5 border-b border-slate-200">
             <h3 className="font-semibold text-slate-700 text-sm">Assessment Methodology</h3>
           </div>
