@@ -926,11 +926,18 @@ export default function ProfilePage() {
 
   const fetchAssessment = async () => {
     try {
+      // Normalize survey ID for flexible matching
+      const normalizedId = surveyId.replace(/-/g, '').toUpperCase();
+      const fpFormat = surveyId.startsWith('FP-') ? surveyId : 
+                      surveyId.toUpperCase().startsWith('FPHR') ? 
+                      `FP-HR-${surveyId.replace(/^FPHR/i, '')}` : surveyId;
+      
       const { data, error } = await supabase
         .from('assessments')
         .select('*')
-        .or(`survey_id.eq.${surveyId},app_id.eq.${surveyId}`)
-        .single();
+        .or(`survey_id.eq.${surveyId},survey_id.eq.${normalizedId},survey_id.eq.${fpFormat},app_id.eq.${surveyId},app_id.eq.${normalizedId}`)
+        .limit(1)
+        .maybeSingle();
 
       if (error) throw error;
       
