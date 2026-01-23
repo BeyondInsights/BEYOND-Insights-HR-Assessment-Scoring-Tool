@@ -1,5 +1,6 @@
 // netlify/functions/export-pptx.js
 const PptxGenJS = require("pptxgenjs");
+const { createClient } = require("@supabase/supabase-js");
 
 function json(statusCode, obj) {
   return {
@@ -18,6 +19,13 @@ exports.handler = async (event) => {
     const base = process.env.BROWSERLESS_BASE || "https://production-sfo.browserless.io";
     if (!token) return json(500, { error: "Missing BROWSERLESS_TOKEN env var" });
 
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const bucket = process.env.SUPABASE_EXPORT_BUCKET || "exports";
+    if (!supabaseUrl || !serviceKey) {
+      return json(500, { error: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY" });
+    }
+
     const host = event.headers["x-forwarded-host"] || event.headers.host;
     const proto = event.headers["x-forwarded-proto"] || "https";
     const origin = `${proto}://${host}`;
@@ -30,7 +38,7 @@ exports.handler = async (event) => {
       "export default async function ({ page, context }) {",
       "  const url = context.url;",
 
-      // 1920x1080 camera; DPR=2 yields 3840x2160 images in the PPT (sharp)
+      // 1920x1080 camera; DPR=2 yields crisp images
       "  const W = 1920;",
       "  const H = 1080;",
       "  const REPORT_W = 1700;",
@@ -51,12 +59,11 @@ exports.handler = async (event) => {
       "    ].join('\\n')",
       "  });",
 
-      // Wait for fonts best-effort
       "  try {",
       "    await page.evaluate(async () => { if (document.fonts && document.fonts.ready) await document.fonts.ready; });",
       "  } catch (e) {}",
 
-      // Gather section breaks and their heights
+      // Gather section breaks
       "  const sections = await page.evaluate(() => {",
       "    const root = document.querySelector('#report-root');",
       "    if (!root) return null;",
@@ -66,9 +73,7 @@ exports.handler = async (event) => {
       "    const sec = list.map(el => ({ top: el.offsetTop || 0, h: el.offsetHeight || 0 }))",
       "      .filter(x => x.top >= 0)",
       "      .sort((a,b) => a.top - b.top);",
-      "    // Ensure we always start at top",
       "    if (!sec.length || sec[0].top !== 0) sec.unshift({ top: 0, h: root.scrollHeight });",
-      "    // Compute end bounds by next top (more reliable than offsetHeight)",
       "    const totalHeight = root.scrollHeight;",
       "    const sec2 = sec.map((s, i) => {",
       "      const nextTop = (i < sec.length - 1) ? sec[i+1].top : totalHeight;",
@@ -78,7 +83,7 @@ exports.handler = async (event) => {
       "  });",
       "  if (!sections) return { data: { ok:false, error:'Missing report-root' }, type:'application/json' };",
 
-      // Create fixed camera viewport and move report by top (NOT transform)
+      // Create fixed camera viewport and move report by top
       "  await page.evaluate((LEFT, W, H, REPORT_W) => {",
       "    const root = document.querySelector('#report-root');",
       "    if (!root) return;",
@@ -104,7 +109,7 @@ exports.handler = async (event) => {
       "    root.style.margin = '0';",
       "  }, LEFT, W, H, REPORT_W);",
 
-      // Build offsets by section, then page INSIDE the section if it is taller than one slide
+      // Build offsets by section, then page inside section if needed
       "  const maxSlides = 40;",
       "  const offsets = [];",
       "  for (const s of sections.sec) {",
@@ -130,33 +135,33 @@ exports.handler = async (event) => {
       "    results.push({ index: i+1, y, jpegB64: buf.toString('base64') });",
       "  }",
 
-      "  return { data: { ok:true, totalHeight: sections.totalHeight, offsets, results }, type:'application/json' };",
+      "  return { data: { ok:true, offsets, results }, type:'application/json' };",
       "}",
     ].join("\n");
 
-    const res = await fetch(`${base}/function?token=${token}`, {
+    const capRes = await fetch(`${base}/function?token=${token}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code: browserlessFn, context: { url } }),
     });
 
-    if (!res.ok) {
-      const text = await res.text();
-      return json(res.status, { error: "Browserless function failed", status: res.status, details: text });
+    if (!capRes.ok) {
+      const text = await capRes.text();
+      return json(capRes.status, { error: "Browserless function failed", details: text });
     }
 
-    const payload = await res.json();
-    const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+    const capPayload = await capRes.json();
+    const capData = capPayload?.data && typeof capPayload.data === "object" ? capPayload.data : capPayload;
 
-    if (!data?.ok || !Array.isArray(data.results)) {
-      return json(500, { error: "Unexpected Browserless payload", payload });
+    if (!capData?.ok || !Array.isArray(capData.results)) {
+      return json(500, { error: "Unexpected Browserless payload", capPayload });
     }
 
     // Build PPTX
     const pptx = new PptxGenJS();
     pptx.layout = "LAYOUT_WIDE";
 
-    for (const r of data.results) {
+    for (const r of capData.results) {
       const slide = pptx.addSlide();
       slide.addImage({
         data: `data:image/jpeg;base64,${r.jpegB64}`,
@@ -167,17 +172,34 @@ exports.handler = async (event) => {
       });
     }
 
-    const outB64 = await pptx.write("base64");
+    // Write as buffer (NOT base64) to avoid response size issues
+    const pptBuffer = await pptx.write("nodebuffer");
+
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    const ts = new Date().toISOString().replace(/[:.]/g, "-");
+    const filePath = `ppt/${surveyId}/Report_${surveyId}_${ts}.pptx`;
+
+    const up = await supabase.storage
+      .from(bucket)
+      .upload(filePath, pptBuffer, {
+        contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        upsert: true,
+      });
+
+    if (up.error) {
+      return json(500, { error: "Upload failed", details: up.error.message });
+    }
+
+    const signed = await supabase.storage.from(bucket).createSignedUrl(filePath, 60 * 60);
+    if (signed.error) {
+      return json(500, { error: "Signed URL failed", details: signed.error.message });
+    }
 
     return {
       statusCode: 200,
-      headers: {
-        "Content-Type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        "Content-Disposition": `attachment; filename="Report_${surveyId}.pptx"`,
-        "Cache-Control": "no-store",
-      },
-      body: outB64,
-      isBase64Encoded: true,
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+      body: JSON.stringify({ ok: true, downloadUrl: signed.data.signedUrl, filePath }),
     };
   } catch (err) {
     console.error(err);
