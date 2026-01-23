@@ -1,20 +1,44 @@
 // netlify/functions/sync-assessment.js
 // 
 // Secure assessment sync with service role.
-// Requires access token validation for regular users.
-// FP/comp'd users use survey_id/app_id as implicit auth.
+// - CORS restricted to known origins
+// - Stale overwrite protection (rejects if client data older than DB)
+// - Access token required for regular users
+// - Server owns updated_at
 //
 
 const { createClient } = require('@supabase/supabase-js');
 
-function json(statusCode, obj) {
+// ============================================
+// CORS - Restrict to known origins
+// ============================================
+const ALLOWED_ORIGINS = new Set([
+  'https://effervescent-concha-95d2df.netlify.app',
+  'https://bestcompaniesindex.com',
+  'https://www.bestcompaniesindex.com',
+  'http://localhost:3000', // dev
+]);
+
+function getCorsHeaders(event) {
+  const origin = event.headers.origin || event.headers.Origin || '';
+  const allowOrigin = ALLOWED_ORIGINS.has(origin) 
+    ? origin 
+    : 'https://effervescent-concha-95d2df.netlify.app';
+  
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  };
+}
+
+function json(statusCode, obj, event) {
   return {
     statusCode,
     headers: { 
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      ...getCorsHeaders(event),
     },
     body: JSON.stringify(obj),
   };
@@ -28,11 +52,15 @@ function isUUID(str) {
 exports.handler = async (event) => {
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
-    return json(200, { ok: true });
+    return {
+      statusCode: 200,
+      headers: getCorsHeaders(event),
+      body: '',
+    };
   }
 
   if (event.httpMethod !== 'POST') {
-    return json(405, { error: 'Method not allowed' });
+    return json(405, { error: 'Method not allowed' }, event);
   }
 
   try {
@@ -42,7 +70,7 @@ exports.handler = async (event) => {
 
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('Missing Supabase credentials');
-      return json(500, { error: 'Server configuration error' });
+      return json(500, { error: 'Server configuration error' }, event);
     }
 
     // Parse request body
@@ -50,17 +78,17 @@ exports.handler = async (event) => {
     try {
       payload = JSON.parse(event.body);
     } catch (e) {
-      return json(400, { error: 'Invalid JSON body' });
+      return json(400, { error: 'Invalid JSON body' }, event);
     }
 
     const { surveyId, data, timestamp, accessToken } = payload;
 
     if (!surveyId) {
-      return json(400, { error: 'Missing surveyId' });
+      return json(400, { error: 'Missing surveyId' }, event);
     }
 
     if (!data || typeof data !== 'object') {
-      return json(400, { error: 'Missing or invalid data object' });
+      return json(400, { error: 'Missing or invalid data object' }, event);
     }
 
     // ============================================
@@ -73,7 +101,8 @@ exports.handler = async (event) => {
     // FP users: surveyId starts with FP-
     if (surveyId.startsWith('FP-')) {
       matchColumn = 'survey_id';
-      // FP users use survey_id as implicit auth (shared secret)
+      // NOTE: FP uses survey_id as implicit auth. 
+      // TODO: Add sync_token validation for stronger security.
     }
     // Regular authenticated users: surveyId is a UUID (user.id)
     else if (isUUID(surveyId)) {
@@ -81,7 +110,7 @@ exports.handler = async (event) => {
       
       // REQUIRE access token for regular users
       if (!accessToken) {
-        return json(401, { error: 'Authentication required for this user type' });
+        return json(401, { error: 'Authentication required for this user type' }, event);
       }
       
       // Validate the access token
@@ -90,30 +119,66 @@ exports.handler = async (event) => {
       
       if (authError || !userData?.user) {
         console.error('Auth validation failed:', authError?.message);
-        return json(401, { error: 'Invalid or expired access token' });
+        return json(401, { error: 'Invalid or expired access token' }, event);
       }
       
       // CRITICAL: Ensure the token belongs to the user they claim to be
       if (userData.user.id !== surveyId) {
         console.error('User ID mismatch:', userData.user.id, '!==', surveyId);
-        return json(403, { error: 'Access token does not match surveyId' });
+        return json(403, { error: 'Access token does not match surveyId' }, event);
       }
     }
     // Comp'd users or other app_id based users
     else {
       matchColumn = 'app_id';
-      // Normalize the app_id (remove dashes, uppercase)
       matchValue = surveyId.replace(/-/g, '').toUpperCase();
-      // These use app_id as implicit auth (like FP users)
+      // NOTE: Comp'd uses app_id as implicit auth.
+      // TODO: Add sync_token validation for stronger security.
     }
 
     // Create Supabase client with service role (bypasses RLS)
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Build update object
+    // ============================================
+    // STALE OVERWRITE PROTECTION
+    // Reject if client timestamp is older than DB
+    // ============================================
+    const clientTs = Number(timestamp || 0);
+    
+    const { data: existing, error: fetchError } = await supabase
+      .from('assessments')
+      .select('updated_at')
+      .eq(matchColumn, matchValue)
+      .maybeSingle();
+    
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Fetch error:', fetchError);
+      return json(500, { error: 'Database fetch failed' }, event);
+    }
+    
+    if (existing?.updated_at && clientTs) {
+      const dbTs = Date.parse(existing.updated_at);
+      if (dbTs && clientTs < dbTs) {
+        console.warn(`[sync-assessment] Rejecting stale data for ${matchValue}: client=${clientTs}, db=${dbTs}`);
+        return json(409, { 
+          error: 'Stale client data; DB is newer', 
+          dbUpdatedAt: existing.updated_at,
+          clientTimestamp: clientTs,
+          dbTimestamp: dbTs,
+        }, event);
+      }
+    }
+
+    // ============================================
+    // BUILD UPDATE DATA - Server owns updated_at
+    // ============================================
+    
+    // Remove client-side updated_at if present (server owns this)
+    const { updated_at: _ignored, ...cleanData } = data;
+    
     const updateData = {
-      ...data,
-      updated_at: new Date().toISOString(),
+      ...cleanData,
+      updated_at: new Date().toISOString(), // Server sets this
     };
 
     // ============================================
@@ -132,7 +197,7 @@ exports.handler = async (event) => {
         error: 'Database update failed', 
         details: updateError.message,
         code: updateError.code 
-      });
+      }, event);
     }
 
     // If no rows updated, insert new record
@@ -166,7 +231,7 @@ exports.handler = async (event) => {
           error: 'Database insert failed', 
           details: insertError.message,
           code: insertError.code 
-        });
+        }, event);
       }
       
       console.log(`[sync-assessment] Inserted new record for ${matchValue}`);
@@ -176,7 +241,7 @@ exports.handler = async (event) => {
         updatedAt: insertResult?.[0]?.updated_at,
         recordId: insertResult?.[0]?.id,
         action: 'insert'
-      });
+      }, event);
     }
 
     console.log(`[sync-assessment] Updated ${matchValue}`);
@@ -186,10 +251,10 @@ exports.handler = async (event) => {
       updatedAt: updateResult[0]?.updated_at,
       recordId: updateResult[0]?.id,
       action: 'update'
-    });
+    }, event);
 
   } catch (err) {
     console.error('Sync function error:', err);
-    return json(500, { error: 'Internal server error', details: String(err.message || err) });
+    return json(500, { error: 'Internal server error', details: String(err.message || err) }, event);
   }
 };
