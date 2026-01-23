@@ -74,17 +74,55 @@ export const FOUNDING_PARTNER_IDS = Object.keys(FP_COMPANY_MAP);
 
 /**
  * Check if a Survey ID is a Founding Partner ID with waived fee
+ * Handles both formats: FP-HR-XXXXXX and FPHRXXXXXX
  */
 export function isFoundingPartner(surveyId: string): boolean {
-  return FOUNDING_PARTNER_IDS.includes(surveyId);
+  if (!surveyId) return false;
+  
+  // Direct match first
+  if (FOUNDING_PARTNER_IDS.includes(surveyId)) return true;
+  
+  // Try normalized format: FPHRXXXXXX -> FP-HR-XXXXXX
+  if (surveyId.toUpperCase().startsWith('FPHR') && !surveyId.includes('-')) {
+    const numPart = surveyId.replace(/^FPHR/i, '');
+    const fpFormat = `FP-HR-${numPart}`;
+    if (FOUNDING_PARTNER_IDS.includes(fpFormat)) return true;
+  }
+  
+  // Try denormalized: FP-HR-XXXXXX -> FPHRXXXXXX
+  if (surveyId.startsWith('FP-HR-')) {
+    const normalized = surveyId.replace('FP-HR-', 'FPHR');
+    if (FOUNDING_PARTNER_IDS.includes(normalized)) return true;
+  }
+  
+  return false;
 }
 
 /**
  * Get company name for a Founding Partner ID
  * Returns the company name or 'Founding Partner' if not assigned
+ * Handles both formats: FP-HR-XXXXXX and FPHRXXXXXX
  */
 export function getFPCompanyName(surveyId: string): string {
-  return FP_COMPANY_MAP[surveyId] || 'Founding Partner';
+  if (!surveyId) return 'Founding Partner';
+  
+  // Direct match first
+  if (FP_COMPANY_MAP[surveyId]) return FP_COMPANY_MAP[surveyId];
+  
+  // Try normalized format: FPHRXXXXXX -> FP-HR-XXXXXX
+  if (surveyId.toUpperCase().startsWith('FPHR') && !surveyId.includes('-')) {
+    const numPart = surveyId.replace(/^FPHR/i, '');
+    const fpFormat = `FP-HR-${numPart}`;
+    if (FP_COMPANY_MAP[fpFormat]) return FP_COMPANY_MAP[fpFormat];
+  }
+  
+  // Try denormalized: FP-HR-XXXXXX -> FPHRXXXXXX  
+  if (surveyId.startsWith('FP-HR-')) {
+    const normalized = surveyId.replace('FP-HR-', 'FPHR');
+    if (FP_COMPANY_MAP[normalized]) return FP_COMPANY_MAP[normalized];
+  }
+  
+  return 'Founding Partner';
 }
 
 /**
