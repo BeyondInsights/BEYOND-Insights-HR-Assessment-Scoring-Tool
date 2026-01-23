@@ -1,7 +1,7 @@
 const PptxGenJS = require('pptxgenjs');
 
 // ============================================
-// PPT EXPORT - WAIT FOR CONTENT TO LOAD
+// PPT EXPORT - COMPRESSED VERSION
 // ============================================
 
 exports.handler = async (event) => {
@@ -27,7 +27,7 @@ exports.handler = async (event) => {
     const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1`;
     console.log('Report URL:', reportUrl);
     
-    // Take full-page screenshot - WAIT for content to load
+    // Take screenshot with JPEG compression
     console.log('Taking screenshot...');
     const res = await fetch(`${browserlessBase}/screenshot?token=${browserlessToken}`, {
       method: 'POST',
@@ -35,14 +35,15 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         url: reportUrl,
         options: {
-          type: 'png',
+          type: 'jpeg',
+          quality: 70,
           fullPage: true
         },
         gotoOptions: { 
           waitUntil: 'networkidle0', 
           timeout: 30000 
         },
-        waitForTimeout: 5000 // Wait 5 seconds for React to load data and render
+        waitForTimeout: 5000
       })
     });
     
@@ -51,62 +52,31 @@ exports.handler = async (event) => {
     if (!res.ok) {
       const errText = await res.text();
       console.error('Screenshot failed:', errText.substring(0, 500));
-      return { 
-        statusCode: 500, 
-        body: JSON.stringify({ 
-          error: 'Screenshot failed', 
-          status: res.status,
-          details: errText.substring(0, 500) 
-        }) 
-      };
+      return { statusCode: 500, body: JSON.stringify({ error: 'Screenshot failed', details: errText.substring(0, 500) }) };
     }
     
     const imgBuffer = Buffer.from(await res.arrayBuffer());
-    console.log('Screenshot buffer size:', imgBuffer.length);
+    console.log('Screenshot size:', imgBuffer.length, 'bytes');
     
-    if (imgBuffer.length < 5000) {
-      console.error('Screenshot too small - likely failed');
-      return { statusCode: 500, body: JSON.stringify({ error: 'Screenshot too small', size: imgBuffer.length }) };
-    }
-    
-    // Get dimensions from PNG header
-    const width = imgBuffer.readUInt32BE(16);
-    const height = imgBuffer.readUInt32BE(20);
-    console.log(`Image: ${width}x${height}`);
-    
-    // Create PPT
+    // Create PPT with single slide showing full report
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
     pptx.title = 'Cancer Support Assessment Report';
     
-    const imgB64 = imgBuffer.toString('base64');
+    // Just one slide with the full image (scaled to fit)
+    const slide = pptx.addSlide();
+    slide.addImage({
+      data: `data:image/jpeg;base64,${imgBuffer.toString('base64')}`,
+      x: 0,
+      y: 0,
+      w: 13.333,
+      h: 7.5,
+      sizing: { type: 'contain', w: 13.333, h: 7.5 }
+    });
     
-    // Calculate how many slides we need (16:9 = 1200x675 per slide)
-    const slideHeightPx = 675;
-    const numSlides = Math.min(Math.ceil(height / slideHeightPx), 15);
-    console.log(`Creating ${numSlides} slides`);
-    
-    // Image dimensions in inches (slide is 13.333" x 7.5")
-    const imgWidthIn = 13.333;
-    const imgHeightIn = (height / width) * imgWidthIn;
-    
-    for (let i = 0; i < numSlides; i++) {
-      const slide = pptx.addSlide();
-      
-      // Offset to show different portion of image
-      const yOffsetIn = -(i * 7.5);
-      
-      slide.addImage({
-        data: `data:image/png;base64,${imgB64}`,
-        x: 0,
-        y: yOffsetIn,
-        w: imgWidthIn,
-        h: imgHeightIn
-      });
-    }
-    
-    console.log(`Generated ${pptx.slides.length} slides`);
+    console.log('Generated 1 slide PPT');
     const outB64 = await pptx.write({ outputType: 'base64' });
+    console.log('PPT size:', outB64.length);
     
     return {
       statusCode: 200,
@@ -121,6 +91,6 @@ exports.handler = async (event) => {
     
   } catch (err) {
     console.error('PPT export error:', err);
-    return { statusCode: 500, body: JSON.stringify({ error: err.message, stack: err.stack }) };
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
