@@ -983,7 +983,7 @@ export default function ExportReportPage() {
       <div ref={printRef} id="report-root" className="max-w-6xl mx-auto py-10 px-8">
         
         {/* ============ HEADER ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="bg-slate-800 px-10 py-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-8">
@@ -1103,7 +1103,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ KEY FINDINGS ============ */}
-        <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden mb-8 pdf-no-break">
+        <div className="ppt-break bg-slate-800 rounded-lg shadow-sm overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-6">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Key Findings at a Glance</h3>
             <div className="grid grid-cols-4 gap-6">
@@ -1132,7 +1132,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ SCORE COMPOSITION ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Score Composition</h3>
           </div>
@@ -1155,7 +1155,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ DIMENSION PERFORMANCE - FIXED LAYOUT FOR PDF ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-8 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Dimension Performance Overview</h3>
           </div>
@@ -1227,7 +1227,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 mb-8 pdf-break-before pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 mb-8 pdf-break-before pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Strategic Priority Matrix</h3>
             <p className="text-sm text-slate-500 mt-1">Dimensions plotted by current performance versus strategic weight. Hover over any dimension for details.</p>
@@ -1238,7 +1238,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ AREAS OF EXCELLENCE & GROWTH - WITH COLORED HEADERS ============ */}
-        <div className="grid grid-cols-2 gap-6 mb-8 pdf-no-break">
+        <div className="ppt-break grid grid-cols-2 gap-6 mb-8 pdf-no-break">
           {/* Areas of Excellence */}
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
             <div className="px-6 py-4 bg-emerald-700">
@@ -1306,7 +1306,7 @@ export default function ExportReportPage() {
 
         {/* ============ INITIATIVES IN PROGRESS ============ */}
         {quickWinOpportunities.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-10 py-5 bg-blue-700">
               <h3 className="font-semibold text-white">Initiatives In Progress</h3>
               <p className="text-blue-200 text-sm mt-0.5">Programs currently in planning or under consideration</p>
@@ -1331,7 +1331,7 @@ export default function ExportReportPage() {
         )}
 
         {/* ============ STRATEGIC RECOMMENDATIONS - CONSISTENT HEADERS ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">Strategic Recommendations</h3>
             <p className="text-slate-400 text-sm mt-1">Detailed analysis and action plans for priority dimensions</p>
@@ -1344,7 +1344,7 @@ export default function ExportReportPage() {
               const tierColor = getScoreColor(d.score);
               
               return (
-                <div key={d.dim} className="border-l-4 pdf-no-break" style={{ borderLeftColor: tierColor }}>
+                <div key={d.dim} className="ppt-break border-l-4 pdf-no-break" style={{ borderLeftColor: tierColor }}>
                   {/* Dimension Header - Consistent dark slate for all */}
                   <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                     <div className="flex items-center gap-4">
@@ -1453,7 +1453,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ IMPLEMENTATION ROADMAP ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
           <div className="px-10 py-6 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Implementation Roadmap</h3>
             <p className="text-sm text-slate-500 mt-1">Phased approach to strengthen your cancer support ecosystem</p>
@@ -1548,7 +1548,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ HOW CAC CAN HELP ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help</h3>
             <p className="text-slate-400 text-sm mt-1">Tailored support to enhance your employee experience</p>
