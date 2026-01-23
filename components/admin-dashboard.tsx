@@ -2630,7 +2630,11 @@ function VerbatimCommentsTab({ assessments }: { assessments: ProcessedAssessment
       })
     })
     
-    return comments
+    // Sort: Founding Partner first, Standard second, Panel last
+    return comments.sort((a, b) => {
+      const order = { 'Founding Partner': 0, 'Standard': 1, 'Panel': 2 }
+      return (order[a.companyType as keyof typeof order] || 1) - (order[b.companyType as keyof typeof order] || 1)
+    })
   }
   
   const comments = getComments()
