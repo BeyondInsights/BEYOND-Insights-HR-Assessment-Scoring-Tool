@@ -305,6 +305,230 @@ function getScoreColor(score: number): string {
 }
 
 // ============================================
+// DYNAMIC TAILORED ANALYSIS FUNCTIONS
+// ============================================
+
+// Generate tier-adaptive insights based on actual performance
+function getDynamicInsight(dimNum: number, score: number, tierName: string, benchmark: number | null, gaps: any[], strengths: any[], planning: any[]): { insight: string; cacHelp: string } {
+  const benchDiff = benchmark !== null ? score - benchmark : 0;
+  const isAboveBenchmark = benchDiff > 0;
+  const gapCount = gaps.length;
+  const strengthCount = strengths.length;
+  const planningCount = planning.length;
+  
+  // Dimension-specific context
+  const dimContext: Record<number, { focus: string; risk: string; opportunity: string; quickWin: string }> = {
+    1: { focus: 'leave policies and flexibility', risk: 'employees choosing between health and job', opportunity: 'industry-leading time-off benefits', quickWin: 'phased return-to-work options' },
+    2: { focus: 'insurance and financial protection', risk: 'financial toxicity derailing treatment', opportunity: 'comprehensive coverage removing barriers', quickWin: 'employee assistance fund or gap insurance' },
+    3: { focus: 'manager preparedness', risk: 'policy-to-practice gaps at the front line', opportunity: 'confident, trained managers', quickWin: 'conversation guide and scenario training' },
+    4: { focus: 'navigation and expert resources', risk: 'underutilized benefits investments', opportunity: 'single-entry-point access', quickWin: 'centralized resource hub or concierge' },
+    5: { focus: 'workplace accommodations', risk: 'preventable turnover during treatment', opportunity: 'flexibility that retains talent', quickWin: 'remote work and schedule flexibility policies' },
+    6: { focus: 'culture and psychological safety', risk: 'hidden struggles until crisis point', opportunity: 'early disclosure and intervention', quickWin: 'leadership storytelling and visibility' },
+    7: { focus: 'career continuity', risk: 'losing talent to fear of career damage', opportunity: 'loyalty through protected trajectories', quickWin: 'explicit promotion protection policy' },
+    8: { focus: 'return-to-work support', risk: 'failed transitions after treatment', opportunity: 'sustainable recovery and full productivity', quickWin: 'structured 90-day re-entry protocol' },
+    9: { focus: 'executive commitment', risk: 'cancer support seen as HR-only', opportunity: 'business-integrated health strategy', quickWin: 'executive sponsor and visible commitment' },
+    10: { focus: 'caregiver support', risk: 'losing productive employees who are caregivers', opportunity: 'holistic family support', quickWin: 'caregiver leave and flexible scheduling' },
+    11: { focus: 'prevention and wellness', risk: 'late detection and higher costs', opportunity: 'proactive health culture', quickWin: 'on-site screening events and incentives' },
+    12: { focus: 'continuous improvement', risk: 'static policies that don\'t evolve', opportunity: 'learning organization', quickWin: 'annual program review and employee feedback' },
+    13: { focus: 'communication and awareness', risk: 'excellent programs nobody knows about', opportunity: 'high utilization rates', quickWin: 'benefits awareness campaign at open enrollment' },
+  };
+  
+  const ctx = dimContext[dimNum] || { focus: 'this area', risk: 'gaps in support', opportunity: 'improved outcomes', quickWin: 'targeted improvements' };
+  
+  let insight = '';
+  let cacHelp = '';
+  
+  // Tier-based insight generation with specific data
+  if (tierName === 'Exemplary') {
+    insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the peer average of ${benchmark}, this is a genuine competitive differentiator.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
+    cacHelp = `Leverage your leadership position through case study development, industry speaking opportunities, and peer mentoring. We can help document your practices for the Best Companies recognition program and support knowledge transfer to other business units.`;
+  } else if (tierName === 'Leading') {
+    insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Exemplary status—consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Exemplary tier.'}`;
+    cacHelp = `We can conduct a gap-to-Exemplary analysis identifying the ${gapCount > 0 ? gapCount : 'few'} specific enhancements needed, with prioritized implementation roadmap. ${planningCount > 0 ? `Accelerating your ${planningCount} in-progress initiative${planningCount > 1 ? 's' : ''} could provide quick wins.` : ''}`;
+  } else if (tierName === 'Progressing') {
+    insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
+    cacHelp = `Our targeted assessment can prioritize which of your ${gapCount} improvement opportunities deliver the most impact. ${planningCount > 0 ? `Your ${planningCount} in-development initiative${planningCount > 1 ? 's' : ''} show${planningCount === 1 ? 's' : ''} momentum—we can help accelerate implementation.` : 'We recommend a phased approach starting with high-visibility, lower-effort improvements.'}`;
+  } else if (tierName === 'Emerging') {
+    insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, focused investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer average indicates this is an area where competitors may have an advantage.` : ''} Recommended quick win: ${ctx.quickWin}.`;
+    cacHelp = `We recommend a focused 90-day sprint to address the highest-impact gaps. ${planningCount > 0 ? `Prioritizing your ${planningCount} planned initiative${planningCount > 1 ? 's' : ''} can show visible progress quickly.` : 'Our rapid-start programs provide turnkey solutions for the most common gaps in this dimension.'}`;
+  } else {
+    insight = `Critical gap in ${ctx.focus} at ${score} points creates risk of ${ctx.risk}. ${gapCount > 0 ? `${gapCount} missing elements represent significant exposure.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap below the ${benchmark} peer average signals this as a priority area.` : ''} Employees facing health challenges may feel unsupported here, leading to disengagement, extended leave, or departure. Immediate action: implement ${ctx.quickWin}.`;
+    cacHelp = `Urgent intervention recommended. We can help build the business case for leadership buy-in, design a rapid implementation roadmap addressing the ${gapCount} gaps, and provide hands-on support. Our foundation-building programs are designed for organizations starting from this level.`;
+  }
+  
+  return { insight, cacHelp };
+}
+
+// Generate benchmark comparison narrative
+function getBenchmarkNarrative(score: number, benchmark: number | null, dimName: string): string {
+  if (benchmark === null) return '';
+  const diff = score - benchmark;
+  if (diff > 25) return `Significantly outperforming peers by ${diff} points—this represents a genuine organizational strength and potential competitive advantage in talent attraction.`;
+  if (diff > 15) return `Well above the ${benchmark} peer average by ${diff} points, indicating mature, established practices that employees likely recognize and value.`;
+  if (diff > 5) return `Above benchmark by ${diff} points (peer avg: ${benchmark}), showing solid foundation with room to extend your lead.`;
+  if (diff > 0) return `Slightly above the ${benchmark} peer average—a good foundation to build on for differentiation.`;
+  if (diff === 0) return `Matching the peer average of ${benchmark}—an opportunity to differentiate through targeted improvements.`;
+  if (diff > -10) return `${Math.abs(diff)} points below the ${benchmark} peer benchmark—targeted improvements can close this gap within 6-12 months.`;
+  if (diff > -20) return `Notable gap of ${Math.abs(diff)} points below the ${benchmark} peer average warrants focused strategic attention.`;
+  return `Significant ${Math.abs(diff)}-point gap below peers (avg: ${benchmark}) requires prioritization to reduce competitive disadvantage.`;
+}
+
+// Identify meaningful cross-dimension patterns
+function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; implication: string; recommendation: string }[] {
+  const patterns: { pattern: string; implication: string; recommendation: string }[] = [];
+  
+  const findDim = (num: number) => dimAnalysis.find(d => d.dim === num);
+  const culture = findDim(6);
+  const manager = findDim(3);
+  const navigation = findDim(4);
+  const communication = findDim(13);
+  const leave = findDim(1);
+  const returnToWork = findDim(8);
+  const insurance = findDim(2);
+  const executive = findDim(9);
+  const continuous = findDim(12);
+  const accommodations = findDim(5);
+  const career = findDim(7);
+  
+  // Pattern: Strong culture but weak manager training
+  if (culture && manager && culture.score >= 70 && manager.score < 55) {
+    patterns.push({
+      pattern: `Strong Culture (${culture.score}) paired with lower Manager Preparedness (${manager.score})`,
+      implication: 'Employees likely feel safe disclosing health challenges, but managers may lack confidence and tools to respond effectively. This creates risk of inconsistent support experiences.',
+      recommendation: 'Prioritize manager training with conversation guides and scenario practice. Your positive culture means managers want to help—give them the skills to do so effectively.'
+    });
+  }
+  
+  // Pattern: Good benefits but poor navigation  
+  if (insurance && navigation && insurance.score >= 65 && navigation.score < 50) {
+    patterns.push({
+      pattern: `Strong Insurance Benefits (${insurance.score}) with weaker Navigation (${navigation.score})`,
+      implication: 'You\'ve invested in comprehensive benefits, but employees may struggle to find and access them when needed. Benefits utilization is likely below potential, reducing ROI.',
+      recommendation: 'Implement a navigation solution—single entry point, benefits concierge, or resource hub. This maximizes return on your existing benefits investment.'
+    });
+  }
+  
+  // Pattern: Low communication with strong programs
+  if (communication && communication.score < 50) {
+    const strongDims = dimAnalysis.filter(d => d.score >= 70 && d.dim !== 13);
+    if (strongDims.length >= 2) {
+      patterns.push({
+        pattern: `${strongDims.length} dimensions at Leading+ level but Communication at only ${communication.score}`,
+        implication: `You have strong programs in ${strongDims.slice(0, 2).map(d => d.name).join(' and ')}, but low awareness may be limiting utilization. Employees may not know these resources exist when they need them.`,
+        recommendation: 'Launch targeted awareness campaigns highlighting your strongest offerings. This is a quick win—you already have the programs, just need visibility.'
+      });
+    }
+  }
+  
+  // Pattern: Strong leave but weak return-to-work
+  if (leave && returnToWork && leave.score >= 65 && returnToWork.score < 50) {
+    patterns.push({
+      pattern: `Good Leave Policies (${leave.score}) but weaker Return-to-Work Support (${returnToWork.score})`,
+      implication: 'Employees get the time they need for treatment, but may struggle with the transition back. This risks losing the investment made during leave through failed re-entry.',
+      recommendation: 'Implement structured return-to-work protocols: phased re-entry schedules, regular check-ins, and temporary accommodation plans. Protect your leave investment.'
+    });
+  }
+  
+  // Pattern: Accommodations strong but career weak
+  if (accommodations && career && accommodations.score >= 65 && career.score < 50) {
+    patterns.push({
+      pattern: `Good Accommodations (${accommodations.score}) but lower Career Continuity (${career.score})`,
+      implication: 'Employees can adjust their work during treatment, but may fear long-term career impact. This can lead to hidden diagnoses or premature departures despite good day-to-day support.',
+      recommendation: 'Add explicit career protection policies—promotion eligibility during medical leave, transparent communication about performance expectations, and success stories of career progression post-diagnosis.'
+    });
+  }
+  
+  // Pattern: Low executive commitment with other gaps
+  if (executive && executive.score < 45) {
+    const avgOtherScore = dimAnalysis.filter(d => d.dim !== 9).reduce((sum, d) => sum + d.score, 0) / 12;
+    if (avgOtherScore < 65) {
+      patterns.push({
+        pattern: `Low Executive Commitment (${executive.score}) correlating with program gaps`,
+        implication: 'Without visible leadership engagement, cancer support operates as an isolated HR initiative rather than organizational priority. This limits resources and cross-functional coordination.',
+        recommendation: 'Build the executive business case connecting cancer support to retention metrics, productivity data, and employer brand. Identify an executive sponsor to champion the program.'
+      });
+    }
+  }
+  
+  // Pattern: Consistently strong performance
+  const avgScore = dimAnalysis.reduce((sum, d) => sum + d.score, 0) / dimAnalysis.length;
+  const lowestDim = [...dimAnalysis].sort((a, b) => a.score - b.score)[0];
+  if (avgScore >= 72 && lowestDim.score >= 50) {
+    patterns.push({
+      pattern: `Consistently strong performance across dimensions (${Math.round(avgScore)} average)`,
+      implication: 'Your comprehensive, balanced approach to cancer support is a genuine organizational differentiator. This positions you well for employer brand recognition and talent attraction.',
+      recommendation: `Consider pursuing Best Companies certification to formalize recognition. Focus refinement on ${lowestDim.name} (${lowestDim.score}) to achieve full excellence across all dimensions.`
+    });
+  }
+  
+  // Pattern: High gaps with low continuous improvement
+  if (continuous && continuous.score < 45) {
+    const totalGaps = dimAnalysis.reduce((sum, d) => sum + d.gaps.length, 0);
+    if (totalGaps > 25) {
+      patterns.push({
+        pattern: `${totalGaps} total gaps with limited Continuous Improvement infrastructure (${continuous.score})`,
+        implication: 'Significant improvement opportunities exist, but without systematic review processes, progress may be slow and lessons from individual cases are lost.',
+        recommendation: 'Establish quarterly program reviews, employee feedback mechanisms, and case documentation practices. This creates the infrastructure to drive and sustain improvements.'
+      });
+    }
+  }
+  
+  return patterns.slice(0, 3); // Return top 3 most relevant
+}
+
+// Calculate impact-ranked improvement priorities
+function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; effort: string; recommendation: string; topGap: string }[] {
+  return dimAnalysis
+    .map(d => {
+      // Calculate potential composite score impact
+      const improvementPotential = Math.min(100 - d.score, 20); // Max 20 point improvement realistic
+      const weightedImpact = (improvementPotential * d.weight) / 100 * 0.9; // 90% dimension weight factor
+      const potentialGain = Math.round(weightedImpact * 10) / 10;
+      
+      // Determine effort based on gap count, current score, and planning items
+      let effort = 'Medium';
+      let effortScore = 2;
+      if (d.gaps.length > 6 || d.score < 35) { effort = 'High'; effortScore = 1; }
+      else if (d.gaps.length <= 2 && d.score >= 55) { effort = 'Low'; effortScore = 3; }
+      else if (d.planning.length >= 2) { effort = 'Low'; effortScore = 3; } // Already have momentum
+      
+      // Generate specific recommendation based on their data
+      let recommendation = '';
+      if (d.planning.length > 0) {
+        recommendation = `Accelerate ${d.planning.length} in-progress initiative${d.planning.length > 1 ? 's' : ''} for quickest impact`;
+      } else if (d.gaps.length > 0 && d.gaps[0]?.name) {
+        recommendation = `Start with: ${d.gaps[0].name}`;
+      } else if (d.assessing.length > 0) {
+        recommendation = `Move ${d.assessing.length} item${d.assessing.length > 1 ? 's' : ''} from assessment to planning`;
+      } else {
+        recommendation = `Optimize and document existing programs`;
+      }
+      
+      const topGap = d.gaps[0]?.name || d.needsAttention[0]?.name || 'No specific gaps identified';
+      
+      return {
+        dimName: d.name,
+        dimNum: d.dim,
+        currentScore: d.score,
+        tier: d.tier.name,
+        potentialGain,
+        effort,
+        effortScore,
+        recommendation,
+        topGap
+      };
+    })
+    .sort((a, b) => {
+      // Prioritize: high impact + low effort = best ROI
+      const aROI = a.potentialGain * a.effortScore;
+      const bROI = b.potentialGain * b.effortScore;
+      return bROI - aROI;
+    })
+    .map(({ effortScore, ...rest }) => rest) // Remove effortScore from output
+    .slice(0, 5);
+}
+
+// ============================================
 // ICONS - MINIMAL
 // ============================================
 
@@ -456,7 +680,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         
         {/* Legend - below chart */}
         <div className="mt-3 pt-4 border-t border-slate-200">
-          <div className="matrix-legend flex flex-wrap justify-center gap-x-3 gap-y-2">
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
             {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
               <div 
                 key={d.dim} 
@@ -484,10 +708,12 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
 export default function ExportReportPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const exportFlag = searchParams?.get('export') === '1';
+  const exportMode = searchParams?.get('export') === '1';
   const mode = (searchParams?.get('mode') || '').toLowerCase();
-  const isPdfExport = exportFlag && mode === 'pdf';
-  const isPptExport = exportFlag && mode === 'ppt';
+  const isPdf = exportMode && mode === 'pdf';
+  const isPpt = exportMode && (mode === 'ppt' || mode === 'pptslides');
+  const isPptReport = exportMode && mode === 'pptreport';
+
   const surveyId = Array.isArray(params.surveyId) ? params.surveyId[0] : params.surveyId;
   const printRef = useRef<HTMLDivElement>(null);
   const matrixRef = useRef<HTMLDivElement>(null);
@@ -699,6 +925,24 @@ export default function ExportReportPage() {
   }
 
 
+  // ============================================
+  // SERVER EXPORT BUTTONS (Netlify Functions)
+  // ============================================
+  function handleServerExportPDF() {
+    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
+    window.open(url, '_blank');
+  }
+
+  function handleServerExportPPT() {
+    const url = `/.netlify/functions/export-pptx?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
+    window.open(url, '_blank');
+  }
+
+  function handleBack() {
+    if (typeof window !== 'undefined') window.history.back();
+  }
+
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -801,10 +1045,10 @@ export default function ExportReportPage() {
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${exportFlag ? 'export-mode' : ''} ${isPdfExport ? 'pdf-export-mode' : ''} ${isPptExport ? 'ppt-export-mode' : ''}`}>
+    <div className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''}`}>
       <style jsx global>{`
         @media print { 
-          @page { margin: 0.25in; size: letter; } 
+          @page { margin: 0.4in; size: letter; } 
           body { 
             -webkit-print-color-adjust: exact !important; 
             print-color-adjust: exact !important;
@@ -816,66 +1060,96 @@ export default function ExportReportPage() {
             page-break-inside: avoid !important; 
             break-inside: avoid !important;
           }
+          
+          /* Force backgrounds to print */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+        
+        /* Browserless PDF capture mode */
+        /* PPT report capture mode: render the full report as a 1280px canvas for scrolling screenshots */
+        .ppt-report-mode {
+          background: #ffffff !important;
+        }
+        .ppt-report-mode .bg-gray-50 {
+          background: #ffffff !important;
+        }
+        .ppt-report-mode #report-root {
+          width: 1280px !important;
+          max-width: 1280px !important;
+          margin: 0 auto !important;
+          padding: 20px !important;
         }
 
-        /* ========== EXPORT MODE (COMMON) ========== */
+        .bg-gray-50 {
+          background-color: #f9fafb !important;
+        }
+        
+        /* Force all content sections to avoid page breaks */
+        .rounded-lg {
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+        
+        /* Strategic Priority Matrix - ensure legend is not truncated */
+        .matrix-legend {
+          flex-wrap: wrap !important;
+        }
+        .matrix-legend span {
+          white-space: nowrap !important;
+          overflow: visible !important;
+          text-overflow: clip !important;
+        }
+        
+        /* Export mode: PDF + PPT - fixes scroll containers, stickies, filters */
         .export-mode * {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
         .export-mode .no-print { display: none !important; }
-
+        
         /* Kill sticky/fixed during capture */
         .export-mode .sticky,
-        .export-mode [class*="sticky"],
-        .export-mode .fixed,
-        .export-mode [class*="fixed"] {
+        .export-mode [class*="sticky"] {
           position: static !important;
         }
-
-        /* Expand scroll containers (only overflow-based; avoid broad max-h rules) */
+        
+        /* Expand scroll containers so html2canvas captures full content */
         .export-mode [class*="overflow-y-auto"],
-        .export-mode [class*="overflow-auto"] {
+        .export-mode [class*="overflow-auto"],
+        .export-mode [class*="max-h-"] {
           overflow: visible !important;
           max-height: none !important;
         }
-
-        /* SVG filters can cause odd clipping/blur in headless renderers */
+        
+        /* SVG filters can cause odd clipping/blur */
         .export-mode svg filter { display: none !important; }
+        
+        /* Fix for html2canvas - it can't parse oklch colors from Tailwind v4 */
+        .ppt-slide, .ppt-slide * {
+          --tw-bg-opacity: 1 !important;
+          --tw-text-opacity: 1 !important;
+        }
+        .ppt-slides-container * {
+          color: inherit;
+          background-color: inherit;
+        }
+        
 
-        /* ========== PDF EXPORT MODE ========== */
-        .pdf-export-mode {
-          background: #fff !important;
-        }
-        .pdf-export-mode .min-h-screen {
-          background: #fff !important;
-        }
-        /* Remove the max-width constraint and reclaim page real-estate */
-        .pdf-export-mode #report-root .report-inner {
-          max-width: none !important;
-          width: 100% !important;
-          margin: 0 !important;
-          padding: 0.15in !important;
-        }
-        .pdf-export-mode .shadow-sm { box-shadow: none !important; }
-
-        /* Ensure PPT slide DOM never prints in PDF mode */
+        /* Hide PPT slide DOM in PDF exports and in pptreport capture */
         .pdf-export-mode .ppt-slides-container,
-        .pdf-export-mode .ppt-slide {
+        .pdf-export-mode .ppt-slide,
+        .ppt-report-mode .ppt-slides-container,
+        .ppt-report-mode .ppt-slide {
           display: none !important;
         }
-
-        /* ========== PPT SLIDE DOM (FOR SCREENSHOT CAPTURE) ========== */
-        /* Hidden by default */
-        .ppt-slides-container {
-          position: absolute;
-          left: -9999px;
-          top: 0;
-        }
+        /* PPT slide sections - hidden by default, shown for capture */
         .ppt-slide {
           width: 1280px;
           height: 720px;
-          background: #fff;
+          background: white;
           padding: 40px;
           box-sizing: border-box;
           position: absolute;
@@ -885,34 +1159,55 @@ export default function ExportReportPage() {
         .ppt-slide * {
           text-decoration: none !important;
         }
-
-        /* Show slides only during PPT export mode */
-        .ppt-export-mode .ppt-slides-container {
-          position: relative;
-          left: 0;
-        }
         .ppt-export-mode .ppt-slide {
           position: relative;
           left: 0;
           margin-bottom: 20px;
         }
-
-        /* Strategic Priority Matrix legend: allow wrapping so it is not truncated */
-        .matrix-legend {
-          flex-wrap: wrap !important;
+        .ppt-slides-container {
+          position: absolute;
+          left: -9999px;
         }
-        .matrix-legend span {
-          white-space: nowrap !important;
-          overflow: visible !important;
-          text-overflow: clip !important;
+        .ppt-export-mode .ppt-slides-container {
+          position: relative;
+          left: 0;
         }
       `}</style>
 
 
-      <div ref={printRef} id="report-root"><div className="report-inner max-w-6xl mx-auto py-10 px-8">
+
+      {/* Action Bar */}
+      <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
+          <button onClick={handleBack} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleServerExportPPT}
+              className="px-5 py-2 rounded-lg font-medium bg-orange-500 hover:bg-orange-600 text-white"
+              title="Export PowerPoint"
+            >
+              Export PowerPoint
+            </button>
+            <button
+              onClick={handleServerExportPDF}
+              className="px-5 py-2 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-white"
+              title="Export PDF"
+            >
+              Export PDF
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div ref={printRef} id="report-root" className="max-w-6xl mx-auto py-10 px-8">
         
         {/* ============ HEADER ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="bg-slate-800 px-10 py-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-8">
@@ -936,7 +1231,7 @@ export default function ExportReportPage() {
             <div className="flex items-end justify-between">
               <div>
                 <p className="text-slate-500 text-sm font-medium uppercase tracking-wide">Prepared for</p>
-                <h2 className="text-3xl font-bold text-slate-900 mt-1">{companyName}</h2>
+                <h2 className="text-3xl font-bold text-slate-900 mt-1" data-export="company-name">{companyName}</h2>
                 {(contactName || contactEmail) && (
                   <div className="mt-2 text-sm text-slate-500">
                     {contactName && <span className="font-medium text-slate-600">{contactName}</span>}
@@ -948,11 +1243,11 @@ export default function ExportReportPage() {
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <p className="text-slate-500 text-sm">Composite Score</p>
-                  <p className="text-5xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
+                  <p className="text-5xl font-bold mt-1" style={{ color: tier?.color || '#666' }} data-export="composite-score">{compositeScore ?? '—'}</p>
                 </div>
                 {tier && (
                   <div className={`px-5 py-3 rounded-lg ${tier.bgColor} border ${tier.borderColor}`}>
-                    <p className="text-lg font-bold" style={{ color: tier.color }}>{tier.name}</p>
+                    <p className="text-lg font-bold" style={{ color: tier.color }} data-export="tier-name">{tier.name}</p>
                     <p className="text-xs text-slate-500">Performance Tier</p>
                   </div>
                 )}
@@ -963,7 +1258,7 @@ export default function ExportReportPage() {
           {/* Executive Summary */}
           <div className="px-10 py-8 bg-slate-50">
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
-            <p className="text-slate-700 leading-relaxed text-lg">
+            <p className="text-slate-700 leading-relaxed text-lg" data-export="executive-summary-text">
               {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
               in supporting employees managing cancer, with a composite score of <strong>{compositeScore}</strong>
               {percentileRank !== null && totalCompanies > 1 && (
@@ -1012,19 +1307,19 @@ export default function ExportReportPage() {
             
             <div className="mt-6 grid grid-cols-4 gap-6">
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-slate-800">{currentlyOffering}</p>
+                <p className="text-3xl font-bold text-slate-800" data-export="metric-currently-offering">{currentlyOffering}</p>
                 <p className="text-sm text-slate-500 mt-1">of {totalElements} elements offered</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-slate-800">{planningItems + assessingItems}</p>
+                <p className="text-3xl font-bold text-slate-800" data-export="metric-in-development">{planningItems + assessingItems}</p>
                 <p className="text-sm text-slate-500 mt-1">initiatives in development</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-slate-800">{gapItems}</p>
+                <p className="text-3xl font-bold text-slate-800" data-export="metric-gaps">{gapItems}</p>
                 <p className="text-sm text-slate-500 mt-1">identified gaps</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-slate-800">{tierCounts.exemplary + tierCounts.leading}</p>
+                <p className="text-3xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}</p>
                 <p className="text-sm text-slate-500 mt-1">dimensions at Leading+</p>
               </div>
             </div>
@@ -1032,7 +1327,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ KEY FINDINGS ============ */}
-        <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden mb-8 pdf-no-break">
+        <div className="ppt-break bg-slate-800 rounded-lg shadow-sm overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-6">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Key Findings at a Glance</h3>
             <div className="grid grid-cols-4 gap-6">
@@ -1083,22 +1378,22 @@ export default function ExportReportPage() {
           </div>
         </div>
 
-        {/* ============ DIMENSION PERFORMANCE - FIXED LAYOUT FOR PDF ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-          <div className="px-8 py-5 border-b border-slate-100">
+        {/* ============ DIMENSION PERFORMANCE - COMPACT FOR PPT ============ */}
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="px-8 py-4 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Dimension Performance Overview</h3>
           </div>
-          <div className="px-8 py-6">
-            <table className="w-full">
+          <div className="px-8 py-5">
+            <table className="w-full" id="dimension-performance-table" data-export="dimension-performance-table">
               <thead>
                 <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                  <th className="pb-3 text-center w-10">#</th>
-                  <th className="pb-3 text-left w-56">Dimension</th>
-                  <th className="pb-3 text-center w-12">Wt%</th>
-                  <th className="pb-3 text-center">Score</th>
-                  <th className="pb-3 text-right w-12">Score</th>
-                  <th className="pb-3 text-center w-20">vs Bench</th>
-                  <th className="pb-3 text-center w-20">Tier</th>
+                  <th className="pb-2.5 text-center w-9">#</th>
+                  <th className="pb-2.5 text-left">Dimension</th>
+                  <th className="pb-2.5 text-center w-12">Wt%</th>
+                  <th className="pb-2.5 text-center w-36">Score</th>
+                  <th className="pb-2.5 text-right w-12"></th>
+                  <th className="pb-2.5 text-center w-16">Bench</th>
+                  <th className="pb-2.5 text-center w-24">Tier</th>
                 </tr>
               </thead>
               <tbody>
@@ -1106,38 +1401,35 @@ export default function ExportReportPage() {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : 0;
                   return (
                     <tr key={d.dim} className={idx < dimensionAnalysis.length - 1 ? 'border-b border-slate-100' : ''}>
-                      <td className="py-2.5 text-center">
-                        <span className="w-7 h-7 rounded-full inline-flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
+                      <td className="py-2 text-center">
+                        <span className="w-6 h-6 rounded-full inline-flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
                       </td>
-                      <td className="py-2.5 text-left">
+                      <td className="py-2 text-left">
                         <span className="text-sm font-medium text-slate-700">{d.name}</span>
                       </td>
-                      <td className="py-2.5 text-center text-xs text-slate-500">{d.weight}%</td>
-                      <td className="py-2.5 px-2">
-                        <div className="relative h-5">
+                      <td className="py-2 text-center text-xs text-slate-500">{d.weight}%</td>
+                      <td className="py-2 px-2">
+                        <div className="relative h-4">
                           {d.benchmark !== null && (
                             <div className="absolute" style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '0', transform: 'translateX(-50%)' }}>
-                              <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[5px] border-l-transparent border-r-transparent border-t-slate-500" />
+                              <div className="w-0 h-0 border-l-[3px] border-r-[3px] border-t-[4px] border-l-transparent border-r-transparent border-t-slate-500" />
                             </div>
                           )}
-                          <div className="absolute inset-x-0 top-1.5 h-3 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="absolute inset-x-0 top-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
                             <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${d.score}%`, backgroundColor: getScoreColor(d.score) }} />
                           </div>
                         </div>
                       </td>
-                      <td className="py-2.5 text-right">
+                      <td className="py-2 text-right">
                         <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                       </td>
-                      <td className="py-2.5 text-center">
+                      <td className="py-2 text-center">
                         {d.benchmark !== null ? (
-                          <>
-                            <span className="text-xs text-slate-500">{d.benchmark}</span>
-                            <span className={`text-xs ml-1 ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff >= 0 ? '+' : ''}{diff})</span>
-                          </>
+                          <span className={`text-xs ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff >= 0 ? '+' : ''}{diff}</span>
                         ) : <span className="text-xs text-slate-400">—</span>}
                       </td>
-                      <td className="py-2.5 text-center">
-                        <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>{d.tier.name}</span>
+                      <td className="py-2 text-center">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${d.tier.bgColor} ${d.tier.textColor}`}>{d.tier.name}</span>
                       </td>
                     </tr>
                   );
@@ -1145,10 +1437,10 @@ export default function ExportReportPage() {
               </tbody>
             </table>
             
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-4 text-xs text-slate-400">
+            <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-end gap-4 text-xs text-slate-400">
               <span>Scores out of 100</span>
               <span className="flex items-center gap-1">
-                <span className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[5px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
+                <span className="w-0 h-0 border-l-[3px] border-r-[3px] border-t-[4px] border-l-transparent border-r-transparent border-t-slate-500 inline-block"></span>
                 Benchmark
               </span>
             </div>
@@ -1156,7 +1448,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 mb-8 pdf-break-before pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 mb-8 pdf-break-before pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Strategic Priority Matrix</h3>
             <p className="text-sm text-slate-500 mt-1">Dimensions plotted by current performance versus strategic weight. Hover over any dimension for details.</p>
@@ -1166,23 +1458,119 @@ export default function ExportReportPage() {
           </div>
         </div>
 
-        {/* ============ AREAS OF EXCELLENCE & GROWTH - WITH COLORED HEADERS ============ */}
-        <div className="grid grid-cols-2 gap-6 mb-8 pdf-no-break">
-          {/* Areas of Excellence */}
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 bg-emerald-700">
-              <h3 className="font-semibold text-white">Areas of Excellence</h3>
-              <p className="text-emerald-200 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {strengthDimensions.length > 0 ? (
-                strengthDimensions.slice(0, 5).map((d) => (
-                  <div key={d.dim} className="px-6 py-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-slate-800">{d.name}</p>
-                      <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+        {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
+        {(() => {
+          const patterns = getCrossDimensionPatterns(dimensionAnalysis);
+          if (patterns.length === 0) return null;
+          return (
+            <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+              <div className="px-10 py-5 bg-indigo-700">
+                <h3 className="font-semibold text-white text-lg">Cross-Dimension Insights</h3>
+                <p className="text-indigo-200 text-sm">Patterns identified across your assessment that reveal strategic opportunities</p>
+              </div>
+              <div className="px-10 py-6 space-y-6">
+                {patterns.map((p, idx) => (
+                  <div key={idx} className="border border-slate-200 rounded-lg overflow-hidden">
+                    <div className="px-5 py-3 bg-slate-50 border-b border-slate-200">
+                      <p className="font-semibold text-slate-800">{p.pattern}</p>
                     </div>
-                    <ul className="space-y-1">
+                    <div className="px-5 py-4 grid grid-cols-2 gap-6">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">What This Means</p>
+                        <p className="text-sm text-slate-600 leading-relaxed">{p.implication}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">Recommended Action</p>
+                        <p className="text-sm text-slate-600 leading-relaxed">{p.recommendation}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ============ IMPACT-RANKED PRIORITIES ============ */}
+        {(() => {
+          const rankings = getImpactRankings(dimensionAnalysis, compositeScore || 0);
+          return (
+            <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+              <div className="px-10 py-5 bg-cyan-700">
+                <h3 className="font-semibold text-white text-lg">Impact-Ranked Improvement Priorities</h3>
+                <p className="text-cyan-200 text-sm">Dimensions ranked by potential composite score impact relative to implementation effort</p>
+              </div>
+              <div className="px-10 py-6">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                      <th className="pb-3 text-left">Priority</th>
+                      <th className="pb-3 text-left">Dimension</th>
+                      <th className="pb-3 text-center">Current</th>
+                      <th className="pb-3 text-center">Impact</th>
+                      <th className="pb-3 text-center">Effort</th>
+                      <th className="pb-3 text-left">Recommended Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rankings.map((r, idx) => (
+                      <tr key={r.dimNum} className={idx < rankings.length - 1 ? 'border-b border-slate-100' : ''}>
+                        <td className="py-3">
+                          <span className={`w-7 h-7 rounded-full inline-flex items-center justify-center text-white text-sm font-bold ${
+                            idx === 0 ? 'bg-cyan-600' : idx === 1 ? 'bg-cyan-500' : 'bg-slate-400'
+                          }`}>
+                            {idx + 1}
+                          </span>
+                        </td>
+                        <td className="py-3">
+                          <p className="font-medium text-slate-800">{r.dimName}</p>
+                        </td>
+                        <td className="py-3 text-center">
+                          <div className="flex flex-col items-center">
+                            <span className="font-semibold text-lg" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
+                            <span className="text-xs text-slate-400">{r.tier}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 text-center">
+                          <span className="text-sm font-semibold text-emerald-600">+{r.potentialGain}</span>
+                          <span className="text-xs text-slate-400 ml-1">pts</span>
+                        </td>
+                        <td className="py-3 text-center">
+                          <span className={`text-xs font-medium px-2 py-1 rounded ${
+                            r.effort === 'Low' ? 'bg-emerald-50 text-emerald-700' :
+                            r.effort === 'Medium' ? 'bg-amber-50 text-amber-700' :
+                            'bg-red-50 text-red-700'
+                          }`}>{r.effort}</span>
+                        </td>
+                        <td className="py-3">
+                          <p className="text-sm text-slate-600">{r.recommendation}</p>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="text-xs text-slate-400 mt-4 italic">Impact calculated based on dimension weight and improvement potential. Effort assessed based on current gaps and in-progress initiatives.</p>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ============ AREAS OF EXCELLENCE ============ */}
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="px-10 py-5 bg-emerald-700">
+            <h3 className="font-semibold text-white text-lg">Areas of Excellence</h3>
+            <p className="text-emerald-200 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+          </div>
+          <div className="px-10 py-6">
+            {strengthDimensions.length > 0 ? (
+              <div className="grid grid-cols-2 gap-6">
+                {strengthDimensions.slice(0, 6).map((d) => (
+                  <div key={d.dim} className="border border-slate-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-semibold text-slate-800">{d.name}</p>
+                      <span className="text-lg font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                    </div>
+                    <ul className="space-y-1.5">
                       {d.strengths.slice(0, 3).map((e: any, i: number) => (
                         <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                           <CheckIcon className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
@@ -1191,51 +1579,52 @@ export default function ExportReportPage() {
                       ))}
                     </ul>
                   </div>
-                ))
-              ) : (
-                <div className="px-6 py-8 text-center">
-                  <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Growth Opportunities */}
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 bg-amber-600">
-              <h3 className="font-semibold text-white">Growth Opportunities</h3>
-              <p className="text-amber-100 text-sm">Dimensions with improvement potential</p>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {allDimensionsByScore.slice(0, 5).map((d) => {
-                return (
-                  <div key={d.dim} className="px-6 py-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-slate-800">{d.name}</p>
-                      <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                    </div>
-                    {d.needsAttention.length > 0 ? (
-                      <ul className="space-y-1">
-                        {d.needsAttention.slice(0, 4).map((e: any, i: number) => (
-                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
-                            <span>{e.name}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
-                    )}
+        {/* ============ GROWTH OPPORTUNITIES ============ */}
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="px-10 py-5 bg-amber-600">
+            <h3 className="font-semibold text-white text-lg">Growth Opportunities</h3>
+            <p className="text-amber-100 text-sm">Dimensions with improvement potential</p>
+          </div>
+          <div className="px-10 py-6">
+            <div className="grid grid-cols-2 gap-6">
+              {allDimensionsByScore.slice(0, 6).map((d) => (
+                <div key={d.dim} className="border border-slate-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="font-semibold text-slate-800">{d.name}</p>
+                    <span className="text-lg font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                   </div>
-                );
-              })}
+                  {d.needsAttention.length > 0 ? (
+                    <ul className="space-y-1.5">
+                      {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
+                        <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                          <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
+                          <span>{e.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
+
         {/* ============ INITIATIVES IN PROGRESS ============ */}
         {quickWinOpportunities.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-10 py-5 bg-blue-700">
               <h3 className="font-semibold text-white">Initiatives In Progress</h3>
               <p className="text-blue-200 text-sm mt-0.5">Programs currently in planning or under consideration</p>
@@ -1259,21 +1648,73 @@ export default function ExportReportPage() {
           </div>
         )}
 
-        {/* ============ STRATEGIC RECOMMENDATIONS - CONSISTENT HEADERS ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before">
-          <div className="px-10 py-6 bg-slate-800">
-            <h3 className="font-semibold text-white text-lg">Strategic Recommendations</h3>
-            <p className="text-slate-400 text-sm mt-1">Detailed analysis and action plans for priority dimensions</p>
+        {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION SLIDE ============ */}
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
+          <div className="px-10 py-8 bg-slate-800">
+            <h3 className="font-semibold text-white text-2xl">Strategic Recommendations</h3>
+            <p className="text-slate-400 mt-2">Detailed analysis and action plans for your priority dimensions</p>
           </div>
-          
+          <div className="px-10 py-8">
+            <p className="text-slate-600 leading-relaxed mb-6">
+              The following pages provide in-depth analysis for your <strong>{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+              with the greatest opportunity for improvement. Each dimension includes:
+            </p>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-red-600 font-bold">!</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800">Improvement Opportunities</p>
+                  <p className="text-sm text-slate-500 mt-1">Specific gaps and areas needing attention, with status indicators</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600 font-bold">→</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800">In Development</p>
+                  <p className="text-sm text-slate-500 mt-1">Initiatives already in planning that can be accelerated</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800">Current Strengths</p>
+                  <p className="text-sm text-slate-500 mt-1">Elements you're already offering that form your foundation</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-violet-600 font-bold">★</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800">Tailored Insights & CAC Support</p>
+                  <p className="text-sm text-slate-500 mt-1">Custom analysis and how Cancer and Careers can help</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-slate-500 mt-6 italic">
+              Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
+            </p>
+          </div>
+        </div>
+        
+        {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="divide-y-4 divide-slate-100">
             {allDimensionsByScore.slice(0, 4).map((d, idx) => {
-              const insight = DIMENSION_STRATEGIC_INSIGHTS[d.dim];
+              // Generate dynamic insight based on actual performance
+              const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
+              const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
               // Use tier color for the accent, consistent dark header for all
               const tierColor = getScoreColor(d.score);
               
               return (
-                <div key={d.dim} className="border-l-4 pdf-no-break" style={{ borderLeftColor: tierColor }}>
+                <div key={d.dim} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
                   {/* Dimension Header - Consistent dark slate for all */}
                   <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                     <div className="flex items-center gap-4">
@@ -1286,10 +1727,20 @@ export default function ExportReportPage() {
                           <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
                           <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
                           <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                          {d.benchmark !== null && (
+                            <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Benchmark Narrative */}
+                  {benchmarkNarrative && (
+                    <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
+                      <p className="text-sm text-slate-600 italic">{benchmarkNarrative}</p>
+                    </div>
+                  )}
                   
                   <div className="px-10 py-6">
                     {/* Current State - 3 columns */}
@@ -1361,19 +1812,17 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Strategic Insight & CAC Help */}
-                    {insight && (
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="border border-slate-200 rounded-lg p-5 bg-white">
-                          <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
-                          <p className="text-sm text-slate-600 leading-relaxed">{insight.insight}</p>
-                        </div>
-                        <div className="border border-violet-200 rounded-lg p-5 bg-violet-50">
-                          <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
-                          <p className="text-sm text-slate-600 leading-relaxed">{insight.cacHelp}</p>
-                        </div>
+                    {/* Strategic Insight & CAC Help - Now Dynamic */}
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="border border-slate-200 rounded-lg p-5 bg-white">
+                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">Tailored Strategic Insight</h5>
+                        <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
                       </div>
-                    )}
+                      <div className="border border-violet-200 rounded-lg p-5 bg-violet-50">
+                        <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                        <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
@@ -1382,7 +1831,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ IMPLEMENTATION ROADMAP ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
           <div className="px-10 py-6 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Implementation Roadmap</h3>
             <p className="text-sm text-slate-500 mt-1">Phased approach to strengthen your cancer support ecosystem</p>
@@ -1477,7 +1926,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ HOW CAC CAN HELP ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help</h3>
             <p className="text-slate-400 text-sm mt-1">Tailored support to enhance your employee experience</p>
@@ -1541,7 +1990,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ METHODOLOGY & FOOTER ============ */}
-        <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-0 pdf-no-break">
+        <div className="ppt-break bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-0 pdf-no-break" id="appendix-end" data-export="appendix-end">
           <div className="px-10 py-5 border-b border-slate-200">
             <h3 className="font-semibold text-slate-700 text-sm">Assessment Methodology</h3>
           </div>
@@ -1583,230 +2032,233 @@ export default function ExportReportPage() {
           </div>
         </div>
 
-        </div>
+        
+
+
+
       </div>
 
-      {/* ============ PPT SLIDE SECTIONS (hidden, captured for export) ============ */}
-        <div className="ppt-slides-container">
-          {/* SLIDE 1: Title */}
-          <div id="ppt-slide-1" className="ppt-slide" style={{ background: '#1E293B', color: 'white', padding: '60px' }}>
-            <p style={{ fontSize: '14px', color: '#94A3B8', marginBottom: '8px' }}>PERFORMANCE ASSESSMENT</p>
-            <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>Best Companies for Working with Cancer</h1>
-            <p style={{ fontSize: '16px', color: '#CBD5E1', marginBottom: '60px' }}>Index 2026</p>
-            <h2 style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '40px' }}>{companyName}</h2>
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-              <div style={{ background: getScoreColor(compositeScore || 0), padding: '20px 30px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '48px', fontWeight: 'bold' }}>{compositeScore || 0}</p>
-                <p style={{ fontSize: '12px' }}>Score</p>
-              </div>
-              <div style={{ background: '#374151', padding: '12px 24px', borderRadius: '6px' }}>
-                <p style={{ fontSize: '18px', fontWeight: 600 }}>{tier?.name}</p>
-              </div>
+{/* ============ PPT SLIDE SECTIONS (hidden, captured for export) ============ */}
+      <div className="ppt-slides-container">
+        {/* SLIDE 1: Title */}
+        <div id="ppt-slide-1" className="ppt-slide" style={{ background: '#1E293B', color: 'white', padding: '60px' }}>
+          <p style={{ fontSize: '14px', color: '#94A3B8', marginBottom: '8px' }}>PERFORMANCE ASSESSMENT</p>
+          <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>Best Companies for Working with Cancer</h1>
+          <p style={{ fontSize: '16px', color: '#CBD5E1', marginBottom: '60px' }}>Index 2026</p>
+          <h2 style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '40px' }}>{companyName}</h2>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <div style={{ background: getScoreColor(compositeScore || 0), padding: '20px 30px', borderRadius: '8px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '48px', fontWeight: 'bold' }}>{compositeScore || 0}</p>
+              <p style={{ fontSize: '12px' }}>Score</p>
             </div>
-            <p style={{ position: 'absolute' as const, bottom: '40px', left: '60px', fontSize: '12px', color: '#64748B' }}>
-              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            <div style={{ background: '#374151', padding: '12px 24px', borderRadius: '6px' }}>
+              <p style={{ fontSize: '18px', fontWeight: 600 }}>{tier?.name}</p>
+            </div>
+          </div>
+          <p style={{ position: 'absolute' as const, bottom: '40px', left: '60px', fontSize: '12px', color: '#64748B' }}>
+            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+
+        {/* SLIDE 2: Executive Summary */}
+        <div id="ppt-slide-2" className="ppt-slide">
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '30px' }}>Executive Summary</h2>
+          <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
+            <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{currentlyOffering}</p>
+              <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>of {totalElements} elements offered</p>
+            </div>
+            <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{planningItems + assessingItems}</p>
+              <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>in development</p>
+            </div>
+            <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{gapItems}</p>
+              <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>identified gaps</p>
+            </div>
+            <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{tierCounts.exemplary + tierCounts.leading}</p>
+              <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>at Leading+</p>
+            </div>
+          </div>
+          <div style={{ background: '#EDE9FE', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+            <p style={{ fontSize: '16px', fontWeight: 600, color: '#5B21B6', textDecoration: 'none' }}>
+              {nextTierUp && pointsToNextTier 
+                ? `${pointsToNextTier} points from ${nextTierUp.name}${nextTierUp.name !== 'Exemplary' ? ` · ${90 - (compositeScore || 0)} points from Exemplary` : ''}`
+                : 'Exemplary tier achieved'}
+            </p>
+            <p style={{ fontSize: '12px', color: '#7C3AED', marginTop: '4px', textDecoration: 'none' }}>
+              Focus areas: {allDimensionsByScore.slice(0, 3).map(d => d.name).join(', ')}
             </p>
           </div>
+        </div>
 
-          {/* SLIDE 2: Executive Summary */}
-          <div id="ppt-slide-2" className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '30px' }}>Executive Summary</h2>
-            <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
-              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{currentlyOffering}</p>
-                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>of {totalElements} elements offered</p>
-              </div>
-              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{planningItems + assessingItems}</p>
-                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>in development</p>
-              </div>
-              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{gapItems}</p>
-                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>identified gaps</p>
-              </div>
-              <div style={{ flex: 1, background: '#F1F5F9', padding: '20px', borderRadius: '8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1E293B', textDecoration: 'none' }}>{tierCounts.exemplary + tierCounts.leading}</p>
-                <p style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}>at Leading+</p>
-              </div>
-            </div>
-            <div style={{ background: '#EDE9FE', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-              <p style={{ fontSize: '16px', fontWeight: 600, color: '#5B21B6', textDecoration: 'none' }}>
-                {nextTierUp && pointsToNextTier 
-                  ? `${pointsToNextTier} points from ${nextTierUp.name}${nextTierUp.name !== 'Exemplary' ? ` · ${90 - (compositeScore || 0)} points from Exemplary` : ''}`
-                  : 'Exemplary tier achieved'}
-              </p>
-              <p style={{ fontSize: '12px', color: '#7C3AED', marginTop: '4px', textDecoration: 'none' }}>
-                Focus areas: {allDimensionsByScore.slice(0, 3).map(d => d.name).join(', ')}
-              </p>
-            </div>
-          </div>
-
-          {/* SLIDE 3: Dimension Performance */}
-          <div id="ppt-slide-3" className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Dimension Performance</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-              <thead>
-                <tr style={{ background: '#1E293B', color: 'white' }}>
-                  <th style={{ padding: '10px', textAlign: 'left', width: '50px' }}>#</th>
-                  <th style={{ padding: '10px', textAlign: 'left' }}>Dimension</th>
-                  <th style={{ padding: '10px', textAlign: 'center', width: '70px' }}>Weight</th>
-                  <th style={{ padding: '10px', textAlign: 'center', width: '70px' }}>Score</th>
-                  <th style={{ padding: '10px', textAlign: 'left', width: '100px' }}>Tier</th>
+        {/* SLIDE 3: Dimension Performance */}
+        <div id="ppt-slide-3" className="ppt-slide">
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px' }}>Dimension Performance</h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+            <thead>
+              <tr style={{ background: '#1E293B', color: 'white' }}>
+                <th style={{ padding: '10px', textAlign: 'left', width: '50px' }}>#</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Dimension</th>
+                <th style={{ padding: '10px', textAlign: 'center', width: '70px' }}>Weight</th>
+                <th style={{ padding: '10px', textAlign: 'center', width: '70px' }}>Score</th>
+                <th style={{ padding: '10px', textAlign: 'left', width: '100px' }}>Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, i) => (
+                <tr key={d.dim} style={{ background: i % 2 === 0 ? '#F8FAFC' : 'white' }}>
+                  <td style={{ padding: '8px 10px', color: '#64748B', textDecoration: 'none' }}>D{d.dim}</td>
+                  <td style={{ padding: '8px 10px', color: '#1E293B', textDecoration: 'none' }}>{d.name}</td>
+                  <td style={{ padding: '8px 10px', color: '#64748B', textAlign: 'center', textDecoration: 'none' }}>{d.weight}%</td>
+                  <td style={{ padding: '8px 10px', color: getScoreColor(d.score), fontWeight: 'bold', textAlign: 'center', textDecoration: 'none' }}>{d.score}</td>
+                  <td style={{ padding: '8px 10px', color: '#64748B', textDecoration: 'none' }}>{d.tier.name}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, i) => (
-                  <tr key={d.dim} style={{ background: i % 2 === 0 ? '#F8FAFC' : 'white' }}>
-                    <td style={{ padding: '8px 10px', color: '#64748B', textDecoration: 'none' }}>D{d.dim}</td>
-                    <td style={{ padding: '8px 10px', color: '#1E293B', textDecoration: 'none' }}>{d.name}</td>
-                    <td style={{ padding: '8px 10px', color: '#64748B', textAlign: 'center', textDecoration: 'none' }}>{d.weight}%</td>
-                    <td style={{ padding: '8px 10px', color: getScoreColor(d.score), fontWeight: 'bold', textAlign: 'center', textDecoration: 'none' }}>{d.score}</td>
-                    <td style={{ padding: '8px 10px', color: '#64748B', textDecoration: 'none' }}>{d.tier.name}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-          {/* SLIDE 4: Matrix - Static version to avoid oklch color parsing issues */}
-          <div id="ppt-slide-4" className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '10px', textDecoration: 'none' }}>Strategic Priority Matrix</h2>
-            <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '20px', textDecoration: 'none' }}>Performance vs Strategic Weight</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '15px', marginTop: '20px' }}>
-              <div style={{ flex: '1 1 45%', background: '#FEE2E2', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
-                <p style={{ fontWeight: 'bold', color: '#991B1B', marginBottom: '10px', textDecoration: 'none' }}>PRIORITY GAPS</p>
-                <p style={{ fontSize: '11px', color: '#7F1D1D', textDecoration: 'none' }}>High weight, lower performance - focus here first</p>
-                {dimensionAnalysis.filter(d => d.weight >= 7 && d.score < 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
-                ))}
-              </div>
-              <div style={{ flex: '1 1 45%', background: '#D1FAE5', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
-                <p style={{ fontWeight: 'bold', color: '#065F46', marginBottom: '10px', textDecoration: 'none' }}>CORE STRENGTHS</p>
-                <p style={{ fontSize: '11px', color: '#047857', textDecoration: 'none' }}>High weight, strong performance - maintain these</p>
-                {dimensionAnalysis.filter(d => d.weight >= 7 && d.score >= 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
-                ))}
-              </div>
-              <div style={{ flex: '1 1 45%', background: '#FEF3C7', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
-                <p style={{ fontWeight: 'bold', color: '#92400E', marginBottom: '10px', textDecoration: 'none' }}>SECONDARY GAPS</p>
-                <p style={{ fontSize: '11px', color: '#B45309', textDecoration: 'none' }}>Lower weight, needs improvement</p>
-                {dimensionAnalysis.filter(d => d.weight < 7 && d.score < 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
-                ))}
-              </div>
-              <div style={{ flex: '1 1 45%', background: '#DBEAFE', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
-                <p style={{ fontWeight: 'bold', color: '#1E40AF', marginBottom: '10px', textDecoration: 'none' }}>MAINTAIN</p>
-                <p style={{ fontSize: '11px', color: '#1D4ED8', textDecoration: 'none' }}>Lower weight, performing well</p>
-                {dimensionAnalysis.filter(d => d.weight < 7 && d.score >= 70).slice(0, 3).map(d => (
-                  <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+        {/* SLIDE 4: Matrix - Static version to avoid oklch color parsing issues */}
+        <div id="ppt-slide-4" className="ppt-slide">
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '10px', textDecoration: 'none' }}>Strategic Priority Matrix</h2>
+          <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '20px', textDecoration: 'none' }}>Performance vs Strategic Weight</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '15px', marginTop: '20px' }}>
+            <div style={{ flex: '1 1 45%', background: '#FEE2E2', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+              <p style={{ fontWeight: 'bold', color: '#991B1B', marginBottom: '10px', textDecoration: 'none' }}>PRIORITY GAPS</p>
+              <p style={{ fontSize: '11px', color: '#7F1D1D', textDecoration: 'none' }}>High weight, lower performance - focus here first</p>
+              {dimensionAnalysis.filter(d => d.weight >= 7 && d.score < 70).slice(0, 3).map(d => (
+                <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+              ))}
+            </div>
+            <div style={{ flex: '1 1 45%', background: '#D1FAE5', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+              <p style={{ fontWeight: 'bold', color: '#065F46', marginBottom: '10px', textDecoration: 'none' }}>CORE STRENGTHS</p>
+              <p style={{ fontSize: '11px', color: '#047857', textDecoration: 'none' }}>High weight, strong performance - maintain these</p>
+              {dimensionAnalysis.filter(d => d.weight >= 7 && d.score >= 70).slice(0, 3).map(d => (
+                <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+              ))}
+            </div>
+            <div style={{ flex: '1 1 45%', background: '#FEF3C7', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+              <p style={{ fontWeight: 'bold', color: '#92400E', marginBottom: '10px', textDecoration: 'none' }}>SECONDARY GAPS</p>
+              <p style={{ fontSize: '11px', color: '#B45309', textDecoration: 'none' }}>Lower weight, needs improvement</p>
+              {dimensionAnalysis.filter(d => d.weight < 7 && d.score < 70).slice(0, 3).map(d => (
+                <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+              ))}
+            </div>
+            <div style={{ flex: '1 1 45%', background: '#DBEAFE', padding: '20px', borderRadius: '8px', minHeight: '180px' }}>
+              <p style={{ fontWeight: 'bold', color: '#1E40AF', marginBottom: '10px', textDecoration: 'none' }}>MAINTAIN</p>
+              <p style={{ fontSize: '11px', color: '#1D4ED8', textDecoration: 'none' }}>Lower weight, performing well</p>
+              {dimensionAnalysis.filter(d => d.weight < 7 && d.score >= 70).slice(0, 3).map(d => (
+                <p key={d.dim} style={{ fontSize: '12px', color: '#1E293B', marginTop: '8px', textDecoration: 'none' }}>• {d.name} ({d.score})</p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* SLIDE 5: Strengths & Opportunities */}
+        <div id="ppt-slide-5" className="ppt-slide">
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Strengths & Opportunities</h2>
+          <div style={{ display: 'flex', gap: '30px' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#059669', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600, textDecoration: 'none' }}>Areas of Excellence</div>
+              <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '350px' }}>
+                {strengthDimensions.slice(0, 4).map(d => (
+                  <div key={d.dim} style={{ marginBottom: '12px' }}>
+                    <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
+                    {d.strengths.slice(0, 2).map((s: any, i: number) => (
+                      <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>✓ {s.name}</p>
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>
-          </div>
-
-          {/* SLIDE 5: Strengths & Opportunities */}
-          <div id="ppt-slide-5" className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Strengths & Opportunities</h2>
-            <div style={{ display: 'flex', gap: '30px' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#059669', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600, textDecoration: 'none' }}>Areas of Excellence</div>
-                <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '350px' }}>
-                  {strengthDimensions.slice(0, 4).map(d => (
-                    <div key={d.dim} style={{ marginBottom: '12px' }}>
-                      <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
-                      {d.strengths.slice(0, 2).map((s: any, i: number) => (
-                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>✓ {s.name}</p>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#D97706', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600, textDecoration: 'none' }}>Improvement Opportunities</div>
-                <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '350px' }}>
-                  {allDimensionsByScore.slice(0, 4).map(d => (
-                    <div key={d.dim} style={{ marginBottom: '12px' }}>
-                      <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
-                      {d.needsAttention.slice(0, 2).map((g: any, i: number) => (
-                        <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>• {g.name}</p>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SLIDE 6: Roadmap */}
-          <div id="ppt-slide-6" className="ppt-slide">
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Implementation Roadmap</h2>
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#1E293B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
-                  <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Quick Wins</p>
-                  <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>Immediate</p>
-                </div>
-                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
-                  {quickWinItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
-                  ))}
-                </div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#475569', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
-                  <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Foundation</p>
-                  <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>6-12 months</p>
-                </div>
-                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
-                  {foundationItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
-                  ))}
-                </div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#64748B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
-                  <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Long-Term</p>
-                  <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>12+ months</p>
-                </div>
-                <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
-                  {excellenceItems.slice(0, 5).map((item: any, i: number) => (
-                    <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SLIDE 7: How CAC Can Help */}
-          <div id="ppt-slide-7" className="ppt-slide" style={{ padding: 0 }}>
-            <div style={{ background: '#1E293B', padding: '30px 40px' }}>
-              <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>How Cancer and Careers Can Help</h2>
-            </div>
-            <div style={{ padding: '30px 40px' }}>
-              <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '30px' }}>
-                Our consulting practice helps organizations understand where they are, identify where they want to be, and build a realistic path to get there.
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '30px' }}>
-                <div>
-                  <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For HR & Benefits Teams</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Policy gap analysis</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Benefits benchmarking</p>
-                  <p style={{ fontSize: '13px', color: '#64748B' }}>✓ Manager training programs</p>
-                </div>
-                <div>
-                  <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For Employees</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Educational materials</p>
-                  <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Navigation support</p>
-                  <p style={{ fontSize: '13px', color: '#64748B' }}>✓ Peer support networks</p>
-                </div>
-              </div>
-              <div style={{ background: '#F5F3FF', padding: '20px', borderRadius: '8px' }}>
-                <p style={{ fontWeight: 600, color: '#5B21B6', fontSize: '16px' }}>Ready to take the next step?</p>
-                <p style={{ fontSize: '13px', color: '#7C3AED' }}>Contact: consulting@cancerandcareers.org</p>
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#D97706', color: 'white', padding: '12px 20px', borderRadius: '6px 6px 0 0', fontWeight: 600, textDecoration: 'none' }}>Improvement Opportunities</div>
+              <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '350px' }}>
+                {allDimensionsByScore.slice(0, 4).map(d => (
+                  <div key={d.dim} style={{ marginBottom: '12px' }}>
+                    <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px', textDecoration: 'none' }}>{d.name} ({d.score})</p>
+                    {d.needsAttention.slice(0, 2).map((g: any, i: number) => (
+                      <p key={i} style={{ fontSize: '11px', color: '#64748B', marginLeft: '10px', textDecoration: 'none' }}>• {g.name}</p>
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
+
+        {/* SLIDE 6: Roadmap */}
+        <div id="ppt-slide-6" className="ppt-slide">
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B', marginBottom: '20px', textDecoration: 'none' }}>Implementation Roadmap</h2>
+          <div style={{ display: 'flex', gap: '15px' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#1E293B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
+                <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Quick Wins</p>
+                <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>Immediate</p>
+              </div>
+              <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
+                {quickWinItems.slice(0, 5).map((item: any, i: number) => (
+                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                ))}
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#475569', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
+                <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Foundation</p>
+                <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>6-12 months</p>
+              </div>
+              <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
+                {foundationItems.slice(0, 5).map((item: any, i: number) => (
+                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                ))}
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#64748B', color: 'white', padding: '15px', borderRadius: '6px 6px 0 0', textAlign: 'center' as const }}>
+                <p style={{ fontWeight: 600, fontSize: '16px', textDecoration: 'none' }}>Long-Term</p>
+                <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>12+ months</p>
+              </div>
+              <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
+                {excellenceItems.slice(0, 5).map((item: any, i: number) => (
+                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SLIDE 7: How CAC Can Help */}
+        <div id="ppt-slide-7" className="ppt-slide" style={{ padding: 0 }}>
+          <div style={{ background: '#1E293B', padding: '30px 40px' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>How Cancer and Careers Can Help</h2>
+          </div>
+          <div style={{ padding: '30px 40px' }}>
+            <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '30px' }}>
+              Our consulting practice helps organizations understand where they are, identify where they want to be, and build a realistic path to get there.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '30px' }}>
+              <div>
+                <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For HR & Benefits Teams</p>
+                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Policy gap analysis</p>
+                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Benefits benchmarking</p>
+                <p style={{ fontSize: '13px', color: '#64748B' }}>✓ Manager training programs</p>
+              </div>
+              <div>
+                <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>For Employees</p>
+                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Educational materials</p>
+                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '6px' }}>✓ Navigation support</p>
+                <p style={{ fontSize: '13px', color: '#64748B' }}>✓ Peer support networks</p>
+              </div>
+            </div>
+            <div style={{ background: '#F5F3FF', padding: '20px', borderRadius: '8px' }}>
+              <p style={{ fontWeight: 600, color: '#5B21B6', fontSize: '16px' }}>Ready to take the next step?</p>
+              <p style={{ fontSize: '13px', color: '#7C3AED' }}>Contact: consulting@cancerandcareers.org</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </div>
   );
