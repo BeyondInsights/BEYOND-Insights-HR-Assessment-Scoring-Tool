@@ -1,7 +1,7 @@
 const PptxGenJS = require('pptxgenjs');
 
 // ============================================
-// PPT EXPORT - COMPRESSED VERSION
+// PPT EXPORT - MULTIPLE SLIDE SCREENSHOTS
 // ============================================
 
 exports.handler = async (event) => {
@@ -27,54 +27,76 @@ exports.handler = async (event) => {
     const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1`;
     console.log('Report URL:', reportUrl);
     
-    // Take screenshot with JPEG compression
-    console.log('Taking screenshot...');
-    const res = await fetch(`${browserlessBase}/screenshot?token=${browserlessToken}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: reportUrl,
-        options: {
-          type: 'jpeg',
-          quality: 70,
-          fullPage: true
-        },
-        gotoOptions: { 
-          waitUntil: 'networkidle0', 
-          timeout: 30000 
-        },
-        waitForTimeout: 5000
-      })
-    });
-    
-    console.log('Screenshot response status:', res.status);
-    
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error('Screenshot failed:', errText.substring(0, 500));
-      return { statusCode: 500, body: JSON.stringify({ error: 'Screenshot failed', details: errText.substring(0, 500) }) };
-    }
-    
-    const imgBuffer = Buffer.from(await res.arrayBuffer());
-    console.log('Screenshot size:', imgBuffer.length, 'bytes');
-    
-    // Create PPT with single slide showing full report
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
     pptx.title = 'Cancer Support Assessment Report';
     
-    // Just one slide with the full image (scaled to fit)
-    const slide = pptx.addSlide();
-    slide.addImage({
-      data: `data:image/jpeg;base64,${imgBuffer.toString('base64')}`,
-      x: 0,
-      y: 0,
-      w: 13.333,
-      h: 7.5,
-      sizing: { type: 'contain', w: 13.333, h: 7.5 }
-    });
+    // Slide dimensions in pixels (16:9 aspect)
+    const SLIDE_W = 1200;
+    const SLIDE_H = 675;
+    const NUM_SLIDES = 13;
     
-    console.log('Generated 1 slide PPT');
+    // Take screenshots sequentially to avoid rate limits
+    for (let i = 0; i < NUM_SLIDES; i++) {
+      const yOffset = i * SLIDE_H;
+      console.log(`Slide ${i + 1}: capturing y=${yOffset}`);
+      
+      const res = await fetch(`${browserlessBase}/screenshot?token=${browserlessToken}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: reportUrl,
+          options: {
+            type: 'jpeg',
+            quality: 80,
+            clip: {
+              x: 0,
+              y: yOffset,
+              width: SLIDE_W,
+              height: SLIDE_H
+            }
+          },
+          gotoOptions: { 
+            waitUntil: 'networkidle0', 
+            timeout: 30000 
+          },
+          viewport: {
+            width: SLIDE_W,
+            height: 9000 // Tall viewport to render full page
+          },
+          waitForTimeout: i === 0 ? 5000 : 500 // Only wait on first screenshot
+        })
+      });
+      
+      if (!res.ok) {
+        console.error(`Slide ${i + 1} failed:`, res.status);
+        continue;
+      }
+      
+      const imgBuffer = Buffer.from(await res.arrayBuffer());
+      console.log(`Slide ${i + 1}: ${imgBuffer.length} bytes`);
+      
+      if (imgBuffer.length < 1000) {
+        console.error(`Slide ${i + 1} too small, skipping`);
+        continue;
+      }
+      
+      const slide = pptx.addSlide();
+      slide.addImage({
+        data: `data:image/jpeg;base64,${imgBuffer.toString('base64')}`,
+        x: 0,
+        y: 0,
+        w: 13.333,
+        h: 7.5
+      });
+    }
+    
+    console.log(`Generated ${pptx.slides.length} slides`);
+    
+    if (pptx.slides.length === 0) {
+      return { statusCode: 500, body: JSON.stringify({ error: 'No slides generated' }) };
+    }
+    
     const outB64 = await pptx.write({ outputType: 'base64' });
     console.log('PPT size:', outB64.length);
     
