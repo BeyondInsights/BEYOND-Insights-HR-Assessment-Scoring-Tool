@@ -1,5 +1,5 @@
 /**
- * AUTO DATA SYNC - BULLETPROOF VERSION
+ * AUTO DATA SYNC - BULLETPROOF VERSION WITH CONTAMINATION PROTECTION
  * 
  * FEATURES:
  * 1. Uses Netlify function as primary sync (service role, bypasses RLS)
@@ -11,6 +11,7 @@
  * 7. SECURITY: Sends accessToken for regular authenticated users
  * 8. Cached userId/token for reliable unload sync
  * 9. Server owns updated_at (client doesn't set it)
+ * 10. *** CONTAMINATION PROTECTION: Verifies company_name matches survey_id ***
  */
 
 'use client'
@@ -25,6 +26,140 @@ import { supabase } from './client'
 const PENDING_OPS_KEY = 'pending_sync_ops'
 const RETRY_INTERVAL_MS = 15000 // 15 seconds
 const MAX_RETRIES = 5
+
+// ============================================
+// GET EXPECTED COMPANY NAME
+// Uses founding-partners.ts as single source of truth
+// ============================================
+
+// Normalize survey_id for comparison
+function normalizeId(id: string): string {
+  return (id || '').replace(/-/g, '').toUpperCase()
+}
+
+// Get expected company name for a survey_id (async to allow dynamic import)
+async function getExpectedCompanyNameAsync(surveyId: string): Promise<string | null> {
+  if (!surveyId) return null
+  
+  // For FP-style IDs, use founding-partners.ts as source of truth
+  if (surveyId.toUpperCase().startsWith('FP')) {
+    try {
+      const { getFPCompanyName, isFoundingPartner } = await import('@/lib/founding-partners')
+      if (isFoundingPartner(surveyId)) {
+        const companyName = getFPCompanyName(surveyId)
+        // getFPCompanyName returns 'Founding Partner' for unassigned codes
+        return companyName !== 'Founding Partner' ? companyName : null
+      }
+    } catch (e) {
+      console.warn('[AutoSync] Could not load founding-partners module')
+    }
+    return null
+  }
+  
+  // For standard app_id format (CAC...)
+  // These don't have a fixed mapping, so we can't validate by company name
+  // Instead, we rely on survey_id matching
+  return null
+}
+
+// ============================================
+// CONTAMINATION CHECK
+// Returns true if data appears valid for the survey_id
+// Returns false if there's a company mismatch (contamination detected)
+// *** IMPORTANT: This blocks sync but does NOT clear localStorage ***
+// ============================================
+async function checkForContamination(surveyId: string): Promise<{ isClean: boolean; reason?: string }> {
+  if (!surveyId) {
+    return { isClean: true } // No survey_id, nothing to check
+  }
+  
+  // Get firmographics data from localStorage
+  const firmographicsStr = localStorage.getItem('firmographics_data')
+  if (!firmographicsStr) {
+    return { isClean: true } // No firmographics data, nothing to contaminate
+  }
+  
+  let firmographics: any
+  try {
+    firmographics = JSON.parse(firmographicsStr)
+  } catch {
+    return { isClean: true } // Can't parse, treat as clean
+  }
+  
+  // Get company name from firmographics
+  const dataCompanyName = firmographics?.companyName || 
+                          localStorage.getItem('login_company_name') || ''
+  
+  if (!dataCompanyName) {
+    return { isClean: true } // No company name in data, can't validate
+  }
+  
+  // Get expected company name for this survey_id
+  const expectedCompanyName = await getExpectedCompanyNameAsync(surveyId)
+  
+  if (!expectedCompanyName) {
+    // For non-FP surveys (CAC...), check against the stored survey_id
+    // If survey_id changed but company_name didn't update, that's suspicious
+    const storedSurveyId = localStorage.getItem('survey_id') || ''
+    
+    // If the survey IDs don't match what we're trying to sync to, that's contamination
+    if (storedSurveyId && normalizeId(storedSurveyId) !== normalizeId(surveyId)) {
+      return { 
+        isClean: false, 
+        reason: `Survey ID mismatch: localStorage has ${storedSurveyId}, trying to sync to ${surveyId}` 
+      }
+    }
+    
+    return { isClean: true }
+  }
+  
+  // Normalize company names for comparison - handles Unicode apostrophes, accents, etc.
+  const normalizeCompanyName = (name: string): string => {
+    return (name || '')
+      .toLowerCase()
+      .normalize('NFD')  // Decompose accented characters (é → e + ́)
+      .replace(/[\u0300-\u036f]/g, '')  // Remove accent marks
+      .replace(/[''`']/g, "'")  // Normalize all apostrophe types
+      .replace(/[^a-z0-9]/g, '')  // Keep only alphanumeric
+      .trim()
+  }
+  
+  const normalizedDataCompany = normalizeCompanyName(dataCompanyName)
+  const normalizedExpectedCompany = normalizeCompanyName(expectedCompanyName)
+  
+  console.log(`[AutoSync] Company check: data="${dataCompanyName}" (${normalizedDataCompany}), expected="${expectedCompanyName}" (${normalizedExpectedCompany})`)
+  
+  // Check for match (exact or substring after normalization)
+  const isMatch = normalizedDataCompany === normalizedExpectedCompany ||
+                  normalizedDataCompany.includes(normalizedExpectedCompany) ||
+                  normalizedExpectedCompany.includes(normalizedDataCompany)
+  
+  if (!isMatch) {
+    return { 
+      isClean: false, 
+      reason: `Company mismatch: data has "${dataCompanyName}" (${normalizedDataCompany}), expected "${expectedCompanyName}" (${normalizedExpectedCompany}) for survey ${surveyId}` 
+    }
+  }
+  
+  return { isClean: true }
+}
+
+// ============================================
+// LOG CONTAMINATION (NO CLEARING)
+// *** CRITICAL: This LOGS the issue but does NOT clear data ***
+// *** Clearing data was causing the L'Oreal 0% bug ***
+// ============================================
+function logContaminationDetected(reason: string): void {
+  console.error(`🚨 CONTAMINATION DETECTED: ${reason}`)
+  console.warn('⚠️ Sync blocked to prevent data corruption. User should re-login.')
+  
+  // Dispatch event so UI can respond (e.g., show warning)
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('contamination-detected', { 
+      detail: { reason, timestamp: Date.now() } 
+    }))
+  }
+}
 
 // ============================================
 // CACHED AUTH STATE (for reliable unload access)
@@ -234,10 +369,10 @@ async function syncViaNetlifyFunction(surveyId: string, data: Record<string, any
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Unknown error' }))
       
-      // 409 = stale data, DB is newer - this is actually OK, don't retry
+      // 409 = stale data OR company mismatch - don't retry
       if (response.status === 409) {
-        console.warn('[AutoSync] DB has newer data, skipping sync:', error)
-        return true // Consider it "success" - we don't want to overwrite newer data
+        console.warn('[AutoSync] Sync rejected (stale or mismatch):', error)
+        return true // Consider it "success" - we don't want to retry bad data
       }
       
       console.error('[AutoSync] Netlify function error:', error)
@@ -274,6 +409,13 @@ async function checkIsFoundingPartner(surveyId: string): Promise<boolean> {
 async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
   const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
   console.log('🎫 AUTO-SYNC: Syncing comp\'d user:', normalized)
+  
+  // *** CONTAMINATION CHECK ***
+  const contamCheck = await checkForContamination(normalized)
+  if (!contamCheck.isClean) {
+    logContaminationDetected(contamCheck.reason!)
+    return false
+  }
   
   const { data: updateData, hasData } = collectAllSurveyData()
   
@@ -316,8 +458,12 @@ async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
 async function syncFPToSupabase(surveyId: string): Promise<boolean> {
   console.log('🏢 AUTO-SYNC: Syncing FP data for:', surveyId)
   
-  // Skip contamination check - it was causing false positives due to Unicode differences
-  // Data integrity is maintained by survey_id matching instead
+  // *** CONTAMINATION CHECK - THIS IS THE CRITICAL FIX ***
+  const contamCheck = await checkForContamination(surveyId)
+  if (!contamCheck.isClean) {
+    logContaminationDetected(contamCheck.reason!)
+    return false
+  }
   
   const { data: updateData, hasData } = collectAllSurveyData()
   
@@ -438,6 +584,16 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
 async function syncToSupabase(): Promise<boolean> {
   const surveyId = localStorage.getItem('survey_id') || ''
   
+  // Early exit if no survey_id
+  if (!surveyId) {
+    // Check if there's a regular user session
+    const { data: sessionData } = await supabase.auth.getSession()
+    if (sessionData?.session?.user) {
+      return await syncRegularUserToSupabase()
+    }
+    return true
+  }
+  
   dispatchSyncEvent('start')
   
   try {
@@ -495,6 +651,14 @@ async function processPendingOps(): Promise<void> {
       continue
     }
     
+    // *** CONTAMINATION CHECK before retrying ***
+    const contamCheck = await checkForContamination(op.surveyId)
+    if (!contamCheck.isClean) {
+      console.warn(`⚠️ AUTO-SYNC: Contamination detected for pending op ${op.surveyId}, removing`)
+      removePendingOp(op.surveyId)
+      continue
+    }
+    
     // For regular users, we need a fresh token (old one may have expired)
     let accessToken = op.accessToken
     if (op.userType === 'regular') {
@@ -535,6 +699,14 @@ function syncWithBeacon(): void {
   }
   
   if (!surveyId) return
+  
+  // *** SIMPLE CONTAMINATION CHECK for beacon (sync only, no async imports) ***
+  // Just check if localStorage survey_id matches what we're trying to sync
+  const storedSurveyId = localStorage.getItem('survey_id') || ''
+  if (storedSurveyId && normalizeId(storedSurveyId) !== normalizeId(surveyId)) {
+    console.error('🚨 BEACON: Survey ID mismatch, NOT syncing')
+    return // Don't sync - let server-side check handle it
+  }
   
   const { data: updateData, hasData } = collectAllSurveyData()
   if (!hasData) return
@@ -769,6 +941,12 @@ export default function AutoDataSync() {
     (window as any).getCachedAuth = () => {
       console.log('[AutoSync] Cached auth:', { userId: cachedUserId, hasToken: !!cachedAccessToken })
       return { userId: cachedUserId, hasToken: !!cachedAccessToken }
+    }
+    (window as any).checkContamination = async () => {
+      const surveyId = localStorage.getItem('survey_id') || ''
+      const result = await checkForContamination(surveyId)
+      console.log('[AutoSync] Contamination check:', result)
+      return result
     }
   }, [])
   
