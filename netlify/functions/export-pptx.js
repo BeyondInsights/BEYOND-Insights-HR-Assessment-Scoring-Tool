@@ -22,11 +22,11 @@ exports.handler = async (event) => {
     const proto = event.headers['x-forwarded-proto'] || 'https';
     const origin = `${proto}://${host}`;
 
-    // IMPORTANT: this uses the real report (not .ppt-slide templates)
-    // mode=pptreport triggers a 1280px-wide capture-friendly layout
+    // IMPORTANT: render the real report in capture-friendly mode
+    // Your report page must support mode=pptreport (CSS/layout tweaks)
     const url = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1&mode=pptreport`;
 
-const browserlessFn = `
+    const browserlessFn = `
 export default async function ({ page, context }) {
   const { url } = context;
 
@@ -38,11 +38,38 @@ export default async function ({ page, context }) {
 
   await page.waitForSelector('#report-root', { timeout: 60000 });
 
-  // Force page to be scrollable (prevents "stuck at top" captures)
+  // Force deterministic capture: NO scrolling. We translate the report vertically.
   await page.addStyleTag({
     content: \`
-      html, body { height: auto !important; overflow: visible !important; }
-      * { scroll-behavior: auto !important; }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        overflow: hidden !important; /* prevent scroll dependency */
+      }
+
+      /* Lock report canvas width to viewport */
+      #report-root {
+        width: 1280px !important;
+        max-width: 1280px !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        transform: translateY(0px);
+        will-change: transform;
+      }
+
+      /* Hide any UI chrome */
+      .no-print { display: none !important; }
+      .sticky, [class*="sticky"], .fixed { position: static !important; }
+
+      /* Ensure no clipped content from scroll boxes */
+      [class*="overflow-y-auto"], [class*="overflow-auto"] {
+        overflow: visible !important;
+        max-height: none !important;
+      }
+
+      /* If PPT template slides exist anywhere, hide them */
+      .ppt-slides-container, .ppt-slide { display: none !important; }
     \`
   });
 
@@ -53,65 +80,26 @@ export default async function ({ page, context }) {
     });
   } catch (e) {}
 
-  // Compute total scroll height (use document scroll height)
+  // Measure how tall the report is
   const totalHeight = await page.evaluate(() => {
-    const se = document.scrollingElement || document.documentElement;
-    return Math.max(
-      se.scrollHeight,
-      document.documentElement.scrollHeight,
-      document.body.scrollHeight
-    );
+    const el = document.querySelector('#report-root');
+    return el ? el.scrollHeight : document.body.scrollHeight;
   });
 
-  const maxSlides = 25;
+  const maxSlides = 25; // adjust if needed
   const slideCount = Math.min(maxSlides, Math.ceil(totalHeight / H));
-
-  // Helper to scroll reliably (window scroll + fallback to #report-root if needed)
-  async function scrollToY(y) {
-    // Primary: scrollingElement
-    await page.evaluate((yy) => {
-      const se = document.scrollingElement || document.documentElement;
-      se.scrollTop = yy;
-      window.scrollTo(0, yy);
-      document.documentElement.scrollTop = yy;
-      document.body.scrollTop = yy;
-    }, y);
-
-    await new Promise(r => setTimeout(r, 220));
-
-    // Verify scroll moved; if not, try scrolling #report-root (if it is scrollable)
-    const moved = await page.evaluate((yy) => {
-      const se = document.scrollingElement || document.documentElement;
-      const cur = se.scrollTop || window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-      return Math.abs(cur - yy) < 4; // close enough
-    }, y);
-
-    if (!moved) {
-      await page.evaluate((yy) => {
-        const el = document.querySelector('#report-root');
-        if (!el) return;
-        // If report-root is the scroll container, scroll it
-        if (el.scrollHeight > el.clientHeight) {
-          el.scrollTop = yy;
-        }
-      }, y);
-      await new Promise(r => setTimeout(r, 220));
-    }
-  }
-
-  // Start at top
-  await scrollToY(0);
 
   const results = [];
   for (let i = 0; i < slideCount; i++) {
     const y = i * H;
-    await scrollToY(y);
 
-    // Debug: capture the current scrollTop to ensure we are moving
-    const debugScroll = await page.evaluate(() => {
-      const se = document.scrollingElement || document.documentElement;
-      return se.scrollTop || window.scrollY || 0;
-    });
+    // Move report UP by y pixels (no scrolling)
+    await page.evaluate((yy) => {
+      const el = document.querySelector('#report-root');
+      if (el) el.style.transform = \`translateY(-\${yy}px)\`;
+    }, y);
+
+    await new Promise(r => setTimeout(r, 120));
 
     const buf = await page.screenshot({
       type: 'jpeg',
@@ -119,8 +107,14 @@ export default async function ({ page, context }) {
       clip: { x: 0, y: 0, width: W, height: H }
     });
 
-    results.push({ index: i + 1, scrollTop: debugScroll, jpegB64: buf.toString('base64') });
+    results.push({ index: i + 1, jpegB64: buf.toString('base64') });
   }
+
+  // Reset transform
+  await page.evaluate(() => {
+    const el = document.querySelector('#report-root');
+    if (el) el.style.transform = 'translateY(0px)';
+  });
 
   return { data: { ok: true, results }, type: 'application/json' };
 }
@@ -148,6 +142,12 @@ export default async function ({ page, context }) {
       return json(500, { error: 'No slides captured' });
     }
 
+    const missing = data.results.filter(r => !r.jpegB64);
+    if (missing.length) {
+      return json(500, { error: 'One or more slide captures failed', missingCount: missing.length });
+    }
+
+    // Build PPTX
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_WIDE'; // 13.333 x 7.5 inches
 
