@@ -26,7 +26,7 @@ exports.handler = async (event) => {
     // mode=pptreport triggers a 1280px-wide capture-friendly layout
     const url = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1&mode=pptreport`;
 
-    const browserlessFn = `
+const browserlessFn = `
 export default async function ({ page, context }) {
   const { url } = context;
 
@@ -38,6 +38,14 @@ export default async function ({ page, context }) {
 
   await page.waitForSelector('#report-root', { timeout: 60000 });
 
+  // Force page to be scrollable (prevents "stuck at top" captures)
+  await page.addStyleTag({
+    content: \`
+      html, body { height: auto !important; overflow: visible !important; }
+      * { scroll-behavior: auto !important; }
+    \`
+  });
+
   // Best-effort wait for fonts
   try {
     await page.evaluate(async () => {
@@ -45,33 +53,73 @@ export default async function ({ page, context }) {
     });
   } catch (e) {}
 
-  // Ensure we start at top
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await new Promise(r => setTimeout(r, 250));
-
-  // Determine total height (prefer report-root)
+  // Compute total scroll height (use document scroll height)
   const totalHeight = await page.evaluate(() => {
-    const el = document.querySelector('#report-root');
-    const h = el ? el.scrollHeight : document.body.scrollHeight;
-    return Math.max(h, document.body.scrollHeight);
+    const se = document.scrollingElement || document.documentElement;
+    return Math.max(
+      se.scrollHeight,
+      document.documentElement.scrollHeight,
+      document.body.scrollHeight
+    );
   });
 
-  const maxSlides = 20;
+  const maxSlides = 25;
   const slideCount = Math.min(maxSlides, Math.ceil(totalHeight / H));
+
+  // Helper to scroll reliably (window scroll + fallback to #report-root if needed)
+  async function scrollToY(y) {
+    // Primary: scrollingElement
+    await page.evaluate((yy) => {
+      const se = document.scrollingElement || document.documentElement;
+      se.scrollTop = yy;
+      window.scrollTo(0, yy);
+      document.documentElement.scrollTop = yy;
+      document.body.scrollTop = yy;
+    }, y);
+
+    await new Promise(r => setTimeout(r, 220));
+
+    // Verify scroll moved; if not, try scrolling #report-root (if it is scrollable)
+    const moved = await page.evaluate((yy) => {
+      const se = document.scrollingElement || document.documentElement;
+      const cur = se.scrollTop || window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      return Math.abs(cur - yy) < 4; // close enough
+    }, y);
+
+    if (!moved) {
+      await page.evaluate((yy) => {
+        const el = document.querySelector('#report-root');
+        if (!el) return;
+        // If report-root is the scroll container, scroll it
+        if (el.scrollHeight > el.clientHeight) {
+          el.scrollTop = yy;
+        }
+      }, y);
+      await new Promise(r => setTimeout(r, 220));
+    }
+  }
+
+  // Start at top
+  await scrollToY(0);
 
   const results = [];
   for (let i = 0; i < slideCount; i++) {
     const y = i * H;
-    await page.evaluate((yy) => window.scrollTo(0, yy), y);
-    await new Promise(r => setTimeout(r, 200));
+    await scrollToY(y);
+
+    // Debug: capture the current scrollTop to ensure we are moving
+    const debugScroll = await page.evaluate(() => {
+      const se = document.scrollingElement || document.documentElement;
+      return se.scrollTop || window.scrollY || 0;
+    });
 
     const buf = await page.screenshot({
       type: 'jpeg',
-      quality: 78,
+      quality: 82,
       clip: { x: 0, y: 0, width: W, height: H }
     });
 
-    results.push({ index: i + 1, jpegB64: buf.toString('base64') });
+    results.push({ index: i + 1, scrollTop: debugScroll, jpegB64: buf.toString('base64') });
   }
 
   return { data: { ok: true, results }, type: 'application/json' };
