@@ -275,24 +275,62 @@ export default function LoginPage() {
         const { getFPCompanyName } = await import('@/lib/founding-partners')
         const companyName = getFPCompanyName(trimmedSurveyId)
         
-        // Check for existing record by survey_id - try BOTH exact and normalized
+        // Check for existing record by survey_id - try exact first, then normalized
         const normalizedId = trimmedSurveyId.replace(/-/g, '').toUpperCase()
-        const { data: existing } = await supabase
+        
+        // Try exact survey_id first (most common for FPs)
+        let existing = null
+        const { data: exactMatch } = await supabase
           .from('assessments')
           .select('*')
-          .or(`survey_id.eq.${trimmedSurveyId},survey_id.eq.${normalizedId},app_id.eq.${trimmedSurveyId},app_id.eq.${normalizedId}`)
+          .eq('survey_id', trimmedSurveyId)
           .maybeSingle()
+        
+        if (exactMatch) {
+          existing = exactMatch
+          console.log('Found FP by exact survey_id:', trimmedSurveyId)
+        } else {
+          // Try app_id with normalized version
+          const { data: normalizedMatch } = await supabase
+            .from('assessments')
+            .select('*')
+            .eq('app_id', normalizedId)
+            .maybeSingle()
+          
+          if (normalizedMatch) {
+            existing = normalizedMatch
+            console.log('Found FP by normalized app_id:', normalizedId)
+          }
+        }
         
         if (existing) {
           // Load existing data to localStorage
           console.log('Found existing FP record - loading ALL data and completion flags')
+          console.log('DB record keys:', Object.keys(existing))
+          console.log('firmographics_data exists:', !!existing.firmographics_data)
+          console.log('dimension1_data exists:', !!existing.dimension1_data)
           
           // Load DATA fields
-          if (existing.firmographics_data) localStorage.setItem('firmographics_data', JSON.stringify(existing.firmographics_data))
-          if (existing.general_benefits_data) localStorage.setItem('general_benefits_data', JSON.stringify(existing.general_benefits_data))
-          if (existing.current_support_data) localStorage.setItem('current_support_data', JSON.stringify(existing.current_support_data))
-          if (existing.cross_dimensional_data) localStorage.setItem('cross_dimensional_data', JSON.stringify(existing.cross_dimensional_data))
-          if (existing.employee_impact_data) localStorage.setItem('employee-impact-assessment_data', JSON.stringify(existing.employee_impact_data))
+          if (existing.firmographics_data) {
+            localStorage.setItem('firmographics_data', JSON.stringify(existing.firmographics_data))
+            console.log('  ✓ Set firmographics_data')
+          }
+          if (existing.general_benefits_data) {
+            localStorage.setItem('general_benefits_data', JSON.stringify(existing.general_benefits_data))
+            console.log('  ✓ Set general_benefits_data')
+          }
+          if (existing.current_support_data) {
+            localStorage.setItem('current_support_data', JSON.stringify(existing.current_support_data))
+            console.log('  ✓ Set current_support_data')
+          }
+          if (existing.cross_dimensional_data) {
+            localStorage.setItem('cross_dimensional_data', JSON.stringify(existing.cross_dimensional_data))
+            console.log('  ✓ Set cross_dimensional_data')
+          }
+          if (existing.employee_impact_data) {
+            localStorage.setItem('employee-impact-assessment_data', JSON.stringify(existing.employee_impact_data))
+            console.log('  ✓ Set employee_impact_data')
+          }
           for (let i = 1; i <= 13; i++) {
             const dimData = existing[`dimension${i}_data`]
             if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData))
