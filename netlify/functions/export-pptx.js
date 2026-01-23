@@ -15,7 +15,7 @@ function safeText(v) {
 
 exports.handler = async (event) => {
   try {
-    const surveyId = event.queryStringParameters?.surveyId;
+    const surveyId = event.queryStringParameters && event.queryStringParameters.surveyId;
     if (!surveyId) return json(400, { error: "Missing surveyId" });
 
     const token = process.env.BROWSERLESS_TOKEN;
@@ -24,231 +24,164 @@ exports.handler = async (event) => {
 
     const host = event.headers["x-forwarded-host"] || event.headers.host;
     const proto = event.headers["x-forwarded-proto"] || "https";
-    const origin = `${proto}://${host}`;
+    const origin = proto + "://" + host;
 
-    // Hybrid deck uses real report page; export=1 enables export styling.
-    // mode=pptdeck is optional; we inject CSS regardless.
-    const url = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1&mode=pptdeck`;
+    // Hybrid deck reads your report page and creates:
+    // - 6 editable summary slides
+    // - matrix image slide
+    // - appendix image pages
+    const reportUrl =
+      origin +
+      "/admin/reports/" +
+      encodeURIComponent(surveyId) +
+      "?export=1&mode=pptdeck";
 
-    const browserlessFn = `
-export default async function ({ page, context }) {
-  const { url } = context;
+    // IMPORTANT: Build Browserless function string without backtick nesting
+    const browserlessFn = [
+      "export default async function ({ page, context }) {",
+      "  const url = context.url;",
+      "  const W = 1920;",
+      "  const H = 1080;",
+      "  await page.setViewport({ width: W, height: H, deviceScaleFactor: 2 });",
+      "  await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });",
+      "  await page.waitForSelector('#report-root', { timeout: 60000 });",
 
-  // Appendix capture resolution
-  const W = 1920;
-  const H = 1080;
+      "  await page.addStyleTag({",
+      "    content: [",
+      "      'html, body { margin:0 !important; padding:0 !important; background:#fff !important; }',",
+      "      '.no-print { display:none !important; }',",
+      "      '.sticky, [class*=\"sticky\"], .fixed { position: static !important; }',",
+      "      '[class*=\"overflow-y-auto\"], [class*=\"overflow-auto\"] { overflow: visible !important; max-height: none !important; }',",
+      "      '.ppt-slides-container, .ppt-slide { display:none !important; }',",
+      "      '#report-root { width: 1280px !important; max-width: 1280px !important; margin: 0 auto !important; padding: 18px !important; }'",
+      "    ].join('\\n')",
+      "  });",
 
-  await page.setViewport({ width: W, height: H, deviceScaleFactor: 2 });
-  await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
-  await page.waitForSelector("#report-root", { timeout: 60000 });
+      "  try {",
+      "    await page.evaluate(async () => {",
+      "      if (document.fonts && document.fonts.ready) await document.fonts.ready;",
+      "    });",
+      "  } catch (e) {}",
 
-  // Deterministic export CSS
-  await page.addStyleTag({
-    content: \`
-      html, body { margin:0 !important; padding:0 !important; background:#fff !important; }
-      .no-print { display:none !important; }
-      .sticky, [class*="sticky"], .fixed { position: static !important; }
-      [class*="overflow-y-auto"], [class*="overflow-auto"] { overflow: visible !important; max-height: none !important; }
-      .ppt-slides-container, .ppt-slide { display:none !important; }
-      /* Keep a stable canvas width for consistent screenshots */
-      #report-root { width: 1280px !important; max-width: 1280px !important; margin: 0 auto !important; padding: 18px !important; }
-    \`
-  });
+      "  const model = await page.evaluate(() => {",
+      "    const root = document.querySelector('#report-root');",
+      "    if (!root) return null;",
+      "    const t = (el) => (el && el.textContent ? el.textContent.trim() : '');",
+      "    const numFrom = (s) => {",
+      "      const m = String(s || '').replace(/,/g,'').match(/-?\\d+(\\.\\d+)?/);",
+      "      return m ? Number(m[0]) : null;",
+      "    };",
+      "    const byExport = (key) => root.querySelector('[data-export=\"' + key + '\"]');",
 
-  // Best-effort wait for fonts
-  try {
-    await page.evaluate(async () => {
-      if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    });
-  } catch(e) {}
+      "    const companyName = t(byExport('company-name')) || t(root.querySelector('h2')) || 'Company';",
+      "    const compositeScore = numFrom(t(byExport('composite-score')));",
+      "    const tierName = t(byExport('tier-name')) || '';",
+      "    const metricCurrently = numFrom(t(byExport('metric-currently-offering')));",
+      "    const metricDev = numFrom(t(byExport('metric-in-development')));",
+      "    const metricGaps = numFrom(t(byExport('metric-gaps')));",
+      "    const metricLeading = numFrom(t(byExport('metric-leading-plus')));",
+      "    const execSummary = t(byExport('executive-summary-text')) || '';",
 
-  // ---------- SCRAPE USING DATA-EXPORT MARKERS WHEN AVAILABLE ----------
-  const model = await page.evaluate(() => {
-    const root = document.querySelector("#report-root");
-    if (!root) return null;
+      "    let dimRows = [];",
+      "    const table = root.querySelector('#dimension-performance-table') || root.querySelector('table');",
+      "    if (table) {",
+      "      const rows = Array.from(table.querySelectorAll('tbody tr'));",
+      "      dimRows = rows.map(r => {",
+      "        const tds = Array.from(r.querySelectorAll('td'));",
+      "        const vals = tds.map(td => t(td));",
+      "        const dimNum = numFrom(vals[0]);",
+      "        const name = vals[1] || '';",
+      "        const weight = numFrom(vals[2]);",
+      "        const score = vals.map(v => numFrom(v)).find(v => v !== null);",
+      "        const tier = vals.find(v => ['Exemplary','Leading','Progressing','Emerging','Developing'].includes(v)) || '';",
+      "        return { dimNum, name, weight, score, tier };",
+      "      }).filter(x => x.name);",
+      "    }",
 
-    const t = (el) => (el && el.textContent ? el.textContent.trim() : "");
-    const numFromLocal = (s) => {
-      const m = String(s || "").replace(/,/g,"").match(/-?\\d+(\\.\\d+)?/);
-      return m ? Number(m[0]) : null;
-    };
+      "    const scored = dimRows",
+      "      .map(d => ({ ...d, scoreN: (typeof d.score === 'number' ? d.score : null) }))",
+      "      .filter(d => d.scoreN !== null);",
+      "    const strengths = scored.slice().sort((a,b)=>b.scoreN-a.scoreN).slice(0,4);",
+      "    const growth = scored.slice().sort((a,b)=>a.scoreN-b.scoreN).slice(0,4);",
 
-    const byExport = (key) => root.querySelector(\`[data-export="\${key}"]\`);
+      "    let appendixStart = 0;",
+      "    let appendixEnd = root.scrollHeight;",
+      "    const sEl = document.querySelector('#appendix-start');",
+      "    const eEl = document.querySelector('#appendix-end');",
+      "    if (sEl) appendixStart = sEl.offsetTop || 0;",
+      "    if (eEl) appendixEnd = eEl.offsetTop || appendixEnd;",
+      "    appendixStart = Math.max(0, appendixStart);",
+      "    appendixEnd = Math.max(appendixStart + 1, appendixEnd);",
 
-    const companyName = t(byExport("company-name")) || t(root.querySelector("h2")) || "Company";
-    const compositeScore = numFromLocal(t(byExport("composite-score"))) ?? null;
-    const tierName = t(byExport("tier-name")) || "";
+      "    return {",
+      "      companyName, compositeScore, tierName,",
+      "      metricCurrently, metricDev, metricGaps, metricLeading,",
+      "      execSummary, dimRows, strengths, growth,",
+      "      appendixStart, appendixEnd",
+      "    };",
+      "  });",
 
-    const metricCurrently = numFromLocal(t(byExport("metric-currently-offering"))) ?? null;
-    const metricDev = numFromLocal(t(byExport("metric-in-development"))) ?? null;
-    const metricGaps = numFromLocal(t(byExport("metric-gaps"))) ?? null;
-    const metricLeading = numFromLocal(t(byExport("metric-leading-plus"))) ?? null;
+      "  if (!model) return { data: { ok: false, error: 'Could not read #report-root' }, type: 'application/json' };",
 
-    const execSummary = t(byExport("executive-summary-text")) || "";
+      "  let matrixPngB64 = null;",
+      "  const matrixEl = await page.$('#export-matrix');",
+      "  if (matrixEl) {",
+      "    const png = await matrixEl.screenshot({ type: 'png' });",
+      "    matrixPngB64 = png.toString('base64');",
+      "  }",
 
-    // Dimension table
-    let dimRows = [];
-    const table = root.querySelector("#dimension-performance-table") || byExport("dimension-performance-table") || root.querySelector("table");
-    if (table) {
-      const rows = Array.from(table.querySelectorAll("tbody tr"));
-      dimRows = rows.map(r => {
-        const tds = Array.from(r.querySelectorAll("td"));
-        const vals = tds.map(td => t(td));
-        const dimNum = numFromLocal(vals[0]) ?? null;
-        const name = vals[1] || "";
-        const weight = numFromLocal(vals[2]) ?? null;
-        const score = vals.map(v => numFromLocal(v)).find(v => v !== null) ?? null;
-        const tier = vals.find(v => ["Exemplary","Leading","Progressing","Emerging","Developing"].includes(v)) || "";
-        return { dimNum, name, weight, score, tier };
-      }).filter(x => x.name);
-    }
+      "  await page.evaluate(() => {",
+      "    const root = document.querySelector('#report-root');",
+      "    if (!root) return;",
+      "    const wrapper = document.createElement('div');",
+      "    wrapper.id = '__ppt_capture_viewport__';",
+      "    wrapper.style.position = 'fixed';",
+      "    wrapper.style.left = '0';",
+      "    wrapper.style.top = '0';",
+      "    wrapper.style.width = '1920px';",
+      "    wrapper.style.height = '1080px';",
+      "    wrapper.style.overflow = 'hidden';",
+      "    wrapper.style.background = '#ffffff';",
+      "    wrapper.style.zIndex = '999999';",
+      "    document.documentElement.style.overflow = 'hidden';",
+      "    document.body.style.overflow = 'hidden';",
+      "    document.body.appendChild(wrapper);",
+      "    wrapper.appendChild(root);",
+      "    root.style.position = 'absolute';",
+      "    root.style.left = '0px';",
+      "    root.style.top = '0px';",
+      "    root.style.width = '1280px';",
+      "    root.style.maxWidth = '1280px';",
+      "    root.style.margin = '0';",
+      "  });",
 
-    // Strengths/growth from dimRows scores
-    const scored = dimRows
-      .map(d => ({ ...d, scoreN: typeof d.score === "number" ? d.score : null }))
-      .filter(d => d.scoreN !== null);
+      "  const viewport = await page.$('#__ppt_capture_viewport__');",
+      "  const startY = Math.max(0, Number(model.appendixStart || 0));",
+      "  const endY = Math.max(startY + 1, Number(model.appendixEnd || 0));",
+      "  const step = 1080;",
+      "  const maxAppendixSlides = 18;",
+      "  const appendixImgs = [];",
 
-    const strengths = scored.slice().sort((a,b) => (b.scoreN - a.scoreN)).slice(0, 4);
-    const growth = scored.slice().sort((a,b) => (a.scoreN - b.scoreN)).slice(0, 4);
+      "  if (viewport) {",
+      "    for (let y = startY; y < endY && appendixImgs.length < maxAppendixSlides; y += step) {",
+      "      await page.evaluate((yy) => {",
+      "        const root = document.querySelector('#report-root');",
+      "        if (root) root.style.top = (-yy) + 'px';",
+      "      }, y);",
+      "      await new Promise(r => setTimeout(r, 160));",
+      "      const buf = await viewport.screenshot({ type: 'jpeg', quality: 92 });",
+      "      appendixImgs.push({ y, jpegB64: buf.toString('base64') });",
+      "    }",
+      "  }",
 
-    // Appendix start/end anchors
-    const appendixStartEl = document.querySelector("#appendix-start");
-    const appendixEndEl = document.querySelector("#appendix-end");
+      "  return { data: { ok: true, model, matrixPngB64, appendixImgs }, type: 'application/json' };",
+      "}",
+    ].join("\n");
 
-    let appendixStart = appendixStartEl ? (appendixStartEl.offsetTop || 0) : 0;
-    let appendixEnd = appendixEndEl ? (appendixEndEl.offsetTop || root.scrollHeight) : root.scrollHeight;
-
-    // Heuristic fallback if anchors not present
-    if (!appendixStartEl) {
-      const recHeader = Array.from(root.querySelectorAll("h2,h3,h4")).find(h => t(h).toLowerCase().includes("strategic recommendations"));
-      if (recHeader) appendixStart = recHeader.offsetTop || 0;
-    }
-    if (!appendixEndEl) {
-      const methHeader = Array.from(root.querySelectorAll("h2,h3,h4")).find(h => t(h).toLowerCase().includes("assessment methodology"));
-      if (methHeader) appendixEnd = Math.min(root.scrollHeight, (methHeader.offsetTop || root.scrollHeight) + 900);
-    }
-
-    appendixStart = Math.max(0, appendixStart);
-    appendixEnd = Math.max(appendixStart + 1, appendixEnd);
-
-    return {
-      companyName,
-      compositeScore,
-      tierName,
-      metricCurrently,
-      metricDev,
-      metricGaps,
-      metricLeading,
-      execSummary,
-      dimRows,
-      strengths,
-      growth,
-      appendixStart,
-      appendixEnd
-    };
-  });
-
-  if (!model) {
-    return { data: { ok: false, error: "Could not read #report-root" }, type: "application/json" };
-  }
-
-  // ---------- MATRIX IMAGE ----------
-  let matrixPngB64 = null;
-  const matrixEl = await page.$("#export-matrix");
-  if (matrixEl) {
-    const png = await matrixEl.screenshot({ type: "png" });
-    matrixPngB64 = png.toString("base64");
-  }
-
-  // ---------- APPENDIX CAPTURE ----------
-  await page.evaluate(() => {
-    const root = document.querySelector("#report-root");
-    if (!root) return;
-
-    const wrapper = document.createElement("div");
-    wrapper.id = "__ppt_capture_viewport__";
-    wrapper.style.position = "fixed";
-    wrapper.style.left = "0";
-    wrapper.style.top = "0";
-    wrapper.style.width = "1920px";
-    wrapper.style.height = "1080px";
-    wrapper.style.overflow = "hidden";
-    wrapper.style.background = "#ffffff";
-    wrapper.style.zIndex = "999999";
-
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-
-    document.body.appendChild(wrapper);
-    wrapper.appendChild(root);
-
-    root.style.position = "absolute";
-    root.style.left = "0px";
-    root.style.top = "0px";
-    root.style.width = "1280px";
-    root.style.maxWidth = "1280px";
-    root.style.margin = "0";
-  });
-
-  const viewport = await page.$("#__ppt_capture_viewport__");
-
-  const startY = Math.max(0, Number(model.appendixStart || 0));
-  const endY = Math.max(startY + 1, Number(model.appendixEnd || 0));
-
-  const anchors = await page.evaluate(() => {
-    const root = document.querySelector("#report-root");
-    if (!root) return [];
-    const els = Array.from(root.querySelectorAll(".ppt-break, .pdf-break-before"));
-    const pts = els.map(el => el.offsetTop).filter(v => typeof v === "number" && v >= 0);
-    return Array.from(new Set([0, ...pts])).sort((a,b) => a-b);
-  });
-
-  const step = 1080;
-  const maxAppendixSlides = 18;
-  const appendixImgs = [];
-
-  const snapToAnchor = (y) => {
-    if (!Array.isArray(anchors) || !anchors.length) return y;
-    let snapped = 0;
-    for (let i = anchors.length - 1; i >= 0; i--) {
-      if (anchors[i] <= y) { snapped = anchors[i]; break; }
-    }
-    return snapped;
-  };
-
-  if (viewport) {
-    const desired = [];
-    for (let y = startY; y < endY && desired.length < maxAppendixSlides; y += step) desired.push(y);
-
-    const snapped = desired.map(y => snapToAnchor(y));
-    const offsets = [];
-    for (const y of snapped) {
-      if (offsets.length === 0 || offsets[offsets.length - 1] !== y) offsets.push(y);
-    }
-
-    for (let i = 0; i < offsets.length; i++) {
-      const y = offsets[i];
-
-      await page.evaluate((yy) => {
-        const root = document.querySelector("#report-root");
-        if (root) root.style.top = (-yy) + "px";
-      }, y);
-
-      await new Promise(r => setTimeout(r, 160));
-
-      const buf = await viewport.screenshot({ type: "jpeg", quality: 92 });
-      appendixImgs.push({ y, jpegB64: buf.toString("base64") });
-    }
-  }
-
-  return { data: { ok: true, model, matrixPngB64, appendixImgs }, type: "application/json" };
-}
-`;
-
-    const res = await fetch(`${base}/function?token=${token}`, {
+    const res = await fetch(base + "/function?token=" + token, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: browserlessFn, context: { url } }),
+      body: JSON.stringify({ code: browserlessFn, context: { url: reportUrl } }),
     });
 
     if (!res.ok) {
@@ -257,19 +190,19 @@ export default async function ({ page, context }) {
     }
 
     const payload = await res.json();
-    const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+    const data = payload && payload.data && typeof payload.data === "object" ? payload.data : payload;
 
-    if (!data?.ok || !data.model) {
+    if (!data || !data.ok || !data.model) {
       return json(500, { error: "Unexpected Browserless payload", payload });
     }
 
     const m = data.model;
 
-    // ---------- BUILD PPTX ----------
+    // Build PPTX
     const pptx = new PptxGenJS();
     pptx.layout = "LAYOUT_WIDE";
     pptx.author = "Cancer and Careers";
-    pptx.title = `${safeText(m.companyName)} - Cancer Support Assessment`;
+    pptx.title = safeText(m.companyName) + " - Cancer Support Assessment";
 
     const inchesW = 13.333;
     const inchesH = 7.5;
@@ -287,7 +220,7 @@ export default async function ({ page, context }) {
       slide.addText("Index 2026 | Performance Assessment", { x: 0.8, y: 1.55, w: 12, h: 0.4, fontSize: 14, color: "CBD5E1" });
       slide.addText(safeText(m.companyName), { x: 0.8, y: 2.6, w: 12, h: 0.8, fontSize: 40, color: "FFFFFF", bold: true });
 
-      const score = typeof m.compositeScore === "number" ? m.compositeScore : "";
+      const score = typeof m.compositeScore === "number" ? m.compositeScore : "—";
       slide.addShape(pptx.ShapeType.roundRect, { x: 0.8, y: 4.0, w: 2.2, h: 1.3, fill: { color: "5B21B6" } });
       slide.addText(String(score), { x: 0.8, y: 4.08, w: 2.2, h: 0.9, fontSize: 44, color: "FFFFFF", bold: true, align: "center" });
       slide.addText("Composite Score", { x: 0.8, y: 5.05, w: 2.2, h: 0.3, fontSize: 11, color: "FFFFFF", align: "center" });
@@ -296,10 +229,10 @@ export default async function ({ page, context }) {
       slide.addText(safeText(m.tierName || ""), { x: 3.2, y: 4.28, w: 2.6, h: 0.5, fontSize: 16, color: "FFFFFF", bold: true, align: "center" });
     }
 
-    // Slide 2: Executive Summary metrics
+    // Slide 2: Metrics + summary
     {
       const slide = pptx.addSlide();
-      addTitle(slide, "Executive Summary", "Key metrics and overall performance snapshot");
+      addTitle(slide, "Executive Summary", "Key metrics and performance snapshot");
 
       const metric = (x, label, val) => {
         slide.addShape(pptx.ShapeType.roundRect, { x, y: 1.4, w: 3.0, h: 1.2, fill: { color: "F1F5F9" }, line: { color: "E2E8F0" } });
@@ -313,27 +246,26 @@ export default async function ({ page, context }) {
       metric(10.3, "Dimensions at Leading+", m.metricLeading);
 
       const summary = safeText(m.execSummary || "");
-      if (summary) {
-        slide.addShape(pptx.ShapeType.roundRect, { x: 0.7, y: 2.9, w: 12.0, h: 4.3, fill: { color: "FFFFFF" }, line: { color: "E2E8F0" } });
-        slide.addText(summary, { x: 1.0, y: 3.15, w: 11.4, h: 4.0, fontSize: 12, color: "334155" });
-      } else {
-        slide.addText("Detailed narrative and recommendations are included in the appendix.", { x: 0.7, y: 3.1, w: 12, h: 0.5, fontSize: 12, color: "475569" });
-      }
+      slide.addShape(pptx.ShapeType.roundRect, { x: 0.7, y: 2.9, w: 12.0, h: 4.3, fill: { color: "FFFFFF" }, line: { color: "E2E8F0" } });
+      slide.addText(
+        summary || "Detailed narrative and recommendations are included in the appendix.",
+        { x: 1.0, y: 3.15, w: 11.4, h: 4.0, fontSize: 12, color: "334155" }
+      );
     }
 
-    // Slide 3: Dimension Performance (editable table)
+    // Slide 3: Dimension Performance (editable)
     {
       const slide = pptx.addSlide();
-      addTitle(slide, "Dimension Performance", "Scores by dimension (weight, performance, tier)");
+      addTitle(slide, "Dimension Performance", "Scores by dimension");
 
       const rows = [];
       rows.push(["#", "Dimension", "Wt", "Score", "Tier"]);
 
       const dimRows = Array.isArray(m.dimRows) ? m.dimRows : [];
-      const top13 = dimRows.slice(0, 13).map(d => ([
-        d.dimNum ? `D${d.dimNum}` : "",
+      const top13 = dimRows.slice(0, 13).map((d) => ([
+        d.dimNum ? "D" + d.dimNum : "",
         safeText(d.name),
-        (typeof d.weight === "number" ? `${d.weight}%` : ""),
+        (typeof d.weight === "number" ? d.weight + "%" : ""),
         (typeof d.score === "number" ? String(d.score) : ""),
         safeText(d.tier)
       ]));
@@ -350,13 +282,13 @@ export default async function ({ page, context }) {
       });
     }
 
-    // Slide 4: Matrix (image)
+    // Slide 4: Matrix image
     {
       const slide = pptx.addSlide();
       addTitle(slide, "Strategic Priority Matrix", "Performance vs strategic importance");
       if (data.matrixPngB64) {
         slide.addImage({
-          data: `data:image/png;base64,${data.matrixPngB64}`,
+          data: "data:image/png;base64," + data.matrixPngB64,
           x: 0.6,
           y: 1.25,
           w: 12.1,
@@ -367,10 +299,10 @@ export default async function ({ page, context }) {
       }
     }
 
-    // Slide 5: Strengths & Priority Improvements
+    // Slide 5: Strengths & improvements
     {
       const slide = pptx.addSlide();
-      addTitle(slide, "Strengths & Priority Improvements", "Top opportunities to maintain and improve");
+      addTitle(slide, "Strengths & Priority Improvements", "Highest and lowest scoring dimensions");
 
       const strengths = Array.isArray(m.strengths) ? m.strengths : [];
       const growth = Array.isArray(m.growth) ? m.growth : [];
@@ -378,27 +310,31 @@ export default async function ({ page, context }) {
       slide.addShape(pptx.ShapeType.roundRect, { x: 0.7, y: 1.35, w: 6.0, h: 5.9, fill: { color: "ECFDF5" }, line: { color: "A7F3D0" } });
       slide.addText("Areas of Excellence", { x: 1.0, y: 1.55, w: 5.5, h: 0.3, fontSize: 14, color: "047857", bold: true });
       slide.addText(
-        strengths.map(s => `• ${safeText(s.name)} (${s.scoreN ?? s.score ?? ""})`).join("\n") || "—",
+        strengths.map(s => "• " + safeText(s.name) + " (" + safeText(s.scoreN ?? s.score) + ")").join("\n") || "—",
         { x: 1.0, y: 1.95, w: 5.5, h: 5.0, fontSize: 12, color: "065F46" }
       );
 
       slide.addShape(pptx.ShapeType.roundRect, { x: 6.9, y: 1.35, w: 5.8, h: 5.9, fill: { color: "FFFBEB" }, line: { color: "FDE68A" } });
       slide.addText("Priority Improvements", { x: 7.2, y: 1.55, w: 5.2, h: 0.3, fontSize: 14, color: "B45309", bold: true });
       slide.addText(
-        growth.map(g => `• ${safeText(g.name)} (${g.scoreN ?? g.score ?? ""})`).join("\n") || "—",
+        growth.map(g => "• " + safeText(g.name) + " (" + safeText(g.scoreN ?? g.score) + ")").join("\n") || "—",
         { x: 7.2, y: 1.95, w: 5.2, h: 5.0, fontSize: 12, color: "92400E" }
       );
     }
 
-    // Slide 6: Roadmap (generic, appendix has detail)
+    // Slide 6: How CAC can help
     {
       const slide = pptx.addSlide();
-      addTitle(slide, "Implementation Roadmap", "Phased approach to strengthen capabilities");
-      slide.addShape(pptx.ShapeType.roundRect, { x: 0.7, y: 1.35, w: 12.0, h: 5.9, fill: { color: "F8FAFC" }, line: { color: "E2E8F0" } });
+      slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: inchesW, h: 1.2, fill: { color: "1E293B" } });
+      slide.addText("How Cancer and Careers Can Help", { x: 0.7, y: 0.35, w: 12, h: 0.5, fontSize: 24, color: "FFFFFF", bold: true });
+
       slide.addText(
-        "See the appendix for the detailed phased roadmap aligned to your highest-weight and lowest-performing dimensions.",
-        { x: 1.0, y: 1.75, w: 11.4, h: 1.0, fontSize: 14, color: "334155" }
+        "Tailored consulting to benchmark, prioritize, and implement improvements across policy, navigation, and manager enablement.",
+        { x: 0.7, y: 1.6, w: 12, h: 0.8, fontSize: 12, color: "475569" }
       );
+
+      slide.addShape(pptx.ShapeType.roundRect, { x: 0.7, y: 2.7, w: 12.0, h: 1.1, fill: { color: "F5F3FF" }, line: { color: "E9D5FF" } });
+      slide.addText("consulting@cancerandcareers.org", { x: 1.0, y: 3.0, w: 11.4, h: 0.6, fontSize: 18, color: "5B21B6", bold: true });
     }
 
     // Slide 7: Appendix title
@@ -414,7 +350,7 @@ export default async function ({ page, context }) {
     for (const img of appendixImgs) {
       const slide = pptx.addSlide();
       slide.addImage({
-        data: `data:image/jpeg;base64,${img.jpegB64}`,
+        data: "data:image/jpeg;base64," + img.jpegB64,
         x: 0,
         y: 0,
         w: 13.333,
@@ -428,7 +364,7 @@ export default async function ({ page, context }) {
       statusCode: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        "Content-Disposition": \`attachment; filename="Report_\${surveyId}.pptx"\`,
+        "Content-Disposition": "attachment; filename=\\"Report_" + surveyId + ".pptx\\"",
         "Cache-Control": "no-store",
       },
       body: outB64,
