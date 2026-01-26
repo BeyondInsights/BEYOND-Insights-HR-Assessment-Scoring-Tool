@@ -686,8 +686,18 @@ async function processPendingOps(): Promise<void> {
 // ============================================
 // BEACON SYNC FOR PAGE CLOSE
 // Uses cached userId if no survey_id (for regular users)
+// *** ALSO RESPECTS DISABLED PATHS ***
 // ============================================
 function syncWithBeacon(): void {
+  // *** CRITICAL: Check if current page is in disabled paths ***
+  if (typeof window !== 'undefined') {
+    const currentPath = window.location.pathname
+    if (isAutoSyncDisabled(currentPath)) {
+      console.log('👋 AUTO-SYNC: Beacon skipped - on disabled path:', currentPath)
+      return
+    }
+  }
+  
   // Get surveyId - try localStorage first, then cached userId for regular users
   let surveyId = localStorage.getItem('survey_id') || ''
   let accessToken: string | null = null
@@ -782,6 +792,28 @@ export async function forceSyncNow(): Promise<boolean> {
 }
 
 // ============================================
+// PATHS WHERE AUTO-SYNC IS DISABLED
+// These are read-only pages - admin viewing data, NOT editing
+// ============================================
+const DISABLED_PATHS = [
+  '/admin',           // All admin pages
+  '/report/',         // Interactive report pages (read-only)
+  '/scoring',         // Scoring page
+]
+
+function isAutoSyncDisabled(pathname: string): boolean {
+  if (!pathname) return true
+  
+  // Check if current path starts with any disabled path
+  for (const disabledPath of DISABLED_PATHS) {
+    if (pathname.startsWith(disabledPath)) {
+      return true
+    }
+  }
+  return false
+}
+
+// ============================================
 // COMPONENT
 // ============================================
 export default function AutoDataSync() {
@@ -792,6 +824,12 @@ export default function AutoDataSync() {
   const retryInterval = useRef<NodeJS.Timeout | null>(null)
   
   const doSync = useCallback(async (reason: string) => {
+    // *** CRITICAL: NEVER sync on admin/report pages ***
+    if (isAutoSyncDisabled(pathname || '')) {
+      // Don't even log - just silently skip
+      return
+    }
+    
     if (syncInProgress.current) {
       return
     }
@@ -804,7 +842,7 @@ export default function AutoDataSync() {
     } finally {
       syncInProgress.current = false
     }
-  }, [])
+  }, [pathname])
   
   // IMMEDIATE sync on mount + setup auth state listener
   useEffect(() => {
