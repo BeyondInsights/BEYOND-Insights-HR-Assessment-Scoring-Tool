@@ -867,20 +867,20 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         )}
         
         {/* Legend - below chart */}
-        <div className="mt-3 pt-4 border-t border-slate-200">
-          <div className="matrix-legend flex flex-wrap justify-center gap-x-3 gap-y-2" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px 12px', overflow: 'visible' }}>
+        <div className="mt-3 pt-4 border-t border-slate-200" style={{ overflow: 'visible' }}>
+          <div className="matrix-legend flex flex-wrap justify-center gap-x-3 gap-y-2" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px 12px', overflow: 'visible', width: '100%' }}>
             {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
               <div 
                 key={d.dim} 
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all cursor-pointer ${hoveredDim === d.dim ? 'bg-slate-200 shadow-sm' : 'hover:bg-slate-100'}`}
-                style={{ flexShrink: 0, overflow: 'visible' }}
+                style={{ flexShrink: 0, overflow: 'visible', display: 'inline-flex' }}
                 onMouseEnter={() => setHoveredDim(d.dim)}
                 onMouseLeave={() => setHoveredDim(null)}
               >
-                <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score), flexShrink: 0, minWidth: '20px' }}>
+                <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score), flexShrink: 0, minWidth: '20px', width: '20px', height: '20px' }}>
                   {d.dim}
                 </span>
-                <span className="text-xs text-slate-700 font-medium" style={{ whiteSpace: 'nowrap', overflow: 'visible', textOverflow: 'clip' }}>{DIMENSION_SHORT_NAMES[d.dim]}</span>
+                <span className="text-xs text-slate-700 font-medium" style={{ whiteSpace: 'nowrap', overflow: 'visible', textOverflow: 'clip', display: 'inline' }}>{DIMENSION_SHORT_NAMES[d.dim]}</span>
               </div>
             ))}
           </div>
@@ -936,6 +936,11 @@ export default function ExportReportPage() {
     item2?: { title: string; bullets: string[] };
     item3?: { title: string; bullets: string[] };
     item4?: { title: string; bullets: string[] };
+  }>({});
+  const [customRoadmapTimeframes, setCustomRoadmapTimeframes] = useState<{
+    phase1?: string;
+    phase2?: string;
+    phase3?: string;
   }>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
@@ -1012,6 +1017,7 @@ export default function ExportReportPage() {
             customCrossRecommendations,
             customRoadmap,
             customCacHelp,
+            customRoadmapTimeframes,
             lastEditedAt: new Date().toISOString()
           })
         })
@@ -1055,6 +1061,7 @@ export default function ExportReportPage() {
         if (saved.customCrossRecommendations) setCustomCrossRecommendations(saved.customCrossRecommendations);
         if (saved.customRoadmap) setCustomRoadmap(saved.customRoadmap);
         if (saved.customCacHelp) setCustomCacHelp(saved.customCacHelp);
+        if (saved.customRoadmapTimeframes) setCustomRoadmapTimeframes(saved.customRoadmapTimeframes);
       } catch (e) {
         console.error('Error loading customizations:', e);
       }
@@ -1610,14 +1617,21 @@ export default function ExportReportPage() {
         }
         .landscape-pdf-mode .ppt-slides-container {
           display: block !important;
+          position: relative !important;
+          left: 0 !important;
         }
         .landscape-pdf-mode .ppt-slide {
           display: block !important;
-          width: 100vw !important;
-          height: 100vh !important;
+          position: relative !important;
+          left: 0 !important;
+          width: 100% !important;
+          height: auto !important;
+          min-height: 700px !important;
           page-break-after: always !important;
           break-after: page !important;
           box-sizing: border-box !important;
+          padding: 40px !important;
+          margin-bottom: 0 !important;
         }
         .landscape-pdf-mode .ppt-slide:last-child {
           page-break-after: auto !important;
@@ -2498,54 +2512,31 @@ export default function ExportReportPage() {
             <p className="text-slate-400 text-sm mt-1">Your phased approach to strengthen workplace cancer support</p>
           </div>
           <div className="px-10 py-8">
-            {/* Timeline visualization */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-500">NOW</span>
-                <span className="text-xs font-medium text-slate-500">6 MONTHS</span>
-                <span className="text-xs font-medium text-slate-500">12 MONTHS</span>
-                <span className="text-xs font-medium text-slate-500">12+ MONTHS</span>
-              </div>
-              <div className="relative h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div className="absolute left-0 top-0 h-full w-1/3 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-l-full"></div>
-                <div className="absolute left-1/3 top-0 h-full w-1/3 bg-gradient-to-r from-blue-500 to-blue-400"></div>
-                <div className="absolute left-2/3 top-0 h-full w-1/3 bg-gradient-to-r from-violet-500 to-violet-400 rounded-r-full"></div>
-              </div>
-              <div className="flex justify-between mt-2">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                  <span className="text-xs text-slate-600">Quick Wins</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span className="text-xs text-slate-600">Foundation</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-violet-500"></div>
-                  <span className="text-xs text-slate-600">Enhancement</span>
-                </div>
-              </div>
-            </div>
-
             <div className="grid grid-cols-3 gap-6">
               {/* Phase 1 */}
               <div className="border-2 border-emerald-200 rounded-lg overflow-hidden shadow-sm">
                 <div className="bg-emerald-600 px-5 py-4">
                   <div className="flex items-center gap-3">
                     <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 font-bold text-lg shadow-md">1</span>
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-semibold text-white">Quick Wins</h4>
-                      <p className="text-emerald-100 text-xs">0-3 months</p>
+                      {editMode ? (
+                        <input
+                          type="text"
+                          value={customRoadmapTimeframes.phase1 || '0-3 months'}
+                          onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase1: e.target.value })); setHasUnsavedChanges(true); }}
+                          className="text-xs bg-emerald-500 text-white border border-emerald-400 rounded px-2 py-0.5 w-24 focus:outline-none"
+                        />
+                      ) : (
+                        <p className="text-emerald-100 text-xs">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="p-5 bg-emerald-50/50">
-                  <div className="flex items-center gap-2 mb-4">
-                    <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                    <p className="text-xs text-emerald-700 font-medium uppercase tracking-wide">
-                      Accelerate items already in progress
-                    </p>
-                  </div>
+                  <p className="text-xs text-emerald-700 font-medium uppercase tracking-wide mb-4">
+                    Accelerate items already in progress
+                  </p>
                   {editMode && <p className="text-xs text-amber-600 mb-2">(editable)</p>}
                   {editMode ? (
                     <div className="space-y-2">
@@ -2596,19 +2587,25 @@ export default function ExportReportPage() {
                 <div className="bg-blue-600 px-5 py-4">
                   <div className="flex items-center gap-3">
                     <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600 font-bold text-lg shadow-md">2</span>
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-semibold text-white">Foundation Building</h4>
-                      <p className="text-blue-100 text-xs">3-12 months</p>
+                      {editMode ? (
+                        <input
+                          type="text"
+                          value={customRoadmapTimeframes.phase2 || '3-12 months'}
+                          onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase2: e.target.value })); setHasUnsavedChanges(true); }}
+                          className="text-xs bg-blue-500 text-white border border-blue-400 rounded px-2 py-0.5 w-24 focus:outline-none"
+                        />
+                      ) : (
+                        <p className="text-blue-100 text-xs">{customRoadmapTimeframes.phase2 || '3-12 months'}</p>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="p-5 bg-blue-50/50">
-                  <div className="flex items-center gap-2 mb-4">
-                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                    <p className="text-xs text-blue-700 font-medium uppercase tracking-wide">
-                      Address high-weight dimension gaps
-                    </p>
-                  </div>
+                  <p className="text-xs text-blue-700 font-medium uppercase tracking-wide mb-4">
+                    Address high-weight dimension gaps
+                  </p>
                   {editMode && <p className="text-xs text-amber-600 mb-2">(editable)</p>}
                   {editMode ? (
                     <div className="space-y-2">
@@ -2659,19 +2656,25 @@ export default function ExportReportPage() {
                 <div className="bg-violet-600 px-5 py-4">
                   <div className="flex items-center gap-3">
                     <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-violet-600 font-bold text-lg shadow-md">3</span>
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-semibold text-white">Long-Term Enhancement</h4>
-                      <p className="text-violet-100 text-xs">12+ months</p>
+                      {editMode ? (
+                        <input
+                          type="text"
+                          value={customRoadmapTimeframes.phase3 || '12+ months'}
+                          onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase3: e.target.value })); setHasUnsavedChanges(true); }}
+                          className="text-xs bg-violet-500 text-white border border-violet-400 rounded px-2 py-0.5 w-24 focus:outline-none"
+                        />
+                      ) : (
+                        <p className="text-violet-100 text-xs">{customRoadmapTimeframes.phase3 || '12+ months'}</p>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="p-5 bg-violet-50/50">
-                  <div className="flex items-center gap-2 mb-4">
-                    <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                    <p className="text-xs text-violet-700 font-medium uppercase tracking-wide">
-                      Achieve excellence across all dimensions
-                    </p>
-                  </div>
+                  <p className="text-xs text-violet-700 font-medium uppercase tracking-wide mb-4">
+                    Achieve excellence across all dimensions
+                  </p>
                   {editMode && <p className="text-xs text-amber-600 mb-2">(editable)</p>}
                   {editMode ? (
                     <div className="space-y-2">
