@@ -905,6 +905,11 @@ export default function ExportReportPage() {
   const [customInsights, setCustomInsights] = useState<Record<number, { insight: string; cacHelp: string }>>({});
   const [customRecommendations, setCustomRecommendations] = useState<Record<number, string>>({});
   const [customCrossRecommendations, setCustomCrossRecommendations] = useState<Record<number, string>>({});
+  const [customRoadmap, setCustomRoadmap] = useState<{
+    phase1?: { useCustom: boolean; items: string[] };
+    phase2?: { useCustom: boolean; items: string[] };
+    phase3?: { useCustom: boolean; items: string[] };
+  } | null>(null);
 
   useEffect(() => {
     // CRITICAL: Reset ALL state when surveyId changes
@@ -916,6 +921,10 @@ export default function ExportReportPage() {
     setElementDetails(null);
     setPercentileRank(null);
     setTotalCompanies(0);
+    setCustomInsights({});
+    setCustomRecommendations({});
+    setCustomCrossRecommendations({});
+    setCustomRoadmap(null);
     
     async function loadData() {
       try {
@@ -929,6 +938,21 @@ export default function ExportReportPage() {
           setError(`Company not found: ${assessmentError?.message || 'No data'}`);
           setLoading(false);
           return;
+        }
+        
+        // Load customizations from database
+        if (assessment?.report_customizations) {
+          try {
+            const saved = typeof assessment.report_customizations === 'string' 
+              ? JSON.parse(assessment.report_customizations)
+              : assessment.report_customizations;
+            if (saved.customInsights) setCustomInsights(saved.customInsights);
+            if (saved.customCrossRecommendations) setCustomCrossRecommendations(saved.customCrossRecommendations);
+            if (saved.customRecommendations) setCustomRecommendations(saved.customRecommendations);
+            if (saved.customRoadmap) setCustomRoadmap(saved.customRoadmap);
+          } catch (e) {
+            console.error('Error parsing report_customizations:', e);
+          }
         }
         
         const { data: allAssessments } = await supabase.from('assessments').select('*');
@@ -2054,18 +2078,24 @@ export default function ExportReportPage() {
                 </div>
                 <div className="p-5">
                   <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Accelerate items already in progress</p>
-                  {quickWinItems.length > 0 ? (
-                    <ul className="space-y-3">
-                      {quickWinItems.map((item, idx) => (
-                        <li key={idx} className="text-sm">
-                          <p className="text-slate-700">{item.name}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-slate-400 italic">Begin with communication and manager awareness initiatives</p>
-                  )}
+                  {(() => {
+                    const useCustom = customRoadmap?.phase1?.useCustom;
+                    const items = useCustom 
+                      ? (customRoadmap?.phase1?.items || []).map((name: string) => ({ name, dimNum: null }))
+                      : quickWinItems;
+                    return items.length > 0 ? (
+                      <ul className="space-y-3">
+                        {items.map((item: any, idx: number) => (
+                          <li key={idx} className="text-sm">
+                            <p className="text-slate-700">{item.name}</p>
+                            {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-slate-400 italic">Begin with communication and manager awareness initiatives</p>
+                    );
+                  })()}
                 </div>
               </div>
               
@@ -2082,18 +2112,24 @@ export default function ExportReportPage() {
                 </div>
                 <div className="p-5">
                   <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Address high-weight dimension gaps</p>
-                  {foundationItems.length > 0 ? (
-                    <ul className="space-y-3">
-                      {foundationItems.map((item, idx) => (
-                        <li key={idx} className="text-sm">
-                          <p className="text-slate-700">{item.name}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-slate-400 italic">Focus on navigation and insurance resources</p>
-                  )}
+                  {(() => {
+                    const useCustom = customRoadmap?.phase2?.useCustom;
+                    const items = useCustom 
+                      ? (customRoadmap?.phase2?.items || []).map((name: string) => ({ name, dimNum: null }))
+                      : foundationItems;
+                    return items.length > 0 ? (
+                      <ul className="space-y-3">
+                        {items.map((item: any, idx: number) => (
+                          <li key={idx} className="text-sm">
+                            <p className="text-slate-700">{item.name}</p>
+                            {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-slate-400 italic">Focus on navigation and insurance resources</p>
+                    );
+                  })()}
                 </div>
               </div>
               
@@ -2110,18 +2146,24 @@ export default function ExportReportPage() {
                 </div>
                 <div className="p-5">
                   <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Address remaining lower-priority gaps</p>
-                  {excellenceItems.length > 0 ? (
-                    <ul className="space-y-3">
-                      {excellenceItems.map((item, idx) => (
-                        <li key={idx} className="text-sm">
-                          <p className="text-slate-700">{item.name}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-slate-400 italic">Continue expanding strengths and monitoring program effectiveness</p>
-                  )}
+                  {(() => {
+                    const useCustom = customRoadmap?.phase3?.useCustom;
+                    const items = useCustom 
+                      ? (customRoadmap?.phase3?.items || []).map((name: string) => ({ name, dimNum: null }))
+                      : excellenceItems;
+                    return items.length > 0 ? (
+                      <ul className="space-y-3">
+                        {items.map((item: any, idx: number) => (
+                          <li key={idx} className="text-sm">
+                            <p className="text-slate-700">{item.name}</p>
+                            {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-slate-400 italic">Continue expanding strengths and monitoring program effectiveness</p>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -2402,8 +2444,11 @@ export default function ExportReportPage() {
                 <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>Immediate</p>
               </div>
               <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
-                {quickWinItems.slice(0, 5).map((item: any, i: number) => (
-                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                {(customRoadmap?.phase1?.useCustom 
+                  ? (customRoadmap?.phase1?.items || [])
+                  : quickWinItems.map((i: any) => i.name)
+                ).slice(0, 5).map((item: any, i: number) => (
+                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {typeof item === 'string' ? item : item.name}</p>
                 ))}
               </div>
             </div>
@@ -2413,8 +2458,11 @@ export default function ExportReportPage() {
                 <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>6-12 months</p>
               </div>
               <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
-                {foundationItems.slice(0, 5).map((item: any, i: number) => (
-                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                {(customRoadmap?.phase2?.useCustom 
+                  ? (customRoadmap?.phase2?.items || [])
+                  : foundationItems.map((i: any) => i.name)
+                ).slice(0, 5).map((item: any, i: number) => (
+                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {typeof item === 'string' ? item : item.name}</p>
                 ))}
               </div>
             </div>
@@ -2424,8 +2472,11 @@ export default function ExportReportPage() {
                 <p style={{ fontSize: '11px', color: '#CBD5E1', textDecoration: 'none' }}>12+ months</p>
               </div>
               <div style={{ background: '#F1F5F9', padding: '15px', borderRadius: '0 0 6px 6px', minHeight: '300px' }}>
-                {excellenceItems.slice(0, 5).map((item: any, i: number) => (
-                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {item.name}</p>
+                {(customRoadmap?.phase3?.useCustom 
+                  ? (customRoadmap?.phase3?.items || [])
+                  : excellenceItems.map((i: any) => i.name)
+                ).slice(0, 5).map((item: any, i: number) => (
+                  <p key={i} style={{ fontSize: '11px', color: '#1E293B', marginBottom: '8px', textDecoration: 'none' }}>• {typeof item === 'string' ? item : item.name}</p>
                 ))}
               </div>
             </div>
