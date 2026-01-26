@@ -28,7 +28,8 @@ exports.handler = async (event) => {
     }
 
     // IMPORTANT: mode=pdf ensures PPT slides are not printed
-    const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1&mode=pdf`;
+    // Pass orientation to page so it can adjust layout
+    const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1&mode=pdf&orientation=${orientation}`;
     console.log(`Generating PDF (${orientation}) for: ${reportUrl}`);
 
     const res = await fetch(`${base}/pdf?token=${token}`, {
