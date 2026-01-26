@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import Image from 'next/image';
 
 // ============================================
 // CONSTANTS
@@ -362,7 +360,6 @@ function DimensionDrillDown({
 // ============================================
 
 export default function PublicReportPage({ params }: { params: { token: string } }) {
-  const supabase = createClientComponentClient();
   const token = params.token;
   
   const [authenticated, setAuthenticated] = useState(false);
@@ -373,53 +370,49 @@ export default function PublicReportPage({ params }: { params: { token: string }
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [checkingPassword, setCheckingPassword] = useState(false);
+  const [authData, setAuthData] = useState<{ assessmentId: string; surveyId: string } | null>(null);
 
   // Check session auth on mount
   useEffect(() => {
     const auth = sessionStorage.getItem(`report_auth_${token}`);
-    if (auth === 'true') {
+    const savedAuthData = sessionStorage.getItem(`report_data_${token}`);
+    if (auth === 'true' && savedAuthData) {
       setAuthenticated(true);
+      setAuthData(JSON.parse(savedAuthData));
+    } else {
+      setLoading(false);
     }
   }, [token]);
 
-  // Load report data
+  // Load report data after authentication
   useEffect(() => {
     async function loadReport() {
-      if (!authenticated) {
-        setLoading(false);
+      if (!authenticated || !authData) {
         return;
       }
       
+      setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('assessments')
-          .select('*, scores:assessment_scores(*)')
-          .eq('public_token', token)
-          .single();
+        const res = await fetch('/.netlify/functions/get-public-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            assessmentId: authData.assessmentId,
+            surveyId: authData.surveyId
+          })
+        });
 
-        if (error || !data) {
-          setError('Report not found or link has expired');
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.error || 'Failed to load report');
           return;
         }
 
-        // Load benchmarks
-        const { data: benchmarks } = await supabase
-          .from('benchmarks')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        // Load element details
-        const { data: elementDetails } = await supabase
-          .from('element_details')
-          .select('*')
-          .eq('survey_id', data.survey_id);
-
         setReportData({
-          company: data,
-          benchmarks,
-          elementDetails: elementDetails || [],
+          company: data.company,
+          benchmarks: data.benchmarks,
+          elementDetails: data.elementDetails || [],
           scores: data.scores || []
         });
       } catch (err) {
@@ -431,32 +424,34 @@ export default function PublicReportPage({ params }: { params: { token: string }
     }
 
     loadReport();
-  }, [token, authenticated, supabase]);
+  }, [authenticated, authData]);
 
-  // Handle password submission
+  // Handle password submission via API
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setCheckingPassword(true);
     setPasswordError('');
 
     try {
-      const { data, error } = await supabase
-        .from('assessments')
-        .select('public_password')
-        .eq('public_token', token)
-        .single();
+      const res = await fetch('/.netlify/functions/verify-report-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password })
+      });
 
-      if (error || !data) {
-        setPasswordError('Report not found');
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPasswordError(data.error || 'Verification failed');
         return;
       }
 
-      if (data.public_password === password) {
-        sessionStorage.setItem(`report_auth_${token}`, 'true');
-        setAuthenticated(true);
-      } else {
-        setPasswordError('Incorrect password');
-      }
+      // Store auth state and assessment info
+      const authInfo = { assessmentId: data.assessmentId, surveyId: data.surveyId };
+      sessionStorage.setItem(`report_auth_${token}`, 'true');
+      sessionStorage.setItem(`report_data_${token}`, JSON.stringify(authInfo));
+      setAuthData(authInfo);
+      setAuthenticated(true);
     } catch (err) {
       setPasswordError('Error verifying password');
     } finally {
@@ -469,19 +464,18 @@ export default function PublicReportPage({ params }: { params: { token: string }
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
-          {/* Header with BI branding */}
+          {/* Header with BI branding - Clean text-based */}
           <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-8 py-6">
             <div className="flex items-center gap-4">
-              <Image 
-                src="/BI_LOGO_FINAL.png" 
-                alt="BEYOND Insights" 
-                width={50} 
-                height={50} 
-                className="object-contain"
-              />
+              {/* Clean SVG logo icon */}
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
               <div>
-                <h1 className="text-white font-bold text-xl">BEYOND Insights</h1>
-                <p className="text-slate-300 text-sm">Secure Report Access</p>
+                <h1 className="text-white font-bold text-xl tracking-tight">BEYOND Insights</h1>
+                <p className="text-slate-400 text-sm">Secure Report Access</p>
               </div>
             </div>
           </div>
@@ -505,7 +499,7 @@ export default function PublicReportPage({ params }: { params: { token: string }
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent text-lg tracking-wider"
                   placeholder="Enter report password"
                   autoFocus
                 />
