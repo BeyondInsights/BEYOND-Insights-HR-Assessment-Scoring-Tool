@@ -1363,7 +1363,7 @@ export default function ExportReportPage() {
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''}`}>
+    <div className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''} ${isLandscape ? 'landscape-mode' : ''}`}>
       <style jsx global>{`
         @media print { 
           @page { margin: 0.4in; size: letter; } 
@@ -1399,6 +1399,60 @@ export default function ExportReportPage() {
           max-width: 1280px !important;
           margin: 0 auto !important;
           padding: 20px !important;
+        }
+
+        /* Landscape PDF mode - expand content to use full width */
+        .landscape-mode,
+        .landscape-mode body,
+        .landscape-mode #report-root {
+          max-width: 100% !important;
+          width: 100% !important;
+        }
+        .landscape-mode #report-root {
+          padding-left: 40px !important;
+          padding-right: 40px !important;
+        }
+        .landscape-mode .max-w-6xl,
+        .landscape-mode [class*="max-w-"] {
+          max-width: 100% !important;
+        }
+        /* Make section containers full width */
+        .landscape-mode .rounded-lg,
+        .landscape-mode .bg-white,
+        .landscape-mode .bg-slate-800 {
+          width: 100% !important;
+        }
+        /* Expand grids for landscape */
+        .landscape-mode .grid {
+          width: 100% !important;
+        }
+        .landscape-mode .grid.grid-cols-2 {
+          gap: 40px !important;
+        }
+        .landscape-mode .grid.grid-cols-3 {
+          gap: 30px !important;
+        }
+        .landscape-mode .grid.grid-cols-4 {
+          gap: 24px !important;
+        }
+        /* Ensure SVG charts expand */
+        .landscape-mode svg {
+          max-width: 100% !important;
+          width: 100% !important;
+        }
+        /* Allow callout boxes to be wider in landscape */
+        .landscape-mode .bg-purple-50,
+        .landscape-mode .bg-emerald-50,
+        .landscape-mode .bg-amber-50,
+        .landscape-mode .bg-violet-50 {
+          min-width: 200px !important;
+          white-space: normal !important;
+        }
+        /* Ensure text doesn't wrap badly */
+        .landscape-mode p,
+        .landscape-mode span {
+          white-space: normal !important;
+          word-wrap: break-word !important;
         }
 
         .bg-gray-50 {
@@ -1593,7 +1647,7 @@ export default function ExportReportPage() {
         )}
       </div>
 
-      <div ref={printRef} id="report-root" className="max-w-6xl mx-auto py-10 px-8">
+      <div ref={printRef} id="report-root" className={`mx-auto py-10 px-8 ${isLandscape ? 'max-w-full px-12' : 'max-w-6xl'}`}>
         
         {/* ============ HEADER ============ */}
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
