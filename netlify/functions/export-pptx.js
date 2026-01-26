@@ -244,32 +244,126 @@ exports.handler = async (event) => {
     }
 
     const pptBuffer = await pptx.write("nodebuffer");
+    
+    // Also generate PDF from the same slides
+    const PDFDocument = require('pdfkit');
+    const pdfDoc = new PDFDocument({
+      layout: 'landscape',
+      size: [960, 540], // 16:9 aspect ratio at reasonable resolution
+      margin: 0
+    });
+    
+    const pdfChunks = [];
+    pdfDoc.on('data', chunk => pdfChunks.push(chunk));
+    
+    for (const r of capData.results) {
+      // Add a new page for each slide (except first)
+      if (pdfChunks.length > 0 || capData.results.indexOf(r) > 0) {
+        pdfDoc.addPage();
+      }
+      
+      // Add the image to fill the page
+      const imgBuffer = Buffer.from(r.jpegB64, 'base64');
+      pdfDoc.image(imgBuffer, 0, 0, { width: 960, height: 540 });
+    }
+    
+    pdfDoc.end();
+    
+    // Wait for PDF to finish
+    const pdfBuffer = await new Promise((resolve) => {
+      pdfDoc.on('end', () => {
+        resolve(Buffer.concat(pdfChunks));
+      });
+    });
 
     // Upload to Supabase
     const supabase = createClient(supabaseUrl, serviceKey);
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    const filePath = "ppt/" + surveyId + "/Report_" + surveyId + "_" + ts + ".pptx";
+    const pptFilePath = "ppt/" + surveyId + "/Report_" + surveyId + "_" + ts + ".pptx";
+    const pdfFilePath = "ppt/" + surveyId + "/Report_" + surveyId + "_" + ts + ".pdf";
 
-    const up = await supabase.storage.from(bucket).upload(filePath, pptBuffer, {
+    // Upload PPTX
+    const upPpt = await supabase.storage.from(bucket).upload(pptFilePath, pptBuffer, {
       contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
       upsert: true
     });
 
-    if (up.error) {
-      return { statusCode: 500, body: "Upload failed: " + up.error.message };
+    if (upPpt.error) {
+      return { statusCode: 500, body: "PPT Upload failed: " + upPpt.error.message };
+    }
+    
+    // Upload PDF
+    const upPdf = await supabase.storage.from(bucket).upload(pdfFilePath, pdfBuffer, {
+      contentType: "application/pdf",
+      upsert: true
+    });
+
+    if (upPdf.error) {
+      console.error('PDF upload failed (continuing with PPT):', upPdf.error.message);
     }
 
-    const signed = await supabase.storage.from(bucket).createSignedUrl(filePath, 3600);
-    if (signed.error) {
-      return { statusCode: 500, body: "Signed URL failed: " + signed.error.message };
+    // Get signed URLs for both
+    const signedPpt = await supabase.storage.from(bucket).createSignedUrl(pptFilePath, 3600);
+    const signedPdf = await supabase.storage.from(bucket).createSignedUrl(pdfFilePath, 3600);
+    
+    if (signedPpt.error) {
+      return { statusCode: 500, body: "Signed URL failed: " + signedPpt.error.message };
     }
 
-    console.log('PPT export success:', { slides: capData.results.length, file: filePath });
+    console.log('Export success:', { 
+      slides: capData.results.length, 
+      pptFile: pptFilePath,
+      pdfFile: pdfFilePath,
+      pdfUploaded: !upPdf.error
+    });
+
+    // Return HTML page that downloads both files
+    const downloadPage = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Downloading Report...</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f1f5f9; }
+    .container { text-align: center; background: white; padding: 40px 60px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    h1 { color: #1e293b; margin-bottom: 8px; }
+    p { color: #64748b; margin-bottom: 24px; }
+    .files { display: flex; gap: 16px; justify-content: center; }
+    a { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s; }
+    .ppt { background: #f97316; color: white; }
+    .ppt:hover { background: #ea580c; }
+    .pdf { background: #1e293b; color: white; }
+    .pdf:hover { background: #0f172a; }
+    .icon { width: 20px; height: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Report Ready!</h1>
+    <p>Your report has been generated in both formats.</p>
+    <div class="files">
+      <a href="${signedPpt.data.signedUrl}" class="ppt" download>
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        Download PowerPoint
+      </a>
+      ${signedPdf.data?.signedUrl ? `
+      <a href="${signedPdf.data.signedUrl}" class="pdf" download>
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        Download PDF
+      </a>` : ''}
+    </div>
+  </div>
+  <script>
+    // Auto-start PPT download
+    setTimeout(() => { window.location.href = "${signedPpt.data.signedUrl}"; }, 500);
+  </script>
+</body>
+</html>`;
 
     return {
-      statusCode: 302,
-      headers: { Location: signed.data.signedUrl, "Cache-Control": "no-store" },
-      body: ""
+      statusCode: 200,
+      headers: { "Content-Type": "text/html", "Cache-Control": "no-store" },
+      body: downloadPage
     };
 
   } catch (err) {
