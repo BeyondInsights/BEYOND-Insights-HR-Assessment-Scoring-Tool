@@ -1161,7 +1161,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     
                     {/* Benchmark note */}
                     <p className="text-xs text-slate-400 mt-3 text-right">
-                      Benchmark based on {benchmarkCompanyCount} companies
+                      Benchmark based on all participating companies
                     </p>
                   </div>
                 </div>
