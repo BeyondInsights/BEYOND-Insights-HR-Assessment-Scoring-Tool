@@ -1,11 +1,5 @@
-import { Handler } from '@netlify/functions';
+import type { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
-import { jsPDF } from 'jspdf';
-
-// Initialize Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Dimension names for the report
 const DIMENSION_NAMES: Record<number, string> = {
@@ -78,7 +72,7 @@ function calculateScores(assessment: any) {
   return { compositeScore, weightedDimScore, dimensionScores };
 }
 
-export const handler: Handler = async (event) => {
+export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
   const surveyId = event.queryStringParameters?.surveyId;
 
   if (!surveyId) {
@@ -87,6 +81,11 @@ export const handler: Handler = async (event) => {
       body: JSON.stringify({ error: 'Missing surveyId parameter' })
     };
   }
+
+  // Initialize Supabase
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
     // Fetch assessment data
@@ -108,6 +107,9 @@ export const handler: Handler = async (event) => {
     const tier = getTierName(scores.compositeScore);
     const tierColor = getScoreColor(scores.compositeScore);
 
+    // Dynamic import jsPDF to avoid module issues
+    const { jsPDF } = await import('jspdf');
+
     // Create PDF - landscape 16:9 format
     const doc = new jsPDF({
       orientation: 'landscape',
@@ -123,6 +125,13 @@ export const handler: Handler = async (event) => {
 
     // Calculate points from Exemplary
     const pointsFromExemplary = Math.max(0, 90 - scores.compositeScore);
+
+    // Get sorted dimensions for strengths/opportunities
+    const sortedDims = Object.entries(scores.dimensionScores)
+      .map(([dim, score]) => ({ dim: Number(dim), score }))
+      .sort((a, b) => b.score - a.score);
+    const topStrength = sortedDims[0];
+    const topOpportunity = sortedDims[sortedDims.length - 1];
 
     // ==========================================
     // SLIDE 1: Title + Executive Summary Combined
@@ -162,13 +171,6 @@ export const handler: Handler = async (event) => {
     doc.setTextColor(darkBg);
     doc.setFont('helvetica', 'normal');
     
-    // Get top strength and top opportunity
-    const sortedDims = Object.entries(scores.dimensionScores)
-      .map(([dim, score]) => ({ dim: Number(dim), score }))
-      .sort((a, b) => b.score - a.score);
-    const topStrength = sortedDims[0];
-    const topOpportunity = sortedDims[sortedDims.length - 1];
-    
     const summaryText = `${companyName} demonstrates ${tier.toLowerCase()} performance in supporting employees managing cancer, placing in the ${Math.round(scores.compositeScore)}th percentile among assessed organizations. Your strongest dimension is ${DIMENSION_NAMES[topStrength?.dim || 1]} (${topStrength?.score || 0}). ${DIMENSION_NAMES[topOpportunity?.dim || 1]} (${topOpportunity?.score || 0}) represents your greatest opportunity for improvement.`;
     const splitSummary = doc.splitTextToSize(summaryText, 900);
     doc.text(splitSummary, 40, 250);
@@ -181,9 +183,8 @@ export const handler: Handler = async (event) => {
       doc.setFontSize(14);
       doc.setTextColor('#B45309');
       doc.setFont('helvetica', 'bold');
-      doc.text(`↗ ${pointsFromExemplary} points from Exemplary tier`, 60, 350);
+      doc.text(`${pointsFromExemplary} points from Exemplary tier`, 70, 350);
       
-      // Suggest dimensions for improvement
       const improvementDims = sortedDims.slice(-3).map(d => DIMENSION_NAMES[d.dim]).join(', ');
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
@@ -195,7 +196,7 @@ export const handler: Handler = async (event) => {
     const metricBoxWidth = 200;
     const metricGap = 30;
     
-    // Metric 1: Elements Offered
+    // Metric boxes
     doc.setFillColor(white);
     doc.setDrawColor('#E2E8F0');
     doc.roundedRect(40, metricsY, metricBoxWidth, 80, 6, 6, 'FD');
@@ -208,7 +209,6 @@ export const handler: Handler = async (event) => {
     doc.setFont('helvetica', 'normal');
     doc.text('of 154 elements offered', 60, metricsY + 65);
 
-    // Metric 2: In Development
     doc.setFillColor(white);
     doc.roundedRect(40 + metricBoxWidth + metricGap, metricsY, metricBoxWidth, 80, 6, 6, 'FD');
     doc.setFontSize(36);
@@ -220,7 +220,6 @@ export const handler: Handler = async (event) => {
     doc.setFont('helvetica', 'normal');
     doc.text('initiatives in development', 60 + metricBoxWidth + metricGap, metricsY + 65);
 
-    // Metric 3: Opportunities
     doc.setFillColor(white);
     doc.roundedRect(40 + (metricBoxWidth + metricGap) * 2, metricsY, metricBoxWidth, 80, 6, 6, 'FD');
     doc.setFontSize(36);
@@ -282,29 +281,24 @@ export const handler: Handler = async (event) => {
       const score = scores.dimensionScores[dim] || 0;
       const color = getScoreColor(score);
       
-      // Dimension label
       doc.setFontSize(12);
       doc.setTextColor(darkBg);
       doc.setFont('helvetica', 'bold');
       doc.text(`${dim}. ${DIMENSION_NAMES[dim]}`, 40, yPos + 24);
       
-      // Background bar
       doc.setFillColor('#E2E8F0');
       doc.roundedRect(300, yPos, barWidth, barHeight, 4, 4, 'F');
       
-      // Score bar
       if (score > 0) {
         doc.setFillColor(color);
         doc.roundedRect(300, yPos, (score / 100) * barWidth, barHeight, 4, 4, 'F');
       }
       
-      // Score value
       doc.setFontSize(14);
       doc.setTextColor(darkBg);
       doc.setFont('helvetica', 'bold');
       doc.text(String(score), 920, yPos + 24);
       
-      // Weight
       doc.setFontSize(10);
       doc.setTextColor(gray);
       doc.setFont('helvetica', 'normal');
@@ -318,7 +312,6 @@ export const handler: Handler = async (event) => {
     // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
-    // Header
     doc.setFillColor(darkBg);
     doc.rect(0, 0, 1280, 80, 'F');
     doc.setTextColor(white);
@@ -326,7 +319,6 @@ export const handler: Handler = async (event) => {
     doc.setFont('helvetica', 'bold');
     doc.text('Strengths & Opportunities', 40, 52);
 
-    // Use sortedDims from slide 1    
     const strengths = sortedDims.slice(0, 3);
     const opportunities = sortedDims.slice(-3).reverse();
 
@@ -381,7 +373,6 @@ export const handler: Handler = async (event) => {
     // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
-    // Header
     doc.setFillColor(darkBg);
     doc.rect(0, 0, 1280, 80, 'F');
     doc.setTextColor(white);
@@ -399,7 +390,6 @@ export const handler: Handler = async (event) => {
 
     let stepY = 140;
     steps.forEach((step, i) => {
-      // Step number circle
       doc.setFillColor(tierColor);
       doc.circle(70, stepY + 20, 20, 'F');
       doc.setFontSize(16);
@@ -407,7 +397,6 @@ export const handler: Handler = async (event) => {
       doc.setFont('helvetica', 'bold');
       doc.text(String(i + 1), 70, stepY + 26, { align: 'center' });
       
-      // Step content
       doc.setFontSize(18);
       doc.setTextColor(darkBg);
       doc.text(step.title, 110, stepY + 20);
@@ -425,7 +414,6 @@ export const handler: Handler = async (event) => {
     // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
-    // Header
     doc.setFillColor(darkBg);
     doc.rect(0, 0, 1280, 80, 'F');
     doc.setTextColor(white);
@@ -439,7 +427,6 @@ export const handler: Handler = async (event) => {
     doc.text('Our consulting practice helps organizations understand where they are, identify where they want to be,', 40, 130);
     doc.text('and build a realistic path to get there.', 40, 155);
 
-    // Services
     const services = [
       { title: 'For HR & Benefits Teams', items: ['Policy gap analysis', 'Benefits benchmarking', 'Manager training programs'] },
       { title: 'For Employees', items: ['Educational materials', 'Navigation support', 'Peer support networks'] }
@@ -495,11 +482,11 @@ export const handler: Handler = async (event) => {
       isBase64Encoded: true
     };
 
-  } catch (error: any) {
-    console.error('PDF export error:', error);
+  } catch (err: any) {
+    console.error('PDF export error:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to generate PDF', details: error.message })
+      body: JSON.stringify({ error: 'Failed to generate PDF', details: err.message })
     };
   }
 };
