@@ -1195,6 +1195,7 @@ export default function InteractiveReportPage() {
   
   // Password protection state
   const [authenticated, setAuthenticated] = useState(false);
+  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState('');
   const [benchmarks, setBenchmarks] = useState<any>(null);
@@ -2071,6 +2072,136 @@ export default function InteractiveReportPage() {
         }
       `}</style>
 
+      {/* Welcome Overlay */}
+      {showWelcomeOverlay && (
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full my-8 overflow-hidden">
+            {/* Header with gradient */}
+            <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-8 py-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-white rounded-xl p-3">
+                  <Image 
+                    src="/cancer-careers-logo.png" 
+                    alt="Cancer and Careers" 
+                    width={120} 
+                    height={40}
+                    className="object-contain"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">Welcome to Your 2026 Index Report</h1>
+                  <p className="text-slate-300 text-sm mt-1">Best Companies for Working with Cancer</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Letter Content */}
+            <div className="px-8 py-6 max-h-[60vh] overflow-y-auto">
+              {/* Thank You Section */}
+              <div className="mb-6">
+                <p className="text-slate-700 leading-relaxed mb-4">
+                  Dear {company?.firmographics_data?.company_name || company?.company_name || 'Partner'},
+                </p>
+                <p className="text-slate-700 leading-relaxed mb-4">
+                  <strong>Thank you</strong> for participating in the 2026 Best Companies for Working with Cancer Index. By completing this assessment, you've demonstrated a genuine commitment to supporting employees managing cancer—and that makes you a pioneer in workplace cancer support.
+                </p>
+                <p className="text-slate-700 leading-relaxed mb-4">
+                  Too often, employees facing a cancer diagnosis feel unseen and unsupported at work. Your willingness to examine your policies, programs, and culture sends a powerful message: <em>you matter, and we're here for you.</em>
+                </p>
+              </div>
+
+              {/* About Your Report */}
+              <div className="bg-slate-50 rounded-xl p-5 mb-6">
+                <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  About Your Report
+                </h3>
+                <p className="text-slate-600 text-sm leading-relaxed mb-3">
+                  This interactive report provides a comprehensive view of your organization's cancer support ecosystem across <strong>13 dimensions</strong>—from leave policies and insurance coverage to manager preparedness and workplace culture.
+                </p>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Each dimension is weighted based on extensive research with HR leaders, employees managing cancer, and caregivers to ensure the Index reflects what matters most to those directly affected.
+                </p>
+              </div>
+
+              {/* How to Use */}
+              <div className="bg-indigo-50 rounded-xl p-5 mb-6">
+                <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  How to Use Your Report
+                </h3>
+                <ul className="text-slate-600 text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-600 font-bold">1.</span>
+                    <span><strong>Start with the Executive Summary</strong> for your overall score and key findings</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-600 font-bold">2.</span>
+                    <span><strong>Explore the Performance Matrix</strong> to see how you compare across all 13 dimensions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-600 font-bold">3.</span>
+                    <span><strong>Click any dimension</strong> to drill down into element-level details and benchmarks</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-600 font-bold">4.</span>
+                    <span><strong>Review the Roadmap</strong> for prioritized recommendations based on your results</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* CAC Partnership */}
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-5 mb-6 border border-purple-100">
+                <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Partner with Cancer and Careers
+                </h3>
+                <p className="text-slate-700 text-sm leading-relaxed mb-3">
+                  Your report is just the beginning. Our consulting team can help you identify which elements to prioritize, develop implementation strategies, and create meaningful change for employees managing cancer.
+                </p>
+                <p className="text-slate-700 text-sm leading-relaxed">
+                  Whether you have questions about your results or want to explore how we can work together, we're here to help. Reach out to us at <a href="mailto:consulting@cancerandcareers.org" className="text-purple-700 font-medium hover:underline">consulting@cancerandcareers.org</a>.
+                </p>
+              </div>
+
+              {/* Signature */}
+              <div className="border-t border-slate-200 pt-5">
+                <p className="text-slate-700 leading-relaxed mb-4">
+                  With gratitude for your leadership and commitment,
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
+                    <span className="text-2xl font-serif text-purple-700">R</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800">Rebecca V. Nellis</p>
+                    <p className="text-sm text-slate-500">Executive Director, Cancer and Careers</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer with CTA */}
+            <div className="bg-slate-50 px-8 py-5 border-t border-slate-200">
+              <button
+                onClick={() => setShowWelcomeOverlay(false)}
+                className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+              >
+                <span>View Your Report</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
 
       {/* Interactive Header - No edit/export buttons */}
