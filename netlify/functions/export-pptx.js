@@ -1,12 +1,5 @@
 // netlify/functions/export-pptx.js
-//
-// SMART SECTION-BASED EXPORT:
-// - Finds .ppt-break sections
-// - Captures each at natural height
-// - Pads short sections with white to fill 720px (no stretching)
-// - Splits tall sections into multiple 720px slides
-// - Result: clean breaks at logical points, no distortion
-//
+// Direct PPT download - NO intermediate page
 
 const PptxGenJS = require("pptxgenjs");
 const { createClient } = require("@supabase/supabase-js");
@@ -24,7 +17,7 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: "Missing BROWSERLESS_TOKEN" };
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const bucket = process.env.SUPABASE_EXPORT_BUCKET || "exports";
     if (!supabaseUrl || !serviceKey) {
@@ -92,7 +85,6 @@ exports.handler = async (event) => {
       "      const rect = el.getBoundingClientRect();",
       "      const top = rect.top + window.scrollY;",
       "      ",
-      "      // Section ends at next break or end of body",
       "      let bottom;",
       "      if (i < breaks.length - 1) {",
       "        const nextRect = breaks[i + 1].getBoundingClientRect();",
@@ -107,17 +99,13 @@ exports.handler = async (event) => {
       "  });",
       "",
       "  const results = [];",
-      "  const MIN_SECTION_HEIGHT = 100; // Skip sections smaller than this",
+      "  const MIN_SECTION_HEIGHT = 100;",
       "",
       "  if (sections && sections.length > 0) {",
-      "    // SECTION-BASED CAPTURE",
       "    for (const sec of sections) {",
-      "      // Skip very small sections (likely just gaps)",
       "      if (sec.height < MIN_SECTION_HEIGHT) continue;",
       "      ",
       "      if (sec.height <= SLIDE_H) {",
-      "        // Section fits in one slide - capture at natural height",
-      "        // We'll pad it in the PPT generation step",
       "        const buf = await page.screenshot({",
       "          type: 'jpeg',",
       "          quality: 92,",
@@ -130,12 +118,10 @@ exports.handler = async (event) => {
       "          jpegB64: buf.toString('base64')",
       "        });",
       "      } else {",
-      "        // Section too tall - split into SLIDE_H chunks",
       "        let offset = 0;",
       "        let part = 1;",
       "        while (offset < sec.height) {",
       "          const remaining = sec.height - offset;",
-      "          // Skip if remaining is too small (avoids mostly-empty slides)",
       "          if (remaining < MIN_SECTION_HEIGHT) break;",
       "          const captureH = Math.min(SLIDE_H, remaining);",
       "          ",
@@ -157,7 +143,6 @@ exports.handler = async (event) => {
       "      }",
       "    }",
       "  } else {",
-      "    // FALLBACK: No .ppt-break markers, use fixed chunks",
       "    const pageHeight = await page.evaluate(() => document.body.scrollHeight);",
       "    const numSlides = Math.ceil(pageHeight / SLIDE_H);",
       "    ",
@@ -211,159 +196,57 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: "Capture failed: " + (capData?.error || JSON.stringify(capData)) };
     }
 
-    // Build PPTX with proper sizing
+    // Build PPTX
     const pptx = new PptxGenJS();
-    pptx.layout = "LAYOUT_WIDE"; // 13.333 x 7.5 inches (16:9)
+    pptx.layout = "LAYOUT_WIDE";
     pptx.title = "Cancer Support Assessment - " + surveyId;
     pptx.author = "Cancer and Careers";
     pptx.company = "Best Companies for Working with Cancer Index";
 
-    // Slide dimensions in inches
     const SLIDE_W_IN = 13.333;
-    const SLIDE_H_IN = 7.5;
-    const PX_TO_IN = SLIDE_W_IN / 1280; // Convert pixels to inches
+    const PX_TO_IN = SLIDE_W_IN / 1280;
 
     for (const r of capData.results) {
       const slide = pptx.addSlide();
-      
-      // Set slide background to match report
       slide.background = { color: 'F8FAFC' };
-      
-      // Calculate image height in inches (maintaining aspect ratio)
       const imgHeightIn = r.naturalHeight * PX_TO_IN;
-      
-      // If image is shorter than slide, it will be placed at top with white space below
-      // If image is exactly slide height, it fills the slide
       slide.addImage({
         data: "data:image/jpeg;base64," + r.jpegB64,
         x: 0,
         y: 0,
         w: SLIDE_W_IN,
-        h: imgHeightIn  // Natural height, not forced to fill
+        h: imgHeightIn
       });
     }
 
     const pptBuffer = await pptx.write("nodebuffer");
-    
-    // Also generate PDF from the same slides
-    const PDFDocument = require('pdfkit');
-    const pdfDoc = new PDFDocument({
-      layout: 'landscape',
-      size: [960, 540], // 16:9 aspect ratio at reasonable resolution
-      margin: 0
-    });
-    
-    const pdfChunks = [];
-    pdfDoc.on('data', chunk => pdfChunks.push(chunk));
-    
-    for (const r of capData.results) {
-      // Add a new page for each slide (except first)
-      if (pdfChunks.length > 0 || capData.results.indexOf(r) > 0) {
-        pdfDoc.addPage();
-      }
-      
-      // Add the image to fill the page
-      const imgBuffer = Buffer.from(r.jpegB64, 'base64');
-      pdfDoc.image(imgBuffer, 0, 0, { width: 960, height: 540 });
-    }
-    
-    pdfDoc.end();
-    
-    // Wait for PDF to finish
-    const pdfBuffer = await new Promise((resolve) => {
-      pdfDoc.on('end', () => {
-        resolve(Buffer.concat(pdfChunks));
-      });
-    });
 
     // Upload to Supabase
     const supabase = createClient(supabaseUrl, serviceKey);
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    const pptFilePath = "ppt/" + surveyId + "/Report_" + surveyId + "_" + ts + ".pptx";
-    const pdfFilePath = "ppt/" + surveyId + "/Report_" + surveyId + "_" + ts + ".pdf";
+    const filePath = "ppt/" + surveyId + "/Report_" + surveyId + "_" + ts + ".pptx";
 
-    // Upload PPTX
-    const upPpt = await supabase.storage.from(bucket).upload(pptFilePath, pptBuffer, {
+    const up = await supabase.storage.from(bucket).upload(filePath, pptBuffer, {
       contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
       upsert: true
     });
 
-    if (upPpt.error) {
-      return { statusCode: 500, body: "PPT Upload failed: " + upPpt.error.message };
-    }
-    
-    // Upload PDF
-    const upPdf = await supabase.storage.from(bucket).upload(pdfFilePath, pdfBuffer, {
-      contentType: "application/pdf",
-      upsert: true
-    });
-
-    if (upPdf.error) {
-      console.error('PDF upload failed (continuing with PPT):', upPdf.error.message);
+    if (up.error) {
+      return { statusCode: 500, body: "Upload failed: " + up.error.message };
     }
 
-    // Get signed URLs for both
-    const signedPpt = await supabase.storage.from(bucket).createSignedUrl(pptFilePath, 3600);
-    const signedPdf = await supabase.storage.from(bucket).createSignedUrl(pdfFilePath, 3600);
-    
-    if (signedPpt.error) {
-      return { statusCode: 500, body: "Signed URL failed: " + signedPpt.error.message };
+    const signed = await supabase.storage.from(bucket).createSignedUrl(filePath, 3600);
+    if (signed.error) {
+      return { statusCode: 500, body: "Signed URL failed: " + signed.error.message };
     }
 
-    console.log('Export success:', { 
-      slides: capData.results.length, 
-      pptFile: pptFilePath,
-      pdfFile: pdfFilePath,
-      pdfUploaded: !upPdf.error
-    });
+    console.log('PPT export success:', { slides: capData.results.length, file: filePath });
 
-    // Return HTML page that downloads both files
-    const downloadPage = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Downloading Report...</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f1f5f9; }
-    .container { text-align: center; background: white; padding: 40px 60px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-    h1 { color: #1e293b; margin-bottom: 8px; }
-    p { color: #64748b; margin-bottom: 24px; }
-    .files { display: flex; gap: 16px; justify-content: center; }
-    a { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s; }
-    .ppt { background: #f97316; color: white; }
-    .ppt:hover { background: #ea580c; }
-    .pdf { background: #1e293b; color: white; }
-    .pdf:hover { background: #0f172a; }
-    .icon { width: 20px; height: 20px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Report Ready!</h1>
-    <p>Your report has been generated in both formats.</p>
-    <div class="files">
-      <a href="${signedPpt.data.signedUrl}" class="ppt" download>
-        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-        Download PowerPoint
-      </a>
-      ${signedPdf.data?.signedUrl ? `
-      <a href="${signedPdf.data.signedUrl}" class="pdf" download>
-        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-        Download PDF
-      </a>` : ''}
-    </div>
-  </div>
-  <script>
-    // Auto-start PPT download
-    setTimeout(() => { window.location.href = "${signedPpt.data.signedUrl}"; }, 500);
-  </script>
-</body>
-</html>`;
-
+    // DIRECT REDIRECT - NO HTML PAGE
     return {
-      statusCode: 200,
-      headers: { "Content-Type": "text/html", "Cache-Control": "no-store" },
-      body: downloadPage
+      statusCode: 302,
+      headers: { Location: signed.data.signedUrl, "Cache-Control": "no-store" },
+      body: ""
     };
 
   } catch (err) {
