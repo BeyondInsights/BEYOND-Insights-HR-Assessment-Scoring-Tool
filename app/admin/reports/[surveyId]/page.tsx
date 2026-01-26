@@ -962,228 +962,194 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
         <p className="text-slate-500 mt-1">Click any dimension to explore element-level details and benchmark comparisons</p>
       </div>
       
-      {/* Dimension Selector Grid - Premium Card Design */}
-      <div className="grid grid-cols-4 gap-5 mb-8">
-        {sortedDims.map(d => {
+      {/* Dimension Rows - Clean Horizontal Layout */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+        {sortedDims.map((d, idx) => {
           const isSelected = selectedDim === d.dim;
           const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+          const isLast = idx === sortedDims.length - 1;
           
           return (
-            <button
-              key={d.dim}
-              onClick={() => setSelectedDim(isSelected ? null : d.dim)}
-              className={`relative overflow-hidden rounded-2xl transition-all duration-300 text-left ${
-                isSelected 
-                  ? 'ring-4 ring-indigo-500/50 shadow-2xl scale-[1.02]' 
-                  : 'hover:shadow-xl hover:scale-[1.01] shadow-md'
-              }`}
-              style={{
-                background: isSelected 
-                  ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
-                  : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
-              }}
-            >
-              {/* Top color accent bar */}
-              <div 
-                className="h-1.5 w-full"
-                style={{ backgroundColor: d.tier.color }}
-              />
-              
-              <div className="p-5">
-                {/* Header with badge and name */}
-                <div className="flex items-center gap-3 mb-4">
+            <div key={d.dim}>
+              <button
+                onClick={() => setSelectedDim(isSelected ? null : d.dim)}
+                className={`w-full text-left transition-all duration-200 ${
+                  isSelected 
+                    ? 'bg-slate-800 text-white' 
+                    : 'bg-white hover:bg-slate-50'
+                } ${!isLast && !isSelected ? 'border-b border-slate-100' : ''}`}
+              >
+                <div className="flex items-center px-6 py-4">
+                  {/* Dimension Number Badge */}
                   <div 
-                    className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-base font-bold shadow-lg"
-                    style={{ 
-                      backgroundColor: d.tier.color,
-                      boxShadow: `0 4px 14px ${d.tier.color}40`
-                    }}
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
+                    style={{ backgroundColor: isSelected ? '#6366F1' : d.tier.color }}
                   >
                     {d.dim}
                   </div>
-                  <span className={`text-sm font-semibold leading-tight ${isSelected ? 'text-white' : 'text-slate-700'}`}>
-                    {DIMENSION_SHORT_NAMES[d.dim]}
-                  </span>
-                </div>
-                
-                {/* Score Section */}
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className={`text-[11px] uppercase tracking-wider font-semibold mb-1 ${isSelected ? 'text-slate-400' : 'text-slate-400'}`}>
-                      Your Score
+                  
+                  {/* Full Dimension Name */}
+                  <div className="ml-4 flex-1 min-w-0">
+                    <p className={`font-semibold ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                      {d.name}
                     </p>
-                    <p className="text-4xl font-black" style={{ color: isSelected ? '#fff' : getScoreColor(d.score) }}>
+                    <p className={`text-xs mt-0.5 ${isSelected ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Weight: {d.weight}%
+                    </p>
+                  </div>
+                  
+                  {/* Score Bar */}
+                  <div className="w-48 mx-6 hidden md:block">
+                    <div className={`h-2 rounded-full overflow-hidden ${isSelected ? 'bg-slate-600' : 'bg-slate-100'}`}>
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${d.score}%`, 
+                          backgroundColor: isSelected ? '#A5B4FC' : d.tier.color 
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Score */}
+                  <div className="text-right w-16 shrink-0">
+                    <p className={`text-2xl font-bold ${isSelected ? 'text-white' : ''}`} style={{ color: isSelected ? undefined : getScoreColor(d.score) }}>
                       {d.score}
                     </p>
                   </div>
-                  {diff !== null && (
-                    <div className={`text-right py-2 px-3 rounded-xl ${
-                      isSelected ? 'bg-white/10' : diff > 0 ? 'bg-emerald-50' : diff < 0 ? 'bg-red-50' : 'bg-slate-50'
-                    }`}>
-                      <p className={`text-[10px] uppercase tracking-wider font-semibold ${isSelected ? 'text-slate-400' : 'text-slate-500'}`}>
-                        vs Bench
-                      </p>
-                      <p className={`text-xl font-bold ${
+                  
+                  {/* Benchmark Diff */}
+                  <div className="w-16 text-center shrink-0">
+                    {diff !== null && (
+                      <span className={`text-sm font-semibold px-2 py-1 rounded ${
                         isSelected 
-                          ? (diff > 0 ? 'text-emerald-400' : diff < 0 ? 'text-red-400' : 'text-slate-300')
-                          : (diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-slate-500')
+                          ? (diff > 0 ? 'text-emerald-300' : diff < 0 ? 'text-red-300' : 'text-slate-400')
+                          : (diff > 0 ? 'text-emerald-600 bg-emerald-50' : diff < 0 ? 'text-red-500 bg-red-50' : 'text-slate-500 bg-slate-50')
                       }`}>
                         {diff > 0 ? '+' : ''}{diff}
-                      </p>
-                    </div>
-                  )}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Tier Badge */}
+                  <div className="w-24 text-center shrink-0">
+                    <span 
+                      className={`text-xs font-medium px-3 py-1 rounded-full ${
+                        isSelected ? 'bg-white/20 text-white' : ''
+                      }`}
+                      style={isSelected ? {} : { backgroundColor: `${d.tier.color}15`, color: d.tier.color }}
+                    >
+                      {d.tier.name}
+                    </span>
+                  </div>
+                  
+                  {/* Expand Icon */}
+                  <div className={`w-8 shrink-0 flex justify-center transition-transform duration-200 ${isSelected ? 'rotate-180' : ''}`}>
+                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-400' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+              
+              {/* Expanded Element Details - Inline */}
+              {isSelected && selectedData && (
+                <div className="bg-slate-50 border-t border-slate-200">
+                  <div className="px-6 py-5">
+                    {/* Quick Stats */}
+                    <div className="flex items-center gap-6 mb-5 text-sm">
+                      <span className="text-slate-600">
+                        <strong className="text-emerald-600">{selectedData.strengths.length}</strong> currently offering
+                      </span>
+                      <span className="text-slate-600">
+                        <strong className="text-blue-600">{selectedData.planningItems?.length || 0}</strong> in planning
+                      </span>
+                      <span className="text-slate-600">
+                        <strong className="text-amber-600">{selectedData.assessingItems?.length || 0}</strong> assessing
+                      </span>
+                      <span className="text-slate-600">
+                        <strong className="text-red-500">{selectedData.needsAttention.length}</strong> gaps
+                      </span>
+                    </div>
+                    
+                    {/* Element Table */}
+                    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-slate-100 border-b border-slate-200">
+                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Element</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-28">Status</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-20" style={{ color: STATUS.currently.bg }}>Offer</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-20" style={{ color: STATUS.planning.bg }}>Plan</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-20" style={{ color: STATUS.assessing.bg }}>Assess</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-20" style={{ color: STATUS.notAble.bg }}>Gap</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Insight</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedData.elements.map((elem: any, idx: number) => {
+                            const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 1 };
+                            const total = bench.total || 1;
+                            const statusInfo = getStatusInfo(elem);
+                            const obsKey = `${selectedDim}-${idx}`;
+                            const defaultObs = getDefaultObservation(elem, bench);
+                            
+                            return (
+                              <tr key={idx} className={idx < selectedData.elements.length - 1 ? 'border-b border-slate-100' : ''}>
+                                <td className="px-4 py-3">
+                                  <span className="text-sm text-slate-700">{elem.name}</span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span 
+                                    className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
+                                    style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}
+                                  >
+                                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusInfo.bg }} />
+                                    {statusInfo.label}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="text-xs font-medium text-slate-600">{Math.round((bench.currently / total) * 100)}%</span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="text-xs font-medium text-slate-600">{Math.round((bench.planning / total) * 100)}%</span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="text-xs font-medium text-slate-600">{Math.round((bench.assessing / total) * 100)}%</span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="text-xs font-medium text-slate-600">{Math.round((bench.notAble / total) * 100)}%</span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  {isEditing ? (
+                                    <input
+                                      type="text"
+                                      value={customObservations[obsKey] ?? defaultObs}
+                                      onChange={(e) => setCustomObservations?.({ ...customObservations, [obsKey]: e.target.value })}
+                                      className="w-full text-xs text-slate-600 bg-amber-50 border border-amber-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                    />
+                                  ) : (
+                                    <span className="text-xs text-slate-500">{customObservations[obsKey] || defaultObs}</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    {/* Benchmark note */}
+                    <p className="text-xs text-slate-400 mt-3 text-right">
+                      Benchmark based on {benchmarkCompanyCount} companies
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
-
-      {/* Expanded Element Details */}
-      {selectedData && (
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-          {/* Detail Header */}
-          <div 
-            className="px-8 py-6"
-            style={{ 
-              background: `linear-gradient(135deg, ${selectedData.tier.color}15 0%, ${selectedData.tier.color}05 100%)`,
-              borderBottom: `3px solid ${selectedData.tier.color}`
-            }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-5">
-                <div 
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg"
-                  style={{ 
-                    backgroundColor: selectedData.tier.color,
-                    boxShadow: `0 8px 24px ${selectedData.tier.color}40`
-                  }}
-                >
-                  {selectedData.dim}
-                </div>
-                <div>
-                  <h4 className="text-xl font-bold text-slate-900">{selectedData.name}</h4>
-                  <div className="flex items-center gap-6 mt-2 text-sm">
-                    <span className="text-slate-500">Weight: <strong className="text-slate-700">{selectedData.weight}%</strong></span>
-                    <span className="text-slate-500">Your Score: <strong style={{ color: getScoreColor(selectedData.score) }}>{selectedData.score}</strong></span>
-                    <span className="text-slate-500">Benchmark: <strong className="text-slate-700">{selectedData.benchmark ?? '—'}</strong></span>
-                  </div>
-                </div>
-              </div>
-              <button 
-                onClick={() => setSelectedDim(null)} 
-                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
-              >
-                <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          {/* Element Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Element</th>
-                  <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-32">Status</th>
-                  <th className="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.currently.bg }}>Offering</th>
-                  <th className="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>Planning</th>
-                  <th className="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>Assessing</th>
-                  <th className="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Able</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Insight</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedData.elements.map((elem: any, idx: number) => {
-                  const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 1 };
-                  const total = bench.total || 1;
-                  const pcts = {
-                    currently: Math.round((bench.currently / total) * 100),
-                    planning: Math.round((bench.planning / total) * 100),
-                    assessing: Math.round((bench.assessing / total) * 100),
-                    notAble: Math.round((bench.notAble / total) * 100)
-                  };
-                  const statusInfo = getStatusInfo(elem);
-                  const obsKey = `d${selectedData.dim}_${elem.name}`;
-                  const observation = customObservations[obsKey] || getDefaultObservation(elem, bench);
-                  
-                  return (
-                    <tr key={idx} className={`border-b border-slate-100 ${idx % 2 === 1 ? 'bg-slate-25' : 'bg-white'} hover:bg-slate-50 transition-colors`}>
-                      <td className="px-6 py-4 text-sm text-slate-800 font-medium">{elem.name}</td>
-                      <td className="px-4 py-4 text-center">
-                        <span 
-                          className="inline-flex px-4 py-1.5 rounded-full text-xs font-bold shadow-sm"
-                          style={{ 
-                            backgroundColor: statusInfo.bg,
-                            color: '#fff'
-                          }}
-                        >
-                          {statusInfo.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-center">
-                        <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
-                          statusInfo.key === 'currently' ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'bg-slate-50'
-                        }`} style={{ color: STATUS.currently.bg }}>
-                          {pcts.currently}%
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 text-center">
-                        <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
-                          statusInfo.key === 'planning' ? 'bg-blue-100 ring-2 ring-blue-500' : 'bg-slate-50'
-                        }`} style={{ color: STATUS.planning.bg }}>
-                          {pcts.planning}%
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 text-center">
-                        <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
-                          statusInfo.key === 'assessing' ? 'bg-amber-100 ring-2 ring-amber-500' : 'bg-slate-50'
-                        }`} style={{ color: STATUS.assessing.bg }}>
-                          {pcts.assessing}%
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 text-center">
-                        <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
-                          statusInfo.key === 'notAble' ? 'bg-red-100 ring-2 ring-red-500' : 'bg-slate-50'
-                        }`} style={{ color: STATUS.notAble.bg }}>
-                          {pcts.notAble}%
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {isEditing && setCustomObservations ? (
-                          <input
-                            type="text"
-                            value={observation}
-                            onChange={(e) => setCustomObservations({ ...customObservations, [obsKey]: e.target.value })}
-                            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          />
-                        ) : (
-                          <span className="text-sm text-slate-600">{observation}</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-      
-      {/* Empty State */}
-      {!selectedData && (
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-12 text-center border-2 border-dashed border-slate-200">
-          <div className="w-20 h-20 mx-auto mb-5 bg-white rounded-2xl shadow-lg flex items-center justify-center">
-            <svg className="w-10 h-10 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-          </div>
-          <h4 className="text-xl font-bold text-slate-800 mb-2">Select a Dimension</h4>
-          <p className="text-slate-500 max-w-md mx-auto">Choose any dimension card above to see detailed element breakdowns and benchmark comparisons</p>
-        </div>
-      )}
     </div>
   );
 }
@@ -1799,7 +1765,7 @@ export default function ExportReportPage() {
   return (
     <div 
       className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''} ${isLandscapePdf ? 'landscape-pdf-mode' : ''} ${isLandscape ? 'landscape-mode' : ''}`}
-      style={isLandscape ? { width: '100%', maxWidth: 'none', minWidth: '1200px' } : undefined}
+      style={isLandscape && !isLandscapePdf ? { width: '100%', maxWidth: 'none', minWidth: '1200px' } : undefined}
     >
       <style jsx global>{`
         @media print { 
@@ -2186,8 +2152,8 @@ export default function ExportReportPage() {
       <div 
         ref={printRef} 
         id="report-root" 
-        className={`py-10 ${isLandscape ? 'w-full px-8' : 'max-w-6xl mx-auto px-8'}`}
-        style={isLandscape ? { width: '100%', maxWidth: 'none', minWidth: '1200px', margin: 0, padding: '20px 30px' } : undefined}
+        className={`py-10 ${isLandscape && !isLandscapePdf ? 'w-full px-8' : 'max-w-6xl mx-auto px-8'}`}
+        style={isLandscape && !isLandscapePdf ? { width: '100%', maxWidth: 'none', minWidth: '1200px', margin: 0, padding: '20px 30px' } : undefined}
       >
         
         {/* ============ HEADER ============ */}
