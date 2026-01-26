@@ -1076,14 +1076,18 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
                       <table className="w-full">
                         <thead>
+                          {/* Two-row header for clarity */}
                           <tr className="bg-slate-100 border-b border-slate-200">
-                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Element</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-28">Status</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.currently.bg }}>Offering</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>Planning</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>Assessing</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Able</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Insight</th>
+                            <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider align-bottom">Element</th>
+                            <th rowSpan={2} className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-28 align-bottom bg-slate-200 border-l-2 border-r-2 border-slate-300">Your Status</th>
+                            <th colSpan={4} className="px-4 py-2 text-center text-xs font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 bg-slate-50">Benchmark Distribution</th>
+                            <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider align-bottom">Insight</th>
+                          </tr>
+                          <tr className="bg-slate-50 border-b border-slate-200">
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24 border-l border-slate-200" style={{ color: STATUS.currently.bg }}>Offering</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>Planning</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>Assessing</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Able</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1099,7 +1103,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                 <td className="px-4 py-3">
                                   <span className="text-sm text-slate-700">{elem.name}</span>
                                 </td>
-                                <td className="px-4 py-3 text-center">
+                                <td className="px-4 py-3 text-center bg-slate-50 border-l-2 border-r-2 border-slate-200">
                                   <span 
                                     className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
                                     style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}
@@ -1108,7 +1112,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                     {statusInfo.label}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-center">
+                                <td className="px-4 py-3 text-center border-l border-slate-100">
                                   <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
                                     statusInfo.key === 'currently' ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'bg-slate-50'
                                   }`} style={{ color: STATUS.currently.bg }}>
