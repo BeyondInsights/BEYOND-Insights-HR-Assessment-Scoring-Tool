@@ -3340,7 +3340,17 @@ export default function InteractiveReportPage() {
                 <p className="text-sm font-medium text-slate-700">Best Companies for Working with Cancer Index</p>
                 <p className="text-xs text-slate-400">© 2026 Cancer and Careers. All rights reserved.</p>
               </div>
-              <div className="flex items-center gap-4 text-right">
+              <div className="flex items-center gap-6 text-right">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400">Powered by:</span>
+                  <Image 
+                    src="/BI_LOGO_FINAL.png" 
+                    alt="BEYOND Insights" 
+                    width={80} 
+                    height={24}
+                    className="object-contain"
+                  />
+                </div>
                 <p className="text-xs text-slate-400">Survey ID: {company?.survey_id || token}</p>
                 <p className="text-xs text-slate-400">Confidential</p>
               </div>
