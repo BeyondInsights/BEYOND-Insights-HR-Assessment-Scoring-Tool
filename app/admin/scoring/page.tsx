@@ -2659,6 +2659,302 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
 }
 
 // ============================================
+// BENCHMARK COMPARISON CHART - Single Dimension View
+// ============================================
+
+const BENCHMARK_TIERS = [
+  { name: 'Exemplary', min: 90, max: 100, color: '#059669', bgColor: '#D1FAE5' },
+  { name: 'Leading', min: 70, max: 89, color: '#0891B2', bgColor: '#CFFAFE' },
+  { name: 'Progressing', min: 50, max: 69, color: '#CA8A04', bgColor: '#FEF9C3' },
+  { name: 'Emerging', min: 30, max: 49, color: '#EA580C', bgColor: '#FFEDD5' },
+  { name: 'Developing', min: 0, max: 29, color: '#DC2626', bgColor: '#FEE2E2' },
+];
+
+const getBenchmarkTier = (score: number) => {
+  return BENCHMARK_TIERS.find(t => score >= t.min && score <= t.max) || BENCHMARK_TIERS[4];
+};
+
+// Custom SVG badges for rankings
+const GoldBadge = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <circle cx="14" cy="14" r="13" fill="#FCD34D" stroke="#F59E0B" strokeWidth="2"/>
+    <text x="14" y="18" textAnchor="middle" fill="#92400E" fontSize="12" fontWeight="bold" fontFamily="system-ui">1</text>
+  </svg>
+);
+
+const SilverBadge = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <circle cx="14" cy="14" r="13" fill="#E5E7EB" stroke="#9CA3AF" strokeWidth="2"/>
+    <text x="14" y="18" textAnchor="middle" fill="#4B5563" fontSize="12" fontWeight="bold" fontFamily="system-ui">2</text>
+  </svg>
+);
+
+const BronzeBadge = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <circle cx="14" cy="14" r="13" fill="#FDBA74" stroke="#EA580C" strokeWidth="2"/>
+    <text x="14" y="18" textAnchor="middle" fill="#9A3412" fontSize="12" fontWeight="bold" fontFamily="system-ui">3</text>
+  </svg>
+);
+
+const RankBadge = ({ rank }: { rank: number }) => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <circle cx="14" cy="14" r="12" fill="#F1F5F9" stroke="#CBD5E1" strokeWidth="1"/>
+    <text x="14" y="18" textAnchor="middle" fill="#64748B" fontSize="11" fontWeight="600" fontFamily="system-ui">{rank}</text>
+  </svg>
+);
+
+const BenchmarkIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <rect x="4" y="8" width="20" height="12" rx="2" fill="#F97316" stroke="#EA580C" strokeWidth="1.5"/>
+    <path d="M14 6L17 10H11L14 6Z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
+    <text x="14" y="17" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold" fontFamily="system-ui">AVG</text>
+  </svg>
+);
+
+function BenchmarkComparisonChart({ 
+  companyScores, 
+  averages,
+  includePanel,
+  currentSurveyId,
+  onClose 
+}: { 
+  companyScores: CompanyScores[];
+  averages: {
+    dimensions: Record<number, { total: number | null }>;
+  };
+  includePanel: boolean;
+  currentSurveyId?: string;
+  onClose: () => void;
+}) {
+  // Sort dimensions by weight for dropdown
+  const sortedDimensions = useMemo(() => 
+    Object.entries(DEFAULT_DIMENSION_WEIGHTS)
+      .map(([dim, weight]) => ({ dim: parseInt(dim), weight, name: DIMENSION_NAMES[parseInt(dim)] }))
+      .sort((a, b) => b.weight - a.weight),
+    []
+  );
+  
+  const [selectedDim, setSelectedDim] = useState(sortedDimensions[0].dim);
+  
+  // Get data for selected dimension - exclude Panel from display but include in benchmarks
+  const dimensionData = useMemo(() => {
+    const benchmark = averages.dimensions[selectedDim]?.total ?? 0;
+    
+    // Get complete, non-panel companies for display
+    const displayCompanies = companyScores
+      .filter(c => c.isComplete && !c.isPanel) // Always exclude Panel from dots
+      .map(c => ({
+        name: c.companyName,
+        surveyId: c.surveyId,
+        score: c.dimensions[selectedDim]?.blendedScore ?? 0,
+        isCurrent: c.surveyId === currentSurveyId,
+      }))
+      .filter(c => c.score !== null && c.score !== undefined)
+      .sort((a, b) => b.score - a.score);
+    
+    return { benchmark, companyScores: displayCompanies };
+  }, [selectedDim, companyScores, averages, currentSurveyId]);
+  
+  const { benchmark, companyScores: sortedCompanies } = dimensionData;
+  const maxScore = 100;
+  const benchmarkTier = getBenchmarkTier(benchmark);
+  
+  return (
+    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={onClose}>
+      <div 
+        className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="bg-slate-800 px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white">Benchmark Comparison</h2>
+            <p className="text-slate-400 text-sm mt-1">{sortedCompanies.length} companies • Select a dimension to compare</p>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        {/* Dimension Selector */}
+        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+          <div className="flex items-center gap-4">
+            <label className="text-sm font-medium text-slate-600">Dimension:</label>
+            <select
+              value={selectedDim}
+              onChange={(e) => setSelectedDim(parseInt(e.target.value))}
+              className="flex-1 max-w-md px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {sortedDimensions.map(d => (
+                <option key={d.dim} value={d.dim}>
+                  {d.name} ({d.weight}% weight)
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Tier Legend */}
+          <div className="flex items-center gap-4 mt-3 flex-wrap">
+            <span className="text-xs text-slate-500 font-medium">TIERS:</span>
+            {BENCHMARK_TIERS.map(tier => (
+              <div key={tier.name} className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded" style={{ backgroundColor: tier.color }} />
+                <span className="text-xs text-slate-600">{tier.name} ({tier.min}-{tier.max})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Chart Area */}
+        <div className="flex-1 overflow-auto px-6 py-4">
+          {/* Company Bars */}
+          <div className="space-y-2">
+            {/* Benchmark Row - Always First */}
+            <div className="relative flex items-center gap-4 p-3 rounded-lg bg-orange-50 border-2 border-orange-200">
+              {/* Benchmark Icon */}
+              <div className="flex-shrink-0">
+                <BenchmarkIcon />
+              </div>
+              
+              {/* Label */}
+              <div className="w-48 flex-shrink-0">
+                <p className="text-sm font-bold text-orange-700">Benchmark Average</p>
+                <p className="text-xs text-orange-500">All complete assessments</p>
+              </div>
+              
+              {/* Bar */}
+              <div className="flex-1 relative h-8">
+                <div className="absolute inset-0 bg-slate-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full rounded-full transition-all duration-500 ease-out"
+                    style={{ 
+                      width: `${(benchmark / maxScore) * 100}%`,
+                      backgroundColor: '#F97316',
+                    }}
+                  />
+                </div>
+                <div className="absolute inset-0 flex items-center px-3">
+                  <span className={`text-sm font-bold ${benchmark > 15 ? 'text-white' : 'text-slate-700 ml-auto'}`}>
+                    {benchmark}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Empty diff column for alignment */}
+              <div className="w-20 text-center text-sm font-semibold text-orange-500">
+                baseline
+              </div>
+              
+              {/* Tier badge */}
+              <div 
+                className="w-24 text-center text-xs font-semibold py-1 px-2 rounded"
+                style={{ backgroundColor: benchmarkTier.bgColor, color: benchmarkTier.color }}
+              >
+                {benchmarkTier.name}
+              </div>
+            </div>
+            
+            {/* Divider */}
+            <div className="border-t border-slate-200 my-3" />
+            
+            {/* Company Rows */}
+            {sortedCompanies.map((company, idx) => {
+              const tier = getBenchmarkTier(company.score);
+              const barWidth = (company.score / maxScore) * 100;
+              const diff = company.score - benchmark;
+              
+              return (
+                <div 
+                  key={company.surveyId} 
+                  className={`relative flex items-center gap-4 p-3 rounded-lg transition-all ${
+                    company.isCurrent 
+                      ? 'bg-indigo-50 ring-2 ring-indigo-400' 
+                      : idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'
+                  }`}
+                >
+                  {/* Rank Badge */}
+                  <div className="flex-shrink-0">
+                    {idx === 0 ? <GoldBadge /> :
+                     idx === 1 ? <SilverBadge /> :
+                     idx === 2 ? <BronzeBadge /> :
+                     <RankBadge rank={idx + 1} />}
+                  </div>
+                  
+                  {/* Company Name */}
+                  <div className="w-48 flex-shrink-0">
+                    <p className={`text-sm font-medium truncate ${company.isCurrent ? 'text-indigo-700' : 'text-slate-700'}`}>
+                      {company.name}
+                    </p>
+                    {company.isCurrent && <p className="text-xs text-indigo-500">(current company)</p>}
+                  </div>
+                  
+                  {/* Bar */}
+                  <div className="flex-1 relative h-8">
+                    <div className="absolute inset-0 bg-slate-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all duration-500 ease-out"
+                        style={{ 
+                          width: `${barWidth}%`,
+                          backgroundColor: tier.color,
+                        }}
+                      />
+                    </div>
+                    <div className="absolute inset-0 flex items-center px-3">
+                      <span className={`text-sm font-bold ${barWidth > 15 ? 'text-white' : 'text-slate-700 ml-auto'}`}>
+                        {company.score}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Diff from benchmark */}
+                  <div className={`w-20 text-right text-sm font-semibold ${
+                    diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-slate-500'
+                  }`}>
+                    {diff > 0 ? '+' : ''}{diff} vs avg
+                  </div>
+                  
+                  {/* Tier badge */}
+                  <div 
+                    className="w-24 text-center text-xs font-semibold py-1 px-2 rounded"
+                    style={{ backgroundColor: tier.bgColor, color: tier.color }}
+                  >
+                    {tier.name}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          {sortedCompanies.length === 0 && (
+            <div className="text-center py-12 text-slate-500">
+              No company data available for this dimension
+            </div>
+          )}
+        </div>
+        
+        {/* Footer */}
+        <div className="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+          <p className="text-xs text-slate-500">
+            Benchmark includes all complete assessments (Panel data included in average calculation)
+          </p>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 
@@ -2677,6 +2973,7 @@ export default function AggregateScoringReport() {
   const [showReliabilityModal, setShowReliabilityModal] = useState(false);
   const [showMethodologyModal, setShowMethodologyModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'composite' | `dim${number}`>('composite');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard' | 'panel'>('all');
@@ -2842,6 +3139,14 @@ export default function AggregateScoringReport() {
       {showSensitivityModal && <SensitivityAnalysisModal onClose={() => setShowSensitivityModal(false)} companyScores={companyScores} weights={weights} includePanel={includePanel} assessments={assessments} />}
       {showReliabilityModal && <ReliabilityDiagnosticsModal onClose={() => setShowReliabilityModal(false)} companyScores={companyScores} assessments={assessments} includePanel={includePanel} />}
       {showMethodologyModal && <TechnicalMethodologyModal onClose={() => setShowMethodologyModal(false)} />}
+      {showBenchmarkModal && (
+        <BenchmarkComparisonChart 
+          companyScores={companyScores} 
+          averages={averages}
+          includePanel={includePanel}
+          onClose={() => setShowBenchmarkModal(false)} 
+        />
+      )}
       
       {/* Report Generator Modal */}
       {showReportModal && (
@@ -3153,6 +3458,12 @@ export default function AggregateScoringReport() {
               className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-medium rounded-lg transition-colors"
             >
               Tier Stats
+            </button>
+            <button 
+              onClick={() => setShowBenchmarkModal(true)}
+              className="px-2.5 py-1 bg-rose-500 hover:bg-rose-400 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              Benchmark
             </button>
             <button 
               onClick={() => setShowSensitivityModal(true)}
