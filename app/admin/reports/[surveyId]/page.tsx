@@ -1347,11 +1347,11 @@ export default function ExportReportPage() {
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
   
-  // Initiatives in progress - sorted: Assessing first, then Planning
+  // Initiatives in progress - sorted: Planning first, then Assessing
   const quickWinOpportunities = dimensionAnalysis
     .flatMap(d => [
-      ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Assessing', sortOrder: 1 })),
-      ...d.planning.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Planning', sortOrder: 2 }))
+      ...d.planning.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Planning', sortOrder: 1 })),
+      ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Assessing', sortOrder: 2 }))
     ])
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .slice(0, 8);
@@ -2462,25 +2462,25 @@ export default function ExportReportPage() {
 
         {/* ============ IMPLEMENTATION ROADMAP ============ */}
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
-          <div className="px-10 py-6 bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600">
+          <div className="px-10 py-6 bg-slate-800">
             <h3 className="font-semibold text-white text-lg">Implementation Roadmap</h3>
-            <p className="text-indigo-200 text-sm mt-1">Your phased approach to strengthen workplace cancer support</p>
+            <p className="text-slate-400 text-sm mt-1">Your phased approach to strengthen workplace cancer support</p>
           </div>
           <div className="px-10 py-8">
             <div className="grid grid-cols-3 gap-6">
               {/* Phase 1 */}
-              <div className="border-2 border-emerald-200 rounded-lg overflow-hidden shadow-sm">
-                <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-4">
+              <div className="border-2 border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-slate-800 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 font-bold text-lg shadow-md">1</span>
+                    <span className="w-10 h-10 rounded-full bg-[#F37021] flex items-center justify-center text-white font-bold text-lg shadow-md">1</span>
                     <div>
                       <h4 className="font-semibold text-white">Quick Wins</h4>
-                      <p className="text-emerald-100 text-xs">Immediate impact</p>
+                      <p className="text-slate-400 text-xs">Immediate impact</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5 bg-emerald-50/30">
-                  <p className="text-xs text-emerald-700 font-medium uppercase tracking-wide mb-4">
+                <div className="p-5">
+                  <p className="text-xs text-slate-600 font-medium uppercase tracking-wide mb-4">
                     Accelerate items already in progress
                     {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
                   </p>
@@ -2529,18 +2529,18 @@ export default function ExportReportPage() {
               </div>
               
               {/* Phase 2 */}
-              <div className="border-2 border-blue-200 rounded-lg overflow-hidden shadow-sm">
-                <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-4">
+              <div className="border-2 border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-slate-700 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600 font-bold text-lg shadow-md">2</span>
+                    <span className="w-10 h-10 rounded-full bg-[#F37021] flex items-center justify-center text-white font-bold text-lg shadow-md">2</span>
                     <div>
                       <h4 className="font-semibold text-white">Foundation Building</h4>
-                      <p className="text-blue-100 text-xs">6-12 months</p>
+                      <p className="text-slate-400 text-xs">6-12 months</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5 bg-blue-50/30">
-                  <p className="text-xs text-blue-700 font-medium uppercase tracking-wide mb-4">
+                <div className="p-5">
+                  <p className="text-xs text-slate-600 font-medium uppercase tracking-wide mb-4">
                     Address high-weight dimension gaps
                     {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
                   </p>
@@ -2589,18 +2589,18 @@ export default function ExportReportPage() {
               </div>
               
               {/* Phase 3 */}
-              <div className="border-2 border-violet-200 rounded-lg overflow-hidden shadow-sm">
-                <div className="bg-gradient-to-r from-violet-600 to-purple-500 px-5 py-4">
+              <div className="border-2 border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-slate-600 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-violet-600 font-bold text-lg shadow-md">3</span>
+                    <span className="w-10 h-10 rounded-full bg-[#F37021] flex items-center justify-center text-white font-bold text-lg shadow-md">3</span>
                     <div>
                       <h4 className="font-semibold text-white">Long-Term Enhancement</h4>
-                      <p className="text-violet-100 text-xs">12+ months</p>
+                      <p className="text-slate-400 text-xs">12+ months</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5 bg-violet-50/30">
-                  <p className="text-xs text-violet-700 font-medium uppercase tracking-wide mb-4">
+                <div className="p-5">
+                  <p className="text-xs text-slate-600 font-medium uppercase tracking-wide mb-4">
                     Address remaining lower-priority gaps
                     {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
                   </p>
@@ -2655,7 +2655,7 @@ export default function ExportReportPage() {
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-6 bg-gradient-to-r from-[#F37021] to-[#FF8C42]">
             <div className="flex items-center gap-4">
-              <Image src="/best-companies-2026-logo.png" alt="Cancer and Careers" width={60} height={60} className="rounded-lg bg-white p-2 shadow-md" />
+              <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={80} height={80} className="object-contain" />
               <div>
                 <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help</h3>
                 <p className="text-orange-100 text-sm mt-1">Tailored support to enhance your employee experience</p>
