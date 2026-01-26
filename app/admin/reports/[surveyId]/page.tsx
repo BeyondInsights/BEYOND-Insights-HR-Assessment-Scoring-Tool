@@ -3262,7 +3262,7 @@ export default function ExportReportPage() {
               </div>
               <div>
                 <p className="font-medium text-slate-700 mb-2">Dimension Weights</p>
-                <p className="leading-relaxed">Each dimension carries a specific weight reflecting its relative importance. Weights were derived from extensive research with HR leaders, employees managing cancer, and employee resource groups to ensure the Index prioritizes what matters most to those directly affected.</p>
+                <p className="leading-relaxed">Each dimension carries a specific weight reflecting its relative importance. Weights were derived from extensive research with HR leaders, employees managing cancer, and general employee populations to ensure the Index prioritizes what matters most to those directly affected.</p>
               </div>
               <div>
                 <p className="font-medium text-slate-700 mb-2">Benchmarking</p>
