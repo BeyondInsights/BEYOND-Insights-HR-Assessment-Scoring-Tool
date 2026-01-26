@@ -2075,28 +2075,30 @@ export default function InteractiveReportPage() {
 
       {/* Interactive Header - No edit/export buttons */}
       <div className="no-print bg-gradient-to-r from-slate-800 to-slate-900 text-white sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Image 
-              src="/BI_LOGO_FINAL.png" 
-              alt="BEYOND Insights" 
-              width={40} 
-              height={40}
-              className="object-contain"
-            />
-            <div>
-              <h1 className="font-semibold">{company?.firmographics_data?.company_name || company?.company_name || 'Company Report'}</h1>
+        <div className="max-w-6xl mx-auto px-8 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <div className="bg-white rounded-lg p-2">
+              <Image 
+                src="/cancer-careers-logo.png" 
+                alt="Cancer and Careers" 
+                width={100} 
+                height={36}
+                className="object-contain"
+              />
+            </div>
+            <div className="border-l border-slate-600 pl-5">
+              <h1 className="font-semibold text-lg">{company?.firmographics_data?.company_name || company?.company_name || 'Company Report'}</h1>
               <p className="text-slate-400 text-sm">Best Companies for Working with Cancer Index 2026</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <div className="text-right">
               <p className="text-xs text-slate-400">Overall Score</p>
-              <p className="text-2xl font-bold" style={{ color: getScoreColor(compositeScore || 0) }}>
+              <p className="text-3xl font-bold" style={{ color: getScoreColor(compositeScore || 0) }}>
                 {compositeScore || 0}
               </p>
             </div>
-            <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${tier?.bgColor || 'bg-slate-100'}`} style={{ color: tier?.color }}>
+            <span className={`px-4 py-2 rounded-lg text-sm font-bold ${tier?.bgColor || 'bg-slate-100'}`} style={{ color: tier?.color }}>
               {tier?.name}
             </span>
           </div>
