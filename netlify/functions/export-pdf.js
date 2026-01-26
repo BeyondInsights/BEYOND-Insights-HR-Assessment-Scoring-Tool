@@ -95,7 +95,7 @@ exports.handler = async (event) => {
 
   try {
     const { data: assessment, error } = await supabase
-      .from('survey_responses')
+      .from('assessments')
       .select('*')
       .eq('survey_id', surveyId)
       .single();
@@ -365,7 +365,7 @@ exports.handler = async (event) => {
     doc.setFontSize(16);
     doc.setTextColor('#7C3AED');
     doc.setFont('helvetica', 'normal');
-    doc.text('Contact: consulting@cancerandcareers.org', 60, 575);
+    doc.text('Contact: cacbestcompanies@cew.org', 60, 575);
 
     const pdfBuffer = doc.output('arraybuffer');
 
