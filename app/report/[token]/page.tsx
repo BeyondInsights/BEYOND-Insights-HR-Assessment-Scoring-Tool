@@ -1651,75 +1651,74 @@ export default function InteractiveReportPage() {
   if (!authenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%)' }}>
-        <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
-          {/* Header with BI Logo */}
-          <div className="p-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' }}>
-            <div className="w-32 h-32 mx-auto mb-5 bg-white rounded-2xl shadow-xl flex items-center justify-center p-4">
-              <Image 
-                src="/BI_LOGO_FINAL.png" 
-                alt="BEYOND Insights" 
-                width={100} 
-                height={100}
-                className="object-contain"
-              />
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden p-8">
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <Image 
+              src="/BI_LOGO_FINAL.png" 
+              alt="BEYOND Insights" 
+              width={180} 
+              height={60}
+              className="object-contain"
+            />
+          </div>
+          
+          {/* Lock Icon */}
+          <div className="flex justify-center mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
             </div>
-            <h1 className="text-xl font-semibold text-white leading-snug">Your Tailored 2026</h1>
-            <p className="text-slate-300 text-sm mt-1">Best Companies for Working with Cancer Index Report</p>
+          </div>
+          
+          {/* Title */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-slate-800">Your 2026 Index Report</h1>
+            <p className="text-slate-500 mt-1">Best Companies for Working with Cancer</p>
           </div>
           
           {/* Form */}
-          <div className="p-8 pt-6">
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-amber-100 to-amber-50 mb-4 shadow-inner">
-                <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-slate-800">Secure Report Access</h2>
-              <p className="text-slate-500 text-sm mt-1">Enter your password to continue</p>
+          <form onSubmit={(e) => { e.preventDefault(); handleAuthenticate(); }}>
+            <div className="mb-5">
+              <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                className={`w-full px-4 py-3 text-base border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all ${
+                  passwordError ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50'
+                }`}
+                placeholder="Enter password"
+                autoFocus
+              />
+              {passwordError && (
+                <p className="mt-2 text-sm text-red-600 flex items-center gap-1.5">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {passwordError}
+                </p>
+              )}
             </div>
             
-            <form onSubmit={(e) => { e.preventDefault(); handleAuthenticate(); }}>
-              <div className="mb-5">
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
-                <input
-                  type="password"
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  className={`w-full px-4 py-3.5 text-lg border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${
-                    passwordError ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-                  }`}
-                  placeholder="Enter password"
-                  autoFocus
-                />
-                {passwordError && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1.5">
-                    <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {passwordError}
-                  </p>
-                )}
-              </div>
-              
-              <button
-                type="submit"
-                disabled={!passwordInput}
-                className="w-full py-3.5 text-lg font-bold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-                style={{ 
-                  background: passwordInput ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : '#e2e8f0',
-                  color: passwordInput ? '#fff' : '#94a3b8'
-                }}
-              >
-                Access Report
-              </button>
-            </form>
-            
-            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-              <p className="text-xs text-slate-400">
-                Password provided by your organization administrator
-              </p>
-            </div>
+            <button
+              type="submit"
+              disabled={!passwordInput}
+              className="w-full py-3 text-base font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ 
+                background: passwordInput ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : '#e2e8f0',
+                color: passwordInput ? '#fff' : '#94a3b8'
+              }}
+            >
+              Access Report
+            </button>
+          </form>
+          
+          <div className="mt-8 text-center">
+            <p className="text-sm text-slate-400">
+              Password provided by your organization administrator
+            </p>
           </div>
         </div>
       </div>
