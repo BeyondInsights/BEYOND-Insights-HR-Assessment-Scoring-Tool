@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 
 /**
@@ -10,8 +11,27 @@ import { supabase } from '@/lib/supabase/client';
  * It will automatically check if localStorage has data that should be synced
  * and push it to Supabase WITHOUT any user interaction required.
  * 
+ * *** DISABLED on admin/report pages to prevent admins overwriting client data ***
+ * 
  * Usage: Just import and add <SilentDataRecovery /> to your layout
  */
+
+// Paths where recovery is DISABLED - these are read-only pages
+const DISABLED_PATHS = [
+  '/admin',
+  '/report/',
+  '/scoring',
+];
+
+function isRecoveryDisabled(pathname: string): boolean {
+  if (!pathname) return true;
+  for (const disabledPath of DISABLED_PATHS) {
+    if (pathname.startsWith(disabledPath)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 const DATA_KEYS = [
   'firmographics_data',
@@ -76,7 +96,14 @@ function countPrograms(data: any): number {
 }
 
 export function SilentDataRecovery() {
+  const pathname = usePathname();
+  
   useEffect(() => {
+    // *** CRITICAL: NEVER run recovery on admin/report pages ***
+    if (isRecoveryDisabled(pathname || '')) {
+      return;
+    }
+    
     const recoverData = async () => {
       try {
         // Get survey ID
@@ -174,7 +201,7 @@ export function SilentDataRecovery() {
     // Run recovery check after a short delay to let page load
     const timeout = setTimeout(recoverData, 2000);
     return () => clearTimeout(timeout);
-  }, []);
+  }, [pathname]);
 
   // This component renders nothing
   return null;
