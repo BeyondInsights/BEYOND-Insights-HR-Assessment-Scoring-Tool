@@ -40,19 +40,19 @@ exports.handler = async (event) => {
           viewport: { width: 1280, height: 720 },
           options: {
             printBackground: true,
-            width: '13.333in',
-            height: '7.5in',
+            width: '1280px',
+            height: '720px',
             landscape: true,
-            margin: { top: '0in', right: '0in', bottom: '0in', left: '0in' },
+            margin: { top: '0', right: '0', bottom: '0', left: '0' },
             displayHeaderFooter: false,
             preferCSSPageSize: false,
             scale: 1.0,
           },
           gotoOptions: {
-            waitUntil: 'networkidle2',
-            timeout: 60000,
+            waitUntil: 'networkidle0',
+            timeout: 90000,
           },
-          waitForTimeout: 1500,
+          waitForTimeout: 3000,
         }),
       });
 
@@ -90,26 +90,26 @@ exports.handler = async (event) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: reportUrl,
-          viewport: { width: 1200, height: 800 },
+          viewport: { width: 1100, height: 800 },
           options: {
             printBackground: true,
             format: 'Letter',
             landscape: false,
             margin: {
-              top: '0.4in',
-              right: '0.4in',
-              bottom: '0.4in',
-              left: '0.4in',
+              top: '0.5in',
+              right: '0.5in',
+              bottom: '0.5in',
+              left: '0.5in',
             },
             displayHeaderFooter: false,
             preferCSSPageSize: false,
-            scale: 1.0,
+            scale: 0.95,
           },
           gotoOptions: {
-            waitUntil: 'networkidle2',
-            timeout: 60000,
+            waitUntil: 'networkidle0',
+            timeout: 90000,
           },
-          waitForTimeout: 1000,
+          waitForTimeout: 2000,
         }),
       });
 
