@@ -1515,9 +1515,38 @@ export default function ExportReportPage() {
         /* Strategic Priority Matrix - ensure legend is not truncated */
         .matrix-legend {
           flex-wrap: wrap !important;
+          overflow: visible !important;
         }
         .matrix-legend span {
           white-space: nowrap !important;
+          overflow: visible !important;
+          text-overflow: clip !important;
+        }
+        .matrix-legend > div {
+          overflow: visible !important;
+          flex-shrink: 0 !important;
+        }
+        
+        /* Export mode specific - matrix legend must not truncate */
+        .export-mode .matrix-legend,
+        .pdf-export-mode .matrix-legend {
+          display: flex !important;
+          flex-wrap: wrap !important;
+          justify-content: center !important;
+          gap: 12px 12px !important;
+          overflow: visible !important;
+        }
+        .export-mode .matrix-legend > div,
+        .pdf-export-mode .matrix-legend > div {
+          flex-shrink: 0 !important;
+          overflow: visible !important;
+        }
+        .export-mode .matrix-legend span,
+        .pdf-export-mode .matrix-legend span {
+          white-space: nowrap !important;
+          overflow: visible !important;
+          text-overflow: clip !important;
+        }
           overflow: visible !important;
           text-overflow: clip !important;
         }
