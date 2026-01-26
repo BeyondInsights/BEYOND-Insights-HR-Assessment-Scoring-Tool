@@ -914,6 +914,7 @@ export default function ExportReportPage() {
   }>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
+  const [showPdfOrientationModal, setShowPdfOrientationModal] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   
   // Show toast notification
@@ -1242,9 +1243,10 @@ export default function ExportReportPage() {
   // ============================================
   // SERVER EXPORT BUTTONS (Netlify Functions)
   // ============================================
-  function handleServerExportPDF() {
-    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
+  function handleServerExportPDF(orientation: 'portrait' | 'landscape' = 'portrait') {
+    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}&orientation=${orientation}`;
     window.open(url, '_blank');
+    setShowPdfOrientationModal(false);
   }
 
   function handleServerExportPPT() {
@@ -1564,7 +1566,7 @@ export default function ExportReportPage() {
               Export PowerPoint
             </button>
             <button
-              onClick={handleServerExportPDF}
+              onClick={() => setShowPdfOrientationModal(true)}
               className="px-5 py-2 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-white"
               title="Export PDF"
             >
@@ -2839,6 +2841,70 @@ export default function ExportReportPage() {
           </div>
         </div>
       </div>
+
+      {/* PDF Orientation Selection Modal */}
+      {showPdfOrientationModal && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowPdfOrientationModal(false)}>
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-slate-800 px-6 py-4">
+              <h2 className="text-lg font-bold text-white">Export PDF</h2>
+              <p className="text-slate-400 text-sm mt-1">Choose page orientation</p>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Portrait Option */}
+                <button
+                  onClick={() => handleServerExportPDF('portrait')}
+                  className="group p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-all"
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-20 border-2 border-slate-300 group-hover:border-indigo-500 rounded bg-white shadow-sm flex items-center justify-center">
+                      <svg className="w-8 h-10 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold text-slate-700 group-hover:text-indigo-700">Portrait</p>
+                      <p className="text-xs text-slate-500">Standard layout</p>
+                    </div>
+                  </div>
+                </button>
+                
+                {/* Landscape Option */}
+                <button
+                  onClick={() => handleServerExportPDF('landscape')}
+                  className="group p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-all"
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-20 h-16 border-2 border-slate-300 group-hover:border-indigo-500 rounded bg-white shadow-sm flex items-center justify-center">
+                      <svg className="w-10 h-8 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold text-slate-700 group-hover:text-indigo-700">Landscape</p>
+                      <p className="text-xs text-slate-500">Wider for charts</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t border-slate-200 flex justify-end">
+                <button
+                  onClick={() => setShowPdfOrientationModal(false)}
+                  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notification */}
       {toast.show && (
