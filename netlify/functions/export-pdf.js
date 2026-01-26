@@ -1,6 +1,4 @@
 // netlify/functions/export-pdf.js
-// Uses Browserless - supports portrait and landscape orientations
-
 exports.handler = async (event) => {
   try {
     const surveyId = event.queryStringParameters?.surveyId;
