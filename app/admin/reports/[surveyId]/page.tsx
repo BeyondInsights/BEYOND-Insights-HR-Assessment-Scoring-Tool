@@ -1225,7 +1225,6 @@ export default function ExportReportPage() {
   }>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
-  const [showPdfOrientationModal, setShowPdfOrientationModal] = useState(false);
   const [showInteractiveLinkModal, setShowInteractiveLinkModal] = useState(false);
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
@@ -1613,13 +1612,6 @@ export default function ExportReportPage() {
   // ============================================
   // SERVER EXPORT BUTTONS (Netlify Functions)
   // ============================================
-  function handleServerExportPDF() {
-    // Use server-side PDF generation
-    setShowPdfOrientationModal(false);
-    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
-    window.open(url, '_blank');
-  }
-
   function handleServerExportPPT() {
     const url = `/.netlify/functions/export-pptx?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
     window.open(url, '_blank');
@@ -2128,7 +2120,10 @@ export default function ExportReportPage() {
               Export PowerPoint
             </button>
             <button
-              onClick={() => setShowPdfOrientationModal(true)}
+              onClick={() => {
+                const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
+                window.open(url, '_blank');
+              }}
               className="px-5 py-2 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-white"
               title="Export PDF"
             >
@@ -3511,44 +3506,6 @@ export default function ExportReportPage() {
           </div>
         </div>
       </div>
-
-      {/* PDF Export Modal */}
-      {showPdfOrientationModal && (
-        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowPdfOrientationModal(false)}>
-          <div 
-            className="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="bg-slate-800 px-6 py-4">
-              <h2 className="text-lg font-bold text-white">Export PDF</h2>
-              <p className="text-slate-400 text-sm mt-1">Download presentation slides as PDF</p>
-            </div>
-            
-            <div className="p-6">
-              <p className="text-sm text-slate-600 mb-4">
-                This will generate a PDF with all presentation slides in landscape format - the same content as the PowerPoint export.
-              </p>
-              
-              <button
-                onClick={() => handleServerExportPDF()}
-                className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Download PDF
-              </button>
-              
-              <button
-                onClick={() => setShowPdfOrientationModal(false)}
-                className="w-full mt-3 py-2 text-sm text-slate-500 hover:text-slate-700"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Interactive Link Modal */}
       {showInteractiveLinkModal && interactiveLink && (
