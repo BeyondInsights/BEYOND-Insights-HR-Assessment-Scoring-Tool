@@ -2183,15 +2183,13 @@ export default function InteractiveReportPage() {
                     className="object-contain"
                   />
                 </div>
-                <div>
+                <div className="mb-6">
                   <p className="font-semibold text-slate-800">Rebecca V. Nellis</p>
                   <p className="text-sm text-slate-500">Executive Director, Cancer and Careers</p>
                 </div>
               </div>
-            </div>
-            
-            {/* Footer with CTA */}
-            <div className="bg-slate-50 px-8 py-5 border-t border-slate-200">
+
+              {/* View Report Button - at bottom of scrollable content */}
               <button
                 onClick={() => setShowWelcomeOverlay(false)}
                 className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
