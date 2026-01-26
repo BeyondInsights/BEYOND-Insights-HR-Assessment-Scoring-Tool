@@ -875,221 +875,6 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
 }
 
 // ============================================
-// BENCHMARK COMPARISON CHART
-// ============================================
-
-const COMPANY_COLORS = [
-  '#3B82F6', // blue
-  '#10B981', // emerald
-  '#8B5CF6', // violet
-  '#F59E0B', // amber
-  '#EF4444', // red
-  '#06B6D4', // cyan
-  '#EC4899', // pink
-  '#84CC16', // lime
-  '#6366F1', // indigo
-  '#F97316', // orange
-  '#14B8A6', // teal
-  '#A855F7', // purple
-  '#22C55E', // green
-];
-
-function BenchmarkComparisonChart({ 
-  companies, 
-  benchmarks, 
-  dimensionWeights,
-  onClose 
-}: { 
-  companies: { name: string; surveyId: string; dimensionScores: Record<number, number>; compositeScore: number; isCurrentCompany: boolean }[];
-  benchmarks: Record<number, number | null>;
-  dimensionWeights: Record<number, number>;
-  onClose: () => void;
-}) {
-  const [hoveredCompany, setHoveredCompany] = useState<string | null>(null);
-  const [hoveredDim, setHoveredDim] = useState<number | null>(null);
-  
-  // Sort dimensions by weight (descending)
-  const sortedDimensions = Object.entries(dimensionWeights)
-    .map(([dim, weight]) => ({ dim: parseInt(dim), weight }))
-    .sort((a, b) => b.weight - a.weight);
-  
-  const CHART_WIDTH = 1000;
-  const ROW_HEIGHT = 36;
-  const HEADER_HEIGHT = 50;
-  const LEGEND_HEIGHT = 80;
-  const MARGIN = { left: 200, right: 80 };
-  const SCORE_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
-  const CHART_HEIGHT = HEADER_HEIGHT + (sortedDimensions.length * ROW_HEIGHT) + LEGEND_HEIGHT + 20;
-  
-  const DIM_NAMES: Record<number, string> = {
-    1: 'Medical Leave & Flexibility', 2: 'Insurance & Financial', 3: 'Manager Preparedness',
-    4: 'Navigation & Resources', 5: 'Workplace Accommodations', 6: 'Culture & Safety',
-    7: 'Career Continuity', 8: 'Work Continuation', 9: 'Executive Commitment',
-    10: 'Caregiver Support', 11: 'Prevention & Wellness', 12: 'Continuous Improvement', 13: 'Communication'
-  };
-  
-  // Assign colors to companies
-  const companyColors = companies.reduce((acc, c, idx) => {
-    acc[c.surveyId] = c.isCurrentCompany ? '#1E40AF' : COMPANY_COLORS[idx % COMPANY_COLORS.length];
-    return acc;
-  }, {} as Record<string, string>);
-  
-  return (
-    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={onClose}>
-      <div 
-        className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between z-10">
-          <div>
-            <h2 className="text-xl font-bold text-slate-800">Benchmark Comparison</h2>
-            <p className="text-sm text-slate-500 mt-1">{companies.length} companies • 13 dimensions • Sorted by weight</p>
-          </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-          >
-            <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
-        <div className="p-6">
-          <svg 
-            width="100%" 
-            viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} 
-            preserveAspectRatio="xMidYMid meet"
-            className="overflow-visible"
-          >
-            {/* Header row */}
-            <g transform={`translate(0, 0)`}>
-              <text x={MARGIN.left - 10} y={HEADER_HEIGHT / 2} textAnchor="end" dominantBaseline="middle" 
-                    fill="#64748B" fontSize="11" fontWeight="600">DIMENSION (WEIGHT)</text>
-              
-              {/* Score axis labels */}
-              {[0, 25, 50, 75, 100].map(val => (
-                <g key={val} transform={`translate(${MARGIN.left + (val / 100) * SCORE_WIDTH}, 0)`}>
-                  <text y={HEADER_HEIGHT / 2} textAnchor="middle" dominantBaseline="middle"
-                        fill="#94A3B8" fontSize="10">{val}</text>
-                </g>
-              ))}
-            </g>
-            
-            {/* Dimension rows */}
-            {sortedDimensions.map((d, rowIdx) => {
-              const y = HEADER_HEIGHT + (rowIdx * ROW_HEIGHT);
-              const benchmark = benchmarks[d.dim];
-              const isHovered = hoveredDim === d.dim;
-              
-              return (
-                <g key={d.dim} transform={`translate(0, ${y})`}
-                   onMouseEnter={() => setHoveredDim(d.dim)}
-                   onMouseLeave={() => setHoveredDim(null)}>
-                  {/* Row background */}
-                  <rect x={0} y={0} width={CHART_WIDTH} height={ROW_HEIGHT} 
-                        fill={isHovered ? '#F8FAFC' : rowIdx % 2 === 0 ? '#FFFFFF' : '#FAFAFA'} />
-                  
-                  {/* Dimension label */}
-                  <text x={MARGIN.left - 10} y={ROW_HEIGHT / 2} textAnchor="end" dominantBaseline="middle"
-                        fill="#334155" fontSize="11" fontWeight="500">
-                    {DIM_NAMES[d.dim]} ({d.weight}%)
-                  </text>
-                  
-                  {/* Score track background */}
-                  <rect x={MARGIN.left} y={ROW_HEIGHT / 2 - 4} width={SCORE_WIDTH} height={8} 
-                        fill="#E2E8F0" rx="4" />
-                  
-                  {/* Vertical grid lines */}
-                  {[25, 50, 75].map(val => (
-                    <line key={val} x1={MARGIN.left + (val / 100) * SCORE_WIDTH} y1={4} 
-                          x2={MARGIN.left + (val / 100) * SCORE_WIDTH} y2={ROW_HEIGHT - 4}
-                          stroke="#CBD5E1" strokeWidth="1" strokeDasharray="2 2" />
-                  ))}
-                  
-                  {/* Benchmark line */}
-                  {benchmark !== null && (
-                    <g transform={`translate(${MARGIN.left + (benchmark / 100) * SCORE_WIDTH}, 0)`}>
-                      <line y1={4} y2={ROW_HEIGHT - 4} stroke="#F97316" strokeWidth="2" />
-                      <polygon points="-5,4 5,4 0,10" fill="#F97316" />
-                    </g>
-                  )}
-                  
-                  {/* Company dots */}
-                  {companies.map((company, cIdx) => {
-                    const score = company.dimensionScores[d.dim];
-                    if (score === undefined || score === null) return null;
-                    
-                    const xPos = MARGIN.left + (score / 100) * SCORE_WIDTH;
-                    const isCompanyHovered = hoveredCompany === company.surveyId;
-                    const isCurrent = company.isCurrentCompany;
-                    
-                    return (
-                      <g key={company.surveyId} 
-                         transform={`translate(${xPos}, ${ROW_HEIGHT / 2})`}
-                         onMouseEnter={() => setHoveredCompany(company.surveyId)}
-                         onMouseLeave={() => setHoveredCompany(null)}
-                         style={{ cursor: 'pointer' }}>
-                        <circle 
-                          r={isCompanyHovered || isCurrent ? 8 : 6} 
-                          fill={companyColors[company.surveyId]}
-                          stroke={isCurrent ? '#1E3A8A' : 'white'}
-                          strokeWidth={isCurrent ? 3 : 2}
-                          style={{ transition: 'all 0.15s ease' }}
-                        />
-                        {isCompanyHovered && (
-                          <g transform="translate(0, -20)">
-                            <rect x={-40} y={-12} width={80} height={20} rx="4" fill="#1E293B" />
-                            <text textAnchor="middle" y={2} fill="white" fontSize="10" fontWeight="500">
-                              {company.name.length > 12 ? company.name.slice(0, 10) + '...' : company.name}: {score}
-                            </text>
-                          </g>
-                        )}
-                      </g>
-                    );
-                  })}
-                </g>
-              );
-            })}
-            
-            {/* Legend */}
-            <g transform={`translate(${MARGIN.left}, ${HEADER_HEIGHT + sortedDimensions.length * ROW_HEIGHT + 20})`}>
-              <text y={0} fill="#64748B" fontSize="11" fontWeight="600">LEGEND</text>
-              
-              {/* Benchmark indicator */}
-              <g transform="translate(0, 20)">
-                <line x1={0} y1={0} x2={0} y2={16} stroke="#F97316" strokeWidth="2" />
-                <polygon points="-4,0 4,0 0,5" fill="#F97316" />
-                <text x={12} y={12} fill="#64748B" fontSize="10">Benchmark Average</text>
-              </g>
-              
-              {/* Company dots */}
-              <g transform="translate(150, 15)">
-                {companies.slice(0, 8).map((company, idx) => (
-                  <g key={company.surveyId} transform={`translate(${(idx % 4) * 200}, ${Math.floor(idx / 4) * 22})`}>
-                    <circle cx={6} cy={6} r={company.isCurrentCompany ? 7 : 5} 
-                            fill={companyColors[company.surveyId]}
-                            stroke={company.isCurrentCompany ? '#1E3A8A' : 'white'}
-                            strokeWidth={company.isCurrentCompany ? 2 : 1} />
-                    <text x={18} y={10} fill="#475569" fontSize="10" fontWeight={company.isCurrentCompany ? '600' : '400'}>
-                      {company.name.length > 20 ? company.name.slice(0, 18) + '...' : company.name}
-                      {company.isCurrentCompany && ' (current)'}
-                    </text>
-                  </g>
-                ))}
-                {companies.length > 8 && (
-                  <text x={0} y={66} fill="#94A3B8" fontSize="10">+{companies.length - 8} more companies</text>
-                )}
-              </g>
-            </g>
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
 // MAIN COMPONENT
 // ============================================
 
@@ -1114,14 +899,6 @@ export default function ExportReportPage() {
   const [elementDetails, setElementDetails] = useState<any>(null);
   const [percentileRank, setPercentileRank] = useState<number | null>(null);
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
-  const [showBenchmarkChart, setShowBenchmarkChart] = useState(false);
-  const [allCompanyScores, setAllCompanyScores] = useState<{
-    name: string;
-    surveyId: string;
-    dimensionScores: Record<number, number>;
-    compositeScore: number;
-    isCurrentCompany: boolean;
-  }[]>([]);
   
   // Edit Mode State
   const [editMode, setEditMode] = useState(false);
@@ -1308,27 +1085,6 @@ export default function ExportReportPage() {
             }
             return completedDims === 13;
           });
-          
-          // Build company comparison data (excluding Panel companies from display)
-          const companyData: typeof allCompanyScores = [];
-          for (const a of completeAssessments) {
-            const isPanel = (a.survey_id || '').startsWith('PANEL-') || (a.app_id || '').startsWith('PANEL-');
-            if (isPanel) continue; // Exclude Panel from visualization
-            
-            try {
-              const { scores } = calculateCompanyScores(a);
-              if (scores.compositeScore !== null) {
-                companyData.push({
-                  name: a.company_name || a.survey_id || 'Unknown',
-                  surveyId: a.survey_id,
-                  dimensionScores: scores.dimensionScores || {},
-                  compositeScore: scores.compositeScore,
-                  isCurrentCompany: a.survey_id === assessment.survey_id
-                });
-              }
-            } catch { /* skip invalid */ }
-          }
-          setAllCompanyScores(companyData.sort((a, b) => b.compositeScore - a.compositeScore));
           
           const allComposites = completeAssessments.map(a => {
             try { return calculateCompanyScores(a).scores.compositeScore; } catch { return null; }
@@ -1797,20 +1553,6 @@ export default function ExportReportPage() {
                 </button>
               </>
             )}
-            
-            <div className="w-px h-8 bg-slate-200" />
-            
-            {/* Benchmark Comparison Button */}
-            <button
-              onClick={() => setShowBenchmarkChart(true)}
-              className="px-4 py-2 rounded-lg font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 flex items-center gap-2"
-              title="Compare all companies against benchmarks"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Compare All
-            </button>
             
             <div className="w-px h-8 bg-slate-200" />
             
@@ -3097,16 +2839,6 @@ export default function ExportReportPage() {
           </div>
         </div>
       </div>
-
-      {/* Benchmark Comparison Chart Modal */}
-      {showBenchmarkChart && benchmarks && (
-        <BenchmarkComparisonChart
-          companies={allCompanyScores}
-          benchmarks={benchmarks.dimensionScores || {}}
-          dimensionWeights={DEFAULT_DIMENSION_WEIGHTS}
-          onClose={() => setShowBenchmarkChart(false)}
-        />
-      )}
 
       {/* Toast Notification */}
       {toast.show && (
