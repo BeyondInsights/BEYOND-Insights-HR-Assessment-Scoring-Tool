@@ -1982,6 +1982,8 @@ export default function ExportReportPage() {
         }
         
         /* LANDSCAPE PDF MODE - Shows PPT slides as PDF pages */
+        /* LANDSCAPE PDF MODE - Shows PPT slides as PDF pages */
+        /* NOTE: Do NOT add background: white to .ppt-slide - it overrides slide 1's dark background */
         .landscape-pdf-mode {
           background: white !important;
         }
@@ -2008,7 +2010,6 @@ export default function ExportReportPage() {
           page-break-after: always !important;
           break-after: page !important;
           box-sizing: border-box !important;
-          background: white !important;
         }
         .landscape-pdf-mode .ppt-slide:last-child {
           page-break-after: auto !important;
