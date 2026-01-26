@@ -910,12 +910,11 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
   const selectedData = selectedDim ? sortedDims.find(d => d.dim === selectedDim) : null;
   const elemBench = selectedDim ? elementBenchmarks[selectedDim] || {} : {};
 
-  // Status colors
   const STATUS = {
-    currently: { bg: '#059669', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
-    planning: { bg: '#2563EB', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
-    assessing: { bg: '#D97706', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
-    notAble: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Not Able' }
+    currently: { bg: '#10B981', light: '#ECFDF5', text: '#065F46', label: 'Offering' },
+    planning: { bg: '#3B82F6', light: '#EFF6FF', text: '#1E40AF', label: 'Planning' },
+    assessing: { bg: '#F59E0B', light: '#FFFBEB', text: '#92400E', label: 'Assessing' },
+    notAble: { bg: '#EF4444', light: '#FEF2F2', text: '#991B1B', label: 'Not Able' }
   };
 
   const getStatusInfo = (elem: any) => {
@@ -930,219 +929,248 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
     const pctCurrently = Math.round((bench.currently / total) * 100);
     const pctPlanning = Math.round((bench.planning / total) * 100);
     const pctAssessing = Math.round((bench.assessing / total) * 100);
-    
     const statusInfo = getStatusInfo(elem);
     
-    // Calculate % of companies further along
-    if (statusInfo.key === 'currently') {
-      return `${pctCurrently}% of companies also offer this`;
-    }
-    if (statusInfo.key === 'planning') {
-      return `${pctCurrently}% of companies are further along`;
-    }
-    if (statusInfo.key === 'assessing') {
-      const furtherAlong = pctCurrently + pctPlanning;
-      return `${furtherAlong}% of companies are further along`;
-    }
-    // Not able
-    const furtherAlong = pctCurrently + pctPlanning + pctAssessing;
-    return `${furtherAlong}% of companies are further along`;
+    if (statusInfo.key === 'currently') return `${pctCurrently}% of companies also offer this`;
+    if (statusInfo.key === 'planning') return `${pctCurrently}% further along`;
+    if (statusInfo.key === 'assessing') return `${pctCurrently + pctPlanning}% further along`;
+    return `${pctCurrently + pctPlanning + pctAssessing}% further along`;
   };
 
   return (
-    <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-      <div className="px-10 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
-        <h3 className="font-semibold text-white text-lg">Dimension Deep Dive</h3>
-        <p className="text-slate-300 text-sm mt-1">Click any dimension to see element-level details with benchmark comparisons</p>
+    <div className="ppt-break mb-8 pdf-no-break">
+      {/* Section Header */}
+      <div className="mb-6">
+        <h3 className="text-2xl font-bold text-slate-900">Dimension Deep Dive</h3>
+        <p className="text-slate-500 mt-1">Click any dimension to explore element-level details and benchmark comparisons</p>
       </div>
       
-      <div className="px-10 py-6">
-        {/* Dimension selector grid - clearer labels */}
-        <div className="grid grid-cols-4 gap-3 mb-6">
-          {sortedDims.map(d => {
-            const isSelected = selectedDim === d.dim;
-            const diff = d.benchmark !== null ? d.score - d.benchmark : null;
-            
-            return (
-              <button
-                key={d.dim}
-                onClick={() => setSelectedDim(isSelected ? null : d.dim)}
-                className={`p-3 rounded-lg border-2 transition-all text-left ${
-                  isSelected 
-                    ? 'border-slate-700 bg-slate-100 shadow-md' 
-                    : 'border-slate-200 hover:border-slate-400 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: d.tier.color }}>
+      {/* Dimension Selector Grid - Premium Card Design */}
+      <div className="grid grid-cols-4 gap-5 mb-8">
+        {sortedDims.map(d => {
+          const isSelected = selectedDim === d.dim;
+          const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+          
+          return (
+            <button
+              key={d.dim}
+              onClick={() => setSelectedDim(isSelected ? null : d.dim)}
+              className={`relative overflow-hidden rounded-2xl transition-all duration-300 text-left ${
+                isSelected 
+                  ? 'ring-4 ring-indigo-500/50 shadow-2xl scale-[1.02]' 
+                  : 'hover:shadow-xl hover:scale-[1.01] shadow-md'
+              }`}
+              style={{
+                background: isSelected 
+                  ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
+                  : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+              }}
+            >
+              {/* Top color accent bar */}
+              <div 
+                className="h-1.5 w-full"
+                style={{ backgroundColor: d.tier.color }}
+              />
+              
+              <div className="p-5">
+                {/* Header with badge and name */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div 
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-base font-bold shadow-lg"
+                    style={{ 
+                      backgroundColor: d.tier.color,
+                      boxShadow: `0 4px 14px ${d.tier.color}40`
+                    }}
+                  >
                     {d.dim}
-                  </span>
-                  <span className="text-xs text-slate-500 truncate flex-1">{DIMENSION_SHORT_NAMES[d.dim]}</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <div>
-                    <p className="text-[10px] text-slate-400 uppercase">Your Score</p>
-                    <p className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</p>
                   </div>
-                  {d.benchmark !== null && (
-                    <div className="border-l border-slate-200 pl-2">
-                      <p className="text-[10px] text-slate-400 uppercase">vs Bench</p>
-                      <p className={`text-sm font-semibold ${diff !== null && diff > 0 ? 'text-emerald-600' : diff !== null && diff < 0 ? 'text-red-500' : 'text-slate-500'}`}>
-                        {diff !== null && diff > 0 ? '+' : ''}{diff ?? '—'}
+                  <span className={`text-sm font-semibold leading-tight ${isSelected ? 'text-white' : 'text-slate-700'}`}>
+                    {DIMENSION_SHORT_NAMES[d.dim]}
+                  </span>
+                </div>
+                
+                {/* Score Section */}
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className={`text-[11px] uppercase tracking-wider font-semibold mb-1 ${isSelected ? 'text-slate-400' : 'text-slate-400'}`}>
+                      Your Score
+                    </p>
+                    <p className="text-4xl font-black" style={{ color: isSelected ? '#fff' : getScoreColor(d.score) }}>
+                      {d.score}
+                    </p>
+                  </div>
+                  {diff !== null && (
+                    <div className={`text-right py-2 px-3 rounded-xl ${
+                      isSelected ? 'bg-white/10' : diff > 0 ? 'bg-emerald-50' : diff < 0 ? 'bg-red-50' : 'bg-slate-50'
+                    }`}>
+                      <p className={`text-[10px] uppercase tracking-wider font-semibold ${isSelected ? 'text-slate-400' : 'text-slate-500'}`}>
+                        vs Bench
+                      </p>
+                      <p className={`text-xl font-bold ${
+                        isSelected 
+                          ? (diff > 0 ? 'text-emerald-400' : diff < 0 ? 'text-red-400' : 'text-slate-300')
+                          : (diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-slate-500')
+                      }`}>
+                        {diff > 0 ? '+' : ''}{diff}
                       </p>
                     </div>
                   )}
                 </div>
-              </button>
-            );
-          })}
-        </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
-        {/* Expanded element table */}
-        {selectedData && (
-          <div className="border border-slate-200 rounded-lg overflow-hidden">
-            {/* Header row */}
-            <div className="bg-slate-100 px-4 py-3 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: selectedData.tier.color }}>
-                    D{selectedData.dim}
-                  </span>
-                  <div>
-                    <h4 className="font-semibold text-slate-800">{selectedData.name}</h4>
-                    <p className="text-xs text-slate-500">Weight: {selectedData.weight}% • Your Score: {selectedData.score} • Benchmark: {selectedData.benchmark ?? '—'}</p>
+      {/* Expanded Element Details */}
+      {selectedData && (
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+          {/* Detail Header */}
+          <div 
+            className="px-8 py-6"
+            style={{ 
+              background: `linear-gradient(135deg, ${selectedData.tier.color}15 0%, ${selectedData.tier.color}05 100%)`,
+              borderBottom: `3px solid ${selectedData.tier.color}`
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-5">
+                <div 
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg"
+                  style={{ 
+                    backgroundColor: selectedData.tier.color,
+                    boxShadow: `0 8px 24px ${selectedData.tier.color}40`
+                  }}
+                >
+                  {selectedData.dim}
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold text-slate-900">{selectedData.name}</h4>
+                  <div className="flex items-center gap-6 mt-2 text-sm">
+                    <span className="text-slate-500">Weight: <strong className="text-slate-700">{selectedData.weight}%</strong></span>
+                    <span className="text-slate-500">Your Score: <strong style={{ color: getScoreColor(selectedData.score) }}>{selectedData.score}</strong></span>
+                    <span className="text-slate-500">Benchmark: <strong className="text-slate-700">{selectedData.benchmark ?? '—'}</strong></span>
                   </div>
                 </div>
-                <button onClick={() => setSelectedDim(null)} className="text-slate-400 hover:text-slate-600 p-1">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
               </div>
-            </div>
-            
-            {/* Table with separate columns for each status */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-3 py-2 text-left font-semibold text-slate-700">Element</th>
-                    <th className="px-3 py-2 text-center font-semibold text-slate-700">Your Status</th>
-                    <th className="px-2 py-2 text-center font-semibold text-xs" style={{ color: STATUS.currently.bg, minWidth: '70px' }}>
-                      <div>Offering</div>
-                      <div className="font-normal text-slate-400">%</div>
-                    </th>
-                    <th className="px-2 py-2 text-center font-semibold text-xs" style={{ color: STATUS.planning.bg, minWidth: '70px' }}>
-                      <div>Planning</div>
-                      <div className="font-normal text-slate-400">%</div>
-                    </th>
-                    <th className="px-2 py-2 text-center font-semibold text-xs" style={{ color: STATUS.assessing.bg, minWidth: '70px' }}>
-                      <div>Assessing</div>
-                      <div className="font-normal text-slate-400">%</div>
-                    </th>
-                    <th className="px-2 py-2 text-center font-semibold text-xs" style={{ color: STATUS.notAble.bg, minWidth: '70px' }}>
-                      <div>Not Able</div>
-                      <div className="font-normal text-slate-400">%</div>
-                    </th>
-                    <th className="px-3 py-2 text-left font-semibold text-slate-700">Observation</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedData.elements.map((elem: any, idx: number) => {
-                    const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 1 };
-                    const total = bench.total || 1;
-                    const pcts = {
-                      currently: Math.round((bench.currently / total) * 100),
-                      planning: Math.round((bench.planning / total) * 100),
-                      assessing: Math.round((bench.assessing / total) * 100),
-                      notAble: Math.round((bench.notAble / total) * 100)
-                    };
-                    
-                    const statusInfo = getStatusInfo(elem);
-                    const obsKey = `d${selectedData.dim}_${elem.name}`;
-                    const defaultObs = getDefaultObservation(elem, bench);
-                    const observation = customObservations[obsKey] || defaultObs;
-                    
-                    return (
-                      <tr key={idx} className={`border-b border-slate-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
-                        {/* Element name */}
-                        <td className="px-3 py-2 text-slate-700 text-xs">{elem.name}</td>
-                        
-                        {/* Your status */}
-                        <td className="px-3 py-2 text-center">
-                          <span 
-                            className="inline-block px-2 py-0.5 rounded text-[10px] font-semibold whitespace-nowrap"
-                            style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}
-                          >
-                            {statusInfo.label}
-                          </span>
-                        </td>
-                        
-                        {/* Benchmark columns - separate for each status */}
-                        <td className="px-2 py-2 text-center">
-                          <span className={`text-sm font-semibold ${statusInfo.key === 'currently' ? 'bg-emerald-100 px-2 py-0.5 rounded' : ''}`} style={{ color: STATUS.currently.bg }}>
-                            {pcts.currently}%
-                          </span>
-                        </td>
-                        <td className="px-2 py-2 text-center">
-                          <span className={`text-sm font-semibold ${statusInfo.key === 'planning' ? 'bg-blue-100 px-2 py-0.5 rounded' : ''}`} style={{ color: STATUS.planning.bg }}>
-                            {pcts.planning}%
-                          </span>
-                        </td>
-                        <td className="px-2 py-2 text-center">
-                          <span className={`text-sm font-semibold ${statusInfo.key === 'assessing' ? 'bg-amber-100 px-2 py-0.5 rounded' : ''}`} style={{ color: STATUS.assessing.bg }}>
-                            {pcts.assessing}%
-                          </span>
-                        </td>
-                        <td className="px-2 py-2 text-center">
-                          <span className={`text-sm font-semibold ${statusInfo.key === 'notAble' ? 'bg-red-100 px-2 py-0.5 rounded' : ''}`} style={{ color: STATUS.notAble.bg }}>
-                            {pcts.notAble}%
-                          </span>
-                        </td>
-                        
-                        {/* Observation - editable */}
-                        <td className="px-3 py-2">
-                          {isEditing && setCustomObservations ? (
-                            <input
-                              type="text"
-                              value={observation}
-                              onChange={(e) => setCustomObservations({ ...customObservations, [obsKey]: e.target.value })}
-                              className="w-full text-xs border border-slate-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              placeholder="Add observation..."
-                            />
-                          ) : (
-                            <span className="text-xs text-slate-600">{observation}</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Footer with company count */}
-            <div className="px-4 py-2 bg-slate-50 border-t border-slate-200 text-xs text-slate-500">
-              Benchmark based on {benchmarkCompanyCount} complete assessments
+              <button 
+                onClick={() => setSelectedDim(null)} 
+                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+              >
+                <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           </div>
-        )}
-        
-        {/* Prompt to select */}
-        {!selectedData && (
-          <div className="text-center py-8 text-slate-500">
-            <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+          
+          {/* Element Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Element</th>
+                  <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-32">Status</th>
+                  <th className="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.currently.bg }}>Offering</th>
+                  <th className="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>Planning</th>
+                  <th className="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>Assessing</th>
+                  <th className="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Able</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Insight</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedData.elements.map((elem: any, idx: number) => {
+                  const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 1 };
+                  const total = bench.total || 1;
+                  const pcts = {
+                    currently: Math.round((bench.currently / total) * 100),
+                    planning: Math.round((bench.planning / total) * 100),
+                    assessing: Math.round((bench.assessing / total) * 100),
+                    notAble: Math.round((bench.notAble / total) * 100)
+                  };
+                  const statusInfo = getStatusInfo(elem);
+                  const obsKey = `d${selectedData.dim}_${elem.name}`;
+                  const observation = customObservations[obsKey] || getDefaultObservation(elem, bench);
+                  
+                  return (
+                    <tr key={idx} className={`border-b border-slate-100 ${idx % 2 === 1 ? 'bg-slate-25' : 'bg-white'} hover:bg-slate-50 transition-colors`}>
+                      <td className="px-6 py-4 text-sm text-slate-800 font-medium">{elem.name}</td>
+                      <td className="px-4 py-4 text-center">
+                        <span 
+                          className="inline-flex px-4 py-1.5 rounded-full text-xs font-bold shadow-sm"
+                          style={{ 
+                            backgroundColor: statusInfo.bg,
+                            color: '#fff'
+                          }}
+                        >
+                          {statusInfo.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                          statusInfo.key === 'currently' ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'bg-slate-50'
+                        }`} style={{ color: STATUS.currently.bg }}>
+                          {pcts.currently}%
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                          statusInfo.key === 'planning' ? 'bg-blue-100 ring-2 ring-blue-500' : 'bg-slate-50'
+                        }`} style={{ color: STATUS.planning.bg }}>
+                          {pcts.planning}%
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                          statusInfo.key === 'assessing' ? 'bg-amber-100 ring-2 ring-amber-500' : 'bg-slate-50'
+                        }`} style={{ color: STATUS.assessing.bg }}>
+                          {pcts.assessing}%
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                          statusInfo.key === 'notAble' ? 'bg-red-100 ring-2 ring-red-500' : 'bg-slate-50'
+                        }`} style={{ color: STATUS.notAble.bg }}>
+                          {pcts.notAble}%
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {isEditing && setCustomObservations ? (
+                          <input
+                            type="text"
+                            value={observation}
+                            onChange={(e) => setCustomObservations({ ...customObservations, [obsKey]: e.target.value })}
+                            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        ) : (
+                          <span className="text-sm text-slate-600 italic">{observation}</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      
+      {/* Empty State */}
+      {!selectedData && (
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-12 text-center border-2 border-dashed border-slate-200">
+          <div className="w-20 h-20 mx-auto mb-5 bg-white rounded-2xl shadow-lg flex items-center justify-center">
+            <svg className="w-10 h-10 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            <p className="font-medium">Select a dimension above to explore its elements</p>
-            <p className="text-sm mt-1">See how your organization compares on each specific element</p>
           </div>
-        )}
-      </div>
+          <h4 className="text-xl font-bold text-slate-800 mb-2">Select a Dimension</h4>
+          <p className="text-slate-500 max-w-md mx-auto">Choose any dimension card above to see detailed element breakdowns and benchmark comparisons</p>
+        </div>
+      )}
     </div>
   );
 }
 
-// ============================================
-// MAIN COMPONENT
 // ============================================
 
 export default function InteractiveReportPage() {
@@ -1694,55 +1722,51 @@ export default function InteractiveReportPage() {
   // Password protection screen
   if (!authenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
-          {/* Header with BI Logo */}
-          <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-8 py-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center p-2">
-                <Image 
-                  src="/BI_LOGO_FINAL.png" 
-                  alt="BEYOND Insights" 
-                  width={48} 
-                  height={48}
-                  className="object-contain"
-                />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">BEYOND Insights</h1>
-                <p className="text-slate-300 text-sm">Secure Report Access</p>
-              </div>
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%)' }}>
+        <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
+          {/* Header with proper BI Logo */}
+          <div className="p-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' }}>
+            <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-2xl shadow-xl flex items-center justify-center p-3">
+              <Image 
+                src="/BI_LOGO_FINAL.png" 
+                alt="BEYOND Insights" 
+                width={72} 
+                height={72}
+                className="object-contain"
+              />
             </div>
+            <h1 className="text-2xl font-bold text-white">BEYOND Insights</h1>
+            <p className="text-slate-400 text-sm mt-1">Best Companies for Working with Cancer Index</p>
           </div>
           
           {/* Form */}
-          <div className="p-8">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="p-8 pt-6">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-amber-100 to-amber-50 mb-4 shadow-inner">
+                <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-slate-800">Protected Report</h2>
-              <p className="text-slate-500 mt-2">Enter the password to view this report</p>
+              <h2 className="text-xl font-bold text-slate-800">Secure Report Access</h2>
+              <p className="text-slate-500 text-sm mt-1">Enter your password to continue</p>
             </div>
             
             <form onSubmit={(e) => { e.preventDefault(); handleAuthenticate(); }}>
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+              <div className="mb-5">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
                 <input
                   type="password"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  className={`w-full px-4 py-3 text-lg border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 ${
-                    passwordError ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-amber-50/50'
+                  className={`w-full px-4 py-3.5 text-lg border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${
+                    passwordError ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
                   }`}
-                  placeholder="••••••"
+                  placeholder="Enter password"
                   autoFocus
                 />
                 {passwordError && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1.5">
+                    <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     {passwordError}
@@ -1753,15 +1777,21 @@ export default function InteractiveReportPage() {
               <button
                 type="submit"
                 disabled={!passwordInput}
-                className="w-full py-3 bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 text-lg font-bold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                style={{ 
+                  background: passwordInput ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : '#e2e8f0',
+                  color: passwordInput ? '#fff' : '#94a3b8'
+                }}
               >
                 Access Report
               </button>
             </form>
             
-            <p className="text-center text-xs text-slate-400 mt-6">
-              Best Companies for Working with Cancer Index
-            </p>
+            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+              <p className="text-xs text-slate-400">
+                Password provided by your organization administrator
+              </p>
+            </div>
           </div>
         </div>
       </div>
