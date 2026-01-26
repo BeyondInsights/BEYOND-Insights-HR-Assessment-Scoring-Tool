@@ -1079,10 +1079,10 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           <tr className="bg-slate-100 border-b border-slate-200">
                             <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Element</th>
                             <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-28">Status</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-20" style={{ color: STATUS.currently.bg }}>Offer</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-20" style={{ color: STATUS.planning.bg }}>Plan</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-20" style={{ color: STATUS.assessing.bg }}>Assess</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-20" style={{ color: STATUS.notAble.bg }}>Gap</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.currently.bg }}>Offering</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>Planning</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>Assessing</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Able</th>
                             <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Insight</th>
                           </tr>
                         </thead>
@@ -1109,16 +1109,32 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                   </span>
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                  <span className="text-xs font-medium text-slate-600">{Math.round((bench.currently / total) * 100)}%</span>
+                                  <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                    statusInfo.key === 'currently' ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'bg-slate-50'
+                                  }`} style={{ color: STATUS.currently.bg }}>
+                                    {Math.round((bench.currently / total) * 100)}%
+                                  </div>
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                  <span className="text-xs font-medium text-slate-600">{Math.round((bench.planning / total) * 100)}%</span>
+                                  <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                    statusInfo.key === 'planning' ? 'bg-blue-100 ring-2 ring-blue-500' : 'bg-slate-50'
+                                  }`} style={{ color: STATUS.planning.bg }}>
+                                    {Math.round((bench.planning / total) * 100)}%
+                                  </div>
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                  <span className="text-xs font-medium text-slate-600">{Math.round((bench.assessing / total) * 100)}%</span>
+                                  <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                    statusInfo.key === 'assessing' ? 'bg-amber-100 ring-2 ring-amber-500' : 'bg-slate-50'
+                                  }`} style={{ color: STATUS.assessing.bg }}>
+                                    {Math.round((bench.assessing / total) * 100)}%
+                                  </div>
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                  <span className="text-xs font-medium text-slate-600">{Math.round((bench.notAble / total) * 100)}%</span>
+                                  <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                    statusInfo.key === 'notAble' ? 'bg-red-100 ring-2 ring-red-500' : 'bg-slate-50'
+                                  }`} style={{ color: STATUS.notAble.bg }}>
+                                    {Math.round((bench.notAble / total) * 100)}%
+                                  </div>
                                 </td>
                                 <td className="px-4 py-3">
                                   {isEditing ? (
