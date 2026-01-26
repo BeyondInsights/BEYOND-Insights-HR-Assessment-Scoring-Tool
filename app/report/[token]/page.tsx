@@ -2139,7 +2139,7 @@ export default function InteractiveReportPage() {
                   This interactive report provides a comprehensive view of your organization's cancer support ecosystem across <strong>13 dimensions</strong>—from leave policies and insurance coverage to manager preparedness and workplace culture.
                 </p>
                 <p className="text-slate-600 text-sm leading-relaxed">
-                  Each dimension is weighted based on extensive research with HR leaders, employees managing cancer, and caregivers to ensure the Index reflects what matters most to those directly affected.
+                  Each dimension is weighted based on extensive research with HR leaders, employees managing cancer, and general employee populations to ensure the Index reflects what matters most to those directly affected.
                 </p>
               </div>
 
@@ -3334,7 +3334,7 @@ export default function InteractiveReportPage() {
               </div>
               <div>
                 <p className="font-medium text-slate-700 mb-2">Dimension Weights</p>
-                <p className="leading-relaxed">Each dimension carries a specific weight reflecting its relative importance. Weights were derived from extensive research with HR leaders, employees managing cancer, and employee resource groups to ensure the Index prioritizes what matters most to those directly affected.</p>
+                <p className="leading-relaxed">Each dimension carries a specific weight reflecting its relative importance. Weights were derived from extensive research with HR leaders, employees managing cancer, and general employee populations to ensure the Index prioritizes what matters most to those directly affected.</p>
               </div>
               <div>
                 <p className="font-medium text-slate-700 mb-2">Benchmarking</p>
