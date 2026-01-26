@@ -27,60 +27,116 @@ exports.handler = async (event) => {
       };
     }
 
-    // Both orientations use same page, just different PDF settings
-    const reportUrl = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1&mode=pdf&orientation=${orientation}`;
-    console.log(`Generating ${orientation.toUpperCase()} PDF: ${reportUrl}`);
+    if (isLandscape) {
+      // LANDSCAPE: Render PPT slides as PDF pages
+      const reportUrl = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1&mode=landscapepdf`;
+      console.log('Generating LANDSCAPE PDF (PPT slides):', reportUrl);
 
-    const res = await fetch(`${base}/pdf?token=${token}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: reportUrl,
-        viewport: isLandscape 
-          ? { width: 1400, height: 900 }
-          : { width: 1200, height: 800 },
-        options: {
-          printBackground: true,
-          format: 'Letter',
-          landscape: isLandscape,
-          margin: isLandscape
-            ? { top: '0.3in', right: '0.3in', bottom: '0.3in', left: '0.3in' }
-            : { top: '0.4in', right: '0.4in', bottom: '0.4in', left: '0.4in' },
-          displayHeaderFooter: false,
-          preferCSSPageSize: false,
-          scale: isLandscape ? 0.85 : 1.0,
-        },
-        gotoOptions: {
-          waitUntil: 'networkidle0',
-          timeout: 60000,
-        },
-        waitForTimeout: 1000,
-      }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      console.error(`Browserless ${orientation} PDF failed:`, text);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: `Browserless PDF failed: ${text}` }),
+      const res = await fetch(`${base}/pdf?token=${token}`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: reportUrl,
+          viewport: { width: 1280, height: 720 },
+          options: {
+            printBackground: true,
+            width: '13.333in',
+            height: '7.5in',
+            landscape: true,
+            margin: { top: '0in', right: '0in', bottom: '0in', left: '0in' },
+            displayHeaderFooter: false,
+            preferCSSPageSize: false,
+            scale: 1.0,
+          },
+          gotoOptions: {
+            waitUntil: 'networkidle2',
+            timeout: 60000,
+          },
+          waitForTimeout: 1500,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Browserless landscape PDF failed:', text);
+        return {
+          statusCode: 500,
+          body: JSON.stringify({ error: 'Browserless PDF failed: ' + text }),
+          headers: { 'Content-Type': 'application/json' },
+        };
+      }
+
+      const pdfArrayBuf = await res.arrayBuffer();
+      const pdfB64 = Buffer.from(pdfArrayBuf).toString('base64');
+
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': 'attachment; filename="Cancer_Support_Report_' + surveyId + '_landscape.pdf"',
+          'Cache-Control': 'no-store',
+        },
+        body: pdfB64,
+        isBase64Encoded: true,
+      };
+
+    } else {
+      // PORTRAIT: Standard PDF export
+      const reportUrl = `${origin}/admin/reports/${encodeURIComponent(surveyId)}?export=1&mode=pdf`;
+      console.log('Generating PORTRAIT PDF:', reportUrl);
+
+      const res = await fetch(`${base}/pdf?token=${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: reportUrl,
+          viewport: { width: 1200, height: 800 },
+          options: {
+            printBackground: true,
+            format: 'Letter',
+            landscape: false,
+            margin: {
+              top: '0.4in',
+              right: '0.4in',
+              bottom: '0.4in',
+              left: '0.4in',
+            },
+            displayHeaderFooter: false,
+            preferCSSPageSize: false,
+            scale: 1.0,
+          },
+          gotoOptions: {
+            waitUntil: 'networkidle2',
+            timeout: 60000,
+          },
+          waitForTimeout: 1000,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Browserless portrait PDF failed:', text);
+        return {
+          statusCode: 500,
+          body: JSON.stringify({ error: 'Browserless PDF failed: ' + text }),
+          headers: { 'Content-Type': 'application/json' },
+        };
+      }
+
+      const pdfArrayBuf = await res.arrayBuffer();
+      const pdfB64 = Buffer.from(pdfArrayBuf).toString('base64');
+
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': 'attachment; filename="Cancer_Support_Report_' + surveyId + '.pdf"',
+          'Cache-Control': 'no-store',
+        },
+        body: pdfB64,
+        isBase64Encoded: true,
       };
     }
-
-    const pdfArrayBuf = await res.arrayBuffer();
-    const pdfB64 = Buffer.from(pdfArrayBuf).toString('base64');
-
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="Cancer_Support_Report_${surveyId}${isLandscape ? '_landscape' : ''}.pdf"`,
-        'Cache-Control': 'no-store',
-      },
-      body: pdfB64,
-      isBase64Encoded: true,
-    };
 
   } catch (err) {
     console.error('PDF export error:', err);
