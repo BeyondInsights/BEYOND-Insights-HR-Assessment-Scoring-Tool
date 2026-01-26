@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
-import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
 
 // Create Supabase client directly
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -883,6 +882,8 @@ export default function ExportReportPage() {
   const searchParams = useSearchParams();
   const exportMode = searchParams?.get('export') === '1';
   const mode = (searchParams?.get('mode') || '').toLowerCase();
+  const orientation = searchParams?.get('orientation') || 'portrait';
+  const isLandscape = orientation === 'landscape';
   const isPdf = exportMode && mode === 'pdf';
   const isPpt = exportMode && (mode === 'ppt' || mode === 'pptslides');
   const isPptReport = exportMode && mode === 'pptreport';
@@ -900,139 +901,10 @@ export default function ExportReportPage() {
   const [percentileRank, setPercentileRank] = useState<number | null>(null);
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
   
-  // Edit Mode State
-  const [editMode, setEditMode] = useState(false);
+  // Customizations loaded from database
   const [customInsights, setCustomInsights] = useState<Record<number, { insight: string; cacHelp: string }>>({});
-  const [customExecutiveSummary, setCustomExecutiveSummary] = useState<string>('');
-  const [customPatterns, setCustomPatterns] = useState<{ pattern: string; implication: string; recommendation: string }[]>([]);
-  const [customRecommendations, setCustomRecommendations] = useState<Record<number, string>>({}); // dimNum -> custom recommendation
-  const [customCrossRecommendations, setCustomCrossRecommendations] = useState<Record<number, string>>({}); // pattern index -> custom recommendation
-  const [customRoadmap, setCustomRoadmap] = useState<{
-    phase1?: { items: string[]; useCustom: boolean };
-    phase2?: { items: string[]; useCustom: boolean };
-    phase3?: { items: string[]; useCustom: boolean };
-  }>({});
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [savingEdits, setSavingEdits] = useState(false);
-  const [showPdfOrientationModal, setShowPdfOrientationModal] = useState(false);
-  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
-  
-  // Show toast notification
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
-  };
-  
-  // Helper to update custom insight for a dimension
-  const updateCustomInsight = (dimNum: number, field: 'insight' | 'cacHelp', value: string) => {
-    setCustomInsights(prev => ({
-      ...prev,
-      [dimNum]: {
-        ...prev[dimNum],
-        [field]: value
-      }
-    }));
-    setHasUnsavedChanges(true);
-  };
-  
-  // Helper to update custom recommendation for a dimension
-  const updateCustomRecommendation = (dimNum: number, value: string) => {
-    setCustomRecommendations(prev => ({
-      ...prev,
-      [dimNum]: value
-    }));
-    setHasUnsavedChanges(true);
-  };
-  
-  // Helper to update custom cross-dimension recommendation
-  const updateCustomCrossRecommendation = (patternIdx: number, value: string) => {
-    setCustomCrossRecommendations(prev => ({
-      ...prev,
-      [patternIdx]: value
-    }));
-    setHasUnsavedChanges(true);
-  };
-  
-  // Helper to update custom roadmap phase
-  const updateCustomRoadmap = (phase: 'phase1' | 'phase2' | 'phase3', items: string[], useCustom: boolean) => {
-    setCustomRoadmap(prev => ({
-      ...prev,
-      [phase]: { items, useCustom }
-    }));
-    setHasUnsavedChanges(true);
-  };
-  
-  // Get effective insight (custom or generated)
-  const getEffectiveInsight = (dimNum: number, generatedInsight: { insight: string; cacHelp: string }) => {
-    const custom = customInsights[dimNum];
-    return {
-      insight: custom?.insight || generatedInsight.insight,
-      cacHelp: custom?.cacHelp || generatedInsight.cacHelp
-    };
-  };
-  
-  // Save edits to database
-  const saveEdits = async () => {
-    if (!company?.id) return;
-    setSavingEdits(true);
-    try {
-      const { error } = await supabase
-        .from('assessments')
-        .update({
-          report_customizations: JSON.stringify({
-            customInsights,
-            customExecutiveSummary,
-            customPatterns,
-            customRecommendations,
-            customCrossRecommendations,
-            customRoadmap,
-            lastEditedAt: new Date().toISOString()
-          })
-        })
-        .eq('id', company.id);
-      
-      if (error) throw error;
-      setHasUnsavedChanges(false);
-      showToast('Customizations saved successfully!', 'success');
-    } catch (err) {
-      console.error('Save error:', err);
-      showToast('Failed to save customizations', 'error');
-    } finally {
-      setSavingEdits(false);
-    }
-  };
-  
-  // Reset edits to generated defaults
-  const resetEdits = () => {
-    if (confirm('Reset all customizations to auto-generated content?')) {
-      setCustomInsights({});
-      setCustomExecutiveSummary('');
-      setCustomPatterns([]);
-      setCustomRecommendations({});
-      setCustomCrossRecommendations({});
-      setCustomRoadmap({});
-      setHasUnsavedChanges(true);
-    }
-  };
-  
-  // Load saved customizations when company loads
-  useEffect(() => {
-    if (company?.report_customizations) {
-      try {
-        const saved = typeof company.report_customizations === 'string' 
-          ? JSON.parse(company.report_customizations)
-          : company.report_customizations;
-        if (saved.customInsights) setCustomInsights(saved.customInsights);
-        if (saved.customExecutiveSummary) setCustomExecutiveSummary(saved.customExecutiveSummary);
-        if (saved.customPatterns) setCustomPatterns(saved.customPatterns);
-        if (saved.customRecommendations) setCustomRecommendations(saved.customRecommendations);
-        if (saved.customCrossRecommendations) setCustomCrossRecommendations(saved.customCrossRecommendations);
-        if (saved.customRoadmap) setCustomRoadmap(saved.customRoadmap);
-      } catch (e) {
-        console.error('Error loading customizations:', e);
-      }
-    }
-  }, [company]);
+  const [customRecommendations, setCustomRecommendations] = useState<Record<number, string>>({});
+  const [customCrossRecommendations, setCustomCrossRecommendations] = useState<Record<number, string>>({});
 
   useEffect(() => {
     // CRITICAL: Reset ALL state when surveyId changes
@@ -1047,19 +919,11 @@ export default function ExportReportPage() {
     
     async function loadData() {
       try {
-        // Normalize survey ID for flexible matching
-        const normalizedId = surveyId.replace(/-/g, '').toUpperCase();
-        const fpFormat = surveyId.startsWith('FP-') ? surveyId : 
-                        surveyId.toUpperCase().startsWith('FPHR') ? 
-                        `FP-HR-${surveyId.replace(/^FPHR/i, '')}` : surveyId;
-        
-        // Try multiple formats: exact, normalized, FP format, and app_id
         const { data: assessment, error: assessmentError } = await supabase
           .from('assessments')
           .select('*')
-          .or(`survey_id.eq.${surveyId},survey_id.eq.${normalizedId},survey_id.eq.${fpFormat},app_id.eq.${surveyId},app_id.eq.${normalizedId}`)
-          .limit(1)
-          .maybeSingle();
+          .eq('survey_id', surveyId)
+          .single();
         
         if (assessmentError || !assessment) {
           setError(`Company not found: ${assessmentError?.message || 'No data'}`);
@@ -1189,12 +1053,12 @@ export default function ExportReportPage() {
       weightedDimScore = Math.round(weightedScore);
     }
     
-    // Use canonical enhanced-scoring library for composite score to ensure consistency
-    // across all pages (scoring page, profile page, report page)
-    const enhancedResult = calculateEnhancedScore(assessment);
-    const compositeScore = enhancedResult.isComplete ? enhancedResult.compositeScore : null;
-    const maturityScore = enhancedResult.maturityScore;
-    const breadthScore = enhancedResult.breadthScore;
+    const maturityScore = calculateMaturityScore(assessment);
+    const breadthScore = calculateBreadthScore(assessment);
+    
+    const compositeScore = isComplete && weightedDimScore !== null
+      ? Math.round((weightedDimScore * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) + (maturityScore * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) + (breadthScore * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100)))
+      : null;
     
     return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
   }
@@ -1243,10 +1107,9 @@ export default function ExportReportPage() {
   // ============================================
   // SERVER EXPORT BUTTONS (Netlify Functions)
   // ============================================
-  function handleServerExportPDF(orientation: 'portrait' | 'landscape' = 'portrait') {
-    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}&orientation=${orientation}`;
+  function handleServerExportPDF() {
+    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
     window.open(url, '_blank');
-    setShowPdfOrientationModal(false);
   }
 
   function handleServerExportPPT() {
@@ -1361,7 +1224,7 @@ export default function ExportReportPage() {
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''}`}>
+    <div className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''} ${isLandscape ? 'landscape-mode' : ''}`}>
       <style jsx global>{`
         @media print { 
           @page { margin: 0.4in; size: letter; } 
@@ -1382,6 +1245,28 @@ export default function ExportReportPage() {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+        }
+        
+        /* Landscape mode for PDF export */
+        .landscape-mode #report-root {
+          max-width: 100% !important;
+          width: 100% !important;
+          padding-left: 40px !important;
+          padding-right: 40px !important;
+        }
+        .landscape-mode .max-w-6xl {
+          max-width: 100% !important;
+        }
+        /* Make grids wider in landscape */
+        .landscape-mode .grid-cols-2 {
+          gap: 2rem !important;
+        }
+        .landscape-mode .grid-cols-3 {
+          gap: 1.5rem !important;
+        }
+        /* Expand the strategic matrix for landscape */
+        .landscape-mode svg[viewBox] {
+          width: 100% !important;
         }
         
         /* Browserless PDF capture mode */
@@ -1502,62 +1387,6 @@ export default function ExportReportPage() {
             Back
           </button>
           <div className="flex items-center gap-3">
-            {/* Edit Mode Toggle */}
-            <button
-              onClick={() => setEditMode(!editMode)}
-              className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all ${
-                editMode 
-                  ? 'bg-amber-100 text-amber-800 border-2 border-amber-400' 
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border-2 border-transparent'
-              }`}
-              title={editMode ? 'Exit Edit Mode' : 'Enter Edit Mode'}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              {editMode ? 'Editing' : 'Edit'}
-            </button>
-            
-            {/* Save/Reset buttons - only show in edit mode */}
-            {editMode && (
-              <>
-                <button
-                  onClick={saveEdits}
-                  disabled={savingEdits || !hasUnsavedChanges}
-                  className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 ${
-                    hasUnsavedChanges 
-                      ? 'bg-green-600 hover:bg-green-700 text-white' 
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                  }`}
-                  title="Save customizations"
-                >
-                  {savingEdits ? (
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                  Save
-                </button>
-                <button
-                  onClick={resetEdits}
-                  className="px-4 py-2 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-2"
-                  title="Reset to auto-generated content"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Reset
-                </button>
-              </>
-            )}
-            
-            <div className="w-px h-8 bg-slate-200" />
-            
             <button
               onClick={handleServerExportPPT}
               className="px-5 py-2 rounded-lg font-medium bg-orange-500 hover:bg-orange-600 text-white"
@@ -1566,7 +1395,7 @@ export default function ExportReportPage() {
               Export PowerPoint
             </button>
             <button
-              onClick={() => setShowPdfOrientationModal(true)}
+              onClick={handleServerExportPDF}
               className="px-5 py-2 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-white"
               title="Export PDF"
             >
@@ -1574,24 +1403,9 @@ export default function ExportReportPage() {
             </button>
           </div>
         </div>
-        
-        {/* Edit Mode Banner */}
-        {editMode && (
-          <div className="bg-amber-50 border-t border-amber-200 px-8 py-3">
-            <div className="max-w-6xl mx-auto flex items-center gap-3">
-              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-sm text-amber-800">
-                <strong>Edit Mode:</strong> Edit strategic insights and recommended actions. Changes are saved to the database and will appear in exported reports.
-                {hasUnsavedChanges && <span className="ml-2 text-amber-600 font-medium">• Unsaved changes</span>}
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
-      <div ref={printRef} id="report-root" className="max-w-6xl mx-auto py-10 px-8">
+      <div ref={printRef} id="report-root" className={`mx-auto py-10 px-8 ${isLandscape ? 'max-w-full' : 'max-w-6xl'}`}>
         
         {/* ============ HEADER ============ */}
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
@@ -1867,33 +1681,8 @@ export default function ExportReportPage() {
                         <p className="text-sm text-slate-600 leading-relaxed">{p.implication}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">
-                          Recommended Action
-                          {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
-                        </p>
-                        {editMode ? (
-                          <div className="flex flex-col gap-1">
-                            <textarea
-                              value={customCrossRecommendations[idx] ?? p.recommendation}
-                              onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
-                              className="w-full text-sm text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                              placeholder="Enter custom recommendation..."
-                            />
-                            {customCrossRecommendations[idx] && (
-                              <button 
-                                onClick={() => updateCustomCrossRecommendation(idx, '')}
-                                className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
-                              >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Reset
-                              </button>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-slate-600 leading-relaxed">{customCrossRecommendations[idx] || p.recommendation}</p>
-                        )}
+                        <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">Recommended Action</p>
+                        <p className="text-sm text-slate-600 leading-relaxed">{p.recommendation}</p>
                       </div>
                     </div>
                   </div>
@@ -1921,10 +1710,7 @@ export default function ExportReportPage() {
                       <th className="pb-3 text-center w-28">Current</th>
                       <th className="pb-3 text-center w-24">Impact</th>
                       <th className="pb-3 text-center w-24">Effort</th>
-                      <th className="pb-3 text-left">
-                        Recommended Action
-                        {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
-                      </th>
+                      <th className="pb-3 text-left">Recommended Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1960,30 +1746,7 @@ export default function ExportReportPage() {
                           }`}>{r.effort}</span>
                         </td>
                         <td className="py-4">
-                          {editMode ? (
-                            <div className="flex flex-col gap-1">
-                              <input
-                                type="text"
-                                value={customRecommendations[r.dimNum] ?? r.recommendation}
-                                onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
-                                className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                placeholder="Enter custom recommendation..."
-                              />
-                              {customRecommendations[r.dimNum] && (
-                                <button 
-                                  onClick={() => updateCustomRecommendation(r.dimNum, '')}
-                                  className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
-                                >
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                  </svg>
-                                  Reset
-                                </button>
-                              )}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-slate-600">{customRecommendations[r.dimNum] || r.recommendation}</p>
-                          )}
+                          <p className="text-sm text-slate-600">{r.recommendation}</p>
                         </td>
                       </tr>
                     ))}
@@ -2252,61 +2015,15 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Strategic Insight & CAC Help - Now Dynamic & Editable */}
+                    {/* Strategic Insight & CAC Help - Now Dynamic */}
                     <div className="grid grid-cols-2 gap-6">
-                      <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
-                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                          Tailored Strategic Insight
-                          {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
-                        </h5>
-                        {editMode ? (
-                          <textarea
-                            value={customInsights[d.dim]?.insight ?? dynamicInsight.insight}
-                            onChange={(e) => updateCustomInsight(d.dim, 'insight', e.target.value)}
-                            className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                            placeholder="Enter custom strategic insight..."
-                          />
-                        ) : (
-                          <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
-                        )}
-                        {editMode && customInsights[d.dim]?.insight && (
-                          <button 
-                            onClick={() => updateCustomInsight(d.dim, 'insight', '')}
-                            className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                          >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Reset to auto-generated
-                          </button>
-                        )}
+                      <div className="border border-slate-200 rounded-lg p-5 bg-white">
+                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide">Tailored Strategic Insight</h5>
+                        <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
                       </div>
-                      <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
-                        <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                          How Cancer and Careers Can Help
-                          {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
-                        </h5>
-                        {editMode ? (
-                          <textarea
-                            value={customInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
-                            onChange={(e) => updateCustomInsight(d.dim, 'cacHelp', e.target.value)}
-                            className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                            placeholder="Enter custom CAC help text..."
-                          />
-                        ) : (
-                          <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
-                        )}
-                        {editMode && customInsights[d.dim]?.cacHelp && (
-                          <button 
-                            onClick={() => updateCustomInsight(d.dim, 'cacHelp', '')}
-                            className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                          >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Reset to auto-generated
-                          </button>
-                        )}
+                      <div className="border border-violet-200 rounded-lg p-5 bg-violet-50">
+                        <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                        <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
                       </div>
                     </div>
                   </div>
@@ -2336,50 +2053,18 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
-                    Accelerate items already in progress
-                    {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
-                  </p>
-                  {editMode ? (
-                    <div className="space-y-2">
-                      <textarea
-                        value={customRoadmap.phase1?.useCustom 
-                          ? customRoadmap.phase1.items.join('\n') 
-                          : quickWinItems.map(item => item.name).join('\n')}
-                        onChange={(e) => updateCustomRoadmap('phase1', e.target.value.split('\n').filter(s => s.trim()), true)}
-                        className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                        placeholder="Enter items, one per line..."
-                      />
-                      {customRoadmap.phase1?.useCustom && (
-                        <button 
-                          onClick={() => { setCustomRoadmap(prev => ({ ...prev, phase1: undefined })); setHasUnsavedChanges(true); }}
-                          className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                        >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          Reset to auto-generated
-                        </button>
-                      )}
-                    </div>
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Accelerate items already in progress</p>
+                  {quickWinItems.length > 0 ? (
+                    <ul className="space-y-3">
+                      {quickWinItems.map((item, idx) => (
+                        <li key={idx} className="text-sm">
+                          <p className="text-slate-700">{item.name}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
+                        </li>
+                      ))}
+                    </ul>
                   ) : (
-                    <>
-                      {(customRoadmap.phase1?.useCustom ? customRoadmap.phase1.items : quickWinItems.map(i => i.name)).length > 0 ? (
-                        <ul className="space-y-3">
-                          {(customRoadmap.phase1?.useCustom 
-                            ? customRoadmap.phase1.items.map((name, idx) => ({ name, dimNum: null }))
-                            : quickWinItems
-                          ).map((item, idx) => (
-                            <li key={idx} className="text-sm">
-                              <p className="text-slate-700">{item.name}</p>
-                              {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-slate-400 italic">Begin with communication and manager awareness initiatives</p>
-                      )}
-                    </>
+                    <p className="text-sm text-slate-400 italic">Begin with communication and manager awareness initiatives</p>
                   )}
                 </div>
               </div>
@@ -2396,50 +2081,18 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
-                    Address high-weight dimension gaps
-                    {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
-                  </p>
-                  {editMode ? (
-                    <div className="space-y-2">
-                      <textarea
-                        value={customRoadmap.phase2?.useCustom 
-                          ? customRoadmap.phase2.items.join('\n') 
-                          : foundationItems.map(item => item.name).join('\n')}
-                        onChange={(e) => updateCustomRoadmap('phase2', e.target.value.split('\n').filter(s => s.trim()), true)}
-                        className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                        placeholder="Enter items, one per line..."
-                      />
-                      {customRoadmap.phase2?.useCustom && (
-                        <button 
-                          onClick={() => { setCustomRoadmap(prev => ({ ...prev, phase2: undefined })); setHasUnsavedChanges(true); }}
-                          className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                        >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          Reset to auto-generated
-                        </button>
-                      )}
-                    </div>
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Address high-weight dimension gaps</p>
+                  {foundationItems.length > 0 ? (
+                    <ul className="space-y-3">
+                      {foundationItems.map((item, idx) => (
+                        <li key={idx} className="text-sm">
+                          <p className="text-slate-700">{item.name}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
+                        </li>
+                      ))}
+                    </ul>
                   ) : (
-                    <>
-                      {(customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items : foundationItems.map(i => i.name)).length > 0 ? (
-                        <ul className="space-y-3">
-                          {(customRoadmap.phase2?.useCustom 
-                            ? customRoadmap.phase2.items.map((name, idx) => ({ name, dimNum: null }))
-                            : foundationItems
-                          ).map((item, idx) => (
-                            <li key={idx} className="text-sm">
-                              <p className="text-slate-700">{item.name}</p>
-                              {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-slate-400 italic">Focus on navigation and insurance resources</p>
-                      )}
-                    </>
+                    <p className="text-sm text-slate-400 italic">Focus on navigation and insurance resources</p>
                   )}
                 </div>
               </div>
@@ -2456,50 +2109,18 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
-                    Address remaining lower-priority gaps
-                    {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
-                  </p>
-                  {editMode ? (
-                    <div className="space-y-2">
-                      <textarea
-                        value={customRoadmap.phase3?.useCustom 
-                          ? customRoadmap.phase3.items.join('\n') 
-                          : excellenceItems.map(item => item.name).join('\n')}
-                        onChange={(e) => updateCustomRoadmap('phase3', e.target.value.split('\n').filter(s => s.trim()), true)}
-                        className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                        placeholder="Enter items, one per line..."
-                      />
-                      {customRoadmap.phase3?.useCustom && (
-                        <button 
-                          onClick={() => { setCustomRoadmap(prev => ({ ...prev, phase3: undefined })); setHasUnsavedChanges(true); }}
-                          className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                        >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          Reset to auto-generated
-                        </button>
-                      )}
-                    </div>
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Address remaining lower-priority gaps</p>
+                  {excellenceItems.length > 0 ? (
+                    <ul className="space-y-3">
+                      {excellenceItems.map((item, idx) => (
+                        <li key={idx} className="text-sm">
+                          <p className="text-slate-700">{item.name}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
+                        </li>
+                      ))}
+                    </ul>
                   ) : (
-                    <>
-                      {(customRoadmap.phase3?.useCustom ? customRoadmap.phase3.items : excellenceItems.map(i => i.name)).length > 0 ? (
-                        <ul className="space-y-3">
-                          {(customRoadmap.phase3?.useCustom 
-                            ? customRoadmap.phase3.items.map((name, idx) => ({ name, dimNum: null }))
-                            : excellenceItems
-                          ).map((item, idx) => (
-                            <li key={idx} className="text-sm">
-                              <p className="text-slate-700">{item.name}</p>
-                              {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-slate-400 italic">Continue expanding strengths and monitoring program effectiveness</p>
-                      )}
-                    </>
+                    <p className="text-sm text-slate-400 italic">Continue expanding strengths and monitoring program effectiveness</p>
                   )}
                 </div>
               </div>
@@ -2841,101 +2462,6 @@ export default function ExportReportPage() {
           </div>
         </div>
       </div>
-
-      {/* PDF Orientation Selection Modal */}
-      {showPdfOrientationModal && (
-        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowPdfOrientationModal(false)}>
-          <div 
-            className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="bg-slate-800 px-6 py-4">
-              <h2 className="text-lg font-bold text-white">Export PDF</h2>
-              <p className="text-slate-400 text-sm mt-1">Choose page orientation</p>
-            </div>
-            
-            <div className="p-6">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Portrait Option */}
-                <button
-                  onClick={() => handleServerExportPDF('portrait')}
-                  className="group p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-all"
-                >
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-20 border-2 border-slate-300 group-hover:border-indigo-500 rounded bg-white shadow-sm flex items-center justify-center">
-                      <svg className="w-8 h-10 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <div className="text-center">
-                      <p className="font-semibold text-slate-700 group-hover:text-indigo-700">Portrait</p>
-                      <p className="text-xs text-slate-500">Standard layout</p>
-                    </div>
-                  </div>
-                </button>
-                
-                {/* Landscape Option */}
-                <button
-                  onClick={() => handleServerExportPDF('landscape')}
-                  className="group p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-all"
-                >
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-20 h-16 border-2 border-slate-300 group-hover:border-indigo-500 rounded bg-white shadow-sm flex items-center justify-center">
-                      <svg className="w-10 h-8 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <div className="text-center">
-                      <p className="font-semibold text-slate-700 group-hover:text-indigo-700">Landscape</p>
-                      <p className="text-xs text-slate-500">Wider for charts</p>
-                    </div>
-                  </div>
-                </button>
-              </div>
-              
-              <div className="mt-4 pt-4 border-t border-slate-200 flex justify-end">
-                <button
-                  onClick={() => setShowPdfOrientationModal(false)}
-                  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Toast Notification */}
-      {toast.show && (
-        <div className="fixed bottom-6 right-6 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300">
-          <div className={`flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border ${
-            toast.type === 'success' 
-              ? 'bg-white border-green-200' 
-              : 'bg-white border-red-200'
-          }`}>
-            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 p-1">
-              <Image src="/BI_LOGO_FINAL.png" alt="BEYOND Insights" width={36} height={36} className="object-contain" />
-            </div>
-            <div>
-              <p className={`font-semibold text-sm ${
-                toast.type === 'success' ? 'text-green-800' : 'text-red-800'
-              }`}>
-                {toast.type === 'success' ? 'Success' : 'Error'}
-              </p>
-              <p className="text-sm text-slate-600">{toast.message}</p>
-            </div>
-            <button 
-              onClick={() => setToast({ show: false, message: '', type: 'success' })}
-              className="ml-2 text-slate-400 hover:text-slate-600"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
 
     </div>
   );
