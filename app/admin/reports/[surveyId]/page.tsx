@@ -630,7 +630,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
     patterns.push({
       pattern: `Consistently strong performance across dimensions (${Math.round(avgScore)} average)`,
       implication: 'Your comprehensive, balanced approach to cancer support is a genuine organizational differentiator. This positions you well for employer brand recognition and talent attraction.',
-      recommendation: `Consider pursuing Best Companies certification to formalize recognition. Focus refinement on ${lowestDim.name} (${lowestDim.score}) to achieve full excellence across all dimensions.`
+      recommendation: `Leverage this strong foundation to build thought leadership in workplace cancer support. Focus refinement on ${lowestDim.name} (${lowestDim.score}) to achieve full excellence across all dimensions.`
     });
   }
   
@@ -650,7 +650,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
 }
 
 // Calculate impact-ranked improvement priorities
-function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; effort: string; recommendation: string; topGap: string }[] {
+function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; effort: string; recommendation: string; recommendations: string[]; topGap: string }[] {
   return dimAnalysis
     .map(d => {
       // Calculate potential composite score impact
@@ -665,16 +665,30 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       else if (d.gaps.length <= 2 && d.score >= 55) { effort = 'Low'; effortScore = 3; }
       else if (d.planning.length >= 2) { effort = 'Low'; effortScore = 3; } // Already have momentum
       
-      // Generate specific recommendation based on their data
-      let recommendation = '';
+      // Generate up to 3 specific recommendations based on their data
+      const recommendations: string[] = [];
+      
+      // First recommendation: Planning items (highest priority - already in progress)
       if (d.planning.length > 0) {
-        recommendation = `Accelerate ${d.planning.length} in-progress initiative${d.planning.length > 1 ? 's' : ''} for quickest impact`;
-      } else if (d.gaps.length > 0 && d.gaps[0]?.name) {
-        recommendation = `Start with: ${d.gaps[0].name}`;
-      } else if (d.assessing.length > 0) {
-        recommendation = `Move ${d.assessing.length} item${d.assessing.length > 1 ? 's' : ''} from assessment to planning`;
-      } else {
-        recommendation = `Optimize and document existing programs`;
+        recommendations.push(`Accelerate ${d.planning.length} in-progress initiative${d.planning.length > 1 ? 's' : ''} for quickest impact`);
+      }
+      
+      // Second recommendation: Top gaps to address
+      if (d.gaps.length > 0 && d.gaps[0]?.name) {
+        recommendations.push(`Implement: ${d.gaps[0].name}`);
+        if (d.gaps.length > 1 && d.gaps[1]?.name && recommendations.length < 3) {
+          recommendations.push(`Add: ${d.gaps[1].name}`);
+        }
+      }
+      
+      // Third recommendation: Assessing items to move forward
+      if (d.assessing.length > 0 && recommendations.length < 3) {
+        recommendations.push(`Move ${d.assessing.length} item${d.assessing.length > 1 ? 's' : ''} from assessment to planning`);
+      }
+      
+      // Fallback if no other recommendations
+      if (recommendations.length === 0) {
+        recommendations.push('Optimize and document existing programs');
       }
       
       const topGap = d.gaps[0]?.name || d.needsAttention[0]?.name || 'No specific gaps identified';
@@ -687,7 +701,8 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
         potentialGain,
         effort,
         effortScore,
-        recommendation,
+        recommendation: recommendations[0], // Keep for backward compatibility
+        recommendations: recommendations.slice(0, 3), // Up to 3
         topGap
       };
     })
@@ -1332,12 +1347,13 @@ export default function ExportReportPage() {
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
   
-  // Initiatives in progress
+  // Initiatives in progress - sorted: Assessing first, then Planning
   const quickWinOpportunities = dimensionAnalysis
     .flatMap(d => [
-      ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Assessing' })),
-      ...d.planning.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Planning' }))
+      ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Assessing', sortOrder: 1 })),
+      ...d.planning.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Planning', sortOrder: 2 }))
     ])
+    .sort((a, b) => a.sortOrder - b.sortOrder)
     .slice(0, 8);
   
   // Roadmap items
@@ -1798,8 +1814,8 @@ export default function ExportReportPage() {
                 <p className="text-sm text-slate-500 mt-1">identified gaps</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}</p>
-                <p className="text-sm text-slate-500 mt-1">dimensions at Leading+</p>
+                <p className="text-3xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading} <span className="text-lg font-normal text-slate-400">of 13</span></p>
+                <p className="text-sm text-slate-500 mt-1">at Leading+</p>
               </div>
             </div>
           </div>
@@ -2014,7 +2030,7 @@ export default function ExportReportPage() {
                       <th className="pb-3 text-center w-24">Impact</th>
                       <th className="pb-3 text-center w-24">Effort</th>
                       <th className="pb-3 text-left">
-                        Recommended Action
+                        Recommended Actions
                         {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
                       </th>
                     </tr>
@@ -2056,10 +2072,10 @@ export default function ExportReportPage() {
                             <div className="flex flex-col gap-1">
                               <input
                                 type="text"
-                                value={customRecommendations[r.dimNum] ?? r.recommendation}
+                                value={customRecommendations[r.dimNum] ?? r.recommendations.join(' • ')}
                                 onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
                                 className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                placeholder="Enter custom recommendation..."
+                                placeholder="Enter custom recommendations..."
                               />
                               {customRecommendations[r.dimNum] && (
                                 <button 
@@ -2074,7 +2090,14 @@ export default function ExportReportPage() {
                               )}
                             </div>
                           ) : (
-                            <p className="text-sm text-slate-600">{customRecommendations[r.dimNum] || r.recommendation}</p>
+                            <ul className="text-sm text-slate-600 space-y-1">
+                              {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations).map((rec: string, i: number) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="text-cyan-600 mt-0.5">•</span>
+                                  <span>{rec}</span>
+                                </li>
+                              ))}
+                            </ul>
                           )}
                         </td>
                       </tr>
@@ -2410,25 +2433,25 @@ export default function ExportReportPage() {
 
         {/* ============ IMPLEMENTATION ROADMAP ============ */}
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
-          <div className="px-10 py-6 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-900">Implementation Roadmap</h3>
-            <p className="text-sm text-slate-500 mt-1">Phased approach to strengthen your cancer support ecosystem</p>
+          <div className="px-10 py-6 bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600">
+            <h3 className="font-semibold text-white text-lg">Implementation Roadmap</h3>
+            <p className="text-indigo-200 text-sm mt-1">Your phased approach to strengthen workplace cancer support</p>
           </div>
           <div className="px-10 py-8">
             <div className="grid grid-cols-3 gap-6">
               {/* Phase 1 */}
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <div className="bg-slate-800 px-5 py-4">
+              <div className="border-2 border-emerald-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">1</span>
+                    <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 font-bold text-lg shadow-md">1</span>
                     <div>
                       <h4 className="font-semibold text-white">Quick Wins</h4>
-                      <p className="text-slate-400 text-xs">Immediate impact</p>
+                      <p className="text-emerald-100 text-xs">Immediate impact</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
+                <div className="p-5 bg-emerald-50/30">
+                  <p className="text-xs text-emerald-700 font-medium uppercase tracking-wide mb-4">
                     Accelerate items already in progress
                     {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
                   </p>
@@ -2477,18 +2500,18 @@ export default function ExportReportPage() {
               </div>
               
               {/* Phase 2 */}
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <div className="bg-slate-700 px-5 py-4">
+              <div className="border-2 border-blue-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">2</span>
+                    <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600 font-bold text-lg shadow-md">2</span>
                     <div>
                       <h4 className="font-semibold text-white">Foundation Building</h4>
-                      <p className="text-slate-400 text-xs">6-12 months</p>
+                      <p className="text-blue-100 text-xs">6-12 months</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
+                <div className="p-5 bg-blue-50/30">
+                  <p className="text-xs text-blue-700 font-medium uppercase tracking-wide mb-4">
                     Address high-weight dimension gaps
                     {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
                   </p>
@@ -2537,18 +2560,18 @@ export default function ExportReportPage() {
               </div>
               
               {/* Phase 3 */}
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <div className="bg-slate-600 px-5 py-4">
+              <div className="border-2 border-violet-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-gradient-to-r from-violet-600 to-purple-500 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">3</span>
+                    <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-violet-600 font-bold text-lg shadow-md">3</span>
                     <div>
                       <h4 className="font-semibold text-white">Long-Term Enhancement</h4>
-                      <p className="text-slate-400 text-xs">12+ months</p>
+                      <p className="text-violet-100 text-xs">12+ months</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
+                <div className="p-5 bg-violet-50/30">
+                  <p className="text-xs text-violet-700 font-medium uppercase tracking-wide mb-4">
                     Address remaining lower-priority gaps
                     {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
                   </p>
@@ -2601,45 +2624,64 @@ export default function ExportReportPage() {
 
         {/* ============ HOW CAC CAN HELP ============ */}
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-          <div className="px-10 py-6 bg-slate-800">
-            <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help</h3>
-            <p className="text-slate-400 text-sm mt-1">Tailored support to enhance your employee experience</p>
+          <div className="px-10 py-6 bg-gradient-to-r from-[#F37021] to-[#FF8C42]">
+            <div className="flex items-center gap-4">
+              <Image src="/best-companies-2026-logo.png" alt="Cancer and Careers" width={60} height={60} className="rounded-lg bg-white p-2 shadow-md" />
+              <div>
+                <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help</h3>
+                <p className="text-orange-100 text-sm mt-1">Tailored support to enhance your employee experience</p>
+              </div>
+            </div>
           </div>
           <div className="px-10 py-6">
-            <p className="text-slate-600 mb-6 leading-relaxed">
-              Every organization enters this work from a different place. Cancer and Careers consulting practice 
-              helps organizations understand where they are, identify where they want to be, and build a realistic 
-              path to get there—shaped by two decades of frontline experience with employees navigating cancer 
-              and the HR teams supporting them.
-            </p>
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-5 border border-orange-200 mb-6">
+              <p className="text-slate-700 leading-relaxed">
+                Every organization enters this work from a different place. Cancer and Careers consulting practice 
+                helps organizations understand where they are, identify where they want to be, and build a realistic 
+                path to get there—shaped by <strong>two decades of frontline experience</strong> with employees navigating cancer 
+                and the HR teams supporting them.
+              </p>
+            </div>
             
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="border border-slate-200 rounded-lg p-5">
-                <h4 className="font-semibold text-slate-800 text-sm mb-3">Manager Preparedness & Training</h4>
+              <div className="border-l-4 border-[#F37021] bg-slate-50 rounded-r-lg p-5">
+                <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-[#F37021] text-white text-xs flex items-center justify-center">1</span>
+                  Manager Preparedness & Training
+                </h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
                   <li>• Live training sessions with case studies</li>
                   <li>• Manager toolkit and conversation guides</li>
                   <li>• Train the trainer programs</li>
                 </ul>
               </div>
-              <div className="border border-slate-200 rounded-lg p-5">
-                <h4 className="font-semibold text-slate-800 text-sm mb-3">Navigation & Resource Architecture</h4>
+              <div className="border-l-4 border-[#F37021] bg-slate-50 rounded-r-lg p-5">
+                <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-[#F37021] text-white text-xs flex items-center justify-center">2</span>
+                  Navigation & Resource Architecture
+                </h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
                   <li>• Resource audit and gap analysis</li>
                   <li>• Single entry point design</li>
                   <li>• Communication strategy</li>
                 </ul>
               </div>
-              <div className="border border-slate-200 rounded-lg p-5">
-                <h4 className="font-semibold text-slate-800 text-sm mb-3">Return to Work Excellence</h4>
+              <div className="border-l-4 border-[#F37021] bg-slate-50 rounded-r-lg p-5">
+                <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-[#F37021] text-white text-xs flex items-center justify-center">3</span>
+                  Return to Work Excellence
+                </h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
                   <li>• Phased return protocols</li>
                   <li>• Check-in cadence design</li>
                   <li>• Career continuity planning</li>
                 </ul>
               </div>
-              <div className="border border-slate-200 rounded-lg p-5">
-                <h4 className="font-semibold text-slate-800 text-sm mb-3">Policy & Program Assessment</h4>
+              <div className="border-l-4 border-[#F37021] bg-slate-50 rounded-r-lg p-5">
+                <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-[#F37021] text-white text-xs flex items-center justify-center">4</span>
+                  Policy & Program Assessment
+                </h4>
                 <ul className="text-sm text-slate-600 space-y-1.5">
                   <li>• Comprehensive policy review</li>
                   <li>• Implementation audit</li>
@@ -2648,15 +2690,15 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            <div className="bg-slate-50 rounded-lg p-5 border border-slate-200">
+            <div className="bg-gradient-to-r from-[#F37021] to-[#FF8C42] rounded-lg p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-slate-700">Ready to take the next step?</p>
-                  <p className="text-sm text-slate-500 mt-1">Contact Cancer and Careers to discuss how we can support your organization.</p>
+                  <p className="font-semibold text-white text-lg">Ready to take the next step?</p>
+                  <p className="text-orange-100 mt-1">Contact Cancer and Careers to discuss how we can support your organization.</p>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-slate-700">cancerandcareers.org</p>
-                  <p className="text-sm text-slate-500">cacbestcompanies@cew.org</p>
+                <div className="text-right bg-white rounded-lg px-5 py-3">
+                  <p className="font-semibold text-[#F37021]">cancerandcareers.org</p>
+                  <p className="text-sm text-slate-600">cacbestcompanies@cew.org</p>
                 </div>
               </div>
             </div>
