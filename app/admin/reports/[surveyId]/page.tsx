@@ -866,24 +866,92 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
           </div>
         )}
         
-        {/* Legend - below chart */}
-        <div className="mt-3 pt-4 border-t border-slate-200" style={{ overflow: 'visible' }}>
-          <div className="matrix-legend flex flex-wrap justify-center gap-x-3 gap-y-2" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px 12px', overflow: 'visible', width: '100%' }}>
-            {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
-              <div 
-                key={d.dim} 
-                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all cursor-pointer ${hoveredDim === d.dim ? 'bg-slate-200 shadow-sm' : 'hover:bg-slate-100'}`}
-                style={{ flexShrink: 0, overflow: 'visible', display: 'inline-flex' }}
-                onMouseEnter={() => setHoveredDim(d.dim)}
-                onMouseLeave={() => setHoveredDim(null)}
-              >
-                <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score), flexShrink: 0, minWidth: '20px', width: '20px', height: '20px' }}>
-                  {d.dim}
-                </span>
-                <span className="text-xs text-slate-700 font-medium" style={{ whiteSpace: 'nowrap', overflow: 'visible', textOverflow: 'clip', display: 'inline' }}>{DIMENSION_SHORT_NAMES[d.dim]}</span>
-              </div>
-            ))}
-          </div>
+        {/* Legend - below chart - Using fixed table for PDF export compatibility */}
+        <div className="mt-3 pt-4 border-t border-slate-200">
+          <table className="matrix-legend-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '6px 4px' }}>
+            <tbody>
+              <tr>
+                {[1, 2, 3, 4, 5].map(dim => {
+                  const d = dimensionAnalysis.find(x => x.dim === dim);
+                  if (!d) return <td key={dim}></td>;
+                  return (
+                    <td key={dim} style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ 
+                          backgroundColor: getScoreColor(d.score), 
+                          color: 'white', 
+                          width: '20px', 
+                          height: '20px', 
+                          borderRadius: '4px', 
+                          display: 'inline-flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          fontSize: '9px', 
+                          fontWeight: 'bold',
+                          flexShrink: 0
+                        }}>{d.dim}</span>
+                        <span style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>{DIMENSION_SHORT_NAMES[dim]}</span>
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+              <tr>
+                {[6, 7, 8, 9, 10].map(dim => {
+                  const d = dimensionAnalysis.find(x => x.dim === dim);
+                  if (!d) return <td key={dim}></td>;
+                  return (
+                    <td key={dim} style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ 
+                          backgroundColor: getScoreColor(d.score), 
+                          color: 'white', 
+                          width: '20px', 
+                          height: '20px', 
+                          borderRadius: '4px', 
+                          display: 'inline-flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          fontSize: '9px', 
+                          fontWeight: 'bold',
+                          flexShrink: 0
+                        }}>{d.dim}</span>
+                        <span style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>{DIMENSION_SHORT_NAMES[dim]}</span>
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+              <tr>
+                {[11, 12, 13].map(dim => {
+                  const d = dimensionAnalysis.find(x => x.dim === dim);
+                  if (!d) return <td key={dim}></td>;
+                  return (
+                    <td key={dim} style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ 
+                          backgroundColor: getScoreColor(d.score), 
+                          color: 'white', 
+                          width: '20px', 
+                          height: '20px', 
+                          borderRadius: '4px', 
+                          display: 'inline-flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          fontSize: '9px', 
+                          fontWeight: 'bold',
+                          flexShrink: 0
+                        }}>{d.dim}</span>
+                        <span style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>{DIMENSION_SHORT_NAMES[dim]}</span>
+                      </div>
+                    </td>
+                  );
+                })}
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -1586,43 +1654,30 @@ export default function ExportReportPage() {
           break-inside: avoid !important;
         }
         
-        /* Strategic Priority Matrix - ensure legend is not truncated */
-        .matrix-legend {
-          flex-wrap: wrap !important;
-          overflow: visible !important;
+        /* Matrix Legend Table - ensure full width and no truncation */
+        .matrix-legend-table {
+          width: 100% !important;
+          table-layout: auto !important;
         }
-        .matrix-legend span {
+        .matrix-legend-table td {
           white-space: nowrap !important;
           overflow: visible !important;
-          text-overflow: clip !important;
+          padding: 4px 8px !important;
         }
-        .matrix-legend > div {
+        .matrix-legend-table span {
+          white-space: nowrap !important;
           overflow: visible !important;
-          flex-shrink: 0 !important;
         }
         
-        /* Export mode specific - matrix legend must not truncate */
-        .export-mode .matrix-legend,
-        .pdf-export-mode .matrix-legend {
-          display: flex !important;
-          flex-wrap: wrap !important;
-          justify-content: center !important;
-          gap: 12px 12px !important;
-          overflow: visible !important;
+        /* Export mode specific - ensure table renders correctly */
+        .export-mode .matrix-legend-table,
+        .pdf-export-mode .matrix-legend-table {
+          width: 100% !important;
         }
-        .export-mode .matrix-legend > div,
-        .pdf-export-mode .matrix-legend > div {
-          flex-shrink: 0 !important;
-          overflow: visible !important;
-        }
-        .export-mode .matrix-legend span,
-        .pdf-export-mode .matrix-legend span {
+        .export-mode .matrix-legend-table td,
+        .pdf-export-mode .matrix-legend-table td {
           white-space: nowrap !important;
           overflow: visible !important;
-          text-overflow: clip !important;
-        }
-          overflow: visible !important;
-          text-overflow: clip !important;
         }
         
         /* Export mode: PDF + PPT - fixes scroll containers, stickies, filters */
@@ -1669,26 +1724,33 @@ export default function ExportReportPage() {
         }
         
         /* LANDSCAPE PDF MODE - Shows PPT slides as PDF pages */
+        .landscape-pdf-mode {
+          background: white !important;
+        }
+        .landscape-pdf-mode .no-print,
         .landscape-pdf-mode #report-root {
           display: none !important;
+          visibility: hidden !important;
         }
         .landscape-pdf-mode .ppt-slides-container {
           display: block !important;
-          position: relative !important;
-          left: 0 !important;
+          position: static !important;
+          left: auto !important;
+          visibility: visible !important;
+          width: 100% !important;
         }
         .landscape-pdf-mode .ppt-slide {
           display: block !important;
-          position: relative !important;
-          left: 0 !important;
-          width: 100% !important;
-          height: auto !important;
-          min-height: 700px !important;
+          position: static !important;
+          left: auto !important;
+          visibility: visible !important;
+          width: 1280px !important;
+          height: 720px !important;
+          margin: 0 auto !important;
           page-break-after: always !important;
           break-after: page !important;
           box-sizing: border-box !important;
-          padding: 40px !important;
-          margin-bottom: 0 !important;
+          background: white !important;
         }
         .landscape-pdf-mode .ppt-slide:last-child {
           page-break-after: auto !important;
