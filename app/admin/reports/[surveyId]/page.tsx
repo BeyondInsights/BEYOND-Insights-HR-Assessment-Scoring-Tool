@@ -2654,10 +2654,12 @@ export default function ExportReportPage() {
         {/* ============ HOW CAC CAN HELP ============ */}
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-6 bg-gradient-to-r from-[#F37021] to-[#FF8C42]">
-            <div className="flex items-center gap-4">
-              <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={80} height={80} className="object-contain" />
+            <div className="flex items-center gap-5">
+              <div className="bg-white rounded-lg p-2 shadow-md flex-shrink-0">
+                <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={70} height={70} className="object-contain" />
+              </div>
               <div>
-                <h3 className="font-semibold text-white text-lg">How Cancer and Careers Can Help</h3>
+                <h3 className="font-semibold text-white text-xl">How Cancer and Careers Can Help</h3>
                 <p className="text-orange-100 text-sm mt-1">Tailored support to enhance your employee experience</p>
               </div>
             </div>
