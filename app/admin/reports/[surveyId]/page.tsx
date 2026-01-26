@@ -1991,29 +1991,50 @@ export default function ExportReportPage() {
         .landscape-pdf-mode {
           background: white !important;
         }
+        .landscape-pdf-mode html,
+        .landscape-pdf-mode body {
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: visible !important;
+        }
+        @media print {
+          @page {
+            size: 1280px 720px landscape;
+            margin: 0;
+          }
+        }
         .landscape-pdf-mode .no-print,
         .landscape-pdf-mode #report-root {
           display: none !important;
           visibility: hidden !important;
+          height: 0 !important;
+          overflow: hidden !important;
         }
         .landscape-pdf-mode .ppt-slides-container {
           display: block !important;
           position: static !important;
           left: auto !important;
           visibility: visible !important;
-          width: 100% !important;
+          width: 1280px !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
         .landscape-pdf-mode .ppt-slide {
           display: block !important;
-          position: static !important;
+          position: relative !important;
           left: auto !important;
           visibility: visible !important;
           width: 1280px !important;
           height: 720px !important;
-          margin: 0 auto !important;
+          margin: 0 !important;
+          padding: 40px !important;
           page-break-after: always !important;
           break-after: page !important;
           box-sizing: border-box !important;
+          overflow: hidden !important;
+        }
+        .landscape-pdf-mode .ppt-slide:first-child {
+          padding: 60px !important;
         }
         .landscape-pdf-mode .ppt-slide:last-child {
           page-break-after: auto !important;
