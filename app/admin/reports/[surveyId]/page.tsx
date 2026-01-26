@@ -335,7 +335,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         leading: 'Our Leave Policy Enhancement workshop can identify the specific gaps preventing Exemplary status, with templates for policy language and implementation guides.',
         progressing: 'CAC\'s Leave Policy Benchmarking service compares your policies against industry leaders, identifying specific enhancements like extended leave duration or job protection guarantees.',
         emerging: 'Our Medical Leave Foundation program provides turnkey policy templates, legal compliance guidance, and manager training for leave administration.',
-        developing: 'Urgent: CAC\'s Leave Policy Accelerator builds compliant, competitive leave policies in 60 days, including FMLA+ enhancements and accommodation frameworks.'
+        developing: 'Urgent: CAC\'s Leave Policy Accelerator builds comprehensive, compliant leave policies in 60 days, including FMLA+ enhancements and accommodation frameworks.'
       }
     },
     2: { 
@@ -513,7 +513,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
   
   // Tier-based insight generation with specific data
   if (tierName === 'Exemplary') {
-    insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the peer average of ${benchmark}, this is a genuine competitive differentiator.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
+    insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the peer average of ${benchmark}, this demonstrates exceptional commitment to employee support.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
     cacHelp = cacProgram;
   } else if (tierName === 'Leading') {
     insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Exemplary status—consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Exemplary tier.'}`;
@@ -536,14 +536,14 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
 function getBenchmarkNarrative(score: number, benchmark: number | null, dimName: string): string {
   if (benchmark === null) return '';
   const diff = score - benchmark;
-  if (diff > 25) return `Significantly outperforming peers by ${diff} points—this represents a genuine organizational strength and potential competitive advantage in talent attraction.`;
+  if (diff > 25) return `Exceptional performance at ${diff} points above the peer average—this represents a genuine organizational strength and commitment to employee wellbeing.`;
   if (diff > 15) return `Well above the ${benchmark} peer average by ${diff} points, indicating mature, established practices that employees likely recognize and value.`;
-  if (diff > 5) return `Above benchmark by ${diff} points (peer avg: ${benchmark}), showing solid foundation with room to extend your lead.`;
+  if (diff > 5) return `Above benchmark by ${diff} points (peer avg: ${benchmark}), demonstrating strong commitment with opportunities to strengthen further.`;
   if (diff > 0) return `Slightly above the ${benchmark} peer average—a good foundation to build on for differentiation.`;
   if (diff === 0) return `Matching the peer average of ${benchmark}—an opportunity to differentiate through targeted improvements.`;
   if (diff > -10) return `${Math.abs(diff)} points below the ${benchmark} peer benchmark—targeted improvements can close this gap within 6-12 months.`;
   if (diff > -20) return `Notable gap of ${Math.abs(diff)} points below the ${benchmark} peer average warrants focused strategic attention.`;
-  return `Significant ${Math.abs(diff)}-point gap below peers (avg: ${benchmark}) requires prioritization to reduce competitive disadvantage.`;
+  return `Currently ${Math.abs(diff)} points below the peer average (${benchmark})—this is a priority area where focused improvements will meaningfully strengthen your employee support.`;
 }
 
 // Identify meaningful cross-dimension patterns
@@ -931,6 +931,12 @@ export default function ExportReportPage() {
     phase2?: { items: string[]; useCustom: boolean };
     phase3?: { items: string[]; useCustom: boolean };
   }>({});
+  const [customCacHelp, setCustomCacHelp] = useState<{
+    item1?: { title: string; bullets: string[] };
+    item2?: { title: string; bullets: string[] };
+    item3?: { title: string; bullets: string[] };
+    item4?: { title: string; bullets: string[] };
+  }>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
   const [showPdfOrientationModal, setShowPdfOrientationModal] = useState(false);
@@ -1005,6 +1011,7 @@ export default function ExportReportPage() {
             customRecommendations,
             customCrossRecommendations,
             customRoadmap,
+            customCacHelp,
             lastEditedAt: new Date().toISOString()
           })
         })
@@ -1047,6 +1054,7 @@ export default function ExportReportPage() {
         if (saved.customRecommendations) setCustomRecommendations(saved.customRecommendations);
         if (saved.customCrossRecommendations) setCustomCrossRecommendations(saved.customCrossRecommendations);
         if (saved.customRoadmap) setCustomRoadmap(saved.customRoadmap);
+        if (saved.customCacHelp) setCustomCacHelp(saved.customCacHelp);
       } catch (e) {
         console.error('Error loading customizations:', e);
       }
@@ -1866,7 +1874,7 @@ export default function ExportReportPage() {
                 <p className="text-sm text-slate-500 mt-1">identified gaps</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-slate-200">
-                <p className="text-3xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading} <span className="text-lg font-normal text-slate-400">of 13</span></p>
+                <p className="text-3xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading} <span className="text-lg font-normal text-slate-400">of 13 dimensions</span></p>
                 <p className="text-sm text-slate-500 mt-1">at Leading+</p>
               </div>
             </div>
@@ -2490,23 +2498,55 @@ export default function ExportReportPage() {
             <p className="text-slate-400 text-sm mt-1">Your phased approach to strengthen workplace cancer support</p>
           </div>
           <div className="px-10 py-8">
+            {/* Timeline visualization */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-slate-500">NOW</span>
+                <span className="text-xs font-medium text-slate-500">6 MONTHS</span>
+                <span className="text-xs font-medium text-slate-500">12 MONTHS</span>
+                <span className="text-xs font-medium text-slate-500">12+ MONTHS</span>
+              </div>
+              <div className="relative h-3 bg-slate-100 rounded-full overflow-hidden">
+                <div className="absolute left-0 top-0 h-full w-1/3 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-l-full"></div>
+                <div className="absolute left-1/3 top-0 h-full w-1/3 bg-gradient-to-r from-blue-500 to-blue-400"></div>
+                <div className="absolute left-2/3 top-0 h-full w-1/3 bg-gradient-to-r from-violet-500 to-violet-400 rounded-r-full"></div>
+              </div>
+              <div className="flex justify-between mt-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                  <span className="text-xs text-slate-600">Quick Wins</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                  <span className="text-xs text-slate-600">Foundation</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-violet-500"></div>
+                  <span className="text-xs text-slate-600">Enhancement</span>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-3 gap-6">
               {/* Phase 1 */}
-              <div className="border-2 border-slate-200 rounded-lg overflow-hidden shadow-sm">
-                <div className="bg-slate-800 px-5 py-4">
+              <div className="border-2 border-emerald-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-emerald-600 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-full bg-[#F37021] flex items-center justify-center text-white font-bold text-lg shadow-md">1</span>
+                    <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 font-bold text-lg shadow-md">1</span>
                     <div>
                       <h4 className="font-semibold text-white">Quick Wins</h4>
-                      <p className="text-slate-400 text-xs">Immediate impact</p>
+                      <p className="text-emerald-100 text-xs">0-3 months</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5">
-                  <p className="text-xs text-slate-600 font-medium uppercase tracking-wide mb-4">
-                    Accelerate items already in progress
-                    {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
-                  </p>
+                <div className="p-5 bg-emerald-50/50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    <p className="text-xs text-emerald-700 font-medium uppercase tracking-wide">
+                      Accelerate items already in progress
+                    </p>
+                  </div>
+                  {editMode && <p className="text-xs text-amber-600 mb-2">(editable)</p>}
                   {editMode ? (
                     <div className="space-y-2">
                       <textarea
@@ -2552,21 +2592,24 @@ export default function ExportReportPage() {
               </div>
               
               {/* Phase 2 */}
-              <div className="border-2 border-slate-200 rounded-lg overflow-hidden shadow-sm">
-                <div className="bg-slate-700 px-5 py-4">
+              <div className="border-2 border-blue-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-blue-600 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-full bg-[#F37021] flex items-center justify-center text-white font-bold text-lg shadow-md">2</span>
+                    <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600 font-bold text-lg shadow-md">2</span>
                     <div>
                       <h4 className="font-semibold text-white">Foundation Building</h4>
-                      <p className="text-slate-400 text-xs">6-12 months</p>
+                      <p className="text-blue-100 text-xs">3-12 months</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5">
-                  <p className="text-xs text-slate-600 font-medium uppercase tracking-wide mb-4">
-                    Address high-weight dimension gaps
-                    {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
-                  </p>
+                <div className="p-5 bg-blue-50/50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    <p className="text-xs text-blue-700 font-medium uppercase tracking-wide">
+                      Address high-weight dimension gaps
+                    </p>
+                  </div>
+                  {editMode && <p className="text-xs text-amber-600 mb-2">(editable)</p>}
                   {editMode ? (
                     <div className="space-y-2">
                       <textarea
@@ -2612,21 +2655,24 @@ export default function ExportReportPage() {
               </div>
               
               {/* Phase 3 */}
-              <div className="border-2 border-slate-200 rounded-lg overflow-hidden shadow-sm">
-                <div className="bg-slate-600 px-5 py-4">
+              <div className="border-2 border-violet-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-violet-600 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-full bg-[#F37021] flex items-center justify-center text-white font-bold text-lg shadow-md">3</span>
+                    <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-violet-600 font-bold text-lg shadow-md">3</span>
                     <div>
                       <h4 className="font-semibold text-white">Long-Term Enhancement</h4>
-                      <p className="text-slate-400 text-xs">12+ months</p>
+                      <p className="text-violet-100 text-xs">12+ months</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5">
-                  <p className="text-xs text-slate-600 font-medium uppercase tracking-wide mb-4">
-                    Address remaining lower-priority gaps
-                    {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
-                  </p>
+                <div className="p-5 bg-violet-50/50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                    <p className="text-xs text-violet-700 font-medium uppercase tracking-wide">
+                      Achieve excellence across all dimensions
+                    </p>
+                  </div>
+                  {editMode && <p className="text-xs text-amber-600 mb-2">(editable)</p>}
                   {editMode ? (
                     <div className="space-y-2">
                       <textarea
@@ -2698,50 +2744,61 @@ export default function ExportReportPage() {
             </div>
             
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="border-l-4 border-[#F37021] bg-slate-50 rounded-r-lg p-5">
-                <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-[#F37021] text-white text-xs flex items-center justify-center">1</span>
-                  Manager Preparedness & Training
-                </h4>
-                <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>• Live training sessions with case studies</li>
-                  <li>• Manager toolkit and conversation guides</li>
-                  <li>• Train the trainer programs</li>
-                </ul>
-              </div>
-              <div className="border-l-4 border-[#F37021] bg-slate-50 rounded-r-lg p-5">
-                <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-[#F37021] text-white text-xs flex items-center justify-center">2</span>
-                  Navigation & Resource Architecture
-                </h4>
-                <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>• Resource audit and gap analysis</li>
-                  <li>• Single entry point design</li>
-                  <li>• Communication strategy</li>
-                </ul>
-              </div>
-              <div className="border-l-4 border-[#F37021] bg-slate-50 rounded-r-lg p-5">
-                <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-[#F37021] text-white text-xs flex items-center justify-center">3</span>
-                  Return to Work Excellence
-                </h4>
-                <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>• Phased return protocols</li>
-                  <li>• Check-in cadence design</li>
-                  <li>• Career continuity planning</li>
-                </ul>
-              </div>
-              <div className="border-l-4 border-[#F37021] bg-slate-50 rounded-r-lg p-5">
-                <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-[#F37021] text-white text-xs flex items-center justify-center">4</span>
-                  Policy & Program Assessment
-                </h4>
-                <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>• Comprehensive policy review</li>
-                  <li>• Implementation audit</li>
-                  <li>• Business case development</li>
-                </ul>
-              </div>
+              {[
+                { key: 'item1', num: 1, defaultTitle: 'Manager Preparedness & Training', defaultBullets: ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'] },
+                { key: 'item2', num: 2, defaultTitle: 'Navigation & Resource Architecture', defaultBullets: ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'] },
+                { key: 'item3', num: 3, defaultTitle: 'Return to Work Excellence', defaultBullets: ['Phased return protocols', 'Check-in cadence design', 'Career continuity planning'] },
+                { key: 'item4', num: 4, defaultTitle: 'Policy & Program Assessment', defaultBullets: ['Comprehensive policy review', 'Implementation audit', 'Business case development'] },
+              ].map(item => {
+                const custom = customCacHelp[item.key as keyof typeof customCacHelp];
+                const title = custom?.title || item.defaultTitle;
+                const bullets = custom?.bullets || item.defaultBullets;
+                return (
+                  <div key={item.key} className="border-l-4 border-[#F37021] bg-slate-50 rounded-r-lg p-5">
+                    {editMode ? (
+                      <>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="w-6 h-6 rounded-full bg-[#F37021] text-white text-xs flex items-center justify-center flex-shrink-0">{item.num}</span>
+                          <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => {
+                              setCustomCacHelp(prev => ({
+                                ...prev,
+                                [item.key]: { title: e.target.value, bullets: bullets }
+                              }));
+                              setHasUnsavedChanges(true);
+                            }}
+                            className="flex-1 font-semibold text-slate-800 text-sm bg-amber-50 border border-amber-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          />
+                        </div>
+                        <textarea
+                          value={bullets.join('\n')}
+                          onChange={(e) => {
+                            setCustomCacHelp(prev => ({
+                              ...prev,
+                              [item.key]: { title: title, bullets: e.target.value.split('\n') }
+                            }));
+                            setHasUnsavedChanges(true);
+                          }}
+                          className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded px-2 py-1 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          placeholder="One bullet per line..."
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-[#F37021] text-white text-xs flex items-center justify-center">{item.num}</span>
+                          {title}
+                        </h4>
+                        <ul className="text-sm text-slate-600 space-y-1.5">
+                          {bullets.map((b, i) => <li key={i}>• {b}</li>)}
+                        </ul>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             
             <div className="bg-gradient-to-r from-[#F37021] to-[#FF8C42] rounded-lg p-5">
