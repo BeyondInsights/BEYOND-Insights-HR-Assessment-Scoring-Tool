@@ -868,18 +868,19 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         
         {/* Legend - below chart */}
         <div className="mt-3 pt-4 border-t border-slate-200">
-          <div className="matrix-legend flex flex-wrap justify-center gap-x-3 gap-y-2">
+          <div className="matrix-legend flex flex-wrap justify-center gap-x-3 gap-y-2" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px 12px', overflow: 'visible' }}>
             {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
               <div 
                 key={d.dim} 
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all cursor-pointer ${hoveredDim === d.dim ? 'bg-slate-200 shadow-sm' : 'hover:bg-slate-100'}`}
+                style={{ flexShrink: 0, overflow: 'visible' }}
                 onMouseEnter={() => setHoveredDim(d.dim)}
                 onMouseLeave={() => setHoveredDim(null)}
               >
-                <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
+                <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score), flexShrink: 0, minWidth: '20px' }}>
                   {d.dim}
                 </span>
-                <span className="text-xs text-slate-700 whitespace-nowrap font-medium">{DIMENSION_SHORT_NAMES[d.dim]}</span>
+                <span className="text-xs text-slate-700 font-medium" style={{ whiteSpace: 'nowrap', overflow: 'visible', textOverflow: 'clip' }}>{DIMENSION_SHORT_NAMES[d.dim]}</span>
               </div>
             ))}
           </div>
@@ -903,6 +904,7 @@ export default function ExportReportPage() {
   const isPdf = exportMode && mode === 'pdf';
   const isPpt = exportMode && (mode === 'ppt' || mode === 'pptslides');
   const isPptReport = exportMode && mode === 'pptreport';
+  const isLandscapePdf = exportMode && mode === 'landscapepdf';
 
   const surveyId = Array.isArray(params.surveyId) ? params.surveyId[0] : params.surveyId;
   const printRef = useRef<HTMLDivElement>(null);
@@ -1380,7 +1382,7 @@ export default function ExportReportPage() {
 
   return (
     <div 
-      className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''} ${isLandscape ? 'landscape-mode' : ''}`}
+      className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''} ${isLandscapePdf ? 'landscape-pdf-mode' : ''} ${isLandscape ? 'landscape-mode' : ''}`}
       style={isLandscape ? { width: '100%', maxWidth: 'none', minWidth: '1200px' } : undefined}
     >
       <style jsx global>{`
@@ -1593,6 +1595,27 @@ export default function ExportReportPage() {
         .ppt-report-mode .ppt-slide {
           display: none !important;
         }
+        
+        /* LANDSCAPE PDF MODE - Shows PPT slides as PDF pages */
+        .landscape-pdf-mode #report-root {
+          display: none !important;
+        }
+        .landscape-pdf-mode .ppt-slides-container {
+          display: block !important;
+        }
+        .landscape-pdf-mode .ppt-slide {
+          display: block !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          page-break-after: always !important;
+          break-after: page !important;
+          box-sizing: border-box !important;
+        }
+        .landscape-pdf-mode .ppt-slide:last-child {
+          page-break-after: auto !important;
+          break-after: auto !important;
+        }
+        
         /* PPT slide sections - hidden by default, shown for capture */
         .ppt-slide {
           width: 1280px;
