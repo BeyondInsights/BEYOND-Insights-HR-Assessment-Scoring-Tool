@@ -1143,7 +1143,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         ) : (
-                          <span className="text-sm text-slate-600 italic">{observation}</span>
+                          <span className="text-sm text-slate-600">{observation}</span>
                         )}
                       </td>
                     </tr>
@@ -2861,7 +2861,7 @@ export default function ExportReportPage() {
                   {/* Benchmark Narrative */}
                   {benchmarkNarrative && (
                     <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
-                      <p className="text-sm text-slate-600 italic">{benchmarkNarrative}</p>
+                      <p className="text-sm text-slate-600">{benchmarkNarrative}</p>
                     </div>
                   )}
                   
@@ -3319,10 +3319,14 @@ export default function ExportReportPage() {
             <h3 className="font-semibold text-slate-700 text-sm">Assessment Methodology</h3>
           </div>
           <div className="px-10 py-5">
-            <div className="grid grid-cols-3 gap-6 text-xs text-slate-600">
+            <div className="grid grid-cols-4 gap-6 text-xs text-slate-600">
               <div>
                 <p className="font-medium text-slate-700 mb-2">Scoring Framework</p>
                 <p className="leading-relaxed">Organizations are assessed across 13 dimensions of workplace cancer support. The composite score combines dimension performance (90%), program maturity (5%), and support breadth (5%).</p>
+              </div>
+              <div>
+                <p className="font-medium text-slate-700 mb-2">Dimension Weights</p>
+                <p className="leading-relaxed">Each dimension carries a specific weight reflecting its relative importance. Weights were derived from extensive research with HR leaders, employees managing cancer, and employee resource groups to ensure the Index prioritizes what matters most to those directly affected.</p>
               </div>
               <div>
                 <p className="font-medium text-slate-700 mb-2">Benchmarking</p>
