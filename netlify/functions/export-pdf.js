@@ -2,6 +2,9 @@
 exports.handler = async (event) => {
   try {
     const surveyId = event.queryStringParameters?.surveyId;
+    const orientation = event.queryStringParameters?.orientation || 'portrait';
+    const isLandscape = orientation === 'landscape';
+    
     if (!surveyId) {
       return {
         statusCode: 400,
@@ -26,7 +29,7 @@ exports.handler = async (event) => {
 
     // IMPORTANT: mode=pdf ensures PPT slides are not printed
     const reportUrl = `${origin}/export/reports/${encodeURIComponent(surveyId)}?export=1&mode=pdf`;
-    console.log(`Generating PDF for: ${reportUrl}`);
+    console.log(`Generating PDF (${orientation}) for: ${reportUrl}`);
 
     const res = await fetch(`${base}/pdf?token=${token}`, {
       method: 'POST',
@@ -36,6 +39,7 @@ exports.handler = async (event) => {
         options: {
           printBackground: true,
           format: 'Letter',
+          landscape: isLandscape,
           // Comfortable margins with more horizontal breathing room
           margin: {
             top: '0.4in',
@@ -75,7 +79,7 @@ exports.handler = async (event) => {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="Cancer_Support_Report_${surveyId}.pdf"`,
+        'Content-Disposition': `attachment; filename="Cancer_Support_Report_${surveyId}_${orientation}.pdf"`,
         'Cache-Control': 'no-store',
       },
       body: pdfB64,
