@@ -1228,13 +1228,9 @@ export default function InteractiveReportPage() {
   }>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
-  const [showPdfOrientationModal, setShowPdfOrientationModal] = useState(false);
-  const [showInteractiveLinkModal, setShowInteractiveLinkModal] = useState(false);
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
-  const [interactiveLink, setInteractiveLink] = useState<{ url: string; password: string } | null>(null);
-  const [generatingLink, setGeneratingLink] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   
   // Show toast notification
@@ -1359,7 +1355,7 @@ export default function InteractiveReportPage() {
   }, [company]);
 
   useEffect(() => {
-    // CRITICAL: Reset ALL state when surveyId changes
+    // CRITICAL: Reset ALL state when token changes
     setLoading(true);
     setError(null);
     setCompany(null);
@@ -1623,74 +1619,6 @@ export default function InteractiveReportPage() {
     }));
   }
 
-
-  // ============================================
-  // SERVER EXPORT BUTTONS (Netlify Functions)
-  // ============================================
-  function handleServerExportPDF(orientation: 'portrait' | 'landscape' = 'portrait') {
-    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}&orientation=${orientation}`;
-    window.open(url, '_blank');
-    setShowPdfOrientationModal(false);
-  }
-
-  function handleServerExportPPT() {
-    const url = `/.netlify/functions/export-pptx?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
-    window.open(url, '_blank');
-  }
-
-  // Generate interactive report link with password
-  async function generateInteractiveLink() {
-    if (!company?.id) return;
-    setGeneratingLink(true);
-    
-    try {
-      // Generate random token and password
-      const token = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
-      const password = Math.random().toString(36).substring(2, 8).toUpperCase();
-      
-      // Check if link already exists
-      if (company.public_token) {
-        // Use existing link
-        const baseUrl = window.location.origin;
-        setInteractiveLink({
-          url: `${baseUrl}/report/${company.public_token}`,
-          password: company.public_password || 'Check database'
-        });
-        setShowInteractiveLinkModal(true);
-        setGeneratingLink(false);
-        return;
-      }
-      
-      // Save to database
-      const { error } = await supabase
-        .from('assessments')
-        .update({
-          public_token: token,
-          public_password: password,
-          public_link_created_at: new Date().toISOString()
-        })
-        .eq('id', company.id);
-      
-      if (error) throw error;
-      
-      const baseUrl = window.location.origin;
-      setInteractiveLink({
-        url: `${baseUrl}/report/${token}`,
-        password: password
-      });
-      setShowInteractiveLinkModal(true);
-      
-      // Update local company state
-      company.public_token = token;
-      company.public_password = password;
-      
-    } catch (err) {
-      console.error('Error generating link:', err);
-      showToast('Failed to generate interactive link', 'error');
-    } finally {
-      setGeneratingLink(false);
-    }
-  }
 
   function handleBack() {
     if (typeof window !== 'undefined') window.history.back();
@@ -3276,7 +3204,7 @@ export default function InteractiveReportPage() {
                 <p className="text-xs text-slate-400">© 2026 Cancer and Careers. All rights reserved.</p>
               </div>
               <div className="flex items-center gap-4 text-right">
-                <p className="text-xs text-slate-400">Survey ID: {surveyId}</p>
+                <p className="text-xs text-slate-400">Survey ID: {company?.survey_id || token}</p>
                 <p className="text-xs text-slate-400">Confidential</p>
               </div>
             </div>
