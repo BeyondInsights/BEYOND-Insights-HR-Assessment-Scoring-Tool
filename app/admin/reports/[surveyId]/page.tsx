@@ -869,7 +869,24 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         {/* Legend - below chart - 3 rows to prevent bleeding */}
         <div className="mt-3 pt-4 border-t border-slate-200 px-4">
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
-            {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
+            {/* First row: dimensions 1-7 */}
+            {[...dimensionAnalysis].filter(d => d.dim <= 7).sort((a, b) => a.dim - b.dim).map(d => (
+              <div 
+                key={d.dim} 
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded transition-all cursor-pointer ${hoveredDim === d.dim ? 'bg-slate-200 ring-1 ring-slate-400' : 'hover:bg-slate-100'}`}
+                onMouseEnter={() => setHoveredDim(d.dim)}
+                onMouseLeave={() => setHoveredDim(null)}
+              >
+                <span className="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: getScoreColor(d.score) }}>
+                  {d.dim}
+                </span>
+                <span className="text-xs text-slate-700 font-medium whitespace-nowrap">{DIMENSION_SHORT_NAMES[d.dim]}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-2">
+            {/* Second row: dimensions 8-13 */}
+            {[...dimensionAnalysis].filter(d => d.dim > 7).sort((a, b) => a.dim - b.dim).map(d => (
               <div 
                 key={d.dim} 
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded transition-all cursor-pointer ${hoveredDim === d.dim ? 'bg-slate-200 ring-1 ring-slate-400' : 'hover:bg-slate-100'}`}
