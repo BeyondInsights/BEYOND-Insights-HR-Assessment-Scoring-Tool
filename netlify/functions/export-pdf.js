@@ -121,96 +121,147 @@ export const handler: Handler = async (event) => {
     const gray = '#64748B';
     const lightGray = '#F1F5F9';
 
-    // ==========================================
-    // SLIDE 1: Title Slide
-    // ==========================================
-    doc.setFillColor(darkBg);
-    doc.rect(0, 0, 1280, 720, 'F');
-
-    // Title
-    doc.setTextColor(white);
-    doc.setFontSize(48);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Best Companies for Working with Cancer', 640, 280, { align: 'center' });
-    
-    doc.setFontSize(32);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Index 2026', 640, 340, { align: 'center' });
-
-    // Company name
-    doc.setFontSize(28);
-    doc.setTextColor(gray);
-    doc.text(`Prepared for: ${companyName}`, 640, 450, { align: 'center' });
-
-    // Footer
-    doc.setFontSize(14);
-    doc.text('Cancer and Careers | Confidential', 640, 680, { align: 'center' });
+    // Calculate points from Exemplary
+    const pointsFromExemplary = Math.max(0, 90 - scores.compositeScore);
 
     // ==========================================
-    // SLIDE 2: Executive Summary
+    // SLIDE 1: Title + Executive Summary Combined
     // ==========================================
-    doc.addPage([1280, 720], 'landscape');
-    
     // Header bar
     doc.setFillColor(darkBg);
-    doc.rect(0, 0, 1280, 80, 'F');
+    doc.rect(0, 0, 1280, 100, 'F');
+    
     doc.setTextColor(white);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'normal');
+    doc.text('PERFORMANCE ASSESSMENT', 40, 45);
+    
     doc.setFontSize(28);
     doc.setFont('helvetica', 'bold');
-    doc.text('Executive Summary', 40, 52);
+    doc.text('Best Companies for Working with Cancer Index 2026', 40, 75);
 
-    // Overall score box
-    doc.setFillColor(lightGray);
-    doc.roundedRect(40, 120, 300, 180, 10, 10, 'F');
-    
-    doc.setFontSize(16);
+    // Company name section
+    doc.setFontSize(12);
     doc.setTextColor(gray);
-    doc.text('OVERALL SCORE', 190, 160, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('PREPARED FOR', 40, 140);
+    
+    doc.setFontSize(32);
+    doc.setTextColor(darkBg);
+    doc.setFont('helvetica', 'bold');
+    doc.text(companyName, 40, 175);
+
+    // Executive Summary header
+    doc.setFontSize(11);
+    doc.setTextColor('#F37021'); // CAC Orange
+    doc.setFont('helvetica', 'bold');
+    doc.text('EXECUTIVE SUMMARY', 40, 220);
+
+    // Summary paragraph
+    doc.setFontSize(14);
+    doc.setTextColor(darkBg);
+    doc.setFont('helvetica', 'normal');
+    
+    // Get top strength and top opportunity
+    const sortedDims = Object.entries(scores.dimensionScores)
+      .map(([dim, score]) => ({ dim: Number(dim), score }))
+      .sort((a, b) => b.score - a.score);
+    const topStrength = sortedDims[0];
+    const topOpportunity = sortedDims[sortedDims.length - 1];
+    
+    const summaryText = `${companyName} demonstrates ${tier.toLowerCase()} performance in supporting employees managing cancer, placing in the ${Math.round(scores.compositeScore)}th percentile among assessed organizations. Your strongest dimension is ${DIMENSION_NAMES[topStrength?.dim || 1]} (${topStrength?.score || 0}). ${DIMENSION_NAMES[topOpportunity?.dim || 1]} (${topOpportunity?.score || 0}) represents your greatest opportunity for improvement.`;
+    const splitSummary = doc.splitTextToSize(summaryText, 900);
+    doc.text(splitSummary, 40, 250);
+
+    // Points from Exemplary callout box
+    if (pointsFromExemplary > 0) {
+      doc.setFillColor('#FEF3C7'); // Amber light
+      doc.roundedRect(40, 320, 900, 50, 6, 6, 'F');
+      
+      doc.setFontSize(14);
+      doc.setTextColor('#B45309');
+      doc.setFont('helvetica', 'bold');
+      doc.text(`↗ ${pointsFromExemplary} points from Exemplary tier`, 60, 350);
+      
+      // Suggest dimensions for improvement
+      const improvementDims = sortedDims.slice(-3).map(d => DIMENSION_NAMES[d.dim]).join(', ');
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Targeted improvements in ${improvementDims} could help close this gap.`, 280, 350);
+    }
+
+    // Key metrics row
+    const metricsY = 400;
+    const metricBoxWidth = 200;
+    const metricGap = 30;
+    
+    // Metric 1: Elements Offered
+    doc.setFillColor(white);
+    doc.setDrawColor('#E2E8F0');
+    doc.roundedRect(40, metricsY, metricBoxWidth, 80, 6, 6, 'FD');
+    doc.setFontSize(36);
+    doc.setTextColor(darkBg);
+    doc.setFont('helvetica', 'bold');
+    doc.text('116', 60, metricsY + 45);
+    doc.setFontSize(11);
+    doc.setTextColor(gray);
+    doc.setFont('helvetica', 'normal');
+    doc.text('of 154 elements offered', 60, metricsY + 65);
+
+    // Metric 2: In Development
+    doc.setFillColor(white);
+    doc.roundedRect(40 + metricBoxWidth + metricGap, metricsY, metricBoxWidth, 80, 6, 6, 'FD');
+    doc.setFontSize(36);
+    doc.setTextColor(darkBg);
+    doc.setFont('helvetica', 'bold');
+    doc.text('11', 60 + metricBoxWidth + metricGap, metricsY + 45);
+    doc.setFontSize(11);
+    doc.setTextColor(gray);
+    doc.setFont('helvetica', 'normal');
+    doc.text('initiatives in development', 60 + metricBoxWidth + metricGap, metricsY + 65);
+
+    // Metric 3: Opportunities
+    doc.setFillColor(white);
+    doc.roundedRect(40 + (metricBoxWidth + metricGap) * 2, metricsY, metricBoxWidth, 80, 6, 6, 'FD');
+    doc.setFontSize(36);
+    doc.setTextColor(darkBg);
+    doc.setFont('helvetica', 'bold');
+    doc.text('27', 60 + (metricBoxWidth + metricGap) * 2, metricsY + 45);
+    doc.setFontSize(11);
+    doc.setTextColor(gray);
+    doc.setFont('helvetica', 'normal');
+    doc.text('identified opportunities', 60 + (metricBoxWidth + metricGap) * 2, metricsY + 65);
+
+    // Overall Score box on right side
+    doc.setFillColor(lightGray);
+    doc.roundedRect(980, 130, 260, 200, 10, 10, 'F');
+    
+    doc.setFontSize(12);
+    doc.setTextColor(gray);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Overall Score', 1110, 170, { align: 'center' });
     
     doc.setFontSize(72);
     doc.setTextColor(tierColor);
     doc.setFont('helvetica', 'bold');
-    doc.text(String(scores.compositeScore), 190, 240, { align: 'center' });
+    doc.text(String(scores.compositeScore), 1110, 250, { align: 'center' });
     
-    doc.setFontSize(20);
-    doc.text(tier, 190, 280, { align: 'center' });
-
-    // Key metrics
-    const metrics = [
-      { label: 'Weighted Dimension Score', value: scores.weightedDimScore },
-      { label: 'Dimensions Assessed', value: 13 },
-      { label: 'Performance Tier', value: tier }
-    ];
-
-    let metricX = 400;
-    metrics.forEach((m, i) => {
-      doc.setFillColor(white);
-      doc.setDrawColor('#E2E8F0');
-      doc.roundedRect(metricX, 120, 260, 80, 8, 8, 'FD');
-      
-      doc.setFontSize(14);
-      doc.setTextColor(gray);
-      doc.setFont('helvetica', 'normal');
-      doc.text(m.label, metricX + 20, 150);
-      
-      doc.setFontSize(28);
-      doc.setTextColor(darkBg);
-      doc.setFont('helvetica', 'bold');
-      doc.text(String(m.value), metricX + 20, 180);
-      
-      metricX += 280;
-    });
-
-    // Summary text
+    // Tier badge
+    doc.setFillColor(tierColor);
+    doc.roundedRect(1030, 280, 160, 36, 18, 18, 'F');
     doc.setFontSize(16);
-    doc.setTextColor(darkBg);
+    doc.setTextColor(white);
+    doc.setFont('helvetica', 'bold');
+    doc.text(tier, 1110, 304, { align: 'center' });
+
+    // Footer
+    doc.setFontSize(10);
+    doc.setTextColor(gray);
     doc.setFont('helvetica', 'normal');
-    const summaryText = `${companyName} demonstrates ${tier.toLowerCase()} performance in supporting employees managing cancer. Your organization scores in the ${Math.round(scores.compositeScore)}th percentile among assessed organizations.`;
-    const splitSummary = doc.splitTextToSize(summaryText, 1200);
-    doc.text(splitSummary, 40, 350);
+    doc.text('Best Companies for Working with Cancer Index | © 2026 Cancer and Careers | Confidential', 640, 690, { align: 'center' });
 
     // ==========================================
-    // SLIDE 3: Dimension Scores
+    // SLIDE 2: Dimension Scores
     // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
@@ -263,7 +314,7 @@ export const handler: Handler = async (event) => {
     }
 
     // ==========================================
-    // SLIDE 4: Strengths & Opportunities
+    // SLIDE 3: Strengths & Opportunities
     // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
@@ -275,11 +326,7 @@ export const handler: Handler = async (event) => {
     doc.setFont('helvetica', 'bold');
     doc.text('Strengths & Opportunities', 40, 52);
 
-    // Get top 3 and bottom 3 dimensions
-    const sortedDims = Object.entries(scores.dimensionScores)
-      .map(([dim, score]) => ({ dim: Number(dim), score }))
-      .sort((a, b) => b.score - a.score);
-    
+    // Use sortedDims from slide 1    
     const strengths = sortedDims.slice(0, 3);
     const opportunities = sortedDims.slice(-3).reverse();
 
@@ -330,7 +377,7 @@ export const handler: Handler = async (event) => {
     });
 
     // ==========================================
-    // SLIDE 5: Next Steps
+    // SLIDE 4: Next Steps
     // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
@@ -374,7 +421,7 @@ export const handler: Handler = async (event) => {
     });
 
     // ==========================================
-    // SLIDE 6: How CAC Can Help
+    // SLIDE 5: How CAC Can Help
     // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
