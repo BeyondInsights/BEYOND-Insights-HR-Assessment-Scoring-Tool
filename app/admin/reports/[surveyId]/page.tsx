@@ -1511,7 +1511,7 @@ export default function ExportReportPage() {
     return { compositeScore: avg(allScores.map(s => s?.compositeScore)), weightedDimScore: avg(allScores.map(s => s?.weightedDimScore)), maturityScore: avg(allScores.map(s => s?.maturityScore)), breadthScore: avg(allScores.map(s => s?.breadthScore)), dimensionScores: dimensionBenchmarks, companyCount: complete.length };
   }
 
-  // Calculate element-level benchmark distributions
+  // Calculate element-level benchmark distributions for drill-down
   function calculateElementBenchmarks(assessments: any[]) {
     const complete = assessments.filter(a => {
       let completedDims = 0;
@@ -2088,13 +2088,17 @@ export default function ExportReportPage() {
             
             <button
               onClick={handleServerExportPPT}
-              className="px-5 py-2 rounded-lg font-medium bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
-              title="Export PowerPoint & PDF"
+              className="px-5 py-2 rounded-lg font-medium bg-orange-500 hover:bg-orange-600 text-white"
+              title="Export PowerPoint"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Export PPT + PDF
+              Export PowerPoint
+            </button>
+            <button
+              onClick={() => setShowPdfOrientationModal(true)}
+              className="px-5 py-2 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-white"
+              title="Export PDF"
+            >
+              Export PDF
             </button>
             <button
               onClick={generateInteractiveLink}
@@ -3461,46 +3465,6 @@ export default function ExportReportPage() {
             <div style={{ background: '#F5F3FF', padding: '20px', borderRadius: '8px' }}>
               <p style={{ fontWeight: 600, color: '#5B21B6', fontSize: '16px' }}>Ready to take the next step?</p>
               <p style={{ fontSize: '13px', color: '#7C3AED' }}>Contact: consulting@cancerandcareers.org</p>
-            </div>
-          </div>
-        </div>
-
-        {/* SLIDE 8: Methodology */}
-        <div id="ppt-slide-8" className="ppt-slide" style={{ padding: 0 }}>
-          <div style={{ background: '#F8FAFC', padding: '30px 40px' }}>
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B' }}>Assessment Methodology</h2>
-          </div>
-          <div style={{ padding: '30px 40px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '30px', marginBottom: '30px' }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>Scoring Framework</p>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>
-                  Organizations are assessed across 13 dimensions of workplace cancer support. The composite score combines dimension performance (90%), program maturity (5%), and support breadth (5%).
-                </p>
-              </div>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>Benchmarking</p>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>
-                  Benchmark scores represent average performance across all organizations in the Index. Percentile rankings indicate relative positioning within the cohort.
-                </p>
-              </div>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>Performance Tiers</p>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>
-                  <span style={{ color: '#5B21B6', fontWeight: 600 }}>Exemplary</span> (90+) · 
-                  <span style={{ color: '#047857', fontWeight: 600 }}> Leading</span> (75-89) · 
-                  <span style={{ color: '#1D4ED8', fontWeight: 600 }}> Progressing</span> (60-74) · 
-                  <span style={{ color: '#B45309', fontWeight: 600 }}> Emerging</span> (40-59) · 
-                  <span style={{ color: '#B91C1C', fontWeight: 600 }}> Developing</span> (&lt;40)
-                </p>
-              </div>
-            </div>
-            <div style={{ background: '#1E293B', padding: '20px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ fontWeight: 600, color: 'white', fontSize: '16px' }}>Best Companies for Working with Cancer Index</p>
-                <p style={{ fontSize: '12px', color: '#94A3B8' }}>© 2026 Cancer and Careers. All rights reserved. Confidential.</p>
-              </div>
-              <p style={{ fontSize: '12px', color: '#94A3B8' }}>Survey ID: {surveyId}</p>
             </div>
           </div>
         </div>
