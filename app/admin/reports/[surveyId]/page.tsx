@@ -1614,38 +1614,86 @@ export default function ExportReportPage() {
   // SERVER EXPORT BUTTONS (Netlify Functions)
   // ============================================
   function handleServerExportPDF(orientation: 'portrait' | 'landscape' = 'portrait') {
-    // Use browser print for PDF - renders the report exactly as displayed
+    // Export PPT slides as PDF - landscape mode renders the slide divs as pages
     setShowPdfOrientationModal(false);
     
-    // Add print styles dynamically
+    // Show the hidden PPT slides for printing
+    const slidesContainer = document.querySelector('.ppt-slides-container') as HTMLElement;
+    const reportRoot = document.getElementById('report-root') as HTMLElement;
+    const noPrintElements = document.querySelectorAll('.no-print') as NodeListOf<HTMLElement>;
+    
+    if (!slidesContainer) {
+      alert('PPT slides not found');
+      return;
+    }
+    
+    // Hide report, show slides
+    if (reportRoot) reportRoot.style.display = 'none';
+    noPrintElements.forEach(el => el.style.display = 'none');
+    slidesContainer.style.position = 'static';
+    slidesContainer.style.left = 'auto';
+    
+    // Make each slide visible and properly sized
+    const slides = slidesContainer.querySelectorAll('.ppt-slide') as NodeListOf<HTMLElement>;
+    slides.forEach(slide => {
+      slide.style.position = 'static';
+      slide.style.left = 'auto';
+      slide.style.display = 'block';
+      slide.style.width = '1280px';
+      slide.style.height = '720px';
+      slide.style.margin = '0 auto 20px auto';
+      slide.style.pageBreakAfter = 'always';
+    });
+    
+    // Add print styles for landscape PDF
     const style = document.createElement('style');
     style.id = 'pdf-print-styles';
     style.innerHTML = `
       @media print {
         @page { 
-          size: ${orientation === 'landscape' ? '11in 8.5in' : '8.5in 11in'}; 
-          margin: 0.5in;
+          size: 13.33in 7.5in; 
+          margin: 0;
         }
         body { 
           -webkit-print-color-adjust: exact !important; 
           print-color-adjust: exact !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
-        .no-print { display: none !important; }
-        .pdf-no-break { page-break-inside: avoid !important; }
-        .pdf-break-before { page-break-before: always !important; }
+        .ppt-slide {
+          width: 1280px !important;
+          height: 720px !important;
+          margin: 0 !important;
+          page-break-after: always !important;
+          page-break-inside: avoid !important;
+        }
+        .ppt-slide:last-child {
+          page-break-after: auto !important;
+        }
       }
     `;
     document.head.appendChild(style);
     
-    // Small delay to ensure styles are applied
+    // Print after a moment
     setTimeout(() => {
       window.print();
-      // Clean up after print dialog
+      
+      // Restore everything after print dialog closes
       setTimeout(() => {
+        if (reportRoot) reportRoot.style.display = '';
+        noPrintElements.forEach(el => el.style.display = '');
+        slidesContainer.style.position = 'absolute';
+        slidesContainer.style.left = '-9999px';
+        slides.forEach(slide => {
+          slide.style.position = 'absolute';
+          slide.style.left = '-9999px';
+          slide.style.margin = '';
+          slide.style.pageBreakAfter = '';
+        });
         const styleEl = document.getElementById('pdf-print-styles');
         if (styleEl) styleEl.remove();
       }, 1000);
-    }, 100);
+    }, 200);
   }
 
   function handleServerExportPPT() {
@@ -3536,65 +3584,39 @@ export default function ExportReportPage() {
         </div>
       </div>
 
-      {/* PDF Orientation Selection Modal */}
+      {/* PDF Export Modal */}
       {showPdfOrientationModal && (
         <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowPdfOrientationModal(false)}>
           <div 
-            className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden"
+            className="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="bg-slate-800 px-6 py-4">
               <h2 className="text-lg font-bold text-white">Export PDF</h2>
-              <p className="text-slate-400 text-sm mt-1">Choose page orientation</p>
+              <p className="text-slate-400 text-sm mt-1">Save presentation slides as PDF</p>
             </div>
             
             <div className="p-6">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Portrait Option */}
-                <button
-                  onClick={() => handleServerExportPDF('portrait')}
-                  className="group p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-all"
-                >
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-20 border-2 border-slate-300 group-hover:border-indigo-500 rounded bg-white shadow-sm flex items-center justify-center">
-                      <svg className="w-8 h-10 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <div className="text-center">
-                      <p className="font-semibold text-slate-700 group-hover:text-indigo-700">Portrait</p>
-                      <p className="text-xs text-slate-500">Standard layout</p>
-                    </div>
-                  </div>
-                </button>
-                
-                {/* Landscape Option */}
-                <button
-                  onClick={() => handleServerExportPDF('landscape')}
-                  className="group p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-all"
-                >
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-20 h-16 border-2 border-slate-300 group-hover:border-indigo-500 rounded bg-white shadow-sm flex items-center justify-center">
-                      <svg className="w-10 h-8 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <div className="text-center">
-                      <p className="font-semibold text-slate-700 group-hover:text-indigo-700">Landscape</p>
-                      <p className="text-xs text-slate-500">Wider for charts</p>
-                    </div>
-                  </div>
-                </button>
-              </div>
+              <p className="text-sm text-slate-600 mb-4">
+                This will export the 7 presentation slides as a landscape PDF document.
+              </p>
               
-              <div className="mt-4 pt-4 border-t border-slate-200 flex justify-end">
-                <button
-                  onClick={() => setShowPdfOrientationModal(false)}
-                  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800"
-                >
-                  Cancel
-                </button>
-              </div>
+              <button
+                onClick={() => handleServerExportPDF('landscape')}
+                className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export PDF
+              </button>
+              
+              <button
+                onClick={() => setShowPdfOrientationModal(false)}
+                className="w-full mt-3 py-2 text-sm text-slate-500 hover:text-slate-700"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
