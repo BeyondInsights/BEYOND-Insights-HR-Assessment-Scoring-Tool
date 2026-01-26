@@ -28,6 +28,28 @@ const RETRY_INTERVAL_MS = 15000 // 15 seconds
 const MAX_RETRIES = 5
 
 // ============================================
+// PATHS WHERE AUTO-SYNC IS DISABLED
+// These are read-only pages - admin viewing data, NOT editing
+// ============================================
+const DISABLED_PATHS = [
+  '/admin',           // All admin pages
+  '/report/',         // Interactive report pages (read-only)
+  '/scoring',         // Scoring page
+]
+
+function isAutoSyncDisabled(pathname: string): boolean {
+  if (!pathname) return true
+  
+  // Check if current path starts with any disabled path
+  for (const disabledPath of DISABLED_PATHS) {
+    if (pathname.startsWith(disabledPath)) {
+      return true
+    }
+  }
+  return false
+}
+
+// ============================================
 // GET EXPECTED COMPANY NAME
 // Uses founding-partners.ts as single source of truth
 // ============================================
@@ -789,28 +811,6 @@ export async function forceSyncNow(): Promise<boolean> {
   console.log('⚡ FORCE SYNC TRIGGERED')
   lastSyncedDataHash = ''
   return await syncToSupabase()
-}
-
-// ============================================
-// PATHS WHERE AUTO-SYNC IS DISABLED
-// These are read-only pages - admin viewing data, NOT editing
-// ============================================
-const DISABLED_PATHS = [
-  '/admin',           // All admin pages
-  '/report/',         // Interactive report pages (read-only)
-  '/scoring',         // Scoring page
-]
-
-function isAutoSyncDisabled(pathname: string): boolean {
-  if (!pathname) return true
-  
-  // Check if current path starts with any disabled path
-  for (const disabledPath of DISABLED_PATHS) {
-    if (pathname.startsWith(disabledPath)) {
-      return true
-    }
-  }
-  return false
 }
 
 // ============================================
