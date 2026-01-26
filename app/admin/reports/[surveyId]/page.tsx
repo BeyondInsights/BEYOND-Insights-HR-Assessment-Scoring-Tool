@@ -853,7 +853,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         
         {/* Legend - below chart */}
         <div className="mt-3 pt-4 border-t border-slate-200">
-          <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
+          <div className="matrix-legend flex flex-wrap justify-center gap-x-3 gap-y-2">
             {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
               <div 
                 key={d.dim} 
