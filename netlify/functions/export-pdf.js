@@ -36,28 +36,29 @@ exports.handler = async (event) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         url: reportUrl,
+        // Set viewport wider for landscape to allow content to expand
+        viewport: isLandscape 
+          ? { width: 1400, height: 900 }
+          : { width: 1200, height: 800 },
         options: {
           printBackground: true,
           format: 'Letter',
           landscape: isLandscape,
-          // Comfortable margins with more horizontal breathing room
+          // Comfortable margins
           margin: {
             top: '0.4in',
-            right: '0.5in',
+            right: '0.4in',
             bottom: '0.4in',
-            left: '0.5in',
+            left: '0.4in',
           },
           displayHeaderFooter: false,
-          // Let our explicit margins drive layout
           preferCSSPageSize: false,
-          // Avoid shrinking text unnecessarily
           scale: 1.0,
         },
         gotoOptions: {
           waitUntil: 'networkidle0',
           timeout: 60000,
         },
-        // Browserless supports waitForTimeout, but keep it short to reduce variability
         waitForTimeout: 750,
       }),
     });
