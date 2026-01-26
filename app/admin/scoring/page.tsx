@@ -2760,7 +2760,7 @@ function BenchmarkComparisonChart({
   const benchmarkTier = getBenchmarkTier(benchmark);
   
   return (
-    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
       <div 
         className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
