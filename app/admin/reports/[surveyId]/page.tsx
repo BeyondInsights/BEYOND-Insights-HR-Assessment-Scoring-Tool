@@ -1363,7 +1363,10 @@ export default function ExportReportPage() {
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''} ${isLandscape ? 'landscape-mode' : ''}`}>
+    <div 
+      className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''} ${isLandscape ? 'landscape-mode' : ''}`}
+      style={isLandscape ? { width: '100%', maxWidth: 'none', minWidth: '1200px' } : undefined}
+    >
       <style jsx global>{`
         @media print { 
           @page { margin: 0.4in; size: letter; } 
@@ -1386,6 +1389,16 @@ export default function ExportReportPage() {
           }
         }
         
+        /* Landscape print mode */
+        .landscape-mode {
+          --page-width: 11in;
+        }
+        @media print {
+          .landscape-mode {
+            @page { size: letter landscape !important; }
+          }
+        }
+        
         /* Browserless PDF capture mode */
         /* PPT report capture mode: render the full report as a 1280px canvas for scrolling screenshots */
         .ppt-report-mode {
@@ -1401,58 +1414,76 @@ export default function ExportReportPage() {
           padding: 20px !important;
         }
 
-        /* Landscape PDF mode - expand content to use full width */
+        /* Landscape PDF mode - AGGRESSIVE full width */
+        .landscape-mode * {
+          max-width: 100% !important;
+        }
         .landscape-mode,
         .landscape-mode body,
+        .landscape-mode > div,
         .landscape-mode #report-root {
-          max-width: 100% !important;
+          max-width: none !important;
           width: 100% !important;
+          min-width: 1200px !important;
+          margin: 0 !important;
         }
         .landscape-mode #report-root {
-          padding-left: 40px !important;
-          padding-right: 40px !important;
+          padding: 20px 30px !important;
+          min-width: 1200px !important;
         }
         .landscape-mode .max-w-6xl,
+        .landscape-mode .max-w-4xl,
+        .landscape-mode .max-w-3xl,
+        .landscape-mode .max-w-2xl,
+        .landscape-mode .max-w-xl,
         .landscape-mode [class*="max-w-"] {
-          max-width: 100% !important;
+          max-width: none !important;
+          width: 100% !important;
+          min-width: 1100px !important;
         }
-        /* Make section containers full width */
+        /* Make ALL containers full width */
         .landscape-mode .rounded-lg,
         .landscape-mode .bg-white,
-        .landscape-mode .bg-slate-800 {
+        .landscape-mode .bg-slate-800,
+        .landscape-mode .bg-slate-50,
+        .landscape-mode .shadow-sm {
           width: 100% !important;
+          max-width: none !important;
         }
-        /* Expand grids for landscape */
+        /* Expand grids */
         .landscape-mode .grid {
           width: 100% !important;
-        }
-        .landscape-mode .grid.grid-cols-2 {
-          gap: 40px !important;
-        }
-        .landscape-mode .grid.grid-cols-3 {
-          gap: 30px !important;
-        }
-        .landscape-mode .grid.grid-cols-4 {
           gap: 24px !important;
         }
-        /* Ensure SVG charts expand */
+        /* SVG charts - critical for matrix */
         .landscape-mode svg {
           max-width: 100% !important;
           width: 100% !important;
+          height: auto !important;
         }
-        /* Allow callout boxes to be wider in landscape */
+        /* Text should wrap properly */
+        .landscape-mode p,
+        .landscape-mode span,
+        .landscape-mode div {
+          white-space: normal !important;
+          word-wrap: break-word !important;
+          overflow-wrap: break-word !important;
+        }
+        /* Fix the callout boxes */
         .landscape-mode .bg-purple-50,
         .landscape-mode .bg-emerald-50,
         .landscape-mode .bg-amber-50,
         .landscape-mode .bg-violet-50 {
-          min-width: 200px !important;
-          white-space: normal !important;
+          max-width: none !important;
+          width: auto !important;
         }
-        /* Ensure text doesn't wrap badly */
-        .landscape-mode p,
-        .landscape-mode span {
-          white-space: normal !important;
-          word-wrap: break-word !important;
+        /* Ensure flex containers expand */
+        .landscape-mode .flex {
+          width: 100% !important;
+        }
+        .landscape-mode .mx-auto {
+          margin-left: 0 !important;
+          margin-right: 0 !important;
         }
 
         .bg-gray-50 {
@@ -1647,7 +1678,12 @@ export default function ExportReportPage() {
         )}
       </div>
 
-      <div ref={printRef} id="report-root" className={`mx-auto py-10 px-8 ${isLandscape ? 'max-w-full px-12' : 'max-w-6xl'}`}>
+      <div 
+        ref={printRef} 
+        id="report-root" 
+        className={`py-10 ${isLandscape ? 'w-full px-8' : 'max-w-6xl mx-auto px-8'}`}
+        style={isLandscape ? { width: '100%', maxWidth: 'none', minWidth: '1200px', margin: 0, padding: '20px 30px' } : undefined}
+      >
         
         {/* ============ HEADER ============ */}
         <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
