@@ -883,6 +883,8 @@ export default function ExportReportPage() {
   const searchParams = useSearchParams();
   const exportMode = searchParams?.get('export') === '1';
   const mode = (searchParams?.get('mode') || '').toLowerCase();
+  const orientation = searchParams?.get('orientation') || 'portrait';
+  const isLandscape = orientation === 'landscape';
   const isPdf = exportMode && mode === 'pdf';
   const isPpt = exportMode && (mode === 'ppt' || mode === 'pptslides');
   const isPptReport = exportMode && mode === 'pptreport';
