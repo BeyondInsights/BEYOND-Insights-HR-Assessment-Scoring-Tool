@@ -1616,11 +1616,6 @@ export default function ExportReportPage() {
     window.open(url, '_blank');
   }
 
-  function handleServerExportPDF() {
-    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
-    window.open(url, '_blank');
-  }
-
   // Generate interactive report link with password
   async function generateInteractiveLink() {
     if (!company?.id) return;
@@ -2144,13 +2139,6 @@ export default function ExportReportPage() {
               title="Export PowerPoint"
             >
               Export PowerPoint
-            </button>
-            <button
-              onClick={handleServerExportPDF}
-              className="px-5 py-2 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-white"
-              title="Export PDF"
-            >
-              Export PDF
             </button>
             <button
               onClick={generateInteractiveLink}
