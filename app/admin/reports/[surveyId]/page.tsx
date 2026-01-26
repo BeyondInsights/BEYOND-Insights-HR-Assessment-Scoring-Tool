@@ -959,6 +959,187 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
 }
 
 // ============================================
+// DIMENSION DRILL DOWN COMPONENT
+// ============================================
+
+interface DrillDownProps {
+  dimensionAnalysis: any[];
+  selectedDim: number | null;
+  setSelectedDim: (dim: number | null) => void;
+  elementBenchmarks: Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>;
+  getScoreColor: (score: number) => string;
+}
+
+function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor }: DrillDownProps) {
+  const STATUS_COLORS = {
+    currently: { bg: '#059669', label: 'Currently Offering' },
+    planning: { bg: '#2563EB', label: 'Planning' },
+    assessing: { bg: '#D97706', label: 'Assessing' },
+    notAble: { bg: '#DC2626', label: 'Not Currently Able' }
+  };
+
+  const sortedDims = [...dimensionAnalysis].sort((a, b) => a.dim - b.dim);
+  const selectedData = selectedDim ? sortedDims.find(d => d.dim === selectedDim) : null;
+  const elemBench = selectedDim ? elementBenchmarks[selectedDim] || {} : {};
+
+  return (
+    <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+      <div className="px-10 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
+        <h3 className="font-semibold text-white text-lg">Dimension Deep Dive</h3>
+        <p className="text-slate-300 text-sm mt-1">Click any dimension to explore element-level details and benchmark distributions</p>
+      </div>
+      
+      <div className="px-10 py-6">
+        {/* Dimension List */}
+        <div className="grid grid-cols-1 gap-2 mb-6">
+          {sortedDims.map(d => {
+            const isSelected = selectedDim === d.dim;
+            const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+            
+            return (
+              <div
+                key={d.dim}
+                onClick={() => setSelectedDim(isSelected ? null : d.dim)}
+                className={`cursor-pointer rounded-lg border-2 transition-all ${
+                  isSelected 
+                    ? 'border-slate-700 bg-slate-50 shadow-md' 
+                    : 'border-slate-200 hover:border-slate-400 hover:bg-slate-50'
+                }`}
+              >
+                <div className="px-5 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm`} style={{ backgroundColor: d.tier.color }}>
+                      D{d.dim}
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-800">{d.name}</p>
+                      <p className="text-xs text-slate-500">Weight: {d.weight}%</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-6">
+                    {/* Company Score */}
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Your Score</p>
+                      <p className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</p>
+                    </div>
+                    
+                    {/* Benchmark */}
+                    {d.benchmark !== null && (
+                      <div className="text-right border-l border-slate-200 pl-6">
+                        <p className="text-xs text-slate-500 uppercase tracking-wide">Benchmark</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-2xl font-bold text-slate-600">{d.benchmark}</p>
+                          {diff !== null && (
+                            <span className={`text-sm font-semibold ${diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-slate-400'}`}>
+                              {diff > 0 ? '+' : ''}{diff}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Expand indicator */}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform ${isSelected ? 'rotate-180 bg-slate-700' : 'bg-slate-100'}`}>
+                      <svg className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-slate-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Expanded Element Details */}
+                {isSelected && selectedData && (
+                  <div className="border-t border-slate-200 bg-white px-5 py-4">
+                    {/* Legend */}
+                    <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b border-slate-100">
+                      {Object.entries(STATUS_COLORS).map(([key, { bg, label }]) => (
+                        <div key={key} className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded" style={{ backgroundColor: bg }}></div>
+                          <span className="text-xs text-slate-600">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Elements */}
+                    <div className="space-y-3">
+                      {selectedData.elements.map((elem: any, idx: number) => {
+                        const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 1 };
+                        const total = bench.total || 1;
+                        const pctCurrently = Math.round((bench.currently / total) * 100);
+                        const pctPlanning = Math.round((bench.planning / total) * 100);
+                        const pctAssessing = Math.round((bench.assessing / total) * 100);
+                        const pctNotAble = Math.round((bench.notAble / total) * 100);
+                        
+                        // Determine company's status color
+                        let companyStatusColor = STATUS_COLORS.notAble.bg;
+                        let companyStatusLabel = 'Not Currently Able';
+                        if (elem.isStrength) { companyStatusColor = STATUS_COLORS.currently.bg; companyStatusLabel = 'Currently Offering'; }
+                        else if (elem.isPlanning) { companyStatusColor = STATUS_COLORS.planning.bg; companyStatusLabel = 'Planning'; }
+                        else if (elem.isAssessing) { companyStatusColor = STATUS_COLORS.assessing.bg; companyStatusLabel = 'Assessing'; }
+                        
+                        return (
+                          <div key={idx} className="rounded-lg border border-slate-200 overflow-hidden">
+                            {/* Element Header */}
+                            <div className="px-4 py-3 bg-slate-50 flex items-start justify-between gap-4">
+                              <p className="text-sm text-slate-700 font-medium flex-1">{elem.name}</p>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <span className="text-xs text-slate-500">Your status:</span>
+                                <span className="px-2 py-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: companyStatusColor }}>
+                                  {companyStatusLabel}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Benchmark Distribution Bar */}
+                            <div className="px-4 py-3">
+                              <p className="text-xs text-slate-500 mb-2">Benchmark Distribution ({total} companies)</p>
+                              <div className="flex h-6 rounded overflow-hidden">
+                                {pctCurrently > 0 && (
+                                  <div style={{ width: `${pctCurrently}%`, backgroundColor: STATUS_COLORS.currently.bg }} className="flex items-center justify-center">
+                                    {pctCurrently >= 10 && <span className="text-xs text-white font-medium">{pctCurrently}%</span>}
+                                  </div>
+                                )}
+                                {pctPlanning > 0 && (
+                                  <div style={{ width: `${pctPlanning}%`, backgroundColor: STATUS_COLORS.planning.bg }} className="flex items-center justify-center">
+                                    {pctPlanning >= 10 && <span className="text-xs text-white font-medium">{pctPlanning}%</span>}
+                                  </div>
+                                )}
+                                {pctAssessing > 0 && (
+                                  <div style={{ width: `${pctAssessing}%`, backgroundColor: STATUS_COLORS.assessing.bg }} className="flex items-center justify-center">
+                                    {pctAssessing >= 10 && <span className="text-xs text-white font-medium">{pctAssessing}%</span>}
+                                  </div>
+                                )}
+                                {pctNotAble > 0 && (
+                                  <div style={{ width: `${pctNotAble}%`, backgroundColor: STATUS_COLORS.notAble.bg }} className="flex items-center justify-center">
+                                    {pctNotAble >= 10 && <span className="text-xs text-white font-medium">{pctNotAble}%</span>}
+                                  </div>
+                                )}
+                              </div>
+                              {/* Percentages below bar */}
+                              <div className="flex justify-between mt-1 text-xs text-slate-500">
+                                <span style={{ color: STATUS_COLORS.currently.bg }}>{pctCurrently}% offering</span>
+                                <span style={{ color: STATUS_COLORS.planning.bg }}>{pctPlanning}% planning</span>
+                                <span style={{ color: STATUS_COLORS.assessing.bg }}>{pctAssessing}% assessing</span>
+                                <span style={{ color: STATUS_COLORS.notAble.bg }}>{pctNotAble}% not able</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 
@@ -1014,6 +1195,8 @@ export default function ExportReportPage() {
   const [savingEdits, setSavingEdits] = useState(false);
   const [showPdfOrientationModal, setShowPdfOrientationModal] = useState(false);
   const [showInteractiveLinkModal, setShowInteractiveLinkModal] = useState(false);
+  const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
+  const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [interactiveLink, setInteractiveLink] = useState<{ url: string; password: string } | null>(null);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
@@ -1183,6 +1366,10 @@ export default function ExportReportPage() {
           const benchmarkScores = calculateBenchmarks(allAssessments);
           setBenchmarks(benchmarkScores);
           
+          // Calculate element-level benchmarks for drill-down
+          const elemBenchmarks = calculateElementBenchmarks(allAssessments);
+          setElementBenchmarks(elemBenchmarks);
+          
           const completeAssessments = allAssessments.filter(a => {
             let completedDims = 0;
             for (let dim = 1; dim <= 13; dim++) {
@@ -1322,6 +1509,51 @@ export default function ExportReportPage() {
     const dimensionBenchmarks: Record<number, number | null> = {};
     for (let dim = 1; dim <= 13; dim++) { dimensionBenchmarks[dim] = avg(allScores.map(s => s?.dimensionScores?.[dim])); }
     return { compositeScore: avg(allScores.map(s => s?.compositeScore)), weightedDimScore: avg(allScores.map(s => s?.weightedDimScore)), maturityScore: avg(allScores.map(s => s?.maturityScore)), breadthScore: avg(allScores.map(s => s?.breadthScore)), dimensionScores: dimensionBenchmarks, companyCount: complete.length };
+  }
+
+  // Calculate element-level benchmark distributions
+  function calculateElementBenchmarks(assessments: any[]) {
+    const complete = assessments.filter(a => {
+      let completedDims = 0;
+      for (let dim = 1; dim <= 13; dim++) {
+        const mainGrid = a[`dimension${dim}_data`]?.[`d${dim}a`];
+        if (mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0) completedDims++;
+      }
+      return completedDims === 13;
+    });
+    
+    if (complete.length === 0) return {};
+    
+    const elementStats: Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>> = {};
+    
+    for (let dim = 1; dim <= 13; dim++) {
+      elementStats[dim] = {};
+      
+      complete.forEach(assessment => {
+        const dimData = assessment[`dimension${dim}_data`];
+        const mainGrid = dimData?.[`d${dim}a`];
+        
+        if (mainGrid && typeof mainGrid === 'object') {
+          Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+            if (dim === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) return;
+            
+            if (!elementStats[dim][itemKey]) {
+              elementStats[dim][itemKey] = { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 0 };
+            }
+            
+            const result = statusToPoints(status);
+            elementStats[dim][itemKey].total++;
+            
+            if (result.category === 'currently_offer') elementStats[dim][itemKey].currently++;
+            else if (result.category === 'planning') elementStats[dim][itemKey].planning++;
+            else if (result.category === 'assessing') elementStats[dim][itemKey].assessing++;
+            else elementStats[dim][itemKey].notAble++;
+          });
+        }
+      });
+    }
+    
+    return elementStats;
   }
 
   // ============================================
@@ -1856,17 +2088,13 @@ export default function ExportReportPage() {
             
             <button
               onClick={handleServerExportPPT}
-              className="px-5 py-2 rounded-lg font-medium bg-orange-500 hover:bg-orange-600 text-white"
-              title="Export PowerPoint"
+              className="px-5 py-2 rounded-lg font-medium bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+              title="Export PowerPoint & PDF"
             >
-              Export PowerPoint
-            </button>
-            <button
-              onClick={() => setShowPdfOrientationModal(true)}
-              className="px-5 py-2 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-white"
-              title="Export PDF"
-            >
-              Export PDF
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export PPT + PDF
             </button>
             <button
               onClick={generateInteractiveLink}
@@ -2165,6 +2393,15 @@ export default function ExportReportPage() {
             <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
           </div>
         </div>
+
+        {/* ============ DIMENSION DRILL DOWN ============ */}
+        <DimensionDrillDown 
+          dimensionAnalysis={dimensionAnalysis}
+          selectedDim={selectedDrillDownDim}
+          setSelectedDim={setSelectedDrillDownDim}
+          elementBenchmarks={elementBenchmarks}
+          getScoreColor={getScoreColor}
+        />
 
         {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
         {(() => {
@@ -3224,6 +3461,46 @@ export default function ExportReportPage() {
             <div style={{ background: '#F5F3FF', padding: '20px', borderRadius: '8px' }}>
               <p style={{ fontWeight: 600, color: '#5B21B6', fontSize: '16px' }}>Ready to take the next step?</p>
               <p style={{ fontSize: '13px', color: '#7C3AED' }}>Contact: consulting@cancerandcareers.org</p>
+            </div>
+          </div>
+        </div>
+
+        {/* SLIDE 8: Methodology */}
+        <div id="ppt-slide-8" className="ppt-slide" style={{ padding: 0 }}>
+          <div style={{ background: '#F8FAFC', padding: '30px 40px' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B' }}>Assessment Methodology</h2>
+          </div>
+          <div style={{ padding: '30px 40px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '30px', marginBottom: '30px' }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>Scoring Framework</p>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>
+                  Organizations are assessed across 13 dimensions of workplace cancer support. The composite score combines dimension performance (90%), program maturity (5%), and support breadth (5%).
+                </p>
+              </div>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>Benchmarking</p>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>
+                  Benchmark scores represent average performance across all organizations in the Index. Percentile rankings indicate relative positioning within the cohort.
+                </p>
+              </div>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                <p style={{ fontWeight: 600, color: '#1E293B', fontSize: '16px', marginBottom: '12px' }}>Performance Tiers</p>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>
+                  <span style={{ color: '#5B21B6', fontWeight: 600 }}>Exemplary</span> (90+) · 
+                  <span style={{ color: '#047857', fontWeight: 600 }}> Leading</span> (75-89) · 
+                  <span style={{ color: '#1D4ED8', fontWeight: 600 }}> Progressing</span> (60-74) · 
+                  <span style={{ color: '#B45309', fontWeight: 600 }}> Emerging</span> (40-59) · 
+                  <span style={{ color: '#B91C1C', fontWeight: 600 }}> Developing</span> (&lt;40)
+                </p>
+              </div>
+            </div>
+            <div style={{ background: '#1E293B', padding: '20px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ fontWeight: 600, color: 'white', fontSize: '16px' }}>Best Companies for Working with Cancer Index</p>
+                <p style={{ fontSize: '12px', color: '#94A3B8' }}>© 2026 Cancer and Careers. All rights reserved. Confidential.</p>
+              </div>
+              <p style={{ fontSize: '12px', color: '#94A3B8' }}>Survey ID: {surveyId}</p>
             </div>
           </div>
         </div>
