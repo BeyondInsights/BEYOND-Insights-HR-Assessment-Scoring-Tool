@@ -1,8 +1,9 @@
-import type { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
-import { createClient } from '@supabase/supabase-js';
+// netlify/functions/export-pdf.js
+// Uses jsPDF to generate PDF slides server-side (no Browserless needed)
 
-// Dimension names for the report
-const DIMENSION_NAMES: Record<number, string> = {
+const { createClient } = require("@supabase/supabase-js");
+
+const DIMENSION_NAMES = {
   1: 'Leave & Flexibility',
   2: 'Insurance & Financial',
   3: 'Manager Preparedness',
@@ -18,20 +19,19 @@ const DIMENSION_NAMES: Record<number, string> = {
   13: 'Communication'
 };
 
-const DIMENSION_WEIGHTS: Record<number, number> = {
+const DIMENSION_WEIGHTS = {
   1: 12, 2: 11, 3: 10, 4: 9, 5: 9, 6: 8, 7: 7, 8: 7, 9: 6, 10: 6, 11: 5, 12: 5, 13: 5
 };
 
-// Score color helper
-function getScoreColor(score: number): string {
-  if (score >= 90) return '#5B21B6'; // Exemplary - Purple
-  if (score >= 75) return '#047857'; // Leading - Green
-  if (score >= 60) return '#1D4ED8'; // Progressing - Blue
-  if (score >= 40) return '#B45309'; // Emerging - Amber
-  return '#B91C1C'; // Developing - Red
+function getScoreColor(score) {
+  if (score >= 90) return '#5B21B6';
+  if (score >= 75) return '#047857';
+  if (score >= 60) return '#1D4ED8';
+  if (score >= 40) return '#B45309';
+  return '#B91C1C';
 }
 
-function getTierName(score: number): string {
+function getTierName(score) {
   if (score >= 90) return 'Exemplary';
   if (score >= 75) return 'Leading';
   if (score >= 60) return 'Progressing';
@@ -39,9 +39,8 @@ function getTierName(score: number): string {
   return 'Developing';
 }
 
-// Simplified scoring function
-function calculateScores(assessment: any) {
-  const dimensionScores: Record<number, number> = {};
+function calculateScores(assessment) {
+  const dimensionScores = {};
   let totalWeightedScore = 0;
   let totalWeight = 0;
 
@@ -53,7 +52,7 @@ function calculateScores(assessment: any) {
       const entries = Object.entries(mainGrid);
       if (entries.length > 0) {
         let dimTotal = 0;
-        entries.forEach(([, status]: [string, any]) => {
+        entries.forEach(([, status]) => {
           if (status === 'currently_offer' || status === 'yes') dimTotal += 100;
           else if (status === 'planning_12_months') dimTotal += 50;
           else if (status === 'assessing_exploring') dimTotal += 25;
@@ -67,12 +66,12 @@ function calculateScores(assessment: any) {
   }
 
   const weightedDimScore = totalWeight > 0 ? Math.round(totalWeightedScore / totalWeight) : 0;
-  const compositeScore = Math.round(weightedDimScore * 0.9 + 5 + 5); // Simplified
+  const compositeScore = Math.round(weightedDimScore * 0.9 + 5 + 5);
 
   return { compositeScore, weightedDimScore, dimensionScores };
 }
 
-export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
+exports.handler = async (event) => {
   const surveyId = event.queryStringParameters?.surveyId;
 
   if (!surveyId) {
@@ -82,13 +81,19 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     };
   }
 
-  // Initialize Supabase
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Missing Supabase credentials' })
+    };
+  }
+
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    // Fetch assessment data
     const { data: assessment, error } = await supabase
       .from('survey_responses')
       .select('*')
@@ -107,36 +112,29 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     const tier = getTierName(scores.compositeScore);
     const tierColor = getScoreColor(scores.compositeScore);
 
-    // Dynamic import jsPDF to avoid module issues
+    // Dynamic import jsPDF
     const { jsPDF } = await import('jspdf');
 
-    // Create PDF - landscape 16:9 format
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'pt',
       format: [1280, 720]
     });
 
-    // Colors
     const darkBg = '#1E293B';
     const white = '#FFFFFF';
     const gray = '#64748B';
     const lightGray = '#F1F5F9';
 
-    // Calculate points from Exemplary
     const pointsFromExemplary = Math.max(0, 90 - scores.compositeScore);
 
-    // Get sorted dimensions for strengths/opportunities
     const sortedDims = Object.entries(scores.dimensionScores)
       .map(([dim, score]) => ({ dim: Number(dim), score }))
       .sort((a, b) => b.score - a.score);
     const topStrength = sortedDims[0];
     const topOpportunity = sortedDims[sortedDims.length - 1];
 
-    // ==========================================
-    // SLIDE 1: Title + Executive Summary Combined
-    // ==========================================
-    // Header bar
+    // SLIDE 1: Title + Executive Summary
     doc.setFillColor(darkBg);
     doc.rect(0, 0, 1280, 100, 'F');
     
@@ -149,7 +147,6 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     doc.setFont('helvetica', 'bold');
     doc.text('Best Companies for Working with Cancer Index 2026', 40, 75);
 
-    // Company name section
     doc.setFontSize(12);
     doc.setTextColor(gray);
     doc.setFont('helvetica', 'normal');
@@ -160,78 +157,29 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     doc.setFont('helvetica', 'bold');
     doc.text(companyName, 40, 175);
 
-    // Executive Summary header
     doc.setFontSize(11);
-    doc.setTextColor('#F37021'); // CAC Orange
+    doc.setTextColor('#F37021');
     doc.setFont('helvetica', 'bold');
     doc.text('EXECUTIVE SUMMARY', 40, 220);
 
-    // Summary paragraph
     doc.setFontSize(14);
     doc.setTextColor(darkBg);
     doc.setFont('helvetica', 'normal');
     
-    const summaryText = `${companyName} demonstrates ${tier.toLowerCase()} performance in supporting employees managing cancer, placing in the ${Math.round(scores.compositeScore)}th percentile among assessed organizations. Your strongest dimension is ${DIMENSION_NAMES[topStrength?.dim || 1]} (${topStrength?.score || 0}). ${DIMENSION_NAMES[topOpportunity?.dim || 1]} (${topOpportunity?.score || 0}) represents your greatest opportunity for improvement.`;
+    const summaryText = `${companyName} demonstrates ${tier.toLowerCase()} performance in supporting employees managing cancer. Your strongest dimension is ${DIMENSION_NAMES[topStrength?.dim || 1]} (${topStrength?.score || 0}). ${DIMENSION_NAMES[topOpportunity?.dim || 1]} (${topOpportunity?.score || 0}) represents your greatest opportunity.`;
     const splitSummary = doc.splitTextToSize(summaryText, 900);
     doc.text(splitSummary, 40, 250);
 
-    // Points from Exemplary callout box
     if (pointsFromExemplary > 0) {
-      doc.setFillColor('#FEF3C7'); // Amber light
-      doc.roundedRect(40, 320, 900, 50, 6, 6, 'F');
-      
-      doc.setFontSize(14);
+      doc.setFillColor('#FEF3C7');
+      doc.roundedRect(40, 310, 900, 45, 6, 6, 'F');
+      doc.setFontSize(13);
       doc.setTextColor('#B45309');
       doc.setFont('helvetica', 'bold');
-      doc.text(`${pointsFromExemplary} points from Exemplary tier`, 70, 350);
-      
-      const improvementDims = sortedDims.slice(-3).map(d => DIMENSION_NAMES[d.dim]).join(', ');
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Targeted improvements in ${improvementDims} could help close this gap.`, 280, 350);
+      doc.text(`${pointsFromExemplary} points from Exemplary tier`, 60, 340);
     }
 
-    // Key metrics row
-    const metricsY = 400;
-    const metricBoxWidth = 200;
-    const metricGap = 30;
-    
-    // Metric boxes
-    doc.setFillColor(white);
-    doc.setDrawColor('#E2E8F0');
-    doc.roundedRect(40, metricsY, metricBoxWidth, 80, 6, 6, 'FD');
-    doc.setFontSize(36);
-    doc.setTextColor(darkBg);
-    doc.setFont('helvetica', 'bold');
-    doc.text('116', 60, metricsY + 45);
-    doc.setFontSize(11);
-    doc.setTextColor(gray);
-    doc.setFont('helvetica', 'normal');
-    doc.text('of 154 elements offered', 60, metricsY + 65);
-
-    doc.setFillColor(white);
-    doc.roundedRect(40 + metricBoxWidth + metricGap, metricsY, metricBoxWidth, 80, 6, 6, 'FD');
-    doc.setFontSize(36);
-    doc.setTextColor(darkBg);
-    doc.setFont('helvetica', 'bold');
-    doc.text('11', 60 + metricBoxWidth + metricGap, metricsY + 45);
-    doc.setFontSize(11);
-    doc.setTextColor(gray);
-    doc.setFont('helvetica', 'normal');
-    doc.text('initiatives in development', 60 + metricBoxWidth + metricGap, metricsY + 65);
-
-    doc.setFillColor(white);
-    doc.roundedRect(40 + (metricBoxWidth + metricGap) * 2, metricsY, metricBoxWidth, 80, 6, 6, 'FD');
-    doc.setFontSize(36);
-    doc.setTextColor(darkBg);
-    doc.setFont('helvetica', 'bold');
-    doc.text('27', 60 + (metricBoxWidth + metricGap) * 2, metricsY + 45);
-    doc.setFontSize(11);
-    doc.setTextColor(gray);
-    doc.setFont('helvetica', 'normal');
-    doc.text('identified opportunities', 60 + (metricBoxWidth + metricGap) * 2, metricsY + 65);
-
-    // Overall Score box on right side
+    // Score box
     doc.setFillColor(lightGray);
     doc.roundedRect(980, 130, 260, 200, 10, 10, 'F');
     
@@ -245,26 +193,19 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     doc.setFont('helvetica', 'bold');
     doc.text(String(scores.compositeScore), 1110, 250, { align: 'center' });
     
-    // Tier badge
     doc.setFillColor(tierColor);
     doc.roundedRect(1030, 280, 160, 36, 18, 18, 'F');
     doc.setFontSize(16);
     doc.setTextColor(white);
-    doc.setFont('helvetica', 'bold');
     doc.text(tier, 1110, 304, { align: 'center' });
 
-    // Footer
     doc.setFontSize(10);
     doc.setTextColor(gray);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Best Companies for Working with Cancer Index | © 2026 Cancer and Careers | Confidential', 640, 690, { align: 'center' });
+    doc.text('Best Companies for Working with Cancer Index | Confidential', 640, 690, { align: 'center' });
 
-    // ==========================================
     // SLIDE 2: Dimension Scores
-    // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
-    // Header
     doc.setFillColor(darkBg);
     doc.rect(0, 0, 1280, 80, 'F');
     doc.setTextColor(white);
@@ -272,7 +213,6 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     doc.setFont('helvetica', 'bold');
     doc.text('Dimension Performance', 40, 52);
 
-    // Dimension bars
     let yPos = 120;
     const barWidth = 600;
     const barHeight = 36;
@@ -296,7 +236,6 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       
       doc.setFontSize(14);
       doc.setTextColor(darkBg);
-      doc.setFont('helvetica', 'bold');
       doc.text(String(score), 920, yPos + 24);
       
       doc.setFontSize(10);
@@ -307,9 +246,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       yPos += 44;
     }
 
-    // ==========================================
     // SLIDE 3: Strengths & Opportunities
-    // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
     doc.setFillColor(darkBg);
@@ -322,9 +259,8 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     const strengths = sortedDims.slice(0, 3);
     const opportunities = sortedDims.slice(-3).reverse();
 
-    // Strengths column
     doc.setFillColor('#D1FAE5');
-    doc.roundedRect(40, 120, 580, 400, 10, 10, 'F');
+    doc.roundedRect(40, 120, 580, 350, 10, 10, 'F');
     
     doc.setFontSize(20);
     doc.setTextColor('#047857');
@@ -337,17 +273,14 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       doc.setTextColor(darkBg);
       doc.setFont('helvetica', 'bold');
       doc.text(`${i + 1}. ${DIMENSION_NAMES[s.dim]}`, 60, sYPos);
-      
       doc.setFontSize(24);
       doc.setTextColor('#047857');
       doc.text(String(s.score), 540, sYPos, { align: 'right' });
-      
       sYPos += 60;
     });
 
-    // Opportunities column
     doc.setFillColor('#FEE2E2');
-    doc.roundedRect(660, 120, 580, 400, 10, 10, 'F');
+    doc.roundedRect(660, 120, 580, 350, 10, 10, 'F');
     
     doc.setFontSize(20);
     doc.setTextColor('#B91C1C');
@@ -360,17 +293,13 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       doc.setTextColor(darkBg);
       doc.setFont('helvetica', 'bold');
       doc.text(`${i + 1}. ${DIMENSION_NAMES[o.dim]}`, 680, oYPos);
-      
       doc.setFontSize(24);
       doc.setTextColor('#B91C1C');
       doc.text(String(o.score), 1160, oYPos, { align: 'right' });
-      
       oYPos += 60;
     });
 
-    // ==========================================
     // SLIDE 4: Next Steps
-    // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
     doc.setFillColor(darkBg);
@@ -381,11 +310,11 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     doc.text('Recommended Next Steps', 40, 52);
 
     const steps = [
-      { title: 'Review Dimension Details', desc: 'Explore the interactive report to understand element-level performance within each dimension.' },
-      { title: 'Prioritize Improvements', desc: 'Focus on high-weight dimensions with the greatest improvement potential for maximum impact.' },
-      { title: 'Engage Stakeholders', desc: 'Share findings with HR, benefits, and leadership teams to align on priorities.' },
-      { title: 'Develop Action Plan', desc: 'Create specific initiatives with timelines and owners for your top opportunities.' },
-      { title: 'Track Progress', desc: 'Monitor implementation and reassess annually to measure improvement.' }
+      { title: 'Review Dimension Details', desc: 'Explore the interactive report for element-level performance.' },
+      { title: 'Prioritize Improvements', desc: 'Focus on high-weight dimensions with improvement potential.' },
+      { title: 'Engage Stakeholders', desc: 'Share findings with HR, benefits, and leadership teams.' },
+      { title: 'Develop Action Plan', desc: 'Create specific initiatives with timelines and owners.' },
+      { title: 'Track Progress', desc: 'Monitor implementation and reassess annually.' }
     ];
 
     let stepY = 140;
@@ -409,9 +338,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       stepY += 90;
     });
 
-    // ==========================================
     // SLIDE 5: How CAC Can Help
-    // ==========================================
     doc.addPage([1280, 720], 'landscape');
     
     doc.setFillColor(darkBg);
@@ -427,34 +354,6 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     doc.text('Our consulting practice helps organizations understand where they are, identify where they want to be,', 40, 130);
     doc.text('and build a realistic path to get there.', 40, 155);
 
-    const services = [
-      { title: 'For HR & Benefits Teams', items: ['Policy gap analysis', 'Benefits benchmarking', 'Manager training programs'] },
-      { title: 'For Employees', items: ['Educational materials', 'Navigation support', 'Peer support networks'] }
-    ];
-
-    let servX = 40;
-    services.forEach(service => {
-      doc.setFillColor(lightGray);
-      doc.roundedRect(servX, 200, 580, 250, 10, 10, 'F');
-      
-      doc.setFontSize(20);
-      doc.setTextColor(darkBg);
-      doc.setFont('helvetica', 'bold');
-      doc.text(service.title, servX + 30, 250);
-      
-      doc.setFontSize(16);
-      doc.setTextColor(gray);
-      doc.setFont('helvetica', 'normal');
-      let itemY = 290;
-      service.items.forEach(item => {
-        doc.text(`✓ ${item}`, servX + 30, itemY);
-        itemY += 35;
-      });
-      
-      servX += 620;
-    });
-
-    // Contact CTA
     doc.setFillColor('#F5F3FF');
     doc.roundedRect(40, 500, 1200, 100, 10, 10, 'F');
     
@@ -468,7 +367,6 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     doc.setFont('helvetica', 'normal');
     doc.text('Contact: consulting@cancerandcareers.org', 60, 575);
 
-    // Generate PDF buffer
     const pdfBuffer = doc.output('arraybuffer');
 
     return {
@@ -482,7 +380,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       isBase64Encoded: true
     };
 
-  } catch (err: any) {
+  } catch (err) {
     console.error('PDF export error:', err);
     return {
       statusCode: 500,
