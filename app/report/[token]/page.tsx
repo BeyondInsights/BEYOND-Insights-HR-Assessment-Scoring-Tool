@@ -2189,17 +2189,21 @@ export default function InteractiveReportPage() {
 
               {/* Signature */}
               <div className="border-t border-slate-200 pt-5">
-                <p className="text-slate-700 leading-relaxed mb-4">
+                <p className="text-slate-700 leading-relaxed mb-3">
                   With gratitude for your leadership and commitment,
                 </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
-                    <span className="text-2xl font-serif text-purple-700">R</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-800">Rebecca V. Nellis</p>
-                    <p className="text-sm text-slate-500">Executive Director, Cancer and Careers</p>
-                  </div>
+                <div className="mb-3">
+                  <Image 
+                    src="/rebecca-signature.png" 
+                    alt="Rebecca V. Nellis signature" 
+                    width={180} 
+                    height={60}
+                    className="object-contain"
+                  />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800">Rebecca V. Nellis</p>
+                  <p className="text-sm text-slate-500">Executive Director, Cancer and Careers</p>
                 </div>
               </div>
             </div>
