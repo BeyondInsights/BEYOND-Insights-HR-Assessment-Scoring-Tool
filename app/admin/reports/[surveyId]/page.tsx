@@ -866,92 +866,23 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
           </div>
         )}
         
-        {/* Legend - below chart - Using fixed table for PDF export compatibility */}
+        {/* Legend - below chart - Interactive with hover */}
         <div className="mt-3 pt-4 border-t border-slate-200">
-          <table className="matrix-legend-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '6px 4px' }}>
-            <tbody>
-              <tr>
-                {[1, 2, 3, 4, 5].map(dim => {
-                  const d = dimensionAnalysis.find(x => x.dim === dim);
-                  if (!d) return <td key={dim}></td>;
-                  return (
-                    <td key={dim} style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ 
-                          backgroundColor: getScoreColor(d.score), 
-                          color: 'white', 
-                          width: '20px', 
-                          height: '20px', 
-                          borderRadius: '4px', 
-                          display: 'inline-flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          fontSize: '9px', 
-                          fontWeight: 'bold',
-                          flexShrink: 0
-                        }}>{d.dim}</span>
-                        <span style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>{DIMENSION_SHORT_NAMES[dim]}</span>
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
-              <tr>
-                {[6, 7, 8, 9, 10].map(dim => {
-                  const d = dimensionAnalysis.find(x => x.dim === dim);
-                  if (!d) return <td key={dim}></td>;
-                  return (
-                    <td key={dim} style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ 
-                          backgroundColor: getScoreColor(d.score), 
-                          color: 'white', 
-                          width: '20px', 
-                          height: '20px', 
-                          borderRadius: '4px', 
-                          display: 'inline-flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          fontSize: '9px', 
-                          fontWeight: 'bold',
-                          flexShrink: 0
-                        }}>{d.dim}</span>
-                        <span style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>{DIMENSION_SHORT_NAMES[dim]}</span>
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
-              <tr>
-                {[11, 12, 13].map(dim => {
-                  const d = dimensionAnalysis.find(x => x.dim === dim);
-                  if (!d) return <td key={dim}></td>;
-                  return (
-                    <td key={dim} style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ 
-                          backgroundColor: getScoreColor(d.score), 
-                          color: 'white', 
-                          width: '20px', 
-                          height: '20px', 
-                          borderRadius: '4px', 
-                          display: 'inline-flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          fontSize: '9px', 
-                          fontWeight: 'bold',
-                          flexShrink: 0
-                        }}>{d.dim}</span>
-                        <span style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>{DIMENSION_SHORT_NAMES[dim]}</span>
-                      </div>
-                    </td>
-                  );
-                })}
-                <td></td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="grid grid-cols-5 gap-2 px-2">
+            {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
+              <div 
+                key={d.dim} 
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all cursor-pointer ${hoveredDim === d.dim ? 'bg-slate-200 shadow-sm ring-2 ring-slate-400' : 'hover:bg-slate-100'}`}
+                onMouseEnter={() => setHoveredDim(d.dim)}
+                onMouseLeave={() => setHoveredDim(null)}
+              >
+                <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
+                  {d.dim}
+                </span>
+                <span className="text-[10px] text-slate-700 font-medium truncate">{DIMENSION_SHORT_NAMES[d.dim]}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -968,172 +899,250 @@ interface DrillDownProps {
   setSelectedDim: (dim: number | null) => void;
   elementBenchmarks: Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>;
   getScoreColor: (score: number) => string;
+  benchmarkCompanyCount: number;
 }
 
-function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor }: DrillDownProps) {
-  const STATUS_COLORS = {
-    currently: { bg: '#059669', label: 'Currently Offering' },
-    planning: { bg: '#2563EB', label: 'Planning' },
-    assessing: { bg: '#D97706', label: 'Assessing' },
-    notAble: { bg: '#DC2626', label: 'Not Currently Able' }
-  };
-
+function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor, benchmarkCompanyCount }: DrillDownProps) {
   const sortedDims = [...dimensionAnalysis].sort((a, b) => a.dim - b.dim);
   const selectedData = selectedDim ? sortedDims.find(d => d.dim === selectedDim) : null;
   const elemBench = selectedDim ? elementBenchmarks[selectedDim] || {} : {};
+
+  // Status colors
+  const STATUS = {
+    currently: { bg: '#059669', light: '#D1FAE5', text: '#065F46', label: 'Currently Offering' },
+    planning: { bg: '#2563EB', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
+    assessing: { bg: '#D97706', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
+    notAble: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Not Currently Able' }
+  };
+
+  const getStatusInfo = (elem: any) => {
+    if (elem.isStrength) return { key: 'currently', ...STATUS.currently };
+    if (elem.isPlanning) return { key: 'planning', ...STATUS.planning };
+    if (elem.isAssessing) return { key: 'assessing', ...STATUS.assessing };
+    return { key: 'notAble', ...STATUS.notAble };
+  };
+
+  const getObservation = (elem: any, bench: any) => {
+    const total = bench.total || 1;
+    const pctCurrently = Math.round((bench.currently / total) * 100);
+    const pctPlanning = Math.round((bench.planning / total) * 100);
+    const pctAssessing = Math.round((bench.assessing / total) * 100);
+    
+    const statusInfo = getStatusInfo(elem);
+    
+    if (statusInfo.key === 'currently') {
+      const aheadOf = 100 - pctCurrently;
+      if (aheadOf > 50) return { text: `You're ahead of ${aheadOf}% of companies`, positive: true };
+      return { text: `${pctCurrently}% of companies also offer this`, positive: true };
+    }
+    if (statusInfo.key === 'planning') {
+      const furtherAlong = pctCurrently;
+      if (furtherAlong > 30) return { text: `${furtherAlong}% of companies are further along`, positive: false };
+      return { text: `Similar to ${pctPlanning}% of companies`, positive: null };
+    }
+    if (statusInfo.key === 'assessing') {
+      const furtherAlong = pctCurrently + pctPlanning;
+      return { text: `${furtherAlong}% of companies are further along`, positive: false };
+    }
+    // Not able
+    const furtherAlong = pctCurrently + pctPlanning + pctAssessing;
+    if (furtherAlong > 50) return { text: `${furtherAlong}% of companies are further along`, positive: false };
+    return { text: `${100 - furtherAlong}% of companies also can't offer this`, positive: null };
+  };
 
   return (
     <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
       <div className="px-10 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
         <h3 className="font-semibold text-white text-lg">Dimension Deep Dive</h3>
-        <p className="text-slate-300 text-sm mt-1">Click any dimension to explore element-level details and benchmark distributions</p>
+        <p className="text-slate-300 text-sm mt-1">Click any dimension to see element-level details with benchmark comparisons</p>
       </div>
       
       <div className="px-10 py-6">
-        {/* Dimension List */}
-        <div className="grid grid-cols-1 gap-2 mb-6">
+        {/* Dimension selector grid */}
+        <div className="grid grid-cols-4 gap-3 mb-6">
           {sortedDims.map(d => {
             const isSelected = selectedDim === d.dim;
             const diff = d.benchmark !== null ? d.score - d.benchmark : null;
             
             return (
-              <div
+              <button
                 key={d.dim}
                 onClick={() => setSelectedDim(isSelected ? null : d.dim)}
-                className={`cursor-pointer rounded-lg border-2 transition-all ${
+                className={`p-3 rounded-lg border-2 transition-all text-left ${
                   isSelected 
-                    ? 'border-slate-700 bg-slate-50 shadow-md' 
+                    ? 'border-slate-700 bg-slate-100 shadow-md' 
                     : 'border-slate-200 hover:border-slate-400 hover:bg-slate-50'
                 }`}
               >
-                <div className="px-5 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm`} style={{ backgroundColor: d.tier.color }}>
-                      D{d.dim}
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-800">{d.name}</p>
-                      <p className="text-xs text-slate-500">Weight: {d.weight}%</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-6">
-                    {/* Company Score */}
-                    <div className="text-right">
-                      <p className="text-xs text-slate-500 uppercase tracking-wide">Your Score</p>
-                      <p className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</p>
-                    </div>
-                    
-                    {/* Benchmark */}
-                    {d.benchmark !== null && (
-                      <div className="text-right border-l border-slate-200 pl-6">
-                        <p className="text-xs text-slate-500 uppercase tracking-wide">Benchmark</p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-2xl font-bold text-slate-600">{d.benchmark}</p>
-                          {diff !== null && (
-                            <span className={`text-sm font-semibold ${diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-slate-400'}`}>
-                              {diff > 0 ? '+' : ''}{diff}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Expand indicator */}
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform ${isSelected ? 'rotate-180 bg-slate-700' : 'bg-slate-100'}`}>
-                      <svg className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-slate-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-7 h-7 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: d.tier.color }}>
+                    {d.dim}
+                  </span>
+                  <span className="text-lg font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                  {diff !== null && (
+                    <span className={`text-xs font-medium ${diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-slate-400'}`}>
+                      {diff > 0 ? '+' : ''}{diff}
+                    </span>
+                  )}
                 </div>
-                
-                {/* Expanded Element Details */}
-                {isSelected && selectedData && (
-                  <div className="border-t border-slate-200 bg-white px-5 py-4">
-                    {/* Legend */}
-                    <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b border-slate-100">
-                      {Object.entries(STATUS_COLORS).map(([key, { bg, label }]) => (
-                        <div key={key} className="flex items-center gap-2">
-                          <div className="w-4 h-4 rounded" style={{ backgroundColor: bg }}></div>
-                          <span className="text-xs text-slate-600">{label}</span>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {/* Elements */}
-                    <div className="space-y-3">
-                      {selectedData.elements.map((elem: any, idx: number) => {
-                        const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 1 };
-                        const total = bench.total || 1;
-                        const pctCurrently = Math.round((bench.currently / total) * 100);
-                        const pctPlanning = Math.round((bench.planning / total) * 100);
-                        const pctAssessing = Math.round((bench.assessing / total) * 100);
-                        const pctNotAble = Math.round((bench.notAble / total) * 100);
-                        
-                        // Determine company's status color
-                        let companyStatusColor = STATUS_COLORS.notAble.bg;
-                        let companyStatusLabel = 'Not Currently Able';
-                        if (elem.isStrength) { companyStatusColor = STATUS_COLORS.currently.bg; companyStatusLabel = 'Currently Offering'; }
-                        else if (elem.isPlanning) { companyStatusColor = STATUS_COLORS.planning.bg; companyStatusLabel = 'Planning'; }
-                        else if (elem.isAssessing) { companyStatusColor = STATUS_COLORS.assessing.bg; companyStatusLabel = 'Assessing'; }
-                        
-                        return (
-                          <div key={idx} className="rounded-lg border border-slate-200 overflow-hidden">
-                            {/* Element Header */}
-                            <div className="px-4 py-3 bg-slate-50 flex items-start justify-between gap-4">
-                              <p className="text-sm text-slate-700 font-medium flex-1">{elem.name}</p>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <span className="text-xs text-slate-500">Your status:</span>
-                                <span className="px-2 py-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: companyStatusColor }}>
-                                  {companyStatusLabel}
-                                </span>
-                              </div>
-                            </div>
-                            
-                            {/* Benchmark Distribution Bar */}
-                            <div className="px-4 py-3">
-                              <p className="text-xs text-slate-500 mb-2">Benchmark Distribution ({total} companies)</p>
-                              <div className="flex h-6 rounded overflow-hidden">
-                                {pctCurrently > 0 && (
-                                  <div style={{ width: `${pctCurrently}%`, backgroundColor: STATUS_COLORS.currently.bg }} className="flex items-center justify-center">
-                                    {pctCurrently >= 10 && <span className="text-xs text-white font-medium">{pctCurrently}%</span>}
-                                  </div>
-                                )}
-                                {pctPlanning > 0 && (
-                                  <div style={{ width: `${pctPlanning}%`, backgroundColor: STATUS_COLORS.planning.bg }} className="flex items-center justify-center">
-                                    {pctPlanning >= 10 && <span className="text-xs text-white font-medium">{pctPlanning}%</span>}
-                                  </div>
-                                )}
-                                {pctAssessing > 0 && (
-                                  <div style={{ width: `${pctAssessing}%`, backgroundColor: STATUS_COLORS.assessing.bg }} className="flex items-center justify-center">
-                                    {pctAssessing >= 10 && <span className="text-xs text-white font-medium">{pctAssessing}%</span>}
-                                  </div>
-                                )}
-                                {pctNotAble > 0 && (
-                                  <div style={{ width: `${pctNotAble}%`, backgroundColor: STATUS_COLORS.notAble.bg }} className="flex items-center justify-center">
-                                    {pctNotAble >= 10 && <span className="text-xs text-white font-medium">{pctNotAble}%</span>}
-                                  </div>
-                                )}
-                              </div>
-                              {/* Percentages below bar */}
-                              <div className="flex justify-between mt-1 text-xs text-slate-500">
-                                <span style={{ color: STATUS_COLORS.currently.bg }}>{pctCurrently}% offering</span>
-                                <span style={{ color: STATUS_COLORS.planning.bg }}>{pctPlanning}% planning</span>
-                                <span style={{ color: STATUS_COLORS.assessing.bg }}>{pctAssessing}% assessing</span>
-                                <span style={{ color: STATUS_COLORS.notAble.bg }}>{pctNotAble}% not able</span>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
+                <p className="text-xs text-slate-600 truncate">{DIMENSION_SHORT_NAMES[d.dim]}</p>
+              </button>
             );
           })}
         </div>
+
+        {/* Expanded element table */}
+        {selectedData && (
+          <div className="border border-slate-200 rounded-lg overflow-hidden">
+            {/* Header row */}
+            <div className="bg-slate-100 px-4 py-3 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: selectedData.tier.color }}>
+                    D{selectedData.dim}
+                  </span>
+                  <div>
+                    <h4 className="font-semibold text-slate-800">{selectedData.name}</h4>
+                    <p className="text-xs text-slate-500">Weight: {selectedData.weight}% • Score: {selectedData.score} (Benchmark: {selectedData.benchmark ?? '—'})</p>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedDim(null)} className="text-slate-400 hover:text-slate-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 w-[30%]">Element</th>
+                    <th className="px-4 py-3 text-center font-semibold text-slate-700 w-[15%]">Your Status</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 w-[35%]">
+                      <div>Benchmark Distribution</div>
+                      <div className="text-xs font-normal text-slate-500">({benchmarkCompanyCount} companies)</div>
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 w-[20%]">Observation</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedData.elements.map((elem: any, idx: number) => {
+                    const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 1 };
+                    const total = bench.total || 1;
+                    const pcts = {
+                      currently: Math.round((bench.currently / total) * 100),
+                      planning: Math.round((bench.planning / total) * 100),
+                      assessing: Math.round((bench.assessing / total) * 100),
+                      notAble: Math.round((bench.notAble / total) * 100)
+                    };
+                    
+                    const statusInfo = getStatusInfo(elem);
+                    const observation = getObservation(elem, bench);
+                    
+                    return (
+                      <tr key={idx} className={`border-b border-slate-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
+                        {/* Element name */}
+                        <td className="px-4 py-3 text-slate-700">{elem.name}</td>
+                        
+                        {/* Your status */}
+                        <td className="px-4 py-3 text-center">
+                          <span 
+                            className="inline-block px-2 py-1 rounded text-xs font-semibold"
+                            style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}
+                          >
+                            {statusInfo.label}
+                          </span>
+                        </td>
+                        
+                        {/* Benchmark distribution */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {/* Visual bar */}
+                            <div className="flex-1 h-5 rounded overflow-hidden flex bg-slate-100">
+                              {pcts.currently > 0 && (
+                                <div 
+                                  style={{ width: `${pcts.currently}%`, backgroundColor: STATUS.currently.bg }} 
+                                  className="flex items-center justify-center"
+                                  title={`${pcts.currently}% Currently Offering`}
+                                >
+                                  {pcts.currently >= 12 && <span className="text-[10px] text-white font-medium">{pcts.currently}%</span>}
+                                </div>
+                              )}
+                              {pcts.planning > 0 && (
+                                <div 
+                                  style={{ width: `${pcts.planning}%`, backgroundColor: STATUS.planning.bg }} 
+                                  className="flex items-center justify-center"
+                                  title={`${pcts.planning}% Planning`}
+                                >
+                                  {pcts.planning >= 12 && <span className="text-[10px] text-white font-medium">{pcts.planning}%</span>}
+                                </div>
+                              )}
+                              {pcts.assessing > 0 && (
+                                <div 
+                                  style={{ width: `${pcts.assessing}%`, backgroundColor: STATUS.assessing.bg }} 
+                                  className="flex items-center justify-center"
+                                  title={`${pcts.assessing}% Assessing`}
+                                >
+                                  {pcts.assessing >= 12 && <span className="text-[10px] text-white font-medium">{pcts.assessing}%</span>}
+                                </div>
+                              )}
+                              {pcts.notAble > 0 && (
+                                <div 
+                                  style={{ width: `${pcts.notAble}%`, backgroundColor: STATUS.notAble.bg }} 
+                                  className="flex items-center justify-center"
+                                  title={`${pcts.notAble}% Not Able`}
+                                >
+                                  {pcts.notAble >= 12 && <span className="text-[10px] text-white font-medium">{pcts.notAble}%</span>}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {/* Percentages below */}
+                          <div className="flex justify-between mt-1 text-[10px]">
+                            <span style={{ color: STATUS.currently.bg }}>{pcts.currently}%</span>
+                            <span style={{ color: STATUS.planning.bg }}>{pcts.planning}%</span>
+                            <span style={{ color: STATUS.assessing.bg }}>{pcts.assessing}%</span>
+                            <span style={{ color: STATUS.notAble.bg }}>{pcts.notAble}%</span>
+                          </div>
+                        </td>
+                        
+                        {/* Observation */}
+                        <td className="px-4 py-3">
+                          <span className={`text-xs ${observation.positive === true ? 'text-emerald-600' : observation.positive === false ? 'text-amber-600' : 'text-slate-500'}`}>
+                            {observation.text}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Legend */}
+            <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center gap-6">
+              <span className="text-xs text-slate-500 font-medium">Legend:</span>
+              {Object.entries(STATUS).map(([key, val]) => (
+                <div key={key} className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: val.bg }}></div>
+                  <span className="text-xs text-slate-600">{val.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Prompt to select */}
+        {!selectedData && (
+          <div className="text-center py-8 text-slate-500">
+            <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+            </svg>
+            <p className="font-medium">Select a dimension above to explore its elements</p>
+            <p className="text-sm mt-1">See how your organization compares on each specific element</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2405,6 +2414,7 @@ export default function ExportReportPage() {
           setSelectedDim={setSelectedDrillDownDim}
           elementBenchmarks={elementBenchmarks}
           getScoreColor={getScoreColor}
+          benchmarkCompanyCount={benchmarks?.companyCount || 0}
         />
 
         {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
