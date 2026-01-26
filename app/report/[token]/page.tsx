@@ -2183,7 +2183,7 @@ export default function InteractiveReportPage() {
                   Your report is just the beginning. Our consulting team can help you identify which elements to prioritize, develop implementation strategies, and create meaningful change for employees managing cancer.
                 </p>
                 <p className="text-slate-700 text-sm leading-relaxed">
-                  Whether you have questions about your results or want to explore how we can work together, we're here to help. Reach out to us at <a href="mailto: cacbestcompanies@cew.org" className="text-purple-700 font-medium hover:underline">consulting@cancerandcareers.org</a>.
+                  Whether you have questions about your results or want to explore how we can work together, we're here to help. Reach out to us at <a href="mailto:cacbestcompanies@cew.org" className="text-purple-700 font-medium hover:underline">cacbestcompanies@cew.org</a>.
                 </p>
               </div>
 
