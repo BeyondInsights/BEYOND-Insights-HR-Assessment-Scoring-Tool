@@ -907,6 +907,11 @@ export default function ExportReportPage() {
   const [customPatterns, setCustomPatterns] = useState<{ pattern: string; implication: string; recommendation: string }[]>([]);
   const [customRecommendations, setCustomRecommendations] = useState<Record<number, string>>({}); // dimNum -> custom recommendation
   const [customCrossRecommendations, setCustomCrossRecommendations] = useState<Record<number, string>>({}); // pattern index -> custom recommendation
+  const [customRoadmap, setCustomRoadmap] = useState<{
+    phase1?: { items: string[]; useCustom: boolean };
+    phase2?: { items: string[]; useCustom: boolean };
+    phase3?: { items: string[]; useCustom: boolean };
+  }>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
@@ -947,6 +952,15 @@ export default function ExportReportPage() {
     setHasUnsavedChanges(true);
   };
   
+  // Helper to update custom roadmap phase
+  const updateCustomRoadmap = (phase: 'phase1' | 'phase2' | 'phase3', items: string[], useCustom: boolean) => {
+    setCustomRoadmap(prev => ({
+      ...prev,
+      [phase]: { items, useCustom }
+    }));
+    setHasUnsavedChanges(true);
+  };
+  
   // Get effective insight (custom or generated)
   const getEffectiveInsight = (dimNum: number, generatedInsight: { insight: string; cacHelp: string }) => {
     const custom = customInsights[dimNum];
@@ -970,6 +984,7 @@ export default function ExportReportPage() {
             customPatterns,
             customRecommendations,
             customCrossRecommendations,
+            customRoadmap,
             lastEditedAt: new Date().toISOString()
           })
         })
@@ -994,6 +1009,7 @@ export default function ExportReportPage() {
       setCustomPatterns([]);
       setCustomRecommendations({});
       setCustomCrossRecommendations({});
+      setCustomRoadmap({});
       setHasUnsavedChanges(true);
     }
   };
@@ -1010,6 +1026,7 @@ export default function ExportReportPage() {
         if (saved.customPatterns) setCustomPatterns(saved.customPatterns);
         if (saved.customRecommendations) setCustomRecommendations(saved.customRecommendations);
         if (saved.customCrossRecommendations) setCustomCrossRecommendations(saved.customCrossRecommendations);
+        if (saved.customRoadmap) setCustomRoadmap(saved.customRoadmap);
       } catch (e) {
         console.error('Error loading customizations:', e);
       }
@@ -2317,18 +2334,50 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Accelerate items already in progress</p>
-                  {quickWinItems.length > 0 ? (
-                    <ul className="space-y-3">
-                      {quickWinItems.map((item, idx) => (
-                        <li key={idx} className="text-sm">
-                          <p className="text-slate-700">{item.name}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
-                        </li>
-                      ))}
-                    </ul>
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
+                    Accelerate items already in progress
+                    {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
+                  </p>
+                  {editMode ? (
+                    <div className="space-y-2">
+                      <textarea
+                        value={customRoadmap.phase1?.useCustom 
+                          ? customRoadmap.phase1.items.join('\n') 
+                          : quickWinItems.map(item => item.name).join('\n')}
+                        onChange={(e) => updateCustomRoadmap('phase1', e.target.value.split('\n').filter(s => s.trim()), true)}
+                        className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                        placeholder="Enter items, one per line..."
+                      />
+                      {customRoadmap.phase1?.useCustom && (
+                        <button 
+                          onClick={() => { setCustomRoadmap(prev => ({ ...prev, phase1: undefined })); setHasUnsavedChanges(true); }}
+                          className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Reset to auto-generated
+                        </button>
+                      )}
+                    </div>
                   ) : (
-                    <p className="text-sm text-slate-400 italic">Begin with communication and manager awareness initiatives</p>
+                    <>
+                      {(customRoadmap.phase1?.useCustom ? customRoadmap.phase1.items : quickWinItems.map(i => i.name)).length > 0 ? (
+                        <ul className="space-y-3">
+                          {(customRoadmap.phase1?.useCustom 
+                            ? customRoadmap.phase1.items.map((name, idx) => ({ name, dimNum: null }))
+                            : quickWinItems
+                          ).map((item, idx) => (
+                            <li key={idx} className="text-sm">
+                              <p className="text-slate-700">{item.name}</p>
+                              {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-slate-400 italic">Begin with communication and manager awareness initiatives</p>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -2345,18 +2394,50 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Address high-weight dimension gaps</p>
-                  {foundationItems.length > 0 ? (
-                    <ul className="space-y-3">
-                      {foundationItems.map((item, idx) => (
-                        <li key={idx} className="text-sm">
-                          <p className="text-slate-700">{item.name}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
-                        </li>
-                      ))}
-                    </ul>
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
+                    Address high-weight dimension gaps
+                    {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
+                  </p>
+                  {editMode ? (
+                    <div className="space-y-2">
+                      <textarea
+                        value={customRoadmap.phase2?.useCustom 
+                          ? customRoadmap.phase2.items.join('\n') 
+                          : foundationItems.map(item => item.name).join('\n')}
+                        onChange={(e) => updateCustomRoadmap('phase2', e.target.value.split('\n').filter(s => s.trim()), true)}
+                        className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                        placeholder="Enter items, one per line..."
+                      />
+                      {customRoadmap.phase2?.useCustom && (
+                        <button 
+                          onClick={() => { setCustomRoadmap(prev => ({ ...prev, phase2: undefined })); setHasUnsavedChanges(true); }}
+                          className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Reset to auto-generated
+                        </button>
+                      )}
+                    </div>
                   ) : (
-                    <p className="text-sm text-slate-400 italic">Focus on navigation and insurance resources</p>
+                    <>
+                      {(customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items : foundationItems.map(i => i.name)).length > 0 ? (
+                        <ul className="space-y-3">
+                          {(customRoadmap.phase2?.useCustom 
+                            ? customRoadmap.phase2.items.map((name, idx) => ({ name, dimNum: null }))
+                            : foundationItems
+                          ).map((item, idx) => (
+                            <li key={idx} className="text-sm">
+                              <p className="text-slate-700">{item.name}</p>
+                              {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-slate-400 italic">Focus on navigation and insurance resources</p>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -2373,18 +2454,50 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">Address remaining lower-priority gaps</p>
-                  {excellenceItems.length > 0 ? (
-                    <ul className="space-y-3">
-                      {excellenceItems.map((item, idx) => (
-                        <li key={idx} className="text-sm">
-                          <p className="text-slate-700">{item.name}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>
-                        </li>
-                      ))}
-                    </ul>
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
+                    Address remaining lower-priority gaps
+                    {editMode && <span className="ml-2 text-amber-600 normal-case">(editable)</span>}
+                  </p>
+                  {editMode ? (
+                    <div className="space-y-2">
+                      <textarea
+                        value={customRoadmap.phase3?.useCustom 
+                          ? customRoadmap.phase3.items.join('\n') 
+                          : excellenceItems.map(item => item.name).join('\n')}
+                        onChange={(e) => updateCustomRoadmap('phase3', e.target.value.split('\n').filter(s => s.trim()), true)}
+                        className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                        placeholder="Enter items, one per line..."
+                      />
+                      {customRoadmap.phase3?.useCustom && (
+                        <button 
+                          onClick={() => { setCustomRoadmap(prev => ({ ...prev, phase3: undefined })); setHasUnsavedChanges(true); }}
+                          className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Reset to auto-generated
+                        </button>
+                      )}
+                    </div>
                   ) : (
-                    <p className="text-sm text-slate-400 italic">Continue expanding strengths and monitoring program effectiveness</p>
+                    <>
+                      {(customRoadmap.phase3?.useCustom ? customRoadmap.phase3.items : excellenceItems.map(i => i.name)).length > 0 ? (
+                        <ul className="space-y-3">
+                          {(customRoadmap.phase3?.useCustom 
+                            ? customRoadmap.phase3.items.map((name, idx) => ({ name, dimNum: null }))
+                            : excellenceItems
+                          ).map((item, idx) => (
+                            <li key={idx} className="text-sm">
+                              <p className="text-slate-700">{item.name}</p>
+                              {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-slate-400 italic">Continue expanding strengths and monitoring program effectiveness</p>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
