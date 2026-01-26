@@ -1614,9 +1614,38 @@ export default function ExportReportPage() {
   // SERVER EXPORT BUTTONS (Netlify Functions)
   // ============================================
   function handleServerExportPDF(orientation: 'portrait' | 'landscape' = 'portrait') {
-    const url = `/.netlify/functions/export-pdf?surveyId=${encodeURIComponent(String(surveyId || ''))}&orientation=${orientation}`;
-    window.open(url, '_blank');
+    // Use browser print for PDF - renders the report exactly as displayed
     setShowPdfOrientationModal(false);
+    
+    // Add print styles dynamically
+    const style = document.createElement('style');
+    style.id = 'pdf-print-styles';
+    style.innerHTML = `
+      @media print {
+        @page { 
+          size: ${orientation === 'landscape' ? '11in 8.5in' : '8.5in 11in'}; 
+          margin: 0.5in;
+        }
+        body { 
+          -webkit-print-color-adjust: exact !important; 
+          print-color-adjust: exact !important;
+        }
+        .no-print { display: none !important; }
+        .pdf-no-break { page-break-inside: avoid !important; }
+        .pdf-break-before { page-break-before: always !important; }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Small delay to ensure styles are applied
+    setTimeout(() => {
+      window.print();
+      // Clean up after print dialog
+      setTimeout(() => {
+        const styleEl = document.getElementById('pdf-print-styles');
+        if (styleEl) styleEl.remove();
+      }, 1000);
+    }, 100);
   }
 
   function handleServerExportPPT() {
