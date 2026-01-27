@@ -3282,13 +3282,12 @@ export default function ExportReportPage() {
                         
                         {/* CB3b - Program Elements */}
                         <div className="border border-violet-200 rounded-lg overflow-hidden">
-                          <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200 flex justify-between items-center">
-                            <span>How structured are your programs? (6 elements)</span>
-                            <span className="text-sm">{cb3bCount} selected • Benchmark avg: 4.2</span>
+                          <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
+                            How structured are your programs? (6 elements)
                           </div>
                           <div className="p-2">
                             <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
-                              <span className="w-10 text-center">You</span>
+                              <span className="w-12 text-center">You</span>
                               <span className="w-14 text-center">Bench</span>
                             </div>
                             <div className="space-y-0.5">
@@ -3308,13 +3307,21 @@ export default function ExportReportPage() {
                                     <div key={i} className={`flex justify-between items-center px-2 py-1 rounded text-xs ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
                                       <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{el.label}</span>
                                       <div className="flex items-center">
-                                        <span className={`w-10 text-center ${isSelected ? 'text-violet-600 font-semibold' : 'text-slate-400'}`}>{isSelected ? '✓' : '—'}</span>
+                                        <span className={`w-12 text-center ${isSelected ? 'text-violet-600 font-semibold' : 'text-slate-400'}`}>{isSelected ? '✓' : '—'}</span>
                                         <span className="text-slate-500 w-14 text-center">{el.benchPct}%</span>
                                       </div>
                                     </div>
                                   );
                                 });
                               })()}
+                              {/* Summary row */}
+                              <div className="flex justify-between items-center px-2 py-1.5 rounded text-xs bg-violet-100 border-t border-violet-300 mt-1">
+                                <span className="font-semibold text-violet-800">Avg # selected:</span>
+                                <div className="flex items-center">
+                                  <span className="w-12 text-center font-bold text-violet-700">{cb3bCount}</span>
+                                  <span className="text-violet-600 w-14 text-center font-medium">4.2</span>
+                                </div>
+                              </div>
                             </div>
                             <div className="mt-2 pt-2 border-t border-violet-200 flex justify-between items-center px-2">
                               <span className="text-xs text-slate-600">Score: {cb3bCount} of 6 = <span className="font-semibold text-violet-700">{cb3bScore} pts</span></span>
@@ -3324,13 +3331,12 @@ export default function ExportReportPage() {
                         
                         {/* CB3c - Conditions Covered */}
                         <div className="border border-violet-200 rounded-lg overflow-hidden">
-                          <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200 flex justify-between items-center">
-                            <span>Health conditions addressed (13 possible)</span>
-                            <span className="text-sm">{cb3cCount} selected • Benchmark avg: 8.5</span>
+                          <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
+                            Health conditions addressed (13 possible)
                           </div>
                           <div className="p-2">
                             <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
-                              <span className="w-10 text-center">You</span>
+                              <span className="w-12 text-center">You</span>
                               <span className="w-14 text-center">Bench</span>
                             </div>
                             <div className="space-y-0.5">
@@ -3357,13 +3363,21 @@ export default function ExportReportPage() {
                                     <div key={i} className={`flex justify-between items-center px-2 py-1 rounded text-xs ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
                                       <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{cond.label}</span>
                                       <div className="flex items-center">
-                                        <span className={`w-10 text-center ${isSelected ? 'text-violet-600 font-semibold' : 'text-slate-400'}`}>{isSelected ? '✓' : '—'}</span>
+                                        <span className={`w-12 text-center ${isSelected ? 'text-violet-600 font-semibold' : 'text-slate-400'}`}>{isSelected ? '✓' : '—'}</span>
                                         <span className="text-slate-500 w-14 text-center">{cond.benchPct}%</span>
                                       </div>
                                     </div>
                                   );
                                 });
                               })()}
+                              {/* Summary row */}
+                              <div className="flex justify-between items-center px-2 py-1.5 rounded text-xs bg-violet-100 border-t border-violet-300 mt-1">
+                                <span className="font-semibold text-violet-800">Avg # selected:</span>
+                                <div className="flex items-center">
+                                  <span className="w-12 text-center font-bold text-violet-700">{cb3cCount}</span>
+                                  <span className="text-violet-600 w-14 text-center font-medium">8.5</span>
+                                </div>
+                              </div>
                             </div>
                             <div className="mt-2 pt-2 border-t border-violet-200 flex justify-between items-center px-2">
                               <span className="text-xs text-slate-600">Score: {cb3cCount} of 13 = <span className="font-semibold text-violet-700">{cb3cScore} pts</span></span>
