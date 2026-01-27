@@ -93,6 +93,43 @@ export default function InvoicePaymentPage() {
       localStorage.setItem('invoice_data', JSON.stringify(invoiceData))
       localStorage.setItem('current_invoice_number', invoiceData.invoiceNumber)
 
+      // ============================================
+      // SAVE INVOICE DATA TO SUPABASE
+      // ============================================
+      try {
+        const { supabase } = await import('@/lib/supabase/client')
+        const surveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || ''
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        const invoiceUpdate = {
+          invoice_data: invoiceData,
+          invoice_number: invoiceData.invoiceNumber,
+          payment_method: 'invoice',
+          updated_at: new Date().toISOString()
+        }
+        
+        // Try user_id first
+        if (user) {
+          await supabase
+            .from('assessments')
+            .update(invoiceUpdate)
+            .eq('user_id', user.id)
+        }
+        
+        // Also try survey_id
+        if (surveyId) {
+          const normalizedId = surveyId.replace(/-/g, '').toUpperCase()
+          await supabase
+            .from('assessments')
+            .update(invoiceUpdate)
+            .or(`survey_id.eq.${surveyId},app_id.eq.${normalizedId}`)
+        }
+        
+        console.log('✅ Invoice data saved to Supabase')
+      } catch (dbErr) {
+        console.error('Error saving invoice to Supabase:', dbErr)
+      }
+
       const pdfBase64 = await generateInvoicePDF(invoiceData)
       console.log('PDF generated, base64 length:', pdfBase64?.length)
 

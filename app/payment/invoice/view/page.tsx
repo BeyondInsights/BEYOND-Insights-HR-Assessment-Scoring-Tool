@@ -80,21 +80,69 @@ export default function InvoiceViewPage() {
   const [modalType, setModalType] = useState<'success' | 'error'>('success')
 
   useEffect(() => {
-    // Get invoice ID from URL after component mounts
-    const params = new URLSearchParams(window.location.search)
-    const id = params.get('id')
-    
-    // Load invoice data from localStorage
-    const storedData = localStorage.getItem('invoice_data')
-    if (storedData) {
-      const data = JSON.parse(storedData)
-      // If no ID in URL, just show the stored invoice
-      // If ID in URL, verify it matches
-      if (!id || data.invoiceNumber === id) {
-        setInvoiceData(data)
-        setInvoiceId(data.invoiceNumber || id)
+    const loadInvoice = async () => {
+      // Get invoice ID from URL after component mounts
+      const params = new URLSearchParams(window.location.search)
+      const id = params.get('id')
+      
+      // Load invoice data from localStorage first
+      const storedData = localStorage.getItem('invoice_data')
+      if (storedData) {
+        const data = JSON.parse(storedData)
+        // If no ID in URL, just show the stored invoice
+        // If ID in URL, verify it matches
+        if (!id || data.invoiceNumber === id) {
+          setInvoiceData(data)
+          setInvoiceId(data.invoiceNumber || id)
+          return
+        }
+      }
+      
+      // No localStorage data - try to load from Supabase
+      const surveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || ''
+      if (surveyId || id) {
+        try {
+          const { supabase } = await import('@/lib/supabase/client')
+          
+          // Try multiple strategies to find the invoice
+          let assessment = null
+          
+          // Strategy 1: By user_id
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) {
+            const { data } = await supabase
+              .from('assessments')
+              .select('invoice_data, invoice_number, company_name, email')
+              .eq('user_id', user.id)
+              .single()
+            if (data) assessment = data
+          }
+          
+          // Strategy 2: By survey_id
+          if (!assessment && surveyId) {
+            const normalizedId = surveyId.replace(/-/g, '').toUpperCase()
+            const { data } = await supabase
+              .from('assessments')
+              .select('invoice_data, invoice_number, company_name, email')
+              .or(`survey_id.eq.${surveyId},app_id.eq.${normalizedId}`)
+              .single()
+            if (data) assessment = data
+          }
+          
+          if (assessment?.invoice_data) {
+            setInvoiceData(assessment.invoice_data)
+            setInvoiceId(assessment.invoice_number || assessment.invoice_data.invoiceNumber)
+            // Also restore to localStorage for future use
+            localStorage.setItem('invoice_data', JSON.stringify(assessment.invoice_data))
+            console.log('✅ Loaded invoice data from Supabase')
+          }
+        } catch (err) {
+          console.error('Error loading invoice from Supabase:', err)
+        }
       }
     }
+    
+    loadInvoice()
 
     // Load jsPDF
     if (!document.querySelector('script[src*="jspdf"]')) {

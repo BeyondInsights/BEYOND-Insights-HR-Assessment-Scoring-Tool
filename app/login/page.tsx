@@ -91,6 +91,15 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
       console.log('  ✓ Set survey submission flags')
     }
     
+    // Invoice data
+    if (data.invoice_data) {
+      localStorage.setItem('invoice_data', JSON.stringify(data.invoice_data))
+      console.log('  ✓ Set invoice_data')
+    }
+    if (data.invoice_number) {
+      localStorage.setItem('current_invoice_number', data.invoice_number)
+    }
+    
     console.log('✅ User data loaded successfully from Supabase')
     return { found: true, authCompleted: !!data.auth_completed }
     
@@ -373,6 +382,15 @@ export default function LoginPage() {
             localStorage.setItem('survey_fully_submitted', 'true')
             localStorage.setItem('assessment_completion_shown', 'true')
             console.log('  ✓ Set survey submission flags')
+          }
+          
+          // Invoice data (FP)
+          if (existing.invoice_data) {
+            localStorage.setItem('invoice_data', JSON.stringify(existing.invoice_data))
+            console.log('  ✓ Set invoice_data')
+          }
+          if (existing.invoice_number) {
+            localStorage.setItem('current_invoice_number', existing.invoice_number)
           }
           
           console.log('✅ Loaded all FP data and completion flags from Supabase')

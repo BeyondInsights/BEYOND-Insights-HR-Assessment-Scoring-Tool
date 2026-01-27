@@ -153,6 +153,16 @@ function writeToLocalStorage(dbRow: Record<string, any>): void {
     localStorage.setItem('survey_fully_submitted', 'true')
     localStorage.setItem('assessment_completion_shown', 'true')
   }
+  
+  // ============================================
+  // INVOICE DATA - so View Invoice works after returning
+  // ============================================
+  if (dbRow.invoice_data) {
+    localStorage.setItem('invoice_data', JSON.stringify(dbRow.invoice_data))
+  }
+  if (dbRow.invoice_number) {
+    localStorage.setItem('current_invoice_number', dbRow.invoice_number)
+  }
 }
 
 // ============================================
