@@ -1,15 +1,31 @@
 // netlify/functions/verify-report-password.js
-// Verifies password for public report access
+// Verifies password for public report access - SERVER-SIDE validation
 
 const { createClient } = require('@supabase/supabase-js');
 
 exports.handler = async (event) => {
+  // Handle CORS preflight FIRST
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      },
+      body: '',
+    };
+  }
+
   // Only allow POST
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
       body: JSON.stringify({ error: 'Method not allowed' }),
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
     };
   }
 
@@ -20,7 +36,10 @@ exports.handler = async (event) => {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Missing token or password' }),
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       };
     }
 
@@ -41,16 +60,22 @@ exports.handler = async (event) => {
       return {
         statusCode: 404,
         body: JSON.stringify({ error: 'Report not found or link has expired' }),
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       };
     }
 
-    // Verify password
+    // Verify password (case-sensitive comparison)
     if (data.public_password !== password) {
       return {
         statusCode: 401,
         body: JSON.stringify({ error: 'Incorrect password' }),
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       };
     }
 
@@ -63,7 +88,10 @@ exports.handler = async (event) => {
         surveyId: data.survey_id,
         companyName: data.company_name
       }),
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
     };
 
   } catch (err) {
@@ -71,7 +99,10 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Server error' }),
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
     };
   }
 };
