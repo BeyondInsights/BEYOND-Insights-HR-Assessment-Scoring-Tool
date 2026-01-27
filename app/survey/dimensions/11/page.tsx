@@ -3,16 +3,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
 
 // Fisher-Yates shuffle algorithm
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
 
 const D11A_ITEMS_BASE = [
   "At least 70% coverage for regionally / locally recommended screenings",
@@ -35,11 +28,7 @@ export default function Dimension11Page() {
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
-  const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isMultiCountry, setIsMultiCountry] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  
-  const [D11A_ITEMS] = useState(() => shuffleArray(D11A_ITEMS_BASE));
   
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -52,6 +41,23 @@ export default function Dimension11Page() {
     return validateStep() === null;
   };
   // ===== END VALIDATION ADDITIONS =====
+
+  // Use the progressive status grid hook for d11a items
+  const {
+    items: D11A_ITEMS,
+    currentItemIndex,
+    isTransitioning,
+    setStatus,
+    goToItem,
+    answeredCount,
+  } = useProgressiveStatusGrid({
+    itemsBase: D11A_ITEMS_BASE,
+    gridKey: "d11a",
+    ans,
+    setAns,
+    markTouched,
+    shuffle: true,
+  });
   
   useEffect(() => {
     const saved = localStorage.getItem("dimension11_data");
@@ -89,41 +95,9 @@ export default function Dimension11Page() {
     setErrors("");
   };
 
-  const setStatus = (item: string, status: string) => {
-    setAns((prev: any) => ({
-      ...prev,
-      d11a: { ...(prev.d11a || {}), [item]: status }
-    }));
-    markTouched('d11a'); // Mark d11a as touched
-    
-    setIsTransitioning(true);
-    
-    setTimeout(() => {
-      const nextUnansweredIndex = D11A_ITEMS.findIndex((itm, idx) => 
-        idx > currentItemIndex && !ans.d11a?.[itm]
-      );
-      
-      if (nextUnansweredIndex !== -1) {
-        setCurrentItemIndex(nextUnansweredIndex);
-      } else if (currentItemIndex < D11A_ITEMS.length - 1) {
-        setCurrentItemIndex(currentItemIndex + 1);
-      }
-      
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 250);
-    }, 500);
-  };
+  // setStatus and goToItem are now provided by useProgressiveStatusGrid hook
 
-  const goToItem = (index: number) => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentItemIndex(index);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 400);
-    }, 500);
-  };
+  
 
   const STATUS_OPTIONS = [
   "Not able to offer in foreseeable future",
@@ -152,7 +126,6 @@ const getTotalSteps = () => {
   const validateStep = () => {
     switch(step) {
       case 1:
-        const answeredCount = Object.keys(ans.d11a || {}).length;
         if (answeredCount < D11A_ITEMS.length) 
           return `Please evaluate all ${D11A_ITEMS.length} items (${answeredCount} completed)`;
         return null;

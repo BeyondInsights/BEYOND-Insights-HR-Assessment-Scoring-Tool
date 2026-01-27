@@ -3,15 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
 
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
 
 const D4A_ITEMS_BASE = [
   "Dedicated navigation support to help employees understand benefits and access medical care",
@@ -31,10 +24,7 @@ export default function Dimension4Page() {
   const router = useRouter();
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
-  const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isMultiCountry, setIsMultiCountry] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [D4A_ITEMS] = useState(() => shuffleArray(D4A_ITEMS_BASE));
   
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -47,6 +37,23 @@ export default function Dimension4Page() {
     return validateStep() === null;
   };
   // ===== END VALIDATION ADDITIONS =====
+
+  // Use the progressive status grid hook for d4a items
+  const {
+    items: D4A_ITEMS,
+    currentItemIndex,
+    isTransitioning,
+    setStatus,
+    goToItem,
+    answeredCount,
+  } = useProgressiveStatusGrid({
+    itemsBase: D4A_ITEMS_BASE,
+    gridKey: "d4a",
+    ans,
+    setAns,
+    markTouched,
+    shuffle: true,
+  });
   
   useEffect(() => {
     const saved = localStorage.getItem("dimension4_data");
@@ -100,43 +107,9 @@ export default function Dimension4Page() {
     setErrors("");
   };
 
-  const setStatus = (item: string, status: string) => {
-    setAns((prev: any) => ({
-      ...prev,
-      d4a: { ...(prev.d4a || {}), [item]: status }
-    }));
-    
-    // VALIDATION: Mark d4a as touched
-    markTouched('d4a');
-    
-    setIsTransitioning(true);
-    
-    setTimeout(() => {
-      const nextUnansweredIndex = D4A_ITEMS.findIndex((itm, idx) => 
-        idx > currentItemIndex && !ans.d4a?.[itm]
-      );
-      
-      if (nextUnansweredIndex !== -1) {
-        setCurrentItemIndex(nextUnansweredIndex);
-      } else if (currentItemIndex < D4A_ITEMS.length - 1) {
-        setCurrentItemIndex(currentItemIndex + 1);
-      }
-      
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 250);
-    }, 500);
-  };
+  // setStatus and goToItem are now provided by useProgressiveStatusGrid hook
 
-  const goToItem = (index: number) => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentItemIndex(index);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 400);
-    }, 500);
-  };
+  
 
   const STATUS_OPTIONS = [
     "Not able to offer in foreseeable future",
@@ -164,7 +137,6 @@ export default function Dimension4Page() {
   const validateStep = () => {
     switch(step) {
       case 1:
-        const answeredCount = Object.keys(ans.d4a || {}).length;
         if (answeredCount < D4A_ITEMS.length) 
           return `Please evaluate all ${D4A_ITEMS.length} items (${answeredCount} completed)`;
         return null;

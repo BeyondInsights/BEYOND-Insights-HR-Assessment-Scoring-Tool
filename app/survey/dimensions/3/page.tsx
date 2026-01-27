@@ -3,15 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
 
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
 
 // Data for D3.a - ALL 10 ITEMS FROM SURVEY
 const D3A_ITEMS_BASE = [
@@ -32,10 +25,7 @@ export default function Dimension3Page() {
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
-  const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isMultiCountry, setIsMultiCountry] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [D3A_ITEMS] = useState(() => shuffleArray(D3A_ITEMS_BASE));
   
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -48,6 +38,23 @@ export default function Dimension3Page() {
     return validateStep() === null;
   };
   // ===== END VALIDATION ADDITIONS =====
+
+  // Use the progressive status grid hook for d3a items
+  const {
+    items: D3A_ITEMS,
+    currentItemIndex,
+    isTransitioning,
+    setStatus,
+    goToItem,
+    answeredCount,
+  } = useProgressiveStatusGrid({
+    itemsBase: D3A_ITEMS_BASE,
+    gridKey: "d3a",
+    ans,
+    setAns,
+    markTouched,
+    shuffle: true,
+  });
   
   // Load saved answers on mount
   useEffect(() => {
@@ -88,43 +95,9 @@ export default function Dimension3Page() {
     setErrors("");
   };
 
-  const setStatus = (item: string, status: string) => {
-    setAns((prev: any) => ({
-      ...prev,
-      d3a: { ...(prev.d3a || {}), [item]: status }
-    }));
-    
-    // VALIDATION: Mark d3a as touched
-    markTouched('d3a');
-    
-    setIsTransitioning(true);
-    
-    setTimeout(() => {
-      const nextUnansweredIndex = D3A_ITEMS.findIndex((itm, idx) => 
-        idx > currentItemIndex && !ans.d3a?.[itm]
-      );
-      
-      if (nextUnansweredIndex !== -1) {
-        setCurrentItemIndex(nextUnansweredIndex);
-      } else if (currentItemIndex < D3A_ITEMS.length - 1) {
-        setCurrentItemIndex(currentItemIndex + 1);
-      }
-      
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 250);
-    }, 500);
-  };
+  // setStatus and goToItem are now provided by useProgressiveStatusGrid hook
 
-  const goToItem = (index: number) => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentItemIndex(index);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 400);
-    }, 500);
-  };
+  
 
   const STATUS_OPTIONS = [
     "Not able to provide in foreseeable future",
@@ -159,7 +132,6 @@ export default function Dimension3Page() {
   const validateStep = () => {
     switch(step) {
       case 1: // D3.a
-        const answeredCount = Object.keys(ans.d3a || {}).length;
         if (answeredCount < D3A_ITEMS.length) 
           return `Please evaluate all ${D3A_ITEMS.length} items (${answeredCount} completed)`;
         return null;

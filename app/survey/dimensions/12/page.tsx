@@ -3,16 +3,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
 
 // Fisher-Yates shuffle algorithm
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
 
 const D12A_ITEMS_BASE = [
   "Return-to-work success metrics",
@@ -31,11 +24,7 @@ export default function Dimension12Page() {
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
-  const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isMultiCountry, setIsMultiCountry] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  
-  const [D12A_ITEMS] = useState(() => shuffleArray(D12A_ITEMS_BASE));
   
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -48,6 +37,23 @@ export default function Dimension12Page() {
     return validateStep() === null;
   };
   // ===== END VALIDATION ADDITIONS =====
+
+  // Use the progressive status grid hook for d12a items
+  const {
+    items: D12A_ITEMS,
+    currentItemIndex,
+    isTransitioning,
+    setStatus,
+    goToItem,
+    answeredCount,
+  } = useProgressiveStatusGrid({
+    itemsBase: D12A_ITEMS_BASE,
+    gridKey: "d12a",
+    ans,
+    setAns,
+    markTouched,
+    shuffle: true,
+  });
   
   useEffect(() => {
     const saved = localStorage.getItem("dimension12_data");
@@ -85,41 +91,9 @@ export default function Dimension12Page() {
     setErrors("");
   };
 
-  const setStatus = (item: string, status: string) => {
-    setAns((prev: any) => ({
-      ...prev,
-      d12a: { ...(prev.d12a || {}), [item]: status }
-    }));
-    markTouched('d12a');
-    
-    setIsTransitioning(true);
-    
-    setTimeout(() => {
-      const nextUnansweredIndex = D12A_ITEMS.findIndex((itm, idx) => 
-        idx > currentItemIndex && !ans.d12a?.[itm]
-      );
-      
-      if (nextUnansweredIndex !== -1) {
-        setCurrentItemIndex(nextUnansweredIndex);
-      } else if (currentItemIndex < D12A_ITEMS.length - 1) {
-        setCurrentItemIndex(currentItemIndex + 1);
-      }
-      
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 250);
-    }, 500);
-  };
+  // setStatus and goToItem are now provided by useProgressiveStatusGrid hook
 
-  const goToItem = (index: number) => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentItemIndex(index);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 400);
-    }, 500);
-  };
+  
 
   const STATUS_OPTIONS = [
     "Not able to measure / track in foreseeable future",
@@ -152,7 +126,6 @@ export default function Dimension12Page() {
   const validateStep = () => {
     switch(step) {
       case 1:
-        const answeredCount = Object.keys(ans.d12a || {}).length;
         if (answeredCount < D12A_ITEMS.length) 
           return `Please evaluate all ${D12A_ITEMS.length} items (${answeredCount} completed)`;
         return null;
