@@ -1431,7 +1431,8 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     {/* Geographic Multiplier & Follow-up Sections */}
                     {(
                     <div className="mt-6 space-y-4">
-                      {/* Geographic Multiplier */}
+                      {/* Geographic Multiplier - only show for multi-country companies */}
+                      {!isSingleCountryCompany && (
                       <div className="bg-white rounded-lg border border-slate-200 p-4">
                         <h4 className="text-xs font-semibold text-purple-700 mb-2 uppercase tracking-wide">Geographic Multiplier</h4>
                         <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
@@ -1444,13 +1445,11 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             const isConsistent = geoText.includes('consistent');
                             const isVaries = geoText.includes('var');
                             const isSelect = geoText.includes('select');
-                            const isSingleCountry = !selectedData?.geoResponse || selectedData?.geoResponse === null;
                             
                             const options = [
-                              { label: 'Multi-country + Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 42 },
-                              { label: 'Single-country (geo question not applicable)', multiplier: 'x1.00', selected: isSingleCountry, color: 'text-emerald-600', benchPct: 35 },
-                              { label: 'Multi-country + Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 15 },
-                              { label: 'Multi-country + Only available in select locations', multiplier: 'x0.75', selected: isSelect, color: 'text-red-500', benchPct: 8 },
+                              { label: 'Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 55 },
+                              { label: 'Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 25 },
+                              { label: 'Only available in select locations', multiplier: 'x0.75', selected: isSelect, color: 'text-red-500', benchPct: 20 },
                             ];
                             
                             return options.map((opt, i) => (
@@ -1467,8 +1466,8 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             ));
                           })()}
                         </div>
-                        <p className="text-[10px] text-slate-400 italic mt-2">Note: Single-country companies receive 1.0 because the geo question does not apply.</p>
                       </div>
+                      )}
                       
                       {/* D1 Follow-up */}
                       {selectedData?.dim === 1 && (
@@ -2038,6 +2037,12 @@ export default function InteractiveReportPage() {
     const elementsByDim: Record<number, any[]> = {};
     const blendedScores: Record<number, number> = {};
     
+    // Check if company is single-country (S9a = "No other countries" or "headquarters only")
+    const firmographics = assessment.firmographics_data || {};
+    const s9a = firmographics.s9a || '';
+    const s9aLower = typeof s9a === 'string' ? s9a.toLowerCase() : '';
+    const isSingleCountryCompany = s9aLower.includes('no other countries') || s9aLower.includes('headquarters only') || s9aLower === '';
+    
     let completedDimCount = 0;
     
     for (let dim = 1; dim <= 13; dim++) {
@@ -2076,10 +2081,19 @@ export default function InteractiveReportPage() {
       const maxPoints = answeredItems * 5;
       const rawScore = maxPoints > 0 ? Math.round((earnedPoints / maxPoints) * 100) : 0;
       
-      const geoResponse = dimData[`d${dim}aa`] || dimData[`D${dim}aa`];
-      const geoMultiplier = getGeoMultiplier(geoResponse);
+      // For single-country companies, always use 1.0 multiplier regardless of individual dimension responses
+      let geoMultiplier = 1.0;
+      let geoResponse = null;
+      if (isSingleCountryCompany) {
+        geoMultiplier = 1.0;
+        geoResponse = 'single_country';
+      } else {
+        const dimGeoResponse = dimData[`d${dim}aa`] || dimData[`D${dim}aa`];
+        geoMultiplier = getGeoMultiplier(dimGeoResponse);
+        geoResponse = dimGeoResponse ? String(dimGeoResponse) : null;
+      }
       geoMultipliers[dim] = geoMultiplier;
-      geoResponses[dim] = geoResponse ? String(geoResponse) : null;
+      geoResponses[dim] = geoResponse;
       const adjustedScore = Math.round(rawScore * geoMultiplier);
       
       let blendedScore = adjustedScore;
@@ -2142,7 +2156,7 @@ export default function InteractiveReportPage() {
     const maturityScore = enhancedResult.maturityScore;
     const breadthScore = enhancedResult.breadthScore;
     
-    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
+    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, isSingleCountryCompany, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
   }
 
   function calculateBenchmarks(assessments: any[]) {
@@ -2348,7 +2362,7 @@ export default function InteractiveReportPage() {
     );
   }
 
-  const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, tier } = companyScores;
+  const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, isSingleCountryCompany, tier } = companyScores;
   const companyName = company.firmographics_data?.company_name || company.company_name || 'Unknown Company';
   const contactName = company.firmographics_data?.primary_contact_name || '';
   const contactEmail = company.firmographics_data?.primary_contact_email || '';
