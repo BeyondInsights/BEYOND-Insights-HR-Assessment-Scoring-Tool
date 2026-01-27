@@ -335,7 +335,7 @@ function getTopEvidence(
     topStrength = strengthsWithBench[0];
   }
   
-  // Find biggest gap - prefer one where most peers offer it (biggest competitive gap)
+  // Find biggest gap - prefer one where most peers offer it (most impactful to address)
   let biggestGap = null;
   if (gaps.length > 0) {
     const gapsWithBench = gaps.map(g => {
@@ -404,7 +404,7 @@ function getTwoStepRoadmap(
     }).sort((a, b) => b.pct - a.pct);
     strategicLift = { 
       name: withBench[0].name, 
-      reason: `${withBench[0].pct}% of peers offer this—closing this gap strengthens competitive position` 
+      reason: `${withBench[0].pct}% of peers offer this—adding this would meaningfully expand your support coverage` 
     };
   }
   
@@ -623,7 +623,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
     insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
     cacHelp = cacProgram;
   } else if (tierName === 'Emerging') {
-    insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, focused investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer average indicates this is an area where competitors may have an advantage.` : ''} Recommended quick win: ${ctx.quickWin}.`;
+    insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, focused investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer average indicates this is an area where additional focus would benefit employees.` : ''} Recommended quick win: ${ctx.quickWin}.`;
     cacHelp = cacProgram;
   } else {
     insight = `Critical gap in ${ctx.focus} at ${score} points creates risk of ${ctx.risk}. ${gapCount > 0 ? `${gapCount} missing elements represent significant exposure.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap below the ${benchmark} peer average signals this as a priority area.` : ''} Employees facing health challenges may feel unsupported here, leading to disengagement, extended leave, or departure. Immediate action: implement ${ctx.quickWin}.`;
@@ -1205,7 +1205,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
     }
     if (statusInfo.key === 'planning') {
       // In planning cohort
-      if (pctCurrently > 50) return `${pctCurrently}% already offer; completing this closes a competitive gap`;
+      if (pctCurrently > 50) return `${pctCurrently}% already offer; completing this brings you in line with peer practices`;
       return `You're among the ${pctPlanning}% in planning; ${pctCurrently}% already offer`;
     }
     if (statusInfo.key === 'assessing') {
