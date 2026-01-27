@@ -205,16 +205,16 @@ function scoreD12CaseReview(value: string | undefined): number {
   const v = String(value).toLowerCase();
   if (v.includes('systematic')) return 100;
   if (v.includes('ad hoc')) return 50;
-  if (v.includes('aggregate') || v.includes('only review aggregate')) return 20;
+  if (v.includes('aggregate') || v.includes('no,')) return 0;
   return 0;
 }
 
 function scoreD12PolicyChanges(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
-  if (v.includes('significant') || v.includes('major')) return 100;
-  if (v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
-  if (v.includes('no change') || v.includes('not yet') || v.includes('none')) return 20;
+  if (v.includes('several')) return 100;
+  if (v.includes('few')) return 60;
+  if (v === 'no' || v.startsWith('no,') || v.startsWith('no ') || v === 'no changes') return 0;
   return 0;
 }
 
@@ -1831,10 +1831,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           {(() => {
                             const d12_1_score = d.followUpRaw?.d12_1_score;
                             return [
-                              { label: 'Systematic case reviews', points: 100, benchPct: 22 },
-                              { label: 'Ad hoc case reviews', points: 50, benchPct: 35 },
-                              { label: 'Only review aggregate data', points: 20, benchPct: 28 },
-                              { label: 'No review process', points: 0, benchPct: 15 },
+                              { label: 'Yes, using a systematic case review process', points: 100, benchPct: 22 },
+                              { label: 'Yes, using ad hoc case reviews', points: 50, benchPct: 45 },
+                              { label: 'No, we only review aggregate metrics', points: 0, benchPct: 33 },
                             ].map((opt, i) => {
                               const isSelected = d12_1_score === opt.points;
                               return (
@@ -1845,7 +1844,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                   </div>
                                   <div className="flex items-center">
                                     <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                    <span className={`font-semibold w-14 text-right ${opt.points >= 50 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    <span className={`font-semibold w-14 text-right ${opt.points >= 50 ? 'text-emerald-600' : 'text-red-500'}`}>{opt.points} pts</span>
                                   </div>
                                 </div>
                               );
@@ -1853,7 +1852,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           })()}
                         </div>
                         
-                        <p className="text-xs text-slate-600 mb-2">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
+                        <p className="text-xs text-slate-600 mb-2">D12_2: "Over the past 2 years, have individual employee experiences led to specific changes to your programs?"</p>
                         <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
                           <span className="w-16 text-center">Benchmark</span>
                           <span className="w-14 text-right">Points</span>
@@ -1862,10 +1861,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           {(() => {
                             const d12_2_score = d.followUpRaw?.d12_2_score;
                             return [
-                              { label: 'Significant policy changes', points: 100, benchPct: 18 },
-                              { label: 'Some adjustments made', points: 60, benchPct: 40 },
-                              { label: 'No changes made yet', points: 20, benchPct: 30 },
-                              { label: 'N/A or no response', points: 0, benchPct: 12 },
+                              { label: 'Yes, several changes implemented', points: 100, benchPct: 18 },
+                              { label: 'Yes, a few changes implemented', points: 60, benchPct: 52 },
+                              { label: 'No', points: 0, benchPct: 30 },
                             ].map((opt, i) => {
                               const isSelected = d12_2_score === opt.points;
                               return (
@@ -1876,7 +1874,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                   </div>
                                   <div className="flex items-center">
                                     <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                    <span className={`font-semibold w-14 text-right ${opt.points >= 60 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    <span className={`font-semibold w-14 text-right ${opt.points >= 60 ? 'text-emerald-600' : 'text-red-500'}`}>{opt.points} pts</span>
                                   </div>
                                 </div>
                               );
