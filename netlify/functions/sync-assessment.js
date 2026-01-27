@@ -157,7 +157,7 @@ exports.handler = async (event) => {
       return json(400, { error: 'Invalid JSON body' }, event);
     }
 
-    const { surveyId, data, accessToken } = payload;
+    const { surveyId, data, accessToken, fallbackSurveyId, fallbackAppId } = payload;
 
     if (!surveyId) {
       return json(400, { error: 'Missing surveyId' }, event);
@@ -262,8 +262,74 @@ exports.handler = async (event) => {
       }, event);
     }
 
-    // If no rows updated, insert new record
+    // If no rows updated, try fallbacks before inserting
     if (!updateResult || updateResult.length === 0) {
+      
+      // ============================================
+      // FALLBACK LOGIC: When user_id match fails, try survey_id then app_id
+      // ============================================
+      if (matchColumn === 'user_id') {
+        console.log(`[sync-assessment] user_id matched 0 rows, trying fallbacks...`);
+        
+        // Fallback 1: Try survey_id
+        if (fallbackSurveyId) {
+          console.log(`[sync-assessment] Trying fallback survey_id: ${fallbackSurveyId}`);
+          const { data: surveyResult, error: surveyError } = await supabase
+            .from('assessments')
+            .update(updateData)
+            .eq('survey_id', fallbackSurveyId)
+            .select('id, updated_at, company_name');
+          
+          if (!surveyError && surveyResult && surveyResult.length > 0) {
+            // SUCCESS! Link user_id for future syncs
+            await supabase
+              .from('assessments')
+              .update({ user_id: matchValue })
+              .eq('survey_id', fallbackSurveyId);
+            console.log(`[sync-assessment] Success via survey_id fallback! Linked user_id ${matchValue}`);
+            return json(200, { 
+              ok: true, 
+              surveyId: fallbackSurveyId,
+              updatedAt: surveyResult[0]?.updated_at,
+              recordId: surveyResult[0]?.id,
+              action: 'update_via_survey_id_fallback',
+              linkedUserId: matchValue
+            }, event);
+          }
+        }
+        
+        // Fallback 2: Try app_id
+        if (fallbackAppId) {
+          const normalizedAppId = fallbackAppId.replace(/-/g, '').toUpperCase();
+          console.log(`[sync-assessment] Trying fallback app_id: ${normalizedAppId}`);
+          const { data: appResult, error: appError } = await supabase
+            .from('assessments')
+            .update(updateData)
+            .eq('app_id', normalizedAppId)
+            .select('id, updated_at, company_name');
+          
+          if (!appError && appResult && appResult.length > 0) {
+            // SUCCESS! Link user_id for future syncs
+            await supabase
+              .from('assessments')
+              .update({ user_id: matchValue })
+              .eq('app_id', normalizedAppId);
+            console.log(`[sync-assessment] Success via app_id fallback! Linked user_id ${matchValue}`);
+            return json(200, { 
+              ok: true, 
+              surveyId: normalizedAppId,
+              updatedAt: appResult[0]?.updated_at,
+              recordId: appResult[0]?.id,
+              action: 'update_via_app_id_fallback',
+              linkedUserId: matchValue
+            }, event);
+          }
+        }
+        
+        console.log(`[sync-assessment] All fallbacks failed for user_id ${matchValue}`);
+      }
+      
+      // No fallbacks worked (or not applicable) - try insert
       console.log(`[sync-assessment] No existing record for ${matchColumn}=${matchValue}, inserting...`);
       
       const insertData = {
