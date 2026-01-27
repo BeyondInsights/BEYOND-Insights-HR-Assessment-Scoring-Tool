@@ -273,12 +273,15 @@ const formatLabel = (key: string): string => {
 function selectedOnly(value: any): string[] | string | null {
   if (value == null) return null;
   if (Array.isArray(value)) {
-    const out = value.map(v => String(v).trim()).filter(v => v !== '');
+    // Filter out "None of these" - it's a sentinel value, not meaningful data
+    const out = value
+      .map(v => String(v).trim())
+      .filter(v => v !== '' && v !== 'None of these');
     return out.length ? out : null;
   }
   if (typeof value === 'object') return value;
   const s = String(value).trim();
-  return s === '' ? null : s;
+  return s === '' || s === 'None of these' ? null : s;
 }
 
 const hasProgramStatusMap = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
