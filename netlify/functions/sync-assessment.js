@@ -1,11 +1,10 @@
 /**
- * SYNC-ASSESSMENT v4 - Final fixes per ChatGPT review
+ * SYNC-ASSESSMENT v5 - Fixed per ChatGPT diagnosis
  * 
  * FIXES APPLIED:
- * 1. expectedVersion is REQUIRED for updates (no silent fallback)
- * 2. Returns 400 if expectedVersion missing/invalid
- * 3. user_id linking folded into same atomic update (no second UPDATE)
- * 4. All paths enforce version check + return proper errors
+ * 1. Log actual updateError with full details
+ * 2. Treat success:false as failure at response level
+ * 3. Sanitize payload - strip forbidden keys, normalize user_id
  */
 
 const { createClient } = require('@supabase/supabase-js')
@@ -44,9 +43,12 @@ exports.handler = async (event) => {
       fallbackAppId
     } = payload
 
+    // FIX 3a: Normalize user_id - treat 'none' and '' as null
+    const normalizedUserId = (user_id === 'none' || user_id === '' || !user_id) ? null : user_id
+
     console.log('[sync-assessment] Request:', {
       survey_id: survey_id || 'none',
-      user_id: user_id || 'none',
+      user_id: normalizedUserId || 'none',
       userType,
       source,
       expectedVersion: expectedVersion ?? 'MISSING',
@@ -67,6 +69,20 @@ exports.handler = async (event) => {
     // Validate source
     const validSources = ['rescue', 'autosync', 'manual', 'api']
     const safeSource = validSources.includes(source) ? source : 'autosync'
+
+    // FIX 3b: Strip forbidden keys from data to prevent type errors
+    const forbiddenKeys = new Set([
+      'id', 'survey_id', 'app_id', 'user_id', 'version',
+      'created_at', 'updated_at',
+      'last_update_source', 'last_update_client_id', 'last_snapshot_hash'
+    ])
+
+    const safeData = {}
+    for (const [k, v] of Object.entries(data || {})) {
+      if (!forbiddenKeys.has(k)) {
+        safeData[k] = v
+      }
+    }
 
     // ============================================
     // HELPER: Update with REQUIRED version enforcement
@@ -112,9 +128,9 @@ exports.handler = async (event) => {
         }
       }
       
-      // Step 4: Prepare update payload (include user_id if linking)
+      // Step 4: Prepare update payload with SAFE data
       const updatePayload = {
-        ...data,
+        ...safeData,  // Use sanitized data, not raw data
         updated_at: new Date().toISOString(),
         last_update_source: safeSource,
         last_update_client_id: client_id || null,
@@ -134,8 +150,20 @@ exports.handler = async (event) => {
         .eq('version', expectedVersion)
         .select('id, version, last_snapshot_hash')
       
+      // FIX 1: Log actual error with full details
       if (updateError) {
-        return { success: false, error: updateError.message }
+        console.error('[sync-assessment] UPDATE ERROR:', {
+          matchField,
+          matchValue,
+          expectedVersion,
+          safeSource,
+          client_id,
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+          code: updateError.code
+        })
+        return { success: false, rowsAffected: 0, error: updateError.message }
       }
       
       if (!updateResult || updateResult.length === 0) {
@@ -186,7 +214,7 @@ exports.handler = async (event) => {
           payment_method: 'FP Comp',
           payment_amount: 1250.00,
           version: 1,
-          ...data,
+          ...safeData,  // Use sanitized data
           updated_at: new Date().toISOString(),
           last_update_source: safeSource,
           last_update_client_id: client_id || null
@@ -198,6 +226,7 @@ exports.handler = async (event) => {
           .select('id, version')
         
         if (insertError) {
+          console.error('[sync-assessment] INSERT ERROR:', insertError)
           return {
             statusCode: 500,
             headers,
@@ -224,18 +253,18 @@ exports.handler = async (event) => {
     // ============================================
     // REGULAR USER SYNC (with fallback chain + version enforcement)
     // ============================================
-    else if (user_id) {
-      console.log('[sync-assessment] Regular user sync for:', user_id)
+    else if (normalizedUserId) {
+      console.log('[sync-assessment] Regular user sync for:', normalizedUserId)
       
       // ATTEMPT 1: user_id
       const { data: userIdRow } = await supabase
         .from('assessments')
         .select('id')
-        .eq('user_id', user_id)
+        .eq('user_id', normalizedUserId)
         .single()
       
       if (userIdRow) {
-        result = await updateWithVersionCheck('user_id', user_id)
+        result = await updateWithVersionCheck('user_id', normalizedUserId)
         matchedVia = 'user_id'
       }
       
@@ -251,7 +280,7 @@ exports.handler = async (event) => {
         
         if (surveyIdRow) {
           // Pass user_id to link in same atomic update
-          result = await updateWithVersionCheck('survey_id', fallbackSurveyId, user_id)
+          result = await updateWithVersionCheck('survey_id', fallbackSurveyId, normalizedUserId)
           matchedVia = 'survey_id'
           if (result?.success) {
             console.log('[sync-assessment] Linked user_id via survey_id (atomic)')
@@ -272,7 +301,7 @@ exports.handler = async (event) => {
         
         if (appIdRow) {
           // Pass user_id to link in same atomic update
-          result = await updateWithVersionCheck('app_id', normalizedAppId, user_id)
+          result = await updateWithVersionCheck('app_id', normalizedAppId, normalizedUserId)
           matchedVia = 'app_id'
           if (result?.success) {
             console.log('[sync-assessment] Linked user_id via app_id (atomic)')
@@ -287,14 +316,15 @@ exports.handler = async (event) => {
     
     console.log('[sync-assessment] Result:', {
       survey_id: survey_id || fallbackSurveyId || 'none',
-      user_id: user_id || 'none',
+      user_id: normalizedUserId || 'none',
       source: safeSource,
       matchedVia: matchedVia || 'none',
       success: result?.success,
       rowsAffected: result?.rowsAffected,
       newVersion: result?.newVersion,
       conflict: result?.conflict,
-      missingExpected: result?.missingExpected
+      missingExpected: result?.missingExpected,
+      error: result?.error  // FIX 1: Include error in log
     })
 
     // Missing expectedVersion - return 400
@@ -321,6 +351,19 @@ exports.handler = async (event) => {
           error: 'Version conflict',
           expectedVersion: result.expectedVersion,
           actualVersion: result.actualVersion
+        })
+      }
+    }
+
+    // FIX 2: Treat any success:false as failure (catches updateError cases)
+    if (result && result.success === false) {
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: result.error || 'Update failed',
+          rowsAffected: 0
         })
       }
     }
