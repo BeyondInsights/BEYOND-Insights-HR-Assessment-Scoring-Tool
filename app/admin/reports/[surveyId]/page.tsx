@@ -2662,21 +2662,27 @@ export default function ExportReportPage() {
                 weight={DEFAULT_COMPOSITE_WEIGHTS.maturity}
                 benchmarkScore={benchmarks?.maturityScore}
                 color="amber"
-                summary={`Your approach: ${maturityScore === 100 ? 'Comprehensive' : maturityScore === 80 ? 'Enhanced' : maturityScore === 50 ? 'Moderate' : maturityScore === 20 ? 'Developing' : 'Foundational'} support`}
+                summary="How developed your organization's approach is to supporting employees managing cancer or other serious health conditions."
                 getScoreColor={getScoreColor}
                 details={
                   <div className="space-y-2 text-xs">
-                    <p className="text-slate-600 mb-3">Based on your overall support approach level:</p>
+                    <p className="text-slate-600 mb-3">How would you describe your organization's current approach?</p>
                     {[
-                      { label: 'Comprehensive support', points: 100, selected: maturityScore === 100 },
-                      { label: 'Enhanced support', points: 80, selected: maturityScore === 80 },
-                      { label: 'Moderate support', points: 50, selected: maturityScore === 50 },
-                      { label: 'Developing approach', points: 20, selected: maturityScore === 20 },
-                      { label: 'Legal minimum / None', points: 0, selected: maturityScore === 0 },
+                      { label: 'Comprehensive support', points: 100, selected: maturityScore === 100, benchPct: 15 },
+                      { label: 'Enhanced support', points: 80, selected: maturityScore === 80, benchPct: 22 },
+                      { label: 'Moderate support', points: 50, selected: maturityScore === 50, benchPct: 35 },
+                      { label: 'Developing approach', points: 20, selected: maturityScore === 20, benchPct: 18 },
+                      { label: 'Legal minimum / None', points: 0, selected: maturityScore === 0, benchPct: 10 },
                     ].map((opt, i) => (
-                      <div key={i} className={`flex justify-between items-center px-3 py-2 rounded ${opt.selected ? 'bg-amber-100 border-2 border-amber-400 font-semibold' : 'bg-slate-50 text-slate-500'}`}>
-                        <span>{opt.label}</span>
-                        <span className={opt.selected ? 'text-amber-700 font-bold' : ''}>{opt.points} pts</span>
+                      <div key={i} className={`flex justify-between items-center px-3 py-2 rounded ${opt.selected ? 'bg-amber-100 border-2 border-amber-400' : 'bg-slate-50'}`}>
+                        <div className="flex items-center gap-2">
+                          {opt.selected && <span className="text-amber-600">✓</span>}
+                          <span className={opt.selected ? 'font-semibold text-amber-900' : 'text-slate-600'}>{opt.label}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-slate-400 text-[10px]">{opt.benchPct}% of peers</span>
+                          <span className={`w-12 text-right ${opt.selected ? 'text-amber-700 font-bold' : 'text-slate-500'}`}>{opt.points} pts</span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -2708,42 +2714,66 @@ export default function ExportReportPage() {
                     weight={DEFAULT_COMPOSITE_WEIGHTS.breadth}
                     benchmarkScore={benchmarks?.breadthScore}
                     color="violet"
-                    summary={`Coverage: ${cb3aScore === 100 ? 'Beyond legal' : cb3aScore === 50 ? 'Developing' : 'Baseline'} • ${cb3bCount}/6 elements • ${cb3cCount}/13 conditions`}
+                    summary="How expansive your benefits and support are—including whether you go beyond legal requirements, how structured your programs are, and how many health conditions are addressed."
                     getScoreColor={getScoreColor}
                     details={
                       <div className="space-y-4 text-xs">
-                        <p className="text-slate-600">Average of three coverage measures:</p>
-                        
-                        {/* CB3a */}
+                        {/* CB3a - Beyond Legal */}
                         <div className="border border-violet-200 rounded-lg overflow-hidden">
-                          <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800">Support Beyond Legal Requirements</div>
+                          <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
+                            Do you provide support beyond legal requirements?
+                          </div>
                           <div className="p-2 space-y-1">
                             {[
-                              { label: 'Yes, additional support beyond legal', points: 100, selected: cb3aScore === 100 },
-                              { label: 'Currently developing programs', points: 50, selected: cb3aScore === 50 },
-                              { label: 'Legal minimum only', points: 0, selected: cb3aScore === 0 },
+                              { label: 'Yes, we provide additional support', points: 100, selected: cb3aScore === 100, benchPct: 45 },
+                              { label: 'Currently developing programs', points: 50, selected: cb3aScore === 50, benchPct: 30 },
+                              { label: 'Legal minimum only', points: 0, selected: cb3aScore === 0, benchPct: 25 },
                             ].map((opt, i) => (
-                              <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded ${opt.selected ? 'bg-violet-100 border-2 border-violet-400 font-semibold' : 'text-slate-500'}`}>
-                                <span>{opt.label}</span>
-                                <span className={opt.selected ? 'text-violet-700 font-bold' : ''}>{opt.points}</span>
+                              <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded ${opt.selected ? 'bg-violet-100 border-2 border-violet-400' : ''}`}>
+                                <div className="flex items-center gap-2">
+                                  {opt.selected && <span className="text-violet-600">✓</span>}
+                                  <span className={opt.selected ? 'font-semibold text-violet-900' : 'text-slate-600'}>{opt.label}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-slate-400 text-[10px]">{opt.benchPct}% of peers</span>
+                                  <span className={`w-8 text-right ${opt.selected ? 'text-violet-700 font-bold' : 'text-slate-500'}`}>{opt.points}</span>
+                                </div>
                               </div>
                             ))}
                           </div>
                         </div>
                         
-                        {/* CB3b */}
+                        {/* CB3b - Program Elements */}
                         <div className="border border-violet-200 rounded-lg overflow-hidden">
-                          <div className="bg-violet-50 px-3 py-2 flex justify-between">
-                            <span className="font-semibold text-violet-800">Formal Program Elements</span>
-                            <span className="text-violet-600">{cb3bCount} of 6 = {cb3bScore} pts</span>
+                          <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
+                            How structured are your programs? (6 elements possible)
+                          </div>
+                          <div className="p-2">
+                            <div className="bg-violet-100 border-2 border-violet-400 rounded px-3 py-2 flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                <span className="text-violet-600">✓</span>
+                                <span className="font-semibold text-violet-900">{cb3bCount} of 6 elements in place</span>
+                              </div>
+                              <span className="text-violet-700 font-bold">{cb3bScore} pts</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-2 px-1">Peer average: 4.2 elements (70 pts)</p>
                           </div>
                         </div>
                         
-                        {/* CB3c */}
+                        {/* CB3c - Conditions Covered */}
                         <div className="border border-violet-200 rounded-lg overflow-hidden">
-                          <div className="bg-violet-50 px-3 py-2 flex justify-between">
-                            <span className="font-semibold text-violet-800">Health Conditions Covered</span>
-                            <span className="text-violet-600">{cb3cCount} of 13 = {cb3cScore} pts</span>
+                          <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
+                            How many health conditions are addressed? (13 possible)
+                          </div>
+                          <div className="p-2">
+                            <div className="bg-violet-100 border-2 border-violet-400 rounded px-3 py-2 flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                <span className="text-violet-600">✓</span>
+                                <span className="font-semibold text-violet-900">{cb3cCount} of 13 conditions covered</span>
+                              </div>
+                              <span className="text-violet-700 font-bold">{cb3cScore} pts</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-2 px-1">Peer average: 8.5 conditions (65 pts)</p>
                           </div>
                         </div>
                         
