@@ -11,29 +11,108 @@ export async function loadUserDataFromSupabase(): Promise<boolean> {
       return false
     }
     
-    // Get their assessment record
-    const { data: assessment, error } = await supabase
-      .from('assessments')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
+    // Get survey_id from localStorage for fallback lookup
+    const surveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || ''
+    const normalizedAppId = surveyId.replace(/-/g, '').toUpperCase()
     
-    if (error) {
-      console.error('[LOAD] Error fetching assessment:', error)
-      return false
+    console.log('[LOAD] Looking for assessment...')
+    console.log('  user_id:', user.id)
+    console.log('  survey_id:', surveyId || 'none')
+    console.log('  app_id:', normalizedAppId || 'none')
+    
+    let assessment: any = null
+    let matchColumn = ''
+    let matchValue = ''
+    
+    // ============================================
+    // ATTEMPT 1: Try user_id
+    // ============================================
+    {
+      const { data, error } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      
+      if (!error && data) {
+        assessment = data
+        matchColumn = 'user_id'
+        matchValue = user.id
+        console.log('[LOAD] Found via user_id')
+      }
     }
     
+    // ============================================
+    // ATTEMPT 2: FALLBACK to survey_id
+    // ============================================
+    if (!assessment && surveyId) {
+      const { data, error } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('survey_id', surveyId)
+        .maybeSingle()
+      
+      if (!error && data) {
+        assessment = data
+        matchColumn = 'survey_id'
+        matchValue = surveyId
+        console.log('[LOAD] Found via survey_id fallback')
+        
+        // CRITICAL: Link user_id to this record for future syncs
+        if (!data.user_id) {
+          console.log('[LOAD] Linking user_id to record...')
+          await supabase
+            .from('assessments')
+            .update({ user_id: user.id })
+            .eq('survey_id', surveyId)
+          console.log('[LOAD] ✓ user_id linked!')
+        }
+      }
+    }
+    
+    // ============================================
+    // ATTEMPT 3: FALLBACK to app_id
+    // ============================================
+    if (!assessment && normalizedAppId) {
+      const { data, error } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('app_id', normalizedAppId)
+        .maybeSingle()
+      
+      if (!error && data) {
+        assessment = data
+        matchColumn = 'app_id'
+        matchValue = normalizedAppId
+        console.log('[LOAD] Found via app_id fallback')
+        
+        // CRITICAL: Link user_id to this record for future syncs
+        if (!data.user_id) {
+          console.log('[LOAD] Linking user_id to record...')
+          await supabase
+            .from('assessments')
+            .update({ user_id: user.id })
+            .eq('app_id', normalizedAppId)
+          console.log('[LOAD] ✓ user_id linked!')
+        }
+      }
+    }
+    
+    // ============================================
+    // NO RECORD FOUND
+    // ============================================
     if (!assessment) {
-      console.log('[LOAD] No assessment found')
+      console.log('[LOAD] No assessment found via any method')
       return false
     }
     
-    console.log('[LOAD] Assessment found, loading data into localStorage...')
+    console.log('[LOAD] Assessment found via', matchColumn, '- loading data into localStorage...')
     
     // Load company info
     if (assessment.company_name) {
       localStorage.setItem('login_company_name', assessment.company_name)
-      console.log('  ✓ Loaded company_name')
+      localStorage.setItem('company_name', assessment.company_name)
+      console.log('  ✓ Loaded company_name:', assessment.company_name)
     }
     
     if (assessment.app_id) {
@@ -54,8 +133,10 @@ export async function loadUserDataFromSupabase(): Promise<boolean> {
     
     dataFields.forEach(field => {
       if (assessment[field] && typeof assessment[field] === 'object') {
-        localStorage.setItem(field, JSON.stringify(assessment[field]))
-        console.log(`  ✓ Loaded ${field}`)  // ✅ FIXED - Added opening backtick
+        // Handle employee-impact-assessment naming mismatch
+        const localKey = field === 'employee_impact_data' ? 'employee-impact-assessment_data' : field
+        localStorage.setItem(localKey, JSON.stringify(assessment[field]))
+        console.log(`  ✓ Loaded ${field}`)
       }
     })
     
@@ -73,8 +154,10 @@ export async function loadUserDataFromSupabase(): Promise<boolean> {
     
     completeFields.forEach(field => {
       if (assessment[field] === true) {
-        localStorage.setItem(field, 'true')
-        console.log(`  ✓ Loaded ${field}: true`)  // ✅ FIXED - Added opening backtick
+        // Handle employee-impact-assessment naming mismatch
+        const localKey = field === 'employee_impact_complete' ? 'employee-impact-assessment_complete' : field
+        localStorage.setItem(localKey, 'true')
+        console.log(`  ✓ Loaded ${field}: true`)
       }
     })
     
