@@ -2518,19 +2518,137 @@ export default function ExportReportPage() {
             <h3 className="font-semibold text-slate-900">Score Composition</h3>
           </div>
           <div className="px-10 py-6">
-            <div className="grid grid-cols-4 gap-8">
-              {[
-                { label: 'Composite Score', score: compositeScore, weight: null, isTotal: true },
-                { label: 'Weighted Dimension Score', score: weightedDimScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.weightedDim}%` },
-                { label: 'Program Maturity', score: maturityScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.maturity}%` },
-                { label: 'Support Breadth', score: breadthScore, weight: `${DEFAULT_COMPOSITE_WEIGHTS.breadth}%` },
-              ].map((item, idx) => (
-                <div key={idx} className={`text-center ${item.isTotal ? 'bg-slate-50 rounded-lg p-4 border-2 border-slate-200' : ''}`}>
-                  <p className="text-4xl font-bold" style={{ color: getScoreColor(item.score ?? 0) }}>{item.score ?? '—'}</p>
-                  <p className="text-sm text-slate-600 mt-2">{item.label}</p>
-                  {item.weight && <p className="text-xs text-slate-400">Weight: {item.weight}</p>}
+            {/* Visual Formula Row */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              {/* Composite Score (Result) */}
+              <div className="text-center bg-slate-50 rounded-xl p-5 border-2 border-slate-300 shadow-sm min-w-[140px]">
+                <p className="text-5xl font-bold" style={{ color: getScoreColor(compositeScore ?? 0) }}>{compositeScore ?? '—'}</p>
+                <p className="text-sm font-semibold text-slate-700 mt-2">Composite Score</p>
+              </div>
+              
+              {/* Equals Sign */}
+              <div className="text-3xl font-bold text-slate-400">=</div>
+              
+              {/* Weighted Dimension Score */}
+              <div className="text-center min-w-[130px]">
+                <p className="text-4xl font-bold" style={{ color: getScoreColor(weightedDimScore ?? 0) }}>{weightedDimScore ?? '—'}</p>
+                <p className="text-sm text-slate-600 mt-1">Weighted Dimensions</p>
+                <p className="text-xs text-slate-400">× {DEFAULT_COMPOSITE_WEIGHTS.weightedDim}%</p>
+              </div>
+              
+              {/* Plus Sign */}
+              <div className="text-2xl font-bold text-slate-400">+</div>
+              
+              {/* Program Maturity */}
+              <div className="text-center min-w-[130px]">
+                <p className="text-4xl font-bold" style={{ color: getScoreColor(maturityScore ?? 0) }}>{maturityScore ?? '—'}</p>
+                <p className="text-sm text-slate-600 mt-1">Program Maturity</p>
+                <p className="text-xs text-slate-400">× {DEFAULT_COMPOSITE_WEIGHTS.maturity}%</p>
+              </div>
+              
+              {/* Plus Sign */}
+              <div className="text-2xl font-bold text-slate-400">+</div>
+              
+              {/* Support Breadth */}
+              <div className="text-center min-w-[130px]">
+                <p className="text-4xl font-bold" style={{ color: getScoreColor(breadthScore ?? 0) }}>{breadthScore ?? '—'}</p>
+                <p className="text-sm text-slate-600 mt-1">Support Breadth</p>
+                <p className="text-xs text-slate-400">× {DEFAULT_COMPOSITE_WEIGHTS.breadth}%</p>
+              </div>
+            </div>
+            
+            {/* Component Explanations */}
+            <div className="grid grid-cols-3 gap-6 pt-6 border-t border-slate-100">
+              {/* Weighted Dimension Score Explanation */}
+              <div className="bg-slate-50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold text-slate-800 text-sm">Weighted Dimension Score</h4>
+                  <span className="text-xs text-slate-500">{DEFAULT_COMPOSITE_WEIGHTS.weightedDim}% of total</span>
                 </div>
-              ))}
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  The average of all 13 dimension scores, weighted by strategic importance. Dimensions like Medical Leave and Insurance carry more weight than Communication.
+                </p>
+                {benchmarks?.compositeScore !== undefined && (
+                  <div className="mt-3 pt-3 border-t border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-slate-500">vs. Benchmark</span>
+                      {(() => {
+                        const benchDimScore = benchmarks?.weightedDimScore ?? benchmarks?.compositeScore;
+                        const diff = benchDimScore ? (weightedDimScore ?? 0) - benchDimScore : null;
+                        return diff !== null ? (
+                          <span className={`text-xs font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            {diff >= 0 ? '+' : ''}{diff} pts ({benchDimScore} avg)
+                          </span>
+                        ) : <span className="text-xs text-slate-400">—</span>;
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Program Maturity Explanation */}
+              <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold text-amber-800 text-sm">Program Maturity</h4>
+                  <span className="text-xs text-amber-600">{DEFAULT_COMPOSITE_WEIGHTS.maturity}% of total</span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Measures how many programs you <span className="font-medium">currently offer</span> vs. still planning or assessing. Higher scores mean more programs are already implemented and available to employees.
+                </p>
+                <div className="mt-3 pt-3 border-t border-amber-200">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500">Your status:</span>
+                    <span className="font-medium text-slate-700">
+                      {currentlyOffering} of {totalElements} currently offered ({Math.round((currentlyOffering / Math.max(totalElements, 1)) * 100)}%)
+                    </span>
+                  </div>
+                  {benchmarks?.maturityScore !== undefined && (
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-xs text-slate-500">vs. Benchmark</span>
+                      {(() => {
+                        const diff = (maturityScore ?? 0) - benchmarks.maturityScore;
+                        return (
+                          <span className={`text-xs font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            {diff >= 0 ? '+' : ''}{diff} pts ({benchmarks.maturityScore} avg)
+                          </span>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Support Breadth Explanation */}
+              <div className="bg-violet-50 rounded-lg p-4 border border-violet-100">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold text-violet-800 text-sm">Support Breadth</h4>
+                  <span className="text-xs text-violet-600">{DEFAULT_COMPOSITE_WEIGHTS.breadth}% of total</span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Measures coverage across <span className="font-medium">all 13 dimensions</span>. Rewards organizations that provide at least some support in every area, rather than excellence in a few areas with blind spots elsewhere.
+                </p>
+                <div className="mt-3 pt-3 border-t border-violet-200">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500">Your coverage:</span>
+                    <span className="font-medium text-slate-700">
+                      {dimensionAnalysis.filter(d => d.score >= 20).length} of 13 dimensions with meaningful support
+                    </span>
+                  </div>
+                  {benchmarks?.breadthScore !== undefined && (
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-xs text-slate-500">vs. Benchmark</span>
+                      {(() => {
+                        const diff = (breadthScore ?? 0) - benchmarks.breadthScore;
+                        return (
+                          <span className={`text-xs font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            {diff >= 0 ? '+' : ''}{diff} pts ({benchmarks.breadthScore} avg)
+                          </span>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
