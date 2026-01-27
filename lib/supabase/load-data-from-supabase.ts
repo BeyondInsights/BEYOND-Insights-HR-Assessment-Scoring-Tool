@@ -9,7 +9,7 @@
  */
 
 import { supabase } from './client'
-import { runRescueGate } from './rescue-gate-v3'
+import { runRescueGate } from './rescue-gate'
 
 // Survey IDs that need rescue / DB-first mode
 const RESCUE_SURVEY_IDS = [
