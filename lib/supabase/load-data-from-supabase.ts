@@ -121,6 +121,8 @@ function writeToLocalStorage(dbRow: Record<string, any>): void {
   // Auth completed flag
   if (dbRow.auth_completed) {
     localStorage.setItem('auth_completed', 'true')
+  } else {
+    localStorage.removeItem('auth_completed')
   }
   
   // Section completion flags

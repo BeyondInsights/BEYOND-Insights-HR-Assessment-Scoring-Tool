@@ -274,15 +274,16 @@ export default function LoginPage() {
       setSuccessMessage('Loading your team\'s progress...')
       const loaded = await loadSharedFPData(trimmedSurveyId)
       
-      if (loaded) {
-        setSuccessMessage('✅ Found existing progress! Redirecting...')
-      } else {
-        setSuccessMessage('✅ Access confirmed! Redirecting...')
-      }
+      // Check if auth completed
+      const authCompleted = localStorage.getItem('auth_completed') === 'true'
       
-      setTimeout(() => {
-        router.push('/letter')
-      }, 1500)
+      if (authCompleted) {
+        setSuccessMessage('✅ Welcome back! Redirecting to dashboard...')
+        setTimeout(() => router.push('/dashboard'), 1500)
+      } else {
+        setSuccessMessage('✅ Found existing progress! Redirecting...')
+        setTimeout(() => router.push('/letter'), 1500)
+      }
       setLoading(false)
       return
     }
@@ -457,14 +458,18 @@ export default function LoginPage() {
           if (companyName) localStorage.setItem('login_company_name', companyName)
           setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
           setTimeout(() => {
-            router.push('/letter')
+            // Check if somehow already has auth_completed (edge case)
+            const authDone = localStorage.getItem('auth_completed') === 'true'
+            router.push(authDone ? '/dashboard' : '/letter')
           }, 1500)
         }
       } catch (err) {
         console.error('Error handling FP login:', err)
+        // On error, check if they've already done auth
+        const authDone = localStorage.getItem('auth_completed') === 'true'
         setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
         setTimeout(() => {
-          router.push('/letter')
+          router.push(authDone ? '/dashboard' : '/letter')
         }, 1500)
       }
       
@@ -526,11 +531,15 @@ export default function LoginPage() {
             
             setSuccessMessage(result.message)
             setTimeout(() => {
-              if (!assessment?.auth_completed) {
+              // Check BOTH Supabase AND localStorage for auth_completed
+              const dbAuthCompleted = assessment?.auth_completed === true
+              const localAuthCompleted = localStorage.getItem('auth_completed') === 'true'
+              
+              if (dbAuthCompleted || localAuthCompleted) {
+                router.push('/dashboard')
+              } else {
                 router.push('/letter')
-                return
               }
-              router.push('/dashboard')
             }, 1000)
           }
         } else if (result.mode === 'new') {
@@ -556,7 +565,9 @@ export default function LoginPage() {
 
   const handleProceedToSurvey = () => {
     localStorage.setItem('user_authenticated', 'true')
-    router.push('/letter')
+    // If auth already completed (returning user), go to dashboard
+    const authDone = localStorage.getItem('auth_completed') === 'true'
+    router.push(authDone ? '/dashboard' : '/letter')
   }
     
   return (
