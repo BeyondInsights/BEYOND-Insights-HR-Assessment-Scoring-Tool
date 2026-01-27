@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Info, X } from "lucide-react";
+import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -195,7 +196,7 @@ export default function CrossDimensionalPage() {
     return null;
   };
 
-  const next = () => {
+  const next = async () => {
     const error = validateStep();
     if (error) {
       setErrors(error);
@@ -207,6 +208,7 @@ export default function CrossDimensionalPage() {
       setErrors("");
     } else {
       localStorage.setItem("cross_dimensional_complete", "true");
+      await forceSyncNow();  // Force sync before navigation
       router.push("/dashboard");
     }
   };
@@ -583,8 +585,9 @@ export default function CrossDimensionalPage() {
               You've successfully completed the cross-dimensional assessment.
             </p>
             <button
-              onClick={() => { 
-                localStorage.setItem("cross_dimensional_complete", "true"); 
+              onClick={async () => { 
+                localStorage.setItem("cross_dimensional_complete", "true");
+                await forceSyncNow();  // Force sync before navigation
                 router.push("/dashboard"); 
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
