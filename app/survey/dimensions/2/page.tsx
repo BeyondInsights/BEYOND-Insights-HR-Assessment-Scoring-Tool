@@ -147,7 +147,7 @@ export default function Dimension2Page() {
   };
 
   // Navigation
-  const next = () => {
+  const next = async () => {
     const error = validateStep();
     if (error) {
       setErrors(error);
@@ -172,6 +172,7 @@ export default function Dimension2Page() {
       setStep(4); // Completion
     } else if (step === 4) {
       localStorage.setItem("dimension2_complete", "true");
+      await forceSyncNow();  // Force sync before navigation
       router.push("/dashboard");
       return;
     }

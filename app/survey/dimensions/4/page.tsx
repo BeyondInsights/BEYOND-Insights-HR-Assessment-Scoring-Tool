@@ -168,7 +168,7 @@ export default function Dimension4Page() {
     }
   };
 
-  const next = () => {
+  const next = async () => {
     const error = validateStep();
     if (error) {
       setErrors(error);
@@ -195,6 +195,7 @@ export default function Dimension4Page() {
       setStep(6);
     } else if (step === 6) {
       localStorage.setItem("dimension4_complete", "true");
+      await forceSyncNow();  // Force sync before navigation
       router.push("/dashboard");
       return;
     }

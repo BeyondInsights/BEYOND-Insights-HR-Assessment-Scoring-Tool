@@ -147,7 +147,7 @@ export default function Dimension3Page() {
   };
 
   // Navigation
-  const next = () => {
+  const next = async () => {
     const error = validateStep();
     if (error) {
       setErrors(error);
@@ -191,6 +191,7 @@ export default function Dimension3Page() {
       setStep(6); // Completion
     } else if (step === 6) {
       localStorage.setItem("dimension3_complete", "true");
+      await forceSyncNow();  // Force sync before navigation
       router.push("/dashboard");
       return;
     }

@@ -145,7 +145,7 @@ const getTotalSteps = () => {
     }
   };
 
-const next = () => {
+const next = async () => {
   const error = validateStep();
   if (error) {
     setErrors(error);
@@ -174,6 +174,7 @@ const next = () => {
     setStep(5); // Go to completion
   } else if (step === 5) {
     localStorage.setItem("dimension11_complete", "true");
+    await forceSyncNow();  // Force sync before navigation
     router.push("/dashboard");
     return;
   }

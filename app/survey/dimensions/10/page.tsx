@@ -145,7 +145,7 @@ export default function Dimension10Page() {
     }
   };
 
-  const next = () => {
+  const next = async () => {
     const error = validateStep();
     if (error) {
       setErrors(error);
@@ -164,6 +164,7 @@ export default function Dimension10Page() {
       setStep(4); // Go to completion
     } else if (step === 4) {
       localStorage.setItem("dimension10_complete", "true");
+      await forceSyncNow();  // Force sync before navigation
       router.push("/dashboard");
       return;
     }

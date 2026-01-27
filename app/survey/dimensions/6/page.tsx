@@ -159,7 +159,7 @@ export default function Dimension6Page() {
     }
   };
 
-  const next = () => {
+  const next = async () => {
     const error = validateStep();
     if (error) {
       setErrors(error);
@@ -184,6 +184,7 @@ export default function Dimension6Page() {
       setStep(5);
     } else if (step === 5) {
       localStorage.setItem("dimension6_complete", "true");
+      await forceSyncNow();  // Force sync before navigation
       router.push("/dashboard");
       return;
     }

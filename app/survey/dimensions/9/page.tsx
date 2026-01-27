@@ -140,7 +140,7 @@ const getTotalSteps = () => {
     }
   };
 
-  const next = () => {
+  const next = async () => {
     const error = validateStep();
     if (error) {
       setErrors(error);
@@ -159,6 +159,7 @@ const getTotalSteps = () => {
       setStep(4); // Go to completion
     } else if (step === 4) {
       localStorage.setItem("dimension9_complete", "true");
+      await forceSyncNow();  // Force sync before navigation
       router.push("/dashboard");
       return;
     }

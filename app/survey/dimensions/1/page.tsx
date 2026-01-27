@@ -170,7 +170,7 @@ export default function Dimension1Page() {
   };
 
   // Navigation
-  const next = () => {
+  const next = async () => {
     const error = validateStep();
     if (error) {
       setErrors(error);
@@ -236,6 +236,7 @@ export default function Dimension1Page() {
       setStep(10);
     } else if (step === 10) {
       localStorage.setItem("dimension1_complete", "true");
+      await forceSyncNow();  // Force sync before navigation
       router.push("/dashboard");
       return;
     }

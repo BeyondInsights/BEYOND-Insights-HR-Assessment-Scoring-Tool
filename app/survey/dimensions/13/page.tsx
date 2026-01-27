@@ -137,7 +137,7 @@ export default function Dimension13Page() {
     }
   };
 
-  const next = () => {
+  const next = async () => {
     const error = validateStep();
     if (error) {
       setErrors(error);
@@ -158,6 +158,7 @@ export default function Dimension13Page() {
       setStep(5);
     } else if (step === 5) {
       localStorage.setItem("dimension13_complete", "true");
+      await forceSyncNow();  // Force sync before navigation
       router.push("/dashboard");
       return;
     }
