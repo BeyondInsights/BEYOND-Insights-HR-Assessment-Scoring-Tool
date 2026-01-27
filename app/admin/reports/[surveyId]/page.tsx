@@ -1229,12 +1229,13 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
         <p className="text-slate-500 mt-1">Click any dimension to explore element-level details and benchmark comparisons</p>
       </div>
       
-      {/* Dimension Rows - Clean Horizontal Layout */}
+      {/* Dimension Rows - Split into two containers for PPT */}
+      {/* Dimensions 1-7 */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
-        {sortedDims.map((d, idx) => {
+        {sortedDims.filter(d => d.dim <= 7).map((d, idx, arr) => {
           const isSelected = selectedDim === d.dim;
           const diff = d.benchmark !== null ? d.score - d.benchmark : null;
-          const isLast = idx === sortedDims.length - 1;
+          const isLast = idx === arr.length - 1;
           
           return (
             <div key={d.dim}>
@@ -1431,6 +1432,194 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                       Benchmark based on all participating companies
                     </p>
                   </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Dimensions 8-13 */}
+      <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+        {sortedDims.filter(d => d.dim >= 8).map((d, idx, arr) => {
+          const isSelected = selectedDim === d.dim;
+          const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+          const isLast = idx === arr.length - 1;
+          
+          return (
+            <div key={d.dim}>
+              <button
+                onClick={() => setSelectedDim(isSelected ? null : d.dim)}
+                className={`w-full text-left transition-all duration-200 ${
+                  isSelected 
+                    ? 'bg-slate-800 text-white' 
+                    : 'bg-white hover:bg-slate-50'
+                } ${!isLast && !isSelected ? 'border-b border-slate-100' : ''}`}
+              >
+                <div className="flex items-center px-6 py-4">
+                  {/* Dimension Number Badge */}
+                  <div 
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
+                    style={{ backgroundColor: isSelected ? '#6366F1' : d.tier.color }}
+                  >
+                    {d.dim}
+                  </div>
+                  
+                  {/* Full Dimension Name */}
+                  <div className="ml-4 flex-1 min-w-0">
+                    <p className={`font-semibold ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                      {d.name}
+                    </p>
+                    <p className={`text-xs mt-0.5 ${isSelected ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Weight: {d.weight}%
+                    </p>
+                  </div>
+                  
+                  {/* Score Bar */}
+                  <div className="w-48 mx-6 hidden md:block">
+                    <div className={`h-2 rounded-full overflow-hidden ${isSelected ? 'bg-slate-600' : 'bg-slate-100'}`}>
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${d.score}%`, 
+                          backgroundColor: isSelected ? '#A5B4FC' : d.tier.color 
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Score Display */}
+                  <div className="text-right shrink-0 w-20">
+                    <p className={`text-2xl font-bold ${isSelected ? 'text-white' : ''}`} style={{ color: isSelected ? undefined : d.tier.color }}>
+                      {d.score}
+                    </p>
+                    {diff !== null && (
+                      <p className={`text-xs mt-0.5 ${
+                        isSelected 
+                          ? (diff >= 0 ? 'text-emerald-300' : 'text-amber-300')
+                          : (diff >= 0 ? 'text-emerald-600' : 'text-amber-600')
+                      }`}>
+                        {diff >= 0 ? '+' : ''}{diff} vs avg
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Expand Arrow */}
+                  <div className={`ml-4 transition-transform ${isSelected ? 'rotate-180' : ''}`}>
+                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-400' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </button>
+              
+              {/* Expanded Detail Panel */}
+              {isSelected && selectedData && (
+                <div className="bg-slate-50 border-t border-slate-200 p-6">
+                  {/* Custom Insight */}
+                  <div className="bg-white rounded-lg p-4 mb-6 border border-slate-200">
+                    {isEditing ? (
+                      <textarea
+                        value={customObservations[`dim${d.dim}_insight`] ?? selectedData.insight}
+                        onChange={(e) => setCustomObservations?.({ ...customObservations, [`dim${d.dim}_insight`]: e.target.value })}
+                        className="w-full text-slate-700 text-sm leading-relaxed bg-amber-50 border border-amber-300 rounded p-2 min-h-[60px] focus:outline-none focus:ring-1 focus:ring-amber-400"
+                      />
+                    ) : (
+                      <p className="text-slate-700 text-sm leading-relaxed">
+                        {customObservations[`dim${d.dim}_insight`] || selectedData.insight}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Element Details Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b-2 border-slate-200">
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Status</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.currently.bg }}>Offering</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.planning.bg }}>Planning</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.assessing.bg }}>Assessing</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.notAble.bg }}>Not Offering</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Observation</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedData.elements.map((el: any, elIdx: number) => {
+                          const bench = elemBench[el.name] || { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 0 };
+                          const total = bench.total || 1;
+                          const statusInfo = STATUS[el.category as keyof typeof STATUS] || STATUS.notAble;
+                          const obsKey = `dim${d.dim}_${el.name}`;
+                          const defaultObs = getDefaultObservation(el, bench);
+                          
+                          return (
+                            <tr key={elIdx} className={`border-b border-slate-100 ${elIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                              <td className="px-4 py-3">
+                                <span className="text-sm font-medium text-slate-700">{el.name}</span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span 
+                                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                                  style={{ 
+                                    backgroundColor: statusInfo.light,
+                                    color: statusInfo.text
+                                  }}
+                                >
+                                  {statusInfo.label}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-center border-l border-slate-100">
+                                <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                  statusInfo.key === 'currently' ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'bg-slate-50'
+                                }`} style={{ color: STATUS.currently.bg }}>
+                                  {Math.round((bench.currently / total) * 100)}%
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                  statusInfo.key === 'planning' ? 'bg-blue-100 ring-2 ring-blue-500' : 'bg-slate-50'
+                                }`} style={{ color: STATUS.planning.bg }}>
+                                  {Math.round((bench.planning / total) * 100)}%
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                  statusInfo.key === 'assessing' ? 'bg-amber-100 ring-2 ring-amber-500' : 'bg-slate-50'
+                                }`} style={{ color: STATUS.assessing.bg }}>
+                                  {Math.round((bench.assessing / total) * 100)}%
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                  statusInfo.key === 'notAble' ? 'bg-red-100 ring-2 ring-red-500' : 'bg-slate-50'
+                                }`} style={{ color: STATUS.notAble.bg }}>
+                                  {Math.round((bench.notAble / total) * 100)}%
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    value={customObservations[obsKey] ?? defaultObs}
+                                    onChange={(e) => setCustomObservations?.({ ...customObservations, [obsKey]: e.target.value })}
+                                    className="w-full text-xs text-slate-600 bg-amber-50 border border-amber-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                  />
+                                ) : (
+                                  <span className="text-xs text-slate-500">{customObservations[obsKey] || defaultObs}</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Benchmark note */}
+                  <p className="text-xs text-slate-400 mt-3 text-right">
+                    Benchmark based on all participating companies
+                  </p>
                 </div>
               )}
             </div>
