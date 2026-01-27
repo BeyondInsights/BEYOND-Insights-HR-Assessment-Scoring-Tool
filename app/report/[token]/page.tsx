@@ -1368,6 +1368,7 @@ export default function InteractiveReportPage() {
     setElementDetails(null);
     setPercentileRank(null);
     setTotalCompanies(0);
+    setAuthenticated(false);
     
     async function loadData() {
       try {
@@ -1377,8 +1378,7 @@ export default function InteractiveReportPage() {
           return;
         }
         
-        // Use Netlify function to bypass RLS and fetch assessment by public_token
-        // This is necessary because the anonymous Supabase key cannot access assessments via public_token
+        // Step 1: Check if token exists and get metadata (NO password returned)
         const response = await fetch(`/.netlify/functions/get-assessment-by-token?token=${encodeURIComponent(token)}`);
         
         if (!response.ok) {
@@ -1389,47 +1389,20 @@ export default function InteractiveReportPage() {
           return;
         }
         
-        const { assessment, allAssessments } = await response.json();
+        const metadata = await response.json();
         
-        if (!assessment) {
+        if (!metadata.found) {
           setError('Report not found or link has expired');
           setLoading(false);
           return;
         }
         
-        setCompany(assessment);
-        
-        const { scores, elements } = calculateCompanyScores(assessment);
-        setCompanyScores(scores);
-        setElementDetails(elements);
-        
-        if (allAssessments) {
-          const benchmarkScores = calculateBenchmarks(allAssessments);
-          setBenchmarks(benchmarkScores);
-          
-          // Calculate element-level benchmarks for drill-down
-          const elemBenchmarks = calculateElementBenchmarks(allAssessments);
-          setElementBenchmarks(elemBenchmarks);
-          
-          const completeAssessments = allAssessments.filter(a => {
-            let completedDims = 0;
-            for (let dim = 1; dim <= 13; dim++) {
-              const mainGrid = a[`dimension${dim}_data`]?.[`d${dim}a`];
-              if (mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0) completedDims++;
-            }
-            return completedDims === 13;
-          });
-          
-          const allComposites = completeAssessments.map(a => {
-            try { return calculateCompanyScores(a).scores.compositeScore; } catch { return null; }
-          }).filter(s => s !== null) as number[];
-          
-          if (allComposites.length > 0 && scores.compositeScore) {
-            const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
-            setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
-            setTotalCompanies(allComposites.length);
-          }
-        }
+        // Store minimal metadata for password screen
+        setCompany({ 
+          company_name: metadata.companyName,
+          survey_id: metadata.surveyId,
+          passwordRequired: metadata.passwordRequired 
+        });
         
         setLoading(false);
       } catch (err) {
@@ -1443,14 +1416,93 @@ export default function InteractiveReportPage() {
     else { setError('No report token provided'); setLoading(false); }
   }, [token]);
   
-  // Handle password authentication
-  const handleAuthenticate = () => {
-    if (!company) return;
-    if (passwordInput === company.public_password) {
+  // Handle password authentication - NOW VERIFIES SERVER-SIDE
+  const handleAuthenticate = async () => {
+    if (!token || !passwordInput) return;
+    
+    setPasswordError(null);
+    setLoading(true);
+    
+    try {
+      // Step 2: Verify password SERVER-SIDE (password never sent to client)
+      const verifyResponse = await fetch('/.netlify/functions/verify-report-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: passwordInput }),
+      });
+      
+      if (!verifyResponse.ok) {
+        const errorData = await verifyResponse.json().catch(() => ({}));
+        if (verifyResponse.status === 401) {
+          setPasswordError('Incorrect password');
+        } else {
+          setPasswordError(errorData.error || 'Verification failed');
+        }
+        setLoading(false);
+        return;
+      }
+      
+      const { assessmentId, surveyId, companyName } = await verifyResponse.json();
+      
+      // Step 3: Fetch full report data using assessmentId
+      const reportResponse = await fetch('/.netlify/functions/get-public-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessmentId, surveyId }),
+      });
+      
+      if (!reportResponse.ok) {
+        const errorData = await reportResponse.json().catch(() => ({}));
+        setError(errorData.error || 'Failed to load report');
+        setLoading(false);
+        return;
+      }
+      
+      const reportData = await reportResponse.json();
+      
+      // Set full company data
+      setCompany(reportData.assessment);
+      
+      // Calculate scores
+      const { scores, elements } = calculateCompanyScores(reportData.assessment);
+      setCompanyScores(scores);
+      setElementDetails(elements);
+      
+      // Process benchmarks if available
+      if (reportData.allAssessments) {
+        const benchmarkScores = calculateBenchmarks(reportData.allAssessments);
+        setBenchmarks(benchmarkScores);
+        
+        const elemBenchmarks = calculateElementBenchmarks(reportData.allAssessments);
+        setElementBenchmarks(elemBenchmarks);
+        
+        const completeAssessments = reportData.allAssessments.filter((a: any) => {
+          let completedDims = 0;
+          for (let dim = 1; dim <= 13; dim++) {
+            const mainGrid = a[`dimension${dim}_data`]?.[`d${dim}a`];
+            if (mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0) completedDims++;
+          }
+          return completedDims === 13;
+        });
+        
+        const allComposites = completeAssessments.map((a: any) => {
+          try { return calculateCompanyScores(a).scores.compositeScore; } catch { return null; }
+        }).filter((s: any) => s !== null) as number[];
+        
+        if (allComposites.length > 0 && scores.compositeScore) {
+          const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
+          setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
+          setTotalCompanies(allComposites.length);
+        }
+      }
+      
       setAuthenticated(true);
-      setPasswordError(null);
-    } else {
-      setPasswordError('Incorrect password');
+      setLoading(false);
+      
+    } catch (err) {
+      console.error('Error during authentication:', err);
+      setPasswordError('Authentication failed. Please try again.');
+      setLoading(false);
     }
   };
 
