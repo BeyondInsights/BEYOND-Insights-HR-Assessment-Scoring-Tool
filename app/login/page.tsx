@@ -63,8 +63,19 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
     if (data.company_name) localStorage.setItem('login_company_name', data.company_name)
     
     // Load COMPLETION FLAGS
-    if (data.auth_completed) {
+    // ============================================
+    // SMART AUTH_COMPLETED INFERENCE
+    // If survey_submitted is true OR all major sections are complete, 
+    // treat auth_completed as true even if the flag is false in DB
+    // This handles data inconsistency cases
+    // ============================================
+    const inferredAuthComplete = data.auth_completed || 
+      data.survey_submitted || 
+      (data.firmographics_complete && data.general_benefits_complete && data.current_support_complete && data.dimension1_complete)
+    
+    if (inferredAuthComplete) {
       localStorage.setItem('auth_completed', 'true')
+      console.log('  ✓ Set auth_completed: true (inferred:', !data.auth_completed, ')')
     } else {
       localStorage.removeItem('auth_completed')
     }
@@ -113,7 +124,7 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
     }
     
     console.log('✅ User data loaded successfully from Supabase')
-    return { found: true, authCompleted: !!data.auth_completed }
+    return { found: true, authCompleted: inferredAuthComplete }
     
   } catch (error) {
     console.error('Error in checkAndLoadUserByAppId:', error)
