@@ -1083,6 +1083,7 @@ interface DrillDownProps {
   customObservations?: Record<string, string>;
   setCustomObservations?: (obs: Record<string, string>) => void;
   isEditing?: boolean;
+  showExtras?: boolean;
 }
 
 // Collapsible Score Component Card for Score Composition section
@@ -1170,7 +1171,7 @@ function ScoreComponentCard({
   );
 }
 
-function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor, benchmarkCompanyCount, customObservations = {}, setCustomObservations, isEditing = false }: DrillDownProps) {
+function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor, benchmarkCompanyCount, customObservations = {}, setCustomObservations, isEditing = false, showExtras = false }: DrillDownProps) {
   const sortedDims = [...dimensionAnalysis].sort((a, b) => a.dim - b.dim);
   const selectedData = selectedDim ? sortedDims.find(d => d.dim === selectedDim) : null;
   const elemBench = selectedDim ? elementBenchmarks[selectedDim] || {} : {};
@@ -1426,6 +1427,262 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                         </tbody>
                       </table>
                     </div>
+                    
+                    {/* Geographic Multiplier & Follow-up Sections */}
+                    {(
+                    <div className="mt-6 space-y-4">
+                      {/* Geographic Multiplier */}
+                      <div className="bg-white rounded-lg border border-slate-200 p-4">
+                        <h4 className="text-xs font-semibold text-purple-700 mb-2 uppercase tracking-wide">Geographic Multiplier</h4>
+                        <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                          <span className="w-16 text-center">Benchmark</span>
+                          <span className="w-14 text-right">Multiplier</span>
+                        </div>
+                        <div className="space-y-0.5">
+                          {(() => {
+                            const geoText = selectedData?.geoResponse ? String(selectedData.geoResponse).toLowerCase() : '';
+                            const isConsistent = geoText.includes('consistent');
+                            const isVaries = geoText.includes('var');
+                            const isSelect = geoText.includes('select');
+                            const isSingleCountry = !selectedData?.geoResponse || selectedData?.geoResponse === null;
+                            
+                            const options = [
+                              { label: 'Multi-country + Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 42 },
+                              { label: 'Single-country (geo question not applicable)', multiplier: 'x1.00', selected: isSingleCountry, color: 'text-emerald-600', benchPct: 35 },
+                              { label: 'Multi-country + Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 15 },
+                              { label: 'Multi-country + Only available in select locations', multiplier: 'x0.75', selected: isSelect, color: 'text-red-500', benchPct: 8 },
+                            ];
+                            
+                            return options.map((opt, i) => (
+                              <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : 'bg-slate-50'}`}>
+                                <div className="flex items-center gap-2">
+                                  {opt.selected && <span className="text-purple-600">✓</span>}
+                                  <span className={opt.selected ? 'font-semibold text-purple-900' : 'text-slate-700'}>{opt.label}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                  <span className={`font-semibold w-14 text-right ${opt.color}`}>{opt.multiplier}</span>
+                                </div>
+                              </div>
+                            ));
+                          })()}
+                        </div>
+                        <p className="text-[10px] text-slate-400 italic mt-2">Note: Single-country companies receive 1.0 because the geo question does not apply.</p>
+                      </div>
+                      
+                      {/* D1 Follow-up */}
+                      {selectedData?.dim === 1 && (
+                        <div className="bg-white rounded-lg border border-slate-200 p-4">
+                          <h4 className="text-xs font-semibold text-blue-700 mb-3 uppercase tracking-wide">D1: Medical Leave Follow-ups</h4>
+                          
+                          {/* USA Question */}
+                          <p className="text-xs text-slate-600 mb-2">D1_1 (USA): "How many weeks of 100% paid medical leave do you offer employees based in the USA?"</p>
+                          <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                            <span className="w-16 text-center">Benchmark</span>
+                            <span className="w-14 text-right">Points</span>
+                          </div>
+                          <div className="space-y-0.5 mb-4">
+                            {(() => {
+                              const usaScore = selectedData?.followUpRaw?.d1_1_usa_score;
+                              return [
+                                { label: '13 or more weeks', points: 100, benchPct: 28 },
+                                { label: '9 to less than 13 weeks', points: 70, benchPct: 22 },
+                                { label: '5 to less than 9 weeks', points: 40, benchPct: 18 },
+                                { label: '3 to less than 5 weeks', points: 20, benchPct: 15 },
+                                { label: '1 to less than 3 weeks', points: 10, benchPct: 10 },
+                                { label: 'Does not apply / None', points: 0, benchPct: 7 },
+                              ].map((opt, i) => {
+                                const isSelected = usaScore === opt.points;
+                                return (
+                                  <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
+                                    <div className="flex items-center gap-2">
+                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                      <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                          
+                          {/* Non-USA Question */}
+                          <p className="text-xs text-slate-600 mb-2">D1_1 (Outside USA): "How many weeks of 100% paid medical leave do you offer employees based outside the USA?"</p>
+                          <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                            <span className="w-16 text-center">Benchmark</span>
+                            <span className="w-14 text-right">Points</span>
+                          </div>
+                          <div className="space-y-0.5">
+                            {(() => {
+                              const nonUsaScore = selectedData?.followUpRaw?.d1_1_non_usa_score;
+                              return [
+                                { label: '13 or more weeks', points: 100, benchPct: 35 },
+                                { label: '9 to less than 13 weeks', points: 70, benchPct: 25 },
+                                { label: '5 to less than 9 weeks', points: 40, benchPct: 15 },
+                                { label: '3 to less than 5 weeks', points: 20, benchPct: 12 },
+                                { label: '1 to less than 3 weeks', points: 10, benchPct: 8 },
+                                { label: 'Does not apply / None', points: 0, benchPct: 5 },
+                              ].map((opt, i) => {
+                                const isSelected = nonUsaScore === opt.points;
+                                return (
+                                  <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
+                                    <div className="flex items-center gap-2">
+                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                      <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                          <p className="text-[10px] text-slate-400 italic mt-3">Note: If both USA and non-USA values provided, scores are averaged.</p>
+                        </div>
+                      )}
+                      
+                      {/* D3 Follow-up */}
+                      {selectedData?.dim === 3 && (
+                        <div className="bg-white rounded-lg border border-slate-200 p-4">
+                          <h4 className="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">D3: Manager Training Follow-up (D3_1)</h4>
+                          <p className="text-xs text-slate-600 mb-2">"What percentage of managers have received training on supporting employees with serious health conditions?"</p>
+                          <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                            <span className="w-16 text-center">Benchmark</span>
+                            <span className="w-14 text-right">Points</span>
+                          </div>
+                          <div className="space-y-0.5">
+                            {[
+                              { label: '100% of managers', points: 100, benchPct: 12 },
+                              { label: '75% to less than 100%', points: 80, benchPct: 18 },
+                              { label: '50% to less than 75%', points: 50, benchPct: 25 },
+                              { label: '25% to less than 50%', points: 30, benchPct: 20 },
+                              { label: '10% to less than 25%', points: 10, benchPct: 15 },
+                              { label: 'Less than 10%', points: 0, benchPct: 10 },
+                            ].map((opt, i) => (
+                              <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${selectedData?.followUpScore === opt.points ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
+                                <div className="flex items-center gap-2">
+                                  {selectedData?.followUpScore === opt.points && <span className="text-blue-600">✓</span>}
+                                  <span className={selectedData?.followUpScore === opt.points ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                  <span className={`font-semibold w-14 text-right ${opt.points >= 80 ? 'text-emerald-600' : opt.points >= 50 ? 'text-blue-600' : opt.points >= 30 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* D12 Follow-ups */}
+                      {selectedData?.dim === 12 && (
+                        <div className="bg-white rounded-lg border border-slate-200 p-4">
+                          <h4 className="text-xs font-semibold text-teal-700 mb-3 uppercase tracking-wide">D12: Continuous Improvement Follow-ups</h4>
+                          
+                          <p className="text-xs text-slate-600 mb-2">D12_1: "Do you review individual employee experiences to assess accommodation effectiveness?"</p>
+                          <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                            <span className="w-16 text-center">Benchmark</span>
+                            <span className="w-14 text-right">Points</span>
+                          </div>
+                          <div className="space-y-0.5 mb-4">
+                            {(() => {
+                              const d12_1_score = selectedData?.followUpRaw?.d12_1_score;
+                              return [
+                                { label: 'Systematic case reviews', points: 100, benchPct: 22 },
+                                { label: 'Ad hoc case reviews', points: 50, benchPct: 35 },
+                                { label: 'Only review aggregate data', points: 20, benchPct: 28 },
+                                { label: 'No review process', points: 0, benchPct: 15 },
+                              ].map((opt, i) => {
+                                const isSelected = d12_1_score === opt.points;
+                                return (
+                                  <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-teal-100 border-2 border-teal-400' : 'bg-slate-50'}`}>
+                                    <div className="flex items-center gap-2">
+                                      {isSelected && <span className="text-teal-600">✓</span>}
+                                      <span className={isSelected ? 'font-semibold text-teal-900' : 'text-slate-700'}>{opt.label}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                      <span className={`font-semibold w-14 text-right ${opt.points >= 50 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                          
+                          <p className="text-xs text-slate-600 mb-2">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
+                          <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                            <span className="w-16 text-center">Benchmark</span>
+                            <span className="w-14 text-right">Points</span>
+                          </div>
+                          <div className="space-y-0.5">
+                            {(() => {
+                              const d12_2_score = selectedData?.followUpRaw?.d12_2_score;
+                              return [
+                                { label: 'Significant policy changes', points: 100, benchPct: 18 },
+                                { label: 'Some adjustments made', points: 60, benchPct: 40 },
+                                { label: 'No changes made yet', points: 20, benchPct: 30 },
+                                { label: 'N/A or no response', points: 0, benchPct: 12 },
+                              ].map((opt, i) => {
+                                const isSelected = d12_2_score === opt.points;
+                                return (
+                                  <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-teal-100 border-2 border-teal-400' : 'bg-slate-50'}`}>
+                                    <div className="flex items-center gap-2">
+                                      {isSelected && <span className="text-teal-600">✓</span>}
+                                      <span className={isSelected ? 'font-semibold text-teal-900' : 'text-slate-700'}>{opt.label}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                      <span className={`font-semibold w-14 text-right ${opt.points >= 60 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                          <p className="text-[10px] text-slate-400 italic mt-3">Note: D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
+                        </div>
+                      )}
+                      
+                      {/* D13 Follow-up */}
+                      {selectedData?.dim === 13 && (
+                        <div className="bg-white rounded-lg border border-slate-200 p-4">
+                          <h4 className="text-xs font-semibold text-orange-700 mb-2 uppercase tracking-wide">D13: Communication Follow-up (D13_1)</h4>
+                          <p className="text-xs text-slate-600 mb-2">"How frequently do you communicate about health support programs to employees?"</p>
+                          <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                            <span className="w-16 text-center">Benchmark</span>
+                            <span className="w-14 text-right">Points</span>
+                          </div>
+                          <div className="space-y-0.5">
+                            {[
+                              { label: 'Monthly', points: 100, benchPct: 8 },
+                              { label: 'Quarterly', points: 70, benchPct: 25 },
+                              { label: 'Twice per year', points: 40, benchPct: 30 },
+                              { label: 'Annually / World Cancer Day', points: 20, benchPct: 22 },
+                              { label: 'Only when asked', points: 0, benchPct: 10 },
+                              { label: 'Do not actively communicate', points: 0, benchPct: 5 },
+                            ].map((opt, i) => (
+                              <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${selectedData?.followUpScore === opt.points ? 'bg-orange-100 border-2 border-orange-400' : 'bg-slate-50'}`}>
+                                <div className="flex items-center gap-2">
+                                  {selectedData?.followUpScore === opt.points && <span className="text-orange-600">✓</span>}
+                                  <span className={selectedData?.followUpScore === opt.points ? 'font-semibold text-orange-900' : 'text-slate-700'}>{opt.label}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                  <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    )}
                     
                     {/* Benchmark note */}
                     <p className="text-xs text-slate-400 mt-3 text-right">
@@ -1777,6 +2034,9 @@ export default function InteractiveReportPage() {
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
     const followUpScores: Record<number, number | null> = {};
+    const followUpRawResponses: Record<number, any> = {};
+    const geoMultipliers: Record<number, number> = {};
+    const geoResponses: Record<number, string | null> = {};
     const elementsByDim: Record<number, any[]> = {};
     const blendedScores: Record<number, number> = {};
     
@@ -1820,12 +2080,36 @@ export default function InteractiveReportPage() {
       
       const geoResponse = dimData[`d${dim}aa`] || dimData[`D${dim}aa`];
       const geoMultiplier = getGeoMultiplier(geoResponse);
+      geoMultipliers[dim] = geoMultiplier;
+      geoResponses[dim] = geoResponse ? String(geoResponse) : null;
       const adjustedScore = Math.round(rawScore * geoMultiplier);
       
       let blendedScore = adjustedScore;
       if ([1, 3, 12, 13].includes(dim)) {
         const followUp = calculateFollowUpScore(dim, assessment);
         followUpScores[dim] = followUp;
+        
+        // Store raw responses for display highlighting
+        if (dim === 1) {
+          followUpRawResponses[1] = {
+            d1_1_usa: dimData?.d1_1_usa,
+            d1_1_non_usa: dimData?.d1_1_non_usa,
+            d1_1_usa_score: dimData?.d1_1_usa ? scoreD1PaidLeave(dimData.d1_1_usa) : null,
+            d1_1_non_usa_score: dimData?.d1_1_non_usa ? scoreD1PaidLeave(dimData.d1_1_non_usa) : null
+          };
+        } else if (dim === 3) {
+          followUpRawResponses[3] = { d3_1: dimData?.d31 ?? dimData?.d3_1 };
+        } else if (dim === 12) {
+          followUpRawResponses[12] = { 
+            d12_1: dimData?.d12_1, 
+            d12_2: dimData?.d12_2,
+            d12_1_score: dimData?.d12_1 ? scoreD12CaseReview(dimData.d12_1) : null,
+            d12_2_score: dimData?.d12_2 ? scoreD12PolicyChanges(dimData.d12_2) : null
+          };
+        } else if (dim === 13) {
+          followUpRawResponses[13] = { d13_1: dimData?.d13_1 };
+        }
+        
         if (followUp !== null) {
           const key = `d${dim}` as keyof typeof DEFAULT_BLEND_WEIGHTS;
           const gridPct = DEFAULT_BLEND_WEIGHTS[key]?.grid ?? 85;
@@ -1860,7 +2144,7 @@ export default function InteractiveReportPage() {
     const maturityScore = enhancedResult.maturityScore;
     const breadthScore = enhancedResult.breadthScore;
     
-    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
+    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
   }
 
   function calculateBenchmarks(assessments: any[]) {
@@ -2066,7 +2350,7 @@ export default function InteractiveReportPage() {
     );
   }
 
-  const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, tier } = companyScores;
+  const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, tier } = companyScores;
   const companyName = company.firmographics_data?.company_name || company.company_name || 'Unknown Company';
   const contactName = company.firmographics_data?.primary_contact_name || '';
   const contactEmail = company.firmographics_data?.primary_contact_email || '';
@@ -2083,6 +2367,11 @@ export default function InteractiveReportPage() {
         weightPct: Math.round((DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0) / Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0) * 100),
         tier: getTier(score ?? 0),
         benchmark: benchmarks?.dimensionScores?.[dimNum] ?? null,
+        followUpScore: followUpScores?.[dimNum] ?? null,
+        followUpRaw: followUpRawResponses?.[dimNum] ?? null,
+        geoMultiplier: geoMultipliers?.[dimNum] ?? 1.0,
+        geoResponse: geoResponses?.[dimNum] ?? null,
+        hasFollowUp: [1, 3, 12, 13].includes(dimNum),
         elements,
         strengths: elements.filter((e: any) => e.isStrength),
         planning: elements.filter((e: any) => e.isPlanning),
@@ -3031,6 +3320,7 @@ export default function InteractiveReportPage() {
           customObservations={customObservations}
           setCustomObservations={setCustomObservations}
           isEditing={editMode}
+          showExtras={true}
         />
 
         {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
