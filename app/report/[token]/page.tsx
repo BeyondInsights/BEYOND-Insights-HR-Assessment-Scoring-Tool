@@ -1697,19 +1697,19 @@ export default function InteractiveReportPage() {
     );
   }
 
-  if (error || !company || !companyScores) {
+  if (error) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 text-center max-w-md">
-          <p className="text-red-600 text-lg mb-2">{error || 'Unable to generate report'}</p>
+          <p className="text-red-600 text-lg mb-2">{error}</p>
           <p className="text-slate-500 text-sm">Report link may be invalid or expired</p>
         </div>
       </div>
     );
   }
 
-  // Password protection screen
-  if (!authenticated) {
+  // Password protection screen - show when we have company metadata but not authenticated
+  if (!authenticated && company) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%)' }}>
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden p-8">
@@ -1781,6 +1781,18 @@ export default function InteractiveReportPage() {
               Password provided by your organization administrator
             </p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // After authentication, check we have the data to render the report
+  if (!companyScores || !company) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 text-center max-w-md">
+          <p className="text-red-600 text-lg mb-2">Unable to load report data</p>
+          <p className="text-slate-500 text-sm">Please try refreshing the page</p>
         </div>
       </div>
     );
