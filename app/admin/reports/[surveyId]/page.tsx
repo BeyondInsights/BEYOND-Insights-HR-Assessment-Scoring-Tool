@@ -1430,7 +1430,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     </div>
                     
                     {/* Geographic Multiplier & Follow-up Sections */}
-                    {showExtras && (
+                    {(
                     <div className="mt-6 space-y-4">
                       {/* Geographic Multiplier */}
                       <div className="bg-white rounded-lg border border-slate-200 p-4">
@@ -1776,7 +1776,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   </div>
                   
                   {/* Geographic Multiplier & Follow-up Sections */}
-                  {showExtras && (
+                  {(
                   <div className="mt-6 space-y-4">
                     {/* Geographic Multiplier */}
                     <div className="bg-white rounded-lg border border-slate-200 p-4">
@@ -1828,20 +1828,29 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           <span className="w-14 text-right">Points</span>
                         </div>
                         <div className="space-y-0.5 mb-4">
-                          {[
-                            { label: 'Systematic case reviews', points: 100, benchPct: 22 },
-                            { label: 'Ad hoc case reviews', points: 50, benchPct: 35 },
-                            { label: 'Only review aggregate data', points: 20, benchPct: 28 },
-                            { label: 'No review process', points: 0, benchPct: 15 },
-                          ].map((opt, i) => (
-                            <div key={i} className="flex justify-between items-center px-2 py-1.5 rounded text-xs bg-slate-50">
-                              <span className="text-slate-700">{opt.label}</span>
-                              <div className="flex items-center">
-                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                <span className={`font-semibold w-14 text-right ${opt.points >= 50 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
-                              </div>
-                            </div>
-                          ))}
+                          {(() => {
+                            const d12_1_score = d.followUpRaw?.d12_1_score;
+                            return [
+                              { label: 'Systematic case reviews', points: 100, benchPct: 22 },
+                              { label: 'Ad hoc case reviews', points: 50, benchPct: 35 },
+                              { label: 'Only review aggregate data', points: 20, benchPct: 28 },
+                              { label: 'No review process', points: 0, benchPct: 15 },
+                            ].map((opt, i) => {
+                              const isSelected = d12_1_score === opt.points;
+                              return (
+                                <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-teal-100 border-2 border-teal-400' : 'bg-slate-50'}`}>
+                                  <div className="flex items-center gap-2">
+                                    {isSelected && <span className="text-teal-600">✓</span>}
+                                    <span className={isSelected ? 'font-semibold text-teal-900' : 'text-slate-700'}>{opt.label}</span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                    <span className={`font-semibold w-14 text-right ${opt.points >= 50 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
                         
                         <p className="text-xs text-slate-600 mb-2">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
@@ -1850,20 +1859,29 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           <span className="w-14 text-right">Points</span>
                         </div>
                         <div className="space-y-0.5">
-                          {[
-                            { label: 'Significant policy changes', points: 100, benchPct: 18 },
-                            { label: 'Some adjustments made', points: 60, benchPct: 40 },
-                            { label: 'No changes made yet', points: 20, benchPct: 30 },
-                            { label: 'N/A or no response', points: 0, benchPct: 12 },
-                          ].map((opt, i) => (
-                            <div key={i} className="flex justify-between items-center px-2 py-1.5 rounded text-xs bg-slate-50">
-                              <span className="text-slate-700">{opt.label}</span>
-                              <div className="flex items-center">
-                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                <span className={`font-semibold w-14 text-right ${opt.points >= 60 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
-                              </div>
-                            </div>
-                          ))}
+                          {(() => {
+                            const d12_2_score = d.followUpRaw?.d12_2_score;
+                            return [
+                              { label: 'Significant policy changes', points: 100, benchPct: 18 },
+                              { label: 'Some adjustments made', points: 60, benchPct: 40 },
+                              { label: 'No changes made yet', points: 20, benchPct: 30 },
+                              { label: 'N/A or no response', points: 0, benchPct: 12 },
+                            ].map((opt, i) => {
+                              const isSelected = d12_2_score === opt.points;
+                              return (
+                                <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-teal-100 border-2 border-teal-400' : 'bg-slate-50'}`}>
+                                  <div className="flex items-center gap-2">
+                                    {isSelected && <span className="text-teal-600">✓</span>}
+                                    <span className={isSelected ? 'font-semibold text-teal-900' : 'text-slate-700'}>{opt.label}</span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                    <span className={`font-semibold w-14 text-right ${opt.points >= 60 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
                         <p className="text-[10px] text-slate-400 italic mt-3">Note: D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
                       </div>
@@ -1928,7 +1946,6 @@ export default function ExportReportPage() {
   const exportMode = searchParams?.get('export') === '1';
   const mode = (searchParams?.get('mode') || '').toLowerCase();
   const orientation = searchParams?.get('orientation') || 'portrait';
-  const showExtras = searchParams?.get('showExtras') === '1';
   const isLandscape = orientation === 'landscape';
   const isPdf = exportMode && mode === 'pdf';
   const isPpt = exportMode && (mode === 'ppt' || mode === 'pptslides');
@@ -2251,7 +2268,12 @@ export default function ExportReportPage() {
         } else if (dim === 3) {
           followUpRawResponses[3] = { d3_1: dimData?.d31 ?? dimData?.d3_1 };
         } else if (dim === 12) {
-          followUpRawResponses[12] = { d12_1: dimData?.d12_1, d12_2: dimData?.d12_2 };
+          followUpRawResponses[12] = { 
+            d12_1: dimData?.d12_1, 
+            d12_2: dimData?.d12_2,
+            d12_1_score: dimData?.d12_1 ? scoreD12CaseReview(dimData.d12_1) : null,
+            d12_2_score: dimData?.d12_2 ? scoreD12PolicyChanges(dimData.d12_2) : null
+          };
         } else if (dim === 13) {
           followUpRawResponses[13] = { d13_1: dimData?.d13_1 };
         }
@@ -3397,7 +3419,7 @@ export default function ExportReportPage() {
           customObservations={customObservations}
           setCustomObservations={setCustomObservations}
           isEditing={editMode}
-          showExtras={showExtras}
+          showExtras={true}
         />
 
         {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
