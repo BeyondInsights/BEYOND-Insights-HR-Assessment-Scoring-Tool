@@ -1215,8 +1215,20 @@ export default function ProfilePage() {
 `;
 
       // ========== BENEFITS LANDSCAPE ==========
-      const cb1 = generalBenefits?.cb1 || [];
-      const cb1Array = Array.isArray(cb1) ? cb1 : [];
+      // Combine all benefit categories and filter out "None of these"
+      let cb1Combined: string[] = [];
+      const benefitCats = ['cb1_standard', 'cb1_leave', 'cb1_wellness', 'cb1_financial', 'cb1_navigation'];
+      benefitCats.forEach(cat => {
+        if (generalBenefits[cat] && Array.isArray(generalBenefits[cat])) {
+          cb1Combined = [...cb1Combined, ...generalBenefits[cat].filter((b: string) => b !== "None of these")];
+        }
+      });
+      // Also check old cb1 format for backwards compatibility
+      if (generalBenefits?.cb1 && Array.isArray(generalBenefits.cb1)) {
+        cb1Combined = [...cb1Combined, ...generalBenefits.cb1.filter((b: string) => b !== "None of these")];
+      }
+      // Remove duplicates
+      const cb1Array = [...new Set(cb1Combined)];
       const cb1a = generalBenefits?.cb1a;
       
       if (cb1Array.length > 0) {
@@ -1707,11 +1719,13 @@ export default function ProfilePage() {
   const benefitCategories = ['cb1_standard', 'cb1_leave', 'cb1_wellness', 'cb1_financial', 'cb1_navigation'];
   benefitCategories.forEach(cat => {
     if (general[cat] && Array.isArray(general[cat])) {
-      currentBenefits = [...currentBenefits, ...general[cat]];
+      // Filter out "None of these" - it's a sentinel value, not an actual benefit
+      const validBenefits = general[cat].filter((b: string) => b !== "None of these");
+      currentBenefits = [...currentBenefits, ...validBenefits];
     }
   });
   
-  const plannedBenefits = general.cb2b || [];
+  const plannedBenefits = (general.cb2b || []).filter((b: string) => b !== "None of these");
 
   return (
     <>
