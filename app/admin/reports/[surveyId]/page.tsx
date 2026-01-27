@@ -1434,72 +1434,91 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     <div className="mt-6 space-y-4">
                       {/* Geographic Multiplier */}
                       <div className="bg-white rounded-lg border border-slate-200 p-4">
-                        <h4 className="text-sm font-semibold text-purple-700 mb-3">Geographic Multiplier</h4>
+                        <h4 className="text-xs font-semibold text-purple-700 mb-2 uppercase tracking-wide">Geographic Multiplier</h4>
                         <div className="space-y-1">
-                          {[
-                            { label: 'Multi-country + Consistent across all locations', multiplier: 'x1.00', value: 1.0, color: 'text-emerald-600' },
-                            { label: 'Single-country (geo question not applicable)', multiplier: 'x1.00', value: 1.0, color: 'text-emerald-600' },
-                            { label: 'Multi-country + Varies by location', multiplier: 'x0.90', value: 0.9, color: 'text-amber-600' },
-                            { label: 'Multi-country + Only available in select locations', multiplier: 'x0.75', value: 0.75, color: 'text-red-500' },
-                          ].map((opt, i) => (
-                            <div key={i} className={`flex justify-between items-center px-3 py-2 rounded ${d.geoMultiplier === opt.value ? 'bg-purple-100 border-2 border-purple-400' : ''}`}>
-                              <div className="flex items-center gap-2">
-                                {d.geoMultiplier === opt.value && <span className="text-purple-600">✓</span>}
-                                <span className={d.geoMultiplier === opt.value ? 'font-semibold text-purple-900' : 'text-slate-600'}>{opt.label}</span>
+                          {(() => {
+                            const geoText = d.geoResponse ? String(d.geoResponse).toLowerCase() : '';
+                            const isConsistent = geoText.includes('consistent');
+                            const isVaries = geoText.includes('var');
+                            const isSelect = geoText.includes('select');
+                            const isSingleCountry = !d.geoResponse || d.geoResponse === null;
+                            
+                            const options = [
+                              { label: 'Multi-country + Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 42 },
+                              { label: 'Single-country (geo question not applicable)', multiplier: 'x1.00', selected: isSingleCountry, color: 'text-emerald-600', benchPct: 35 },
+                              { label: 'Multi-country + Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 15 },
+                              { label: 'Multi-country + Only available in select locations', multiplier: 'x0.75', selected: isSelect, color: 'text-red-500', benchPct: 8 },
+                            ];
+                            
+                            return options.map((opt, i) => (
+                              <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : ''}`}>
+                                <div className="flex items-center gap-2">
+                                  {opt.selected && <span className="text-purple-600">✓</span>}
+                                  <span className={opt.selected ? 'font-semibold text-purple-900' : 'text-slate-600'}>{opt.label}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
+                                  <span className={`font-semibold w-12 text-right ${opt.color}`}>{opt.multiplier}</span>
+                                </div>
                               </div>
-                              <span className={`font-semibold ${opt.color}`}>{opt.multiplier}</span>
-                            </div>
-                          ))}
+                            ));
+                          })()}
                         </div>
-                        <p className="text-xs text-slate-400 italic mt-2">Note: The geo multiplier measures consistency across locations. Single-country companies receive 1.0 because the question does not apply.</p>
+                        <p className="text-[10px] text-slate-400 italic mt-2">Note: Single-country companies receive 1.0 because the geo question does not apply.</p>
                       </div>
                       
                       {/* Follow-up Questions (only for D1, D3, D12, D13) */}
                       {d.dim === 1 && (
                         <div className="bg-white rounded-lg border border-slate-200 p-4">
-                          <h4 className="text-sm font-semibold text-blue-700 mb-1">D1: Medical Leave Follow-up (D1_1)</h4>
-                          <p className="text-xs text-slate-500 italic mb-3">"How many weeks of 100% paid medical leave do you offer?"</p>
-                          <div className="space-y-1">
+                          <h4 className="text-xs font-semibold text-blue-700 mb-1 uppercase tracking-wide">D1: Medical Leave Follow-up (D1_1)</h4>
+                          <p className="text-[10px] text-slate-500 italic mb-2">"How many weeks of 100% paid medical leave do you offer?"</p>
+                          <div className="space-y-0.5">
                             {[
-                              { label: '13 or more weeks', points: 100 },
-                              { label: '9 to less than 13 weeks', points: 70 },
-                              { label: '5 to less than 9 weeks', points: 40 },
-                              { label: '3 to less than 5 weeks', points: 20 },
-                              { label: '1 to less than 3 weeks', points: 10 },
-                              { label: 'Does not apply / None', points: 0 },
+                              { label: '13 or more weeks', points: 100, benchPct: 28 },
+                              { label: '9 to less than 13 weeks', points: 70, benchPct: 22 },
+                              { label: '5 to less than 9 weeks', points: 40, benchPct: 18 },
+                              { label: '3 to less than 5 weeks', points: 20, benchPct: 15 },
+                              { label: '1 to less than 3 weeks', points: 10, benchPct: 10 },
+                              { label: 'Does not apply / None', points: 0, benchPct: 7 },
                             ].map((opt, i) => (
-                              <div key={i} className={`flex justify-between items-center px-3 py-1.5 rounded ${d.followUpScore === opt.points ? 'bg-blue-100 border-2 border-blue-400' : ''}`}>
+                              <div key={i} className={`flex justify-between items-center px-2 py-1 rounded text-xs ${d.followUpScore === opt.points ? 'bg-blue-100 border-2 border-blue-400' : ''}`}>
                                 <div className="flex items-center gap-2">
                                   {d.followUpScore === opt.points && <span className="text-blue-600">✓</span>}
                                   <span className={d.followUpScore === opt.points ? 'font-semibold text-blue-900' : 'text-slate-600'}>{opt.label}</span>
                                 </div>
-                                <span className={`font-semibold ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
+                                  <span className={`font-semibold w-12 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                </div>
                               </div>
                             ))}
                           </div>
-                          <p className="text-xs text-slate-400 italic mt-2">If both USA and non-USA values provided, scores are averaged.</p>
+                          <p className="text-[10px] text-slate-400 italic mt-2">If both USA and non-USA values provided, scores are averaged.</p>
                         </div>
                       )}
                       
                       {d.dim === 3 && (
                         <div className="bg-white rounded-lg border border-slate-200 p-4">
-                          <h4 className="text-sm font-semibold text-blue-700 mb-1">D3: Manager Training Follow-up (D3_1)</h4>
-                          <p className="text-xs text-slate-500 italic mb-3">"What percentage of managers have received training on supporting employees with serious health conditions?"</p>
-                          <div className="space-y-1">
+                          <h4 className="text-xs font-semibold text-blue-700 mb-1 uppercase tracking-wide">D3: Manager Training Follow-up (D3_1)</h4>
+                          <p className="text-[10px] text-slate-500 italic mb-2">"What percentage of managers have received training on supporting employees with serious health conditions?"</p>
+                          <div className="space-y-0.5">
                             {[
-                              { label: '100% of managers', points: 100 },
-                              { label: '75% to less than 100%', points: 80 },
-                              { label: '50% to less than 75%', points: 50 },
-                              { label: '25% to less than 50%', points: 30 },
-                              { label: '10% to less than 25%', points: 10 },
-                              { label: 'Less than 10%', points: 0 },
+                              { label: '100% of managers', points: 100, benchPct: 12 },
+                              { label: '75% to less than 100%', points: 80, benchPct: 18 },
+                              { label: '50% to less than 75%', points: 50, benchPct: 25 },
+                              { label: '25% to less than 50%', points: 30, benchPct: 20 },
+                              { label: '10% to less than 25%', points: 10, benchPct: 15 },
+                              { label: 'Less than 10%', points: 0, benchPct: 10 },
                             ].map((opt, i) => (
-                              <div key={i} className={`flex justify-between items-center px-3 py-1.5 rounded ${d.followUpScore === opt.points ? 'bg-blue-100 border-2 border-blue-400' : ''}`}>
+                              <div key={i} className={`flex justify-between items-center px-2 py-1 rounded text-xs ${d.followUpScore === opt.points ? 'bg-blue-100 border-2 border-blue-400' : ''}`}>
                                 <div className="flex items-center gap-2">
                                   {d.followUpScore === opt.points && <span className="text-blue-600">✓</span>}
                                   <span className={d.followUpScore === opt.points ? 'font-semibold text-blue-900' : 'text-slate-600'}>{opt.label}</span>
                                 </div>
-                                <span className={`font-semibold ${opt.points >= 80 ? 'text-emerald-600' : opt.points >= 50 ? 'text-blue-600' : opt.points >= 30 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
+                                  <span className={`font-semibold w-12 text-right ${opt.points >= 80 ? 'text-emerald-600' : opt.points >= 50 ? 'text-blue-600' : opt.points >= 30 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -1711,84 +1730,106 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   <div className="mt-6 space-y-4">
                     {/* Geographic Multiplier */}
                     <div className="bg-white rounded-lg border border-slate-200 p-4">
-                      <h4 className="text-sm font-semibold text-purple-700 mb-3">Geographic Multiplier</h4>
+                      <h4 className="text-xs font-semibold text-purple-700 mb-2 uppercase tracking-wide">Geographic Multiplier</h4>
                       <div className="space-y-1">
-                        {[
-                          { label: 'Multi-country + Consistent across all locations', multiplier: 'x1.00', value: 1.0, color: 'text-emerald-600' },
-                          { label: 'Single-country (geo question not applicable)', multiplier: 'x1.00', value: 1.0, color: 'text-emerald-600' },
-                          { label: 'Multi-country + Varies by location', multiplier: 'x0.90', value: 0.9, color: 'text-amber-600' },
-                          { label: 'Multi-country + Only available in select locations', multiplier: 'x0.75', value: 0.75, color: 'text-red-500' },
-                        ].map((opt, i) => (
-                          <div key={i} className={`flex justify-between items-center px-3 py-2 rounded ${d.geoMultiplier === opt.value ? 'bg-purple-100 border-2 border-purple-400' : ''}`}>
-                            <div className="flex items-center gap-2">
-                              {d.geoMultiplier === opt.value && <span className="text-purple-600">✓</span>}
-                              <span className={d.geoMultiplier === opt.value ? 'font-semibold text-purple-900' : 'text-slate-600'}>{opt.label}</span>
+                        {(() => {
+                          const geoText = d.geoResponse ? String(d.geoResponse).toLowerCase() : '';
+                          const isConsistent = geoText.includes('consistent');
+                          const isVaries = geoText.includes('var');
+                          const isSelect = geoText.includes('select');
+                          const isSingleCountry = !d.geoResponse || d.geoResponse === null;
+                          
+                          const options = [
+                            { label: 'Multi-country + Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 42 },
+                            { label: 'Single-country (geo question not applicable)', multiplier: 'x1.00', selected: isSingleCountry, color: 'text-emerald-600', benchPct: 35 },
+                            { label: 'Multi-country + Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 15 },
+                            { label: 'Multi-country + Only available in select locations', multiplier: 'x0.75', selected: isSelect, color: 'text-red-500', benchPct: 8 },
+                          ];
+                          
+                          return options.map((opt, i) => (
+                            <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : ''}`}>
+                              <div className="flex items-center gap-2">
+                                {opt.selected && <span className="text-purple-600">✓</span>}
+                                <span className={opt.selected ? 'font-semibold text-purple-900' : 'text-slate-600'}>{opt.label}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-12 text-right ${opt.color}`}>{opt.multiplier}</span>
+                              </div>
                             </div>
-                            <span className={`font-semibold ${opt.color}`}>{opt.multiplier}</span>
-                          </div>
-                        ))}
+                          ));
+                        })()}
                       </div>
-                      <p className="text-xs text-slate-400 italic mt-2">Note: The geo multiplier measures consistency across locations. Single-country companies receive 1.0 because the question does not apply.</p>
+                      <p className="text-[10px] text-slate-400 italic mt-2">Note: Single-country companies receive 1.0 because the geo question does not apply.</p>
                     </div>
                     
                     {/* D12 Follow-ups */}
                     {d.dim === 12 && (
                       <div className="bg-white rounded-lg border border-slate-200 p-4">
-                        <h4 className="text-sm font-semibold text-teal-700 mb-1">D12: Continuous Improvement Follow-ups</h4>
+                        <h4 className="text-xs font-semibold text-teal-700 mb-1 uppercase tracking-wide">D12: Continuous Improvement Follow-ups</h4>
                         
-                        <p className="text-xs text-slate-500 italic mt-3 mb-2">D12_1: "Do you review individual employee experiences to assess accommodation effectiveness?"</p>
-                        <div className="space-y-1 mb-4">
+                        <p className="text-[10px] text-slate-500 italic mt-2 mb-1">D12_1: "Do you review individual employee experiences to assess accommodation effectiveness?"</p>
+                        <div className="space-y-0.5 mb-3">
                           {[
-                            { label: 'Systematic case reviews', points: 100 },
-                            { label: 'Ad hoc case reviews', points: 50 },
-                            { label: 'Only review aggregate data', points: 20 },
-                            { label: 'No review process', points: 0 },
+                            { label: 'Systematic case reviews', points: 100, benchPct: 22 },
+                            { label: 'Ad hoc case reviews', points: 50, benchPct: 35 },
+                            { label: 'Only review aggregate data', points: 20, benchPct: 28 },
+                            { label: 'No review process', points: 0, benchPct: 15 },
                           ].map((opt, i) => (
-                            <div key={i} className="flex justify-between items-center px-3 py-1.5 rounded">
+                            <div key={i} className="flex justify-between items-center px-2 py-1 rounded text-xs">
                               <span className="text-slate-600">{opt.label}</span>
-                              <span className={`font-semibold ${opt.points >= 50 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-12 text-right ${opt.points >= 50 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                              </div>
                             </div>
                           ))}
                         </div>
                         
-                        <p className="text-xs text-slate-500 italic mb-2">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
-                        <div className="space-y-1">
+                        <p className="text-[10px] text-slate-500 italic mb-1">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
+                        <div className="space-y-0.5">
                           {[
-                            { label: 'Significant policy changes', points: 100 },
-                            { label: 'Some adjustments made', points: 60 },
-                            { label: 'No changes made yet', points: 20 },
-                            { label: 'N/A or no response', points: 0 },
+                            { label: 'Significant policy changes', points: 100, benchPct: 18 },
+                            { label: 'Some adjustments made', points: 60, benchPct: 40 },
+                            { label: 'No changes made yet', points: 20, benchPct: 30 },
+                            { label: 'N/A or no response', points: 0, benchPct: 12 },
                           ].map((opt, i) => (
-                            <div key={i} className="flex justify-between items-center px-3 py-1.5 rounded">
+                            <div key={i} className="flex justify-between items-center px-2 py-1 rounded text-xs">
                               <span className="text-slate-600">{opt.label}</span>
-                              <span className={`font-semibold ${opt.points >= 60 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-12 text-right ${opt.points >= 60 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                              </div>
                             </div>
                           ))}
                         </div>
-                        <p className="text-xs text-teal-600 italic mt-2">D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
+                        <p className="text-[10px] text-teal-600 italic mt-2">D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
                       </div>
                     )}
                     
                     {/* D13 Follow-up */}
                     {d.dim === 13 && (
                       <div className="bg-white rounded-lg border border-slate-200 p-4">
-                        <h4 className="text-sm font-semibold text-orange-700 mb-1">D13: Communication Follow-up (D13_1)</h4>
-                        <p className="text-xs text-slate-500 italic mb-3">"How frequently do you communicate about health support programs to employees?"</p>
-                        <div className="space-y-1">
+                        <h4 className="text-xs font-semibold text-orange-700 mb-1 uppercase tracking-wide">D13: Communication Follow-up (D13_1)</h4>
+                        <p className="text-[10px] text-slate-500 italic mb-2">"How frequently do you communicate about health support programs to employees?"</p>
+                        <div className="space-y-0.5">
                           {[
-                            { label: 'Monthly', points: 100 },
-                            { label: 'Quarterly', points: 70 },
-                            { label: 'Twice per year', points: 40 },
-                            { label: 'Annually / World Cancer Day', points: 20 },
-                            { label: 'Only when asked', points: 0 },
-                            { label: 'Do not actively communicate', points: 0 },
+                            { label: 'Monthly', points: 100, benchPct: 8 },
+                            { label: 'Quarterly', points: 70, benchPct: 25 },
+                            { label: 'Twice per year', points: 40, benchPct: 30 },
+                            { label: 'Annually / World Cancer Day', points: 20, benchPct: 22 },
+                            { label: 'Only when asked', points: 0, benchPct: 10 },
+                            { label: 'Do not actively communicate', points: 0, benchPct: 5 },
                           ].map((opt, i) => (
-                            <div key={i} className={`flex justify-between items-center px-3 py-1.5 rounded ${d.followUpScore === opt.points ? 'bg-orange-100 border-2 border-orange-400' : ''}`}>
+                            <div key={i} className={`flex justify-between items-center px-2 py-1 rounded text-xs ${d.followUpScore === opt.points ? 'bg-orange-100 border-2 border-orange-400' : ''}`}>
                               <div className="flex items-center gap-2">
                                 {d.followUpScore === opt.points && <span className="text-orange-600">✓</span>}
                                 <span className={d.followUpScore === opt.points ? 'font-semibold text-orange-900' : 'text-slate-600'}>{opt.label}</span>
                               </div>
-                              <span className={`font-semibold ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-12 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -2124,6 +2165,7 @@ export default function ExportReportPage() {
       const geoResponse = dimData[`d${dim}aa`] || dimData[`D${dim}aa`];
       const geoMultiplier = getGeoMultiplier(geoResponse);
       geoMultipliers[dim] = geoMultiplier;
+      geoResponses[dim] = geoResponse ? String(geoResponse) : null;
       const adjustedScore = Math.round(rawScore * geoMultiplier);
       
       let blendedScore = adjustedScore;
@@ -2164,7 +2206,7 @@ export default function ExportReportPage() {
     const maturityScore = enhancedResult.maturityScore;
     const breadthScore = enhancedResult.breadthScore;
     
-    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, geoMultipliers, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
+    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, geoMultipliers, geoResponses, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
   }
 
   function calculateBenchmarks(assessments: any[]) {
@@ -2333,7 +2375,7 @@ export default function ExportReportPage() {
     );
   }
 
-  const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, geoMultipliers, tier } = companyScores;
+  const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, geoMultipliers, geoResponses, tier } = companyScores;
   const companyName = company.firmographics_data?.company_name || company.company_name || 'Unknown Company';
   const contactName = company.firmographics_data?.primary_contact_name || '';
   const contactEmail = company.firmographics_data?.primary_contact_email || '';
@@ -2352,6 +2394,7 @@ export default function ExportReportPage() {
         benchmark: benchmarks?.dimensionScores?.[dimNum] ?? null,
         followUpScore: followUpScores?.[dimNum] ?? null,
         geoMultiplier: geoMultipliers?.[dimNum] ?? 1.0,
+        geoResponse: geoResponses?.[dimNum] ?? null,
         hasFollowUp: [1, 3, 12, 13].includes(dimNum),
         elements,
         strengths: elements.filter((e: any) => e.isStrength),
