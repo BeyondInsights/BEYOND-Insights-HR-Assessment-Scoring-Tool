@@ -119,14 +119,15 @@ const DIMENSION_STRATEGIC_INSIGHTS: Record<number, { insight: string; cacHelp: s
 // ============================================
 
 function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean; category: string } {
-  if (typeof status === 'number') {
-    switch (status) {
+  // Handle numeric values (including string numbers)
+  const numStatus = typeof status === 'string' ? parseInt(status, 10) : status;
+  if (!isNaN(numStatus) && typeof numStatus === 'number') {
+    switch (numStatus) {
       case 4: return { points: POINTS.CURRENTLY_OFFER, isUnsure: false, category: 'currently_offer' };
       case 3: return { points: POINTS.PLANNING, isUnsure: false, category: 'planning' };
       case 2: return { points: POINTS.ASSESSING, isUnsure: false, category: 'assessing' };
       case 1: return { points: POINTS.NOT_ABLE, isUnsure: false, category: 'not_able' };
       case 5: return { points: null, isUnsure: true, category: 'unsure' };
-      default: return { points: null, isUnsure: false, category: 'unknown' };
     }
   }
   if (typeof status === 'string') {
