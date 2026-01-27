@@ -5,19 +5,7 @@
 const { createClient } = require('@supabase/supabase-js');
 
 exports.handler = async (event) => {
-  // Only allow POST
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    };
-  }
-
-  // Handle CORS preflight
+  // Handle CORS preflight FIRST (before method validation)
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -27,6 +15,18 @@ exports.handler = async (event) => {
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
       },
       body: '',
+    };
+  }
+
+  // Only allow POST
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
     };
   }
 
