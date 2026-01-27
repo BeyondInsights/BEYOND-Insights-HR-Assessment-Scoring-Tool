@@ -2566,11 +2566,9 @@ export default function ExportReportPage() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ============ KEY FINDINGS ============ */}
-        <div className="ppt-break bg-slate-800 rounded-lg shadow-sm overflow-hidden mb-8 pdf-no-break">
-          <div className="px-10 py-6">
+          
+          {/* Key Findings - included on first slide */}
+          <div className="bg-slate-800 px-10 py-6">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Key Findings at a Glance</h3>
             <div className="grid grid-cols-4 gap-6">
               <div className="bg-white/10 rounded-lg p-4">
@@ -2598,7 +2596,7 @@ export default function ExportReportPage() {
         </div>
 
         {/* ============ SCORE COMPOSITION ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Score Composition</h3>
           </div>
@@ -3217,19 +3215,19 @@ export default function ExportReportPage() {
               return (
                 <div key={d.dim} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
                   {/* Dimension Header - Consistent dark slate for all */}
-                  <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
+                  <div className="px-8 py-3 bg-slate-700 border-b border-slate-600">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md" style={{ backgroundColor: tierColor }}>
                         {idx + 1}
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-xl font-semibold text-white">{d.name}</h4>
-                        <div className="flex items-center gap-4 mt-1">
-                          <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
-                          <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
-                          <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                        <h4 className="text-lg font-semibold text-white">{d.name}</h4>
+                        <div className="flex items-center gap-4 mt-0.5">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                          <span className="text-xs text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
+                          <span className="text-xs text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
                           {d.benchmark !== null && (
-                            <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                            <span className="text-xs text-slate-300">Bench: <strong className="text-white">{d.benchmark}</strong></span>
                           )}
                         </div>
                       </div>
@@ -3238,120 +3236,120 @@ export default function ExportReportPage() {
                   
                   {/* Benchmark Narrative */}
                   {benchmarkNarrative && (
-                    <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
-                      <p className="text-sm text-slate-600">{benchmarkNarrative}</p>
+                    <div className="px-8 py-2 bg-slate-100 border-b border-slate-200">
+                      <p className="text-xs text-slate-600">{benchmarkNarrative}</p>
                     </div>
                   )}
                   
-                  <div className="px-10 py-6">
+                  <div className="px-8 py-4">
                     {/* Current State - 3 columns */}
-                    <div className="grid grid-cols-3 gap-6 mb-6">
+                    <div className="grid grid-cols-3 gap-4 mb-4">
                       {/* Improvement Opportunities - includes gaps, assessing, unsure, and any other non-offered items */}
                       <div className="border border-red-200 rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                          <h5 className="font-semibold text-red-800 text-sm">Improvement Opportunities ({d.needsAttention.length})</h5>
+                        <div className="px-3 py-2 bg-red-50 border-b border-red-200">
+                          <h5 className="font-semibold text-red-800 text-xs">Improvement Opportunities ({d.needsAttention.length})</h5>
                         </div>
-                        <div className="p-4 bg-white">
+                        <div className="p-3 bg-white">
                           {d.needsAttention.length > 0 ? (
-                            <ul className="space-y-2">
-                              {d.needsAttention.slice(0, 6).map((item: any, i: number) => (
-                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
+                            <ul className="space-y-1">
+                              {d.needsAttention.slice(0, 5).map((item: any, i: number) => (
+                                <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                  <span className={`w-1 h-1 rounded-full mt-1.5 flex-shrink-0 ${
                                     item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : item.isUnsure ? 'bg-slate-400' : 'bg-red-400'
                                   }`}></span>
                                   <span>
                                     {item.name}
-                                    <span className={`text-xs ml-1 ${
+                                    <span className={`text-[10px] ml-0.5 ${
                                       item.isGap ? 'text-red-500' : item.isAssessing ? 'text-amber-600' : item.isUnsure ? 'text-slate-500' : 'text-red-400'
                                     }`}>
-                                      ({item.isGap ? 'not offered' : item.isAssessing ? 'assessing' : item.isUnsure ? 'to clarify' : 'gap'})
+                                      ({item.isGap ? 'gap' : item.isAssessing ? 'assessing' : item.isUnsure ? 'unclear' : 'gap'})
                                     </span>
                                   </span>
                                 </li>
                               ))}
                             </ul>
-                          ) : <p className="text-sm text-slate-400 italic">No improvement opportunities identified</p>}
+                          ) : <p className="text-xs text-slate-400 italic">No gaps identified</p>}
                         </div>
                       </div>
                       
                       {/* In Progress - Planning only */}
                       <div className="border border-blue-200 rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-                          <h5 className="font-semibold text-blue-800 text-sm">In Development ({d.planning.length})</h5>
+                        <div className="px-3 py-2 bg-blue-50 border-b border-blue-200">
+                          <h5 className="font-semibold text-blue-800 text-xs">In Development ({d.planning.length})</h5>
                         </div>
-                        <div className="p-4 bg-white">
+                        <div className="p-3 bg-white">
                           {d.planning.length > 0 ? (
-                            <ul className="space-y-2">
-                              {d.planning.slice(0, 6).map((item: any, i: number) => (
-                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
+                            <ul className="space-y-1">
+                              {d.planning.slice(0, 5).map((item: any, i: number) => (
+                                <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                  <span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
                                   <span>{item.name}</span>
                                 </li>
                               ))}
                             </ul>
-                          ) : <p className="text-sm text-slate-400 italic">No initiatives in planning</p>}
+                          ) : <p className="text-xs text-slate-400 italic">No initiatives in planning</p>}
                         </div>
                       </div>
                       
                       {/* Strengths */}
                       <div className="border border-emerald-200 rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
-                          <h5 className="font-semibold text-emerald-800 text-sm">Strengths ({d.strengths.length})</h5>
+                        <div className="px-3 py-2 bg-emerald-50 border-b border-emerald-200">
+                          <h5 className="font-semibold text-emerald-800 text-xs">Strengths ({d.strengths.length})</h5>
                         </div>
-                        <div className="p-4 bg-white">
+                        <div className="p-3 bg-white">
                           {d.strengths.length > 0 ? (
-                            <ul className="space-y-2">
-                              {d.strengths.slice(0, 6).map((s: any, i: number) => (
-                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
+                            <ul className="space-y-1">
+                              {d.strengths.slice(0, 5).map((s: any, i: number) => (
+                                <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                  <span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
                                   <span>{s.name}</span>
                                 </li>
                               ))}
                             </ul>
-                          ) : <p className="text-sm text-slate-400 italic">Building toward first strengths</p>}
+                          ) : <p className="text-xs text-slate-400 italic">Building toward first strengths</p>}
                         </div>
                       </div>
                     </div>
                     
                     {/* Strategic Insight & CAC Help - Now Dynamic & Editable */}
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 gap-4">
                       {/* Left Column: Evidence + Insight */}
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {/* Evidence Bullets - NEW */}
                         {(evidence.topStrength || evidence.biggestGap || evidence.inFlight) && (
-                          <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
-                            <h5 className="font-semibold text-slate-700 mb-3 text-xs uppercase tracking-wide">Key Evidence</h5>
-                            <div className="space-y-2">
+                          <div className="border border-slate-200 rounded-lg p-3 bg-slate-50">
+                            <h5 className="font-semibold text-slate-700 mb-2 text-[10px] uppercase tracking-wide">Key Evidence</h5>
+                            <div className="space-y-1.5">
                               {evidence.topStrength && (
-                                <div className="flex items-start gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-emerald-600 text-xs">✓</span>
+                                <div className="flex items-start gap-1.5">
+                                  <span className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-emerald-600 text-[10px]">✓</span>
                                   </span>
-                                  <p className="text-sm text-slate-700">
-                                    <span className="font-medium">Strength:</span> You offer <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
-                                    <span className="text-slate-500"> (only {evidence.topStrength.benchPct}% of peers do)</span>
+                                  <p className="text-xs text-slate-700">
+                                    <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                    <span className="text-slate-500"> ({evidence.topStrength.benchPct}% of peers)</span>
                                   </p>
                                 </div>
                               )}
                               {evidence.biggestGap && (
-                                <div className="flex items-start gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-red-600 text-xs">✗</span>
+                                <div className="flex items-start gap-1.5">
+                                  <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-red-600 text-[10px]">✗</span>
                                   </span>
-                                  <p className="text-sm text-slate-700">
-                                    <span className="font-medium">Gap:</span> Not offering <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
-                                    <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of peers do)</span>
+                                  <p className="text-xs text-slate-700">
+                                    <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                    <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of peers)</span>
                                   </p>
                                 </div>
                               )}
                               {evidence.inFlight && (
-                                <div className="flex items-start gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-blue-600 text-xs">○</span>
+                                <div className="flex items-start gap-1.5">
+                                  <span className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-blue-600 text-[10px]">○</span>
                                   </span>
-                                  <p className="text-sm text-slate-700">
-                                    <span className="font-medium">In Progress:</span> Planning <span className="font-semibold text-blue-700">{evidence.inFlight.name}</span>
-                                    <span className="text-slate-500"> ({evidence.inFlight.benchPct}% of peers offer)</span>
+                                  <p className="text-xs text-slate-700">
+                                    <span className="font-medium">In Progress:</span> <span className="font-semibold text-blue-700">{evidence.inFlight.name}</span>
+                                    <span className="text-slate-500"> ({evidence.inFlight.benchPct}% of peers)</span>
                                   </p>
                                 </div>
                               )}
@@ -3360,60 +3358,60 @@ export default function ExportReportPage() {
                         )}
                         
                         {/* Strategic Insight */}
-                        <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
-                          <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                            Tailored Strategic Insight
-                            {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
+                        <div className={`border rounded-lg p-3 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
+                          <h5 className="font-semibold text-slate-800 mb-2 text-[10px] uppercase tracking-wide flex items-center gap-2">
+                            Strategic Insight
+                            {editMode && <span className="text-[10px] font-normal text-amber-600">(click to edit)</span>}
                           </h5>
                           {editMode ? (
                             <textarea
                               value={customInsights[d.dim]?.insight ?? dynamicInsight.insight}
                               onChange={(e) => updateCustomInsight(d.dim, 'insight', e.target.value)}
-                              className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                              className="w-full text-xs text-slate-600 leading-relaxed bg-white border border-amber-200 rounded p-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
                               placeholder="Enter custom strategic insight..."
                             />
                           ) : (
-                            <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                            <p className="text-xs text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
                           )}
                           {editMode && customInsights[d.dim]?.insight && (
                             <button 
                               onClick={() => updateCustomInsight(d.dim, 'insight', '')}
-                              className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                              className="mt-1 text-[10px] text-amber-600 hover:text-amber-800 flex items-center gap-1"
                             >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
-                              Reset to auto-generated
+                              Reset
                             </button>
                           )}
                         </div>
                       </div>
                       
                       {/* Right Column: Roadmap + CAC Help */}
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {/* 2-Step Roadmap - NEW */}
                         {(roadmap.quickWin || roadmap.strategicLift) && (
-                          <div className="border border-indigo-200 rounded-lg p-4 bg-indigo-50">
-                            <h5 className="font-semibold text-indigo-800 mb-3 text-xs uppercase tracking-wide">Recommended Roadmap</h5>
-                            <div className="space-y-3">
+                          <div className="border border-indigo-200 rounded-lg p-3 bg-indigo-50">
+                            <h5 className="font-semibold text-indigo-800 mb-2 text-[10px] uppercase tracking-wide">Recommended Roadmap</h5>
+                            <div className="space-y-2">
                               {roadmap.quickWin && (
-                                <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">QUICK WIN</span>
-                                    <span className="text-xs text-slate-500">0-60 days</span>
+                                <div className="bg-white rounded p-2 border border-indigo-100">
+                                  <div className="flex items-center gap-2 mb-0.5">
+                                    <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">QUICK WIN</span>
+                                    <span className="text-[10px] text-slate-500">0-60 days</span>
                                   </div>
-                                  <p className="text-sm font-medium text-slate-800">{roadmap.quickWin.name}</p>
-                                  <p className="text-xs text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
+                                  <p className="text-xs font-medium text-slate-800">{roadmap.quickWin.name}</p>
+                                  <p className="text-[10px] text-slate-500 mt-0.5">{roadmap.quickWin.reason}</p>
                                 </div>
                               )}
                               {roadmap.strategicLift && (
-                                <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded">STRATEGIC</span>
-                                    <span className="text-xs text-slate-500">60-180 days</span>
+                                <div className="bg-white rounded p-2 border border-indigo-100">
+                                  <div className="flex items-center gap-2 mb-0.5">
+                                    <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded">STRATEGIC</span>
+                                    <span className="text-[10px] text-slate-500">60-180 days</span>
                                   </div>
-                                  <p className="text-sm font-medium text-slate-800">{roadmap.strategicLift.name}</p>
-                                  <p className="text-xs text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
+                                  <p className="text-xs font-medium text-slate-800">{roadmap.strategicLift.name}</p>
+                                  <p className="text-[10px] text-slate-500 mt-0.5">{roadmap.strategicLift.reason}</p>
                                 </div>
                               )}
                             </div>
@@ -3421,30 +3419,30 @@ export default function ExportReportPage() {
                         )}
                         
                         {/* CAC Help */}
-                        <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
-                          <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                        <div className={`border rounded-lg p-3 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
+                          <h5 className="font-semibold text-violet-800 mb-2 text-[10px] uppercase tracking-wide flex items-center gap-2">
                             How Cancer and Careers Can Help
-                            {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
+                            {editMode && <span className="text-[10px] font-normal text-amber-600">(click to edit)</span>}
                           </h5>
                           {editMode ? (
                             <textarea
                               value={customInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
                               onChange={(e) => updateCustomInsight(d.dim, 'cacHelp', e.target.value)}
-                              className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                              className="w-full text-xs text-slate-600 leading-relaxed bg-white border border-amber-200 rounded p-2 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
                               placeholder="Enter custom CAC help text..."
                             />
                           ) : (
-                            <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                            <p className="text-xs text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
                           )}
                           {editMode && customInsights[d.dim]?.cacHelp && (
                             <button 
                               onClick={() => updateCustomInsight(d.dim, 'cacHelp', '')}
-                              className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                              className="mt-1 text-[10px] text-amber-600 hover:text-amber-800 flex items-center gap-1"
                             >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
-                              Reset to auto-generated
+                              Reset
                             </button>
                           )}
                         </div>
