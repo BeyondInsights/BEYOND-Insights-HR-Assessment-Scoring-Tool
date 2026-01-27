@@ -234,22 +234,26 @@ function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>)
   const dimData = assessment[`dimension${dimNum}_data`];
   switch (dimNum) {
     case 1: {
-      const d1_1_usa = dimData?.d1_1_usa; const d1_1_non_usa = dimData?.d1_1_non_usa; const d1_4b = dimData?.d1_4b;
+      // Try multiple field name variations
+      const d1_1_usa = dimData?.d1_1_usa ?? dimData?.d11_usa ?? dimData?.d1_1 ?? dimData?.d11;
+      const d1_1_non_usa = dimData?.d1_1_non_usa ?? dimData?.d11_non_usa;
+      const d1_4b = dimData?.d1_4b ?? dimData?.d14b;
       const scores: number[] = [];
       if (d1_1_usa) scores.push(scoreD1PaidLeave(d1_1_usa));
       if (d1_1_non_usa) scores.push(scoreD1PaidLeave(d1_1_non_usa));
       if (d1_4b) scores.push(scoreD1PartTime(d1_4b));
       return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
     }
-    case 3: { const d31 = dimData?.d31 ?? dimData?.d3_1; return d31 ? scoreD3Training(d31) : null; }
+    case 3: { const d31 = dimData?.d31 ?? dimData?.d3_1 ?? dimData?.d3; return d31 ? scoreD3Training(d31) : null; }
     case 12: {
-      const d12_1 = dimData?.d12_1; const d12_2 = dimData?.d12_2;
+      const d12_1 = dimData?.d12_1 ?? dimData?.d121;
+      const d12_2 = dimData?.d12_2 ?? dimData?.d122;
       const scores: number[] = [];
       if (d12_1) scores.push(scoreD12CaseReview(d12_1));
       if (d12_2) scores.push(scoreD12PolicyChanges(d12_2));
       return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
     }
-    case 13: { const d13_1 = dimData?.d13_1; return d13_1 ? scoreD13Communication(d13_1) : null; }
+    case 13: { const d13_1 = dimData?.d13_1 ?? dimData?.d131; return d13_1 ? scoreD13Communication(d13_1) : null; }
     default: return null;
   }
 }
@@ -2116,14 +2120,17 @@ export default function InteractiveReportPage() {
         
         // Store raw responses for display highlighting
         if (dim === 1) {
+          // Try multiple field name variations
+          const usaVal = dimData?.d1_1_usa ?? dimData?.d11_usa ?? dimData?.d1_1 ?? dimData?.d11;
+          const nonUsaVal = dimData?.d1_1_non_usa ?? dimData?.d11_non_usa;
           followUpRawResponses[1] = {
-            d1_1_usa: dimData?.d1_1_usa,
-            d1_1_non_usa: dimData?.d1_1_non_usa,
-            d1_1_usa_score: dimData?.d1_1_usa ? scoreD1PaidLeave(dimData.d1_1_usa) : null,
-            d1_1_non_usa_score: dimData?.d1_1_non_usa ? scoreD1PaidLeave(dimData.d1_1_non_usa) : null
+            d1_1_usa: usaVal,
+            d1_1_non_usa: nonUsaVal,
+            d1_1_usa_score: usaVal ? scoreD1PaidLeave(usaVal) : null,
+            d1_1_non_usa_score: nonUsaVal ? scoreD1PaidLeave(nonUsaVal) : null
           };
         } else if (dim === 3) {
-          const d3Val = dimData?.d31 ?? dimData?.d3_1;
+          const d3Val = dimData?.d31 ?? dimData?.d3_1 ?? dimData?.d3;
           followUpRawResponses[3] = { 
             d3_1: d3Val,
             d3_1_score: d3Val ? scoreD3Training(d3Val) : null
