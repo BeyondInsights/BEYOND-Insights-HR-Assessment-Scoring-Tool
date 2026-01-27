@@ -310,6 +310,107 @@ function getScoreColor(score: number): string {
 // ============================================
 
 // Generate tier-adaptive insights based on actual performance
+// Get top evidence items for a dimension (best strength, biggest gap, in-flight item)
+function getTopEvidence(
+  dimNum: number,
+  strengths: any[],
+  gaps: any[],
+  planning: any[],
+  elementBenchmarks: Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>
+): { 
+  topStrength: { name: string; benchPct: number } | null;
+  biggestGap: { name: string; benchPct: number } | null;
+  inFlight: { name: string; benchPct: number } | null;
+} {
+  const benchmarks = elementBenchmarks[dimNum] || {};
+  
+  // Find top strength - prefer one where fewer peers offer it (more differentiating)
+  let topStrength = null;
+  if (strengths.length > 0) {
+    const strengthsWithBench = strengths.map(s => {
+      const bench = benchmarks[s.name] || { currently: 0, total: 1 };
+      const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
+      return { name: s.name, benchPct: pct };
+    }).sort((a, b) => a.benchPct - b.benchPct); // Sort by lowest peer % first (most differentiating)
+    topStrength = strengthsWithBench[0];
+  }
+  
+  // Find biggest gap - prefer one where most peers offer it (biggest competitive gap)
+  let biggestGap = null;
+  if (gaps.length > 0) {
+    const gapsWithBench = gaps.map(g => {
+      const bench = benchmarks[g.name] || { currently: 0, total: 1 };
+      const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
+      return { name: g.name, benchPct: pct };
+    }).sort((a, b) => b.benchPct - a.benchPct); // Sort by highest peer % first (biggest gap)
+    biggestGap = gapsWithBench[0];
+  }
+  
+  // Find in-flight item - prefer one where most peers already offer (fast path to catch up)
+  let inFlight = null;
+  if (planning.length > 0) {
+    const planningWithBench = planning.map(p => {
+      const bench = benchmarks[p.name] || { currently: 0, total: 1 };
+      const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
+      return { name: p.name, benchPct: pct };
+    }).sort((a, b) => b.benchPct - a.benchPct); // Sort by highest peer % (most valuable to complete)
+    inFlight = planningWithBench[0];
+  }
+  
+  return { topStrength, biggestGap, inFlight };
+}
+
+// Get 2-step roadmap for a dimension
+function getTwoStepRoadmap(
+  dimNum: number,
+  gaps: any[],
+  planning: any[],
+  assessing: any[],
+  elementBenchmarks: Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>
+): { quickWin: { name: string; reason: string } | null; strategicLift: { name: string; reason: string } | null } {
+  const benchmarks = elementBenchmarks[dimNum] || {};
+  
+  // Quick win: Pick from planning (already committed) or highest-prevalence gap (easy to justify)
+  let quickWin = null;
+  if (planning.length > 0) {
+    // Best quick win is something already in planning
+    const bench = benchmarks[planning[0].name] || { currently: 0, total: 1 };
+    const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
+    quickWin = { 
+      name: planning[0].name, 
+      reason: `Already in development; ${pct}% of peers offer this` 
+    };
+  } else if (gaps.length > 0) {
+    // Find gap with highest peer adoption (easiest to justify)
+    const gapsWithBench = gaps.map(g => {
+      const bench = benchmarks[g.name] || { currently: 0, total: 1 };
+      return { ...g, pct: Math.round((bench.currently / (bench.total || 1)) * 100) };
+    }).sort((a, b) => b.pct - a.pct);
+    if (gapsWithBench[0].pct > 30) {
+      quickWin = { 
+        name: gapsWithBench[0].name, 
+        reason: `${gapsWithBench[0].pct}% of peers already offer this` 
+      };
+    }
+  }
+  
+  // Strategic lift: Pick the gap with highest peer adoption that isn't the quick win
+  let strategicLift = null;
+  const allNonOffered = [...gaps, ...assessing].filter(g => g.name !== quickWin?.name);
+  if (allNonOffered.length > 0) {
+    const withBench = allNonOffered.map(g => {
+      const bench = benchmarks[g.name] || { currently: 0, total: 1 };
+      return { ...g, pct: Math.round((bench.currently / (bench.total || 1)) * 100) };
+    }).sort((a, b) => b.pct - a.pct);
+    strategicLift = { 
+      name: withBench[0].name, 
+      reason: `${withBench[0].pct}% of peers offer this—closing this gap strengthens competitive position` 
+    };
+  }
+  
+  return { quickWin, strategicLift };
+}
+
 function getDynamicInsight(dimNum: number, score: number, tierName: string, benchmark: number | null, gaps: any[], strengths: any[], planning: any[]): { insight: string; cacHelp: string } {
   const benchDiff = benchmark !== null ? score - benchmark : 0;
   const isAboveBenchmark = benchDiff > 0;
@@ -1009,10 +1110,30 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
     const pctAssessing = Math.round((bench.assessing / total) * 100);
     const statusInfo = getStatusInfo(elem);
     
-    if (statusInfo.key === 'currently') return `${pctCurrently}% of companies also offer this`;
-    if (statusInfo.key === 'planning') return `${pctCurrently}% further along`;
-    if (statusInfo.key === 'assessing') return `${pctCurrently + pctPlanning}% further along`;
-    return `${pctCurrently + pctPlanning + pctAssessing}% further along`;
+    // Varied phrasing based on status - avoids repetitive "X% further along"
+    if (statusInfo.key === 'currently') {
+      // Rotate between phrasings for strengths
+      if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of peers offer this`;
+      if (pctCurrently < 50) return `You're ahead of ${100 - pctCurrently}% of benchmark companies here`;
+      if (pctCurrently < 70) return `Solid: ${pctCurrently}% of peers also offer this`;
+      return `Table stakes: ${pctCurrently}% of peers offer this`;
+    }
+    if (statusInfo.key === 'planning') {
+      // In planning cohort
+      if (pctCurrently > 50) return `${pctCurrently}% already offer; completing this closes a competitive gap`;
+      return `You're among the ${pctPlanning}% in planning; ${pctCurrently}% already offer`;
+    }
+    if (statusInfo.key === 'assessing') {
+      // Assessing feasibility
+      const aheadPct = pctCurrently + pctPlanning;
+      if (aheadPct > 60) return `Decision point: ${aheadPct}% are further along (${pctCurrently}% offer, ${pctPlanning}% planning)`;
+      return `Common inflection point: ${pctAssessing}% also assessing; ${pctCurrently}% already offer`;
+    }
+    // Gap / Not able
+    const exploringPct = pctCurrently + pctPlanning + pctAssessing;
+    if (pctCurrently > 50) return `Competitive gap: ${pctCurrently}% of peers offer this`;
+    if (exploringPct > 60) return `${exploringPct}% are at least exploring this (${pctCurrently}% offer)`;
+    return `Emerging area: ${pctCurrently}% currently offer`;
   };
 
   return (
@@ -2955,6 +3076,9 @@ export default function InteractiveReportPage() {
               // Generate dynamic insight based on actual performance
               const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
               const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
+              // Get evidence items and roadmap
+              const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
+              const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
               // Use tier color for the accent, consistent dark header for all
               const tierColor = getScoreColor(d.score);
               
@@ -3059,59 +3183,139 @@ export default function InteractiveReportPage() {
                     
                     {/* Strategic Insight & CAC Help - Now Dynamic & Editable */}
                     <div className="grid grid-cols-2 gap-6">
-                      <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
-                        <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                          Tailored Strategic Insight
-                          {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
-                        </h5>
-                        {editMode ? (
-                          <textarea
-                            value={customInsights[d.dim]?.insight ?? dynamicInsight.insight}
-                            onChange={(e) => updateCustomInsight(d.dim, 'insight', e.target.value)}
-                            className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                            placeholder="Enter custom strategic insight..."
-                          />
-                        ) : (
-                          <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                      {/* Left Column: Evidence + Insight */}
+                      <div className="space-y-4">
+                        {/* Evidence Bullets - NEW */}
+                        {(evidence.topStrength || evidence.biggestGap || evidence.inFlight) && (
+                          <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                            <h5 className="font-semibold text-slate-700 mb-3 text-xs uppercase tracking-wide">Key Evidence</h5>
+                            <div className="space-y-2">
+                              {evidence.topStrength && (
+                                <div className="flex items-start gap-2">
+                                  <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-emerald-600 text-xs">✓</span>
+                                  </span>
+                                  <p className="text-sm text-slate-700">
+                                    <span className="font-medium">Strength:</span> You offer <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                    <span className="text-slate-500"> (only {evidence.topStrength.benchPct}% of peers do)</span>
+                                  </p>
+                                </div>
+                              )}
+                              {evidence.biggestGap && (
+                                <div className="flex items-start gap-2">
+                                  <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-red-600 text-xs">✗</span>
+                                  </span>
+                                  <p className="text-sm text-slate-700">
+                                    <span className="font-medium">Gap:</span> Not offering <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                    <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of peers do)</span>
+                                  </p>
+                                </div>
+                              )}
+                              {evidence.inFlight && (
+                                <div className="flex items-start gap-2">
+                                  <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-blue-600 text-xs">○</span>
+                                  </span>
+                                  <p className="text-sm text-slate-700">
+                                    <span className="font-medium">In Progress:</span> Planning <span className="font-semibold text-blue-700">{evidence.inFlight.name}</span>
+                                    <span className="text-slate-500"> ({evidence.inFlight.benchPct}% of peers offer)</span>
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         )}
-                        {editMode && customInsights[d.dim]?.insight && (
-                          <button 
-                            onClick={() => updateCustomInsight(d.dim, 'insight', '')}
-                            className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                          >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Reset to auto-generated
-                          </button>
-                        )}
+                        
+                        {/* Strategic Insight */}
+                        <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
+                          <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                            Tailored Strategic Insight
+                            {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
+                          </h5>
+                          {editMode ? (
+                            <textarea
+                              value={customInsights[d.dim]?.insight ?? dynamicInsight.insight}
+                              onChange={(e) => updateCustomInsight(d.dim, 'insight', e.target.value)}
+                              className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                              placeholder="Enter custom strategic insight..."
+                            />
+                          ) : (
+                            <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                          )}
+                          {editMode && customInsights[d.dim]?.insight && (
+                            <button 
+                              onClick={() => updateCustomInsight(d.dim, 'insight', '')}
+                              className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              Reset to auto-generated
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
-                        <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                          How Cancer and Careers Can Help
-                          {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
-                        </h5>
-                        {editMode ? (
-                          <textarea
-                            value={customInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
-                            onChange={(e) => updateCustomInsight(d.dim, 'cacHelp', e.target.value)}
-                            className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                            placeholder="Enter custom CAC help text..."
-                          />
-                        ) : (
-                          <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                      
+                      {/* Right Column: Roadmap + CAC Help */}
+                      <div className="space-y-4">
+                        {/* 2-Step Roadmap - NEW */}
+                        {(roadmap.quickWin || roadmap.strategicLift) && (
+                          <div className="border border-indigo-200 rounded-lg p-4 bg-indigo-50">
+                            <h5 className="font-semibold text-indigo-800 mb-3 text-xs uppercase tracking-wide">Recommended Roadmap</h5>
+                            <div className="space-y-3">
+                              {roadmap.quickWin && (
+                                <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">QUICK WIN</span>
+                                    <span className="text-xs text-slate-500">0-60 days</span>
+                                  </div>
+                                  <p className="text-sm font-medium text-slate-800">{roadmap.quickWin.name}</p>
+                                  <p className="text-xs text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
+                                </div>
+                              )}
+                              {roadmap.strategicLift && (
+                                <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded">STRATEGIC</span>
+                                    <span className="text-xs text-slate-500">60-180 days</span>
+                                  </div>
+                                  <p className="text-sm font-medium text-slate-800">{roadmap.strategicLift.name}</p>
+                                  <p className="text-xs text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         )}
-                        {editMode && customInsights[d.dim]?.cacHelp && (
-                          <button 
-                            onClick={() => updateCustomInsight(d.dim, 'cacHelp', '')}
-                            className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                          >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Reset to auto-generated
-                          </button>
-                        )}
+                        
+                        {/* CAC Help */}
+                        <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
+                          <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                            How Cancer and Careers Can Help
+                            {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
+                          </h5>
+                          {editMode ? (
+                            <textarea
+                              value={customInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
+                              onChange={(e) => updateCustomInsight(d.dim, 'cacHelp', e.target.value)}
+                              className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                              placeholder="Enter custom CAC help text..."
+                            />
+                          ) : (
+                            <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                          )}
+                          {editMode && customInsights[d.dim]?.cacHelp && (
+                            <button 
+                              onClick={() => updateCustomInsight(d.dim, 'cacHelp', '')}
+                              className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              Reset to auto-generated
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
