@@ -565,11 +565,18 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
   const userId = session.user.id
   const accessToken = session.access_token
   
+  // Get survey_id and app_id for fallback attempts
+  const surveyId = localStorage.getItem('survey_id') || ''
+  const normalizedAppId = surveyId.replace(/-/g, '').toUpperCase()
+  
   // Update cached values for unload sync
   cachedUserId = userId
   cachedAccessToken = accessToken
   
   console.log('👤 AUTO-SYNC: Syncing regular user...')
+  console.log('   user_id:', userId)
+  console.log('   survey_id:', surveyId || 'none')
+  console.log('   app_id:', normalizedAppId || 'none')
   
   const { data: updateData, hasData } = collectAllSurveyData()
   
@@ -583,22 +590,88 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
     return true
   }
   
-  // Fallback to direct Supabase (RLS will validate)
-  const { error } = await supabase
-    .from('assessments')
-    .update({ ...updateData, updated_at: new Date().toISOString() })
-    .eq('user_id', userId)
+  // ============================================
+  // FALLBACK CHAIN: user_id → survey_id → app_id
+  // ============================================
+  const updatePayload = { ...updateData, updated_at: new Date().toISOString() }
   
-  if (error) {
-    console.error('❌ AUTO-SYNC: Regular user sync failed:', error.message)
-    addPendingOp(userId, updateData, 'regular', accessToken)
-    return false
+  // ATTEMPT 1: Try user_id
+  console.log('🔄 AUTO-SYNC: Attempting update via user_id...')
+  const { data: userIdResult, error: userIdError } = await supabase
+    .from('assessments')
+    .update(updatePayload)
+    .eq('user_id', userId)
+    .select('id')
+  
+  if (!userIdError && userIdResult && userIdResult.length > 0) {
+    console.log('✅ AUTO-SYNC: Success via user_id!')
+    removePendingOp(userId)
+    return true
   }
   
-  console.log('✅ AUTO-SYNC: Regular user sync successful!')
-  removePendingOp(userId)
-  return true
+  console.log('⚠️ AUTO-SYNC: user_id matched 0 rows, trying survey_id fallback...')
+  
+  // ATTEMPT 2: FALLBACK to survey_id
+  if (surveyId) {
+    const { data: surveyIdResult, error: surveyIdError } = await supabase
+      .from('assessments')
+      .update(updatePayload)
+      .eq('survey_id', surveyId)
+      .select('id')
+    
+    if (!surveyIdError && surveyIdResult && surveyIdResult.length > 0) {
+      console.log('✅ AUTO-SYNC: Success via survey_id fallback!')
+      
+      // Link user_id to this record for future syncs
+      await supabase
+        .from('assessments')
+        .update({ user_id: userId })
+        .eq('survey_id', surveyId)
+      console.log('🔗 AUTO-SYNC: Linked user_id to record for future syncs')
+      
+      removePendingOp(userId)
+      return true
+    }
+    
+    console.log('⚠️ AUTO-SYNC: survey_id matched 0 rows, trying app_id fallback...')
+  }
+  
+  // ATTEMPT 3: FALLBACK to app_id (normalized)
+  if (normalizedAppId) {
+    const { data: appIdResult, error: appIdError } = await supabase
+      .from('assessments')
+      .update(updatePayload)
+      .eq('app_id', normalizedAppId)
+      .select('id')
+    
+    if (!appIdError && appIdResult && appIdResult.length > 0) {
+      console.log('✅ AUTO-SYNC: Success via app_id fallback!')
+      
+      // Link user_id to this record for future syncs
+      await supabase
+        .from('assessments')
+        .update({ user_id: userId })
+        .eq('app_id', normalizedAppId)
+      console.log('🔗 AUTO-SYNC: Linked user_id to record for future syncs')
+      
+      removePendingOp(userId)
+      return true
+    }
+    
+    console.log('⚠️ AUTO-SYNC: app_id matched 0 rows')
+  }
+  
+  // ALL FALLBACKS FAILED
+  console.error('❌ AUTO-SYNC: ALL FALLBACK ATTEMPTS FAILED!')
+  console.error('   Tried: user_id, survey_id, app_id - no matching record found')
+  console.error('   user_id:', userId)
+  console.error('   survey_id:', surveyId || 'none')
+  console.error('   app_id:', normalizedAppId || 'none')
+  
+  addPendingOp(userId, updateData, 'regular', accessToken)
+  return false
 }
+
 
 // ============================================
 // MAIN SYNC FUNCTION
