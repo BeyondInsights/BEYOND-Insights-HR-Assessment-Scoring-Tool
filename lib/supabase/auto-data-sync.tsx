@@ -403,13 +403,32 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
   const { data: sessionData } = await supabase.auth.getSession()
   const session = sessionData?.session
   
+  const surveyId = localStorage.getItem('survey_id') || ''
+  
+  // ============================================
+  // FIX: If no session but have survey_id, sync via survey_id
+  // This handles returning users who logged in with email + survey_id
+  // ============================================
   if (!session?.user) {
+    if (surveyId) {
+      console.log('👤 AUTO-SYNC: No session, using survey_id fallback:', surveyId)
+      
+      const { data: updateData, hasData } = collectAllSurveyData()
+      
+      if (!hasData || !hasDataChanged(updateData)) {
+        return true
+      }
+      
+      // Use 'compd' type which syncs by app_id/survey_id
+      const result = await syncViaNetlifyFunction('', updateData, '', 'compd', surveyId)
+      return result.success && (result.rowsAffected || 0) > 0
+    }
+    console.log('⏸️ AUTO-SYNC: No session and no survey_id - skipping')
     return true
   }
   
   const userId = session.user.id
   const accessToken = session.access_token
-  const surveyId = localStorage.getItem('survey_id') || ''
   
   console.log('👤 AUTO-SYNC: Syncing regular user...')
   
