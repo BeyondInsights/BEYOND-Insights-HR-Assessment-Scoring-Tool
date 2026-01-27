@@ -2565,54 +2565,58 @@ export default function ExportReportPage() {
                   <h4 className="font-semibold text-slate-800 text-sm">Weighted Dimension Score</h4>
                   <span className="text-xs text-slate-500">{DEFAULT_COMPOSITE_WEIGHTS.weightedDim}% of total</span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  The average of all 13 dimension scores, weighted by strategic importance. Dimensions like Medical Leave and Insurance carry more weight than Communication.
+                <p className="text-xs text-slate-600 leading-relaxed mb-3">
+                  Average of all 13 dimension scores, weighted by strategic importance.
                 </p>
-                {benchmarks?.compositeScore !== undefined && (
-                  <div className="mt-3 pt-3 border-t border-slate-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">vs. Benchmark</span>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Your score:</span>
+                    <span className="font-semibold" style={{ color: getScoreColor(weightedDimScore ?? 0) }}>{weightedDimScore ?? '—'} / 100</span>
+                  </div>
+                  {benchmarks?.compositeScore !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">vs. Benchmark:</span>
                       {(() => {
                         const benchDimScore = benchmarks?.weightedDimScore ?? benchmarks?.compositeScore;
                         const diff = benchDimScore ? (weightedDimScore ?? 0) - benchDimScore : null;
                         return diff !== null ? (
-                          <span className={`text-xs font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                          <span className={`font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
                             {diff >= 0 ? '+' : ''}{diff} pts ({benchDimScore} avg)
                           </span>
-                        ) : <span className="text-xs text-slate-400">—</span>;
+                        ) : <span className="text-slate-400">—</span>;
                       })()}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
               
               {/* Program Maturity Explanation */}
               <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-amber-800 text-sm">Program Maturity</h4>
+                  <h4 className="font-semibold text-amber-800 text-sm">Program Maturity (OR1)</h4>
                   <span className="text-xs text-amber-600">{DEFAULT_COMPOSITE_WEIGHTS.maturity}% of total</span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Measures how many programs you <span className="font-medium">currently offer</span> vs. still planning or assessing. Higher scores mean more programs are already implemented and available to employees.
+                <p className="text-xs text-slate-600 leading-relaxed mb-3">
+                  Based on your organization's current support approach level.
                 </p>
-                <div className="mt-3 pt-3 border-t border-amber-200">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">Your status:</span>
-                    <span className="font-medium text-slate-700">
-                      {currentlyOffering} of {totalElements} currently offered ({Math.round((currentlyOffering / Math.max(totalElements, 1)) * 100)}%)
-                    </span>
+                <div className="bg-white rounded p-2 mb-3 text-xs space-y-1">
+                  <div className="flex justify-between"><span className="text-slate-500">Comprehensive support:</span><span className="text-emerald-600 font-medium">100 pts</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Enhanced support:</span><span className="text-teal-600 font-medium">80 pts</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Moderate support:</span><span className="text-amber-600 font-medium">50 pts</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Developing approach:</span><span className="text-orange-600 font-medium">20 pts</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Legal minimum / None:</span><span className="text-red-600 font-medium">0 pts</span></div>
+                </div>
+                <div className="space-y-1.5 text-xs border-t border-amber-200 pt-2">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Your score:</span>
+                    <span className="font-semibold" style={{ color: getScoreColor(maturityScore ?? 0) }}>{maturityScore ?? '—'} / 100</span>
                   </div>
                   {benchmarks?.maturityScore !== undefined && (
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-slate-500">vs. Benchmark</span>
-                      {(() => {
-                        const diff = (maturityScore ?? 0) - benchmarks.maturityScore;
-                        return (
-                          <span className={`text-xs font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                            {diff >= 0 ? '+' : ''}{diff} pts ({benchmarks.maturityScore} avg)
-                          </span>
-                        );
-                      })()}
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">vs. Benchmark:</span>
+                      <span className={`font-semibold ${(maturityScore ?? 0) - benchmarks.maturityScore >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {(maturityScore ?? 0) - benchmarks.maturityScore >= 0 ? '+' : ''}{(maturityScore ?? 0) - benchmarks.maturityScore} pts ({benchmarks.maturityScore} avg)
+                      </span>
                     </div>
                   )}
                 </div>
@@ -2621,30 +2625,28 @@ export default function ExportReportPage() {
               {/* Support Breadth Explanation */}
               <div className="bg-violet-50 rounded-lg p-4 border border-violet-100">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-violet-800 text-sm">Support Breadth</h4>
+                  <h4 className="font-semibold text-violet-800 text-sm">Support Breadth (CB3)</h4>
                   <span className="text-xs text-violet-600">{DEFAULT_COMPOSITE_WEIGHTS.breadth}% of total</span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Measures coverage across <span className="font-medium">all 13 dimensions</span>. Rewards organizations that provide at least some support in every area, rather than excellence in a few areas with blind spots elsewhere.
+                <p className="text-xs text-slate-600 leading-relaxed mb-3">
+                  Average of three coverage components:
                 </p>
-                <div className="mt-3 pt-3 border-t border-violet-200">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">Your coverage:</span>
-                    <span className="font-medium text-slate-700">
-                      {dimensionAnalysis.filter(d => d.score >= 20).length} of 13 dimensions with meaningful support
-                    </span>
+                <div className="bg-white rounded p-2 mb-3 text-xs space-y-1">
+                  <div className="flex justify-between"><span className="text-slate-500">CB3a:</span><span className="text-slate-700">Beyond legal requirements</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">CB3b:</span><span className="text-slate-700">Program structure (÷6 elements)</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">CB3c:</span><span className="text-slate-700">Conditions covered (÷13 types)</span></div>
+                </div>
+                <div className="space-y-1.5 text-xs border-t border-violet-200 pt-2">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Your score:</span>
+                    <span className="font-semibold" style={{ color: getScoreColor(breadthScore ?? 0) }}>{breadthScore ?? '—'} / 100</span>
                   </div>
                   {benchmarks?.breadthScore !== undefined && (
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-slate-500">vs. Benchmark</span>
-                      {(() => {
-                        const diff = (breadthScore ?? 0) - benchmarks.breadthScore;
-                        return (
-                          <span className={`text-xs font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                            {diff >= 0 ? '+' : ''}{diff} pts ({benchmarks.breadthScore} avg)
-                          </span>
-                        );
-                      })()}
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">vs. Benchmark:</span>
+                      <span className={`font-semibold ${(breadthScore ?? 0) - benchmarks.breadthScore >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {(breadthScore ?? 0) - benchmarks.breadthScore >= 0 ? '+' : ''}{(breadthScore ?? 0) - benchmarks.breadthScore} pts ({benchmarks.breadthScore} avg)
+                      </span>
                     </div>
                   )}
                 </div>
