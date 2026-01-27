@@ -63,7 +63,11 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
     if (data.company_name) localStorage.setItem('login_company_name', data.company_name)
     
     // Load COMPLETION FLAGS
-    if (data.auth_completed) localStorage.setItem('auth_completed', 'true')
+    if (data.auth_completed) {
+      localStorage.setItem('auth_completed', 'true')
+    } else {
+      localStorage.removeItem('auth_completed')
+    }
     if (data.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
     if (data.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
     if (data.current_support_complete) localStorage.setItem('current_support_complete', 'true')
@@ -369,7 +373,11 @@ export default function LoginPage() {
           if (existing.company_name) localStorage.setItem('login_company_name', existing.company_name)
           
           // Load COMPLETION FLAGS
-          if (existing.auth_completed) localStorage.setItem('auth_completed', 'true')
+          if (existing.auth_completed) {
+            localStorage.setItem('auth_completed', 'true')
+          } else {
+            localStorage.removeItem('auth_completed')
+          }
           if (existing.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
           if (existing.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
           if (existing.current_support_complete) localStorage.setItem('current_support_complete', 'true')
