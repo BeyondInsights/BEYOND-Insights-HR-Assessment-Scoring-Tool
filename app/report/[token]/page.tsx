@@ -2834,8 +2834,8 @@ export default function InteractiveReportPage() {
               
               {/* Support Breadth */}
               {(() => {
-                const currentSupport = assessment?.current_support_data || {};
-                const generalBenefits = assessment?.general_benefits_data || {};
+                const currentSupport = company?.current_support_data || {};
+                const generalBenefits = company?.general_benefits_data || {};
                 
                 const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
                 let cb3aScore = 0;
