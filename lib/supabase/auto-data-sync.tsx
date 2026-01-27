@@ -128,6 +128,25 @@ function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean }
     }
   })
   
+  // ============================================
+  // EXTRACT COMPANY NAME FROM FIRMOGRAPHICS
+  // ============================================
+  if (updateData.firmographics_data?.companyName) {
+    updateData.company_name = updateData.firmographics_data.companyName
+  } else {
+    // Fallback: check localStorage directly
+    const companyName = localStorage.getItem('login_company_name') || localStorage.getItem('company_name')
+    if (companyName) {
+      updateData.company_name = companyName
+    }
+  }
+  
+  // Also extract email if available
+  const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email')
+  if (email) {
+    updateData.email = email.toLowerCase().trim()
+  }
+  
   return { data: updateData, hasData: itemCount > 0 }
 }
 

@@ -80,9 +80,6 @@ export function useProgressiveStatusGrid<TAns extends Record<string, any>>({
   };
 
   const setStatus = (item: string, status: string) => {
-    const latest = ansRef.current as any;
-    const wasAlreadyAnswered = !!latest?.[gridKey]?.[item];
-
     setAns((prev: any) => ({
       ...prev,
       [gridKey]: { ...(prev?.[gridKey] || {}), [item]: status },
@@ -93,15 +90,13 @@ export function useProgressiveStatusGrid<TAns extends Record<string, any>>({
       markTouched(gridKey);
     }
 
-    // Only auto-advance on first-time answer, not edits
-    if (wasAlreadyAnswered) return;
-
+    // ALWAYS advance on any click - user can use dots to go back if needed
     setIsTransitioning(true);
 
     setTimeout(() => {
-      const latest2 = ansRef.current as any;
+      const latest = ansRef.current as any;
       const currentIdx = currentIndexRef.current;
-      const grid = latest2?.[gridKey] || {};
+      const grid = latest?.[gridKey] || {};
 
       // Next unanswered after current position
       const nextAfter = items.findIndex((itm, idx) => idx > currentIdx && !grid[itm]);
@@ -113,8 +108,12 @@ export function useProgressiveStatusGrid<TAns extends Record<string, any>>({
         const firstUnanswered = items.findIndex((itm) => !grid[itm]);
         if (firstUnanswered !== -1) {
           setCurrentItemIndex(firstUnanswered);
+        } else {
+          // All answered - go to next item sequentially
+          if (currentIdx < items.length - 1) {
+            setCurrentItemIndex(currentIdx + 1);
+          }
         }
-        // else all answered: stay where you are
       }
 
       setTimeout(() => setIsTransitioning(false), transitionMs);

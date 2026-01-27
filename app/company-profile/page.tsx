@@ -832,7 +832,55 @@ export default function CompanyProfilePage() {
       // REGULAR USERS - Get current user from Supabase auth
       const { data: { user } } = await supabase.auth.getUser();
       
+      // Check localStorage auth flags as backup
+      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true';
+      const authCompleted = localStorage.getItem('auth_completed') === 'true';
+      const storedSurveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || '';
+      
       if (!user || !user.email) {
+        // No Supabase user - check if we have localStorage auth
+        if ((hasAuthFlag || authCompleted) && storedSurveyId) {
+          console.log('No Supabase user but have localStorage auth - loading by survey_id');
+          
+          // Try to load by survey_id
+          const normalizedId = storedSurveyId.replace(/-/g, '').toUpperCase();
+          const { data: assessment } = await supabase
+            .from('assessments')
+            .select('*')
+            .or(`survey_id.eq.${storedSurveyId},app_id.eq.${normalizedId}`)
+            .maybeSingle();
+          
+          if (assessment) {
+            const firmo = assessment.firmographics_data || {};
+            const general = assessment.general_benefits_data || {};
+            const current = assessment.current_support_data || {};
+            const cross = assessment.cross_dimensional_data || {};
+            const impact = assessment.employee_impact_data || {};
+
+            const dimensions = [];
+            for (let i = 1; i <= 13; i++) {
+              dimensions.push({
+                number: i,
+                data: assessment[`dimension${i}_data`] || {}
+              });
+            }
+
+            setData({
+              companyName: assessment.company_name || firmo.companyName || 'Company',
+              email: assessment.email,
+              surveyId: assessment.survey_id || assessment.app_id,
+              firmo,
+              general,
+              current,
+              dimensions,
+              cross,
+              impact
+            });
+            setLoading(false);
+            return;
+          }
+        }
+        
         router.push('/');
         return;
       }

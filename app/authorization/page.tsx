@@ -363,9 +363,54 @@ function AuthorizationContent() {
       const justCreated = localStorage.getItem('new_user_just_created') === 'true'
       
       if (hasAuthFlag || justCreated) {
-        console.log('New user with bypass - going to payment')
+        console.log('New user with bypass - saving to Supabase before going to payment')
         // Clear the just created flag now
         localStorage.removeItem('new_user_just_created')
+        
+        // STILL SAVE TO SUPABASE via survey_id
+        const storedSurveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || ''
+        if (storedSurveyId) {
+          const titleToStore = companyInfo.title === 'Other (please specify)' 
+            ? companyInfo.titleOther 
+            : companyInfo.title
+          
+          const authorizationData = {
+            companyName: companyInfo.companyName,
+            firstName: companyInfo.firstName,
+            lastName: companyInfo.lastName,
+            title: titleToStore,
+            au1,
+            au2,
+            au2Other: other
+          }
+          
+          // Save to localStorage
+          localStorage.setItem('firmographics_data', JSON.stringify(authorizationData))
+          localStorage.setItem('login_company_name', companyInfo.companyName)
+          localStorage.setItem('login_first_name', companyInfo.firstName)
+          localStorage.setItem('login_last_name', companyInfo.lastName)
+          localStorage.setItem('auth_completed', 'true')
+          
+          // Try to save to Supabase via survey_id or app_id
+          const normalizedId = storedSurveyId.replace(/-/g, '').toUpperCase()
+          const { error } = await supabase
+            .from('assessments')
+            .update({
+              company_name: companyInfo.companyName,
+              email: localStorage.getItem('auth_email') || localStorage.getItem('login_email') || '',
+              firmographics_data: authorizationData,
+              auth_completed: true,
+              updated_at: new Date().toISOString()
+            })
+            .or(`survey_id.eq.${storedSurveyId},app_id.eq.${normalizedId}`)
+          
+          if (error) {
+            console.error('Error saving bypass user auth:', error)
+          } else {
+            console.log('✅ Bypass user authorization saved to Supabase')
+          }
+        }
+        
         router.push('/payment')
         return
       }
@@ -378,7 +423,32 @@ function AuthorizationContent() {
           // No Supabase user - check if they have bypass flags
           const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
           if (hasAuthFlag) {
-            console.log('No Supabase user but has auth flag - proceeding to payment')
+            console.log('No Supabase user but has auth flag - saving via survey_id before payment')
+            
+            // Save via survey_id before proceeding
+            const storedSurveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || ''
+            if (storedSurveyId) {
+              const normalizedId = storedSurveyId.replace(/-/g, '').toUpperCase()
+              await supabase
+                .from('assessments')
+                .update({
+                  company_name: companyInfo.companyName,
+                  email: localStorage.getItem('auth_email') || localStorage.getItem('login_email') || '',
+                  firmographics_data: {
+                    companyName: companyInfo.companyName,
+                    firstName: companyInfo.firstName,
+                    lastName: companyInfo.lastName,
+                    title: titleToStore,
+                    au1,
+                    au2,
+                    au2Other: other
+                  },
+                  auth_completed: true,
+                  updated_at: new Date().toISOString()
+                })
+                .or(`survey_id.eq.${storedSurveyId},app_id.eq.${normalizedId}`)
+            }
+            
             router.push('/payment')
           } else {
             console.log('No Supabase user and no bypass - redirecting to login')

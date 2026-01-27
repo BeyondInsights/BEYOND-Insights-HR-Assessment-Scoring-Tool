@@ -113,6 +113,46 @@ function writeToLocalStorage(dbRow: Record<string, any>): void {
   if (dbRow.version) {
     localStorage.setItem('assessment_version', String(dbRow.version))
   }
+  
+  // ============================================
+  // COMPLETION FLAGS - Must load these to prevent re-asking questions!
+  // ============================================
+  
+  // Auth completed flag
+  if (dbRow.auth_completed) {
+    localStorage.setItem('auth_completed', 'true')
+  }
+  
+  // Section completion flags
+  if (dbRow.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
+  if (dbRow.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
+  if (dbRow.current_support_complete) localStorage.setItem('current_support_complete', 'true')
+  if (dbRow.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
+  if (dbRow.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
+  
+  // Dimension completion flags
+  for (let i = 1; i <= 13; i++) {
+    if (dbRow[`dimension${i}_complete`]) {
+      localStorage.setItem(`dimension${i}_complete`, 'true')
+    }
+  }
+  
+  // Payment info
+  if (dbRow.payment_completed) localStorage.setItem('payment_completed', 'true')
+  if (dbRow.payment_method) localStorage.setItem('payment_method', dbRow.payment_method)
+  
+  // ============================================
+  // EMPLOYEE SURVEY OPT-IN - Critical to prevent re-asking!
+  // ============================================
+  if (dbRow.employee_survey_opt_in !== null && dbRow.employee_survey_opt_in !== undefined) {
+    localStorage.setItem('employee_survey_opt_in', String(dbRow.employee_survey_opt_in))
+  }
+  
+  // Survey submission status - if submitted, don't show completion page again
+  if (dbRow.survey_submitted) {
+    localStorage.setItem('survey_fully_submitted', 'true')
+    localStorage.setItem('assessment_completion_shown', 'true')
+  }
 }
 
 // ============================================
@@ -286,3 +326,6 @@ export function hydrateFormFromData(
   
   setFormState(formState)
 }
+
+// Alias for backwards compatibility
+export const loadUserDataFromSupabase = loadDataFromSupabase;

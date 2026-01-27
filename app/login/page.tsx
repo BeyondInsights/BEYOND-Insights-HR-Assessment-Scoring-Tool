@@ -77,6 +77,20 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
     if (data.payment_completed) localStorage.setItem('payment_completed', 'true')
     if (data.payment_method) localStorage.setItem('payment_method', data.payment_method)
     
+    // ============================================
+    // EMPLOYEE SURVEY OPT-IN & SUBMISSION STATUS
+    // Critical to prevent re-asking the question!
+    // ============================================
+    if (data.employee_survey_opt_in !== null && data.employee_survey_opt_in !== undefined) {
+      localStorage.setItem('employee_survey_opt_in', String(data.employee_survey_opt_in))
+      console.log('  ✓ Set employee_survey_opt_in:', data.employee_survey_opt_in)
+    }
+    if (data.survey_submitted) {
+      localStorage.setItem('survey_fully_submitted', 'true')
+      localStorage.setItem('assessment_completion_shown', 'true')
+      console.log('  ✓ Set survey submission flags')
+    }
+    
     console.log('✅ User data loaded successfully from Supabase')
     return { found: true, authCompleted: !!data.auth_completed }
     
@@ -346,6 +360,19 @@ export default function LoginPage() {
           if (existing.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
           for (let i = 1; i <= 13; i++) {
             if (existing[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true')
+          }
+          
+          // ============================================
+          // EMPLOYEE SURVEY OPT-IN & SUBMISSION STATUS (FP)
+          // ============================================
+          if (existing.employee_survey_opt_in !== null && existing.employee_survey_opt_in !== undefined) {
+            localStorage.setItem('employee_survey_opt_in', String(existing.employee_survey_opt_in))
+            console.log('  ✓ Set employee_survey_opt_in:', existing.employee_survey_opt_in)
+          }
+          if (existing.survey_submitted) {
+            localStorage.setItem('survey_fully_submitted', 'true')
+            localStorage.setItem('assessment_completion_shown', 'true')
+            console.log('  ✓ Set survey submission flags')
           }
           
           console.log('✅ Loaded all FP data and completion flags from Supabase')

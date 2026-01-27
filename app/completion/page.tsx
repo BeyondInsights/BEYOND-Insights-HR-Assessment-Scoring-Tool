@@ -52,9 +52,11 @@ export default function CompletionPage() {
     try {
       const { supabase } = await import('@/lib/supabase/client')
       const { data: { user } } = await supabase.auth.getUser()
+      const surveyId = localStorage.getItem('survey_id') || ''
       
+      // Try to save via user_id first, then fall back to survey_id
       if (user) {
-        await supabase
+        const { error } = await supabase
           .from('assessments')
           .update({
             employee_survey_opt_in: employeeSurveyOptIn,
@@ -64,7 +66,30 @@ export default function CompletionPage() {
           })
           .eq('user_id', user.id)
         
-        console.log('✅ Survey submission saved to Supabase')
+        if (error) {
+          console.error('Failed to save via user_id:', error)
+        } else {
+          console.log('✅ Survey submission saved to Supabase via user_id')
+        }
+      }
+      
+      // Also try to save via survey_id (for FPs and users with survey_id)
+      if (surveyId) {
+        const { error } = await supabase
+          .from('assessments')
+          .update({
+            employee_survey_opt_in: employeeSurveyOptIn,
+            survey_submitted: true,
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('survey_id', surveyId)
+        
+        if (error) {
+          console.error('Failed to save via survey_id:', error)
+        } else {
+          console.log('✅ Survey submission saved to Supabase via survey_id')
+        }
       }
     } catch (error) {
       console.error('Failed to save to Supabase:', error)
