@@ -1083,6 +1083,7 @@ interface DrillDownProps {
   customObservations?: Record<string, string>;
   setCustomObservations?: (obs: Record<string, string>) => void;
   isEditing?: boolean;
+  showExtras?: boolean;
 }
 
 // Collapsible Score Component Card for Score Composition section
@@ -1170,7 +1171,7 @@ function ScoreComponentCard({
   );
 }
 
-function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor, benchmarkCompanyCount, customObservations = {}, setCustomObservations, isEditing = false }: DrillDownProps) {
+function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor, benchmarkCompanyCount, customObservations = {}, setCustomObservations, isEditing = false, showExtras = false }: DrillDownProps) {
   const sortedDims = [...dimensionAnalysis].sort((a, b) => a.dim - b.dim);
   const selectedData = selectedDim ? sortedDims.find(d => d.dim === selectedDim) : null;
   const elemBench = selectedDim ? elementBenchmarks[selectedDim] || {} : {};
@@ -1428,6 +1429,46 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                       </table>
                     </div>
                     
+                    {/* Geographic Multiplier & Follow-up Sections */}
+                    {showExtras && (
+                    <div className="mt-6 grid grid-cols-2 gap-4">
+                      {/* Geographic Multiplier */}
+                      <div className="bg-white rounded-lg border border-slate-200 p-4">
+                        <h4 className="text-sm font-semibold text-slate-700 mb-2">Geographic Consistency</h4>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-2xl font-bold ${d.geoMultiplier === 1.0 ? 'text-emerald-600' : d.geoMultiplier === 0.9 ? 'text-amber-600' : 'text-red-500'}`}>
+                            {d.geoMultiplier === 1.0 ? '100%' : d.geoMultiplier === 0.9 ? '90%' : '75%'}
+                          </span>
+                          <span className="text-sm text-slate-500">
+                            {d.geoMultiplier === 1.0 ? 'Consistent across all locations' : 
+                             d.geoMultiplier === 0.9 ? 'Varies by location' : 
+                             'Only available in select locations'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Follow-up Score (only for D1, D3, D12, D13) */}
+                      {d.hasFollowUp && (
+                        <div className="bg-white rounded-lg border border-slate-200 p-4">
+                          <h4 className="text-sm font-semibold text-slate-700 mb-2">
+                            Follow-up Score 
+                            <span className="text-xs font-normal text-slate-400 ml-2">(15% of dimension score)</span>
+                          </h4>
+                          {d.followUpScore !== null ? (
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl font-bold" style={{ color: getScoreColor(d.followUpScore) }}>
+                                {d.followUpScore}
+                              </span>
+                              <span className="text-sm text-slate-500">/ 100 pts</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-slate-400 italic">Not answered</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    )}
+                    
                     {/* Benchmark note */}
                     <p className="text-xs text-slate-400 mt-3 text-right">
                       Benchmark based on all participating companies
@@ -1626,6 +1667,46 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     </table>
                   </div>
                   
+                  {/* Geographic Multiplier & Follow-up Sections */}
+                  {showExtras && (
+                  <div className="mt-6 grid grid-cols-2 gap-4">
+                    {/* Geographic Multiplier */}
+                    <div className="bg-white rounded-lg border border-slate-200 p-4">
+                      <h4 className="text-sm font-semibold text-slate-700 mb-2">Geographic Consistency</h4>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-2xl font-bold ${d.geoMultiplier === 1.0 ? 'text-emerald-600' : d.geoMultiplier === 0.9 ? 'text-amber-600' : 'text-red-500'}`}>
+                          {d.geoMultiplier === 1.0 ? '100%' : d.geoMultiplier === 0.9 ? '90%' : '75%'}
+                        </span>
+                        <span className="text-sm text-slate-500">
+                          {d.geoMultiplier === 1.0 ? 'Consistent across all locations' : 
+                           d.geoMultiplier === 0.9 ? 'Varies by location' : 
+                           'Only available in select locations'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Follow-up Score (only for D1, D3, D12, D13) */}
+                    {d.hasFollowUp && (
+                      <div className="bg-white rounded-lg border border-slate-200 p-4">
+                        <h4 className="text-sm font-semibold text-slate-700 mb-2">
+                          Follow-up Score 
+                          <span className="text-xs font-normal text-slate-400 ml-2">(15% of dimension score)</span>
+                        </h4>
+                        {d.followUpScore !== null ? (
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl font-bold" style={{ color: getScoreColor(d.followUpScore) }}>
+                              {d.followUpScore}
+                            </span>
+                            <span className="text-sm text-slate-500">/ 100 pts</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-slate-400 italic">Not answered</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  )}
+                  
                   {/* Benchmark note */}
                   <p className="text-xs text-slate-400 mt-3 text-right">
                     Benchmark based on all participating companies
@@ -1650,6 +1731,7 @@ export default function ExportReportPage() {
   const exportMode = searchParams?.get('export') === '1';
   const mode = (searchParams?.get('mode') || '').toLowerCase();
   const orientation = searchParams?.get('orientation') || 'portrait';
+  const showExtras = searchParams?.get('showExtras') === '1';
   const isLandscape = orientation === 'landscape';
   const isPdf = exportMode && mode === 'pdf';
   const isPpt = exportMode && (mode === 'ppt' || mode === 'pptslides');
@@ -1906,6 +1988,7 @@ export default function ExportReportPage() {
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
     const followUpScores: Record<number, number | null> = {};
+    const geoMultipliers: Record<number, number> = {};
     const elementsByDim: Record<number, any[]> = {};
     const blendedScores: Record<number, number> = {};
     
@@ -1949,6 +2032,7 @@ export default function ExportReportPage() {
       
       const geoResponse = dimData[`d${dim}aa`] || dimData[`D${dim}aa`];
       const geoMultiplier = getGeoMultiplier(geoResponse);
+      geoMultipliers[dim] = geoMultiplier;
       const adjustedScore = Math.round(rawScore * geoMultiplier);
       
       let blendedScore = adjustedScore;
@@ -1989,7 +2073,7 @@ export default function ExportReportPage() {
     const maturityScore = enhancedResult.maturityScore;
     const breadthScore = enhancedResult.breadthScore;
     
-    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
+    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, geoMultipliers, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
   }
 
   function calculateBenchmarks(assessments: any[]) {
@@ -2158,7 +2242,7 @@ export default function ExportReportPage() {
     );
   }
 
-  const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, tier } = companyScores;
+  const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, geoMultipliers, tier } = companyScores;
   const companyName = company.firmographics_data?.company_name || company.company_name || 'Unknown Company';
   const contactName = company.firmographics_data?.primary_contact_name || '';
   const contactEmail = company.firmographics_data?.primary_contact_email || '';
@@ -2175,6 +2259,9 @@ export default function ExportReportPage() {
         weightPct: Math.round((DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0) / Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0) * 100),
         tier: getTier(score ?? 0),
         benchmark: benchmarks?.dimensionScores?.[dimNum] ?? null,
+        followUpScore: followUpScores?.[dimNum] ?? null,
+        geoMultiplier: geoMultipliers?.[dimNum] ?? 1.0,
+        hasFollowUp: [1, 3, 12, 13].includes(dimNum),
         elements,
         strengths: elements.filter((e: any) => e.isStrength),
         planning: elements.filter((e: any) => e.isPlanning),
@@ -3091,6 +3178,7 @@ export default function ExportReportPage() {
           customObservations={customObservations}
           setCustomObservations={setCustomObservations}
           isEditing={editMode}
+          showExtras={showExtras}
         />
 
         {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
