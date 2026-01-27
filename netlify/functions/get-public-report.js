@@ -45,8 +45,28 @@ function getTierInfo(score) {
 }
 
 exports.handler = async (event) => {
+  // Handle CORS preflight FIRST
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      },
+      body: '',
+    };
+  }
+
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }), headers: { 'Content-Type': 'application/json' } };
+    return { 
+      statusCode: 405, 
+      body: JSON.stringify({ error: 'Method not allowed' }), 
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      } 
+    };
   }
 
   try {
