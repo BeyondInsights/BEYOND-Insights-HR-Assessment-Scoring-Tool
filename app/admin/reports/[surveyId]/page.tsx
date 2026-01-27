@@ -1084,6 +1084,91 @@ interface DrillDownProps {
   isEditing?: boolean;
 }
 
+// Collapsible Score Component Card for Score Composition section
+function ScoreComponentCard({ 
+  title, 
+  score, 
+  weight, 
+  benchmarkScore, 
+  color, 
+  summary, 
+  details,
+  getScoreColor 
+}: { 
+  title: string;
+  score: number;
+  weight: number;
+  benchmarkScore?: number;
+  color: 'slate' | 'amber' | 'violet';
+  summary: string;
+  details?: React.ReactNode;
+  getScoreColor: (score: number) => string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  
+  const colorStyles = {
+    slate: { border: 'border-slate-200', header: 'bg-slate-100', headerText: 'text-slate-800', badge: 'text-slate-500' },
+    amber: { border: 'border-amber-200', header: 'bg-amber-100', headerText: 'text-amber-800', badge: 'text-amber-600' },
+    violet: { border: 'border-violet-200', header: 'bg-violet-100', headerText: 'text-violet-800', badge: 'text-violet-600' },
+  };
+  
+  const styles = colorStyles[color];
+  const diff = benchmarkScore !== undefined ? score - benchmarkScore : null;
+  
+  return (
+    <div className={`rounded-xl border ${styles.border} overflow-hidden`}>
+      <div className={`${styles.header} px-4 py-3 border-b ${styles.border}`}>
+        <div className="flex items-center justify-between">
+          <h4 className={`font-bold ${styles.headerText} text-sm`}>{title}</h4>
+          <span className={`text-xs ${styles.badge} font-medium`}>{weight}% weight</span>
+        </div>
+      </div>
+      <div className="p-4 bg-white">
+        {/* Summary line */}
+        <p className="text-xs text-slate-600 leading-relaxed mb-3">{summary}</p>
+        
+        {/* Score and benchmark */}
+        <div className="bg-slate-50 rounded-lg p-3">
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-slate-500 font-medium">Your Score</span>
+            <span className="text-lg font-bold" style={{ color: getScoreColor(score) }}>
+              {score}<span className="text-sm text-slate-400 font-normal"> / 100</span>
+            </span>
+          </div>
+          {diff !== null && (
+            <div className="flex justify-between items-center pt-2 mt-2 border-t border-slate-200">
+              <span className="text-xs text-slate-500">vs. Peer Benchmark</span>
+              <span className={`text-sm font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                {diff >= 0 ? '+' : ''}{diff} pts <span className="font-normal text-slate-400">({benchmarkScore} avg)</span>
+              </span>
+            </div>
+          )}
+        </div>
+        
+        {/* Expandable details */}
+        {details && (
+          <>
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="mt-3 w-full text-xs text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 py-1"
+            >
+              {expanded ? 'Hide' : 'Show'} scoring details
+              <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {expanded && (
+              <div className="mt-3 pt-3 border-t border-slate-100">
+                {details}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor, benchmarkCompanyCount, customObservations = {}, setCustomObservations, isEditing = false }: DrillDownProps) {
   const sortedDims = [...dimensionAnalysis].sort((a, b) => a.dim - b.dim);
   const selectedData = selectedDim ? sortedDims.find(d => d.dim === selectedDim) : null;
@@ -2557,194 +2642,119 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* Component Details */}
+            {/* Component Summary Cards - Collapsible */}
             <div className="grid grid-cols-3 gap-6 pt-6 border-t border-slate-100">
               {/* Weighted Dimension Score */}
-              <div className="rounded-xl border border-slate-200 overflow-hidden">
-                <div className="bg-slate-100 px-4 py-3 border-b border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-slate-800 text-sm">Weighted Dimension Score</h4>
-                    <span className="text-xs text-slate-500 font-medium">{DEFAULT_COMPOSITE_WEIGHTS.weightedDim}% weight</span>
-                  </div>
-                </div>
-                <div className="p-4 bg-white">
-                  <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                    Combined score across all 13 dimensions, with each dimension weighted by its strategic importance to employee cancer support.
-                  </p>
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs text-slate-500 font-medium">Your Score</span>
-                      <span className="text-lg font-bold" style={{ color: getScoreColor(weightedDimScore ?? 0) }}>{weightedDimScore ?? '—'}<span className="text-sm text-slate-400 font-normal"> / 100</span></span>
-                    </div>
-                    {benchmarks?.compositeScore !== undefined && (
-                      <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-                        <span className="text-xs text-slate-500">vs. Peer Benchmark</span>
-                        {(() => {
-                          const benchDimScore = benchmarks?.weightedDimScore ?? benchmarks?.compositeScore;
-                          const diff = benchDimScore ? (weightedDimScore ?? 0) - benchDimScore : null;
-                          return diff !== null ? (
-                            <span className={`text-sm font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                              {diff >= 0 ? '+' : ''}{diff} pts <span className="font-normal text-slate-400">({benchDimScore} avg)</span>
-                            </span>
-                          ) : <span className="text-xs text-slate-400">—</span>;
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <ScoreComponentCard
+                title="Weighted Dimension Score"
+                score={weightedDimScore ?? 0}
+                weight={DEFAULT_COMPOSITE_WEIGHTS.weightedDim}
+                benchmarkScore={benchmarks?.weightedDimScore ?? benchmarks?.compositeScore}
+                color="slate"
+                summary="Combined performance across all 13 support dimensions, weighted by strategic importance."
+                getScoreColor={getScoreColor}
+              />
               
               {/* Program Maturity */}
-              <div className="rounded-xl border border-amber-200 overflow-hidden">
-                <div className="bg-amber-100 px-4 py-3 border-b border-amber-200">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-amber-800 text-sm">Program Maturity</h4>
-                    <span className="text-xs text-amber-600 font-medium">{DEFAULT_COMPOSITE_WEIGHTS.maturity}% weight</span>
-                  </div>
-                </div>
-                <div className="p-4 bg-white">
-                  <p className="text-xs text-slate-600 leading-relaxed mb-3">
-                    Based on your overall support approach (OR1 response):
-                  </p>
-                  {/* Show their actual response highlighted */}
-                  <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-3 border-2 border-amber-300 mb-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-amber-900">
-                        {maturityScore === 100 ? 'Comprehensive support' : 
-                         maturityScore === 80 ? 'Enhanced support' : 
-                         maturityScore === 50 ? 'Moderate support' : 
-                         maturityScore === 20 ? 'Developing approach' : 'Legal minimum / None'}
-                      </span>
-                      <span className="text-lg font-bold text-amber-700">{maturityScore ?? 0} pts</span>
-                    </div>
-                  </div>
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    {benchmarks?.maturityScore !== undefined && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-slate-500">vs. Peer Benchmark</span>
-                        <span className={`text-sm font-bold ${(maturityScore ?? 0) - benchmarks.maturityScore >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                          {(maturityScore ?? 0) - benchmarks.maturityScore >= 0 ? '+' : ''}{(maturityScore ?? 0) - benchmarks.maturityScore} pts <span className="font-normal text-slate-400">({benchmarks.maturityScore} avg)</span>
-                        </span>
+              <ScoreComponentCard
+                title="Program Maturity"
+                score={maturityScore ?? 0}
+                weight={DEFAULT_COMPOSITE_WEIGHTS.maturity}
+                benchmarkScore={benchmarks?.maturityScore}
+                color="amber"
+                summary={`Your approach: ${maturityScore === 100 ? 'Comprehensive' : maturityScore === 80 ? 'Enhanced' : maturityScore === 50 ? 'Moderate' : maturityScore === 20 ? 'Developing' : 'Foundational'} support`}
+                getScoreColor={getScoreColor}
+                details={
+                  <div className="space-y-2 text-xs">
+                    <p className="text-slate-600 mb-3">Based on your overall support approach level:</p>
+                    {[
+                      { label: 'Comprehensive support', points: 100, selected: maturityScore === 100 },
+                      { label: 'Enhanced support', points: 80, selected: maturityScore === 80 },
+                      { label: 'Moderate support', points: 50, selected: maturityScore === 50 },
+                      { label: 'Developing approach', points: 20, selected: maturityScore === 20 },
+                      { label: 'Legal minimum / None', points: 0, selected: maturityScore === 0 },
+                    ].map((opt, i) => (
+                      <div key={i} className={`flex justify-between items-center px-3 py-2 rounded ${opt.selected ? 'bg-amber-100 border-2 border-amber-400 font-semibold' : 'bg-slate-50 text-slate-500'}`}>
+                        <span>{opt.label}</span>
+                        <span className={opt.selected ? 'text-amber-700 font-bold' : ''}>{opt.points} pts</span>
                       </div>
-                    )}
+                    ))}
                   </div>
-                </div>
-              </div>
+                }
+              />
               
               {/* Support Breadth */}
-              <div className="rounded-xl border border-violet-200 overflow-hidden">
-                <div className="bg-violet-100 px-4 py-3 border-b border-violet-200">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-violet-800 text-sm">Support Breadth</h4>
-                    <span className="text-xs text-violet-600 font-medium">{DEFAULT_COMPOSITE_WEIGHTS.breadth}% weight</span>
-                  </div>
-                </div>
-                <div className="p-4 bg-white">
-                  <p className="text-xs text-slate-600 leading-relaxed mb-3">
-                    Measures comprehensiveness across three areas:
-                  </p>
-                  {/* Show actual CB3 components with highlighted responses */}
-                  <div className="space-y-3 mb-3">
-                    {(() => {
-                      const currentSupport = company?.current_support_data || {};
-                      const generalBenefits = company?.general_benefits_data || {};
-                      
-                      // CB3a - Beyond legal requirements
-                      const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
-                      let cb3aScore = 0;
-                      let cb3aSelected = 0;
-                      if (cb3a === 3 || cb3a === '3' || String(cb3a).toLowerCase().includes('yes')) {
-                        cb3aScore = 100; cb3aSelected = 3;
-                      } else if (cb3a === 2 || cb3a === '2' || String(cb3a).toLowerCase().includes('developing')) {
-                        cb3aScore = 50; cb3aSelected = 2;
-                      } else if (cb3a === 1 || cb3a === '1') {
-                        cb3aScore = 0; cb3aSelected = 1;
-                      }
-                      
-                      // CB3b - Program structure elements
-                      const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
-                      const cb3bCount = (cb3b && Array.isArray(cb3b)) ? cb3b.length : 0;
-                      const cb3bDisplay = Math.min(cb3bCount, 6); // Cap display at max
-                      const cb3bScore = Math.min(100, Math.round((cb3bCount / 6) * 100));
-                      
-                      // CB3c - Conditions covered
-                      const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
-                      const cb3cCount = (cb3c && Array.isArray(cb3c)) ? cb3c.length : 0;
-                      const cb3cDisplay = Math.min(cb3cCount, 13); // Cap display at max
-                      const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
-                      
-                      return (
-                        <>
-                          {/* CB3a - Beyond Legal */}
-                          <div className="rounded-lg border border-violet-100 overflow-hidden">
-                            <div className="bg-violet-50 px-3 py-1.5 border-b border-violet-100">
-                              <span className="text-xs font-semibold text-violet-800">Support Beyond Legal Requirements</span>
-                            </div>
-                            <div className="p-2 bg-white space-y-1">
-                              <div className={`flex justify-between items-center px-2 py-1 rounded text-xs ${cb3aSelected === 3 ? 'bg-gradient-to-r from-violet-100 to-violet-200 border-2 border-violet-400 font-semibold' : 'text-slate-500'}`}>
-                                <span>Yes, additional support beyond legal</span>
-                                <span className={cb3aSelected === 3 ? 'text-violet-700 font-bold' : ''}>100</span>
+              {(() => {
+                const currentSupport = company?.current_support_data || {};
+                const generalBenefits = company?.general_benefits_data || {};
+                
+                const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
+                let cb3aScore = 0;
+                if (cb3a === 3 || cb3a === '3' || String(cb3a).toLowerCase().includes('yes')) cb3aScore = 100;
+                else if (cb3a === 2 || cb3a === '2' || String(cb3a).toLowerCase().includes('developing')) cb3aScore = 50;
+                
+                const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
+                const cb3bCount = (cb3b && Array.isArray(cb3b)) ? Math.min(cb3b.length, 6) : 0;
+                const cb3bScore = Math.min(100, Math.round((cb3bCount / 6) * 100));
+                
+                const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
+                const cb3cCount = (cb3c && Array.isArray(cb3c)) ? Math.min(cb3c.length, 13) : 0;
+                const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
+                
+                return (
+                  <ScoreComponentCard
+                    title="Support Breadth"
+                    score={breadthScore ?? 0}
+                    weight={DEFAULT_COMPOSITE_WEIGHTS.breadth}
+                    benchmarkScore={benchmarks?.breadthScore}
+                    color="violet"
+                    summary={`Coverage: ${cb3aScore === 100 ? 'Beyond legal' : cb3aScore === 50 ? 'Developing' : 'Baseline'} • ${cb3bCount}/6 elements • ${cb3cCount}/13 conditions`}
+                    getScoreColor={getScoreColor}
+                    details={
+                      <div className="space-y-4 text-xs">
+                        <p className="text-slate-600">Average of three coverage measures:</p>
+                        
+                        {/* CB3a */}
+                        <div className="border border-violet-200 rounded-lg overflow-hidden">
+                          <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800">Support Beyond Legal Requirements</div>
+                          <div className="p-2 space-y-1">
+                            {[
+                              { label: 'Yes, additional support beyond legal', points: 100, selected: cb3aScore === 100 },
+                              { label: 'Currently developing programs', points: 50, selected: cb3aScore === 50 },
+                              { label: 'Legal minimum only', points: 0, selected: cb3aScore === 0 },
+                            ].map((opt, i) => (
+                              <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded ${opt.selected ? 'bg-violet-100 border-2 border-violet-400 font-semibold' : 'text-slate-500'}`}>
+                                <span>{opt.label}</span>
+                                <span className={opt.selected ? 'text-violet-700 font-bold' : ''}>{opt.points}</span>
                               </div>
-                              <div className={`flex justify-between items-center px-2 py-1 rounded text-xs ${cb3aSelected === 2 ? 'bg-gradient-to-r from-violet-100 to-violet-200 border-2 border-violet-400 font-semibold' : 'text-slate-500'}`}>
-                                <span>Currently developing programs</span>
-                                <span className={cb3aSelected === 2 ? 'text-violet-700 font-bold' : ''}>50</span>
-                              </div>
-                              <div className={`flex justify-between items-center px-2 py-1 rounded text-xs ${cb3aSelected === 1 ? 'bg-gradient-to-r from-violet-100 to-violet-200 border-2 border-violet-400 font-semibold' : 'text-slate-500'}`}>
-                                <span>Legal minimum only</span>
-                                <span className={cb3aSelected === 1 ? 'text-violet-700 font-bold' : ''}>0</span>
-                              </div>
-                            </div>
+                            ))}
                           </div>
-                          
-                          {/* CB3b - Program Elements */}
-                          <div className="rounded-lg border border-violet-100 overflow-hidden">
-                            <div className="bg-violet-50 px-3 py-1.5 border-b border-violet-100 flex justify-between items-center">
-                              <span className="text-xs font-semibold text-violet-800">Formal Program Elements</span>
-                              <span className="text-xs text-violet-600">({cb3bDisplay} of 6)</span>
-                            </div>
-                            <div className="p-2 bg-white">
-                              <div className="bg-gradient-to-r from-violet-100 to-violet-200 border-2 border-violet-400 rounded px-3 py-2 flex justify-between items-center">
-                                <span className="text-xs font-semibold text-violet-900">{cb3bDisplay} program elements</span>
-                                <span className="text-sm font-bold text-violet-700">{cb3bScore}</span>
-                              </div>
-                              <p className="text-[10px] text-slate-400 mt-1 px-1">Score = count ÷ 6 × 100</p>
-                            </div>
+                        </div>
+                        
+                        {/* CB3b */}
+                        <div className="border border-violet-200 rounded-lg overflow-hidden">
+                          <div className="bg-violet-50 px-3 py-2 flex justify-between">
+                            <span className="font-semibold text-violet-800">Formal Program Elements</span>
+                            <span className="text-violet-600">{cb3bCount} of 6 = {cb3bScore} pts</span>
                           </div>
-                          
-                          {/* CB3c - Conditions Covered */}
-                          <div className="rounded-lg border border-violet-100 overflow-hidden">
-                            <div className="bg-violet-50 px-3 py-1.5 border-b border-violet-100 flex justify-between items-center">
-                              <span className="text-xs font-semibold text-violet-800">Health Conditions Covered</span>
-                              <span className="text-xs text-violet-600">({cb3cDisplay} of 13)</span>
-                            </div>
-                            <div className="p-2 bg-white">
-                              <div className="bg-gradient-to-r from-violet-100 to-violet-200 border-2 border-violet-400 rounded px-3 py-2 flex justify-between items-center">
-                                <span className="text-xs font-semibold text-violet-900">{cb3cDisplay} conditions covered</span>
-                                <span className="text-sm font-bold text-violet-700">{cb3cScore}</span>
-                              </div>
-                              <p className="text-[10px] text-slate-400 mt-1 px-1">Score = count ÷ 13 × 100</p>
-                            </div>
+                        </div>
+                        
+                        {/* CB3c */}
+                        <div className="border border-violet-200 rounded-lg overflow-hidden">
+                          <div className="bg-violet-50 px-3 py-2 flex justify-between">
+                            <span className="font-semibold text-violet-800">Health Conditions Covered</span>
+                            <span className="text-violet-600">{cb3cCount} of 13 = {cb3cScore} pts</span>
                           </div>
-                        </>
-                      );
-                    })()}
-                  </div>
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs text-slate-500 font-medium">Your Score (avg of 3)</span>
-                      <span className="text-lg font-bold" style={{ color: getScoreColor(breadthScore ?? 0) }}>{breadthScore ?? '—'}<span className="text-sm text-slate-400 font-normal"> / 100</span></span>
-                    </div>
-                    {benchmarks?.breadthScore !== undefined && (
-                      <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-                        <span className="text-xs text-slate-500">vs. Peer Benchmark</span>
-                        <span className={`text-sm font-bold ${(breadthScore ?? 0) - benchmarks.breadthScore >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                          {(breadthScore ?? 0) - benchmarks.breadthScore >= 0 ? '+' : ''}{(breadthScore ?? 0) - benchmarks.breadthScore} pts <span className="font-normal text-slate-400">({benchmarks.breadthScore} avg)</span>
-                        </span>
+                        </div>
+                        
+                        <div className="bg-slate-50 rounded p-2 text-center text-slate-500">
+                          Final score = ({cb3aScore} + {cb3bScore} + {cb3cScore}) ÷ 3 = <span className="font-bold text-violet-700">{breadthScore}</span>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+                    }
+                  />
+                );
+              })()}
             </div>
           </div>
         </div>
