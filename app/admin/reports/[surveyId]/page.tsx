@@ -2641,58 +2641,89 @@ export default function ExportReportPage() {
                 </div>
                 <div className="p-4 bg-white">
                   <p className="text-xs text-slate-600 leading-relaxed mb-3">
-                    Measures comprehensiveness of your support programs:
+                    Measures comprehensiveness across three areas:
                   </p>
-                  {/* Show actual CB3 component values */}
-                  <div className="space-y-2 mb-3">
+                  {/* Show actual CB3 components with highlighted responses */}
+                  <div className="space-y-3 mb-3">
                     {(() => {
                       const currentSupport = company?.current_support_data || {};
                       const generalBenefits = company?.general_benefits_data || {};
                       
-                      // CB3a
+                      // CB3a - Beyond legal requirements
                       const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
                       let cb3aScore = 0;
-                      let cb3aLabel = 'Not answered';
+                      let cb3aSelected = 0;
                       if (cb3a === 3 || cb3a === '3' || String(cb3a).toLowerCase().includes('yes')) {
-                        cb3aScore = 100; cb3aLabel = 'Yes, beyond legal';
+                        cb3aScore = 100; cb3aSelected = 3;
                       } else if (cb3a === 2 || cb3a === '2' || String(cb3a).toLowerCase().includes('developing')) {
-                        cb3aScore = 50; cb3aLabel = 'Currently developing';
+                        cb3aScore = 50; cb3aSelected = 2;
                       } else if (cb3a === 1 || cb3a === '1') {
-                        cb3aScore = 0; cb3aLabel = 'Legal minimum only';
+                        cb3aScore = 0; cb3aSelected = 1;
                       }
                       
-                      // CB3b
+                      // CB3b - Program structure elements
                       const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
                       const cb3bCount = (cb3b && Array.isArray(cb3b)) ? cb3b.length : 0;
+                      const cb3bDisplay = Math.min(cb3bCount, 6); // Cap display at max
                       const cb3bScore = Math.min(100, Math.round((cb3bCount / 6) * 100));
                       
-                      // CB3c
+                      // CB3c - Conditions covered
                       const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
                       const cb3cCount = (cb3c && Array.isArray(cb3c)) ? cb3c.length : 0;
+                      const cb3cDisplay = Math.min(cb3cCount, 13); // Cap display at max
                       const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
                       
                       return (
                         <>
-                          <div className="flex items-center justify-between bg-violet-50 rounded-lg px-3 py-2">
-                            <div>
-                              <span className="text-xs font-semibold text-violet-700">CB3a: </span>
-                              <span className="text-xs text-slate-600">Beyond legal requirements</span>
+                          {/* CB3a - Beyond Legal */}
+                          <div className="rounded-lg border border-violet-100 overflow-hidden">
+                            <div className="bg-violet-50 px-3 py-1.5 border-b border-violet-100">
+                              <span className="text-xs font-semibold text-violet-800">Support Beyond Legal Requirements</span>
                             </div>
-                            <span className="text-sm font-bold text-violet-700">{cb3aScore}</span>
+                            <div className="p-2 bg-white space-y-1">
+                              <div className={`flex justify-between items-center px-2 py-1 rounded text-xs ${cb3aSelected === 3 ? 'bg-gradient-to-r from-violet-100 to-violet-200 border-2 border-violet-400 font-semibold' : 'text-slate-500'}`}>
+                                <span>Yes, additional support beyond legal</span>
+                                <span className={cb3aSelected === 3 ? 'text-violet-700 font-bold' : ''}>100</span>
+                              </div>
+                              <div className={`flex justify-between items-center px-2 py-1 rounded text-xs ${cb3aSelected === 2 ? 'bg-gradient-to-r from-violet-100 to-violet-200 border-2 border-violet-400 font-semibold' : 'text-slate-500'}`}>
+                                <span>Currently developing programs</span>
+                                <span className={cb3aSelected === 2 ? 'text-violet-700 font-bold' : ''}>50</span>
+                              </div>
+                              <div className={`flex justify-between items-center px-2 py-1 rounded text-xs ${cb3aSelected === 1 ? 'bg-gradient-to-r from-violet-100 to-violet-200 border-2 border-violet-400 font-semibold' : 'text-slate-500'}`}>
+                                <span>Legal minimum only</span>
+                                <span className={cb3aSelected === 1 ? 'text-violet-700 font-bold' : ''}>0</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between bg-violet-50 rounded-lg px-3 py-2">
-                            <div>
-                              <span className="text-xs font-semibold text-violet-700">CB3b: </span>
-                              <span className="text-xs text-slate-600">Program elements ({cb3bCount} of 6)</span>
+                          
+                          {/* CB3b - Program Elements */}
+                          <div className="rounded-lg border border-violet-100 overflow-hidden">
+                            <div className="bg-violet-50 px-3 py-1.5 border-b border-violet-100 flex justify-between items-center">
+                              <span className="text-xs font-semibold text-violet-800">Formal Program Elements</span>
+                              <span className="text-xs text-violet-600">({cb3bDisplay} of 6)</span>
                             </div>
-                            <span className="text-sm font-bold text-violet-700">{cb3bScore}</span>
+                            <div className="p-2 bg-white">
+                              <div className="bg-gradient-to-r from-violet-100 to-violet-200 border-2 border-violet-400 rounded px-3 py-2 flex justify-between items-center">
+                                <span className="text-xs font-semibold text-violet-900">{cb3bDisplay} program elements</span>
+                                <span className="text-sm font-bold text-violet-700">{cb3bScore}</span>
+                              </div>
+                              <p className="text-[10px] text-slate-400 mt-1 px-1">Score = count ÷ 6 × 100</p>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between bg-violet-50 rounded-lg px-3 py-2">
-                            <div>
-                              <span className="text-xs font-semibold text-violet-700">CB3c: </span>
-                              <span className="text-xs text-slate-600">Conditions covered ({cb3cCount} of 13)</span>
+                          
+                          {/* CB3c - Conditions Covered */}
+                          <div className="rounded-lg border border-violet-100 overflow-hidden">
+                            <div className="bg-violet-50 px-3 py-1.5 border-b border-violet-100 flex justify-between items-center">
+                              <span className="text-xs font-semibold text-violet-800">Health Conditions Covered</span>
+                              <span className="text-xs text-violet-600">({cb3cDisplay} of 13)</span>
                             </div>
-                            <span className="text-sm font-bold text-violet-700">{cb3cScore}</span>
+                            <div className="p-2 bg-white">
+                              <div className="bg-gradient-to-r from-violet-100 to-violet-200 border-2 border-violet-400 rounded px-3 py-2 flex justify-between items-center">
+                                <span className="text-xs font-semibold text-violet-900">{cb3cDisplay} conditions covered</span>
+                                <span className="text-sm font-bold text-violet-700">{cb3cScore}</span>
+                              </div>
+                              <p className="text-[10px] text-slate-400 mt-1 px-1">Score = count ÷ 13 × 100</p>
+                            </div>
                           </div>
                         </>
                       );
@@ -2700,7 +2731,7 @@ export default function ExportReportPage() {
                   </div>
                   <div className="bg-slate-50 rounded-lg p-3">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs text-slate-500 font-medium">Your Score</span>
+                      <span className="text-xs text-slate-500 font-medium">Your Score (avg of 3)</span>
                       <span className="text-lg font-bold" style={{ color: getScoreColor(breadthScore ?? 0) }}>{breadthScore ?? '—'}<span className="text-sm text-slate-400 font-normal"> / 100</span></span>
                     </div>
                     {benchmarks?.breadthScore !== undefined && (
