@@ -1626,34 +1626,19 @@ export default function ExportReportPage() {
     setGeneratingLink(true);
     
     try {
-      // Generate random token and password
-      const token = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
-      const password = Math.random().toString(36).substring(2, 8).toUpperCase();
+      // Use Netlify function to generate/retrieve link (bypasses RLS)
+      const response = await fetch('/.netlify/functions/generate-interactive-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessmentId: company.id }),
+      });
       
-      // Check if link already exists
-      if (company.public_token) {
-        // Use existing link
-        const baseUrl = window.location.origin;
-        setInteractiveLink({
-          url: `${baseUrl}/report/${company.public_token}`,
-          password: company.public_password || 'Check database'
-        });
-        setShowInteractiveLinkModal(true);
-        setGeneratingLink(false);
-        return;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate link');
       }
       
-      // Save to database
-      const { error } = await supabase
-        .from('assessments')
-        .update({
-          public_token: token,
-          public_password: password,
-          public_link_created_at: new Date().toISOString()
-        })
-        .eq('id', company.id);
-      
-      if (error) throw error;
+      const { token, password, isExisting } = await response.json();
       
       const baseUrl = window.location.origin;
       setInteractiveLink({
@@ -1665,6 +1650,12 @@ export default function ExportReportPage() {
       // Update local company state
       company.public_token = token;
       company.public_password = password;
+      
+      if (isExisting) {
+        console.log('Using existing interactive link');
+      } else {
+        console.log('Generated new interactive link');
+      }
       
     } catch (err) {
       console.error('Error generating link:', err);
