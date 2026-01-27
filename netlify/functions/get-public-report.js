@@ -225,13 +225,12 @@ exports.handler = async (event) => {
       }
     } catch (e) { /* ignore parse errors */ }
 
-    // Load all assessments for benchmarking (with sensitive fields stripped)
+    // Load all assessments for benchmarking - ONLY fields needed for score calculation
+    // SECURITY: Do NOT return sensitive fields like firmographics, payment info, verbatims, etc.
     const { data: allAssessmentsRaw } = await supabase
       .from('assessments')
       .select(`
-        id, company_name, survey_id, is_founding_partner,
-        firmographics_data, general_benefits_data, current_support_data,
-        cross_dimensional_data, employee_impact_data,
+        id,
         dimension1_data, dimension2_data, dimension3_data, dimension4_data,
         dimension5_data, dimension6_data, dimension7_data, dimension8_data,
         dimension9_data, dimension10_data, dimension11_data, dimension12_data, dimension13_data,
@@ -240,13 +239,25 @@ exports.handler = async (event) => {
         dimension9_complete, dimension10_complete, dimension11_complete, dimension12_complete, dimension13_complete
       `);
     
-    // Strip company-identifying info from benchmark data for privacy
-    const allAssessments = (allAssessmentsRaw || []).map(a => ({
-      ...a,
-      company_name: undefined,  // Remove for privacy
-      email: undefined,
-      user_id: undefined,
-    }));
+    // Further strip dimension data to only the 'd#a' grid responses needed for scoring
+    // Remove verbatim comments (d#b fields), follow-up questions, and any other extras
+    const allAssessments = (allAssessmentsRaw || []).map(a => {
+      const stripped = { id: a.id };
+      for (let dim = 1; dim <= 13; dim++) {
+        const dimData = a[`dimension${dim}_data`];
+        const completeKey = `dimension${dim}_complete`;
+        stripped[completeKey] = a[completeKey];
+        
+        if (dimData && typeof dimData === 'object') {
+          // Only keep the main grid (d#a) - strip verbatims (d#b) and other fields
+          const gridKey = `d${dim}a`;
+          stripped[`dimension${dim}_data`] = dimData[gridKey] ? { [gridKey]: dimData[gridKey] } : {};
+        } else {
+          stripped[`dimension${dim}_data`] = {};
+        }
+      }
+      return stripped;
+    });
 
     const companyName = company.firmographics_data?.company_name || company.company_name || 'Unknown Company';
     const contactName = company.firmographics_data?.primary_contact_name || '';
