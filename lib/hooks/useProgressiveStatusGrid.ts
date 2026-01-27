@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -17,7 +18,7 @@ type UseProgressiveStatusGridArgs<TAns extends Record<string, any>> = {
   gridKey: string;
   // full answers object + setter from your page
   ans: TAns;
-  setAns: React.Dispatch<React.SetStateAction<TAns>>;
+  setAns: Dispatch<SetStateAction<TAns>>;
   // callback when grid is touched (for validation)
   markTouched?: (fieldName: string) => void;
   // optional behaviors
