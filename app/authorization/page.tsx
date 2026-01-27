@@ -193,6 +193,44 @@ function AuthorizationContent() {
           console.log('✅ Authorization completed (localStorage) - redirecting to dashboard')
           router.push('/dashboard')
           return
+        } else {
+          // ============================================
+          // FALLBACK: Load from localStorage if Supabase didn't return data
+          // This handles returning users where getUserAssessment fails
+          // ============================================
+          console.log('📋 No Supabase assessment found, checking localStorage...')
+          
+          // Try to load firmographics_data from localStorage
+          const localFirmographics = localStorage.getItem('firmographics_data')
+          if (localFirmographics) {
+            try {
+              const authData = JSON.parse(localFirmographics)
+              console.log('📋 Found firmographics_data in localStorage:', Object.keys(authData))
+              if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
+              if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
+              if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
+              if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
+              if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
+              if (authData.au1) setAu1(authData.au1)
+              if (authData.au2) setAu2(authData.au2)
+              if (authData.other) setOther(authData.other)
+            } catch (e) {
+              console.error('Error parsing localStorage firmographics_data:', e)
+            }
+          }
+          
+          // Also try to get company name from other localStorage sources
+          const loginCompanyName = localStorage.getItem('login_company_name')
+          if (loginCompanyName && !companyInfo.companyName) {
+            console.log('📋 Using company name from login_company_name:', loginCompanyName)
+            setCompanyInfo(prev => ({ ...prev, companyName: loginCompanyName }))
+          }
+          
+          // Try login_first_name and login_last_name
+          const loginFirstName = localStorage.getItem('login_first_name')
+          const loginLastName = localStorage.getItem('login_last_name')
+          if (loginFirstName) setCompanyInfo(prev => ({ ...prev, firstName: prev.firstName || loginFirstName }))
+          if (loginLastName) setCompanyInfo(prev => ({ ...prev, lastName: prev.lastName || loginLastName }))
         }
       } catch (error) {
         console.error('Error loading data:', error)
