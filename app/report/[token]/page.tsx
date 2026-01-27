@@ -1083,6 +1083,7 @@ interface DrillDownProps {
   customObservations?: Record<string, string>;
   setCustomObservations?: (obs: Record<string, string>) => void;
   isEditing?: boolean;
+  showExtras?: boolean;
 }
 
 // Collapsible Score Component Card for Score Composition section
@@ -1170,7 +1171,7 @@ function ScoreComponentCard({
   );
 }
 
-function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor, benchmarkCompanyCount, customObservations = {}, setCustomObservations, isEditing = false }: DrillDownProps) {
+function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor, benchmarkCompanyCount, customObservations = {}, setCustomObservations, isEditing = false, showExtras = false }: DrillDownProps) {
   const sortedDims = [...dimensionAnalysis].sort((a, b) => a.dim - b.dim);
   const selectedData = selectedDim ? sortedDims.find(d => d.dim === selectedDim) : null;
   const elemBench = selectedDim ? elementBenchmarks[selectedDim] || {} : {};
@@ -1230,12 +1231,13 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
         <p className="text-slate-500 mt-1">Click any dimension to explore element-level details and benchmark comparisons</p>
       </div>
       
-      {/* Dimension Rows - Clean Horizontal Layout */}
+      {/* Dimension Rows - Split into two containers for PPT */}
+      {/* Dimensions 1-7 */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
-        {sortedDims.map((d, idx) => {
+        {sortedDims.filter(d => d.dim <= 7).map((d, idx, arr) => {
           const isSelected = selectedDim === d.dim;
           const diff = d.benchmark !== null ? d.score - d.benchmark : null;
-          const isLast = idx === sortedDims.length - 1;
+          const isLast = idx === arr.length - 1;
           
           return (
             <div key={d.dim}>
@@ -1427,6 +1429,154 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                       </table>
                     </div>
                     
+                    {/* Geographic Multiplier & Follow-up Sections */}
+                    {showExtras && (
+                    <div className="mt-6 space-y-4">
+                      {/* Geographic Multiplier */}
+                      <div className="bg-white rounded-lg border border-slate-200 p-4">
+                        <h4 className="text-xs font-semibold text-purple-700 mb-2 uppercase tracking-wide">Geographic Multiplier</h4>
+                        <div className="space-y-1">
+                          {(() => {
+                            const geoText = d.geoResponse ? String(d.geoResponse).toLowerCase() : '';
+                            const isConsistent = geoText.includes('consistent');
+                            const isVaries = geoText.includes('var');
+                            const isSelect = geoText.includes('select');
+                            const isSingleCountry = !d.geoResponse || d.geoResponse === null;
+                            
+                            const options = [
+                              { label: 'Multi-country + Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 42 },
+                              { label: 'Single-country (geo question not applicable)', multiplier: 'x1.00', selected: isSingleCountry, color: 'text-emerald-600', benchPct: 35 },
+                              { label: 'Multi-country + Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 15 },
+                              { label: 'Multi-country + Only available in select locations', multiplier: 'x0.75', selected: isSelect, color: 'text-red-500', benchPct: 8 },
+                            ];
+                            
+                            return options.map((opt, i) => (
+                              <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : ''}`}>
+                                <div className="flex items-center gap-2">
+                                  {opt.selected && <span className="text-purple-600">✓</span>}
+                                  <span className={opt.selected ? 'font-semibold text-purple-900' : 'text-slate-600'}>{opt.label}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
+                                  <span className={`font-semibold w-12 text-right ${opt.color}`}>{opt.multiplier}</span>
+                                </div>
+                              </div>
+                            ));
+                          })()}
+                        </div>
+                        <p className="text-[10px] text-slate-400 italic mt-2">Note: Single-country companies receive 1.0 because the geo question does not apply.</p>
+                      </div>
+                      
+                      {/* Follow-up Questions (only for D1, D3, D12, D13) */}
+                      {d.dim === 1 && (
+                        <div className="bg-white rounded-lg border border-slate-200 p-4">
+                          <h4 className="text-xs font-semibold text-blue-700 mb-3 uppercase tracking-wide">D1: Medical Leave Follow-ups</h4>
+                          
+                          {/* USA Question */}
+                          <p className="text-xs text-slate-600 mb-2">D1_1 (USA): "How many weeks of 100% paid medical leave do you offer employees based in the USA?"</p>
+                          <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                            <span className="w-16 text-center">Benchmark</span>
+                            <span className="w-14 text-right">Points</span>
+                          </div>
+                          <div className="space-y-0.5 mb-4">
+                            {(() => {
+                              const usaScore = d.followUpRaw?.d1_1_usa_score;
+                              return [
+                                { label: '13 or more weeks', points: 100, benchPct: 28 },
+                                { label: '9 to less than 13 weeks', points: 70, benchPct: 22 },
+                                { label: '5 to less than 9 weeks', points: 40, benchPct: 18 },
+                                { label: '3 to less than 5 weeks', points: 20, benchPct: 15 },
+                                { label: '1 to less than 3 weeks', points: 10, benchPct: 10 },
+                                { label: 'Does not apply / None', points: 0, benchPct: 7 },
+                              ].map((opt, i) => {
+                                const isSelected = usaScore === opt.points;
+                                return (
+                                  <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
+                                    <div className="flex items-center gap-2">
+                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                      <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                          
+                          {/* Non-USA Question */}
+                          <p className="text-xs text-slate-600 mb-2">D1_1 (Outside USA): "How many weeks of 100% paid medical leave do you offer employees based outside the USA?"</p>
+                          <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                            <span className="w-16 text-center">Benchmark</span>
+                            <span className="w-14 text-right">Points</span>
+                          </div>
+                          <div className="space-y-0.5">
+                            {(() => {
+                              const nonUsaScore = d.followUpRaw?.d1_1_non_usa_score;
+                              return [
+                                { label: '13 or more weeks', points: 100, benchPct: 35 },
+                                { label: '9 to less than 13 weeks', points: 70, benchPct: 25 },
+                                { label: '5 to less than 9 weeks', points: 40, benchPct: 15 },
+                                { label: '3 to less than 5 weeks', points: 20, benchPct: 12 },
+                                { label: '1 to less than 3 weeks', points: 10, benchPct: 8 },
+                                { label: 'Does not apply / None', points: 0, benchPct: 5 },
+                              ].map((opt, i) => {
+                                const isSelected = nonUsaScore === opt.points;
+                                return (
+                                  <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
+                                    <div className="flex items-center gap-2">
+                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                      <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                          <p className="text-[10px] text-slate-400 italic mt-3">Note: If both USA and non-USA values provided, scores are averaged.</p>
+                        </div>
+                      )}
+                      
+                      {d.dim === 3 && (
+                        <div className="bg-white rounded-lg border border-slate-200 p-4">
+                          <h4 className="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">D3: Manager Training Follow-up (D3_1)</h4>
+                          <p className="text-xs text-slate-600 mb-2">"What percentage of managers have received training on supporting employees with serious health conditions?"</p>
+                          <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                            <span className="w-16 text-center">Benchmark</span>
+                            <span className="w-14 text-right">Points</span>
+                          </div>
+                          <div className="space-y-0.5">
+                            {[
+                              { label: '100% of managers', points: 100, benchPct: 12 },
+                              { label: '75% to less than 100%', points: 80, benchPct: 18 },
+                              { label: '50% to less than 75%', points: 50, benchPct: 25 },
+                              { label: '25% to less than 50%', points: 30, benchPct: 20 },
+                              { label: '10% to less than 25%', points: 10, benchPct: 15 },
+                              { label: 'Less than 10%', points: 0, benchPct: 10 },
+                            ].map((opt, i) => (
+                              <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${d.followUpScore === opt.points ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
+                                <div className="flex items-center gap-2">
+                                  {d.followUpScore === opt.points && <span className="text-blue-600">✓</span>}
+                                  <span className={d.followUpScore === opt.points ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                  <span className={`font-semibold w-14 text-right ${opt.points >= 80 ? 'text-emerald-600' : opt.points >= 50 ? 'text-blue-600' : opt.points >= 30 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    )}
+                    
                     {/* Benchmark note */}
                     <p className="text-xs text-slate-400 mt-3 text-right">
                       Benchmark based on all participating companies
@@ -1438,37 +1588,360 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
           );
         })}
       </div>
+      
+      {/* Dimensions 8-13 */}
+      <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+        {sortedDims.filter(d => d.dim >= 8).map((d, idx, arr) => {
+          const isSelected = selectedDim === d.dim;
+          const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+          const isLast = idx === arr.length - 1;
+          
+          return (
+            <div key={d.dim}>
+              <button
+                onClick={() => setSelectedDim(isSelected ? null : d.dim)}
+                className={`w-full text-left transition-all duration-200 ${
+                  isSelected 
+                    ? 'bg-slate-800 text-white' 
+                    : 'bg-white hover:bg-slate-50'
+                } ${!isLast && !isSelected ? 'border-b border-slate-100' : ''}`}
+              >
+                <div className="flex items-center px-6 py-4">
+                  {/* Dimension Number Badge */}
+                  <div 
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
+                    style={{ backgroundColor: isSelected ? '#6366F1' : d.tier.color }}
+                  >
+                    {d.dim}
+                  </div>
+                  
+                  {/* Full Dimension Name */}
+                  <div className="ml-4 flex-1 min-w-0">
+                    <p className={`font-semibold ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                      {d.name}
+                    </p>
+                    <p className={`text-xs mt-0.5 ${isSelected ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Weight: {d.weight}%
+                    </p>
+                  </div>
+                  
+                  {/* Score Bar */}
+                  <div className="w-48 mx-6 hidden md:block">
+                    <div className={`h-2 rounded-full overflow-hidden ${isSelected ? 'bg-slate-600' : 'bg-slate-100'}`}>
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${d.score}%`, 
+                          backgroundColor: isSelected ? '#A5B4FC' : d.tier.color 
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Score Display */}
+                  <div className="text-right shrink-0 w-20">
+                    <p className={`text-2xl font-bold ${isSelected ? 'text-white' : ''}`} style={{ color: isSelected ? undefined : d.tier.color }}>
+                      {d.score}
+                    </p>
+                    {diff !== null && (
+                      <p className={`text-xs mt-0.5 ${
+                        isSelected 
+                          ? (diff >= 0 ? 'text-emerald-300' : 'text-amber-300')
+                          : (diff >= 0 ? 'text-emerald-600' : 'text-amber-600')
+                      }`}>
+                        {diff >= 0 ? '+' : ''}{diff} vs avg
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Expand Arrow */}
+                  <div className={`ml-4 transition-transform ${isSelected ? 'rotate-180' : ''}`}>
+                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-400' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </button>
+              
+              {/* Expanded Detail Panel */}
+              {isSelected && selectedData && (
+                <div className="bg-slate-50 border-t border-slate-200 p-6">
+                  {/* Custom Insight */}
+                  <div className="bg-white rounded-lg p-4 mb-6 border border-slate-200">
+                    {isEditing ? (
+                      <textarea
+                        value={customObservations[`dim${d.dim}_insight`] ?? selectedData.insight}
+                        onChange={(e) => setCustomObservations?.({ ...customObservations, [`dim${d.dim}_insight`]: e.target.value })}
+                        className="w-full text-slate-700 text-sm leading-relaxed bg-amber-50 border border-amber-300 rounded p-2 min-h-[60px] focus:outline-none focus:ring-1 focus:ring-amber-400"
+                      />
+                    ) : (
+                      <p className="text-slate-700 text-sm leading-relaxed">
+                        {customObservations[`dim${d.dim}_insight`] || selectedData.insight}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Element Details Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b-2 border-slate-200">
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Status</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.currently.bg }}>Offering</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.planning.bg }}>Planning</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.assessing.bg }}>Assessing</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.notAble.bg }}>Not Offering</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Observation</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedData.elements.map((el: any, elIdx: number) => {
+                          const bench = elemBench[el.name] || { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 0 };
+                          const total = bench.total || 1;
+                          // Map category to STATUS key - currently_offer -> currently, not_able -> notAble
+                          const categoryToStatusKey: Record<string, string> = {
+                            'currently_offer': 'currently',
+                            'planning': 'planning', 
+                            'assessing': 'assessing',
+                            'not_able': 'notAble',
+                            'unknown': 'notAble'
+                          };
+                          const statusKey = categoryToStatusKey[el.category] || 'notAble';
+                          const statusInfo = { key: statusKey, ...STATUS[statusKey as keyof typeof STATUS] };
+                          const obsKey = `dim${d.dim}_${el.name}`;
+                          const defaultObs = getDefaultObservation(el, bench);
+                          
+                          return (
+                            <tr key={elIdx} className={`border-b border-slate-100 ${elIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                              <td className="px-4 py-3">
+                                <span className="text-sm font-medium text-slate-700">{el.name}</span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span 
+                                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                                  style={{ 
+                                    backgroundColor: statusInfo.light,
+                                    color: statusInfo.text
+                                  }}
+                                >
+                                  {statusInfo.label}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-center border-l border-slate-100">
+                                <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                  statusInfo.key === 'currently' ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'bg-slate-50'
+                                }`} style={{ color: STATUS.currently.bg }}>
+                                  {Math.round((bench.currently / total) * 100)}%
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                  statusInfo.key === 'planning' ? 'bg-blue-100 ring-2 ring-blue-500' : 'bg-slate-50'
+                                }`} style={{ color: STATUS.planning.bg }}>
+                                  {Math.round((bench.planning / total) * 100)}%
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                  statusInfo.key === 'assessing' ? 'bg-amber-100 ring-2 ring-amber-500' : 'bg-slate-50'
+                                }`} style={{ color: STATUS.assessing.bg }}>
+                                  {Math.round((bench.assessing / total) * 100)}%
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <div className={`inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm font-bold ${
+                                  statusInfo.key === 'notAble' ? 'bg-red-100 ring-2 ring-red-500' : 'bg-slate-50'
+                                }`} style={{ color: STATUS.notAble.bg }}>
+                                  {Math.round((bench.notAble / total) * 100)}%
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    value={customObservations[obsKey] ?? defaultObs}
+                                    onChange={(e) => setCustomObservations?.({ ...customObservations, [obsKey]: e.target.value })}
+                                    className="w-full text-xs text-slate-600 bg-amber-50 border border-amber-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                  />
+                                ) : (
+                                  <span className="text-xs text-slate-500">{customObservations[obsKey] || defaultObs}</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Geographic Multiplier & Follow-up Sections */}
+                  {showExtras && (
+                  <div className="mt-6 space-y-4">
+                    {/* Geographic Multiplier */}
+                    <div className="bg-white rounded-lg border border-slate-200 p-4">
+                      <h4 className="text-xs font-semibold text-purple-700 mb-2 uppercase tracking-wide">Geographic Multiplier</h4>
+                      <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                        <span className="w-16 text-center">Benchmark</span>
+                        <span className="w-14 text-right">Multiplier</span>
+                      </div>
+                      <div className="space-y-0.5">
+                        {(() => {
+                          const geoText = d.geoResponse ? String(d.geoResponse).toLowerCase() : '';
+                          const isConsistent = geoText.includes('consistent');
+                          const isVaries = geoText.includes('var');
+                          const isSelect = geoText.includes('select');
+                          const isSingleCountry = !d.geoResponse || d.geoResponse === null;
+                          
+                          const options = [
+                            { label: 'Multi-country + Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 42 },
+                            { label: 'Single-country (geo question not applicable)', multiplier: 'x1.00', selected: isSingleCountry, color: 'text-emerald-600', benchPct: 35 },
+                            { label: 'Multi-country + Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 15 },
+                            { label: 'Multi-country + Only available in select locations', multiplier: 'x0.75', selected: isSelect, color: 'text-red-500', benchPct: 8 },
+                          ];
+                          
+                          return options.map((opt, i) => (
+                            <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : 'bg-slate-50'}`}>
+                              <div className="flex items-center gap-2">
+                                {opt.selected && <span className="text-purple-600">✓</span>}
+                                <span className={opt.selected ? 'font-semibold text-purple-900' : 'text-slate-700'}>{opt.label}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-14 text-right ${opt.color}`}>{opt.multiplier}</span>
+                              </div>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                      <p className="text-[10px] text-slate-400 italic mt-2">Note: Single-country companies receive 1.0 because the geo question does not apply.</p>
+                    </div>
+                    
+                    {/* D12 Follow-ups */}
+                    {d.dim === 12 && (
+                      <div className="bg-white rounded-lg border border-slate-200 p-4">
+                        <h4 className="text-xs font-semibold text-teal-700 mb-3 uppercase tracking-wide">D12: Continuous Improvement Follow-ups</h4>
+                        
+                        <p className="text-xs text-slate-600 mb-2">D12_1: "Do you review individual employee experiences to assess accommodation effectiveness?"</p>
+                        <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                          <span className="w-16 text-center">Benchmark</span>
+                          <span className="w-14 text-right">Points</span>
+                        </div>
+                        <div className="space-y-0.5 mb-4">
+                          {[
+                            { label: 'Systematic case reviews', points: 100, benchPct: 22 },
+                            { label: 'Ad hoc case reviews', points: 50, benchPct: 35 },
+                            { label: 'Only review aggregate data', points: 20, benchPct: 28 },
+                            { label: 'No review process', points: 0, benchPct: 15 },
+                          ].map((opt, i) => (
+                            <div key={i} className="flex justify-between items-center px-2 py-1.5 rounded text-xs bg-slate-50">
+                              <span className="text-slate-700">{opt.label}</span>
+                              <div className="flex items-center">
+                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-14 text-right ${opt.points >= 50 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <p className="text-xs text-slate-600 mb-2">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
+                        <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                          <span className="w-16 text-center">Benchmark</span>
+                          <span className="w-14 text-right">Points</span>
+                        </div>
+                        <div className="space-y-0.5">
+                          {[
+                            { label: 'Significant policy changes', points: 100, benchPct: 18 },
+                            { label: 'Some adjustments made', points: 60, benchPct: 40 },
+                            { label: 'No changes made yet', points: 20, benchPct: 30 },
+                            { label: 'N/A or no response', points: 0, benchPct: 12 },
+                          ].map((opt, i) => (
+                            <div key={i} className="flex justify-between items-center px-2 py-1.5 rounded text-xs bg-slate-50">
+                              <span className="text-slate-700">{opt.label}</span>
+                              <div className="flex items-center">
+                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-14 text-right ${opt.points >= 60 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-slate-400 italic mt-3">Note: D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
+                      </div>
+                    )}
+                    
+                    {/* D13 Follow-up */}
+                    {d.dim === 13 && (
+                      <div className="bg-white rounded-lg border border-slate-200 p-4">
+                        <h4 className="text-xs font-semibold text-orange-700 mb-2 uppercase tracking-wide">D13: Communication Follow-up (D13_1)</h4>
+                        <p className="text-xs text-slate-600 mb-2">"How frequently do you communicate about health support programs to employees?"</p>
+                        <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                          <span className="w-16 text-center">Benchmark</span>
+                          <span className="w-14 text-right">Points</span>
+                        </div>
+                        <div className="space-y-0.5">
+                          {[
+                            { label: 'Monthly', points: 100, benchPct: 8 },
+                            { label: 'Quarterly', points: 70, benchPct: 25 },
+                            { label: 'Twice per year', points: 40, benchPct: 30 },
+                            { label: 'Annually / World Cancer Day', points: 20, benchPct: 22 },
+                            { label: 'Only when asked', points: 0, benchPct: 10 },
+                            { label: 'Do not actively communicate', points: 0, benchPct: 5 },
+                          ].map((opt, i) => (
+                            <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${d.followUpScore === opt.points ? 'bg-orange-100 border-2 border-orange-400' : 'bg-slate-50'}`}>
+                              <div className="flex items-center gap-2">
+                                {d.followUpScore === opt.points && <span className="text-orange-600">✓</span>}
+                                <span className={d.followUpScore === opt.points ? 'font-semibold text-orange-900' : 'text-slate-700'}>{opt.label}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  )}
+                  
+                  {/* Benchmark note */}
+                  <p className="text-xs text-slate-400 mt-3 text-right">
+                    Benchmark based on all participating companies
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 // ============================================
+// MAIN COMPONENT
+// ============================================
 
-export default function InteractiveReportPage() {
+export default function ExportReportPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const exportMode = searchParams?.get('export') === '1';
   const mode = (searchParams?.get('mode') || '').toLowerCase();
   const orientation = searchParams?.get('orientation') || 'portrait';
+  const showExtras = searchParams?.get('showExtras') === '1';
   const isLandscape = orientation === 'landscape';
   const isPdf = exportMode && mode === 'pdf';
   const isPpt = exportMode && (mode === 'ppt' || mode === 'pptslides');
   const isPptReport = exportMode && mode === 'pptreport';
   const isLandscapePdf = exportMode && mode === 'landscapepdf';
 
-  const token = Array.isArray(params.token) ? params.token[0] : params.token;
+  const surveyId = Array.isArray(params.surveyId) ? params.surveyId[0] : params.surveyId;
   const printRef = useRef<HTMLDivElement>(null);
   const matrixRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<any>(null);
-  
-  // Password protection state
-  const [authenticated, setAuthenticated] = useState(false);
-  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordInput, setPasswordInput] = useState('');
   const [benchmarks, setBenchmarks] = useState<any>(null);
   const [companyScores, setCompanyScores] = useState<any>(null);
   const [elementDetails, setElementDetails] = useState<any>(null);
@@ -1476,7 +1949,7 @@ export default function InteractiveReportPage() {
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
   
   // Edit Mode State
-  const editMode = false; // Interactive mode - no editing
+  const [editMode, setEditMode] = useState(false);
   const [customInsights, setCustomInsights] = useState<Record<number, { insight: string; cacHelp: string }>>({});
   const [customExecutiveSummary, setCustomExecutiveSummary] = useState<string>('');
   const [customPatterns, setCustomPatterns] = useState<{ pattern: string; implication: string; recommendation: string }[]>([]);
@@ -1500,9 +1973,12 @@ export default function InteractiveReportPage() {
   }>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
+  const [showInteractiveLinkModal, setShowInteractiveLinkModal] = useState(false);
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
+  const [interactiveLink, setInteractiveLink] = useState<{ url: string; password: string } | null>(null);
+  const [generatingLink, setGeneratingLink] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   
   // Show toast notification
@@ -1627,7 +2103,7 @@ export default function InteractiveReportPage() {
   }, [company]);
 
   useEffect(() => {
-    // CRITICAL: Reset ALL state when token changes
+    // CRITICAL: Reset ALL state when surveyId changes
     setLoading(true);
     setError(null);
     setCompany(null);
@@ -1636,41 +2112,63 @@ export default function InteractiveReportPage() {
     setElementDetails(null);
     setPercentileRank(null);
     setTotalCompanies(0);
-    setAuthenticated(false);
     
     async function loadData() {
       try {
-        if (!token) {
-          setError('Invalid report link');
+        // Normalize survey ID for flexible matching
+        const normalizedId = surveyId.replace(/-/g, '').toUpperCase();
+        const fpFormat = surveyId.startsWith('FP-') ? surveyId : 
+                        surveyId.toUpperCase().startsWith('FPHR') ? 
+                        `FP-HR-${surveyId.replace(/^FPHR/i, '')}` : surveyId;
+        
+        // Try multiple formats: exact, normalized, FP format, and app_id
+        const { data: assessment, error: assessmentError } = await supabase
+          .from('assessments')
+          .select('*')
+          .or(`survey_id.eq.${surveyId},survey_id.eq.${normalizedId},survey_id.eq.${fpFormat},app_id.eq.${surveyId},app_id.eq.${normalizedId}`)
+          .limit(1)
+          .maybeSingle();
+        
+        if (assessmentError || !assessment) {
+          setError(`Company not found: ${assessmentError?.message || 'No data'}`);
           setLoading(false);
           return;
         }
         
-        // Step 1: Check if token exists and get metadata (NO password returned)
-        const response = await fetch(`/.netlify/functions/get-assessment-by-token?token=${encodeURIComponent(token)}`);
+        const { data: allAssessments } = await supabase.from('assessments').select('*');
         
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('Error fetching assessment:', response.status, errorData);
-          setError(errorData.error || 'Report not found or link has expired');
-          setLoading(false);
-          return;
+        const { scores, elements } = calculateCompanyScores(assessment);
+        setCompanyScores(scores);
+        setElementDetails(elements);
+        setCompany(assessment);
+        
+        if (allAssessments) {
+          const benchmarkScores = calculateBenchmarks(allAssessments);
+          setBenchmarks(benchmarkScores);
+          
+          // Calculate element-level benchmarks for drill-down
+          const elemBenchmarks = calculateElementBenchmarks(allAssessments);
+          setElementBenchmarks(elemBenchmarks);
+          
+          const completeAssessments = allAssessments.filter(a => {
+            let completedDims = 0;
+            for (let dim = 1; dim <= 13; dim++) {
+              const mainGrid = a[`dimension${dim}_data`]?.[`d${dim}a`];
+              if (mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0) completedDims++;
+            }
+            return completedDims === 13;
+          });
+          
+          const allComposites = completeAssessments.map(a => {
+            try { return calculateCompanyScores(a).scores.compositeScore; } catch { return null; }
+          }).filter(s => s !== null) as number[];
+          
+          if (allComposites.length > 0 && scores.compositeScore) {
+            const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
+            setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
+            setTotalCompanies(allComposites.length);
+          }
         }
-        
-        const metadata = await response.json();
-        
-        if (!metadata.found) {
-          setError('Report not found or link has expired');
-          setLoading(false);
-          return;
-        }
-        
-        // Store minimal metadata for password screen
-        setCompany({ 
-          company_name: metadata.companyName,
-          survey_id: metadata.surveyId,
-          passwordRequired: metadata.passwordRequired 
-        });
         
         setLoading(false);
       } catch (err) {
@@ -1680,105 +2178,18 @@ export default function InteractiveReportPage() {
       }
     }
     
-    if (token) loadData();
-    else { setError('No report token provided'); setLoading(false); }
-  }, [token]);
-  
-  // Handle password authentication - NOW VERIFIES SERVER-SIDE
-  const handleAuthenticate = async () => {
-    if (!token || !passwordInput) return;
-    
-    setPasswordError(null);
-    setLoading(true);
-    
-    try {
-      // Step 2: Verify password SERVER-SIDE (password never sent to client)
-      const verifyResponse = await fetch('/.netlify/functions/verify-report-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password: passwordInput }),
-      });
-      
-      if (!verifyResponse.ok) {
-        const errorData = await verifyResponse.json().catch(() => ({}));
-        if (verifyResponse.status === 401) {
-          setPasswordError('Incorrect password');
-        } else {
-          setPasswordError(errorData.error || 'Verification failed');
-        }
-        setLoading(false);
-        return;
-      }
-      
-      const { assessmentId, surveyId, companyName } = await verifyResponse.json();
-      
-      // Step 3: Fetch full report data using assessmentId
-      const reportResponse = await fetch('/.netlify/functions/get-public-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assessmentId, surveyId }),
-      });
-      
-      if (!reportResponse.ok) {
-        const errorData = await reportResponse.json().catch(() => ({}));
-        setError(errorData.error || 'Failed to load report');
-        setLoading(false);
-        return;
-      }
-      
-      const reportData = await reportResponse.json();
-      
-      // Set full company data
-      setCompany(reportData.assessment);
-      
-      // Calculate scores
-      const { scores, elements } = calculateCompanyScores(reportData.assessment);
-      setCompanyScores(scores);
-      setElementDetails(elements);
-      
-      // Process benchmarks if available
-      if (reportData.allAssessments) {
-        const benchmarkScores = calculateBenchmarks(reportData.allAssessments);
-        setBenchmarks(benchmarkScores);
-        
-        const elemBenchmarks = calculateElementBenchmarks(reportData.allAssessments);
-        setElementBenchmarks(elemBenchmarks);
-        
-        const completeAssessments = reportData.allAssessments.filter((a: any) => {
-          let completedDims = 0;
-          for (let dim = 1; dim <= 13; dim++) {
-            const mainGrid = a[`dimension${dim}_data`]?.[`d${dim}a`];
-            if (mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0) completedDims++;
-          }
-          return completedDims === 13;
-        });
-        
-        const allComposites = completeAssessments.map((a: any) => {
-          try { return calculateCompanyScores(a).scores.compositeScore; } catch { return null; }
-        }).filter((s: any) => s !== null) as number[];
-        
-        if (allComposites.length > 0 && scores.compositeScore) {
-          const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
-          setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
-          setTotalCompanies(allComposites.length);
-        }
-      }
-      
-      setAuthenticated(true);
-      setLoading(false);
-      
-    } catch (err) {
-      console.error('Error during authentication:', err);
-      setPasswordError('Authentication failed. Please try again.');
-      setLoading(false);
-    }
-  };
+    if (surveyId) loadData();
+    else { setError('No survey ID provided'); setLoading(false); }
+  }, [surveyId]);
 
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
     const followUpScores: Record<number, number | null> = {};
+    const geoMultipliers: Record<number, number> = {};
+    const geoResponses: Record<number, string | null> = {};
     const elementsByDim: Record<number, any[]> = {};
     const blendedScores: Record<number, number> = {};
+    const followUpRawResponses: Record<number, any> = {};
     
     let completedDimCount = 0;
     
@@ -1820,12 +2231,31 @@ export default function InteractiveReportPage() {
       
       const geoResponse = dimData[`d${dim}aa`] || dimData[`D${dim}aa`];
       const geoMultiplier = getGeoMultiplier(geoResponse);
+      geoMultipliers[dim] = geoMultiplier;
+      geoResponses[dim] = geoResponse ? String(geoResponse) : null;
       const adjustedScore = Math.round(rawScore * geoMultiplier);
       
       let blendedScore = adjustedScore;
       if ([1, 3, 12, 13].includes(dim)) {
         const followUp = calculateFollowUpScore(dim, assessment);
         followUpScores[dim] = followUp;
+        
+        // Store raw responses for display highlighting
+        if (dim === 1) {
+          followUpRawResponses[1] = {
+            d1_1_usa: dimData?.d1_1_usa,
+            d1_1_non_usa: dimData?.d1_1_non_usa,
+            d1_1_usa_score: dimData?.d1_1_usa ? scoreD1PaidLeave(dimData.d1_1_usa) : null,
+            d1_1_non_usa_score: dimData?.d1_1_non_usa ? scoreD1PaidLeave(dimData.d1_1_non_usa) : null
+          };
+        } else if (dim === 3) {
+          followUpRawResponses[3] = { d3_1: dimData?.d31 ?? dimData?.d3_1 };
+        } else if (dim === 12) {
+          followUpRawResponses[12] = { d12_1: dimData?.d12_1, d12_2: dimData?.d12_2 };
+        } else if (dim === 13) {
+          followUpRawResponses[13] = { d13_1: dimData?.d13_1 };
+        }
+        
         if (followUp !== null) {
           const key = `d${dim}` as keyof typeof DEFAULT_BLEND_WEIGHTS;
           const gridPct = DEFAULT_BLEND_WEIGHTS[key]?.grid ?? 85;
@@ -1860,7 +2290,7 @@ export default function InteractiveReportPage() {
     const maturityScore = enhancedResult.maturityScore;
     const breadthScore = enhancedResult.breadthScore;
     
-    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
+    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
   }
 
   function calculateBenchmarks(assessments: any[]) {
@@ -1949,6 +2379,59 @@ export default function InteractiveReportPage() {
   }
 
 
+  // ============================================
+  // SERVER EXPORT BUTTONS (Netlify Functions)
+  // ============================================
+  function handleServerExportPPT() {
+    const url = `/.netlify/functions/export-pptx?surveyId=${encodeURIComponent(String(surveyId || ''))}`;
+    window.open(url, '_blank');
+  }
+
+  // Generate interactive report link with password
+  async function generateInteractiveLink() {
+    if (!company?.id) return;
+    setGeneratingLink(true);
+    
+    try {
+      // Use Netlify function to generate/retrieve link (bypasses RLS)
+      const response = await fetch('/.netlify/functions/generate-interactive-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessmentId: company.id }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate link');
+      }
+      
+      const { token, password, isExisting } = await response.json();
+      
+      const baseUrl = window.location.origin;
+      setInteractiveLink({
+        url: `${baseUrl}/report/${token}`,
+        password: password
+      });
+      setShowInteractiveLinkModal(true);
+      
+      // Update local company state
+      company.public_token = token;
+      company.public_password = password;
+      
+      if (isExisting) {
+        console.log('Using existing interactive link');
+      } else {
+        console.log('Generated new interactive link');
+      }
+      
+    } catch (err) {
+      console.error('Error generating link:', err);
+      showToast('Failed to generate interactive link', 'error');
+    } finally {
+      setGeneratingLink(false);
+    }
+  }
+
   function handleBack() {
     if (typeof window !== 'undefined') window.history.back();
   }
@@ -1965,108 +2448,18 @@ export default function InteractiveReportPage() {
     );
   }
 
-  if (error) {
+  if (error || !company || !companyScores) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 text-center max-w-md">
-          <p className="text-red-600 text-lg mb-2">{error}</p>
-          <p className="text-slate-500 text-sm">Report link may be invalid or expired</p>
+          <p className="text-red-600 text-lg mb-2">{error || 'Unable to generate report'}</p>
+          <p className="text-slate-500 text-sm">Survey ID: {surveyId || 'not provided'}</p>
         </div>
       </div>
     );
   }
 
-  // Password protection screen - show when we have company metadata but not authenticated
-  if (!authenticated && company) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%)' }}>
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden p-8">
-          {/* Logo */}
-          <div className="flex justify-center mb-6">
-            <Image 
-              src="/BI_LOGO_FINAL.png" 
-              alt="BEYOND Insights" 
-              width={180} 
-              height={60}
-              className="object-contain"
-            />
-          </div>
-          
-          {/* Lock Icon */}
-          <div className="flex justify-center mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-          </div>
-          
-          {/* Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-800">Your 2026 Index Report</h1>
-            <p className="text-slate-500 mt-1">Best Companies for Working with Cancer</p>
-          </div>
-          
-          {/* Form */}
-          <form onSubmit={(e) => { e.preventDefault(); handleAuthenticate(); }}>
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
-              <input
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                className={`w-full px-4 py-3 text-base border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all ${
-                  passwordError ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50'
-                }`}
-                placeholder="Enter password"
-                autoFocus
-              />
-              {passwordError && (
-                <p className="mt-2 text-sm text-red-600 flex items-center gap-1.5">
-                  <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {passwordError}
-                </p>
-              )}
-            </div>
-            
-            <button
-              type="submit"
-              disabled={!passwordInput}
-              className="w-full py-3 text-base font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ 
-                background: passwordInput ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : '#e2e8f0',
-                color: passwordInput ? '#fff' : '#94a3b8'
-              }}
-            >
-              Access Report
-            </button>
-          </form>
-          
-          <div className="mt-8 text-center">
-            <p className="text-sm text-slate-400">
-              Password provided by your organization administrator
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // After authentication, check we have the data to render the report
-  if (!companyScores || !company) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 text-center max-w-md">
-          <p className="text-red-600 text-lg mb-2">Unable to load report data</p>
-          <p className="text-slate-500 text-sm">Please try refreshing the page</p>
-        </div>
-      </div>
-    );
-  }
-
-  const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, tier } = companyScores;
+  const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, tier } = companyScores;
   const companyName = company.firmographics_data?.company_name || company.company_name || 'Unknown Company';
   const contactName = company.firmographics_data?.primary_contact_name || '';
   const contactEmail = company.firmographics_data?.primary_contact_email || '';
@@ -2083,6 +2476,11 @@ export default function InteractiveReportPage() {
         weightPct: Math.round((DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0) / Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0) * 100),
         tier: getTier(score ?? 0),
         benchmark: benchmarks?.dimensionScores?.[dimNum] ?? null,
+        followUpScore: followUpScores?.[dimNum] ?? null,
+        followUpRaw: followUpRawResponses?.[dimNum] ?? null,
+        geoMultiplier: geoMultipliers?.[dimNum] ?? 1.0,
+        geoResponse: geoResponses?.[dimNum] ?? null,
+        hasFollowUp: [1, 3, 12, 13].includes(dimNum),
         elements,
         strengths: elements.filter((e: any) => e.isStrength),
         planning: elements.filter((e: any) => e.isPlanning),
@@ -2149,7 +2547,7 @@ export default function InteractiveReportPage() {
   return (
     <div 
       className={`min-h-screen bg-gray-50 ${exportMode ? 'export-mode' : ''} ${isPdf ? 'pdf-export-mode' : ''} ${isPpt ? 'ppt-export-mode' : ''} ${isPptReport ? 'ppt-report-mode' : ''} ${isLandscapePdf ? 'landscape-pdf-mode' : ''} ${isLandscape ? 'landscape-mode' : ''}`}
-      style={isLandscape ? { width: '100%', maxWidth: 'none', minWidth: '1200px' } : undefined}
+      style={isLandscape && !isLandscapePdf ? { width: '100%', maxWidth: 'none', minWidth: '1200px' } : undefined}
     >
       <style jsx global>{`
         @media print { 
@@ -2350,33 +2748,55 @@ export default function InteractiveReportPage() {
         }
         
         /* LANDSCAPE PDF MODE - Shows PPT slides as PDF pages */
+        /* LANDSCAPE PDF MODE - Shows PPT slides as PDF pages */
+        /* NOTE: Do NOT add background: white to .ppt-slide - it overrides slide 1's dark background */
         .landscape-pdf-mode {
           background: white !important;
+        }
+        .landscape-pdf-mode html,
+        .landscape-pdf-mode body {
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: visible !important;
+        }
+        @media print {
+          @page {
+            size: 1280px 720px landscape;
+            margin: 0;
+          }
         }
         .landscape-pdf-mode .no-print,
         .landscape-pdf-mode #report-root {
           display: none !important;
           visibility: hidden !important;
+          height: 0 !important;
+          overflow: hidden !important;
         }
         .landscape-pdf-mode .ppt-slides-container {
           display: block !important;
           position: static !important;
           left: auto !important;
           visibility: visible !important;
-          width: 100% !important;
+          width: 1280px !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
         .landscape-pdf-mode .ppt-slide {
           display: block !important;
-          position: static !important;
+          position: relative !important;
           left: auto !important;
           visibility: visible !important;
           width: 1280px !important;
           height: 720px !important;
-          margin: 0 auto !important;
+          margin: 0 !important;
+          padding: 40px !important;
           page-break-after: always !important;
           break-after: page !important;
           box-sizing: border-box !important;
-          background: white !important;
+          overflow: hidden !important;
+        }
+        .landscape-pdf-mode .ppt-slide:first-child {
+          padding: 60px !important;
         }
         .landscape-pdf-mode .ppt-slide:last-child {
           page-break-after: auto !important;
@@ -2412,177 +2832,125 @@ export default function InteractiveReportPage() {
         }
       `}</style>
 
-      {/* Welcome Overlay */}
-      {showWelcomeOverlay && (
-        <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full my-8 overflow-hidden">
-            {/* Header with gradient */}
-            <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-8 py-6">
-              <div className="flex items-center gap-4">
-                <div className="bg-white rounded-xl p-3">
-                  <Image 
-                    src="/cancer-careers-logo.png" 
-                    alt="Cancer and Careers" 
-                    width={120} 
-                    height={40}
-                    className="object-contain"
-                  />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-white">Welcome to Your 2026 Index Report</h1>
-                  <p className="text-slate-300 text-sm mt-1">Best Companies for Working with Cancer</p>
-                </div>
-              </div>
-            </div>
+
+
+      {/* Action Bar */}
+      <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
+          <button onClick={handleBack} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+          <div className="flex items-center gap-3">
+            {/* Edit Mode Toggle */}
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all ${
+                editMode 
+                  ? 'bg-amber-100 text-amber-800 border-2 border-amber-400' 
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border-2 border-transparent'
+              }`}
+              title={editMode ? 'Exit Edit Mode' : 'Enter Edit Mode'}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              {editMode ? 'Editing' : 'Edit'}
+            </button>
             
-            {/* Letter Content */}
-            <div className="px-8 py-6 max-h-[60vh] overflow-y-auto">
-              {/* Thank You Section */}
-              <div className="mb-6">
-                <p className="text-slate-700 leading-relaxed mb-4">
-                  Dear {company?.firmographics_data?.company_name || company?.company_name || 'Partner'},
-                </p>
-                <p className="text-slate-700 leading-relaxed mb-4">
-                  <strong>Thank you</strong> for participating in the 2026 Best Companies for Working with Cancer Index. By completing this assessment, you've demonstrated a genuine commitment to supporting employees managing cancer—and that makes you a pioneer in workplace cancer support.
-                </p>
-                <p className="text-slate-700 leading-relaxed mb-4">
-                  Too often, employees facing a cancer diagnosis feel unseen and unsupported at work. Your willingness to examine your policies, programs, and culture sends a powerful message: <em>you matter, and we're here for you.</em>
-                </p>
-              </div>
-
-              {/* About Your Report */}
-              <div className="bg-slate-50 rounded-xl p-5 mb-6">
-                <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            {/* Save/Reset buttons - only show in edit mode */}
+            {editMode && (
+              <>
+                <button
+                  onClick={saveEdits}
+                  disabled={savingEdits || !hasUnsavedChanges}
+                  className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 ${
+                    hasUnsavedChanges 
+                      ? 'bg-green-600 hover:bg-green-700 text-white' 
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
+                  title="Save customizations"
+                >
+                  {savingEdits ? (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  Save
+                </button>
+                <button
+                  onClick={resetEdits}
+                  className="px-4 py-2 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-2"
+                  title="Reset to auto-generated content"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  About Your Report
-                </h3>
-                <p className="text-slate-600 text-sm leading-relaxed mb-3">
-                  This interactive report provides a comprehensive view of your organization's cancer support ecosystem across <strong>13 dimensions</strong>—from leave policies and insurance coverage to manager preparedness and workplace culture.
-                </p>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Each dimension is weighted based on extensive research with HR leaders, employees managing cancer, and general employee populations to ensure the Index reflects what matters most to those directly affected.
-                </p>
-              </div>
-
-              {/* How to Use */}
-              <div className="bg-indigo-50 rounded-xl p-5 mb-6">
-                <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  Reset
+                </button>
+              </>
+            )}
+            
+            <div className="w-px h-8 bg-slate-200" />
+            
+            <button
+              onClick={handleServerExportPPT}
+              className="px-5 py-2 rounded-lg font-medium bg-orange-500 hover:bg-orange-600 text-white"
+              title="Export PowerPoint"
+            >
+              Export PowerPoint
+            </button>
+            <button
+              onClick={generateInteractiveLink}
+              disabled={generatingLink}
+              className="px-5 py-2 rounded-lg font-medium bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 flex items-center gap-2"
+              title="Generate Interactive Link"
+            >
+              {generatingLink ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
-                  How to Use Your Report
-                </h3>
-                <ul className="text-slate-600 text-sm space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="text-indigo-600 font-bold">1.</span>
-                    <span><strong>Start with the Executive Summary</strong> for your overall score and key findings</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-indigo-600 font-bold">2.</span>
-                    <span><strong>Explore the Performance Matrix</strong> to see how you compare across all 13 dimensions</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-indigo-600 font-bold">3.</span>
-                    <span><strong>Click any dimension</strong> to drill down into element-level details and benchmarks</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-indigo-600 font-bold">4.</span>
-                    <span><strong>Review the Roadmap</strong> for prioritized recommendations based on your results</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* CAC Partnership */}
-              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-5 mb-6 border border-purple-100">
-                <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Partner with Cancer and Careers
-                </h3>
-                <p className="text-slate-700 text-sm leading-relaxed mb-3">
-                  Your report is just the beginning. Our consulting team can help you identify which elements to prioritize, develop implementation strategies, and create meaningful change for employees managing cancer.
-                </p>
-                <p className="text-slate-700 text-sm leading-relaxed">
-                  Whether you have questions about your results or want to explore how we can work together, we're here to help. Reach out to us at <a href="mailto:cacbestcompanies@cew.org" className="text-purple-700 font-medium hover:underline">cacbestcompanies@cew.org</a>.
-                </p>
-              </div>
-
-              {/* Signature */}
-              <div className="border-t border-slate-200 pt-5">
-                <p className="text-slate-700 leading-relaxed mb-3">
-                  With gratitude for your leadership and commitment,
-                </p>
-                <div className="mb-3">
-                  <Image 
-                    src="/rebecca-signature.png" 
-                    alt="Rebecca V. Nellis signature" 
-                    width={180} 
-                    height={60}
-                    className="object-contain"
-                  />
-                </div>
-                <div className="mb-6">
-                  <p className="font-semibold text-slate-800">Rebecca V. Nellis</p>
-                  <p className="text-sm text-slate-500">Executive Director, Cancer and Careers</p>
-                </div>
-              </div>
-
-              {/* View Report Button - at bottom of scrollable content */}
-              <button
-                onClick={() => setShowWelcomeOverlay(false)}
-                className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-              >
-                <span>View Your Report</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
-            </div>
+                  Interactive Link
+                </>
+              )}
+            </button>
           </div>
         </div>
-      )}
-
-
-      {/* Interactive Header - No edit/export buttons */}
-      <div className="no-print bg-gradient-to-r from-slate-800 to-slate-900 text-white sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-8 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-5">
-            <div className="bg-white rounded-lg p-2">
-              <Image 
-                src="/cancer-careers-logo.png" 
-                alt="Cancer and Careers" 
-                width={100} 
-                height={36}
-                className="object-contain"
-              />
-            </div>
-            <div className="border-l border-slate-600 pl-5">
-              <h1 className="font-semibold text-lg">{company?.firmographics_data?.company_name || company?.company_name || 'Company Report'}</h1>
-              <p className="text-slate-400 text-sm">Best Companies for Working with Cancer Index 2026</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <p className="text-xs text-slate-400">Overall Score</p>
-              <p className="text-3xl font-bold" style={{ color: getScoreColor(compositeScore || 0) }}>
-                {compositeScore || 0}
+        
+        {/* Edit Mode Banner */}
+        {editMode && (
+          <div className="bg-amber-50 border-t border-amber-200 px-8 py-3">
+            <div className="max-w-6xl mx-auto flex items-center gap-3">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-amber-800">
+                <strong>Edit Mode:</strong> Edit strategic insights and recommended actions. Changes are saved to the database and will appear in exported reports.
+                {hasUnsavedChanges && <span className="ml-2 text-amber-600 font-medium">• Unsaved changes</span>}
               </p>
             </div>
-            <span className={`px-4 py-2 rounded-lg text-sm font-bold ${tier?.bgColor || 'bg-slate-100'}`} style={{ color: tier?.color }}>
-              {tier?.name}
-            </span>
           </div>
-        </div>
+        )}
       </div>
 
       <div 
         ref={printRef} 
         id="report-root" 
-        className={`py-10 ${isLandscape ? 'w-full px-8' : 'max-w-6xl mx-auto px-8'}`}
-        style={isLandscape ? { width: '100%', maxWidth: 'none', minWidth: '1200px', margin: 0, padding: '20px 30px' } : undefined}
+        className={`py-10 ${isLandscape && !isLandscapePdf ? 'w-full px-8' : 'max-w-6xl mx-auto px-8'}`}
+        style={isLandscape && !isLandscapePdf ? { width: '100%', maxWidth: 'none', minWidth: '1200px', margin: 0, padding: '20px 30px' } : undefined}
       >
         
         {/* ============ HEADER ============ */}
@@ -2703,11 +3071,9 @@ export default function InteractiveReportPage() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ============ KEY FINDINGS ============ */}
-        <div className="ppt-break bg-slate-800 rounded-lg shadow-sm overflow-hidden mb-8 pdf-no-break">
-          <div className="px-10 py-6">
+          
+          {/* Key Findings - included on first slide */}
+          <div className="bg-slate-800 px-10 py-6">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Key Findings at a Glance</h3>
             <div className="grid grid-cols-4 gap-6">
               <div className="bg-white/10 rounded-lg p-4">
@@ -2735,7 +3101,7 @@ export default function InteractiveReportPage() {
         </div>
 
         {/* ============ SCORE COMPOSITION ============ */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+        <div className="ppt-break bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
           <div className="px-10 py-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">Score Composition</h3>
           </div>
@@ -3031,6 +3397,7 @@ export default function InteractiveReportPage() {
           customObservations={customObservations}
           setCustomObservations={setCustomObservations}
           isEditing={editMode}
+          showExtras={showExtras}
         />
 
         {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
@@ -3354,19 +3721,19 @@ export default function InteractiveReportPage() {
               return (
                 <div key={d.dim} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
                   {/* Dimension Header - Consistent dark slate for all */}
-                  <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
+                  <div className="px-8 py-3 bg-slate-700 border-b border-slate-600">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md" style={{ backgroundColor: tierColor }}>
                         {idx + 1}
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-xl font-semibold text-white">{d.name}</h4>
-                        <div className="flex items-center gap-4 mt-1">
-                          <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
-                          <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
-                          <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                        <h4 className="text-lg font-semibold text-white">{d.name}</h4>
+                        <div className="flex items-center gap-4 mt-0.5">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                          <span className="text-xs text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
+                          <span className="text-xs text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
                           {d.benchmark !== null && (
-                            <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                            <span className="text-xs text-slate-300">Bench: <strong className="text-white">{d.benchmark}</strong></span>
                           )}
                         </div>
                       </div>
@@ -3375,120 +3742,120 @@ export default function InteractiveReportPage() {
                   
                   {/* Benchmark Narrative */}
                   {benchmarkNarrative && (
-                    <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
-                      <p className="text-sm text-slate-600">{benchmarkNarrative}</p>
+                    <div className="px-8 py-2 bg-slate-100 border-b border-slate-200">
+                      <p className="text-xs text-slate-600">{benchmarkNarrative}</p>
                     </div>
                   )}
                   
-                  <div className="px-10 py-6">
+                  <div className="px-8 py-4">
                     {/* Current State - 3 columns */}
-                    <div className="grid grid-cols-3 gap-6 mb-6">
+                    <div className="grid grid-cols-3 gap-4 mb-4">
                       {/* Improvement Opportunities - includes gaps, assessing, unsure, and any other non-offered items */}
                       <div className="border border-red-200 rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                          <h5 className="font-semibold text-red-800 text-sm">Improvement Opportunities ({d.needsAttention.length})</h5>
+                        <div className="px-3 py-2 bg-red-50 border-b border-red-200">
+                          <h5 className="font-semibold text-red-800 text-xs">Improvement Opportunities ({d.needsAttention.length})</h5>
                         </div>
-                        <div className="p-4 bg-white">
+                        <div className="p-3 bg-white">
                           {d.needsAttention.length > 0 ? (
-                            <ul className="space-y-2">
-                              {d.needsAttention.slice(0, 6).map((item: any, i: number) => (
-                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
+                            <ul className="space-y-1">
+                              {d.needsAttention.slice(0, 5).map((item: any, i: number) => (
+                                <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                  <span className={`w-1 h-1 rounded-full mt-1.5 flex-shrink-0 ${
                                     item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : item.isUnsure ? 'bg-slate-400' : 'bg-red-400'
                                   }`}></span>
                                   <span>
                                     {item.name}
-                                    <span className={`text-xs ml-1 ${
+                                    <span className={`text-[10px] ml-0.5 ${
                                       item.isGap ? 'text-red-500' : item.isAssessing ? 'text-amber-600' : item.isUnsure ? 'text-slate-500' : 'text-red-400'
                                     }`}>
-                                      ({item.isGap ? 'not offered' : item.isAssessing ? 'assessing' : item.isUnsure ? 'to clarify' : 'gap'})
+                                      ({item.isGap ? 'gap' : item.isAssessing ? 'assessing' : item.isUnsure ? 'unclear' : 'gap'})
                                     </span>
                                   </span>
                                 </li>
                               ))}
                             </ul>
-                          ) : <p className="text-sm text-slate-400 italic">No improvement opportunities identified</p>}
+                          ) : <p className="text-xs text-slate-400 italic">No gaps identified</p>}
                         </div>
                       </div>
                       
                       {/* In Progress - Planning only */}
                       <div className="border border-blue-200 rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-                          <h5 className="font-semibold text-blue-800 text-sm">In Development ({d.planning.length})</h5>
+                        <div className="px-3 py-2 bg-blue-50 border-b border-blue-200">
+                          <h5 className="font-semibold text-blue-800 text-xs">In Development ({d.planning.length})</h5>
                         </div>
-                        <div className="p-4 bg-white">
+                        <div className="p-3 bg-white">
                           {d.planning.length > 0 ? (
-                            <ul className="space-y-2">
-                              {d.planning.slice(0, 6).map((item: any, i: number) => (
-                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
+                            <ul className="space-y-1">
+                              {d.planning.slice(0, 5).map((item: any, i: number) => (
+                                <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                  <span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
                                   <span>{item.name}</span>
                                 </li>
                               ))}
                             </ul>
-                          ) : <p className="text-sm text-slate-400 italic">No initiatives in planning</p>}
+                          ) : <p className="text-xs text-slate-400 italic">No initiatives in planning</p>}
                         </div>
                       </div>
                       
                       {/* Strengths */}
                       <div className="border border-emerald-200 rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
-                          <h5 className="font-semibold text-emerald-800 text-sm">Strengths ({d.strengths.length})</h5>
+                        <div className="px-3 py-2 bg-emerald-50 border-b border-emerald-200">
+                          <h5 className="font-semibold text-emerald-800 text-xs">Strengths ({d.strengths.length})</h5>
                         </div>
-                        <div className="p-4 bg-white">
+                        <div className="p-3 bg-white">
                           {d.strengths.length > 0 ? (
-                            <ul className="space-y-2">
-                              {d.strengths.slice(0, 6).map((s: any, i: number) => (
-                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
+                            <ul className="space-y-1">
+                              {d.strengths.slice(0, 5).map((s: any, i: number) => (
+                                <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                  <span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
                                   <span>{s.name}</span>
                                 </li>
                               ))}
                             </ul>
-                          ) : <p className="text-sm text-slate-400 italic">Building toward first strengths</p>}
+                          ) : <p className="text-xs text-slate-400 italic">Building toward first strengths</p>}
                         </div>
                       </div>
                     </div>
                     
                     {/* Strategic Insight & CAC Help - Now Dynamic & Editable */}
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 gap-4">
                       {/* Left Column: Evidence + Insight */}
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {/* Evidence Bullets - NEW */}
                         {(evidence.topStrength || evidence.biggestGap || evidence.inFlight) && (
-                          <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
-                            <h5 className="font-semibold text-slate-700 mb-3 text-xs uppercase tracking-wide">Key Evidence</h5>
-                            <div className="space-y-2">
+                          <div className="border border-slate-200 rounded-lg p-3 bg-slate-50">
+                            <h5 className="font-semibold text-slate-700 mb-2 text-[10px] uppercase tracking-wide">Key Evidence</h5>
+                            <div className="space-y-1.5">
                               {evidence.topStrength && (
-                                <div className="flex items-start gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-emerald-600 text-xs">✓</span>
+                                <div className="flex items-start gap-1.5">
+                                  <span className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-emerald-600 text-[10px]">✓</span>
                                   </span>
-                                  <p className="text-sm text-slate-700">
-                                    <span className="font-medium">Strength:</span> You offer <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
-                                    <span className="text-slate-500"> (only {evidence.topStrength.benchPct}% of peers do)</span>
+                                  <p className="text-xs text-slate-700">
+                                    <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                    <span className="text-slate-500"> ({evidence.topStrength.benchPct}% of peers)</span>
                                   </p>
                                 </div>
                               )}
                               {evidence.biggestGap && (
-                                <div className="flex items-start gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-red-600 text-xs">✗</span>
+                                <div className="flex items-start gap-1.5">
+                                  <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-red-600 text-[10px]">✗</span>
                                   </span>
-                                  <p className="text-sm text-slate-700">
-                                    <span className="font-medium">Gap:</span> Not offering <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
-                                    <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of peers do)</span>
+                                  <p className="text-xs text-slate-700">
+                                    <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                    <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of peers)</span>
                                   </p>
                                 </div>
                               )}
                               {evidence.inFlight && (
-                                <div className="flex items-start gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-blue-600 text-xs">○</span>
+                                <div className="flex items-start gap-1.5">
+                                  <span className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-blue-600 text-[10px]">○</span>
                                   </span>
-                                  <p className="text-sm text-slate-700">
-                                    <span className="font-medium">In Progress:</span> Planning <span className="font-semibold text-blue-700">{evidence.inFlight.name}</span>
-                                    <span className="text-slate-500"> ({evidence.inFlight.benchPct}% of peers offer)</span>
+                                  <p className="text-xs text-slate-700">
+                                    <span className="font-medium">In Progress:</span> <span className="font-semibold text-blue-700">{evidence.inFlight.name}</span>
+                                    <span className="text-slate-500"> ({evidence.inFlight.benchPct}% of peers)</span>
                                   </p>
                                 </div>
                               )}
@@ -3497,60 +3864,60 @@ export default function InteractiveReportPage() {
                         )}
                         
                         {/* Strategic Insight */}
-                        <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
-                          <h5 className="font-semibold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                            Tailored Strategic Insight
-                            {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
+                        <div className={`border rounded-lg p-3 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
+                          <h5 className="font-semibold text-slate-800 mb-2 text-[10px] uppercase tracking-wide flex items-center gap-2">
+                            Strategic Insight
+                            {editMode && <span className="text-[10px] font-normal text-amber-600">(click to edit)</span>}
                           </h5>
                           {editMode ? (
                             <textarea
                               value={customInsights[d.dim]?.insight ?? dynamicInsight.insight}
                               onChange={(e) => updateCustomInsight(d.dim, 'insight', e.target.value)}
-                              className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                              className="w-full text-xs text-slate-600 leading-relaxed bg-white border border-amber-200 rounded p-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
                               placeholder="Enter custom strategic insight..."
                             />
                           ) : (
-                            <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                            <p className="text-xs text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
                           )}
                           {editMode && customInsights[d.dim]?.insight && (
                             <button 
                               onClick={() => updateCustomInsight(d.dim, 'insight', '')}
-                              className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                              className="mt-1 text-[10px] text-amber-600 hover:text-amber-800 flex items-center gap-1"
                             >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
-                              Reset to auto-generated
+                              Reset
                             </button>
                           )}
                         </div>
                       </div>
                       
                       {/* Right Column: Roadmap + CAC Help */}
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {/* 2-Step Roadmap - NEW */}
                         {(roadmap.quickWin || roadmap.strategicLift) && (
-                          <div className="border border-indigo-200 rounded-lg p-4 bg-indigo-50">
-                            <h5 className="font-semibold text-indigo-800 mb-3 text-xs uppercase tracking-wide">Recommended Roadmap</h5>
-                            <div className="space-y-3">
+                          <div className="border border-indigo-200 rounded-lg p-3 bg-indigo-50">
+                            <h5 className="font-semibold text-indigo-800 mb-2 text-[10px] uppercase tracking-wide">Recommended Roadmap</h5>
+                            <div className="space-y-2">
                               {roadmap.quickWin && (
-                                <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">QUICK WIN</span>
-                                    <span className="text-xs text-slate-500">0-60 days</span>
+                                <div className="bg-white rounded p-2 border border-indigo-100">
+                                  <div className="flex items-center gap-2 mb-0.5">
+                                    <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">QUICK WIN</span>
+                                    <span className="text-[10px] text-slate-500">0-60 days</span>
                                   </div>
-                                  <p className="text-sm font-medium text-slate-800">{roadmap.quickWin.name}</p>
-                                  <p className="text-xs text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
+                                  <p className="text-xs font-medium text-slate-800">{roadmap.quickWin.name}</p>
+                                  <p className="text-[10px] text-slate-500 mt-0.5">{roadmap.quickWin.reason}</p>
                                 </div>
                               )}
                               {roadmap.strategicLift && (
-                                <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded">STRATEGIC</span>
-                                    <span className="text-xs text-slate-500">60-180 days</span>
+                                <div className="bg-white rounded p-2 border border-indigo-100">
+                                  <div className="flex items-center gap-2 mb-0.5">
+                                    <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded">STRATEGIC</span>
+                                    <span className="text-[10px] text-slate-500">60-180 days</span>
                                   </div>
-                                  <p className="text-sm font-medium text-slate-800">{roadmap.strategicLift.name}</p>
-                                  <p className="text-xs text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
+                                  <p className="text-xs font-medium text-slate-800">{roadmap.strategicLift.name}</p>
+                                  <p className="text-[10px] text-slate-500 mt-0.5">{roadmap.strategicLift.reason}</p>
                                 </div>
                               )}
                             </div>
@@ -3558,30 +3925,30 @@ export default function InteractiveReportPage() {
                         )}
                         
                         {/* CAC Help */}
-                        <div className={`border rounded-lg p-5 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
-                          <h5 className="font-semibold text-violet-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                        <div className={`border rounded-lg p-3 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
+                          <h5 className="font-semibold text-violet-800 mb-2 text-[10px] uppercase tracking-wide flex items-center gap-2">
                             How Cancer and Careers Can Help
-                            {editMode && <span className="text-xs font-normal text-amber-600">(click to edit)</span>}
+                            {editMode && <span className="text-[10px] font-normal text-amber-600">(click to edit)</span>}
                           </h5>
                           {editMode ? (
                             <textarea
                               value={customInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
                               onChange={(e) => updateCustomInsight(d.dim, 'cacHelp', e.target.value)}
-                              className="w-full text-sm text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                              className="w-full text-xs text-slate-600 leading-relaxed bg-white border border-amber-200 rounded p-2 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
                               placeholder="Enter custom CAC help text..."
                             />
                           ) : (
-                            <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                            <p className="text-xs text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
                           )}
                           {editMode && customInsights[d.dim]?.cacHelp && (
                             <button 
                               onClick={() => updateCustomInsight(d.dim, 'cacHelp', '')}
-                              className="mt-2 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                              className="mt-1 text-[10px] text-amber-600 hover:text-amber-800 flex items-center gap-1"
                             >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
-                              Reset to auto-generated
+                              Reset
                             </button>
                           )}
                         </div>
@@ -3958,7 +4325,7 @@ export default function InteractiveReportPage() {
                     className="object-contain"
                   />
                 </div>
-                <p className="text-xs text-slate-400">Survey ID: {company?.survey_id || token}</p>
+                <p className="text-xs text-slate-400">Survey ID: {surveyId}</p>
                 <p className="text-xs text-slate-400">Confidential</p>
               </div>
             </div>
@@ -4192,6 +4559,148 @@ export default function InteractiveReportPage() {
           </div>
         </div>
       </div>
+
+      {/* Interactive Link Modal */}
+      {showInteractiveLinkModal && interactiveLink && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowInteractiveLinkModal(false)}>
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Interactive Report Link</h2>
+                  <p className="text-blue-100 text-sm">Share this link with the organization</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="bg-slate-50 rounded-lg p-4 mb-4">
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Report URL</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={interactiveLink.url}
+                    className="flex-1 text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 font-mono"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(interactiveLink.url);
+                      showToast('Link copied to clipboard', 'success');
+                    }}
+                    className="px-3 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-medium"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+              
+              <div className="bg-amber-50 rounded-lg p-4 mb-4 border border-amber-200">
+                <label className="block text-xs font-medium text-amber-700 uppercase tracking-wide mb-2">
+                  <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Password (Required to Access)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={interactiveLink.password}
+                    className="flex-1 text-lg bg-white border border-amber-300 rounded-lg px-3 py-2 font-mono font-bold tracking-wider text-amber-800"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(interactiveLink.password);
+                      showToast('Password copied to clipboard', 'success');
+                    }}
+                    className="px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="flex gap-3">
+                  <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium">Interactive Features:</p>
+                    <ul className="mt-1 space-y-1 text-blue-700">
+                      <li>• Click any dimension to see element-level details</li>
+                      <li>• View strengths, gaps, and in-progress items</li>
+                      <li>• Compare performance against benchmark</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t border-slate-200 flex justify-between items-center">
+                <button
+                  onClick={() => {
+                    const text = `Interactive Report Link:\n${interactiveLink.url}\n\nPassword: ${interactiveLink.password}`;
+                    navigator.clipboard.writeText(text);
+                    showToast('Link and password copied', 'success');
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                  Copy Both
+                </button>
+                <button
+                  onClick={() => setShowInteractiveLinkModal(false)}
+                  className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-medium"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed bottom-6 right-6 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className={`flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border ${
+            toast.type === 'success' 
+              ? 'bg-white border-green-200' 
+              : 'bg-white border-red-200'
+          }`}>
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 p-1">
+              <Image src="/BI_LOGO_FINAL.png" alt="BEYOND Insights" width={36} height={36} className="object-contain" />
+            </div>
+            <div>
+              <p className={`font-semibold text-sm ${
+                toast.type === 'success' ? 'text-green-800' : 'text-red-800'
+              }`}>
+                {toast.type === 'success' ? 'Success' : 'Error'}
+              </p>
+              <p className="text-sm text-slate-600">{toast.message}</p>
+            </div>
+            <button 
+              onClick={() => setToast({ show: false, message: '', type: 'success' })}
+              className="ml-2 text-slate-400 hover:text-slate-600"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
