@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
 
 export default function FirmographicsPage() {
   console.log("FIRMOGRAPHICS PAGE LOADED");
@@ -1206,7 +1207,7 @@ export default function FirmographicsPage() {
               You've successfully completed the Company Profile section.
             </p>
             <button
-              onClick={() => { localStorage.setItem("firmographics_complete", "true"); router.push("/dashboard"); }}
+              onClick={async () => { localStorage.setItem("firmographics_complete", "true"); await forceSyncNow(); router.push("/dashboard"); }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
               Save & Continue to Dashboard →

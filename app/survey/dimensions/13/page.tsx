@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
+import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
 
 
 const D13A_ITEMS_BASE = [
@@ -530,8 +531,9 @@ export default function Dimension13Page() {
               You've successfully completed the Communication & Awareness dimension.
             </p>
             <button
-              onClick={() => { 
-                localStorage.setItem("dimension13_complete", "true"); 
+              onClick={async () => { 
+                localStorage.setItem("dimension13_complete", "true");
+                await forceSyncNow();  // Force sync before navigation
                 router.push("/dashboard"); 
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
+import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
 
 
 // Data for D1.a - ALL 11 ITEMS FROM SURVEY
@@ -1009,8 +1010,9 @@ export default function Dimension1Page() {
               You've successfully completed the Medical Leave & Flexibility dimension.
             </p>
             <button
-              onClick={() => { 
-                localStorage.setItem("dimension1_complete", "true"); 
+              onClick={async () => { 
+                localStorage.setItem("dimension1_complete", "true");
+                await forceSyncNow();  // Force sync before navigation
                 router.push("/dashboard"); 
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"

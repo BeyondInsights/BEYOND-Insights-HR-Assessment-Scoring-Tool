@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
 
 const EI1_ITEMS = [
   "Employee retention / tenure",
@@ -140,7 +141,7 @@ export default function EmployeeImpactPage() {
     return null;
   };
 
-  const next = () => {
+  const next = async () => {
     const error = validateStep();
     if (error) {
       setErrors(error);
@@ -165,6 +166,7 @@ export default function EmployeeImpactPage() {
       // Mark as complete and navigate to dashboard
       localStorage.setItem("employee-impact-assessment_complete", "true");
       localStorage.setItem("employee-impact-assessment_data", JSON.stringify(ans));
+      await forceSyncNow();  // Force sync before navigation
       router.push("/dashboard");
     }
   };
