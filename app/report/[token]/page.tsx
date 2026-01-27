@@ -734,6 +734,7 @@ const TrendUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
   const [hoveredDim, setHoveredDim] = useState<number | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const MAX_WEIGHT = 15;
   
   const CHART_WIDTH = 900;
@@ -744,6 +745,51 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
   const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
   
   const hoveredData = hoveredDim !== null ? dimensionAnalysis.find(d => d.dim === hoveredDim) : null;
+  
+  // Calculate tooltip position based on bubble location
+  const getTooltipStyle = () => {
+    if (!hoveredData || !tooltipPos) return { top: '8px', right: '8px' };
+    
+    const tooltipWidth = 224; // w-56 = 14rem = 224px
+    const tooltipHeight = 160; // approximate height
+    const containerWidth = 900; // approximate container width
+    const containerHeight = 490; // SVG height
+    
+    // Determine if bubble is on right side (>70% of width) or top (<30% of height)
+    const isRightEdge = tooltipPos.x > containerWidth * 0.65;
+    const isTopEdge = tooltipPos.y < containerHeight * 0.35;
+    
+    // Position tooltip to avoid edges
+    if (isRightEdge && isTopEdge) {
+      // Top-right corner - show tooltip to bottom-left of bubble
+      return { 
+        top: `${Math.min(tooltipPos.y + 30, containerHeight - tooltipHeight)}px`, 
+        left: `${Math.max(tooltipPos.x - tooltipWidth - 30, 10)}px`,
+        right: 'auto'
+      };
+    } else if (isRightEdge) {
+      // Right edge - show tooltip to left of bubble
+      return { 
+        top: `${Math.max(tooltipPos.y - tooltipHeight/2, 10)}px`, 
+        left: `${Math.max(tooltipPos.x - tooltipWidth - 30, 10)}px`,
+        right: 'auto'
+      };
+    } else if (isTopEdge) {
+      // Top edge - show tooltip below bubble
+      return { 
+        top: `${tooltipPos.y + 30}px`, 
+        left: `${tooltipPos.x + 30}px`,
+        right: 'auto'
+      };
+    } else {
+      // Default - show tooltip to top-right of bubble
+      return { 
+        top: `${Math.max(tooltipPos.y - tooltipHeight/2, 10)}px`, 
+        left: `${tooltipPos.x + 30}px`,
+        right: 'auto'
+      };
+    }
+  };
   
   return (
     <div className="px-4 py-4">
@@ -782,12 +828,22 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
               const isHovered = hoveredDim === d.dim;
               
+              // Calculate actual position in container (accounting for margins and SVG scaling)
+              const containerX = MARGIN.left + xPos;
+              const containerY = MARGIN.top + yPos;
+              
               return (
                 <g 
                   key={d.dim} 
                   transform={`translate(${xPos}, ${yPos})`}
-                  onMouseEnter={() => setHoveredDim(d.dim)}
-                  onMouseLeave={() => setHoveredDim(null)}
+                  onMouseEnter={() => {
+                    setHoveredDim(d.dim);
+                    setTooltipPos({ x: containerX, y: containerY });
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredDim(null);
+                    setTooltipPos(null);
+                  }}
                   style={{ cursor: 'pointer' }}
                 >
                   <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
@@ -839,9 +895,12 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
           </g>
         </svg>
         
-        {/* Hover tooltip card */}
+        {/* Hover tooltip card - dynamically positioned based on bubble location */}
         {hoveredData && (
-          <div className="absolute top-2 right-2 bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-56 z-20">
+          <div 
+            className="absolute bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-56 z-20 transition-all duration-150"
+            style={getTooltipStyle()}
+          >
             <div className="flex items-center gap-3 mb-3">
               <span className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md" style={{ backgroundColor: getScoreColor(hoveredData.score) }}>
                 D{hoveredData.dim}
