@@ -271,7 +271,7 @@ export default function GeneralBenefitsPage() {
  <div className="flex items-center justify-between mb-2">
  <span className="text-sm text-gray-600">Step {step} of 9</span>
  <button 
- onClick={() => router.push("/dashboard")}
+ onClick={async () => { await forceSyncNow(); router.push("/dashboard"); }}
  className="text-sm text-orange-600 hover:text-orange-700 font-medium"
  >
  ←  Back to Dashboard

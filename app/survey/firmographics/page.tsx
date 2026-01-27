@@ -352,7 +352,7 @@ export default function FirmographicsPage() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Step {step} of 10</span>
             <button 
-              onClick={() => { localStorage.setItem("firmographics_complete", "true"); router.push("/dashboard"); }}
+              onClick={async () => { localStorage.setItem("firmographics_complete", "true"); await forceSyncNow(); router.push("/dashboard"); }}
               className="text-sm text-orange-600 hover:text-orange-700 font-medium"
             >
               ← Back to Dashboard

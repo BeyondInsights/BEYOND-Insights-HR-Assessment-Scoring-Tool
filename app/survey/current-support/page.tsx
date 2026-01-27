@@ -335,8 +335,9 @@ export default function CurrentSupportPage() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Step {step} of 13</span>
             <button 
-              onClick={() => { 
+              onClick={async () => { 
                 localStorage.setItem("current_support_complete", "true");
+                await forceSyncNow();
                 router.push("/dashboard");
               }}
               className="text-sm text-orange-600 hover:text-orange-700 font-medium"
