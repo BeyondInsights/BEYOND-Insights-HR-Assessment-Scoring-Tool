@@ -369,7 +369,13 @@ function hasDataChanged(newData: Record<string, any>): boolean {
 // ============================================
 // NETLIFY FUNCTION SYNC (PRIMARY)
 // ============================================
-async function syncViaNetlifyFunction(surveyId: string, data: Record<string, any>, accessToken?: string): Promise<boolean> {
+async function syncViaNetlifyFunction(
+  surveyId: string, 
+  data: Record<string, any>, 
+  accessToken?: string,
+  fallbackSurveyId?: string,
+  fallbackAppId?: string
+): Promise<boolean> {
   try {
     const payload: Record<string, any> = { 
       surveyId, 
@@ -380,6 +386,14 @@ async function syncViaNetlifyFunction(surveyId: string, data: Record<string, any
     // Include accessToken if provided (required for regular users)
     if (accessToken) {
       payload.accessToken = accessToken
+    }
+    
+    // Include fallback IDs for regular users (user_id → survey_id → app_id fallback chain)
+    if (fallbackSurveyId) {
+      payload.fallbackSurveyId = fallbackSurveyId
+    }
+    if (fallbackAppId) {
+      payload.fallbackAppId = fallbackAppId
     }
     
     const response = await fetch('/.netlify/functions/sync-assessment', {
@@ -551,7 +565,7 @@ async function syncFPToSupabase(surveyId: string): Promise<boolean> {
 }
 
 // ============================================
-// SYNC REGULAR USER - SENDS ACCESS TOKEN
+// SYNC REGULAR USER - SENDS ACCESS TOKEN + FALLBACK IDS
 // ============================================
 async function syncRegularUserToSupabase(): Promise<boolean> {
   // Get current session for auth token
@@ -565,9 +579,9 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
   const userId = session.user.id
   const accessToken = session.access_token
   
-  // Get survey_id and app_id for fallback attempts
+  // Get fallback IDs from localStorage for the fallback chain
   const surveyId = localStorage.getItem('survey_id') || ''
-  const normalizedAppId = surveyId.replace(/-/g, '').toUpperCase()
+  const normalizedAppId = surveyId ? surveyId.replace(/-/g, '').toUpperCase() : ''
   
   // Update cached values for unload sync
   cachedUserId = userId
@@ -575,8 +589,8 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
   
   console.log('👤 AUTO-SYNC: Syncing regular user...')
   console.log('   user_id:', userId)
-  console.log('   survey_id:', surveyId || 'none')
-  console.log('   app_id:', normalizedAppId || 'none')
+  console.log('   survey_id (fallback):', surveyId || 'none')
+  console.log('   app_id (fallback):', normalizedAppId || 'none')
   
   const { data: updateData, hasData } = collectAllSurveyData()
   
@@ -584,94 +598,29 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
     return true
   }
   
-  // Try Netlify function first WITH ACCESS TOKEN
-  if (await syncViaNetlifyFunction(userId, updateData, accessToken)) {
+  // Try Netlify function WITH ACCESS TOKEN AND FALLBACK IDS
+  // Server will try: user_id → survey_id → app_id
+  if (await syncViaNetlifyFunction(userId, updateData, accessToken, surveyId, normalizedAppId)) {
     removePendingOp(userId)
     return true
   }
   
-  // ============================================
-  // FALLBACK CHAIN: user_id → survey_id → app_id
-  // ============================================
-  const updatePayload = { ...updateData, updated_at: new Date().toISOString() }
-  
-  // ATTEMPT 1: Try user_id
-  console.log('🔄 AUTO-SYNC: Attempting update via user_id...')
-  const { data: userIdResult, error: userIdError } = await supabase
+  // Fallback to direct Supabase (RLS will validate)
+  const { error } = await supabase
     .from('assessments')
-    .update(updatePayload)
+    .update({ ...updateData, updated_at: new Date().toISOString() })
     .eq('user_id', userId)
-    .select('id')
   
-  if (!userIdError && userIdResult && userIdResult.length > 0) {
-    console.log('✅ AUTO-SYNC: Success via user_id!')
-    removePendingOp(userId)
-    return true
+  if (error) {
+    console.error('❌ AUTO-SYNC: Regular user sync failed:', error.message)
+    addPendingOp(userId, updateData, 'regular', accessToken)
+    return false
   }
   
-  console.log('⚠️ AUTO-SYNC: user_id matched 0 rows, trying survey_id fallback...')
-  
-  // ATTEMPT 2: FALLBACK to survey_id
-  if (surveyId) {
-    const { data: surveyIdResult, error: surveyIdError } = await supabase
-      .from('assessments')
-      .update(updatePayload)
-      .eq('survey_id', surveyId)
-      .select('id')
-    
-    if (!surveyIdError && surveyIdResult && surveyIdResult.length > 0) {
-      console.log('✅ AUTO-SYNC: Success via survey_id fallback!')
-      
-      // Link user_id to this record for future syncs
-      await supabase
-        .from('assessments')
-        .update({ user_id: userId })
-        .eq('survey_id', surveyId)
-      console.log('🔗 AUTO-SYNC: Linked user_id to record for future syncs')
-      
-      removePendingOp(userId)
-      return true
-    }
-    
-    console.log('⚠️ AUTO-SYNC: survey_id matched 0 rows, trying app_id fallback...')
-  }
-  
-  // ATTEMPT 3: FALLBACK to app_id (normalized)
-  if (normalizedAppId) {
-    const { data: appIdResult, error: appIdError } = await supabase
-      .from('assessments')
-      .update(updatePayload)
-      .eq('app_id', normalizedAppId)
-      .select('id')
-    
-    if (!appIdError && appIdResult && appIdResult.length > 0) {
-      console.log('✅ AUTO-SYNC: Success via app_id fallback!')
-      
-      // Link user_id to this record for future syncs
-      await supabase
-        .from('assessments')
-        .update({ user_id: userId })
-        .eq('app_id', normalizedAppId)
-      console.log('🔗 AUTO-SYNC: Linked user_id to record for future syncs')
-      
-      removePendingOp(userId)
-      return true
-    }
-    
-    console.log('⚠️ AUTO-SYNC: app_id matched 0 rows')
-  }
-  
-  // ALL FALLBACKS FAILED
-  console.error('❌ AUTO-SYNC: ALL FALLBACK ATTEMPTS FAILED!')
-  console.error('   Tried: user_id, survey_id, app_id - no matching record found')
-  console.error('   user_id:', userId)
-  console.error('   survey_id:', surveyId || 'none')
-  console.error('   app_id:', normalizedAppId || 'none')
-  
-  addPendingOp(userId, updateData, 'regular', accessToken)
-  return false
+  console.log('✅ AUTO-SYNC: Regular user sync successful!')
+  removePendingOp(userId)
+  return true
 }
-
 
 // ============================================
 // MAIN SYNC FUNCTION
