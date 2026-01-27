@@ -1552,25 +1552,31 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             <span className="w-14 text-right">Points</span>
                           </div>
                           <div className="space-y-0.5">
-                            {[
-                              { label: '100% of managers', points: 100, benchPct: 12 },
-                              { label: '75% to less than 100%', points: 80, benchPct: 18 },
-                              { label: '50% to less than 75%', points: 50, benchPct: 25 },
-                              { label: '25% to less than 50%', points: 30, benchPct: 20 },
-                              { label: '10% to less than 25%', points: 10, benchPct: 15 },
-                              { label: 'Less than 10%', points: 0, benchPct: 10 },
-                            ].map((opt, i) => (
-                              <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${d.followUpScore === opt.points ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
-                                <div className="flex items-center gap-2">
-                                  {d.followUpScore === opt.points && <span className="text-blue-600">✓</span>}
-                                  <span className={d.followUpScore === opt.points ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                  <span className={`font-semibold w-14 text-right ${opt.points >= 80 ? 'text-emerald-600' : opt.points >= 50 ? 'text-blue-600' : opt.points >= 30 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
-                                </div>
-                              </div>
-                            ))}
+                            {(() => {
+                              const d3Score = d.followUpRaw?.d3_1_score;
+                              return [
+                                { label: '100% of managers', points: 100, benchPct: 12 },
+                                { label: '75% to less than 100%', points: 80, benchPct: 18 },
+                                { label: '50% to less than 75%', points: 50, benchPct: 25 },
+                                { label: '25% to less than 50%', points: 30, benchPct: 20 },
+                                { label: '10% to less than 25%', points: 10, benchPct: 15 },
+                                { label: 'Less than 10%', points: 0, benchPct: 10 },
+                              ].map((opt, i) => {
+                                const isSelected = d3Score === opt.points;
+                                return (
+                                  <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
+                                    <div className="flex items-center gap-2">
+                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                      <span className={`font-semibold w-14 text-right ${opt.points >= 80 ? 'text-emerald-600' : opt.points >= 50 ? 'text-blue-600' : opt.points >= 30 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
                           </div>
                         </div>
                       )}
@@ -1894,25 +1900,31 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           <span className="w-14 text-right">Points</span>
                         </div>
                         <div className="space-y-0.5">
-                          {[
-                            { label: 'Monthly', points: 100, benchPct: 8 },
-                            { label: 'Quarterly', points: 70, benchPct: 25 },
-                            { label: 'Twice per year', points: 40, benchPct: 30 },
-                            { label: 'Annually / World Cancer Day', points: 20, benchPct: 22 },
-                            { label: 'Only when asked', points: 0, benchPct: 10 },
-                            { label: 'Do not actively communicate', points: 0, benchPct: 5 },
-                          ].map((opt, i) => (
-                            <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${d.followUpScore === opt.points ? 'bg-orange-100 border-2 border-orange-400' : 'bg-slate-50'}`}>
-                              <div className="flex items-center gap-2">
-                                {d.followUpScore === opt.points && <span className="text-orange-600">✓</span>}
-                                <span className={d.followUpScore === opt.points ? 'font-semibold text-orange-900' : 'text-slate-700'}>{opt.label}</span>
-                              </div>
-                              <div className="flex items-center">
-                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
-                              </div>
-                            </div>
-                          ))}
+                          {(() => {
+                            const d13Score = d.followUpRaw?.d13_1_score;
+                            return [
+                              { label: 'Monthly', points: 100, benchPct: 8 },
+                              { label: 'Quarterly', points: 70, benchPct: 25 },
+                              { label: 'Twice per year', points: 40, benchPct: 30 },
+                              { label: 'Annually / World Cancer Day', points: 20, benchPct: 22 },
+                              { label: 'Only when asked', points: 0, benchPct: 10 },
+                              { label: 'Do not actively communicate', points: 0, benchPct: 5 },
+                            ].map((opt, i) => {
+                              const isSelected = d13Score === opt.points;
+                              return (
+                                <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-orange-100 border-2 border-orange-400' : 'bg-slate-50'}`}>
+                                  <div className="flex items-center gap-2">
+                                    {isSelected && <span className="text-orange-600">✓</span>}
+                                    <span className={isSelected ? 'font-semibold text-orange-900' : 'text-slate-700'}>{opt.label}</span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                    <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
                       </div>
                     )}
@@ -2278,7 +2290,11 @@ export default function ExportReportPage() {
             d1_1_non_usa_score: dimData?.d1_1_non_usa ? scoreD1PaidLeave(dimData.d1_1_non_usa) : null
           };
         } else if (dim === 3) {
-          followUpRawResponses[3] = { d3_1: dimData?.d31 ?? dimData?.d3_1 };
+          const d3Val = dimData?.d31 ?? dimData?.d3_1;
+          followUpRawResponses[3] = { 
+            d3_1: d3Val,
+            d3_1_score: d3Val ? scoreD3Training(d3Val) : null
+          };
         } else if (dim === 12) {
           followUpRawResponses[12] = { 
             d12_1: dimData?.d12_1, 
@@ -2287,7 +2303,10 @@ export default function ExportReportPage() {
             d12_2_score: dimData?.d12_2 ? scoreD12PolicyChanges(dimData.d12_2) : null
           };
         } else if (dim === 13) {
-          followUpRawResponses[13] = { d13_1: dimData?.d13_1 };
+          followUpRawResponses[13] = { 
+            d13_1: dimData?.d13_1,
+            d13_1_score: dimData?.d13_1 ? scoreD13Communication(dimData.d13_1) : null
+          };
         }
         
         if (followUp !== null) {
