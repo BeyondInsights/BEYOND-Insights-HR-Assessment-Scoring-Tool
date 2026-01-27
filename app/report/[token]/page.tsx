@@ -825,39 +825,6 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             {/* Border */}
             <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#D1D5DB" strokeWidth="1" />
             
-            {/* Data points */}
-            {dimensionAnalysis.map((d) => {
-              const xPos = (d.score / 100) * PLOT_WIDTH;
-              const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
-              const isHovered = hoveredDim === d.dim;
-              
-              // Calculate actual position in container (accounting for margins and SVG scaling)
-              const containerX = MARGIN.left + xPos;
-              const containerY = MARGIN.top + yPos;
-              
-              return (
-                <g 
-                  key={d.dim} 
-                  transform={`translate(${xPos}, ${yPos})`}
-                  onMouseEnter={() => {
-                    setHoveredDim(d.dim);
-                    setTooltipPos({ x: containerX, y: containerY });
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredDim(null);
-                    setTooltipPos(null);
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
-                  <circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
-                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">
-                    D{d.dim}
-                  </text>
-                </g>
-              );
-            })}
-            
             {/* BOTTOM LABEL BARS - below the chart */}
             <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#F3F4F6" />
             <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 4 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#4B5563" fontSize="10" fontWeight="600" fontFamily="system-ui">MONITOR</text>
@@ -895,6 +862,39 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
               ↑ STRATEGIC IMPORTANCE
             </text>
+            
+            {/* Data points - RENDERED LAST so they're always on top and clickable */}
+            {dimensionAnalysis.map((d) => {
+              const xPos = (d.score / 100) * PLOT_WIDTH;
+              const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+              const isHovered = hoveredDim === d.dim;
+              
+              // Calculate actual position in container (accounting for margins and SVG scaling)
+              const containerX = MARGIN.left + xPos;
+              const containerY = MARGIN.top + yPos;
+              
+              return (
+                <g 
+                  key={d.dim} 
+                  transform={`translate(${xPos}, ${yPos})`}
+                  onMouseEnter={() => {
+                    setHoveredDim(d.dim);
+                    setTooltipPos({ x: containerX, y: containerY });
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredDim(null);
+                    setTooltipPos(null);
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
+                  <circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
+                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">
+                    D{d.dim}
+                  </text>
+                </g>
+              );
+            })}
           </g>
         </svg>
         
