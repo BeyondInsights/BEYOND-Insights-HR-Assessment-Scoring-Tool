@@ -100,6 +100,14 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
       localStorage.setItem('current_invoice_number', data.invoice_number)
     }
     
+    // First/last name from firmographics
+    if (data.firmographics_data) {
+      const firmo = data.firmographics_data
+      if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
+      if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
+      if (firmo.title) localStorage.setItem('login_title', firmo.title)
+    }
+    
     console.log('✅ User data loaded successfully from Supabase')
     return { found: true, authCompleted: !!data.auth_completed }
     
@@ -391,6 +399,14 @@ export default function LoginPage() {
           }
           if (existing.invoice_number) {
             localStorage.setItem('current_invoice_number', existing.invoice_number)
+          }
+          
+          // First/last name from firmographics (FP)
+          if (existing.firmographics_data) {
+            const firmo = existing.firmographics_data
+            if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
+            if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
+            if (firmo.title) localStorage.setItem('login_title', firmo.title)
           }
           
           console.log('✅ Loaded all FP data and completion flags from Supabase')

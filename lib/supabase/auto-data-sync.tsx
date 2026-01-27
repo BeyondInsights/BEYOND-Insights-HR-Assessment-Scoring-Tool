@@ -147,6 +147,38 @@ function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean }
     updateData.email = email.toLowerCase().trim()
   }
   
+  // ============================================
+  // PAYMENT DATA
+  // ============================================
+  if (localStorage.getItem('payment_completed') === 'true') {
+    updateData.payment_completed = true
+  }
+  const paymentMethod = localStorage.getItem('payment_method')
+  if (paymentMethod) {
+    updateData.payment_method = paymentMethod
+  }
+  const paymentDate = localStorage.getItem('payment_date')
+  if (paymentDate) {
+    updateData.payment_date = paymentDate
+  }
+  
+  // ============================================
+  // FIRST NAME, LAST NAME, TITLE
+  // ============================================
+  const firstName = localStorage.getItem('login_first_name')
+  const lastName = localStorage.getItem('login_last_name')
+  const title = localStorage.getItem('login_title')
+  
+  // These go into firmographics_data if it exists, or we add them
+  if (firstName || lastName || title) {
+    if (!updateData.firmographics_data) {
+      updateData.firmographics_data = {}
+    }
+    if (firstName) updateData.firmographics_data.firstName = firstName
+    if (lastName) updateData.firmographics_data.lastName = lastName
+    if (title) updateData.firmographics_data.title = title
+  }
+  
   return { data: updateData, hasData: itemCount > 0 }
 }
 

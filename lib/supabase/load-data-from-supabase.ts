@@ -163,6 +163,16 @@ function writeToLocalStorage(dbRow: Record<string, any>): void {
   if (dbRow.invoice_number) {
     localStorage.setItem('current_invoice_number', dbRow.invoice_number)
   }
+  
+  // ============================================
+  // FIRST NAME, LAST NAME, TITLE from firmographics
+  // ============================================
+  if (dbRow.firmographics_data) {
+    const firmo = dbRow.firmographics_data
+    if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
+    if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
+    if (firmo.title) localStorage.setItem('login_title', firmo.title)
+  }
 }
 
 // ============================================

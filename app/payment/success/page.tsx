@@ -19,11 +19,51 @@ useEffect(() => {
   
   // If coming from Zeffy, MARK PAYMENT AS COMPLETE
   if (fromZeffy) {
-  localStorage.removeItem('new_user_bypass');  // ← ADD THIS LINE
-  localStorage.setItem('payment_completed', 'true');
-  localStorage.setItem('payment_method', 'card');
-  localStorage.setItem('payment_date', new Date().toISOString());
-}
+    localStorage.removeItem('new_user_bypass');
+    localStorage.setItem('payment_completed', 'true');
+    localStorage.setItem('payment_method', 'card');
+    localStorage.setItem('payment_date', new Date().toISOString());
+    
+    // ============================================
+    // SAVE PAYMENT TO SUPABASE
+    // ============================================
+    (async () => {
+      try {
+        const { supabase } = await import('@/lib/supabase/client');
+        const surveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || '';
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const paymentUpdate = {
+          payment_completed: true,
+          payment_method: 'card',
+          payment_amount: 1250.00,
+          payment_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        // Try user_id first
+        if (user) {
+          await supabase
+            .from('assessments')
+            .update(paymentUpdate)
+            .eq('user_id', user.id);
+        }
+        
+        // Also try survey_id
+        if (surveyId) {
+          const normalizedId = surveyId.replace(/-/g, '').toUpperCase();
+          await supabase
+            .from('assessments')
+            .update(paymentUpdate)
+            .or(`survey_id.eq.${surveyId},app_id.eq.${normalizedId}`);
+        }
+        
+        console.log('✅ Payment saved to Supabase');
+      } catch (err) {
+        console.error('Error saving payment to Supabase:', err);
+      }
+    })();
+  }
   
   // Break out of Zeffy iframe/platform with error handling
   const isInIframe = window.self !== window.top;
