@@ -1084,6 +1084,7 @@ interface DrillDownProps {
   setCustomObservations?: (obs: Record<string, string>) => void;
   isEditing?: boolean;
   showExtras?: boolean;
+  isSingleCountryCompany?: boolean;
 }
 
 // Collapsible Score Component Card for Score Composition section
@@ -1171,7 +1172,7 @@ function ScoreComponentCard({
   );
 }
 
-function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor, benchmarkCompanyCount, customObservations = {}, setCustomObservations, isEditing = false, showExtras = false }: DrillDownProps) {
+function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, elementBenchmarks, getScoreColor, benchmarkCompanyCount, customObservations = {}, setCustomObservations, isEditing = false, showExtras = false, isSingleCountryCompany = false }: DrillDownProps) {
   const sortedDims = [...dimensionAnalysis].sort((a, b) => a.dim - b.dim);
   const selectedData = selectedDim ? sortedDims.find(d => d.dim === selectedDim) : null;
   const elemBench = selectedDim ? elementBenchmarks[selectedDim] || {} : {};
@@ -3404,6 +3405,7 @@ export default function InteractiveReportPage() {
           setCustomObservations={setCustomObservations}
           isEditing={editMode}
           showExtras={true}
+          isSingleCountryCompany={isSingleCountryCompany}
         />
 
         {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
