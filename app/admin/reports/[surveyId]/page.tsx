@@ -1731,7 +1731,11 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     {/* Geographic Multiplier */}
                     <div className="bg-white rounded-lg border border-slate-200 p-4">
                       <h4 className="text-xs font-semibold text-purple-700 mb-2 uppercase tracking-wide">Geographic Multiplier</h4>
-                      <div className="space-y-1">
+                      <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                        <span className="w-16 text-center">Benchmark</span>
+                        <span className="w-14 text-right">Multiplier</span>
+                      </div>
+                      <div className="space-y-0.5">
                         {(() => {
                           const geoText = d.geoResponse ? String(d.geoResponse).toLowerCase() : '';
                           const isConsistent = geoText.includes('consistent');
@@ -1747,14 +1751,14 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           ];
                           
                           return options.map((opt, i) => (
-                            <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : ''}`}>
+                            <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : 'bg-slate-50'}`}>
                               <div className="flex items-center gap-2">
                                 {opt.selected && <span className="text-purple-600">✓</span>}
-                                <span className={opt.selected ? 'font-semibold text-purple-900' : 'text-slate-600'}>{opt.label}</span>
+                                <span className={opt.selected ? 'font-semibold text-purple-900' : 'text-slate-700'}>{opt.label}</span>
                               </div>
-                              <div className="flex items-center gap-3">
-                                <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
-                                <span className={`font-semibold w-12 text-right ${opt.color}`}>{opt.multiplier}</span>
+                              <div className="flex items-center">
+                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-14 text-right ${opt.color}`}>{opt.multiplier}</span>
                               </div>
                             </div>
                           ));
@@ -1766,27 +1770,35 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     {/* D12 Follow-ups */}
                     {d.dim === 12 && (
                       <div className="bg-white rounded-lg border border-slate-200 p-4">
-                        <h4 className="text-xs font-semibold text-teal-700 mb-1 uppercase tracking-wide">D12: Continuous Improvement Follow-ups</h4>
+                        <h4 className="text-xs font-semibold text-teal-700 mb-3 uppercase tracking-wide">D12: Continuous Improvement Follow-ups</h4>
                         
-                        <p className="text-[10px] text-slate-500 italic mt-2 mb-1">D12_1: "Do you review individual employee experiences to assess accommodation effectiveness?"</p>
-                        <div className="space-y-0.5 mb-3">
+                        <p className="text-xs text-slate-600 mb-2">D12_1: "Do you review individual employee experiences to assess accommodation effectiveness?"</p>
+                        <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                          <span className="w-16 text-center">Benchmark</span>
+                          <span className="w-14 text-right">Points</span>
+                        </div>
+                        <div className="space-y-0.5 mb-4">
                           {[
                             { label: 'Systematic case reviews', points: 100, benchPct: 22 },
                             { label: 'Ad hoc case reviews', points: 50, benchPct: 35 },
                             { label: 'Only review aggregate data', points: 20, benchPct: 28 },
                             { label: 'No review process', points: 0, benchPct: 15 },
                           ].map((opt, i) => (
-                            <div key={i} className="flex justify-between items-center px-2 py-1 rounded text-xs">
-                              <span className="text-slate-600">{opt.label}</span>
-                              <div className="flex items-center gap-3">
-                                <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
-                                <span className={`font-semibold w-12 text-right ${opt.points >= 50 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                            <div key={i} className="flex justify-between items-center px-2 py-1.5 rounded text-xs bg-slate-50">
+                              <span className="text-slate-700">{opt.label}</span>
+                              <div className="flex items-center">
+                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-14 text-right ${opt.points >= 50 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
                               </div>
                             </div>
                           ))}
                         </div>
                         
-                        <p className="text-[10px] text-slate-500 italic mb-1">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
+                        <p className="text-xs text-slate-600 mb-2">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
+                        <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                          <span className="w-16 text-center">Benchmark</span>
+                          <span className="w-14 text-right">Points</span>
+                        </div>
                         <div className="space-y-0.5">
                           {[
                             { label: 'Significant policy changes', points: 100, benchPct: 18 },
@@ -1794,24 +1806,28 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             { label: 'No changes made yet', points: 20, benchPct: 30 },
                             { label: 'N/A or no response', points: 0, benchPct: 12 },
                           ].map((opt, i) => (
-                            <div key={i} className="flex justify-between items-center px-2 py-1 rounded text-xs">
-                              <span className="text-slate-600">{opt.label}</span>
-                              <div className="flex items-center gap-3">
-                                <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
-                                <span className={`font-semibold w-12 text-right ${opt.points >= 60 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                            <div key={i} className="flex justify-between items-center px-2 py-1.5 rounded text-xs bg-slate-50">
+                              <span className="text-slate-700">{opt.label}</span>
+                              <div className="flex items-center">
+                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-14 text-right ${opt.points >= 60 ? 'text-emerald-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
                               </div>
                             </div>
                           ))}
                         </div>
-                        <p className="text-[10px] text-teal-600 italic mt-2">D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
+                        <p className="text-[10px] text-slate-400 italic mt-3">Note: D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
                       </div>
                     )}
                     
                     {/* D13 Follow-up */}
                     {d.dim === 13 && (
                       <div className="bg-white rounded-lg border border-slate-200 p-4">
-                        <h4 className="text-xs font-semibold text-orange-700 mb-1 uppercase tracking-wide">D13: Communication Follow-up (D13_1)</h4>
-                        <p className="text-[10px] text-slate-500 italic mb-2">"How frequently do you communicate about health support programs to employees?"</p>
+                        <h4 className="text-xs font-semibold text-orange-700 mb-2 uppercase tracking-wide">D13: Communication Follow-up (D13_1)</h4>
+                        <p className="text-xs text-slate-600 mb-2">"How frequently do you communicate about health support programs to employees?"</p>
+                        <div className="flex justify-end text-[10px] text-slate-500 font-medium mb-1 pr-2">
+                          <span className="w-16 text-center">Benchmark</span>
+                          <span className="w-14 text-right">Points</span>
+                        </div>
                         <div className="space-y-0.5">
                           {[
                             { label: 'Monthly', points: 100, benchPct: 8 },
@@ -1821,14 +1837,14 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             { label: 'Only when asked', points: 0, benchPct: 10 },
                             { label: 'Do not actively communicate', points: 0, benchPct: 5 },
                           ].map((opt, i) => (
-                            <div key={i} className={`flex justify-between items-center px-2 py-1 rounded text-xs ${d.followUpScore === opt.points ? 'bg-orange-100 border-2 border-orange-400' : ''}`}>
+                            <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${d.followUpScore === opt.points ? 'bg-orange-100 border-2 border-orange-400' : 'bg-slate-50'}`}>
                               <div className="flex items-center gap-2">
                                 {d.followUpScore === opt.points && <span className="text-orange-600">✓</span>}
-                                <span className={d.followUpScore === opt.points ? 'font-semibold text-orange-900' : 'text-slate-600'}>{opt.label}</span>
+                                <span className={d.followUpScore === opt.points ? 'font-semibold text-orange-900' : 'text-slate-700'}>{opt.label}</span>
                               </div>
-                              <div className="flex items-center gap-3">
-                                <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
-                                <span className={`font-semibold w-12 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                              <div className="flex items-center">
+                                <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
+                                <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
                               </div>
                             </div>
                           ))}
