@@ -734,7 +734,7 @@ const TrendUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensionAnalysis: any[]; getScoreColor: (score: number) => string }) {
   const [hoveredDim, setHoveredDim] = useState<number | null>(null);
-  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const MAX_WEIGHT = 15;
   
   const CHART_WIDTH = 900;
@@ -746,58 +746,51 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
   
   const hoveredData = hoveredDim !== null ? dimensionAnalysis.find(d => d.dim === hoveredDim) : null;
   
+  // Calculate bubble positions as percentages for HTML overlay
+  const getBubblePosition = (d: any) => {
+    const xPercent = (MARGIN.left + (d.score / 100) * PLOT_WIDTH) / CHART_WIDTH * 100;
+    const yPercent = (MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT))) / CHART_HEIGHT * 100;
+    return { xPercent, yPercent };
+  };
+  
   // Calculate tooltip position based on bubble location
   const getTooltipStyle = () => {
-    if (!hoveredData || !tooltipPos) return { top: '8px', right: '8px' };
+    if (!hoveredData) return { top: '8px', right: '8px', opacity: 0 };
     
-    const tooltipWidth = 224; // w-56 = 14rem = 224px
-    const tooltipHeight = 160; // approximate height
-    const containerWidth = 900; // approximate container width
-    const containerHeight = 490; // SVG height
+    const { xPercent, yPercent } = getBubblePosition(hoveredData);
+    const tooltipWidth = 224;
+    const tooltipHeight = 160;
     
-    // Determine edge proximity
-    const isRightEdge = tooltipPos.x > containerWidth * 0.60;
-    const isLeftEdge = tooltipPos.x < containerWidth * 0.25;
-    const isTopEdge = tooltipPos.y < containerHeight * 0.35;
-    const isBottomEdge = tooltipPos.y > containerHeight * 0.65;
-    
-    // Position tooltip to avoid ALL edges
-    // Priority: always show tooltip in the direction with most space
+    const isRightEdge = xPercent > 65;
+    const isLeftEdge = xPercent < 25;
+    const isTopEdge = yPercent < 35;
+    const isBottomEdge = yPercent > 65;
     
     let top: string;
     let left: string;
     
-    // Horizontal positioning
     if (isRightEdge) {
-      // Show to left of bubble
-      left = `${Math.max(tooltipPos.x - tooltipWidth - 40, 10)}px`;
-    } else if (isLeftEdge) {
-      // Show to right of bubble
-      left = `${tooltipPos.x + 40}px`;
+      left = `calc(${xPercent}% - ${tooltipWidth + 50}px)`;
     } else {
-      // Center area - show to right by default
-      left = `${tooltipPos.x + 40}px`;
+      left = `calc(${xPercent}% + 30px)`;
     }
     
-    // Vertical positioning
     if (isTopEdge) {
-      // Show below bubble
-      top = `${tooltipPos.y + 30}px`;
+      top = `calc(${yPercent}% + 30px)`;
     } else if (isBottomEdge) {
-      // Show above bubble
-      top = `${Math.max(tooltipPos.y - tooltipHeight - 30, 10)}px`;
+      top = `calc(${yPercent}% - ${tooltipHeight + 30}px)`;
     } else {
-      // Center area - vertically center with bubble
-      top = `${Math.max(tooltipPos.y - tooltipHeight/2, 10)}px`;
+      top = `calc(${yPercent}% - ${tooltipHeight/2}px)`;
     }
     
-    return { top, left, right: 'auto' };
+    return { top, left, right: 'auto', opacity: 1 };
   };
   
   return (
     <div className="px-4 py-4">
-      <div className="relative w-full" style={{ height: '580px' }}>
-        <svg className="w-full relative z-10" style={{ height: '490px', pointerEvents: 'all' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+      <div ref={containerRef} className="relative w-full" style={{ height: '580px' }}>
+        {/* SVG Chart - visual only, no interactivity */}
+        <svg className="w-full" style={{ height: '490px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
           <defs>
             <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
@@ -805,14 +798,14 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
           </defs>
           
           <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
-            {/* TOP LABEL BARS - above the chart */}
+            {/* TOP LABEL BARS */}
             <rect x={0} y={-LABEL_HEIGHT - 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#FEE2E2" />
             <text x={PLOT_WIDTH/4} y={-LABEL_HEIGHT/2 - 4 + 1} textAnchor="middle" dominantBaseline="middle" fill="#991B1B" fontSize="10" fontWeight="600" fontFamily="system-ui">PRIORITY GAPS</text>
             
             <rect x={PLOT_WIDTH/2 + 2} y={-LABEL_HEIGHT - 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#D1FAE5" />
             <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 4 + 1} textAnchor="middle" dominantBaseline="middle" fill="#065F46" fontSize="10" fontWeight="600" fontFamily="system-ui">CORE STRENGTHS</text>
             
-            {/* Quadrant backgrounds - clean white/light gray */}
+            {/* Quadrant backgrounds */}
             <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
             <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
             <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
@@ -825,7 +818,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             {/* Border */}
             <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#D1D5DB" strokeWidth="1" />
             
-            {/* BOTTOM LABEL BARS - below the chart */}
+            {/* BOTTOM LABEL BARS */}
             <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#F3F4F6" />
             <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 4 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#4B5563" fontSize="10" fontWeight="600" fontFamily="system-ui">MONITOR</text>
             
@@ -863,30 +856,14 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               ↑ STRATEGIC IMPORTANCE
             </text>
             
-            {/* Data points - RENDERED LAST so they're always on top and clickable */}
+            {/* Data points - visual only */}
             {dimensionAnalysis.map((d) => {
               const xPos = (d.score / 100) * PLOT_WIDTH;
               const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
               const isHovered = hoveredDim === d.dim;
               
-              // Calculate actual position in container (accounting for margins and SVG scaling)
-              const containerX = MARGIN.left + xPos;
-              const containerY = MARGIN.top + yPos;
-              
               return (
-                <g 
-                  key={d.dim} 
-                  transform={`translate(${xPos}, ${yPos})`}
-                  onMouseEnter={() => {
-                    setHoveredDim(d.dim);
-                    setTooltipPos({ x: containerX, y: containerY });
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredDim(null);
-                    setTooltipPos(null);
-                  }}
-                  style={{ cursor: 'pointer', pointerEvents: 'all' }}
-                >
+                <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
                   <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
                   <circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
                   <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">
@@ -898,10 +875,32 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
           </g>
         </svg>
         
-        {/* Hover tooltip card - dynamically positioned based on bubble location */}
+        {/* HTML Overlay for hover detection - positioned over SVG */}
+        <div className="absolute inset-0" style={{ height: '490px' }}>
+          {dimensionAnalysis.map((d) => {
+            const { xPercent, yPercent } = getBubblePosition(d);
+            return (
+              <div
+                key={d.dim}
+                className="absolute rounded-full cursor-pointer"
+                style={{
+                  left: `${xPercent}%`,
+                  top: `${yPercent}%`,
+                  width: '44px',
+                  height: '44px',
+                  transform: 'translate(-50%, -50%)',
+                }}
+                onMouseEnter={() => setHoveredDim(d.dim)}
+                onMouseLeave={() => setHoveredDim(null)}
+              />
+            );
+          })}
+        </div>
+        
+        {/* Tooltip */}
         {hoveredData && (
           <div 
-            className="absolute bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-56 z-20 transition-all duration-150"
+            className="absolute bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-56 z-30 pointer-events-none transition-opacity duration-150"
             style={getTooltipStyle()}
           >
             <div className="flex items-center gap-3 mb-3">
@@ -928,7 +927,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
           </div>
         )}
         
-        {/* Legend - below chart - 2 rows */}
+        {/* Legend */}
         <div className="mt-3 pt-4 border-t border-slate-200 px-2">
           <div className="flex justify-center gap-x-3 gap-y-1">
             {/* First row: dimensions 1-7 */}
