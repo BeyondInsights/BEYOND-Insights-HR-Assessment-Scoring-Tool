@@ -139,6 +139,7 @@ export async function authenticateUser(
             user_id: authData.user.id,
             email: normalizedEmail,
             app_id: appId,
+            survey_id: appId,  // SET BOTH survey_id AND app_id
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })

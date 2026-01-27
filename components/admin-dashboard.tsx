@@ -3129,7 +3129,8 @@ export default function AdminDashboard() {
       !searchTerm ||
       a.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       a.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.survey_id?.toLowerCase().includes(searchTerm.toLowerCase())
+      a.survey_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.app_id?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStatus =
       statusFilter === 'all' ||
@@ -3436,7 +3437,7 @@ export default function AdminDashboard() {
                               )}
                             </p>
                             <p className="text-xs text-gray-500 truncate">{assessment.email}</p>
-                            <p className="text-xs text-gray-400 font-mono truncate">{assessment.survey_id}</p>
+                            <p className="text-xs text-gray-400 font-mono truncate">{assessment.survey_id || assessment.app_id || 'No ID'}</p>
                           </div>
                         </div>
                       </td>
