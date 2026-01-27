@@ -2667,6 +2667,13 @@ export default function ExportReportPage() {
                 details={
                   <div className="space-y-2 text-xs">
                     <p className="text-slate-600 mb-3">How would you describe your organization's current approach?</p>
+                    <div className="flex justify-between items-center px-3 py-1 text-[10px] text-slate-400 border-b border-slate-200">
+                      <span>Response</span>
+                      <div className="flex items-center gap-3">
+                        <span className="w-14 text-center">Benchmark</span>
+                        <span className="w-12 text-right">Points</span>
+                      </div>
+                    </div>
                     {[
                       { label: 'Comprehensive support', points: 100, selected: maturityScore === 100, benchPct: 15 },
                       { label: 'Enhanced support', points: 80, selected: maturityScore === 80, benchPct: 22 },
@@ -2680,7 +2687,7 @@ export default function ExportReportPage() {
                           <span className={opt.selected ? 'font-semibold text-amber-900' : 'text-slate-600'}>{opt.label}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-slate-400 text-[10px]">{opt.benchPct}% of peers</span>
+                          <span className="text-slate-400 w-14 text-center">{opt.benchPct}%</span>
                           <span className={`w-12 text-right ${opt.selected ? 'text-amber-700 font-bold' : 'text-slate-500'}`}>{opt.points} pts</span>
                         </div>
                       </div>
@@ -2723,10 +2730,17 @@ export default function ExportReportPage() {
                           <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
                             Do you provide support beyond legal requirements?
                           </div>
-                          <div className="p-2 space-y-1">
+                          <div className="px-2 pt-1 pb-2">
+                            <div className="flex justify-between items-center px-2 py-1 text-[10px] text-slate-400 border-b border-slate-100 mb-1">
+                              <span>Response</span>
+                              <div className="flex items-center gap-3">
+                                <span className="w-14 text-center">Benchmark</span>
+                                <span className="w-12 text-right">Points</span>
+                              </div>
+                            </div>
                             {[
-                              { label: 'Yes, we provide additional support', points: 100, selected: cb3aScore === 100, benchPct: 45 },
-                              { label: 'Currently developing programs', points: 50, selected: cb3aScore === 50, benchPct: 30 },
+                              { label: 'Yes', points: 100, selected: cb3aScore === 100, benchPct: 45 },
+                              { label: 'Currently developing', points: 50, selected: cb3aScore === 50, benchPct: 30 },
                               { label: 'Legal minimum only', points: 0, selected: cb3aScore === 0, benchPct: 25 },
                             ].map((opt, i) => (
                               <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded ${opt.selected ? 'bg-violet-100 border-2 border-violet-400' : ''}`}>
@@ -2735,8 +2749,8 @@ export default function ExportReportPage() {
                                   <span className={opt.selected ? 'font-semibold text-violet-900' : 'text-slate-600'}>{opt.label}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                  <span className="text-slate-400 text-[10px]">{opt.benchPct}% of peers</span>
-                                  <span className={`w-8 text-right ${opt.selected ? 'text-violet-700 font-bold' : 'text-slate-500'}`}>{opt.points}</span>
+                                  <span className="text-slate-400 w-14 text-center">{opt.benchPct}%</span>
+                                  <span className={`w-12 text-right ${opt.selected ? 'text-violet-700 font-bold' : 'text-slate-500'}`}>{opt.points} pts</span>
                                 </div>
                               </div>
                             ))}
@@ -2756,7 +2770,7 @@ export default function ExportReportPage() {
                               </div>
                               <span className="text-violet-700 font-bold">{cb3bScore} pts</span>
                             </div>
-                            <p className="text-[10px] text-slate-400 mt-2 px-1">Peer average: 4.2 elements (70 pts)</p>
+                            <p className="text-[10px] text-slate-400 mt-2 px-1">Benchmark: 4.2 elements avg (70 pts)</p>
                           </div>
                         </div>
                         
@@ -2773,7 +2787,7 @@ export default function ExportReportPage() {
                               </div>
                               <span className="text-violet-700 font-bold">{cb3cScore} pts</span>
                             </div>
-                            <p className="text-[10px] text-slate-400 mt-2 px-1">Peer average: 8.5 conditions (65 pts)</p>
+                            <p className="text-[10px] text-slate-400 mt-2 px-1">Benchmark: 8.5 conditions avg (65 pts)</p>
                           </div>
                         </div>
                         
