@@ -1377,22 +1377,27 @@ export default function InteractiveReportPage() {
           return;
         }
         
-        // Find assessment by public_token
-        const { data: assessment, error: assessmentError } = await supabase
-          .from('assessments')
-          .select('*')
-          .eq('public_token', token)
-          .single();
+        // Use Netlify function to bypass RLS and fetch assessment by public_token
+        // This is necessary because the anonymous Supabase key cannot access assessments via public_token
+        const response = await fetch(`/.netlify/functions/get-assessment-by-token?token=${encodeURIComponent(token)}`);
         
-        if (assessmentError || !assessment) {
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Error fetching assessment:', response.status, errorData);
+          setError(errorData.error || 'Report not found or link has expired');
+          setLoading(false);
+          return;
+        }
+        
+        const { assessment, allAssessments } = await response.json();
+        
+        if (!assessment) {
           setError('Report not found or link has expired');
           setLoading(false);
           return;
         }
         
         setCompany(assessment);
-        
-        const { data: allAssessments } = await supabase.from('assessments').select('*');
         
         const { scores, elements } = calculateCompanyScores(assessment);
         setCompanyScores(scores);
