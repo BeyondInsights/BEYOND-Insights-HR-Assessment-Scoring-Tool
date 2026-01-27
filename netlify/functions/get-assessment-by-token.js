@@ -1,10 +1,23 @@
 // netlify/functions/get-assessment-by-token.js
-// Fetches assessment data by public_token using service role key to bypass RLS
-// This is needed because the public report page cannot query directly due to RLS policies
+// Fetches assessment metadata by public_token using service role key to bypass RLS
+// SECURITY: Does NOT return public_password - password verification happens via verify-report-password.js
 
 const { createClient } = require('@supabase/supabase-js');
 
 exports.handler = async (event) => {
+  // Handle CORS preflight FIRST (before method validation)
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      },
+      body: '',
+    };
+  }
+
   // Allow both GET and POST for flexibility
   if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
     return {
@@ -15,19 +28,6 @@ exports.handler = async (event) => {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
       },
-    };
-  }
-
-  // Handle CORS preflight
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      },
-      body: '',
     };
   }
 
@@ -58,10 +58,11 @@ exports.handler = async (event) => {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
-    // Find assessment by public_token
+    // Find assessment by public_token - only return minimal metadata
+    // SECURITY: Do NOT return public_password here
     const { data: assessment, error: assessmentError } = await supabase
       .from('assessments')
-      .select('*')
+      .select('id, company_name, survey_id, public_token, public_link_created_at')
       .eq('public_token', token)
       .single();
 
@@ -77,20 +78,15 @@ exports.handler = async (event) => {
       };
     }
 
-    // Also fetch all assessments for benchmarking (needed by the report page)
-    const { data: allAssessments, error: allError } = await supabase
-      .from('assessments')
-      .select('*');
-
-    if (allError) {
-      console.error('Error fetching all assessments:', allError);
-    }
-
+    // Return only metadata needed for the password screen
+    // Full report data is fetched via get-public-report.js AFTER password verification
     return {
       statusCode: 200,
       body: JSON.stringify({
-        assessment,
-        allAssessments: allAssessments || [],
+        found: true,
+        companyName: assessment.company_name,
+        surveyId: assessment.survey_id,
+        passwordRequired: true,
       }),
       headers: { 
         'Content-Type': 'application/json',
