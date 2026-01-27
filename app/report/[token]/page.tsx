@@ -755,40 +755,43 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
     const containerWidth = 900; // approximate container width
     const containerHeight = 490; // SVG height
     
-    // Determine if bubble is on right side (>70% of width) or top (<30% of height)
-    const isRightEdge = tooltipPos.x > containerWidth * 0.65;
+    // Determine edge proximity
+    const isRightEdge = tooltipPos.x > containerWidth * 0.60;
+    const isLeftEdge = tooltipPos.x < containerWidth * 0.25;
     const isTopEdge = tooltipPos.y < containerHeight * 0.35;
+    const isBottomEdge = tooltipPos.y > containerHeight * 0.65;
     
-    // Position tooltip to avoid edges
-    if (isRightEdge && isTopEdge) {
-      // Top-right corner - show tooltip to bottom-left of bubble
-      return { 
-        top: `${Math.min(tooltipPos.y + 30, containerHeight - tooltipHeight)}px`, 
-        left: `${Math.max(tooltipPos.x - tooltipWidth - 30, 10)}px`,
-        right: 'auto'
-      };
-    } else if (isRightEdge) {
-      // Right edge - show tooltip to left of bubble
-      return { 
-        top: `${Math.max(tooltipPos.y - tooltipHeight/2, 10)}px`, 
-        left: `${Math.max(tooltipPos.x - tooltipWidth - 30, 10)}px`,
-        right: 'auto'
-      };
-    } else if (isTopEdge) {
-      // Top edge - show tooltip below bubble
-      return { 
-        top: `${tooltipPos.y + 30}px`, 
-        left: `${tooltipPos.x + 30}px`,
-        right: 'auto'
-      };
+    // Position tooltip to avoid ALL edges
+    // Priority: always show tooltip in the direction with most space
+    
+    let top: string;
+    let left: string;
+    
+    // Horizontal positioning
+    if (isRightEdge) {
+      // Show to left of bubble
+      left = `${Math.max(tooltipPos.x - tooltipWidth - 40, 10)}px`;
+    } else if (isLeftEdge) {
+      // Show to right of bubble
+      left = `${tooltipPos.x + 40}px`;
     } else {
-      // Default - show tooltip to top-right of bubble
-      return { 
-        top: `${Math.max(tooltipPos.y - tooltipHeight/2, 10)}px`, 
-        left: `${tooltipPos.x + 30}px`,
-        right: 'auto'
-      };
+      // Center area - show to right by default
+      left = `${tooltipPos.x + 40}px`;
     }
+    
+    // Vertical positioning
+    if (isTopEdge) {
+      // Show below bubble
+      top = `${tooltipPos.y + 30}px`;
+    } else if (isBottomEdge) {
+      // Show above bubble
+      top = `${Math.max(tooltipPos.y - tooltipHeight - 30, 10)}px`;
+    } else {
+      // Center area - vertically center with bubble
+      top = `${Math.max(tooltipPos.y - tooltipHeight/2, 10)}px`;
+    }
+    
+    return { top, left, right: 'auto' };
   };
   
   return (
