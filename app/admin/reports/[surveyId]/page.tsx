@@ -2263,6 +2263,15 @@ export default function ExportReportPage() {
     }
   };
   
+  // Handler wrappers for button clicks
+  const handleSaveCustomizations = async () => {
+    await saveEdits();
+  };
+  
+  const handleResetCustomizations = () => {
+    resetEdits();
+  };
+  
   // Load saved customizations when company loads
   useEffect(() => {
     if (company?.report_customizations) {
@@ -2821,15 +2830,15 @@ export default function ExportReportPage() {
                 <>
                   <button
                     onClick={handleSaveCustomizations}
-                    disabled={isSaving}
+                    disabled={savingEdits}
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
                   >
-                    {isSaving ? (
+                    {savingEdits ? (
                       <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     ) : (
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                     )}
-                    {isSaving ? 'Saving...' : 'Save'}
+                    {savingEdits ? 'Saving...' : 'Save'}
                   </button>
                   <button
                     onClick={handleResetCustomizations}
@@ -3479,31 +3488,31 @@ export default function ExportReportPage() {
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
                         {/* Quadrant labels - Top */}
-                        <rect x={0} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#FEE2E2" stroke="#FECACA" strokeWidth="1" />
-                        <text x={PLOT_WIDTH/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#991B1B" fontSize="11" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
+                        <rect x={0} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#DC2626" stroke="#B91C1C" strokeWidth="1" />
+                        <text x={PLOT_WIDTH/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
                         
-                        <rect x={PLOT_WIDTH/2 + 4} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#D1FAE5" stroke="#A7F3D0" strokeWidth="1" />
-                        <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#065F46" fontSize="11" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
+                        <rect x={PLOT_WIDTH/2 + 4} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#059669" stroke="#047857" strokeWidth="1" />
+                        <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
                         
-                        {/* Quadrant backgrounds with subtle colors */}
-                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEF2F2" fillOpacity="0.3" />
-                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#ECFDF5" fillOpacity="0.3" />
-                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F9FAFB" fillOpacity="0.5" />
-                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#EFF6FF" fillOpacity="0.3" />
+                        {/* Quadrant backgrounds - muted, professional */}
+                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FCA5A5" fillOpacity="0.15" />
+                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#6EE7B7" fillOpacity="0.15" />
+                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#E5E7EB" fillOpacity="0.3" />
+                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#93C5FD" fillOpacity="0.15" />
                         
                         {/* Grid lines */}
-                        <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="6 4" />
-                        <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="6 4" />
+                        <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="6 4" />
+                        <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="6 4" />
                         
                         {/* Border */}
-                        <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#94A3B8" strokeWidth="1.5" rx="4" />
+                        <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#64748B" strokeWidth="2" rx="4" />
                         
                         {/* Bottom labels */}
-                        <rect x={0} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#F3F4F6" stroke="#E5E7EB" strokeWidth="1" />
-                        <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#4B5563" fontSize="11" fontWeight="700" fontFamily="system-ui">MONITOR</text>
+                        <rect x={0} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#6B7280" stroke="#4B5563" strokeWidth="1" />
+                        <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">MONITOR</text>
                         
-                        <rect x={PLOT_WIDTH/2 + 4} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#DBEAFE" stroke="#BFDBFE" strokeWidth="1" />
-                        <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="11" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
+                        <rect x={PLOT_WIDTH/2 + 4} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#2563EB" stroke="#1D4ED8" strokeWidth="1" />
+                        <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
                         
                         {/* X-axis */}
                         <g transform={`translate(0, ${PLOT_HEIGHT + LABEL_HEIGHT + 12})`}>
@@ -3649,10 +3658,10 @@ export default function ExportReportPage() {
             const diff = d.benchmark !== null ? d.score - d.benchmark : null;
             
             const STATUS = {
-              currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering', ring: 'ring-emerald-500', gradient: 'from-emerald-500 to-emerald-600' },
-              planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning', ring: 'ring-blue-500', gradient: 'from-blue-500 to-blue-600' },
-              assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing', ring: 'ring-amber-500', gradient: 'from-amber-500 to-amber-600' },
-              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Offering', ring: 'ring-red-500', gradient: 'from-red-500 to-red-600' }
+              currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
+              planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
+              assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
+              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Offering' }
             };
             
             const getStatusInfo = (elem: any) => {
@@ -3669,20 +3678,20 @@ export default function ExportReportPage() {
               const pctAssessing = Math.round(((bench?.assessing || 0) / total) * 100);
               const statusInfo = getStatusInfo(elem);
               if (statusInfo.key === 'currently') {
-                if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of peers offer this`;
-                if (pctCurrently < 50) return `You're ahead of ${100 - pctCurrently}% of benchmark companies here`;
-                if (pctCurrently < 70) return `Solid: ${pctCurrently}% of peers also offer this`;
-                return `Table stakes: ${pctCurrently}% of peers offer this`;
+                if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of peers offer`;
+                if (pctCurrently < 50) return `Ahead of ${100 - pctCurrently}% of benchmark`;
+                if (pctCurrently < 70) return `Solid: ${pctCurrently}% of peers also offer`;
+                return `Table stakes: ${pctCurrently}% offer`;
               }
               if (statusInfo.key === 'planning') {
-                if (pctCurrently > 50) return `${pctCurrently}% already offer; completing brings you in line`;
-                return `You're among the ${pctPlanning}% in planning; ${pctCurrently}% already offer`;
+                if (pctCurrently > 50) return `${pctCurrently}% already offer`;
+                return `Among ${pctPlanning}% planning; ${pctCurrently}% offer`;
               }
               if (statusInfo.key === 'assessing') {
-                return `Common inflection point: ${pctAssessing}% also assessing; ${pctCurrently}% already offer`;
+                return `${pctAssessing}% also assessing; ${pctCurrently}% offer`;
               }
-              if (pctCurrently > 50) return `Competitive gap: ${pctCurrently}% of peers offer this`;
-              return `Emerging area: ${pctCurrently}% currently offer`;
+              if (pctCurrently > 50) return `Gap: ${pctCurrently}% of peers offer`;
+              return `Emerging: ${pctCurrently}% offer`;
             };
             
             // Count by status
@@ -3694,205 +3703,172 @@ export default function ExportReportPage() {
             
             return (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDimensionDetailModal(null)}>
-                <div className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-200" onClick={(e) => e.stopPropagation()}>
-                  {/* Header - Polished gradient */}
-                  <div className="px-8 py-6 flex-shrink-0 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}cc 50%, ${d.tier.color}99 100%)` }}>
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50"></div>
-                    <div className="relative flex items-center justify-between">
-                      <div className="flex items-center gap-5">
-                        <span className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-white text-3xl font-bold shadow-xl border border-white/20">{d.dim}</span>
+                <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+                  {/* Header */}
+                  <div className="px-6 py-4 flex-shrink-0 relative" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}dd 100%)` }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <span className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-white text-2xl font-bold">{d.dim}</span>
                         <div>
-                          <h3 className="text-2xl font-bold text-white tracking-tight">{d.name}</h3>
-                          <div className="flex items-center gap-3 mt-2">
-                            <span className="px-3 py-1 bg-white/20 backdrop-blur rounded-full text-sm font-medium text-white/90">Weight: {d.weight}%</span>
-                            <span className="px-3 py-1 bg-white/30 backdrop-blur rounded-full text-sm font-semibold text-white">{d.tier.name}</span>
+                          <h3 className="text-xl font-bold text-white">{d.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="px-2 py-0.5 bg-white/20 rounded text-xs font-medium text-white/90">Weight: {d.weight}%</span>
+                            <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-semibold text-white">{d.tier.name}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-6xl font-black text-white drop-shadow-lg">{d.score}</p>
-                        {diff !== null && (
-                          <div className={`mt-1 inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${diff >= 0 ? 'bg-emerald-400/30 text-emerald-100' : 'bg-red-400/30 text-red-100'}`}>
-                            {diff >= 0 ? '↑' : '↓'} {diff >= 0 ? '+' : ''}{diff} vs benchmark
+                      <div className="text-right flex items-end gap-4">
+                        <div>
+                          <p className="text-5xl font-black text-white">{d.score}</p>
+                          <p className="text-white/70 text-sm">Your Score</p>
+                        </div>
+                        {diff !== null && d.benchmark !== null && (
+                          <div className="text-right">
+                            <p className={`text-3xl font-bold ${diff >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>{diff >= 0 ? '+' : ''}{diff}</p>
+                            <p className="text-white/70 text-sm">vs {d.benchmark} benchmark</p>
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
                   
-                  {/* Status Legend Box */}
-                  <div className="px-8 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-6">
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Your Status:</span>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-sm"></span>
-                            <span className="text-sm font-medium text-slate-700">Offering <span className="text-slate-400">({statusCounts.currently})</span></span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm"></span>
-                            <span className="text-sm font-medium text-slate-700">Planning <span className="text-slate-400">({statusCounts.planning})</span></span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded bg-gradient-to-br from-amber-500 to-amber-600 shadow-sm"></span>
-                            <span className="text-sm font-medium text-slate-700">Assessing <span className="text-slate-400">({statusCounts.assessing})</span></span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded bg-gradient-to-br from-red-500 to-red-600 shadow-sm"></span>
-                            <span className="text-sm font-medium text-slate-700">Not Offering <span className="text-slate-400">({statusCounts.notAble})</span></span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-xs text-slate-400 italic flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Highlighted column = your org's status
-                      </div>
-                    </div>
+                  {/* Table Header Row */}
+                  <div className="px-6 py-2 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-2 text-xs font-bold text-slate-500 uppercase tracking-wide">
+                    <div className="col-span-3">Element</div>
+                    <div className="col-span-1 text-center">Your Status</div>
+                    <div className="col-span-6">Peer Distribution</div>
+                    <div className="col-span-2">Observation</div>
                   </div>
                   
-                  {/* Content - Polished Card View */}
-                  <div className="flex-1 overflow-y-auto px-8 py-6 bg-slate-50/50">
-                    <div className="space-y-3">
-                      {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).map((elem: any, i: number) => {
-                        const statusInfo = getStatusInfo(elem);
-                        const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, total: 1 };
-                        const total = bench.total || 1;
-                        const pctCurrently = Math.round((bench.currently / total) * 100);
-                        const pctPlanning = Math.round((bench.planning / total) * 100);
-                        const pctAssessing = Math.round((bench.assessing / total) * 100);
-                        const pctNotOffering = Math.max(0, 100 - pctCurrently - pctPlanning - pctAssessing);
-                        const observation = getDefaultObservation(elem, bench);
-                        
-                        return (
-                          <div key={i} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
-                            <div className="flex items-stretch">
-                              {/* Status Indicator Bar */}
-                              <div className={`w-2 bg-gradient-to-b ${statusInfo.gradient}`}></div>
-                              
-                              {/* Content */}
-                              <div className="flex-1 p-4">
-                                <div className="flex items-start justify-between gap-4">
-                                  {/* Element Name & Observation */}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-3 mb-2">
-                                      <h4 className="font-semibold text-slate-800 text-base">{elem.name}</h4>
-                                      <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
-                                        {statusInfo.label}
-                                      </span>
-                                    </div>
-                                    <p className="text-sm text-slate-500 leading-relaxed">{observation}</p>
-                                  </div>
-                                  
-                                  {/* Benchmark Distribution - Horizontal Bar Chart */}
-                                  <div className="flex-shrink-0 w-64">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Peer Distribution</span>
-                                    </div>
-                                    <div className="h-7 rounded-lg overflow-hidden flex bg-slate-100 border border-slate-200">
-                                      <div 
-                                        className={`flex items-center justify-center text-xs font-bold transition-all ${statusInfo.key === 'currently' ? 'ring-2 ring-inset ring-white shadow-inner' : ''}`}
-                                        style={{ width: `${Math.max(pctCurrently, 8)}%`, backgroundColor: '#10B981', color: pctCurrently > 15 ? 'white' : 'transparent' }}
-                                        title={`Offering: ${pctCurrently}%`}
-                                      >
-                                        {pctCurrently > 15 ? `${pctCurrently}%` : ''}
-                                      </div>
-                                      <div 
-                                        className={`flex items-center justify-center text-xs font-bold transition-all ${statusInfo.key === 'planning' ? 'ring-2 ring-inset ring-white shadow-inner' : ''}`}
-                                        style={{ width: `${Math.max(pctPlanning, 4)}%`, backgroundColor: '#3B82F6', color: pctPlanning > 15 ? 'white' : 'transparent' }}
-                                        title={`Planning: ${pctPlanning}%`}
-                                      >
-                                        {pctPlanning > 15 ? `${pctPlanning}%` : ''}
-                                      </div>
-                                      <div 
-                                        className={`flex items-center justify-center text-xs font-bold transition-all ${statusInfo.key === 'assessing' ? 'ring-2 ring-inset ring-white shadow-inner' : ''}`}
-                                        style={{ width: `${Math.max(pctAssessing, 4)}%`, backgroundColor: '#F59E0B', color: pctAssessing > 15 ? 'white' : 'transparent' }}
-                                        title={`Assessing: ${pctAssessing}%`}
-                                      >
-                                        {pctAssessing > 15 ? `${pctAssessing}%` : ''}
-                                      </div>
-                                      <div 
-                                        className={`flex items-center justify-center text-xs font-bold transition-all ${statusInfo.key === 'notAble' ? 'ring-2 ring-inset ring-white shadow-inner' : ''}`}
-                                        style={{ width: `${Math.max(pctNotOffering, 4)}%`, backgroundColor: '#94A3B8', color: pctNotOffering > 15 ? 'white' : 'transparent' }}
-                                        title={`Not Offering: ${pctNotOffering}%`}
-                                      >
-                                        {pctNotOffering > 15 ? `${pctNotOffering}%` : ''}
-                                      </div>
-                                    </div>
-                                    <div className="flex justify-between mt-1 text-[10px] text-slate-400">
-                                      <span>0%</span>
-                                      <span>100%</span>
-                                    </div>
-                                  </div>
-                                </div>
+                  {/* Table Body */}
+                  <div className="flex-1 overflow-y-auto">
+                    {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).map((elem: any, i: number) => {
+                      const statusInfo = getStatusInfo(elem);
+                      const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, total: 1 };
+                      const total = bench.total || 1;
+                      const pctCurrently = Math.round((bench.currently / total) * 100);
+                      const pctPlanning = Math.round((bench.planning / total) * 100);
+                      const pctAssessing = Math.round((bench.assessing / total) * 100);
+                      const pctNotOffering = Math.max(0, 100 - pctCurrently - pctPlanning - pctAssessing);
+                      const observation = getDefaultObservation(elem, bench);
+                      
+                      return (
+                        <div key={i} className={`px-6 py-2.5 grid grid-cols-12 gap-2 items-center border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50/50' : ''}`}>
+                          {/* Element Name */}
+                          <div className="col-span-3">
+                            <p className="text-sm text-slate-800 font-medium leading-tight">{elem.name}</p>
+                          </div>
+                          
+                          {/* Your Status */}
+                          <div className="col-span-1 flex justify-center">
+                            <span className="px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                              {statusInfo.label}
+                            </span>
+                          </div>
+                          
+                          {/* Peer Distribution - Wide Stacked Bar */}
+                          <div className="col-span-6">
+                            <div className="h-6 rounded overflow-hidden flex bg-slate-200 border border-slate-300">
+                              {/* Offering */}
+                              <div 
+                                className={`flex items-center justify-center text-[10px] font-bold text-white ${statusInfo.key === 'currently' ? 'ring-2 ring-inset ring-white' : ''}`}
+                                style={{ width: `${pctCurrently}%`, backgroundColor: '#10B981', minWidth: pctCurrently > 0 ? '20px' : '0' }}
+                              >
+                                {pctCurrently}%
+                              </div>
+                              {/* Planning */}
+                              <div 
+                                className={`flex items-center justify-center text-[10px] font-bold text-white ${statusInfo.key === 'planning' ? 'ring-2 ring-inset ring-white' : ''}`}
+                                style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6', minWidth: pctPlanning > 0 ? '20px' : '0' }}
+                              >
+                                {pctPlanning > 0 ? `${pctPlanning}%` : ''}
+                              </div>
+                              {/* Assessing */}
+                              <div 
+                                className={`flex items-center justify-center text-[10px] font-bold text-white ${statusInfo.key === 'assessing' ? 'ring-2 ring-inset ring-white' : ''}`}
+                                style={{ width: `${pctAssessing}%`, backgroundColor: '#F59E0B', minWidth: pctAssessing > 0 ? '20px' : '0' }}
+                              >
+                                {pctAssessing > 0 ? `${pctAssessing}%` : ''}
+                              </div>
+                              {/* Not Offering */}
+                              <div 
+                                className={`flex items-center justify-center text-[10px] font-bold text-slate-600 ${statusInfo.key === 'notAble' ? 'ring-2 ring-inset ring-red-500' : ''}`}
+                                style={{ width: `${pctNotOffering}%`, backgroundColor: '#CBD5E1', minWidth: pctNotOffering > 0 ? '20px' : '0' }}
+                              >
+                                {pctNotOffering}%
                               </div>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
+                          
+                          {/* Observation */}
+                          <div className="col-span-2">
+                            <p className="text-[11px] text-slate-500 leading-tight">{observation}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
                     
                     {/* Geographic Multiplier Section (if applicable) */}
                     {d.hasGeographicMultiplier && (
-                      <div className="mt-6 bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
-                        <div className="px-5 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600">
-                          <h4 className="font-bold text-white text-sm uppercase tracking-wider flex items-center gap-2">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            Geographic Multiplier
-                          </h4>
-                        </div>
-                        <div className="p-5">
-                          <div className="grid grid-cols-3 gap-4">
-                            {[
-                              { label: 'Consistent across all locations', benchmark: '55%', multiplier: 'x1.00', selected: d.geographicScope === 'consistent' },
-                              { label: 'Varies by location', benchmark: '25%', multiplier: 'x0.90', selected: d.geographicScope === 'varies' },
-                              { label: 'Only available in select locations', benchmark: '20%', multiplier: 'x0.75', selected: d.geographicScope === 'select' },
-                            ].map((opt, i) => (
-                              <div key={i} className={`flex flex-col items-center justify-center px-4 py-4 rounded-xl border-2 transition-all ${opt.selected ? 'bg-indigo-50 border-indigo-400 shadow-md' : 'bg-slate-50 border-slate-200'}`}>
-                                {opt.selected && <span className="text-indigo-600 text-lg mb-1">✓</span>}
-                                <span className={`text-center text-sm ${opt.selected ? 'font-semibold text-indigo-900' : 'text-slate-600'}`}>{opt.label}</span>
-                                <div className="flex items-center gap-3 mt-2">
-                                  <span className="text-xs text-slate-400">{opt.benchmark} peers</span>
-                                  <span className={`text-lg font-bold ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>{opt.multiplier}</span>
-                                </div>
+                      <div className="m-4 bg-indigo-50 rounded-lg border border-indigo-200 p-4">
+                        <h4 className="font-bold text-indigo-800 text-sm mb-3">Geographic Multiplier</h4>
+                        <div className="grid grid-cols-3 gap-3 text-sm">
+                          {[
+                            { label: 'Consistent across all', benchmark: '55%', multiplier: 'x1.00', selected: d.geographicScope === 'consistent' },
+                            { label: 'Varies by location', benchmark: '25%', multiplier: 'x0.90', selected: d.geographicScope === 'varies' },
+                            { label: 'Select locations only', benchmark: '20%', multiplier: 'x0.75', selected: d.geographicScope === 'select' },
+                          ].map((opt, i) => (
+                            <div key={i} className={`flex items-center justify-between px-3 py-2 rounded border ${opt.selected ? 'bg-indigo-100 border-indigo-400' : 'bg-white border-slate-200'}`}>
+                              <div className="flex items-center gap-2">
+                                {opt.selected && <span className="text-indigo-600">✓</span>}
+                                <span className={opt.selected ? 'font-semibold text-indigo-900 text-xs' : 'text-slate-600 text-xs'}>{opt.label}</span>
                               </div>
-                            ))}
-                          </div>
+                              <span className={`font-bold text-sm ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>{opt.multiplier}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
                   </div>
                   
-                  {/* Footer - Polished navigation */}
-                  <div className="px-8 py-4 bg-white border-t border-slate-200 flex-shrink-0 flex justify-between items-center">
-                    <div className="flex gap-2">
-                      <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-medium">
-                        <span className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                          Previous
-                        </span>
-                      </button>
-                      <button onClick={() => setDimensionDetailModal(Math.min(13, dimensionDetailModal + 1))} disabled={dimensionDetailModal >= 13} className="px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-medium">
-                        <span className="flex items-center gap-2">
-                          Next
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                        </span>
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
-                        <button
-                          key={num}
-                          onClick={() => setDimensionDetailModal(num)}
-                          className={`w-7 h-7 rounded-full text-xs font-bold transition-all ${num === dimensionDetailModal ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                        >
-                          {num}
+                  {/* Footer - Legend & Navigation */}
+                  <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex-shrink-0">
+                    <div className="flex items-center justify-between">
+                      {/* Legend */}
+                      <div className="flex items-center gap-4 text-xs">
+                        <span className="text-slate-400 font-medium">Legend:</span>
+                        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-600">Offering</span></div>
+                        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-600">Planning</span></div>
+                        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-600">Assessing</span></div>
+                        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-600">Not Offering</span></div>
+                        <span className="text-slate-400 ml-2">|</span>
+                        <span className="text-slate-500">White ring = your status</span>
+                      </div>
+                      
+                      {/* Navigation */}
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-3 py-1.5 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
+                          ← Prev
                         </button>
-                      ))}
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
+                            <button
+                              key={num}
+                              onClick={() => setDimensionDetailModal(num)}
+                              className={`w-6 h-6 rounded text-xs font-bold ${num === dimensionDetailModal ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                            >
+                              {num}
+                            </button>
+                          ))}
+                        </div>
+                        <button onClick={() => setDimensionDetailModal(Math.min(13, dimensionDetailModal + 1))} disabled={dimensionDetailModal >= 13} className="px-3 py-1.5 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
+                          Next →
+                        </button>
+                        <button onClick={() => setDimensionDetailModal(null)} className="ml-2 px-4 py-1.5 bg-slate-800 text-white rounded font-semibold text-sm hover:bg-slate-700">
+                          Close
+                        </button>
+                      </div>
                     </div>
-                    <button onClick={() => setDimensionDetailModal(null)} className="px-6 py-2.5 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-xl font-semibold hover:from-slate-700 hover:to-slate-800 transition-all shadow-lg">
-                      Close
-                    </button>
                   </div>
                 </div>
               </div>
