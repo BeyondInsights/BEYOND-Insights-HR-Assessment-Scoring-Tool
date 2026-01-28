@@ -3301,8 +3301,8 @@ export default function ExportReportPage() {
               </div>
               <div className="flex items-center gap-3">
                 <button 
-                  onClick={() => setShowBenchmarkRings && setShowBenchmarkRings(!showBenchmarkRings)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  onClick={() => setShowBenchmarkRings(!showBenchmarkRings)}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${
                     showBenchmarkRings 
                       ? 'bg-violet-100 border-violet-300 text-violet-700' 
                       : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -3313,7 +3313,162 @@ export default function ExportReportPage() {
               </div>
             </div>
             <div ref={matrixRef} id="export-matrix" className="px-6 py-6">
-              <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
+              {/* Enhanced Matrix with benchmarks support */}
+              {(() => {
+                const MAX_WEIGHT = 15;
+                const CHART_WIDTH = 900;
+                const CHART_HEIGHT = 420;
+                const LABEL_HEIGHT = 24;
+                const MARGIN = { top: LABEL_HEIGHT + 10, right: 20, bottom: LABEL_HEIGHT + 55, left: 60 };
+                const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
+                const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
+                
+                // Get benchmark scores from benchmarks object
+                const getBenchmarkScore = (dimNum: number) => {
+                  if (!benchmarks?.dimensionScores) return null;
+                  return benchmarks.dimensionScores[`d${dimNum}`] || benchmarks.dimensionScores[dimNum] || null;
+                };
+                
+                return (
+                  <div className="relative w-full" style={{ height: '600px' }}>
+                    {/* SVG Chart */}
+                    <svg className="w-full" style={{ height: '490px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+                      <defs>
+                        <filter id="dropShadowPolished" x="-50%" y="-50%" width="200%" height="200%">
+                          <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
+                        </filter>
+                      </defs>
+                      
+                      <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
+                        {/* TOP LABEL BARS */}
+                        <rect x={0} y={-LABEL_HEIGHT - 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#FEE2E2" />
+                        <text x={PLOT_WIDTH/4} y={-LABEL_HEIGHT/2 - 4 + 1} textAnchor="middle" dominantBaseline="middle" fill="#991B1B" fontSize="11" fontWeight="600" fontFamily="system-ui">PRIORITY GAPS</text>
+                        
+                        <rect x={PLOT_WIDTH/2 + 2} y={-LABEL_HEIGHT - 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#D1FAE5" />
+                        <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 4 + 1} textAnchor="middle" dominantBaseline="middle" fill="#065F46" fontSize="11" fontWeight="600" fontFamily="system-ui">CORE STRENGTHS</text>
+                        
+                        {/* Quadrant backgrounds */}
+                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
+                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
+                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
+                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
+                        
+                        {/* Grid lines */}
+                        <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4 4" />
+                        <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4 4" />
+                        
+                        {/* Border */}
+                        <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#D1D5DB" strokeWidth="1" />
+                        
+                        {/* BOTTOM LABEL BARS */}
+                        <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#F3F4F6" />
+                        <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 4 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#4B5563" fontSize="11" fontWeight="600" fontFamily="system-ui">MONITOR</text>
+                        
+                        <rect x={PLOT_WIDTH/2 + 2} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#DBEAFE" />
+                        <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 4 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="11" fontWeight="600" fontFamily="system-ui">LEVERAGE</text>
+                        
+                        {/* X-axis */}
+                        <g transform={`translate(0, ${PLOT_HEIGHT + LABEL_HEIGHT + 8})`}>
+                          {[0, 25, 50, 75, 100].map((val) => (
+                            <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
+                              <line y1="0" y2="4" stroke="#9CA3AF" strokeWidth="1" />
+                              <text y="16" textAnchor="middle" fill="#6B7280" fontSize="11" fontFamily="system-ui">{val}</text>
+                            </g>
+                          ))}
+                          <text x={PLOT_WIDTH/2} y="34" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="600" fontFamily="system-ui">
+                            PERFORMANCE SCORE →
+                          </text>
+                        </g>
+                        
+                        {/* Y-axis */}
+                        <g>
+                          {[0, 5, 10, 15].map((val) => {
+                            const yPos = PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
+                            return (
+                              <g key={val}>
+                                <line x1="-4" y1={yPos} x2="0" y2={yPos} stroke="#9CA3AF" strokeWidth="1" />
+                                <text x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="11" fontFamily="system-ui">{val}%</text>
+                              </g>
+                            );
+                          })}
+                        </g>
+                        
+                        {/* Y-axis label */}
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="600" fontFamily="system-ui">
+                          ↑ STRATEGIC IMPORTANCE
+                        </text>
+                        
+                        {/* Benchmark rings - show when toggled on */}
+                        {showBenchmarkRings && dimensionAnalysis.map((d) => {
+                          const benchScore = getBenchmarkScore(d.dim);
+                          if (!benchScore) return null;
+                          const xPos = (benchScore / 100) * PLOT_WIDTH;
+                          const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                          return (
+                            <circle 
+                              key={`bench-${d.dim}`}
+                              cx={xPos} 
+                              cy={yPos} 
+                              r={22} 
+                              fill="none" 
+                              stroke="#8B5CF6" 
+                              strokeWidth="2" 
+                              strokeDasharray="4 2"
+                              opacity={0.7}
+                            />
+                          );
+                        })}
+                        
+                        {/* Data points */}
+                        {dimensionAnalysis.map((d) => {
+                          const xPos = (d.score / 100) * PLOT_WIDTH;
+                          const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                          
+                          return (
+                            <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} className="cursor-pointer" style={{ cursor: 'pointer' }}>
+                              <circle r={18} fill="white" filter="url(#dropShadowPolished)" />
+                              <circle r={15} fill={getScoreColor(d.score)} />
+                              <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700" fontFamily="system-ui">
+                                D{d.dim}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </g>
+                    </svg>
+                    
+                    {/* Legend with FULL dimension names - 4 columns */}
+                    <div className="mt-3 pt-4 border-t border-slate-200 px-2">
+                      <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+                        {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
+                          <div 
+                            key={d.dim} 
+                            className="flex items-start gap-2 px-2 py-1.5 rounded hover:bg-slate-100 cursor-pointer transition-colors"
+                            onClick={() => setSelectedDrillDownDim(d.dim)}
+                          >
+                            <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5" style={{ backgroundColor: getScoreColor(d.score) }}>
+                              {d.dim}
+                            </span>
+                            <span className="text-sm text-slate-700 font-medium leading-snug">{d.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {showBenchmarkRings && (
+                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-center gap-6 text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-emerald-500"></span>
+                            <span className="text-slate-600">Company Score</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full border-2 border-dashed border-violet-500"></span>
+                            <span className="text-slate-600">Peer Benchmark</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
           
