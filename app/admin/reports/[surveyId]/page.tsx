@@ -2868,10 +2868,6 @@ export default function ExportReportPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                 Export PowerPoint
               </button>
-              <button onClick={() => window.print()} className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-base">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                Export PDF
-              </button>
             </div>
           </div>
         </div>
@@ -4747,7 +4743,7 @@ export default function ExportReportPage() {
               <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
             </div>
             <div className="px-12 py-6">
-              <div className="grid grid-cols-4 gap-6 text-base text-slate-600">
+              <div className="grid grid-cols-4 gap-6 text-sm text-slate-600">
                 <div>
                   <p className="font-bold text-slate-700 mb-2">Scoring Framework</p>
                   <p className="leading-relaxed">Organizations are assessed across 13 dimensions of workplace cancer support. The composite score combines dimension performance (90%), program maturity (5%), and support breadth (5%).</p>
@@ -4798,22 +4794,12 @@ export default function ExportReportPage() {
               <div className="flex items-center justify-between mb-3">
                 {/* Left - CAC Logo */}
                 <div className="flex items-center gap-3">
-                  <img 
-                    src="/CAC_Logo.png" 
+                  <Image 
+                    src="/cancer-careers-logo.png" 
                     alt="Cancer and Careers" 
                     width={120} 
                     height={40}
                     className="object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      if (target.parentElement) {
-                        const span = document.createElement('span');
-                        span.className = 'text-slate-600 font-semibold';
-                        span.textContent = 'Cancer and Careers';
-                        target.parentElement.appendChild(span);
-                      }
-                    }}
                   />
                 </div>
                 {/* Center - Confidential */}
