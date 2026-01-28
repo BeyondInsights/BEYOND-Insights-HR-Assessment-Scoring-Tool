@@ -3649,10 +3649,10 @@ export default function ExportReportPage() {
             const diff = d.benchmark !== null ? d.score - d.benchmark : null;
             
             const STATUS = {
-              currently: { bg: '#10B981', light: '#ECFDF5', text: '#065F46', label: 'Offering' },
-              planning: { bg: '#3B82F6', light: '#EFF6FF', text: '#1E40AF', label: 'Planning' },
-              assessing: { bg: '#F59E0B', light: '#FFFBEB', text: '#92400E', label: 'Assessing' },
-              notAble: { bg: '#EF4444', light: '#FEF2F2', text: '#991B1B', label: 'Not Able' }
+              currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering', ring: 'ring-emerald-500', gradient: 'from-emerald-500 to-emerald-600' },
+              planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning', ring: 'ring-blue-500', gradient: 'from-blue-500 to-blue-600' },
+              assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing', ring: 'ring-amber-500', gradient: 'from-amber-500 to-amber-600' },
+              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Offering', ring: 'ring-red-500', gradient: 'from-red-500 to-red-600' }
             };
             
             const getStatusInfo = (elem: any) => {
@@ -3679,48 +3679,81 @@ export default function ExportReportPage() {
                 return `You're among the ${pctPlanning}% in planning; ${pctCurrently}% already offer`;
               }
               if (statusInfo.key === 'assessing') {
-                const aheadPct = pctCurrently + pctPlanning;
                 return `Common inflection point: ${pctAssessing}% also assessing; ${pctCurrently}% already offer`;
               }
               if (pctCurrently > 50) return `Competitive gap: ${pctCurrently}% of peers offer this`;
               return `Emerging area: ${pctCurrently}% currently offer`;
             };
             
+            // Count by status
+            const statusCounts = { currently: 0, planning: 0, assessing: 0, notAble: 0 };
+            d.elements?.forEach((elem: any) => {
+              const s = getStatusInfo(elem);
+              statusCounts[s.key as keyof typeof statusCounts]++;
+            });
+            
             return (
-              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDimensionDetailModal(null)}>
-                <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-                  {/* Header */}
-                  <div className="px-8 py-5 border-b border-slate-200 flex-shrink-0" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}dd 100%)` }}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <span className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-white text-2xl font-bold shadow-lg">{d.dim}</span>
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDimensionDetailModal(null)}>
+                <div className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-200" onClick={(e) => e.stopPropagation()}>
+                  {/* Header - Polished gradient */}
+                  <div className="px-8 py-6 flex-shrink-0 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}cc 50%, ${d.tier.color}99 100%)` }}>
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50"></div>
+                    <div className="relative flex items-center justify-between">
+                      <div className="flex items-center gap-5">
+                        <span className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-white text-3xl font-bold shadow-xl border border-white/20">{d.dim}</span>
                         <div>
-                          <h3 className="text-2xl font-bold text-white">{d.name}</h3>
-                          <p className="text-white/80 mt-1">Weight: {d.weight}% • {d.tier.name}</p>
+                          <h3 className="text-2xl font-bold text-white tracking-tight">{d.name}</h3>
+                          <div className="flex items-center gap-3 mt-2">
+                            <span className="px-3 py-1 bg-white/20 backdrop-blur rounded-full text-sm font-medium text-white/90">Weight: {d.weight}%</span>
+                            <span className="px-3 py-1 bg-white/30 backdrop-blur rounded-full text-sm font-semibold text-white">{d.tier.name}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-5xl font-bold text-white">{d.score}</p>
-                        {diff !== null && <p className={`text-lg font-semibold ${diff >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>{diff >= 0 ? '+' : ''}{diff} vs benchmark</p>}
+                        <p className="text-6xl font-black text-white drop-shadow-lg">{d.score}</p>
+                        {diff !== null && (
+                          <div className={`mt-1 inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${diff >= 0 ? 'bg-emerald-400/30 text-emerald-100' : 'bg-red-400/30 text-red-100'}`}>
+                            {diff >= 0 ? '↑' : '↓'} {diff >= 0 ? '+' : ''}{diff} vs benchmark
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                   
-                  {/* Content - Full Table View */}
-                  <div className="flex-1 overflow-y-auto">
-                    {/* Table Header */}
-                    <div className="sticky top-0 bg-slate-100 border-b border-slate-200 px-6 py-3 grid grid-cols-12 gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      <div className="col-span-3">Element</div>
-                      <div className="col-span-1 text-center">Your Status</div>
-                      <div className="col-span-1 text-center">Offering</div>
-                      <div className="col-span-1 text-center">Planning</div>
-                      <div className="col-span-1 text-center">Assessing</div>
-                      <div className="col-span-1 text-center">Not Offering</div>
-                      <div className="col-span-4">Observation</div>
+                  {/* Status Legend Box */}
+                  <div className="px-8 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Your Status:</span>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-sm"></span>
+                            <span className="text-sm font-medium text-slate-700">Offering <span className="text-slate-400">({statusCounts.currently})</span></span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm"></span>
+                            <span className="text-sm font-medium text-slate-700">Planning <span className="text-slate-400">({statusCounts.planning})</span></span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded bg-gradient-to-br from-amber-500 to-amber-600 shadow-sm"></span>
+                            <span className="text-sm font-medium text-slate-700">Assessing <span className="text-slate-400">({statusCounts.assessing})</span></span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded bg-gradient-to-br from-red-500 to-red-600 shadow-sm"></span>
+                            <span className="text-sm font-medium text-slate-700">Not Offering <span className="text-slate-400">({statusCounts.notAble})</span></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-slate-400 italic flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Highlighted column = your org's status
+                      </div>
                     </div>
-                    
-                    {/* Table Body */}
-                    <div className="divide-y divide-slate-100">
+                  </div>
+                  
+                  {/* Content - Polished Card View */}
+                  <div className="flex-1 overflow-y-auto px-8 py-6 bg-slate-50/50">
+                    <div className="space-y-3">
                       {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).map((elem: any, i: number) => {
                         const statusInfo = getStatusInfo(elem);
                         const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, total: 1 };
@@ -3728,63 +3761,71 @@ export default function ExportReportPage() {
                         const pctCurrently = Math.round((bench.currently / total) * 100);
                         const pctPlanning = Math.round((bench.planning / total) * 100);
                         const pctAssessing = Math.round((bench.assessing / total) * 100);
-                        const pctNotOffering = 100 - pctCurrently - pctPlanning - pctAssessing;
-                        const customObs = customObservations[d.dim]?.[elem.code];
-                        const observation = customObs || getDefaultObservation(elem, bench);
+                        const pctNotOffering = Math.max(0, 100 - pctCurrently - pctPlanning - pctAssessing);
+                        const observation = getDefaultObservation(elem, bench);
                         
                         return (
-                          <div key={i} className={`px-6 py-4 grid grid-cols-12 gap-2 items-center ${i % 2 === 1 ? 'bg-slate-50/50' : ''} hover:bg-slate-50`}>
-                            {/* Element Name */}
-                            <div className="col-span-3">
-                              <p className="text-sm text-slate-800 font-medium leading-snug">{elem.name}</p>
-                            </div>
-                            
-                            {/* Your Status */}
-                            <div className="col-span-1 flex justify-center">
-                              <span className="px-2 py-1 rounded text-xs font-semibold whitespace-nowrap" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
-                                {statusInfo.label}
-                              </span>
-                            </div>
-                            
-                            {/* Offering % */}
-                            <div className="col-span-1 text-center">
-                              <span className={`inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded text-sm font-semibold ${
-                                statusInfo.key === 'currently' ? 'bg-emerald-100 text-emerald-700 ring-2 ring-emerald-400' : 'text-slate-600'
-                              }`}>
-                                {pctCurrently}%
-                              </span>
-                            </div>
-                            
-                            {/* Planning % */}
-                            <div className="col-span-1 text-center">
-                              <span className={`inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded text-sm font-medium ${
-                                statusInfo.key === 'planning' ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-400' : 'text-slate-500'
-                              }`}>
-                                {pctPlanning}%
-                              </span>
-                            </div>
-                            
-                            {/* Assessing % */}
-                            <div className="col-span-1 text-center">
-                              <span className={`inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded text-sm font-medium ${
-                                statusInfo.key === 'assessing' ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-400' : 'text-slate-500'
-                              }`}>
-                                {pctAssessing}%
-                              </span>
-                            </div>
-                            
-                            {/* Not Offering % */}
-                            <div className="col-span-1 text-center">
-                              <span className={`inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded text-sm font-medium ${
-                                statusInfo.key === 'notAble' ? 'bg-red-100 text-red-700 ring-2 ring-red-400' : 'text-slate-500'
-                              }`}>
-                                {pctNotOffering}%
-                              </span>
-                            </div>
-                            
-                            {/* Observation */}
-                            <div className="col-span-4">
-                              <p className="text-sm text-slate-600 leading-snug">{observation}</p>
+                          <div key={i} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                            <div className="flex items-stretch">
+                              {/* Status Indicator Bar */}
+                              <div className={`w-2 bg-gradient-to-b ${statusInfo.gradient}`}></div>
+                              
+                              {/* Content */}
+                              <div className="flex-1 p-4">
+                                <div className="flex items-start justify-between gap-4">
+                                  {/* Element Name & Observation */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-3 mb-2">
+                                      <h4 className="font-semibold text-slate-800 text-base">{elem.name}</h4>
+                                      <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                                        {statusInfo.label}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-slate-500 leading-relaxed">{observation}</p>
+                                  </div>
+                                  
+                                  {/* Benchmark Distribution - Horizontal Bar Chart */}
+                                  <div className="flex-shrink-0 w-64">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Peer Distribution</span>
+                                    </div>
+                                    <div className="h-7 rounded-lg overflow-hidden flex bg-slate-100 border border-slate-200">
+                                      <div 
+                                        className={`flex items-center justify-center text-xs font-bold transition-all ${statusInfo.key === 'currently' ? 'ring-2 ring-inset ring-white shadow-inner' : ''}`}
+                                        style={{ width: `${Math.max(pctCurrently, 8)}%`, backgroundColor: '#10B981', color: pctCurrently > 15 ? 'white' : 'transparent' }}
+                                        title={`Offering: ${pctCurrently}%`}
+                                      >
+                                        {pctCurrently > 15 ? `${pctCurrently}%` : ''}
+                                      </div>
+                                      <div 
+                                        className={`flex items-center justify-center text-xs font-bold transition-all ${statusInfo.key === 'planning' ? 'ring-2 ring-inset ring-white shadow-inner' : ''}`}
+                                        style={{ width: `${Math.max(pctPlanning, 4)}%`, backgroundColor: '#3B82F6', color: pctPlanning > 15 ? 'white' : 'transparent' }}
+                                        title={`Planning: ${pctPlanning}%`}
+                                      >
+                                        {pctPlanning > 15 ? `${pctPlanning}%` : ''}
+                                      </div>
+                                      <div 
+                                        className={`flex items-center justify-center text-xs font-bold transition-all ${statusInfo.key === 'assessing' ? 'ring-2 ring-inset ring-white shadow-inner' : ''}`}
+                                        style={{ width: `${Math.max(pctAssessing, 4)}%`, backgroundColor: '#F59E0B', color: pctAssessing > 15 ? 'white' : 'transparent' }}
+                                        title={`Assessing: ${pctAssessing}%`}
+                                      >
+                                        {pctAssessing > 15 ? `${pctAssessing}%` : ''}
+                                      </div>
+                                      <div 
+                                        className={`flex items-center justify-center text-xs font-bold transition-all ${statusInfo.key === 'notAble' ? 'ring-2 ring-inset ring-white shadow-inner' : ''}`}
+                                        style={{ width: `${Math.max(pctNotOffering, 4)}%`, backgroundColor: '#94A3B8', color: pctNotOffering > 15 ? 'white' : 'transparent' }}
+                                        title={`Not Offering: ${pctNotOffering}%`}
+                                      >
+                                        {pctNotOffering > 15 ? `${pctNotOffering}%` : ''}
+                                      </div>
+                                    </div>
+                                    <div className="flex justify-between mt-1 text-[10px] text-slate-400">
+                                      <span>0%</span>
+                                      <span>100%</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         );
@@ -3793,25 +3834,26 @@ export default function ExportReportPage() {
                     
                     {/* Geographic Multiplier Section (if applicable) */}
                     {d.hasGeographicMultiplier && (
-                      <div className="border-t-4 border-slate-200 mt-4">
-                        <div className="px-6 py-3 bg-indigo-50 border-b border-indigo-200">
-                          <h4 className="font-bold text-indigo-800 uppercase tracking-wide text-sm">Geographic Multiplier</h4>
+                      <div className="mt-6 bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
+                        <div className="px-5 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600">
+                          <h4 className="font-bold text-white text-sm uppercase tracking-wider flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Geographic Multiplier
+                          </h4>
                         </div>
-                        <div className="px-6 py-4">
-                          <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="p-5">
+                          <div className="grid grid-cols-3 gap-4">
                             {[
                               { label: 'Consistent across all locations', benchmark: '55%', multiplier: 'x1.00', selected: d.geographicScope === 'consistent' },
                               { label: 'Varies by location', benchmark: '25%', multiplier: 'x0.90', selected: d.geographicScope === 'varies' },
                               { label: 'Only available in select locations', benchmark: '20%', multiplier: 'x0.75', selected: d.geographicScope === 'select' },
                             ].map((opt, i) => (
-                              <div key={i} className={`flex items-center justify-between px-4 py-3 rounded-lg border ${opt.selected ? 'bg-indigo-100 border-indigo-400' : 'bg-white border-slate-200'}`}>
-                                <div className="flex items-center gap-2">
-                                  {opt.selected && <span className="text-indigo-600">✓</span>}
-                                  <span className={opt.selected ? 'font-semibold text-indigo-900' : 'text-slate-600'}>{opt.label}</span>
-                                </div>
-                                <div className="text-right">
-                                  <span className="text-slate-500 text-xs mr-3">{opt.benchmark}</span>
-                                  <span className={`font-bold ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>{opt.multiplier}</span>
+                              <div key={i} className={`flex flex-col items-center justify-center px-4 py-4 rounded-xl border-2 transition-all ${opt.selected ? 'bg-indigo-50 border-indigo-400 shadow-md' : 'bg-slate-50 border-slate-200'}`}>
+                                {opt.selected && <span className="text-indigo-600 text-lg mb-1">✓</span>}
+                                <span className={`text-center text-sm ${opt.selected ? 'font-semibold text-indigo-900' : 'text-slate-600'}`}>{opt.label}</span>
+                                <div className="flex items-center gap-3 mt-2">
+                                  <span className="text-xs text-slate-400">{opt.benchmark} peers</span>
+                                  <span className={`text-lg font-bold ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>{opt.multiplier}</span>
                                 </div>
                               </div>
                             ))}
@@ -3821,26 +3863,34 @@ export default function ExportReportPage() {
                     )}
                   </div>
                   
-                  {/* Footer */}
-                  <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex-shrink-0 flex justify-between items-center">
+                  {/* Footer - Polished navigation */}
+                  <div className="px-8 py-4 bg-white border-t border-slate-200 flex-shrink-0 flex justify-between items-center">
                     <div className="flex gap-2">
-                      <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                      <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-medium">
                         <span className="flex items-center gap-2">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                           Previous
                         </span>
                       </button>
-                      <button onClick={() => setDimensionDetailModal(Math.min(13, dimensionDetailModal + 1))} disabled={dimensionDetailModal >= 13} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                      <button onClick={() => setDimensionDetailModal(Math.min(13, dimensionDetailModal + 1))} disabled={dimensionDetailModal >= 13} className="px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-medium">
                         <span className="flex items-center gap-2">
                           Next
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                         </span>
                       </button>
                     </div>
-                    <div className="text-sm text-slate-500">
-                      Dimension {dimensionDetailModal} of 13
+                    <div className="flex items-center gap-2">
+                      {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
+                        <button
+                          key={num}
+                          onClick={() => setDimensionDetailModal(num)}
+                          className={`w-7 h-7 rounded-full text-xs font-bold transition-all ${num === dimensionDetailModal ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                        >
+                          {num}
+                        </button>
+                      ))}
                     </div>
-                    <button onClick={() => setDimensionDetailModal(null)} className="px-6 py-2 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors">
+                    <button onClick={() => setDimensionDetailModal(null)} className="px-6 py-2.5 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-xl font-semibold hover:from-slate-700 hover:to-slate-800 transition-all shadow-lg">
                       Close
                     </button>
                   </div>
@@ -3906,96 +3956,119 @@ export default function ExportReportPage() {
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
           {(() => {
             return (
-              <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-                <div className="px-12 py-6 bg-cyan-700">
-                  <h3 className="font-bold text-white text-xl">Impact-Ranked Improvement Priorities</h3>
-                  <p className="text-cyan-200 mt-1 text-base">Dimensions ranked by potential composite score impact relative to implementation effort</p>
+              <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+                <div className="px-10 py-6 bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDQwIEwgNDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
+                  <div className="relative flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
+                      <p className="text-cyan-100 mt-1 text-base">Top opportunities ranked by potential score impact relative to implementation effort</p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-xl px-4 py-2">
+                      <svg className="w-5 h-5 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                      <span className="text-white font-semibold">Top 5 Priorities</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="px-12 py-8">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b-2 border-slate-200">
-                        <th className="pb-4 text-left w-20">Priority</th>
-                        <th className="pb-4 text-left">Dimension</th>
-                        <th className="pb-4 text-center w-28">Current</th>
-                        <th className="pb-4 text-center w-24">Impact</th>
-                        <th className="pb-4 text-center w-24">Effort</th>
-                        <th className="pb-4 text-left">
-                          Recommended Actions
-                          {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rankings.map((r, idx) => (
-                        <tr key={r.dimNum} className={idx < rankings.length - 1 ? 'border-b border-slate-100' : ''}>
-                          <td className="py-5">
-                            <span className={`w-10 h-10 rounded-full inline-flex items-center justify-center text-white text-lg font-bold ${
-                              idx === 0 ? 'bg-cyan-600' : idx === 1 ? 'bg-cyan-500' : 'bg-slate-400'
-                            }`}>
-                              {idx + 1}
-                            </span>
-                          </td>
-                          <td className="py-5">
-                            <p className="font-semibold text-slate-800 text-base">{r.dimName}</p>
-                          </td>
-                          <td className="py-5 text-center">
-                            <div className="flex flex-col items-center">
-                              <span className="font-bold text-2xl" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
-                              <span className="text-sm text-slate-400 mt-0.5">{r.tier}</span>
-                            </div>
-                          </td>
-                          <td className="py-5 text-center">
-                            <div className="flex flex-col items-center">
-                              <span className="text-xl font-bold text-emerald-600">+{r.potentialGain}</span>
-                              <span className="text-sm text-slate-400">pts</span>
-                            </div>
-                          </td>
-                          <td className="py-5 text-center">
-                            <span className={`text-sm font-semibold px-4 py-1.5 rounded-lg ${
-                              r.effort === 'Low' ? 'bg-emerald-50 text-emerald-700' :
-                              r.effort === 'Medium' ? 'bg-amber-50 text-amber-700' :
-                              'bg-red-50 text-red-700'
-                            }`}>{r.effort}</span>
-                          </td>
-                          <td className="py-5">
-                            {editMode ? (
-                              <div className="flex flex-col gap-2">
-                                <input
-                                  type="text"
-                                  value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? 'Focus on closing gaps and accelerating in-progress initiatives.'}
-                                  onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
-                                  className="w-full text-base text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                  placeholder="Enter custom recommendations..."
-                                />
-                                {customRecommendations[r.dimNum] && (
-                                  <button 
-                                    onClick={() => updateCustomRecommendation(r.dimNum, '')}
-                                    className="text-sm text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Reset
-                                  </button>
+                <div className="p-8">
+                  <div className="space-y-4">
+                    {rankings.slice(0, 5).map((r, idx) => (
+                      <div key={r.dimNum} className={`relative rounded-xl border-2 overflow-hidden transition-all hover:shadow-lg ${
+                        idx === 0 ? 'border-cyan-300 bg-gradient-to-r from-cyan-50 to-white' : 
+                        idx === 1 ? 'border-cyan-200 bg-gradient-to-r from-cyan-50/50 to-white' : 
+                        'border-slate-200 bg-white hover:border-slate-300'
+                      }`}>
+                        {/* Priority Ribbon */}
+                        <div className={`absolute top-0 left-0 w-16 h-16 overflow-hidden ${idx < 2 ? 'block' : 'hidden'}`}>
+                          <div className={`absolute transform -rotate-45 text-white text-xs font-bold py-1 w-20 text-center ${idx === 0 ? 'bg-cyan-600' : 'bg-cyan-500'}`} style={{ top: '12px', left: '-20px' }}>
+                            #{idx + 1}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-stretch">
+                          {/* Priority Number */}
+                          <div className={`flex items-center justify-center w-20 text-3xl font-black ${
+                            idx === 0 ? 'bg-gradient-to-b from-cyan-500 to-cyan-600 text-white' : 
+                            idx === 1 ? 'bg-gradient-to-b from-cyan-400 to-cyan-500 text-white' : 
+                            'bg-slate-100 text-slate-400'
+                          }`}>
+                            {idx + 1}
+                          </div>
+                          
+                          {/* Content */}
+                          <div className="flex-1 p-5">
+                            <div className="flex items-start justify-between gap-6">
+                              {/* Dimension Info */}
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <h4 className="font-bold text-slate-800 text-lg">{r.dimName}</h4>
+                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                                    r.effort === 'Low' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                    r.effort === 'Medium' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                    'bg-red-100 text-red-700 border border-red-200'
+                                  }`}>
+                                    {r.effort === 'Low' ? '⚡' : r.effort === 'Medium' ? '⏱' : '🔧'} {r.effort} Effort
+                                  </span>
+                                </div>
+                                
+                                {/* Recommendations */}
+                                {editMode ? (
+                                  <div className="flex flex-col gap-2">
+                                    <input
+                                      type="text"
+                                      value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? 'Focus on closing gaps and accelerating in-progress initiatives.'}
+                                      onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
+                                      className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                      placeholder="Enter custom recommendations..."
+                                    />
+                                    {customRecommendations[r.dimNum] && (
+                                      <button 
+                                        onClick={() => updateCustomRecommendation(r.dimNum, '')}
+                                        className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
+                                      >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                        Reset
+                                      </button>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-slate-600 space-y-1">
+                                    {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
+                                      <p key={i} className="flex items-start gap-2">
+                                        <span className="text-cyan-500 mt-0.5">→</span>
+                                        <span>{rec}</span>
+                                      </p>
+                                    ))}
+                                  </div>
                                 )}
                               </div>
-                            ) : (
-                              <ul className="text-base text-slate-600 space-y-1">
-                                {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
-                                  <li key={i} className="flex items-start gap-2">
-                                    <span className="text-cyan-600 mt-0.5">•</span>
-                                    <span>{rec}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <p className="text-sm text-slate-400 mt-6 italic">Impact calculated based on dimension weight and improvement potential. Effort assessed based on current gaps and in-progress initiatives.</p>
+                              
+                              {/* Metrics */}
+                              <div className="flex items-center gap-4 flex-shrink-0">
+                                {/* Current Score */}
+                                <div className="text-center px-4 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                  <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-1">Current</p>
+                                  <p className="text-2xl font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</p>
+                                  <p className="text-xs text-slate-400">{r.tier}</p>
+                                </div>
+                                
+                                {/* Arrow */}
+                                <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                
+                                {/* Potential Gain */}
+                                <div className="text-center px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
+                                  <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Impact</p>
+                                  <p className="text-2xl font-bold text-emerald-600">+{r.potentialGain}</p>
+                                  <p className="text-xs text-emerald-500">points</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-6 text-center italic">Impact calculated based on dimension weight and improvement potential. Effort assessed based on current gaps and in-progress initiatives.</p>
                 </div>
               </div>
             );
