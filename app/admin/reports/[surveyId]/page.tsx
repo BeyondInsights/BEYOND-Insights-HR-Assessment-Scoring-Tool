@@ -2842,6 +2842,13 @@ export default function ExportReportPage() {
               
               <span className="text-sm bg-violet-100 text-violet-700 px-4 py-2 rounded-lg font-semibold tracking-wide uppercase">Polished Design</span>
               <a href={window.location.pathname} className="text-sm text-slate-500 hover:text-slate-700 font-medium">Original →</a>
+              <button 
+                onClick={() => window.location.href = `${window.location.pathname}?export=ppt`}
+                className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                Export PowerPoint
+              </button>
               <button onClick={() => window.print()} className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-base">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                 Export PDF
@@ -3269,20 +3276,28 @@ export default function ExportReportPage() {
                           </div>
                           <div className="p-3 grid grid-cols-3 gap-2">
                             {healthConditions.map((condition, i) => {
-                              // More robust matching: check if any response contains the condition name (case insensitive, partial match)
-                              const conditionLower = condition.toLowerCase();
+                              // The cb3cArray contains the actual condition names as stored - check direct inclusion
                               const isSelected = cb3cArray.some((v: string) => {
-                                const vLower = String(v).toLowerCase();
-                                // Match if condition is contained in response or vice versa
-                                return vLower.includes(conditionLower.substring(0, 4)) || 
-                                       conditionLower.includes(vLower.substring(0, 4)) ||
-                                       (conditionLower === 'mental health' && (vLower.includes('mental') || vLower.includes('psychological'))) ||
-                                       (conditionLower === 'heart disease' && (vLower.includes('heart') || vLower.includes('cardiac') || vLower.includes('cardiovascular'))) ||
-                                       (conditionLower === 'chronic pain' && vLower.includes('pain')) ||
-                                       (conditionLower === 'autoimmune disorders' && (vLower.includes('autoimmune') || vLower.includes('auto-immune'))) ||
-                                       (conditionLower === 'neurological conditions' && (vLower.includes('neuro') || vLower.includes('brain'))) ||
-                                       (conditionLower === 'respiratory conditions' && (vLower.includes('respiratory') || vLower.includes('lung') || vLower.includes('breathing'))) ||
-                                       (conditionLower === 'pregnancy complications' && (vLower.includes('pregnancy') || vLower.includes('maternity')));
+                                const vStr = String(v).toLowerCase().trim();
+                                const condStr = condition.toLowerCase().trim();
+                                // Direct match or close match
+                                return vStr === condStr || 
+                                       vStr.includes(condStr) || 
+                                       condStr.includes(vStr) ||
+                                       // Handle common variations
+                                       (condStr === 'cancer' && vStr.includes('cancer')) ||
+                                       (condStr === 'mental health' && (vStr.includes('mental') || vStr.includes('anxiety') || vStr.includes('depression'))) ||
+                                       (condStr === 'heart disease' && (vStr.includes('heart') || vStr.includes('cardiac'))) ||
+                                       (condStr === 'diabetes' && vStr.includes('diabet')) ||
+                                       (condStr === 'chronic pain' && vStr.includes('pain')) ||
+                                       (condStr === 'autoimmune disorders' && vStr.includes('autoimmune')) ||
+                                       (condStr === 'neurological conditions' && vStr.includes('neuro')) ||
+                                       (condStr === 'respiratory conditions' && (vStr.includes('respiratory') || vStr.includes('lung'))) ||
+                                       (condStr === 'kidney disease' && vStr.includes('kidney')) ||
+                                       (condStr === 'liver disease' && vStr.includes('liver')) ||
+                                       (condStr === 'hiv/aids' && (vStr.includes('hiv') || vStr.includes('aids'))) ||
+                                       (condStr === 'pregnancy complications' && vStr.includes('pregnancy')) ||
+                                       (condStr === 'other' && vStr.includes('other'));
                               });
                               return (
                                 <div key={i} className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
@@ -3310,7 +3325,7 @@ export default function ExportReportPage() {
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-12 py-6 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
-              <p className="text-slate-500 mt-1 text-base">All 13 dimensions sorted by strategic weight. <span className="text-cyan-600 font-medium">Click any row for detailed element breakdown.</span></p>
+              <p className="text-slate-500 mt-1 text-base">All 13 dimensions sorted by strategic weight. <span className="bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded font-semibold">👆 Click any row for detailed element breakdown</span></p>
             </div>
             <div className="px-12 py-6">
               {/* Table Header */}
@@ -3706,9 +3721,9 @@ export default function ExportReportPage() {
                     
                     {/* Table Body */}
                     <div className="divide-y divide-slate-100">
-                      {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.code?.toLowerCase()?.includes('global')).map((elem: any, i: number) => {
+                      {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).map((elem: any, i: number) => {
                         const statusInfo = getStatusInfo(elem);
-                        const bench = elemBench[elem.code] || { currently: 0, planning: 0, assessing: 0, total: 1 };
+                        const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, total: 1 };
                         const total = bench.total || 1;
                         const pctCurrently = Math.round((bench.currently / total) * 100);
                         const pctPlanning = Math.round((bench.planning / total) * 100);
@@ -3721,7 +3736,7 @@ export default function ExportReportPage() {
                           <div key={i} className={`px-6 py-4 grid grid-cols-12 gap-2 items-center ${i % 2 === 1 ? 'bg-slate-50/50' : ''} hover:bg-slate-50`}>
                             {/* Element Name */}
                             <div className="col-span-3">
-                              <p className="text-sm text-slate-800 font-medium leading-snug">{elem.label}</p>
+                              <p className="text-sm text-slate-800 font-medium leading-snug">{elem.name}</p>
                             </div>
                             
                             {/* Your Status */}
@@ -3989,7 +4004,7 @@ export default function ExportReportPage() {
           {/* ============ AREAS OF EXCELLENCE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-12 py-5 bg-emerald-700">
-              <h3 className="font-bold text-white text-lg">Areas of Excellence</h3>
+              <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
               <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
             </div>
             <div className="px-12 py-6">
@@ -4023,7 +4038,7 @@ export default function ExportReportPage() {
           {/* ============ GROWTH OPPORTUNITIES ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-12 py-5 bg-amber-600">
-              <h3 className="font-bold text-white text-lg">Growth Opportunities</h3>
+              <h3 className="font-bold text-white text-xl">Growth Opportunities</h3>
               <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
             </div>
             <div className="px-12 py-6">
@@ -4387,7 +4402,7 @@ export default function ExportReportPage() {
                   <p className="text-slate-400 mt-1">Your phased approach to strengthen workplace cancer support</p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-8 h-1 bg-emerald-400 rounded"></div>
+                  <div className="w-8 h-1 bg-cyan-400 rounded"></div>
                   <div className="w-8 h-1 bg-blue-400 rounded"></div>
                   <div className="w-8 h-1 bg-violet-400 rounded"></div>
                 </div>
@@ -4396,33 +4411,33 @@ export default function ExportReportPage() {
             <div className="px-12 py-8">
               {/* Timeline connector */}
               <div className="relative">
-                <div className="absolute top-8 left-[16.67%] right-[16.67%] h-1 bg-gradient-to-r from-emerald-400 via-blue-400 to-violet-400 hidden lg:block"></div>
+                <div className="absolute top-8 left-[16.67%] right-[16.67%] h-1 bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-400 hidden lg:block"></div>
               </div>
               
               <div className="grid grid-cols-3 gap-8">
                 {/* Phase 1 */}
-                <div className="relative">
-                  <div className="border-2 border-emerald-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white">
-                    <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 px-5 py-5">
+                <div className="relative flex">
+                  <div className="border-2 border-cyan-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white flex flex-col w-full" style={{ minHeight: '340px' }}>
+                    <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 px-5 py-5">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
-                          <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                           </svg>
                         </div>
                         <div className="flex-1">
                           <h4 className="font-bold text-white text-lg">Quick Wins</h4>
                           {editMode ? (
-                            <input type="text" value={customRoadmapTimeframes.phase1 || '0-3 months'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase1: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-emerald-400/50 text-white border border-emerald-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
+                            <input type="text" value={customRoadmapTimeframes.phase1 || '0-3 months'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase1: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-cyan-400/50 text-white border border-cyan-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
                           ) : (
-                            <p className="text-emerald-100 text-sm">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
+                            <p className="text-cyan-100 text-sm">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="p-5">
+                    <div className="p-5 flex-1">
                       <div className="flex items-center gap-2 mb-4">
-                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded">ACCELERATE</span>
+                        <span className="px-2 py-1 bg-cyan-100 text-cyan-700 text-xs font-semibold rounded">ACCELERATE</span>
                         <span className="text-xs text-slate-400">Items in progress</span>
                       </div>
                       {editMode && <p className="text-xs text-amber-600 mb-3">(editable)</p>}
@@ -4432,8 +4447,8 @@ export default function ExportReportPage() {
                         <ul className="space-y-3">
                           {(customRoadmap.phase1?.useCustom ? customRoadmap.phase1.items.map((name: string) => ({ name, dimNum: null })) : quickWinItems).slice(0, 5).map((item: any, idx: number) => (
                             <li key={idx} className="flex items-start gap-2">
-                              <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <svg className="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                              <span className="w-5 h-5 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg className="w-3 h-3 text-cyan-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                               </span>
                               <div>
                                 <p className="text-sm text-slate-700">{item.name}</p>
@@ -4448,8 +4463,8 @@ export default function ExportReportPage() {
                 </div>
                 
                 {/* Phase 2 */}
-                <div className="relative">
-                  <div className="border-2 border-blue-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white">
+                <div className="relative flex">
+                  <div className="border-2 border-blue-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white flex flex-col w-full" style={{ minHeight: '340px' }}>
                     <div className="bg-gradient-to-br from-blue-500 to-blue-600 px-5 py-5">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
@@ -4467,7 +4482,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="p-5">
+                    <div className="p-5 flex-1">
                       <div className="flex items-center gap-2 mb-4">
                         <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">BUILD</span>
                         <span className="text-xs text-slate-400">High-weight gaps</span>
@@ -4495,8 +4510,8 @@ export default function ExportReportPage() {
                 </div>
                 
                 {/* Phase 3 */}
-                <div className="relative">
-                  <div className="border-2 border-violet-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white">
+                <div className="relative flex">
+                  <div className="border-2 border-violet-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white flex flex-col w-full" style={{ minHeight: '340px' }}>
                     <div className="bg-gradient-to-br from-violet-500 to-violet-600 px-5 py-5">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
@@ -4514,7 +4529,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="p-5">
+                    <div className="p-5 flex-1">
                       <div className="flex items-center gap-2 mb-4">
                         <span className="px-2 py-1 bg-violet-100 text-violet-700 text-xs font-semibold rounded">OPTIMIZE</span>
                         <span className="text-xs text-slate-400">Comprehensive coverage</span>
@@ -4679,14 +4694,34 @@ export default function ExportReportPage() {
                   <p className="leading-relaxed">Benchmark scores represent average performance across all organizations in the Index. Percentile rankings indicate relative positioning within the cohort.</p>
                 </div>
                 <div>
-                  <p className="font-bold text-slate-700 mb-2">Performance Tiers</p>
-                  <p className="leading-relaxed">
-                    <span style={{ color: '#5B21B6' }} className="font-semibold">Exemplary</span> (90+) · 
-                    <span style={{ color: '#047857' }} className="font-semibold"> Leading</span> (75-89) · 
-                    <span style={{ color: '#1D4ED8' }} className="font-semibold"> Progressing</span> (60-74) · 
-                    <span style={{ color: '#B45309' }} className="font-semibold"> Emerging</span> (40-59) · 
-                    <span style={{ color: '#B91C1C' }} className="font-semibold"> Developing</span> (&lt;40)
-                  </p>
+                  <p className="font-bold text-slate-700 mb-3">Performance Tiers</p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#5B21B6' }}></span>
+                      <span style={{ color: '#5B21B6' }} className="font-semibold">Exemplary</span>
+                      <span className="text-slate-400">90+ points</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#047857' }}></span>
+                      <span style={{ color: '#047857' }} className="font-semibold">Leading</span>
+                      <span className="text-slate-400">75-89 points</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1D4ED8' }}></span>
+                      <span style={{ color: '#1D4ED8' }} className="font-semibold">Progressing</span>
+                      <span className="text-slate-400">60-74 points</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B45309' }}></span>
+                      <span style={{ color: '#B45309' }} className="font-semibold">Emerging</span>
+                      <span className="text-slate-400">40-59 points</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B91C1C' }}></span>
+                      <span style={{ color: '#B91C1C' }} className="font-semibold">Developing</span>
+                      <span className="text-slate-400">&lt;40 points</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4694,26 +4729,35 @@ export default function ExportReportPage() {
             {/* Footer */}
             <div className="px-12 py-5 border-t border-slate-200 bg-white">
               <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-base font-semibold text-slate-700">Best Companies for Working with Cancer Index</p>
-                  <p className="text-sm text-slate-500 mt-1">Survey ID: {surveyId}</p>
+                {/* Left - CAC Logo */}
+                <div className="flex items-center gap-3">
+                  <Image 
+                    src="/CAC_Logo.png" 
+                    alt="Cancer and Careers" 
+                    width={120} 
+                    height={40}
+                    className="object-contain"
+                  />
                 </div>
-                <div className="flex items-center gap-8">
-                  <p className="text-sm text-slate-500 font-medium">Confidential</p>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-400">Powered by:</span>
-                    <Image 
-                      src="/BI_LOGO_FINAL.png" 
-                      alt="BEYOND Insights" 
-                      width={100} 
-                      height={32}
-                      className="object-contain"
-                    />
-                  </div>
+                {/* Center - Confidential */}
+                <div className="text-center">
+                  <p className="text-sm text-slate-500 font-semibold uppercase tracking-wider">Confidential</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Survey ID: {surveyId}</p>
+                </div>
+                {/* Right - BEYOND Insights */}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-slate-400">Powered by:</span>
+                  <Image 
+                    src="/BI_LOGO_FINAL.png" 
+                    alt="BEYOND Insights" 
+                    width={100} 
+                    height={32}
+                    className="object-contain"
+                  />
                 </div>
               </div>
               <div className="pt-3 border-t border-slate-100">
-                <p className="text-sm text-slate-400 text-center">© 2026 Cancer and Careers. All rights reserved.</p>
+                <p className="text-sm text-slate-400 text-center">© 2026 Cancer and Careers. All rights reserved. | Best Companies for Working with Cancer Index</p>
               </div>
             </div>
           </div>
