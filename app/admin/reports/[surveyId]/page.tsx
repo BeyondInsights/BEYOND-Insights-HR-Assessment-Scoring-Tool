@@ -3223,22 +3223,41 @@ export default function ExportReportPage() {
                     return cb3cArray.some((v: string) => {
                       const vStr = String(v).toLowerCase().trim();
                       const condStr = condition.toLowerCase().trim();
-                      return vStr === condStr || 
-                             vStr.includes(condStr) || 
-                             condStr.includes(vStr) ||
-                             (condStr === 'cancer' && vStr.includes('cancer')) ||
-                             (condStr === 'mental health' && (vStr.includes('mental') || vStr.includes('anxiety') || vStr.includes('depression'))) ||
-                             (condStr === 'heart disease' && (vStr.includes('heart') || vStr.includes('cardiac') || vStr.includes('cardiovascular'))) ||
-                             (condStr === 'diabetes' && vStr.includes('diabet')) ||
-                             (condStr === 'chronic pain' && vStr.includes('pain')) ||
-                             (condStr === 'autoimmune disorders' && vStr.includes('autoimmune')) ||
-                             (condStr === 'neurological conditions' && (vStr.includes('neuro') || vStr.includes('parkinson') || vStr.includes('alzheimer') || vStr.includes('ms') || vStr.includes('multiple sclerosis'))) ||
-                             (condStr === 'respiratory conditions' && (vStr.includes('respiratory') || vStr.includes('lung') || vStr.includes('copd') || vStr.includes('asthma'))) ||
-                             (condStr === 'kidney disease' && (vStr.includes('kidney') || vStr.includes('renal'))) ||
-                             (condStr === 'liver disease' && (vStr.includes('liver') || vStr.includes('hepat'))) ||
-                             (condStr === 'hiv/aids' && (vStr.includes('hiv') || vStr.includes('aids'))) ||
-                             (condStr === 'pregnancy complications' && (vStr.includes('pregnancy') || vStr.includes('maternity'))) ||
-                             (condStr === 'other' && (vStr.includes('other') || vStr === 'other'));
+                      
+                      // Direct or partial match
+                      if (vStr === condStr || vStr.includes(condStr) || condStr.includes(vStr)) return true;
+                      
+                      // Specific mappings for stored values
+                      switch (condStr) {
+                        case 'cancer':
+                          return vStr.includes('cancer');
+                        case 'heart disease':
+                          return vStr.includes('heart') || vStr.includes('cardiac') || vStr.includes('cardiovascular');
+                        case 'diabetes':
+                          return vStr.includes('diabet') || vStr.includes('chronic conditions');
+                        case 'mental health':
+                          return vStr.includes('mental') || vStr.includes('anxiety') || vStr.includes('depression') || vStr.includes('psychiatric');
+                        case 'chronic pain':
+                          return vStr.includes('pain') || vStr.includes('chronic conditions') || vStr.includes('fibromyalgia');
+                        case 'autoimmune disorders':
+                          return vStr.includes('autoimmune') || vStr.includes('lupus') || vStr.includes('rheumatoid');
+                        case 'neurological conditions':
+                          return vStr.includes('neuro') || vStr.includes('parkinson') || vStr.includes('alzheimer') || vStr.includes('multiple sclerosis') || vStr.includes('ms)') || vStr.includes('als');
+                        case 'respiratory conditions':
+                          return vStr.includes('respiratory') || vStr.includes('lung') || vStr.includes('copd') || vStr.includes('asthma') || vStr.includes('pulmonary');
+                        case 'kidney disease':
+                          return vStr.includes('kidney') || vStr.includes('renal');
+                        case 'liver disease':
+                          return vStr.includes('liver') || vStr.includes('hepat') || vStr.includes('cirrhosis');
+                        case 'hiv/aids':
+                          return vStr.includes('hiv') || vStr.includes('aids');
+                        case 'pregnancy complications':
+                          return vStr.includes('pregnancy') || vStr.includes('maternity') || vStr.includes('prenatal');
+                        case 'other':
+                          return vStr.includes('other') || vStr.includes('rare disease') || vStr.includes('organ transplant');
+                        default:
+                          return false;
+                      }
                     });
                   };
                   
@@ -3753,8 +3772,16 @@ export default function ExportReportPage() {
                   <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
                     <div className="col-span-3">Element</div>
                     <div className="col-span-1 text-center">Your Status</div>
-                    <div className="col-span-5 text-center">Peer Distribution</div>
-                    <div className="col-span-3">Observation</div>
+                    <div className="col-span-5 text-center">
+                      <div>Peer Distribution</div>
+                      <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">Offering</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">Planning</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">Assessing</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Offering</span></div>
+                      </div>
+                    </div>
+                    <div className="col-span-3 pl-4">Observation</div>
                   </div>
                   
                   {/* Table Body */}
@@ -3864,18 +3891,9 @@ export default function ExportReportPage() {
                     )}
                   </div>
                   
-                  {/* Footer - Legend & Navigation */}
+                  {/* Footer - Navigation */}
                   <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex-shrink-0">
-                    <div className="flex items-center justify-between">
-                      {/* Legend */}
-                      <div className="flex items-center gap-4 text-xs">
-                        <span className="text-slate-400 font-medium">Legend:</span>
-                        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-600">Offering</span></div>
-                        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-600">Planning</span></div>
-                        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-600">Assessing</span></div>
-                        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-600">Not Offering</span></div>
-                      </div>
-                      
+                    <div className="flex items-center justify-end">
                       {/* Navigation */}
                       <div className="flex items-center gap-2">
                         <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-3 py-1.5 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
@@ -4182,7 +4200,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-7xl mx-auto" id="appendix-start" data-export="appendix-start">
             <div className="px-12 py-10 bg-slate-800">
               <h3 className="font-bold text-white text-3xl">Strategic Recommendations</h3>
               <p className="text-slate-400 mt-2 text-lg">Detailed analysis and action plans for priority dimensions</p>
