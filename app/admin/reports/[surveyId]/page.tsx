@@ -3213,9 +3213,20 @@ export default function ExportReportPage() {
                   console.log('CB3C Array:', cb3cArray);
                   
                   const healthConditions = [
-                    'Cancer', 'Heart disease', 'Diabetes', 'Mental health', 'Chronic pain',
-                    'Autoimmune disorders', 'Neurological conditions', 'Respiratory conditions',
-                    'Kidney disease', 'Liver disease', 'HIV/AIDS', 'Pregnancy complications', 'Other'
+                    'Autoimmune disorders',
+                    'Cancer',
+                    'Chronic conditions',
+                    'Heart disease',
+                    'HIV / AIDS',
+                    'Kidney disease',
+                    'Major surgery recovery',
+                    'Mental health crises',
+                    'Musculoskeletal conditions',
+                    'Neurological conditions',
+                    'Organ transplant',
+                    'Respiratory conditions',
+                    'Stroke',
+                    'Other'
                   ];
                   
                   // Helper function to check if a condition is selected
@@ -3227,34 +3238,36 @@ export default function ExportReportPage() {
                       // Direct or partial match
                       if (vStr === condStr || vStr.includes(condStr) || condStr.includes(vStr)) return true;
                       
-                      // Specific mappings for stored values
+                      // Specific mappings
                       switch (condStr) {
+                        case 'autoimmune disorders':
+                          return vStr.includes('autoimmune');
                         case 'cancer':
                           return vStr.includes('cancer');
+                        case 'chronic conditions':
+                          return vStr.includes('chronic condition');
                         case 'heart disease':
-                          return vStr.includes('heart') || vStr.includes('cardiac') || vStr.includes('cardiovascular');
-                        case 'diabetes':
-                          return vStr.includes('diabet') || vStr.includes('chronic conditions');
-                        case 'mental health':
-                          return vStr.includes('mental') || vStr.includes('anxiety') || vStr.includes('depression') || vStr.includes('psychiatric');
-                        case 'chronic pain':
-                          return vStr.includes('pain') || vStr.includes('chronic conditions') || vStr.includes('fibromyalgia');
-                        case 'autoimmune disorders':
-                          return vStr.includes('autoimmune') || vStr.includes('lupus') || vStr.includes('rheumatoid');
-                        case 'neurological conditions':
-                          return vStr.includes('neuro') || vStr.includes('parkinson') || vStr.includes('alzheimer') || vStr.includes('multiple sclerosis') || vStr.includes('ms)') || vStr.includes('als');
-                        case 'respiratory conditions':
-                          return vStr.includes('respiratory') || vStr.includes('lung') || vStr.includes('copd') || vStr.includes('asthma') || vStr.includes('pulmonary');
-                        case 'kidney disease':
-                          return vStr.includes('kidney') || vStr.includes('renal');
-                        case 'liver disease':
-                          return vStr.includes('liver') || vStr.includes('hepat') || vStr.includes('cirrhosis');
-                        case 'hiv/aids':
+                          return vStr.includes('heart');
+                        case 'hiv / aids':
                           return vStr.includes('hiv') || vStr.includes('aids');
-                        case 'pregnancy complications':
-                          return vStr.includes('pregnancy') || vStr.includes('maternity') || vStr.includes('prenatal');
+                        case 'kidney disease':
+                          return vStr.includes('kidney');
+                        case 'major surgery recovery':
+                          return vStr.includes('surgery');
+                        case 'mental health crises':
+                          return vStr.includes('mental health');
+                        case 'musculoskeletal conditions':
+                          return vStr.includes('musculoskeletal');
+                        case 'neurological conditions':
+                          return vStr.includes('neurological');
+                        case 'organ transplant':
+                          return vStr.includes('transplant');
+                        case 'respiratory conditions':
+                          return vStr.includes('respiratory');
+                        case 'stroke':
+                          return vStr.includes('stroke');
                         case 'other':
-                          return vStr.includes('other') || vStr.includes('rare disease') || vStr.includes('organ transplant');
+                          return vStr.includes('other') || vStr.includes('specify');
                         default:
                           return false;
                       }
@@ -3263,7 +3276,7 @@ export default function ExportReportPage() {
                   
                   // Count using the same function used for display
                   const cb3cCount = healthConditions.filter(c => isConditionSelected(c)).length;
-                  const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
+                  const cb3cScore = Math.min(100, Math.round((cb3cCount / 14) * 100));
                   
                   const programElements = [
                     { label: 'Individual benefits or policies', key: 'individual' },
@@ -3336,7 +3349,7 @@ export default function ExportReportPage() {
                         <div className="border border-violet-200 rounded-xl overflow-hidden">
                           <div className="bg-violet-50 px-4 py-3 font-semibold text-violet-800 border-b border-violet-200 flex justify-between">
                             <span>Health conditions addressed</span>
-                            <span className="text-violet-600">{cb3cCount} of 13 = {cb3cScore} pts</span>
+                            <span className="text-violet-600">{cb3cCount} of 14 = {cb3cScore} pts</span>
                           </div>
                           <div className="p-3 grid grid-cols-3 gap-2">
                             {healthConditions.map((condition, i) => {
@@ -3893,27 +3906,27 @@ export default function ExportReportPage() {
                   
                   {/* Footer - Navigation */}
                   <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex-shrink-0">
-                    <div className="flex items-center justify-end">
+                    <div className="flex items-center justify-center">
                       {/* Navigation */}
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-3 py-1.5 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
+                      <div className="flex items-center gap-4">
+                        <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
                           ← Prev
                         </button>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
                             <button
                               key={num}
                               onClick={() => setDimensionDetailModal(num)}
-                              className={`w-6 h-6 rounded text-xs font-bold ${num === dimensionDetailModal ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                              className={`w-7 h-7 rounded text-xs font-bold ${num === dimensionDetailModal ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                             >
                               {num}
                             </button>
                           ))}
                         </div>
-                        <button onClick={() => setDimensionDetailModal(Math.min(13, dimensionDetailModal + 1))} disabled={dimensionDetailModal >= 13} className="px-3 py-1.5 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
+                        <button onClick={() => setDimensionDetailModal(Math.min(13, dimensionDetailModal + 1))} disabled={dimensionDetailModal >= 13} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
                           Next →
                         </button>
-                        <button onClick={() => setDimensionDetailModal(null)} className="ml-2 px-4 py-1.5 bg-slate-800 text-white rounded font-semibold text-sm hover:bg-slate-700">
+                        <button onClick={() => setDimensionDetailModal(null)} className="ml-4 px-5 py-2 bg-slate-800 text-white rounded font-semibold text-sm hover:bg-slate-700">
                           Close
                         </button>
                       </div>
