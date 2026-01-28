@@ -2754,6 +2754,9 @@ export default function ExportReportPage() {
 
   // For polished design inProgressItems
   const inProgressItems = quickWinOpportunities;
+  
+  // Gap opportunities - dimensions below Leading tier
+  const gapOpportunities = dimensionAnalysis.filter((d: any) => d.tier.name !== 'Exemplary' && d.tier.name !== 'Leading');
 
   // ============================================
   // POLISHED DESIGN RENDER (when ?design=polished)
