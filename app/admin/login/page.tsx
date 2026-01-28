@@ -10,6 +10,7 @@ const ADMIN_EMAILS = [
   'john.bekier@beyondinsights.com',
   'leslie.hutchings@gmail.com',
   'barbara.deal@publicisgroupe.com',
+  'bklein@cew.org',
 ]
 
 // Admin password
