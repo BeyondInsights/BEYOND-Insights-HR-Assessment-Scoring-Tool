@@ -4840,7 +4840,6 @@ export default function ExportReportPage() {
           </div>
           
         </div>
-      </div>
 
       {showInteractiveLinkModal && interactiveLink && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowInteractiveLinkModal(false)}>
