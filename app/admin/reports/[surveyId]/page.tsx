@@ -2157,6 +2157,7 @@ export default function ExportReportPage() {
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
   const [interactiveLink, setInteractiveLink] = useState<{ url: string; password: string } | null>(null);
   const [showBenchmarkRings, setShowBenchmarkRings] = useState(false);
+  const [activeScoreOverlay, setActiveScoreOverlay] = useState<'weightedDim' | 'maturity' | 'breadth' | null>(null);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   
@@ -3009,88 +3010,160 @@ export default function ExportReportPage() {
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-12 py-6 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-xl">Score Composition</h3>
+              <p className="text-slate-500 mt-1 text-base">Click any component to see detailed breakdown</p>
             </div>
-            <div className="px-12 py-8">
-              {/* Visual Formula - IMPROVED CONTRAST */}
-              <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
-                <div className="text-center px-8 py-5 bg-slate-800 rounded-xl border-2 border-slate-700 min-w-[160px]">
+            <div className="px-12 py-10">
+              {/* Visual Formula - Clickable boxes with more spacing */}
+              <div className="flex items-center justify-center gap-8 flex-wrap">
+                {/* Composite Score - Static */}
+                <div className="text-center px-10 py-6 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border-2 border-slate-700 shadow-xl min-w-[180px]">
                   <p className="text-5xl font-bold text-white">{compositeScore ?? '—'}</p>
-                  <p className="text-sm text-slate-300 font-semibold uppercase tracking-wider mt-2">Composite</p>
+                  <p className="text-sm text-slate-300 font-semibold uppercase tracking-wider mt-3">Composite Score</p>
                 </div>
-                <span className="text-4xl text-slate-600 font-bold">=</span>
-                <div className="text-center px-6 py-4 bg-slate-100 rounded-xl border-2 border-slate-300 min-w-[130px]">
-                  <p className="text-3xl font-bold text-slate-800">{weightedDimScore ?? '—'}</p>
-                  <p className="text-sm text-slate-600 mt-1 font-medium">Weighted Dims</p>
+                
+                <span className="text-5xl text-slate-400 font-light">=</span>
+                
+                {/* Weighted Dims - Clickable */}
+                <div 
+                  onClick={() => setActiveScoreOverlay('weightedDim')}
+                  className="text-center px-8 py-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-300 min-w-[160px] cursor-pointer hover:shadow-lg hover:border-slate-400 hover:scale-105 transition-all group"
+                >
+                  <p className="text-4xl font-bold text-slate-800">{weightedDimScore ?? '—'}</p>
+                  <p className="text-base text-slate-600 mt-2 font-semibold">Weighted Dims</p>
                   <p className="text-sm text-slate-500 font-bold">× 90%</p>
+                  <p className="text-xs text-slate-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</p>
                 </div>
-                <span className="text-3xl text-slate-600 font-bold">+</span>
-                <div className="text-center px-6 py-4 bg-amber-50 rounded-xl border-2 border-amber-300 min-w-[130px]">
-                  <p className="text-3xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
-                  <p className="text-sm text-amber-700 mt-1 font-medium">Maturity</p>
+                
+                <span className="text-4xl text-slate-400 font-light">+</span>
+                
+                {/* Maturity - Clickable */}
+                <div 
+                  onClick={() => setActiveScoreOverlay('maturity')}
+                  className="text-center px-8 py-5 bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl border-2 border-amber-300 min-w-[160px] cursor-pointer hover:shadow-lg hover:border-amber-400 hover:scale-105 transition-all group"
+                >
+                  <p className="text-4xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
+                  <p className="text-base text-amber-700 mt-2 font-semibold">Maturity</p>
                   <p className="text-sm text-amber-600 font-bold">× 5%</p>
+                  <p className="text-xs text-amber-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</p>
                 </div>
-                <span className="text-3xl text-slate-600 font-bold">+</span>
-                <div className="text-center px-6 py-4 bg-violet-50 rounded-xl border-2 border-violet-300 min-w-[130px]">
-                  <p className="text-3xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
-                  <p className="text-sm text-violet-700 mt-1 font-medium">Breadth</p>
+                
+                <span className="text-4xl text-slate-400 font-light">+</span>
+                
+                {/* Breadth - Clickable */}
+                <div 
+                  onClick={() => setActiveScoreOverlay('breadth')}
+                  className="text-center px-8 py-5 bg-gradient-to-br from-violet-50 to-violet-100 rounded-2xl border-2 border-violet-300 min-w-[160px] cursor-pointer hover:shadow-lg hover:border-violet-400 hover:scale-105 transition-all group"
+                >
+                  <p className="text-4xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
+                  <p className="text-base text-violet-700 mt-2 font-semibold">Breadth</p>
                   <p className="text-sm text-violet-600 font-bold">× 5%</p>
+                  <p className="text-xs text-violet-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</p>
                 </div>
               </div>
-              
-              {/* Component Cards with Full Expandable Details */}
-              <div className="grid grid-cols-3 gap-6 pt-6 border-t border-slate-100">
-                <ScoreComponentCard
-                  title="Weighted Dimension Score"
-                  score={weightedDimScore ?? 0}
-                  weight={DEFAULT_COMPOSITE_WEIGHTS.weightedDim}
-                  benchmarkScore={benchmarks?.weightedDimScore ?? benchmarks?.compositeScore}
-                  color="slate"
-                  summary="Combined performance across all 13 support dimensions, weighted by strategic importance."
-                  getScoreColor={getScoreColor}
-                />
-                
-                <ScoreComponentCard
-                  title="Program Maturity"
-                  score={maturityScore ?? 0}
-                  weight={DEFAULT_COMPOSITE_WEIGHTS.maturity}
-                  benchmarkScore={benchmarks?.maturityScore}
-                  color="amber"
-                  summary="How developed your organization's approach is to supporting employees managing cancer or other serious health conditions."
-                  getScoreColor={getScoreColor}
-                  details={
-                    <div className="space-y-2 text-sm">
-                      <p className="text-slate-600 mb-3">How would you describe your organization's current approach?</p>
-                      <div className="flex justify-between items-center px-3 py-1 text-xs text-slate-400 border-b border-slate-200">
-                        <span>Response</span>
-                        <div className="flex items-center gap-3">
-                          <span className="w-14 text-center">Benchmark</span>
-                          <span className="w-12 text-right">Points</span>
+            </div>
+          </div>
+          
+          {/* ============ SCORE OVERLAY MODALS ============ */}
+          {activeScoreOverlay && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setActiveScoreOverlay(null)}>
+              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                {/* Weighted Dimension Score Overlay */}
+                {activeScoreOverlay === 'weightedDim' && (
+                  <>
+                    <div className="px-8 py-6 bg-gradient-to-r from-slate-700 to-slate-800 rounded-t-2xl">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-2xl font-bold text-white">Weighted Dimension Score</h3>
+                          <p className="text-slate-300 mt-1">Contributes 90% of your composite score</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-4xl font-bold text-white">{weightedDimScore ?? '—'}</p>
+                          <p className="text-sm text-slate-300">Your Score</p>
                         </div>
                       </div>
-                      {[
-                        { label: 'Comprehensive support', points: 100, selected: maturityScore === 100, benchPct: 15 },
-                        { label: 'Enhanced support', points: 80, selected: maturityScore === 80, benchPct: 22 },
-                        { label: 'Moderate support', points: 50, selected: maturityScore === 50, benchPct: 35 },
-                        { label: 'Developing approach', points: 20, selected: maturityScore === 20, benchPct: 18 },
-                        { label: 'Legal minimum / None', points: 0, selected: maturityScore === 0, benchPct: 10 },
-                      ].map((opt, i) => (
-                        <div key={i} className={`flex justify-between items-center px-3 py-2 rounded ${opt.selected ? 'bg-amber-100 border-2 border-amber-400' : 'bg-slate-50'}`}>
-                          <div className="flex items-center gap-2">
-                            {opt.selected && <span className="text-amber-600">✓</span>}
-                            <span className={opt.selected ? 'font-semibold text-amber-900' : 'text-slate-600'}>{opt.label}</span>
+                    </div>
+                    <div className="px-8 py-6">
+                      <p className="text-slate-600 mb-6">Combined performance across all 13 support dimensions, weighted by their strategic importance to cancer support programs.</p>
+                      <div className="bg-slate-50 rounded-xl p-4 mb-4">
+                        <p className="text-sm font-semibold text-slate-700 mb-3">How It's Calculated</p>
+                        <p className="text-sm text-slate-600">Each dimension score is multiplied by its weight, then summed and normalized to 100. Higher-weighted dimensions (like Manager Training at 14%) have more influence than lower-weighted ones.</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-slate-700">Top 5 Dimensions by Weight:</p>
+                        {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).slice(0, 5).map((d) => (
+                          <div key={d.dim} className="flex items-center justify-between py-2 border-b border-slate-100">
+                            <span className="text-sm text-slate-700">{d.name}</span>
+                            <div className="flex items-center gap-4">
+                              <span className="text-sm text-slate-400">{d.weight}% weight</span>
+                              <span className="text-sm font-bold" style={{ color: d.tier.color }}>{d.score}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-slate-400 w-14 text-center">{opt.benchPct}%</span>
-                            <span className={`w-12 text-right ${opt.selected ? 'text-amber-700 font-bold' : 'text-slate-500'}`}>{opt.points} pts</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="px-8 py-4 bg-slate-50 rounded-b-2xl flex justify-end">
+                      <button onClick={() => setActiveScoreOverlay(null)} className="px-6 py-2 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors">
+                        Close
+                      </button>
+                    </div>
+                  </>
+                )}
+                
+                {/* Maturity Score Overlay */}
+                {activeScoreOverlay === 'maturity' && (
+                  <>
+                    <div className="px-8 py-6 bg-gradient-to-r from-amber-500 to-amber-600 rounded-t-2xl">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-2xl font-bold text-white">Program Maturity</h3>
+                          <p className="text-amber-100 mt-1">Contributes 5% of your composite score</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-4xl font-bold text-white">{maturityScore ?? '—'}</p>
+                          <p className="text-sm text-amber-100">Your Score</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-8 py-6">
+                      <p className="text-slate-600 mb-6">How developed your organization's approach is to supporting employees managing cancer or other serious health conditions.</p>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center px-3 py-2 text-sm font-semibold text-slate-500 border-b-2 border-slate-200">
+                          <span>Response</span>
+                          <div className="flex items-center gap-6">
+                            <span className="w-20 text-center">Benchmark</span>
+                            <span className="w-16 text-right">Points</span>
                           </div>
                         </div>
-                      ))}
+                        {[
+                          { label: 'Comprehensive support', points: 100, selected: maturityScore === 100, benchPct: 15 },
+                          { label: 'Enhanced support', points: 80, selected: maturityScore === 80, benchPct: 22 },
+                          { label: 'Moderate support', points: 50, selected: maturityScore === 50, benchPct: 35 },
+                          { label: 'Developing approach', points: 20, selected: maturityScore === 20, benchPct: 18 },
+                          { label: 'Legal minimum / None', points: 0, selected: maturityScore === 0, benchPct: 10 },
+                        ].map((opt, i) => (
+                          <div key={i} className={`flex justify-between items-center px-4 py-3 rounded-xl ${opt.selected ? 'bg-amber-100 border-2 border-amber-400 shadow-sm' : 'bg-slate-50'}`}>
+                            <div className="flex items-center gap-3">
+                              {opt.selected && <span className="text-amber-600 text-lg">✓</span>}
+                              <span className={opt.selected ? 'font-semibold text-amber-900' : 'text-slate-600'}>{opt.label}</span>
+                            </div>
+                            <div className="flex items-center gap-6">
+                              <span className="text-slate-400 w-20 text-center">{opt.benchPct}%</span>
+                              <span className={`w-16 text-right font-semibold ${opt.selected ? 'text-amber-700' : 'text-slate-500'}`}>{opt.points} pts</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  }
-                />
+                    <div className="px-8 py-4 bg-amber-50 rounded-b-2xl flex justify-end">
+                      <button onClick={() => setActiveScoreOverlay(null)} className="px-6 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-colors">
+                        Close
+                      </button>
+                    </div>
+                  </>
+                )}
                 
-                {/* Support Breadth with FULL details */}
-                {(() => {
+                {/* Breadth Score Overlay */}
+                {activeScoreOverlay === 'breadth' && (() => {
                   const currentSupport = company?.current_support_data || {};
                   const generalBenefits = company?.general_benefits_data || {};
                   const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
@@ -3107,12 +3180,12 @@ export default function ExportReportPage() {
                   const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
                   
                   const programElements = [
-                    { label: 'Individual benefits or policies', key: 'individual', benchPct: 72 },
-                    { label: 'Coordinated support services', key: 'coordinated', benchPct: 45 },
-                    { label: 'Internally developed formal program', key: 'internal', benchPct: 38 },
-                    { label: 'External initiatives/certifications', key: 'external', benchPct: 52 },
-                    { label: 'Comprehensive framework', key: 'comprehensive', benchPct: 28 },
-                    { label: 'Ad hoc/case-by-case support', key: 'adhoc', benchPct: 65 },
+                    { label: 'Individual benefits or policies', key: 'individual' },
+                    { label: 'Coordinated support services', key: 'coordinated' },
+                    { label: 'Internally developed formal program', key: 'internal' },
+                    { label: 'External initiatives/certifications', key: 'external' },
+                    { label: 'Comprehensive framework', key: 'comprehensive' },
+                    { label: 'Ad hoc/case-by-case support', key: 'adhoc' },
                   ];
                   
                   const healthConditions = [
@@ -3122,132 +3195,129 @@ export default function ExportReportPage() {
                   ];
                   
                   return (
-                    <ScoreComponentCard
-                      title="Support Breadth"
-                      score={breadthScore ?? 0}
-                      weight={DEFAULT_COMPOSITE_WEIGHTS.breadth}
-                      benchmarkScore={benchmarks?.breadthScore}
-                      color="violet"
-                      summary="How expansive your benefits and support are—including whether you go beyond legal requirements."
-                      getScoreColor={getScoreColor}
-                      details={
-                        <div className="space-y-4 text-sm">
-                          {/* CB3a - Beyond Legal */}
-                          <div className="border border-violet-200 rounded-lg overflow-hidden">
-                            <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
-                              Do you provide support beyond legal requirements?
-                            </div>
-                            <div className="px-2 pt-1 pb-2">
-                              {[
-                                { label: 'Yes', points: 100, selected: cb3aScore === 100, benchPct: 45 },
-                                { label: 'Currently developing', points: 50, selected: cb3aScore === 50, benchPct: 30 },
-                                { label: 'Legal minimum only', points: 0, selected: cb3aScore === 0, benchPct: 25 },
-                              ].map((opt, i) => (
-                                <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded ${opt.selected ? 'bg-violet-100 border-2 border-violet-400' : ''}`}>
-                                  <div className="flex items-center gap-2">
-                                    {opt.selected && <span className="text-violet-600">✓</span>}
-                                    <span className={opt.selected ? 'font-semibold text-violet-900' : 'text-slate-600'}>{opt.label}</span>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-slate-400 w-14 text-center">{opt.benchPct}%</span>
-                                    <span className={`w-12 text-right ${opt.selected ? 'text-violet-700 font-bold' : 'text-slate-500'}`}>{opt.points} pts</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+                    <>
+                      <div className="px-8 py-6 bg-gradient-to-r from-violet-500 to-violet-600 rounded-t-2xl">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-2xl font-bold text-white">Support Breadth</h3>
+                            <p className="text-violet-100 mt-1">Contributes 5% of your composite score</p>
                           </div>
-                          
-                          {/* CB3b - Program Elements - SHOW ALL */}
-                          <div className="border border-violet-200 rounded-lg overflow-hidden">
-                            <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
-                              Program structure elements ({cb3bCount} of 6)
-                            </div>
-                            <div className="p-2">
-                              <div className="space-y-1">
-                                {programElements.map((el, i) => {
-                                  const isSelected = cb3bArray.some((v: string) => v.includes(el.key) || el.label.toLowerCase().includes(v.substring(0, 10)));
-                                  return (
-                                    <div key={i} className={`flex justify-between items-center px-2 py-1 rounded text-xs ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
-                                      <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{el.label}</span>
-                                      <div className="flex items-center">
-                                        <span className={`w-12 text-center ${isSelected ? 'text-violet-600 font-semibold' : 'text-slate-400'}`}>{isSelected ? '✓' : '—'}</span>
-                                        <span className="text-slate-500 w-14 text-center">{el.benchPct}%</span>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                              <div className="mt-2 pt-2 border-t border-violet-200 flex justify-between items-center px-2">
-                                <span className="text-xs text-slate-600">Score: {cb3bCount} of 6 = <span className="font-semibold text-violet-700">{cb3bScore} pts</span></span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* CB3c - Health Conditions - SHOW ALL */}
-                          <div className="border border-violet-200 rounded-lg overflow-hidden">
-                            <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
-                              Health conditions addressed ({cb3cCount} of 13)
-                            </div>
-                            <div className="p-2">
-                              <div className="grid grid-cols-2 gap-1">
-                                {healthConditions.map((condition, i) => {
-                                  const isSelected = cb3cArray.some((v: string) => v.toLowerCase().includes(condition.toLowerCase().substring(0, 5)));
-                                  return (
-                                    <div key={i} className={`flex items-center gap-2 px-2 py-1 rounded text-xs ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
-                                      <span className={`${isSelected ? 'text-violet-600 font-semibold' : 'text-slate-400'}`}>{isSelected ? '✓' : '○'}</span>
-                                      <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{condition}</span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                              <div className="mt-2 pt-2 border-t border-violet-200 flex justify-between items-center px-2">
-                                <span className="text-xs text-slate-600">Score: {cb3cCount} of 13 = <span className="font-semibold text-violet-700">{cb3cScore} pts</span></span>
-                              </div>
-                            </div>
+                          <div className="text-center">
+                            <p className="text-4xl font-bold text-white">{breadthScore ?? '—'}</p>
+                            <p className="text-sm text-violet-100">Your Score</p>
                           </div>
                         </div>
-                      }
-                    />
+                      </div>
+                      <div className="px-8 py-6 space-y-6">
+                        <p className="text-slate-600">How expansive your benefits and support are—including whether you go beyond legal requirements, how structured your programs are, and how many health conditions are addressed.</p>
+                        
+                        {/* CB3a - Beyond Legal */}
+                        <div className="border border-violet-200 rounded-xl overflow-hidden">
+                          <div className="bg-violet-50 px-4 py-3 font-semibold text-violet-800 border-b border-violet-200">
+                            Do you provide support beyond legal requirements?
+                          </div>
+                          <div className="p-3 space-y-2">
+                            {[
+                              { label: 'Yes, beyond legal requirements', points: 100, selected: cb3aScore === 100 },
+                              { label: 'Currently developing', points: 50, selected: cb3aScore === 50 },
+                              { label: 'Legal minimum only', points: 0, selected: cb3aScore === 0 },
+                            ].map((opt, i) => (
+                              <div key={i} className={`flex justify-between items-center px-3 py-2 rounded-lg ${opt.selected ? 'bg-violet-100 border-2 border-violet-400' : 'bg-slate-50'}`}>
+                                <div className="flex items-center gap-2">
+                                  {opt.selected && <span className="text-violet-600">✓</span>}
+                                  <span className={opt.selected ? 'font-semibold text-violet-900' : 'text-slate-600'}>{opt.label}</span>
+                                </div>
+                                <span className={`font-semibold ${opt.selected ? 'text-violet-700' : 'text-slate-500'}`}>{opt.points} pts</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {/* CB3b - Program Elements */}
+                        <div className="border border-violet-200 rounded-xl overflow-hidden">
+                          <div className="bg-violet-50 px-4 py-3 font-semibold text-violet-800 border-b border-violet-200 flex justify-between">
+                            <span>Program structure elements</span>
+                            <span className="text-violet-600">{cb3bCount} of 6 = {cb3bScore} pts</span>
+                          </div>
+                          <div className="p-3 grid grid-cols-2 gap-2">
+                            {programElements.map((el, i) => {
+                              const isSelected = cb3bArray.some((v: string) => v.includes(el.key) || el.label.toLowerCase().includes(v.substring(0, 10)));
+                              return (
+                                <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
+                                  <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-400'}>{isSelected ? '✓' : '○'}</span>
+                                  <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{el.label}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        
+                        {/* CB3c - Health Conditions */}
+                        <div className="border border-violet-200 rounded-xl overflow-hidden">
+                          <div className="bg-violet-50 px-4 py-3 font-semibold text-violet-800 border-b border-violet-200 flex justify-between">
+                            <span>Health conditions addressed</span>
+                            <span className="text-violet-600">{cb3cCount} of 13 = {cb3cScore} pts</span>
+                          </div>
+                          <div className="p-3 grid grid-cols-3 gap-2">
+                            {healthConditions.map((condition, i) => {
+                              const isSelected = cb3cArray.some((v: string) => v.toLowerCase().includes(condition.toLowerCase().substring(0, 5)));
+                              return (
+                                <div key={i} className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
+                                  <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-400'}>{isSelected ? '✓' : '○'}</span>
+                                  <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{condition}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-8 py-4 bg-violet-50 rounded-b-2xl flex justify-end">
+                        <button onClick={() => setActiveScoreOverlay(null)} className="px-6 py-2 bg-violet-600 text-white rounded-lg font-semibold hover:bg-violet-700 transition-colors">
+                          Close
+                        </button>
+                      </div>
+                    </>
                   );
                 })()}
               </div>
             </div>
-          </div>
+          )}
           
           {/* ============ DIMENSION PERFORMANCE TABLE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-            <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
-                <p className="text-slate-500 mt-1 text-base">All 13 dimensions sorted by strategic weight</p>
-              </div>
-              <div className="flex items-center gap-6 text-sm text-slate-400">
-                <span>Scores out of 100</span>
-                <span className="flex items-center gap-2">
-                  <svg className="w-3 h-4" viewBox="0 0 12 16" fill="none"><path d="M6 0L12 8H0L6 0Z" fill="#475569"/></svg>
-                  Peer Benchmark
-                </span>
-              </div>
+            <div className="px-12 py-6 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
+              <p className="text-slate-500 mt-1 text-base">All 13 dimensions sorted by strategic weight</p>
             </div>
             <div className="px-12 py-6">
+              {/* Table Header */}
+              <div className="flex items-center gap-4 py-3 border-b-2 border-slate-200 text-sm font-bold text-slate-500 uppercase tracking-wider">
+                <div className="w-10"></div>
+                <div className="flex-1">Dimension</div>
+                <div className="w-20 text-center">Weight</div>
+                <div className="w-72 text-center">Performance</div>
+                <div className="w-20 text-center">Your Score</div>
+                <div className="w-28 text-center">Benchmark</div>
+                <div className="w-28 text-center">Assigned Tier</div>
+              </div>
               <div className="divide-y divide-slate-100">
                 {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   return (
-                    <div key={d.dim} className={`flex items-center gap-4 py-5 ${idx % 2 === 0 ? '' : 'bg-slate-50/30 -mx-4 px-4'}`}>
+                    <div key={d.dim} className={`flex items-center gap-4 py-5 ${idx % 2 === 0 ? '' : 'bg-slate-50/50 -mx-4 px-4'}`}>
                       <div className="w-10 flex justify-center">
-                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: d.tier.color }}>
+                        <span className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: d.tier.color }}>
                           {d.dim}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-base text-slate-800 font-medium">{d.name}</span>
+                        <span className="text-base text-slate-800 font-semibold">{d.name}</span>
                       </div>
-                      <div className="w-14 text-center">
-                        <span className="text-sm text-slate-400 font-semibold">{d.weight}%</span>
+                      <div className="w-20 text-center">
+                        <span className="text-base text-slate-600 font-semibold">{d.weight}%</span>
                       </div>
                       <div className="w-72">
-                        <div className="relative h-5 bg-slate-100 rounded-full overflow-visible">
+                        <div className="relative h-6 bg-slate-100 rounded-full overflow-visible">
                           <div 
                             className="absolute left-0 top-0 h-full rounded-full transition-all" 
                             style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} 
@@ -3257,24 +3327,24 @@ export default function ExportReportPage() {
                               className="absolute -top-1" 
                               style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
                             >
-                              <svg className="w-3 h-4" viewBox="0 0 12 16" fill="none"><path d="M6 0L12 8H0L6 0Z" fill="#475569"/></svg>
+                              <svg className="w-4 h-5" viewBox="0 0 12 16" fill="none"><path d="M6 0L12 8H0L6 0Z" fill="#475569"/></svg>
                             </div>
                           )}
                         </div>
                       </div>
-                      <div className="w-16 text-right">
-                        <span className="text-xl font-bold" style={{ color: d.tier.color }}>{d.score}</span>
+                      <div className="w-20 text-center">
+                        <span className="text-2xl font-bold" style={{ color: d.tier.color }}>{d.score}</span>
                       </div>
-                      <div className="w-24 text-center">
+                      <div className="w-28 text-center">
                         {d.benchmark !== null ? (
-                          <span className="text-sm">
-                            <span className="text-slate-400">{d.benchmark}</span>
-                            <span className={`ml-2 font-semibold ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                          <div>
+                            <span className="text-base text-slate-500 font-medium">{d.benchmark}</span>
+                            <span className={`ml-2 text-sm font-bold ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
                               ({diff !== null && diff >= 0 ? '+' : ''}{diff})
                             </span>
-                          </span>
+                          </div>
                         ) : (
-                          <span className="text-sm text-slate-300">—</span>
+                          <span className="text-base text-slate-300">—</span>
                         )}
                       </div>
                       <div className="w-28 flex justify-center">
@@ -4170,128 +4240,113 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
-          <div className="ppt-break bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl shadow-lg overflow-hidden mb-8 pdf-no-break">
-            <div className="px-12 py-10">
-              <div className="flex items-center justify-between mb-10">
-                <div className="flex items-center gap-8">
-                  <div className="bg-white rounded-xl p-5">
-                    <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={160} height={55} className="object-contain" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-2xl">How Cancer and Careers Can Help</h3>
-                    <p className="text-slate-300 mt-2 text-lg">Resources and services to support your improvement journey</p>
-                  </div>
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+            <div className="px-12 py-8 bg-gradient-to-r from-[#F37021] to-[#FF8C42]">
+              <div className="flex items-center gap-8">
+                <div className="bg-white rounded-xl p-4 shadow-lg flex-shrink-0">
+                  <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={140} height={50} className="object-contain" />
                 </div>
-                {editMode && <p className="text-sm text-amber-400">(editable below)</p>}
+                <div>
+                  <h3 className="font-bold text-white text-2xl">How Cancer and Careers Can Help</h3>
+                  <p className="text-orange-100 mt-2 text-lg">Tailored support to enhance your employee experience</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-12 py-8">
+              {/* Intro paragraph */}
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-200 mb-8">
+                <p className="text-slate-700 text-base leading-relaxed">
+                  Every organization enters this work from a different place. Cancer and Careers consulting practice 
+                  helps organizations understand where they are, identify where they want to be, and build a realistic 
+                  path to get there—shaped by <strong>two decades of frontline experience</strong> with employees navigating cancer 
+                  and the HR teams supporting them.
+                </p>
               </div>
               
-              <div className="grid grid-cols-2 gap-8">
-                {/* Card 1 */}
-                <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
-                  <div className="w-14 h-14 rounded-xl bg-violet-500 flex items-center justify-center mb-5">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+              {editMode && <p className="text-sm text-amber-600 mb-4">(editable below)</p>}
+              
+              {/* 4 Service Cards with bullets */}
+              <div className="grid grid-cols-2 gap-6 mb-8">
+                {[
+                  { key: 'item1', num: 1, defaultTitle: 'Manager Preparedness & Training', defaultBullets: ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'], color: 'violet' },
+                  { key: 'item2', num: 2, defaultTitle: 'Navigation & Resource Architecture', defaultBullets: ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'], color: 'emerald' },
+                  { key: 'item3', num: 3, defaultTitle: 'Return to Work Excellence', defaultBullets: ['Phased return protocols', 'Check-in cadence design', 'Career continuity planning'], color: 'amber' },
+                  { key: 'item4', num: 4, defaultTitle: 'Policy & Program Assessment', defaultBullets: ['Comprehensive policy review', 'Implementation audit', 'Business case development'], color: 'blue' },
+                ].map(item => {
+                  const custom = customCacHelp[item.key as keyof typeof customCacHelp];
+                  const title = custom?.title || item.defaultTitle;
+                  const bullets = custom?.bullets || item.defaultBullets;
+                  const colorClasses = {
+                    violet: { bg: 'bg-violet-500', border: 'border-violet-500', icon: 'bg-violet-100' },
+                    emerald: { bg: 'bg-emerald-500', border: 'border-emerald-500', icon: 'bg-emerald-100' },
+                    amber: { bg: 'bg-amber-500', border: 'border-amber-500', icon: 'bg-amber-100' },
+                    blue: { bg: 'bg-blue-500', border: 'border-blue-500', icon: 'bg-blue-100' },
+                  }[item.color];
+                  
+                  return (
+                    <div key={item.key} className={`border-l-4 ${colorClasses?.border} bg-slate-50 rounded-r-xl p-6`}>
+                      {editMode ? (
+                        <>
+                          <div className="flex items-center gap-3 mb-4">
+                            <span className={`w-8 h-8 rounded-full ${colorClasses?.bg} text-white text-sm font-bold flex items-center justify-center flex-shrink-0`}>{item.num}</span>
+                            <input
+                              type="text"
+                              value={title}
+                              onChange={(e) => {
+                                setCustomCacHelp(prev => ({
+                                  ...prev,
+                                  [item.key]: { title: e.target.value, bullets: bullets }
+                                }));
+                                setHasUnsavedChanges(true);
+                              }}
+                              className="flex-1 font-bold text-slate-800 text-lg bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            />
+                          </div>
+                          <textarea
+                            value={bullets.join('\n')}
+                            onChange={(e) => {
+                              setCustomCacHelp(prev => ({
+                                ...prev,
+                                [item.key]: { title: title, bullets: e.target.value.split('\n') }
+                              }));
+                              setHasUnsavedChanges(true);
+                            }}
+                            className="w-full text-base text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            placeholder="One bullet per line..."
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <h4 className="font-bold text-slate-800 text-lg mb-4 flex items-center gap-3">
+                            <span className={`w-8 h-8 rounded-full ${colorClasses?.bg} text-white text-sm font-bold flex items-center justify-center`}>{item.num}</span>
+                            {title}
+                          </h4>
+                          <ul className="text-base text-slate-600 space-y-2">
+                            {bullets.map((b: string, i: number) => (
+                              <li key={i} className="flex items-start gap-2">
+                                <span className="text-[#F37021] mt-1">•</span>
+                                <span>{b}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* CTA Footer */}
+              <div className="bg-gradient-to-r from-[#F37021] to-[#FF8C42] rounded-xl p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-white text-xl">Ready to take the next step?</p>
+                    <p className="text-orange-100 mt-2 text-base">Contact Cancer and Careers to discuss how we can support your organization.</p>
                   </div>
-                  {editMode ? (
-                    <>
-                      <input
-                        type="text"
-                        value={customCacHelp.item1?.title || 'Manager Training Programs'}
-                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item1: { ...prev.item1, title: e.target.value } }))}
-                        className="w-full text-xl font-bold text-slate-800 bg-white border border-amber-300 rounded-lg px-3 py-2 mb-3"
-                      />
-                      <textarea
-                        value={customCacHelp.item1?.bullets?.[0] || 'Comprehensive training to help managers support employees navigating cancer diagnosis and treatment.'}
-                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item1: { ...prev.item1, bullets: [e.target.value] } }))}
-                        className="w-full text-base text-slate-600 bg-white border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] resize-y"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item1?.title || 'Manager Training Programs'}</h4>
-                      <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item1?.bullets?.[0] || 'Comprehensive training to help managers support employees navigating cancer diagnosis and treatment.'}</p>
-                    </>
-                  )}
-                </div>
-                
-                {/* Card 2 */}
-                <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
-                  <div className="w-14 h-14 rounded-xl bg-emerald-500 flex items-center justify-center mb-5">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                  <div className="text-right bg-white rounded-xl px-6 py-4 shadow-lg">
+                    <p className="font-bold text-[#F37021] text-lg">cancerandcareers.org</p>
+                    <p className="text-slate-600 mt-1">cacbestcompanies@cew.org</p>
                   </div>
-                  {editMode ? (
-                    <>
-                      <input
-                        type="text"
-                        value={customCacHelp.item2?.title || 'Employee Resources'}
-                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item2: { ...prev.item2, title: e.target.value } }))}
-                        className="w-full text-xl font-bold text-slate-800 bg-white border border-amber-300 rounded-lg px-3 py-2 mb-3"
-                      />
-                      <textarea
-                        value={customCacHelp.item2?.bullets?.[0] || 'Direct support services for employees including navigation assistance and educational materials.'}
-                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item2: { ...prev.item2, bullets: [e.target.value] } }))}
-                        className="w-full text-base text-slate-600 bg-white border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] resize-y"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item2?.title || 'Employee Resources'}</h4>
-                      <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item2?.bullets?.[0] || 'Direct support services for employees including navigation assistance and educational materials.'}</p>
-                    </>
-                  )}
-                </div>
-                
-                {/* Card 3 */}
-                <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
-                  <div className="w-14 h-14 rounded-xl bg-amber-500 flex items-center justify-center mb-5">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-                  </div>
-                  {editMode ? (
-                    <>
-                      <input
-                        type="text"
-                        value={customCacHelp.item3?.title || 'Policy Review'}
-                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item3: { ...prev.item3, title: e.target.value } }))}
-                        className="w-full text-xl font-bold text-slate-800 bg-white border border-amber-300 rounded-lg px-3 py-2 mb-3"
-                      />
-                      <textarea
-                        value={customCacHelp.item3?.bullets?.[0] || 'Expert consultation on policies and benefits to ensure comprehensive cancer support.'}
-                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item3: { ...prev.item3, bullets: [e.target.value] } }))}
-                        className="w-full text-base text-slate-600 bg-white border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] resize-y"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item3?.title || 'Policy Review'}</h4>
-                      <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item3?.bullets?.[0] || 'Expert consultation on policies and benefits to ensure comprehensive cancer support.'}</p>
-                    </>
-                  )}
-                </div>
-                
-                {/* Card 4 */}
-                <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
-                  <div className="w-14 h-14 rounded-xl bg-blue-500 flex items-center justify-center mb-5">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                  </div>
-                  {editMode ? (
-                    <>
-                      <input
-                        type="text"
-                        value={customCacHelp.item4?.title || 'Ongoing Consultation'}
-                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item4: { ...prev.item4, title: e.target.value } }))}
-                        className="w-full text-xl font-bold text-slate-800 bg-white border border-amber-300 rounded-lg px-3 py-2 mb-3"
-                      />
-                      <textarea
-                        value={customCacHelp.item4?.bullets?.[0] || 'Year-round access to CAC experts for guidance on implementation and best practices.'}
-                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item4: { ...prev.item4, bullets: [e.target.value] } }))}
-                        className="w-full text-base text-slate-600 bg-white border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] resize-y"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item4?.title || 'Ongoing Consultation'}</h4>
-                      <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item4?.bullets?.[0] || 'Year-round access to CAC experts for guidance on implementation and best practices.'}</p>
-                    </>
-                  )}
                 </div>
               </div>
             </div>
@@ -4331,25 +4386,27 @@ export default function ExportReportPage() {
             
             {/* Footer */}
             <div className="px-12 py-5 border-t border-slate-200 bg-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
                   <p className="text-base font-semibold text-slate-700">Best Companies for Working with Cancer Index</p>
-                  <p className="text-sm text-slate-400">© 2026 Cancer and Careers. All rights reserved.</p>
+                  <p className="text-sm text-slate-500 mt-1">Survey ID: {surveyId}</p>
                 </div>
-                <div className="flex items-center gap-6 text-right">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-8">
+                  <p className="text-sm text-slate-500 font-medium">Confidential</p>
+                  <div className="flex items-center gap-3">
                     <span className="text-sm text-slate-400">Powered by:</span>
                     <Image 
                       src="/BI_LOGO_FINAL.png" 
                       alt="BEYOND Insights" 
-                      width={90} 
-                      height={28}
+                      width={100} 
+                      height={32}
                       className="object-contain"
                     />
                   </div>
-                  <p className="text-sm text-slate-400">Survey ID: {surveyId}</p>
-                  <p className="text-sm text-slate-400">Confidential</p>
                 </div>
+              </div>
+              <div className="pt-3 border-t border-slate-100">
+                <p className="text-sm text-slate-400 text-center">© 2026 Cancer and Careers. All rights reserved.</p>
               </div>
             </div>
           </div>
