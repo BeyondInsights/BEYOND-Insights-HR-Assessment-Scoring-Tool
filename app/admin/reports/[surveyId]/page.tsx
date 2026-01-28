@@ -3833,10 +3833,6 @@ export default function ExportReportPage() {
               </div>
             );
           })()}
-                </div>
-              </div>
-            );
-          })()}
           
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
