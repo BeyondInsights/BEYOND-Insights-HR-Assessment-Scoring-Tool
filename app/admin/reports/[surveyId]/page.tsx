@@ -2849,8 +2849,7 @@ export default function ExportReportPage() {
                 </>
               )}
               
-              <span className="text-sm bg-violet-100 text-violet-700 px-4 py-2 rounded-lg font-semibold tracking-wide uppercase">Polished Design</span>
-              <a href={window.location.pathname} className="text-sm text-slate-500 hover:text-slate-700 font-medium">Original →</a>
+              
               <button 
                 onClick={() => window.location.href = `${window.location.pathname}?export=ppt`}
                 className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
@@ -2889,7 +2888,7 @@ export default function ExportReportPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-10">
                   <div className="bg-white rounded-xl p-5 shadow-lg">
-                    <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={110} height={110} className="object-contain" />
+                    <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
                   </div>
                   <div>
                     <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
@@ -3332,20 +3331,23 @@ export default function ExportReportPage() {
           
           {/* ============ DIMENSION PERFORMANCE TABLE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-            <div className="px-12 py-6 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
-              <p className="text-slate-500 mt-1 text-base">All 13 dimensions sorted by strategic weight. <span className="bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded font-semibold">👆 Click any row for detailed element breakdown</span></p>
+            <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
+                <p className="text-slate-500 mt-1 text-sm">All 13 dimensions sorted by strategic weight</p>
+              </div>
+              <span className="bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-lg font-semibold text-sm">👆 Click any row for detailed breakdown</span>
             </div>
-            <div className="px-12 py-6">
+            <div className="px-12 py-4">
               {/* Table Header */}
-              <div className="flex items-center gap-4 py-3 border-b-2 border-slate-200 text-sm font-bold text-slate-500 uppercase tracking-wider">
-                <div className="w-10"></div>
+              <div className="flex items-center gap-3 py-2 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <div className="w-8"></div>
                 <div className="flex-1">Dimension</div>
-                <div className="w-20 text-center">Weight</div>
-                <div className="w-72 text-center">Performance</div>
-                <div className="w-20 text-center">Your Score</div>
-                <div className="w-28 text-center">Benchmark</div>
-                <div className="w-28 text-center">Assigned Tier</div>
+                <div className="w-16 text-center">Weight</div>
+                <div className="w-64 text-center">Performance</div>
+                <div className="w-16 text-center">Score</div>
+                <div className="w-24 text-center">Benchmark</div>
+                <div className="w-24 text-center">Tier</div>
               </div>
               <div className="divide-y divide-slate-100">
                 {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, idx) => {
@@ -3354,53 +3356,53 @@ export default function ExportReportPage() {
                     <div 
                       key={d.dim} 
                       onClick={() => setDimensionDetailModal(d.dim)}
-                      className={`flex items-center gap-4 py-5 cursor-pointer hover:bg-cyan-50 transition-colors ${idx % 2 === 0 ? '' : 'bg-slate-50/50'} -mx-4 px-4`}
+                      className={`flex items-center gap-3 py-3 cursor-pointer hover:bg-cyan-50 transition-colors ${idx % 2 === 0 ? '' : 'bg-slate-50/50'} -mx-4 px-4`}
                     >
-                      <div className="w-10 flex justify-center">
-                        <span className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: d.tier.color }}>
+                      <div className="w-8 flex justify-center">
+                        <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm" style={{ backgroundColor: d.tier.color }}>
                           {d.dim}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-base text-slate-800 font-semibold hover:text-cyan-700">{d.name}</span>
+                        <span className="text-sm text-slate-800 font-semibold hover:text-cyan-700">{d.name}</span>
                       </div>
-                      <div className="w-20 text-center">
-                        <span className="text-base text-slate-600 font-semibold">{d.weight}%</span>
+                      <div className="w-16 text-center">
+                        <span className="text-sm text-slate-600 font-medium">{d.weight}%</span>
                       </div>
-                      <div className="w-72">
-                        <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
+                      <div className="w-64">
+                        <div className="relative h-2.5 bg-slate-100 rounded-full overflow-visible">
                           <div 
                             className="absolute left-0 top-0 h-full rounded-full transition-all" 
                             style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} 
                           />
                           {d.benchmark !== null && (
                             <div 
-                              className="absolute -top-1" 
+                              className="absolute -top-0.5" 
                               style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
                             >
-                              <svg className="w-4 h-5" viewBox="0 0 12 16" fill="none"><path d="M6 0L12 8H0L6 0Z" fill="#475569"/></svg>
+                              <svg className="w-3 h-3.5" viewBox="0 0 12 16" fill="none"><path d="M6 0L12 8H0L6 0Z" fill="#475569"/></svg>
                             </div>
                           )}
                         </div>
                       </div>
-                      <div className="w-20 text-center">
-                        <span className="text-2xl font-bold" style={{ color: d.tier.color }}>{d.score}</span>
+                      <div className="w-16 text-center">
+                        <span className="text-lg font-bold" style={{ color: d.tier.color }}>{d.score}</span>
                       </div>
-                      <div className="w-28 text-center">
+                      <div className="w-24 text-center">
                         {d.benchmark !== null ? (
                           <div>
-                            <span className="text-base text-slate-500 font-medium">{d.benchmark}</span>
-                            <span className={`ml-2 text-sm font-bold ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            <span className="text-sm text-slate-500 font-medium">{d.benchmark}</span>
+                            <span className={`ml-1 text-xs font-bold ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
                               ({diff !== null && diff >= 0 ? '+' : ''}{diff})
                             </span>
                           </div>
                         ) : (
-                          <span className="text-base text-slate-300">—</span>
+                          <span className="text-sm text-slate-300">—</span>
                         )}
                       </div>
-                      <div className="w-28 flex justify-center">
+                      <div className="w-24 flex justify-center">
                         <span 
-                          className={`text-sm font-bold px-4 py-1.5 rounded-lg ${d.tier.bgColor} border ${d.tier.borderColor}`} 
+                          className={`text-xs font-bold px-3 py-1 rounded-lg ${d.tier.bgColor} border ${d.tier.borderColor}`} 
                           style={{ color: d.tier.color }}
                         >
                           {d.tier.name}
@@ -3733,11 +3735,11 @@ export default function ExportReportPage() {
                   </div>
                   
                   {/* Table Header Row */}
-                  <div className="px-6 py-2 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-2 text-xs font-bold text-slate-500 uppercase tracking-wide">
+                  <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
                     <div className="col-span-3">Element</div>
                     <div className="col-span-1 text-center">Your Status</div>
-                    <div className="col-span-6">Peer Distribution</div>
-                    <div className="col-span-2">Observation</div>
+                    <div className="col-span-5 text-center">Peer Distribution</div>
+                    <div className="col-span-3">Observation</div>
                   </div>
                   
                   {/* Table Body */}
@@ -3753,56 +3755,72 @@ export default function ExportReportPage() {
                       const observation = getDefaultObservation(elem, bench);
                       
                       return (
-                        <div key={i} className={`px-6 py-2.5 grid grid-cols-12 gap-2 items-center border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50/50' : ''}`}>
+                        <div key={i} className={`px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50/30' : ''}`}>
                           {/* Element Name */}
                           <div className="col-span-3">
-                            <p className="text-sm text-slate-800 font-medium leading-tight">{elem.name}</p>
+                            <p className="text-sm text-slate-800 font-medium leading-snug">{elem.name}</p>
                           </div>
                           
                           {/* Your Status */}
                           <div className="col-span-1 flex justify-center">
-                            <span className="px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                            <span className="px-2.5 py-1.5 rounded text-xs font-bold whitespace-nowrap" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
                               {statusInfo.label}
                             </span>
                           </div>
                           
                           {/* Peer Distribution - Wide Stacked Bar */}
-                          <div className="col-span-6">
-                            <div className="h-6 rounded overflow-hidden flex bg-slate-200 border border-slate-300">
+                          <div className="col-span-5">
+                            <div className="h-8 rounded-lg overflow-hidden flex bg-slate-200 border border-slate-300">
                               {/* Offering */}
                               <div 
-                                className={`flex items-center justify-center text-[10px] font-bold text-white ${statusInfo.key === 'currently' ? 'ring-2 ring-inset ring-white' : ''}`}
-                                style={{ width: `${pctCurrently}%`, backgroundColor: '#10B981', minWidth: pctCurrently > 0 ? '20px' : '0' }}
+                                className="flex items-center justify-center text-xs font-bold text-white"
+                                style={{ width: `${pctCurrently}%`, backgroundColor: '#10B981', minWidth: pctCurrently > 0 ? '28px' : '0' }}
                               >
                                 {pctCurrently}%
                               </div>
                               {/* Planning */}
                               <div 
-                                className={`flex items-center justify-center text-[10px] font-bold text-white ${statusInfo.key === 'planning' ? 'ring-2 ring-inset ring-white' : ''}`}
-                                style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6', minWidth: pctPlanning > 0 ? '20px' : '0' }}
+                                className="flex items-center justify-center text-xs font-bold text-white"
+                                style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6', minWidth: pctPlanning > 0 ? '28px' : '0' }}
                               >
                                 {pctPlanning > 0 ? `${pctPlanning}%` : ''}
                               </div>
                               {/* Assessing */}
                               <div 
-                                className={`flex items-center justify-center text-[10px] font-bold text-white ${statusInfo.key === 'assessing' ? 'ring-2 ring-inset ring-white' : ''}`}
-                                style={{ width: `${pctAssessing}%`, backgroundColor: '#F59E0B', minWidth: pctAssessing > 0 ? '20px' : '0' }}
+                                className="flex items-center justify-center text-xs font-bold text-white"
+                                style={{ width: `${pctAssessing}%`, backgroundColor: '#F59E0B', minWidth: pctAssessing > 0 ? '28px' : '0' }}
                               >
                                 {pctAssessing > 0 ? `${pctAssessing}%` : ''}
                               </div>
                               {/* Not Offering */}
                               <div 
-                                className={`flex items-center justify-center text-[10px] font-bold text-slate-600 ${statusInfo.key === 'notAble' ? 'ring-2 ring-inset ring-red-500' : ''}`}
-                                style={{ width: `${pctNotOffering}%`, backgroundColor: '#CBD5E1', minWidth: pctNotOffering > 0 ? '20px' : '0' }}
+                                className="flex items-center justify-center text-xs font-bold text-slate-600"
+                                style={{ width: `${pctNotOffering}%`, backgroundColor: '#CBD5E1', minWidth: pctNotOffering > 0 ? '28px' : '0' }}
                               >
                                 {pctNotOffering}%
                               </div>
                             </div>
                           </div>
                           
-                          {/* Observation */}
-                          <div className="col-span-2">
-                            <p className="text-[11px] text-slate-500 leading-tight">{observation}</p>
+                          {/* Observation - Editable */}
+                          <div className="col-span-3">
+                            {editMode ? (
+                              <input
+                                type="text"
+                                value={customObservations[`dim${d.dim}_${elem.name}`] ?? observation}
+                                onChange={(e) => {
+                                  setCustomObservations(prev => ({
+                                    ...prev,
+                                    [`dim${d.dim}_${elem.name}`]: e.target.value
+                                  }));
+                                  setHasUnsavedChanges(true);
+                                }}
+                                className="w-full text-xs text-slate-700 bg-amber-50 border border-amber-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                placeholder="Custom observation..."
+                              />
+                            ) : (
+                              <p className="text-xs text-slate-700 font-medium leading-snug">{customObservations[`dim${d.dim}_${elem.name}`] || observation}</p>
+                            )}
                           </div>
                         </div>
                       );
@@ -3841,8 +3859,6 @@ export default function ExportReportPage() {
                         <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-600">Planning</span></div>
                         <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-600">Assessing</span></div>
                         <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-600">Not Offering</span></div>
-                        <span className="text-slate-400 ml-2">|</span>
-                        <span className="text-slate-500">White ring = your status</span>
                       </div>
                       
                       {/* Navigation */}
