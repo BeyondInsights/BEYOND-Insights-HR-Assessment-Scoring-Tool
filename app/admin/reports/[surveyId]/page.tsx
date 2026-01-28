@@ -2758,10 +2758,10 @@ export default function ExportReportPage() {
   // Gap opportunities - dimensions below Leading tier
   const gapOpportunities = dimensionAnalysis.filter((d: any) => d.tier.name !== 'Exemplary' && d.tier.name !== 'Leading');
   // ============================================
-  // POLISHED DESIGN RENDER (when ?design=polished)
+  // POLISHED DESIGN RENDER v2 (when ?design=polished)
+  // Full feature parity with original, polished styling
   // ============================================
   if (usePolishedDesign) {
-    // Cross-dimension patterns for polished design
     const patterns = getCrossDimensionPatterns(dimensionAnalysis);
     const rankings = getImpactRankings(dimensionAnalysis, compositeScore || 0);
     
@@ -2770,40 +2770,45 @@ export default function ExportReportPage() {
         <style jsx global>{`
           @media print { 
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } 
-            .no-print { display: none !important; } 
+            .no-print { display: none !important; }
             .pdf-break-before { page-break-before: always; }
+            .pdf-no-break { page-break-inside: avoid; }
           }
-          .polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-          .polished-report h1, .polished-report h2, .polished-report h3 { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: -0.02em; }
+          .polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+          .polished-report h1, .polished-report h2, .polished-report h3, .polished-report h4 { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
+            letter-spacing: -0.01em; 
+          }
         `}</style>
         
-        {/* Action Bar */}
-        <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
-            <button onClick={() => window.history.back()} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        {/* ============ ACTION BAR ============ */}
+        <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+          <div className="max-w-7xl mx-auto px-10 py-4 flex items-center justify-between">
+            <button onClick={() => window.history.back()} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium text-base">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               Back
             </button>
-            <div className="flex items-center gap-3">
-              <span className="text-xs bg-violet-100 text-violet-700 px-3 py-1.5 rounded-full font-semibold tracking-wide">POLISHED DESIGN</span>
-              <a href={window.location.pathname} className="text-sm text-slate-500 hover:text-slate-700 underline">Original →</a>
-              <button onClick={() => window.print()} className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            <div className="flex items-center gap-4">
+              <span className="text-sm bg-violet-100 text-violet-700 px-4 py-2 rounded-lg font-semibold tracking-wide uppercase">Polished Design</span>
+              <a href={window.location.pathname} className="text-sm text-slate-500 hover:text-slate-700 font-medium">Original →</a>
+              <button onClick={() => window.print()} className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-base">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                 Export PDF
               </button>
             </div>
           </div>
         </div>
         
-        <div className="polished-report max-w-7xl mx-auto py-10 px-8">
+        <div className="polished-report max-w-7xl mx-auto py-10 px-10">
         
           {/* ============ HEADER ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+            {/* Dark header band */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-10">
                   <div className="bg-white rounded-xl p-5 shadow-lg">
-                    <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={100} height={100} className="object-contain" />
+                    <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={110} height={110} className="object-contain" />
                   </div>
                   <div>
                     <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
@@ -2818,12 +2823,12 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* Company Info + Score */}
+            {/* Company info + score */}
             <div className="px-12 py-10 border-b border-slate-100">
               <div className="flex items-end justify-between">
                 <div>
                   <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
-                  <h2 className="text-4xl font-bold text-slate-900 mt-2">{companyName}</h2>
+                  <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
                   {(contactName || contactEmail) && (
                     <div className="mt-3 text-base text-slate-500">
                       {contactName && <span className="font-medium text-slate-600">{contactName}</span>}
@@ -2835,11 +2840,11 @@ export default function ExportReportPage() {
                 <div className="flex items-center gap-8">
                   <div className="text-right">
                     <p className="text-slate-500 text-sm font-medium">Composite Score</p>
-                    <p className="text-6xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
+                    <p className="text-6xl font-bold mt-1" style={{ color: tier?.color || '#666' }} data-export="composite-score">{compositeScore ?? '—'}</p>
                   </div>
                   {tier && (
                     <div className={`px-6 py-4 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
-                      <p className="text-2xl font-bold" style={{ color: tier.color }}>{tier.name}</p>
+                      <p className="text-2xl font-bold" style={{ color: tier.color }} data-export="tier-name">{tier.name}</p>
                       <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
                     </div>
                   )}
@@ -2850,54 +2855,68 @@ export default function ExportReportPage() {
             {/* Executive Summary */}
             <div className="px-12 py-10 bg-slate-50">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
-              <p className="text-slate-700 leading-relaxed text-lg">
+              <p className="text-slate-700 leading-relaxed text-lg" data-export="executive-summary-text">
                 {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
-                in supporting employees managing cancer, with a composite score of <strong>{compositeScore}</strong>
+                in supporting employees managing cancer, achieving a composite score of <strong>{compositeScore}</strong>
                 {percentileRank !== null && totalCompanies > 1 && (
-                  <span>, placing in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed organizations</span>
+                  <span>, which places the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
                 )}.
                 {topDimension && bottomDimension && (
-                  <span> Your strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
-                  while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) represents your greatest opportunity for growth.</span>
+                  <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
+                  while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
                 )}
               </p>
               
               {/* Tier Progress */}
-              {nextTierUp && pointsToNextTier && (
-                <div className="mt-6 p-5 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                  </div>
-                  <div>
-                    <p className="text-base font-bold text-violet-800">
-                      {pointsToNextTier} points from {nextTierUp.name} tier
-                      {nextTierUp.name !== 'Exemplary' && (
-                        <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points from Exemplary</span>
+              {(() => {
+                const topGrowthDims = allDimensionsByScore.slice(0, 3).map(d => d.name);
+                const dimList = topGrowthDims.length === 3 
+                  ? `${topGrowthDims[0]}, ${topGrowthDims[1]}, or ${topGrowthDims[2]}`
+                  : topGrowthDims.length === 2
+                  ? `${topGrowthDims[0]} or ${topGrowthDims[1]}`
+                  : topGrowthDims[0];
+                
+                return (
+                  <div className="mt-6 p-5 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-4">
+                    <TrendUpIcon className="w-6 h-6 text-violet-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      {nextTierUp && pointsToNextTier ? (
+                        <>
+                          <p className="text-base font-bold text-violet-800">
+                            {pointsToNextTier} points from {nextTierUp.name} tier
+                            {nextTierUp.name !== 'Exemplary' && (
+                              <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points from Exemplary</span>
+                            )}
+                          </p>
+                          <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-base font-bold text-violet-800">Exemplary tier achieved</p>
+                          <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
+                        </>
                       )}
-                    </p>
-                    <p className="text-sm text-violet-600 mt-1">
-                      Targeted improvements in your lowest-scoring dimensions could elevate your overall standing.
-                    </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
               
               {/* Key Metrics */}
               <div className="mt-8 grid grid-cols-4 gap-6">
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800">{currentlyOffering}</p>
+                  <p className="text-4xl font-bold text-slate-800" data-export="metric-currently-offering">{currentlyOffering}</p>
                   <p className="text-sm text-slate-500 mt-2 font-medium">of {totalElements} elements offered</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800">{planningItems + assessingItems}</p>
+                  <p className="text-4xl font-bold text-slate-800" data-export="metric-in-development">{planningItems + assessingItems}</p>
                   <p className="text-sm text-slate-500 mt-2 font-medium">initiatives in development</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800">{gapItems}</p>
+                  <p className="text-4xl font-bold text-slate-800" data-export="metric-gaps">{gapItems}</p>
                   <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
+                  <p className="text-4xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
                   <p className="text-sm text-slate-500 mt-2 font-medium">dimensions at Leading+</p>
                 </div>
               </div>
@@ -2905,15 +2924,15 @@ export default function ExportReportPage() {
             
             {/* Key Findings Strip */}
             <div className="bg-slate-900 px-12 py-8">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">Key Findings at a Glance</h3>
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">Key Findings</h3>
               <div className="grid grid-cols-4 gap-6">
                 <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Strongest Area</p>
+                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Top Strength</p>
                   <p className="text-white font-bold text-lg">{topDimension?.name || 'N/A'}</p>
                   <p className="text-emerald-400 text-sm mt-1 font-semibold">Score: {topDimension?.score}</p>
                 </div>
                 <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Growth Opportunity</p>
+                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Primary Opportunity</p>
                   <p className="text-white font-bold text-lg">{bottomDimension?.name || 'N/A'}</p>
                   <p className="text-amber-400 text-sm mt-1 font-semibold">Score: {bottomDimension?.score}</p>
                 </div>
@@ -2932,14 +2951,13 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ SCORE COMPOSITION ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-12 py-6 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-xl">Score Composition</h3>
-              <p className="text-slate-500 mt-1">How your composite score is calculated</p>
             </div>
             <div className="px-12 py-8">
-              {/* Formula Row */}
-              <div className="flex items-center justify-center gap-6 mb-10 flex-wrap">
+              {/* Visual Formula */}
+              <div className="flex items-center justify-center gap-6 mb-8 flex-wrap">
                 <div className="text-center px-8 py-5 bg-slate-100 rounded-xl border-2 border-slate-300 min-w-[160px]">
                   <p className="text-5xl font-bold" style={{ color: tier?.color || '#94a3b8' }}>{compositeScore ?? '—'}</p>
                   <p className="text-sm text-slate-500 font-semibold uppercase tracking-wider mt-2">Composite</p>
@@ -2947,84 +2965,192 @@ export default function ExportReportPage() {
                 <span className="text-3xl text-slate-300 font-light">=</span>
                 <div className="text-center px-6 py-4 bg-white rounded-xl border border-slate-200 min-w-[130px]">
                   <p className="text-3xl font-bold text-slate-700">{weightedDimScore ?? '—'}</p>
-                  <p className="text-xs text-slate-400 mt-1 font-medium">Weighted Dims</p>
+                  <p className="text-sm text-slate-400 mt-1 font-medium">Weighted Dims</p>
                   <p className="text-xs text-slate-300 font-semibold">× 90%</p>
                 </div>
                 <span className="text-2xl text-slate-300 font-light">+</span>
                 <div className="text-center px-6 py-4 bg-white rounded-xl border border-slate-200 min-w-[130px]">
                   <p className="text-3xl font-bold text-slate-700">{maturityScore ?? '—'}</p>
-                  <p className="text-xs text-slate-400 mt-1 font-medium">Maturity</p>
+                  <p className="text-sm text-slate-400 mt-1 font-medium">Maturity</p>
                   <p className="text-xs text-slate-300 font-semibold">× 5%</p>
                 </div>
                 <span className="text-2xl text-slate-300 font-light">+</span>
                 <div className="text-center px-6 py-4 bg-white rounded-xl border border-slate-200 min-w-[130px]">
                   <p className="text-3xl font-bold text-slate-700">{breadthScore ?? '—'}</p>
-                  <p className="text-xs text-slate-400 mt-1 font-medium">Breadth</p>
+                  <p className="text-sm text-slate-400 mt-1 font-medium">Breadth</p>
                   <p className="text-xs text-slate-300 font-semibold">× 5%</p>
                 </div>
               </div>
               
-              {/* Benchmark Comparison */}
-              {benchmarks?.compositeScore && (
-                <div className="flex items-center justify-center gap-8 py-4 px-6 bg-slate-50 rounded-xl border border-slate-100 mb-8">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-500 font-medium">Your Score:</span>
-                    <span className="text-lg font-bold text-slate-800">{compositeScore}</span>
-                  </div>
-                  <div className="w-px h-6 bg-slate-300"></div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-500 font-medium">Peer Benchmark:</span>
-                    <span className="text-lg font-semibold text-slate-600">{benchmarks.compositeScore}</span>
-                  </div>
-                  <div className="w-px h-6 bg-slate-300"></div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-lg font-bold ${(compositeScore || 0) >= benchmarks.compositeScore ? 'text-emerald-600' : 'text-amber-600'}`}>
-                      {(compositeScore || 0) >= benchmarks.compositeScore ? '+' : ''}{(compositeScore || 0) - benchmarks.compositeScore} pts
-                    </span>
-                    <span className="text-sm text-slate-400">vs benchmark</span>
-                  </div>
-                </div>
-              )}
+              {/* Component Cards with Expandable Details - using existing ScoreComponentCard */}
+              <div className="grid grid-cols-3 gap-6 pt-6 border-t border-slate-100">
+                <ScoreComponentCard
+                  title="Weighted Dimension Score"
+                  score={weightedDimScore ?? 0}
+                  weight={DEFAULT_COMPOSITE_WEIGHTS.weightedDim}
+                  benchmarkScore={benchmarks?.weightedDimScore ?? benchmarks?.compositeScore}
+                  color="slate"
+                  summary="Combined performance across all 13 support dimensions, weighted by strategic importance."
+                  getScoreColor={getScoreColor}
+                />
+                
+                <ScoreComponentCard
+                  title="Program Maturity"
+                  score={maturityScore ?? 0}
+                  weight={DEFAULT_COMPOSITE_WEIGHTS.maturity}
+                  benchmarkScore={benchmarks?.maturityScore}
+                  color="amber"
+                  summary="How developed your organization's approach is to supporting employees managing cancer or other serious health conditions."
+                  getScoreColor={getScoreColor}
+                  details={
+                    <div className="space-y-2 text-sm">
+                      <p className="text-slate-600 mb-3">How would you describe your organization's current approach?</p>
+                      <div className="flex justify-between items-center px-3 py-1 text-xs text-slate-400 border-b border-slate-200">
+                        <span>Response</span>
+                        <div className="flex items-center gap-3">
+                          <span className="w-14 text-center">Benchmark</span>
+                          <span className="w-12 text-right">Points</span>
+                        </div>
+                      </div>
+                      {[
+                        { label: 'Comprehensive support', points: 100, selected: maturityScore === 100, benchPct: 15 },
+                        { label: 'Enhanced support', points: 80, selected: maturityScore === 80, benchPct: 22 },
+                        { label: 'Moderate support', points: 50, selected: maturityScore === 50, benchPct: 35 },
+                        { label: 'Developing approach', points: 20, selected: maturityScore === 20, benchPct: 18 },
+                        { label: 'Legal minimum / None', points: 0, selected: maturityScore === 0, benchPct: 10 },
+                      ].map((opt, i) => (
+                        <div key={i} className={`flex justify-between items-center px-3 py-2 rounded ${opt.selected ? 'bg-amber-100 border-2 border-amber-400' : 'bg-slate-50'}`}>
+                          <div className="flex items-center gap-2">
+                            {opt.selected && <span className="text-amber-600">✓</span>}
+                            <span className={opt.selected ? 'font-semibold text-amber-900' : 'text-slate-600'}>{opt.label}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-slate-400 w-14 text-center">{opt.benchPct}%</span>
+                            <span className={`w-12 text-right ${opt.selected ? 'text-amber-700 font-bold' : 'text-slate-500'}`}>{opt.points} pts</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                />
+                
+                {/* Support Breadth with full details */}
+                {(() => {
+                  const currentSupport = company?.current_support_data || {};
+                  const generalBenefits = company?.general_benefits_data || {};
+                  const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
+                  let cb3aScore = 0;
+                  if (cb3a === 3 || cb3a === '3' || String(cb3a).toLowerCase().includes('yes')) cb3aScore = 100;
+                  else if (cb3a === 2 || cb3a === '2' || String(cb3a).toLowerCase().includes('developing')) cb3aScore = 50;
+                  const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
+                  const cb3bCount = (cb3b && Array.isArray(cb3b)) ? Math.min(cb3b.length, 6) : 0;
+                  const cb3bScore = Math.min(100, Math.round((cb3bCount / 6) * 100));
+                  const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
+                  const cb3cCount = (cb3c && Array.isArray(cb3c)) ? Math.min(cb3c.length, 13) : 0;
+                  const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
+                  
+                  return (
+                    <ScoreComponentCard
+                      title="Support Breadth"
+                      score={breadthScore ?? 0}
+                      weight={DEFAULT_COMPOSITE_WEIGHTS.breadth}
+                      benchmarkScore={benchmarks?.breadthScore}
+                      color="violet"
+                      summary="How expansive your benefits and support are—including whether you go beyond legal requirements, how structured your programs are, and how many health conditions are addressed."
+                      getScoreColor={getScoreColor}
+                      details={
+                        <div className="space-y-4 text-sm">
+                          {/* CB3a - Beyond Legal */}
+                          <div className="border border-violet-200 rounded-lg overflow-hidden">
+                            <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
+                              Do you provide support beyond legal requirements?
+                            </div>
+                            <div className="px-2 pt-1 pb-2">
+                              {[
+                                { label: 'Yes', points: 100, selected: cb3aScore === 100, benchPct: 45 },
+                                { label: 'Currently developing', points: 50, selected: cb3aScore === 50, benchPct: 30 },
+                                { label: 'Legal minimum only', points: 0, selected: cb3aScore === 0, benchPct: 25 },
+                              ].map((opt, i) => (
+                                <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded ${opt.selected ? 'bg-violet-100 border-2 border-violet-400' : ''}`}>
+                                  <div className="flex items-center gap-2">
+                                    {opt.selected && <span className="text-violet-600">✓</span>}
+                                    <span className={opt.selected ? 'font-semibold text-violet-900' : 'text-slate-600'}>{opt.label}</span>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-slate-400 w-14 text-center">{opt.benchPct}%</span>
+                                    <span className={`w-12 text-right ${opt.selected ? 'text-violet-700 font-bold' : 'text-slate-500'}`}>{opt.points} pts</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          {/* CB3b - Program Elements */}
+                          <div className="border border-violet-200 rounded-lg overflow-hidden">
+                            <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
+                              Program structure elements ({cb3bCount} of 6)
+                            </div>
+                            <div className="p-2">
+                              <div className="mt-2 pt-2 border-t border-violet-200 flex justify-between items-center px-2">
+                                <span className="text-sm text-slate-600">Score: {cb3bCount} of 6 = <span className="font-semibold text-violet-700">{cb3bScore} pts</span></span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* CB3c - Conditions */}
+                          <div className="border border-violet-200 rounded-lg overflow-hidden">
+                            <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
+                              Health conditions addressed ({cb3cCount} of 13)
+                            </div>
+                            <div className="p-2">
+                              <div className="mt-2 pt-2 border-t border-violet-200 flex justify-between items-center px-2">
+                                <span className="text-sm text-slate-600">Score: {cb3cCount} of 13 = <span className="font-semibold text-violet-700">{cb3cScore} pts</span></span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    />
+                  );
+                })()}
+              </div>
             </div>
           </div>
           
           {/* ============ DIMENSION PERFORMANCE TABLE ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div className="px-12 py-6 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
-              <p className="text-slate-500 mt-1">All 13 dimensions sorted by strategic weight</p>
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+            <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
+                <p className="text-slate-500 mt-1 text-base">All 13 dimensions sorted by strategic weight</p>
+              </div>
+              <div className="flex items-center gap-6 text-sm text-slate-400">
+                <span>Scores out of 100</span>
+                <span className="flex items-center gap-2">
+                  <svg className="w-3 h-4" viewBox="0 0 12 16" fill="none"><path d="M6 0L12 8H0L6 0Z" fill="#475569"/></svg>
+                  Peer Benchmark
+                </span>
+              </div>
             </div>
             <div className="px-12 py-6">
-              {/* Table Header */}
-              <div className="flex items-center gap-4 pb-4 mb-2 border-b-2 border-slate-200">
-                <div className="w-8 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">#</div>
-                <div className="flex-1 text-xs font-bold text-slate-400 uppercase tracking-wider">Dimension</div>
-                <div className="w-12 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Wt</div>
-                <div className="w-64 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Score</div>
-                <div className="w-16 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Score</div>
-                <div className="w-24 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">vs Avg</div>
-                <div className="w-28 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Tier</div>
-              </div>
-              
-              {/* Table Rows */}
               <div className="divide-y divide-slate-100">
                 {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   return (
-                    <div key={d.dim} className={`flex items-center gap-4 py-4 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}>
-                      <div className="w-8 flex justify-center">
-                        <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: d.tier.color }}>
+                    <div key={d.dim} className={`flex items-center gap-4 py-5 ${idx % 2 === 0 ? '' : 'bg-slate-50/30 -mx-4 px-4'}`}>
+                      <div className="w-10 flex justify-center">
+                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: d.tier.color }}>
                           {d.dim}
                         </span>
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <span className="text-base text-slate-800 font-medium">{d.name}</span>
                       </div>
-                      <div className="w-12 text-center">
+                      <div className="w-14 text-center">
                         <span className="text-sm text-slate-400 font-semibold">{d.weight}%</span>
                       </div>
-                      <div className="w-64">
-                        <div className="relative h-4 bg-slate-100 rounded-full overflow-visible">
+                      <div className="w-72">
+                        <div className="relative h-5 bg-slate-100 rounded-full overflow-visible">
                           <div 
                             className="absolute left-0 top-0 h-full rounded-full transition-all" 
                             style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} 
@@ -3034,13 +3160,13 @@ export default function ExportReportPage() {
                               className="absolute -top-1" 
                               style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
                             >
-                              <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-slate-600" />
+                              <svg className="w-3 h-4" viewBox="0 0 12 16" fill="none"><path d="M6 0L12 8H0L6 0Z" fill="#475569"/></svg>
                             </div>
                           )}
                         </div>
                       </div>
                       <div className="w-16 text-right">
-                        <span className="text-lg font-bold" style={{ color: d.tier.color }}>{d.score}</span>
+                        <span className="text-xl font-bold" style={{ color: d.tier.color }}>{d.score}</span>
                       </div>
                       <div className="w-24 text-center">
                         {d.benchmark !== null ? (
@@ -3056,7 +3182,7 @@ export default function ExportReportPage() {
                       </div>
                       <div className="w-28 flex justify-center">
                         <span 
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg ${d.tier.bgColor} border ${d.tier.borderColor}`} 
+                          className={`text-sm font-bold px-4 py-1.5 rounded-lg ${d.tier.bgColor} border ${d.tier.borderColor}`} 
                           style={{ color: d.tier.color }}
                         >
                           {d.tier.name}
@@ -3066,145 +3192,55 @@ export default function ExportReportPage() {
                   );
                 })}
               </div>
-              
-              {/* Legend */}
-              <div className="flex items-center justify-end gap-6 mt-6 pt-4 border-t border-slate-100 text-sm text-slate-400">
-                <span>Scores out of 100</span>
-                <span className="flex items-center gap-2">
-                  <span className="inline-block w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-600"></span>
-                  Peer Benchmark
-                </span>
-              </div>
             </div>
           </div>
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before">
-            <div className="px-12 py-6 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
-              <p className="text-slate-500 mt-1">Dimensions plotted by current performance versus strategic weight</p>
-            </div>
-            <div className="px-8 py-6">
-              <div className="relative w-full" style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                <svg className="w-full" viewBox="0 0 900 550" preserveAspectRatio="xMidYMid meet">
-                  <defs>
-                    <filter id="polishedShadow" x="-20%" y="-20%" width="140%" height="140%">
-                      <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15"/>
-                    </filter>
-                  </defs>
-                  
-                  <g transform="translate(60, 30)">
-                    {/* Quadrant Labels - Top */}
-                    <rect x={0} y={-25} width={380} height={22} rx="4" fill="#FEE2E2" />
-                    <text x={190} y={-10} textAnchor="middle" fill="#991B1B" fontSize="11" fontWeight="700" fontFamily="Inter, system-ui">PRIORITY GAPS</text>
-                    
-                    <rect x={390} y={-25} width={380} height={22} rx="4" fill="#D1FAE5" />
-                    <text x={580} y={-10} textAnchor="middle" fill="#065F46" fontSize="11" fontWeight="700" fontFamily="Inter, system-ui">CORE STRENGTHS</text>
-                    
-                    {/* Quadrant Backgrounds */}
-                    <rect x={0} y={0} width={385} height={200} fill="#FFFBEB" opacity="0.3" />
-                    <rect x={385} y={0} width={385} height={200} fill="#ECFDF5" opacity="0.3" />
-                    <rect x={0} y={200} width={385} height={200} fill="#F8FAFC" />
-                    <rect x={385} y={200} width={385} height={200} fill="#EFF6FF" opacity="0.3" />
-                    
-                    {/* Grid Lines */}
-                    <line x1={0} y1={200} x2={770} y2={200} stroke="#E2E8F0" strokeWidth="1" strokeDasharray="6,4" />
-                    <line x1={385} y1={0} x2={385} y2={400} stroke="#E2E8F0" strokeWidth="1" strokeDasharray="6,4" />
-                    
-                    {/* Border */}
-                    <rect x={0} y={0} width={770} height={400} fill="none" stroke="#CBD5E1" strokeWidth="1" />
-                    
-                    {/* Quadrant Labels - Bottom */}
-                    <rect x={0} y={405} width={380} height={22} rx="4" fill="#F1F5F9" />
-                    <text x={190} y={420} textAnchor="middle" fill="#64748B" fontSize="11" fontWeight="700" fontFamily="Inter, system-ui">MONITOR</text>
-                    
-                    <rect x={390} y={405} width={380} height={22} rx="4" fill="#DBEAFE" />
-                    <text x={580} y={420} textAnchor="middle" fill="#1E40AF" fontSize="11" fontWeight="700" fontFamily="Inter, system-ui">LEVERAGE</text>
-                    
-                    {/* X-axis */}
-                    <g transform="translate(0, 435)">
-                      {[0, 25, 50, 75, 100].map((val) => (
-                        <g key={val} transform={`translate(${(val / 100) * 770}, 0)`}>
-                          <line y1="0" y2="5" stroke="#94A3B8" strokeWidth="1" />
-                          <text y="18" textAnchor="middle" fill="#64748B" fontSize="12" fontFamily="Inter, system-ui" fontWeight="500">{val}</text>
-                        </g>
-                      ))}
-                      <text x={385} y="40" textAnchor="middle" fill="#374151" fontSize="13" fontWeight="600" fontFamily="Inter, system-ui">
-                        Performance Score →
-                      </text>
-                    </g>
-                    
-                    {/* Y-axis */}
-                    <g>
-                      {[0, 5, 10, 15].map((val) => {
-                        const yPos = 400 - ((val / 15) * 400);
-                        return (
-                          <g key={val}>
-                            <line x1="-5" y1={yPos} x2="0" y2={yPos} stroke="#94A3B8" strokeWidth="1" />
-                            <text x="-10" y={yPos + 4} textAnchor="end" fill="#64748B" fontSize="12" fontFamily="Inter, system-ui" fontWeight="500">{val}%</text>
-                          </g>
-                        );
-                      })}
-                    </g>
-                    
-                    {/* Y-axis label */}
-                    <text transform="rotate(-90)" x={-200} y="-40" textAnchor="middle" fill="#374151" fontSize="13" fontWeight="600" fontFamily="Inter, system-ui">
-                      ↑ Strategic Weight
-                    </text>
-                    
-                    {/* Data Points with Labels */}
-                    {dimensionAnalysis.map((d) => {
-                      const xPos = (d.score / 100) * 770;
-                      const yPos = 400 - ((Math.min(d.weight, 15) / 15) * 400);
-                      return (
-                        <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
-                          {/* Shadow circle */}
-                          <circle r={22} fill="white" filter="url(#polishedShadow)" />
-                          {/* Main circle */}
-                          <circle r={18} fill={getScoreColor(d.score)} />
-                          {/* Dimension number */}
-                          <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="11" fontWeight="700" fontFamily="Inter, system-ui">
-                            D{d.dim}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </g>
-                </svg>
-                
-                {/* Legend - Two rows */}
-                <div className="mt-6 pt-6 border-t border-slate-200">
-                  <div className="flex justify-center gap-4 flex-wrap mb-3">
-                    {[...dimensionAnalysis].filter(d => d.dim <= 7).sort((a, b) => a.dim - b.dim).map(d => (
-                      <div key={d.dim} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-                        <span className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>
-                          {d.dim}
-                        </span>
-                        <span className="text-sm text-slate-700 font-medium">{DIMENSION_SHORT_NAMES[d.dim]}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-center gap-4 flex-wrap">
-                    {[...dimensionAnalysis].filter(d => d.dim > 7).sort((a, b) => a.dim - b.dim).map(d => (
-                      <div key={d.dim} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-                        <span className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>
-                          {d.dim}
-                        </span>
-                        <span className="text-sm text-slate-700 font-medium">{DIMENSION_SHORT_NAMES[d.dim]}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
+            <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
+                <p className="text-slate-500 mt-1 text-base">Dimensions plotted by current performance versus strategic weight</p>
               </div>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setShowBenchmarkRings && setShowBenchmarkRings(!showBenchmarkRings)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    showBenchmarkRings 
+                      ? 'bg-violet-100 border-violet-300 text-violet-700' 
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {showBenchmarkRings ? '● Benchmarks On' : '○ Show Benchmarks'}
+                </button>
+              </div>
+            </div>
+            <div ref={matrixRef} id="export-matrix" className="px-6 py-6">
+              <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
             </div>
           </div>
           
+          {/* ============ DIMENSION DRILL DOWN ============ */}
+          <DimensionDrillDown 
+            dimensionAnalysis={dimensionAnalysis}
+            selectedDim={selectedDrillDownDim}
+            setSelectedDim={setSelectedDrillDownDim}
+            elementBenchmarks={elementBenchmarks}
+            getScoreColor={getScoreColor}
+            benchmarkCompanyCount={benchmarks?.companyCount || 0}
+            customObservations={customObservations}
+            setCustomObservations={setCustomObservations}
+            isEditing={editMode}
+            showExtras={true}
+            isSingleCountryCompany={isSingleCountryCompany}
+          />
+          
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
               <div className="px-12 py-6 bg-indigo-700">
                 <h3 className="font-bold text-white text-xl">Cross-Dimension Insights</h3>
-                <p className="text-indigo-200 mt-1">Patterns identified across your assessment that reveal strategic opportunities</p>
+                <p className="text-indigo-200 mt-1 text-base">Patterns identified across your assessment that reveal strategic opportunities</p>
               </div>
               <div className="px-12 py-8 space-y-6">
                 {patterns.map((p, idx) => (
@@ -3214,11 +3250,11 @@ export default function ExportReportPage() {
                     </div>
                     <div className="px-6 py-5 grid grid-cols-2 gap-8">
                       <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">What This Means</p>
+                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">What This Means</p>
                         <p className="text-base text-slate-600 leading-relaxed">{p.implication}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-3">Recommended Action</p>
+                        <p className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-3">Recommended Action</p>
                         <p className="text-base text-slate-600 leading-relaxed">{customCrossRecommendations[idx] || p.recommendation}</p>
                       </div>
                     </div>
@@ -3229,20 +3265,20 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-12 py-6 bg-cyan-700">
               <h3 className="font-bold text-white text-xl">Impact-Ranked Improvement Priorities</h3>
-              <p className="text-cyan-200 mt-1">Dimensions ranked by potential composite score impact relative to implementation effort</p>
+              <p className="text-cyan-200 mt-1 text-base">Dimensions ranked by potential composite score impact relative to implementation effort</p>
             </div>
             <div className="px-12 py-8">
               <table className="w-full">
                 <thead>
-                  <tr className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b-2 border-slate-200">
-                    <th className="pb-4 text-left w-20">Priority</th>
+                  <tr className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b-2 border-slate-200">
+                    <th className="pb-4 text-left w-16">Rank</th>
+                    <th className="pb-4 text-left w-20">Score</th>
                     <th className="pb-4 text-left">Dimension</th>
-                    <th className="pb-4 text-center w-28">Current</th>
-                    <th className="pb-4 text-center w-24">Impact</th>
-                    <th className="pb-4 text-center w-24">Effort</th>
+                    <th className="pb-4 text-center w-20">Impact</th>
+                    <th className="pb-4 text-center w-20">Effort</th>
                     <th className="pb-4 text-left">Key Actions</th>
                   </tr>
                 </thead>
@@ -3250,32 +3286,34 @@ export default function ExportReportPage() {
                   {rankings.map((r, idx) => (
                     <tr key={r.dimNum} className={idx < rankings.length - 1 ? 'border-b border-slate-100' : ''}>
                       <td className="py-5">
-                        <span className={`w-9 h-9 rounded-full inline-flex items-center justify-center text-white text-base font-bold ${
+                        <span className={`w-10 h-10 rounded-full inline-flex items-center justify-center text-white text-lg font-bold ${
                           idx === 0 ? 'bg-cyan-600' : idx === 1 ? 'bg-cyan-500' : idx === 2 ? 'bg-cyan-400' : 'bg-slate-400'
                         }`}>
                           {idx + 1}
                         </span>
                       </td>
                       <td className="py-5">
+                        <div>
+                          <span className="text-2xl font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
+                          <p className="text-sm text-slate-400">{r.tier}</p>
+                        </div>
+                      </td>
+                      <td className="py-5">
                         <p className="font-semibold text-slate-800 text-base">{r.dimName}</p>
                       </td>
                       <td className="py-5 text-center">
-                        <span className="text-2xl font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
-                        <p className="text-xs text-slate-400 mt-1">{r.tier}</p>
-                      </td>
-                      <td className="py-5 text-center">
                         <span className="text-xl font-bold text-emerald-600">+{r.potentialGain}</span>
-                        <p className="text-xs text-slate-400">pts</p>
+                        <p className="text-sm text-slate-400">pts</p>
                       </td>
                       <td className="py-5 text-center">
-                        <span className={`text-xs font-bold px-4 py-2 rounded-lg ${
-                          r.effort === 'Low' ? 'bg-emerald-100 text-emerald-700' :
-                          r.effort === 'Medium' ? 'bg-amber-100 text-amber-700' :
-                          'bg-red-100 text-red-700'
+                        <span className={`text-sm font-semibold px-3 py-1.5 rounded border ${
+                          r.effort === 'Low' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                          r.effort === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                          'bg-red-50 text-red-700 border-red-200'
                         }`}>{r.effort}</span>
                       </td>
                       <td className="py-5">
-                        <p className="text-sm text-slate-600">{customRecommendations[r.dimNum] || r.keyAction}</p>
+                        <p className="text-base text-slate-600">{customRecommendations[r.dimNum] || r.keyAction || 'Focus on closing identified gaps and accelerating in-progress initiatives.'}</p>
                       </td>
                     </tr>
                   ))}
@@ -3284,105 +3322,108 @@ export default function ExportReportPage() {
             </div>
           </div>
           
-          {/* ============ STRENGTHS & OPPORTUNITIES ============ */}
-          <div className="grid grid-cols-2 gap-8 mb-8">
-            {/* Areas of Excellence */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="px-8 py-5 bg-emerald-700">
-                <h3 className="font-bold text-white text-lg">Areas of Excellence</h3>
-                <p className="text-emerald-200 text-sm mt-1">{strengthDimensions.length} dimensions at Leading or above</p>
-              </div>
-              <div className="px-8 py-6">
-                {strengthDimensions.length > 0 ? (
-                  <div className="space-y-5">
-                    {strengthDimensions.slice(0, 5).map((d) => (
-                      <div key={d.dim} className="cursor-pointer hover:bg-slate-50 p-4 rounded-xl -mx-2 transition-colors border border-transparent hover:border-slate-200" onClick={() => setSelectedDrillDownDim(d.dim)}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
-                            <p className="font-semibold text-slate-800">{d.name}</p>
-                          </div>
-                          <span className="text-lg font-bold" style={{ color: d.tier.color }}>{d.score}</span>
-                        </div>
-                        {d.strengths.length > 0 && (
-                          <ul className="space-y-1.5 ml-11">
-                            {d.strengths.slice(0, 3).map((e: any, i: number) => (
-                              <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                <span className="text-emerald-500 mt-0.5 font-bold">✓</span>
-                                <span className="line-clamp-1">{e.name}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-slate-500 py-8 text-center">No dimensions at Leading or Exemplary level yet.</p>
-                )}
-              </div>
+          {/* ============ AREAS OF EXCELLENCE ============ */}
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+            <div className="px-12 py-6 bg-emerald-700">
+              <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
+              <p className="text-emerald-200 mt-1 text-base">{strengthDimensions.length} dimensions at Leading or above</p>
             </div>
-            
-            {/* Growth Opportunities */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="px-8 py-5 bg-amber-600">
-                <h3 className="font-bold text-white text-lg">Growth Opportunities</h3>
-                <p className="text-amber-200 text-sm mt-1">{gapOpportunities.length} dimensions below Leading</p>
-              </div>
-              <div className="px-8 py-6">
-                {gapOpportunities.length > 0 ? (
-                  <div className="space-y-5">
-                    {gapOpportunities.slice(0, 5).map((d) => (
-                      <div key={d.dim} className="cursor-pointer hover:bg-slate-50 p-4 rounded-xl -mx-2 transition-colors border border-transparent hover:border-slate-200" onClick={() => setSelectedDrillDownDim(d.dim)}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
-                            <p className="font-semibold text-slate-800">{d.name}</p>
+            <div className="px-12 py-8">
+              {strengthDimensions.length > 0 ? (
+                <div className="space-y-6">
+                  {strengthDimensions.map((d) => (
+                    <div key={d.dim} className="border border-slate-200 rounded-xl p-6 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedDrillDownDim(d.dim)}>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <span className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
+                          <div>
+                            <p className="font-bold text-slate-800 text-lg">{d.name}</p>
+                            <span className={`text-sm font-semibold px-3 py-1 rounded-lg ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
                           </div>
-                          <span className="text-lg font-bold" style={{ color: d.tier.color }}>{d.score}</span>
                         </div>
-                        {d.gaps.length > 0 && (
-                          <ul className="space-y-1.5 ml-11">
-                            {d.gaps.slice(0, 3).map((e: any, i: number) => (
-                              <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                <span className="text-amber-500 mt-0.5">○</span>
-                                <span className="line-clamp-1">{e.name}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
+                        <span className="text-3xl font-bold" style={{ color: d.tier.color }}>{d.score}</span>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-emerald-600 py-8 text-center font-semibold">All dimensions at Leading or above!</p>
-                )}
-              </div>
+                      {d.strengths.length > 0 && (
+                        <div className="grid grid-cols-2 gap-3 mt-4">
+                          {d.strengths.slice(0, 4).map((e: any, i: number) => (
+                            <div key={i} className="flex items-start gap-2 text-base text-slate-600">
+                              <span className="text-emerald-500 mt-1 font-bold">✓</span>
+                              <span>{e.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-500 py-8 text-center text-lg">No dimensions at Leading or Exemplary level yet.</p>
+              )}
+            </div>
+          </div>
+          
+          {/* ============ GROWTH OPPORTUNITIES ============ */}
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+            <div className="px-12 py-6 bg-amber-600">
+              <h3 className="font-bold text-white text-xl">Growth Opportunities</h3>
+              <p className="text-amber-200 mt-1 text-base">{gapOpportunities.length} dimensions below Leading</p>
+            </div>
+            <div className="px-12 py-8">
+              {gapOpportunities.length > 0 ? (
+                <div className="space-y-6">
+                  {gapOpportunities.map((d) => (
+                    <div key={d.dim} className="border border-slate-200 rounded-xl p-6 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedDrillDownDim(d.dim)}>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <span className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
+                          <div>
+                            <p className="font-bold text-slate-800 text-lg">{d.name}</p>
+                            <span className={`text-sm font-semibold px-3 py-1 rounded-lg ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                          </div>
+                        </div>
+                        <span className="text-3xl font-bold" style={{ color: d.tier.color }}>{d.score}</span>
+                      </div>
+                      {d.gaps.length > 0 && (
+                        <div className="grid grid-cols-2 gap-3 mt-4">
+                          {d.gaps.slice(0, 4).map((e: any, i: number) => (
+                            <div key={i} className="flex items-start gap-2 text-base text-slate-600">
+                              <span className="text-amber-500 mt-1">○</span>
+                              <span>{e.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-emerald-600 py-8 text-center text-lg font-semibold">All dimensions at Leading or above!</p>
+              )}
             </div>
           </div>
           
           {/* ============ INITIATIVES IN PROGRESS ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div className="px-12 py-5 bg-blue-700 flex items-center justify-between">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+            <div className="px-12 py-6 bg-blue-700 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-white text-lg">Initiatives In Progress</h3>
-                <p className="text-blue-200 text-sm mt-0.5">Programs currently being planned or assessed</p>
+                <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
+                <p className="text-blue-200 mt-1 text-base">Programs currently being planned or assessed</p>
               </div>
               <div className="flex items-center gap-4">
-                <span className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-full font-semibold">{planningItems} Planning</span>
-                <span className="bg-blue-500 text-white text-sm px-4 py-1.5 rounded-full font-semibold">{assessingItems} Assessing</span>
+                <span className="bg-blue-600 text-white text-base px-5 py-2 rounded-lg font-semibold">{planningItems} Planning</span>
+                <span className="bg-blue-500 text-white text-base px-5 py-2 rounded-lg font-semibold">{assessingItems} Assessing</span>
               </div>
             </div>
-            <div className="px-12 py-6">
-              <div className="grid grid-cols-2 gap-4">
-                {quickWinOpportunities.slice(0, 8).map((item: any, idx: number) => (
-                  <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
-                    <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700'}`}>
+            <div className="px-12 py-8">
+              <div className="space-y-4">
+                {quickWinOpportunities.slice(0, 12).map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className={`text-sm font-bold px-4 py-2 rounded-lg ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700'}`}>
                       {item.type}
                     </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
-                      <p className="text-xs text-slate-400">{item.dimName}</p>
+                    <div className="flex-1">
+                      <p className="text-base font-medium text-slate-800">{item.name}</p>
+                      <p className="text-sm text-slate-400">{item.dimName}</p>
                     </div>
                   </div>
                 ))}
@@ -3390,251 +3431,433 @@ export default function ExportReportPage() {
             </div>
           </div>
           
-          {/* ============ IMPLEMENTATION ROADMAP ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before">
-            <div className="px-12 py-6 bg-violet-700">
-              <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
-              <p className="text-violet-200 mt-1">Recommended timeline for program improvements</p>
+          {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
+            <div className="px-12 py-10 bg-slate-800">
+              <h3 className="font-bold text-white text-3xl">Strategic Recommendations</h3>
+              <p className="text-slate-400 mt-2 text-lg">Detailed analysis and action plans for priority dimensions</p>
             </div>
-            <div className="px-12 py-8">
-              <div className="grid grid-cols-3 gap-8">
-                {/* Phase 1 */}
-                <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-lg">1</span>
-                    <div>
-                      <p className="font-bold text-emerald-800">Quick Wins</p>
-                      <p className="text-xs text-emerald-600 font-medium">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
+            <div className="px-12 py-10">
+              <p className="text-slate-600 leading-relaxed text-lg mb-8">
+                The following pages provide in-depth analysis for <strong>{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                with the greatest opportunity for improvement. Each dimension includes:
+              </p>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="flex items-start gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-800 text-lg">Improvement Opportunities</p>
+                    <p className="text-base text-slate-500 mt-1">Specific gaps and areas needing attention, with status indicators</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-800 text-lg">In Development</p>
+                    <p className="text-base text-slate-500 mt-1">Initiatives already in planning that can be accelerated</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-800 text-lg">Current Strengths</p>
+                    <p className="text-base text-slate-500 mt-1">Elements already in place that form your foundation</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-800 text-lg">Tailored Insights & CAC Support</p>
+                    <p className="text-base text-slate-500 mt-1">Custom analysis and how Cancer and Careers can help</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-base text-slate-500 mt-8 italic">
+                Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
+              </p>
+            </div>
+          </div>
+          
+          {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div className="divide-y-4 divide-slate-100">
+              {allDimensionsByScore.slice(0, 4).map((d, idx) => {
+                const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
+                const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
+                const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
+                const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
+                const tierColor = getScoreColor(d.score);
+                
+                return (
+                  <div key={d.dim} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
+                    {/* Dimension Header */}
+                    <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-xl font-bold text-white">{d.name}</h4>
+                          <div className="flex items-center gap-4 mt-1">
+                            <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                            <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
+                            <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                            {d.benchmark !== null && (
+                              <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Benchmark Narrative */}
+                    {benchmarkNarrative && (
+                      <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
+                        <p className="text-base text-slate-600">{benchmarkNarrative}</p>
+                      </div>
+                    )}
+                    
+                    <div className="px-10 py-6">
+                      {/* Current State - 3 columns */}
+                      <div className="grid grid-cols-3 gap-6 mb-6">
+                        {/* Improvement Opportunities */}
+                        <div className="border border-red-200 rounded-xl overflow-hidden">
+                          <div className="px-4 py-3 bg-red-50 border-b border-red-200">
+                            <h5 className="font-bold text-red-800 text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                          </div>
+                          <div className="p-4 bg-white">
+                            {d.needsAttention?.length > 0 ? (
+                              <ul className="space-y-2">
+                                {d.needsAttention.slice(0, 5).map((item: any, i: number) => (
+                                  <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                                    <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                                      item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'
+                                    }`}></span>
+                                    <span>{item.name}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : <p className="text-base text-slate-400 italic">No gaps identified</p>}
+                          </div>
+                        </div>
+                        
+                        {/* In Development */}
+                        <div className="border border-blue-200 rounded-xl overflow-hidden">
+                          <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
+                            <h5 className="font-bold text-blue-800 text-base">In Development ({d.planning?.length || 0})</h5>
+                          </div>
+                          <div className="p-4 bg-white">
+                            {d.planning?.length > 0 ? (
+                              <ul className="space-y-2">
+                                {d.planning.slice(0, 5).map((item: any, i: number) => (
+                                  <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
+                                    <span>{item.name}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : <p className="text-base text-slate-400 italic">No initiatives in planning</p>}
+                          </div>
+                        </div>
+                        
+                        {/* Strengths */}
+                        <div className="border border-emerald-200 rounded-xl overflow-hidden">
+                          <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
+                            <h5 className="font-bold text-emerald-800 text-base">Strengths ({d.strengths?.length || 0})</h5>
+                          </div>
+                          <div className="p-4 bg-white">
+                            {d.strengths?.length > 0 ? (
+                              <ul className="space-y-2">
+                                {d.strengths.slice(0, 5).map((s: any, i: number) => (
+                                  <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
+                                    <span>{s.name}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : <p className="text-base text-slate-400 italic">Building toward first strengths</p>}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Strategic Insight & CAC Help - 2 columns */}
+                      <div className="grid grid-cols-2 gap-6">
+                        {/* Left Column: Evidence + Insight */}
+                        <div className="space-y-4">
+                          {(evidence.topStrength || evidence.biggestGap || evidence.inFlight) && (
+                            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                              <h5 className="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wide">Key Evidence</h5>
+                              <div className="space-y-2">
+                                {evidence.topStrength && (
+                                  <div className="flex items-start gap-2">
+                                    <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                      <span className="text-emerald-600 text-sm">✓</span>
+                                    </span>
+                                    <p className="text-base text-slate-700">
+                                      <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                      <span className="text-slate-500"> ({evidence.topStrength.benchPct}% of peers)</span>
+                                    </p>
+                                  </div>
+                                )}
+                                {evidence.biggestGap && (
+                                  <div className="flex items-start gap-2">
+                                    <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                      <span className="text-red-600 text-sm">✗</span>
+                                    </span>
+                                    <p className="text-base text-slate-700">
+                                      <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                      <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of peers)</span>
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="border border-slate-200 rounded-xl p-4 bg-white">
+                            <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
+                            <p className="text-base text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                          </div>
+                        </div>
+                        
+                        {/* Right Column: Roadmap + CAC Help */}
+                        <div className="space-y-4">
+                          {(roadmap.quickWin || roadmap.strategicLift) && (
+                            <div className="border border-indigo-200 rounded-xl p-4 bg-indigo-50">
+                              <h5 className="font-bold text-indigo-800 mb-3 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
+                              <div className="space-y-3">
+                                {roadmap.quickWin && (
+                                  <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
+                                      <span className="text-sm text-slate-500">0-60 days</span>
+                                    </div>
+                                    <p className="text-base font-medium text-slate-800">{roadmap.quickWin.name}</p>
+                                    <p className="text-sm text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
+                                  </div>
+                                )}
+                                {roadmap.strategicLift && (
+                                  <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">STRATEGIC</span>
+                                      <span className="text-sm text-slate-500">60-180 days</span>
+                                    </div>
+                                    <p className="text-base font-medium text-slate-800">{roadmap.strategicLift.name}</p>
+                                    <p className="text-sm text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="border border-violet-200 rounded-xl p-4 bg-violet-50">
+                            <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                            <p className="text-base text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <ul className="space-y-3">
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* ============ IMPLEMENTATION ROADMAP ============ */}
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
+            <div className="px-12 py-6 bg-slate-800">
+              <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
+              <p className="text-slate-400 mt-1 text-base">Phased approach to strengthen workplace cancer support</p>
+            </div>
+            <div className="px-12 py-8">
+              <div className="space-y-6">
+                {/* Phase 1 */}
+                <div className="bg-emerald-50 rounded-xl p-8 border border-emerald-200">
+                  <div className="flex items-center gap-4 mb-6">
+                    <span className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xl">1</span>
+                    <div>
+                      <p className="font-bold text-emerald-800 text-xl">Quick Wins</p>
+                      <p className="text-base text-emerald-600 font-medium">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
                     {(customRoadmap.phase1?.useCustom && customRoadmap.phase1?.items?.length > 0
                       ? customRoadmap.phase1.items
                       : quickWinItems.slice(0, 4).map(i => i.name)
                     ).map((item: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                        <span className="text-emerald-500 mt-0.5">●</span>
+                      <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
+                        <span className="text-emerald-500 mt-0.5 font-bold">●</span>
                         <span>{item}</span>
-                      </li>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
                 
                 {/* Phase 2 */}
-                <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg">2</span>
+                <div className="bg-blue-50 rounded-xl p-8 border border-blue-200">
+                  <div className="flex items-center gap-4 mb-6">
+                    <span className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl">2</span>
                     <div>
-                      <p className="font-bold text-blue-800">Foundation Building</p>
-                      <p className="text-xs text-blue-600 font-medium">{customRoadmapTimeframes.phase2 || '3-9 months'}</p>
+                      <p className="font-bold text-blue-800 text-xl">Foundation Building</p>
+                      <p className="text-base text-blue-600 font-medium">{customRoadmapTimeframes.phase2 || '3-9 months'}</p>
                     </div>
                   </div>
-                  <ul className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
                     {(customRoadmap.phase2?.useCustom && customRoadmap.phase2?.items?.length > 0
                       ? customRoadmap.phase2.items
                       : foundationItems.slice(0, 4).map(i => i.name)
                     ).map((item: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                        <span className="text-blue-500 mt-0.5">●</span>
+                      <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
+                        <span className="text-blue-500 mt-0.5 font-bold">●</span>
                         <span>{item}</span>
-                      </li>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
                 
                 {/* Phase 3 */}
-                <div className="bg-violet-50 rounded-xl p-6 border border-violet-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-10 h-10 rounded-full bg-violet-600 text-white flex items-center justify-center font-bold text-lg">3</span>
+                <div className="bg-violet-50 rounded-xl p-8 border border-violet-200">
+                  <div className="flex items-center gap-4 mb-6">
+                    <span className="w-12 h-12 rounded-full bg-violet-600 text-white flex items-center justify-center font-bold text-xl">3</span>
                     <div>
-                      <p className="font-bold text-violet-800">Excellence</p>
-                      <p className="text-xs text-violet-600 font-medium">{customRoadmapTimeframes.phase3 || '9-18 months'}</p>
+                      <p className="font-bold text-violet-800 text-xl">Excellence</p>
+                      <p className="text-base text-violet-600 font-medium">{customRoadmapTimeframes.phase3 || '9-18 months'}</p>
                     </div>
                   </div>
-                  <ul className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
                     {(customRoadmap.phase3?.useCustom && customRoadmap.phase3?.items?.length > 0
                       ? customRoadmap.phase3.items
                       : excellenceItems.slice(0, 4).map(i => i.name)
                     ).map((item: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                        <span className="text-violet-500 mt-0.5">●</span>
+                      <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
+                        <span className="text-violet-500 mt-0.5 font-bold">●</span>
                         <span>{item}</span>
-                      </li>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl shadow-lg overflow-hidden mb-8">
+          <div className="ppt-break bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl shadow-lg overflow-hidden mb-8 pdf-no-break">
             <div className="px-12 py-10">
-              <div className="flex items-center gap-6 mb-8">
-                <div className="bg-white rounded-xl p-4">
-                  <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={150} height={50} className="object-contain" />
+              <div className="flex items-center gap-8 mb-10">
+                <div className="bg-white rounded-xl p-5">
+                  <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={160} height={55} className="object-contain" />
                 </div>
                 <div>
                   <h3 className="font-bold text-white text-2xl">How Cancer and Careers Can Help</h3>
-                  <p className="text-slate-300 mt-1">Resources and services to support your improvement journey</p>
+                  <p className="text-slate-300 mt-2 text-lg">Resources and services to support your improvement journey</p>
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-8">
                 <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
-                  <div className="w-12 h-12 rounded-xl bg-violet-500 flex items-center justify-center mb-4">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                  <div className="w-14 h-14 rounded-xl bg-violet-500 flex items-center justify-center mb-5">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                   </div>
-                  <h4 className="text-white font-bold text-lg mb-2">{customCacHelp.item1?.title || 'Manager Training Programs'}</h4>
-                  <p className="text-slate-300 text-sm leading-relaxed">{customCacHelp.item1?.bullets?.[0] || 'Comprehensive training to help managers support employees navigating cancer diagnosis and treatment.'}</p>
+                  <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item1?.title || 'Manager Training Programs'}</h4>
+                  <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item1?.bullets?.[0] || 'Comprehensive training to help managers support employees navigating cancer diagnosis and treatment.'}</p>
                 </div>
                 
                 <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center mb-4">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                  <div className="w-14 h-14 rounded-xl bg-emerald-500 flex items-center justify-center mb-5">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                   </div>
-                  <h4 className="text-white font-bold text-lg mb-2">{customCacHelp.item2?.title || 'Employee Resources'}</h4>
-                  <p className="text-slate-300 text-sm leading-relaxed">{customCacHelp.item2?.bullets?.[0] || 'Direct support services for employees including navigation assistance and educational materials.'}</p>
+                  <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item2?.title || 'Employee Resources'}</h4>
+                  <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item2?.bullets?.[0] || 'Direct support services for employees including navigation assistance and educational materials.'}</p>
                 </div>
                 
                 <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
-                  <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center mb-4">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                  <div className="w-14 h-14 rounded-xl bg-amber-500 flex items-center justify-center mb-5">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                   </div>
-                  <h4 className="text-white font-bold text-lg mb-2">{customCacHelp.item3?.title || 'Policy Review'}</h4>
-                  <p className="text-slate-300 text-sm leading-relaxed">{customCacHelp.item3?.bullets?.[0] || 'Expert consultation on policies and benefits to ensure comprehensive cancer support.'}</p>
+                  <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item3?.title || 'Policy Review'}</h4>
+                  <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item3?.bullets?.[0] || 'Expert consultation on policies and benefits to ensure comprehensive cancer support.'}</p>
                 </div>
                 
                 <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
-                  <div className="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center mb-4">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                  <div className="w-14 h-14 rounded-xl bg-blue-500 flex items-center justify-center mb-5">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                   </div>
-                  <h4 className="text-white font-bold text-lg mb-2">{customCacHelp.item4?.title || 'Ongoing Consultation'}</h4>
-                  <p className="text-slate-300 text-sm leading-relaxed">{customCacHelp.item4?.bullets?.[0] || 'Year-round access to CAC experts for guidance on implementation and best practices.'}</p>
+                  <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item4?.title || 'Ongoing Consultation'}</h4>
+                  <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item4?.bullets?.[0] || 'Year-round access to CAC experts for guidance on implementation and best practices.'}</p>
                 </div>
               </div>
             </div>
           </div>
           
           {/* ============ METHODOLOGY & FOOTER ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-12 py-6 border-b border-slate-100">
+          <div className="ppt-break bg-slate-50 rounded-xl border border-slate-200 overflow-hidden pdf-no-break" id="appendix-end" data-export="appendix-end">
+            <div className="px-12 py-6 border-b border-slate-200">
               <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
             </div>
             <div className="px-12 py-6">
-              <p className="text-sm text-slate-600 leading-relaxed">
-                This assessment evaluates workplace cancer support across 13 research-backed dimensions, 
-                with scores calculated using a weighted composite methodology that considers program maturity, 
-                support breadth, and strategic importance. Benchmarks are derived from peer organizations 
-                that have completed this assessment. All data is self-reported and reflects organizational 
-                policies and programs as of the assessment date.
-              </p>
-            </div>
-            <div className="px-12 py-6 bg-slate-50 border-t border-slate-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={120} height={40} className="object-contain" />
-                  <div className="border-l border-slate-300 pl-6">
-                    <p className="text-sm font-semibold text-slate-700">Best Companies for Working with Cancer Index</p>
-                    <p className="text-xs text-slate-400 mt-0.5">© 2026 Cancer and Careers. All rights reserved.</p>
-                  </div>
+              <div className="grid grid-cols-4 gap-6 text-base text-slate-600">
+                <div>
+                  <p className="font-bold text-slate-700 mb-2">Scoring Framework</p>
+                  <p className="leading-relaxed">Organizations are assessed across 13 dimensions of workplace cancer support. The composite score combines dimension performance (90%), program maturity (5%), and support breadth (5%).</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-slate-400">Survey ID: {surveyId}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Generated: {new Date().toISOString().split('T')[0]}</p>
+                <div>
+                  <p className="font-bold text-slate-700 mb-2">Dimension Weights</p>
+                  <p className="leading-relaxed">Each dimension carries a specific weight reflecting its relative importance. Weights were derived from extensive research with HR leaders, employees managing cancer, and general employee populations.</p>
+                </div>
+                <div>
+                  <p className="font-bold text-slate-700 mb-2">Benchmarking</p>
+                  <p className="leading-relaxed">Benchmark scores represent average performance across all organizations in the Index. Percentile rankings indicate relative positioning within the cohort.</p>
+                </div>
+                <div>
+                  <p className="font-bold text-slate-700 mb-2">Performance Tiers</p>
+                  <p className="leading-relaxed">
+                    <span style={{ color: '#5B21B6' }} className="font-semibold">Exemplary</span> (90+) · 
+                    <span style={{ color: '#047857' }} className="font-semibold"> Leading</span> (75-89) · 
+                    <span style={{ color: '#1D4ED8' }} className="font-semibold"> Progressing</span> (60-74) · 
+                    <span style={{ color: '#B45309' }} className="font-semibold"> Emerging</span> (40-59) · 
+                    <span style={{ color: '#B91C1C' }} className="font-semibold"> Developing</span> (&lt;40)
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="px-12 py-5 border-t border-slate-200 bg-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <p className="text-base font-semibold text-slate-700">Best Companies for Working with Cancer Index</p>
+                  <p className="text-sm text-slate-400">© 2026 Cancer and Careers. All rights reserved.</p>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-400">Powered by:</span>
+                    <Image 
+                      src="/BI_LOGO_FINAL.png" 
+                      alt="BEYOND Insights" 
+                      width={90} 
+                      height={28}
+                      className="object-contain"
+                    />
+                  </div>
+                  <p className="text-sm text-slate-400">Survey ID: {surveyId}</p>
+                  <p className="text-sm text-slate-400">Confidential</p>
                 </div>
               </div>
             </div>
           </div>
           
         </div>
-        
-        {/* Dimension Drilldown Modal */}
-        {selectedDrillDownDim !== null && dimensionAnalysis.find((d: any) => d.dim === selectedDrillDownDim) && (
-          <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-6" onClick={() => setSelectedDrillDownDim(null)}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden" onClick={(e: any) => e.stopPropagation()}>
-              {(() => {
-                const dim = dimensionAnalysis.find((d: any) => d.dim === selectedDrillDownDim);
-                if (!dim) return null;
-                return (
-                  <>
-                    <div className="px-8 py-6 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-                      <div className="flex items-center gap-5">
-                        <span className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg" style={{ backgroundColor: dim.tier.color }}>{dim.dim}</span>
-                        <div>
-                          <h3 className="font-bold text-slate-900 text-xl">{dim.name}</h3>
-                          <div className="flex items-center gap-4 mt-2">
-                            <span className="text-base text-slate-500">Score: <span className="font-bold text-lg" style={{ color: dim.tier.color }}>{dim.score}</span></span>
-                            <span className={`text-sm font-bold px-3 py-1 rounded-lg ${dim.tier.bgColor}`} style={{ color: dim.tier.color }}>{dim.tier.name}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <button onClick={() => setSelectedDrillDownDim(null)} className="p-3 hover:bg-slate-200 rounded-xl transition-colors">
-                        <svg className="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                      </button>
-                    </div>
-                    <div className="p-8 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
-                      {/* Status Summary */}
-                      <div className="flex items-center gap-6 mb-8 pb-6 border-b border-slate-200">
-                        <div className="flex items-center gap-2">
-                          <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-emerald-100 text-emerald-700">{dim.strengths?.length || 0}</span>
-                          <span className="text-sm text-slate-500 font-medium">Offering</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-blue-100 text-blue-700">{dim.planning?.length || 0}</span>
-                          <span className="text-sm text-slate-500 font-medium">Planning</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-violet-100 text-violet-700">{dim.assessing?.length || 0}</span>
-                          <span className="text-sm text-slate-500 font-medium">Assessing</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-slate-100 text-slate-700">{dim.gaps?.length || 0}</span>
-                          <span className="text-sm text-slate-500 font-medium">Gaps</span>
-                        </div>
-                      </div>
-                      
-                      {/* Elements Table */}
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b-2 border-slate-200">
-                            <th className="text-left py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Program Element</th>
-                            <th className="text-center py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider w-40">Status</th>
-                            <th className="text-right py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider w-24">Points</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {dim.elements?.map((el: any, idx: number) => {
-                            let statusLabel = 'Unknown';
-                            let statusClass = 'text-slate-500 bg-slate-100';
-                            if (el.isStrength) { statusLabel = 'Currently Offering'; statusClass = 'text-emerald-700 bg-emerald-100'; }
-                            else if (el.isPlanning) { statusLabel = 'Planning'; statusClass = 'text-blue-700 bg-blue-100'; }
-                            else if (el.isAssessing) { statusLabel = 'Assessing'; statusClass = 'text-violet-700 bg-violet-100'; }
-                            else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-amber-700 bg-amber-100'; }
-                            else if (el.isUnsure) { statusLabel = 'Unsure'; statusClass = 'text-slate-500 bg-slate-100'; }
-                            return (
-                              <tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}>
-                                <td className="py-4 px-4 text-base text-slate-700">{el.name}</td>
-                                <td className="py-4 px-4 text-center">
-                                  <span className={`text-sm font-semibold px-4 py-1.5 rounded-lg ${statusClass}`}>{statusLabel}</span>
-                                </td>
-                                <td className="py-4 px-4 text-right text-base font-semibold text-slate-600">{el.points ?? '—'}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          </div>
-        )}
       </div>
     );
   }
-  // ============================================
   // ORIGINAL DESIGN RENDER (default)
   // ============================================
   return (
