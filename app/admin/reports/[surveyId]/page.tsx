@@ -2751,6 +2751,13 @@ export default function ExportReportPage() {
     .flatMap(d => d.gaps.slice(0, 2).map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, weight: d.weight })))
     .slice(0, 5);
 
+  // Stretch items for Phase 3 Excellence roadmap: remaining gaps after quick wins and foundation
+  const stretchItems = [...dimensionAnalysis]
+    .sort((a, b) => a.weight - b.weight)
+    .flatMap(d => d.gaps.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, weight: d.weight })))
+    .filter(item => !quickWinItems.some(q => q.name === item.name) && !foundationItems.some(f => f.name === item.name))
+    .slice(0, 5);
+
   // Order from lowest to highest so .find() returns the immediate next tier up
   const tierThresholds = [{ name: 'Emerging', min: 40 }, { name: 'Progressing', min: 60 }, { name: 'Leading', min: 75 }, { name: 'Exemplary', min: 90 }];
   const nextTierUp = tierThresholds.find(t => t.min > (compositeScore || 0));
@@ -3337,7 +3344,7 @@ export default function ExportReportPage() {
                         <span className="text-base text-slate-600 font-semibold">{d.weight}%</span>
                       </div>
                       <div className="w-72">
-                        <div className="relative h-6 bg-slate-100 rounded-full overflow-visible">
+                        <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
                           <div 
                             className="absolute left-0 top-0 h-full rounded-full transition-all" 
                             style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} 
@@ -3384,32 +3391,32 @@ export default function ExportReportPage() {
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
-            <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between">
+            <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
               <div>
                 <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
-                <p className="text-slate-500 mt-1 text-base">Dimensions plotted by current performance versus strategic weight. Hover for details.</p>
+                <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. strategic weight. <span className="text-cyan-600 font-medium">Hover for details, click to explore.</span></p>
               </div>
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => setShowBenchmarkRings(!showBenchmarkRings)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all ${
                     showBenchmarkRings 
-                      ? 'bg-violet-100 border-violet-300 text-violet-700' 
-                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                      ? 'bg-violet-100 border-violet-400 text-violet-700 shadow-sm' 
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
                   {showBenchmarkRings ? '● Benchmarks On' : '○ Show Benchmarks'}
                 </button>
               </div>
             </div>
-            <div ref={matrixRef} id="export-matrix" className="px-6 py-6">
-              {/* Enhanced Matrix with hover tooltips and benchmark labels */}
+            <div ref={matrixRef} id="export-matrix" className="px-4 py-6 bg-gradient-to-b from-white to-slate-50/50">
+              {/* Enhanced Matrix with hover tooltips, better benchmark circles, wider layout */}
               {(() => {
                 const MAX_WEIGHT = 15;
-                const CHART_WIDTH = 900;
-                const CHART_HEIGHT = 420;
-                const LABEL_HEIGHT = 24;
-                const MARGIN = { top: LABEL_HEIGHT + 10, right: 20, bottom: LABEL_HEIGHT + 55, left: 60 };
+                const CHART_WIDTH = 1000;
+                const CHART_HEIGHT = 450;
+                const LABEL_HEIGHT = 26;
+                const MARGIN = { top: LABEL_HEIGHT + 12, right: 30, bottom: LABEL_HEIGHT + 60, left: 70 };
                 const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
                 const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
                 
@@ -3433,69 +3440,82 @@ export default function ExportReportPage() {
                   const isTopEdge = yPercent < 35;
                   const isBottomEdge = yPercent > 65;
                   let top: string, left: string;
-                  if (isRightEdge) { left = `calc(${xPercent}% - 280px)`; } else { left = `calc(${xPercent}% + 30px)`; }
-                  if (isTopEdge) { top = `calc(${yPercent}% + 30px)`; } else if (isBottomEdge) { top = `calc(${yPercent}% - 190px)`; } else { top = `calc(${yPercent}% - 80px)`; }
+                  if (isRightEdge) { left = `calc(${xPercent}% - 280px)`; } else { left = `calc(${xPercent}% + 35px)`; }
+                  if (isTopEdge) { top = `calc(${yPercent}% + 35px)`; } else if (isBottomEdge) { top = `calc(${yPercent}% - 190px)`; } else { top = `calc(${yPercent}% - 80px)`; }
                   return { top, left, right: 'auto', opacity: 1, pointerEvents: 'none' as const };
                 };
                 
                 return (
-                  <div className="relative w-full" style={{ height: '620px' }}>
+                  <div className="relative w-full" style={{ height: '640px' }}>
                     {/* SVG Chart */}
-                    <svg className="w-full" style={{ height: '490px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+                    <svg className="w-full" style={{ height: '510px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
                       <defs>
                         <filter id="dropShadowPolished" x="-50%" y="-50%" width="200%" height="200%">
-                          <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
+                          <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.2"/>
                         </filter>
+                        <linearGradient id="chartBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#f8fafc" />
+                          <stop offset="100%" stopColor="#f1f5f9" />
+                        </linearGradient>
                       </defs>
                       
                       <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
-                        {/* Quadrant labels */}
-                        <rect x={0} y={-LABEL_HEIGHT - 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#FEE2E2" />
-                        <text x={PLOT_WIDTH/4} y={-LABEL_HEIGHT/2 - 4 + 1} textAnchor="middle" dominantBaseline="middle" fill="#991B1B" fontSize="11" fontWeight="600" fontFamily="system-ui">PRIORITY GAPS</text>
-                        <rect x={PLOT_WIDTH/2 + 2} y={-LABEL_HEIGHT - 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#D1FAE5" />
-                        <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 4 + 1} textAnchor="middle" dominantBaseline="middle" fill="#065F46" fontSize="11" fontWeight="600" fontFamily="system-ui">CORE STRENGTHS</text>
+                        {/* Background with subtle gradient */}
+                        <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
-                        {/* Quadrant backgrounds */}
-                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
-                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
-                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
-                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEFEFE" />
+                        {/* Quadrant labels - Top */}
+                        <rect x={0} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#FEE2E2" stroke="#FECACA" strokeWidth="1" />
+                        <text x={PLOT_WIDTH/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#991B1B" fontSize="11" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
+                        
+                        <rect x={PLOT_WIDTH/2 + 4} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#D1FAE5" stroke="#A7F3D0" strokeWidth="1" />
+                        <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#065F46" fontSize="11" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
+                        
+                        {/* Quadrant backgrounds with subtle colors */}
+                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEF2F2" fillOpacity="0.3" />
+                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#ECFDF5" fillOpacity="0.3" />
+                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F9FAFB" fillOpacity="0.5" />
+                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#EFF6FF" fillOpacity="0.3" />
                         
                         {/* Grid lines */}
-                        <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4 4" />
-                        <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4 4" />
-                        <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#D1D5DB" strokeWidth="1" />
+                        <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="6 4" />
+                        <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="6 4" />
+                        
+                        {/* Border */}
+                        <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#94A3B8" strokeWidth="1.5" rx="4" />
                         
                         {/* Bottom labels */}
-                        <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#F3F4F6" />
-                        <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 4 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#4B5563" fontSize="11" fontWeight="600" fontFamily="system-ui">MONITOR</text>
-                        <rect x={PLOT_WIDTH/2 + 2} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={LABEL_HEIGHT} rx="4" fill="#DBEAFE" />
-                        <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 4 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="11" fontWeight="600" fontFamily="system-ui">LEVERAGE</text>
+                        <rect x={0} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#F3F4F6" stroke="#E5E7EB" strokeWidth="1" />
+                        <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#4B5563" fontSize="11" fontWeight="700" fontFamily="system-ui">MONITOR</text>
                         
-                        {/* Axes */}
-                        <g transform={`translate(0, ${PLOT_HEIGHT + LABEL_HEIGHT + 8})`}>
+                        <rect x={PLOT_WIDTH/2 + 4} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#DBEAFE" stroke="#BFDBFE" strokeWidth="1" />
+                        <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="11" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
+                        
+                        {/* X-axis */}
+                        <g transform={`translate(0, ${PLOT_HEIGHT + LABEL_HEIGHT + 12})`}>
                           {[0, 25, 50, 75, 100].map((val) => (
                             <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
-                              <line y1="0" y2="4" stroke="#9CA3AF" strokeWidth="1" />
-                              <text y="16" textAnchor="middle" fill="#6B7280" fontSize="11" fontFamily="system-ui">{val}</text>
+                              <line y1="0" y2="6" stroke="#64748B" strokeWidth="1.5" />
+                              <text y="20" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500" fontFamily="system-ui">{val}</text>
                             </g>
                           ))}
-                          <text x={PLOT_WIDTH/2} y="34" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="600" fontFamily="system-ui">PERFORMANCE SCORE →</text>
+                          <text x={PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">PERFORMANCE SCORE →</text>
                         </g>
+                        
+                        {/* Y-axis */}
                         <g>
                           {[0, 5, 10, 15].map((val) => {
                             const yPos = PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
                             return (
                               <g key={val}>
-                                <line x1="-4" y1={yPos} x2="0" y2={yPos} stroke="#9CA3AF" strokeWidth="1" />
-                                <text x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="11" fontFamily="system-ui">{val}%</text>
+                                <line x1="-6" y1={yPos} x2="0" y2={yPos} stroke="#64748B" strokeWidth="1.5" />
+                                <text x="-12" y={yPos + 4} textAnchor="end" fill="#475569" fontSize="12" fontWeight="500" fontFamily="system-ui">{val}%</text>
                               </g>
                             );
                           })}
                         </g>
-                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="600" fontFamily="system-ui">↑ STRATEGIC IMPORTANCE</text>
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">↑ STRATEGIC IMPORTANCE</text>
                         
-                        {/* Benchmark rings with labels */}
+                        {/* Benchmark rings with grey fill and clear labels */}
                         {showBenchmarkRings && dimensionAnalysis.map((d) => {
                           const benchScore = getBenchmarkScore(d.dim);
                           if (!benchScore) return null;
@@ -3503,22 +3523,24 @@ export default function ExportReportPage() {
                           const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
                           return (
                             <g key={`bench-${d.dim}`}>
-                              <circle cx={xPos} cy={yPos} r={24} fill="none" stroke="#8B5CF6" strokeWidth="2" strokeDasharray="4 2" opacity={0.8} />
-                              <text x={xPos} y={yPos} textAnchor="middle" dominantBaseline="central" fill="#7C3AED" fontSize="8" fontWeight="700" fontFamily="system-ui">D{d.dim}</text>
+                              {/* Grey filled circle with dashed border */}
+                              <circle cx={xPos} cy={yPos} r={20} fill="#E2E8F0" fillOpacity="0.8" stroke="#8B5CF6" strokeWidth="2.5" strokeDasharray="5 3" />
+                              {/* Dimension label */}
+                              <text x={xPos} y={yPos + 1} textAnchor="middle" dominantBaseline="middle" fill="#6D28D9" fontSize="10" fontWeight="800" fontFamily="system-ui">D{d.dim}</text>
                             </g>
                           );
                         })}
                         
-                        {/* Data points */}
+                        {/* Data points - Company scores */}
                         {dimensionAnalysis.map((d) => {
                           const xPos = (d.score / 100) * PLOT_WIDTH;
                           const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
                           const isHovered = hoveredMatrixDim === d.dim;
                           return (
-                            <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                              <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.15s ease' }} />
-                              <circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
-                              <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize={isHovered ? 11 : 10} fontWeight="700" fontFamily="system-ui">D{d.dim}</text>
+                            <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                              <circle r={isHovered ? 24 : 20} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
+                              <circle r={isHovered ? 20 : 16} fill={getScoreColor(d.score)} style={{ transition: 'all 0.2s ease' }} />
+                              <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize={isHovered ? 12 : 11} fontWeight="800" fontFamily="system-ui">D{d.dim}</text>
                             </g>
                           );
                         })}
@@ -3526,14 +3548,14 @@ export default function ExportReportPage() {
                     </svg>
                     
                     {/* HTML Overlay for hover detection */}
-                    <div className="absolute inset-0" style={{ height: '490px' }}>
+                    <div className="absolute inset-0" style={{ height: '510px' }}>
                       {dimensionAnalysis.map((d) => {
                         const { xPercent, yPercent } = getBubblePosition(d);
                         return (
                           <div
                             key={d.dim}
                             className="absolute rounded-full cursor-pointer"
-                            style={{ left: `${xPercent}%`, top: `${yPercent}%`, width: '50px', height: '50px', transform: 'translate(-50%, -50%)' }}
+                            style={{ left: `${xPercent}%`, top: `${yPercent}%`, width: '55px', height: '55px', transform: 'translate(-50%, -50%)' }}
                             onMouseEnter={() => setHoveredMatrixDim(d.dim)}
                             onMouseLeave={() => setHoveredMatrixDim(null)}
                             onClick={() => setDimensionDetailModal(d.dim)}
@@ -3544,42 +3566,57 @@ export default function ExportReportPage() {
                     
                     {/* Hover Tooltip */}
                     {hoveredData && (
-                      <div className="absolute bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-60 z-30 transition-opacity duration-150" style={getTooltipStyle()}>
+                      <div className="absolute bg-white rounded-xl shadow-2xl border border-slate-200 p-4 w-64 z-30 transition-opacity duration-150" style={getTooltipStyle()}>
                         <div className="flex items-center gap-3 mb-3">
-                          <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md" style={{ backgroundColor: getScoreColor(hoveredData.score) }}>D{hoveredData.dim}</span>
-                          <div className="flex-1"><p className="font-semibold text-slate-800 text-sm leading-tight">{hoveredData.name}</p></div>
+                          <span className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ backgroundColor: getScoreColor(hoveredData.score) }}>D{hoveredData.dim}</span>
+                          <div className="flex-1"><p className="font-bold text-slate-800 text-sm leading-tight">{hoveredData.name}</p></div>
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="bg-slate-50 rounded-lg px-3 py-2"><p className="text-slate-500 text-xs font-medium">Score</p><p className="font-bold text-lg" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p></div>
-                          <div className="bg-slate-50 rounded-lg px-3 py-2"><p className="text-slate-500 text-xs font-medium">Weight</p><p className="font-bold text-lg text-slate-700">{hoveredData.weight}%</p></div>
+                          <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Score</p><p className="font-bold text-xl" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p></div>
+                          <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Weight</p><p className="font-bold text-xl text-slate-700">{hoveredData.weight}%</p></div>
                         </div>
-                        <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
-                          <span className={`text-xs font-semibold px-3 py-1 rounded-full ${hoveredData.tier.bgColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
-                          <span className="text-xs text-slate-400">Click for details</span>
+                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                          <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${hoveredData.tier.bgColor} border ${hoveredData.tier.borderColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
+                          <span className="text-xs text-cyan-600 font-medium">Click for details →</span>
                         </div>
                       </div>
                     )}
                     
-                    {/* Legend - 4 columns with proper height */}
-                    <div className="pt-4 border-t border-slate-200 px-2" style={{ marginTop: '10px' }}>
-                      <div className="grid grid-cols-4 gap-x-4 gap-y-2">
-                        {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map(d => (
-                          <div 
-                            key={d.dim} 
-                            className={`flex items-start gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors ${hoveredMatrixDim === d.dim ? 'bg-slate-200 ring-1 ring-slate-400' : 'hover:bg-slate-100'}`}
-                            onMouseEnter={() => setHoveredMatrixDim(d.dim)}
-                            onMouseLeave={() => setHoveredMatrixDim(null)}
-                            onClick={() => setDimensionDetailModal(d.dim)}
-                          >
-                            <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
-                            <span className="text-sm text-slate-700 font-medium leading-snug">{d.name}</span>
-                          </div>
-                        ))}
+                    {/* Legend - ALL 13 dimensions in 4 columns plus benchmark indicator */}
+                    <div className="pt-4 border-t-2 border-slate-200 px-4" style={{ marginTop: '6px' }}>
+                      <div className="grid grid-cols-4 gap-x-3 gap-y-2">
+                        {Array.from({ length: 13 }, (_, i) => i + 1).map(dimNum => {
+                          const d = dimensionAnalysis.find(dim => dim.dim === dimNum);
+                          if (!d) return (
+                            <div key={dimNum} className="flex items-start gap-2 px-2 py-1.5 rounded text-slate-400">
+                              <span className="w-6 h-6 rounded bg-slate-200 flex items-center justify-center text-xs font-bold">{dimNum}</span>
+                              <span className="text-sm">Unknown Dimension</span>
+                            </div>
+                          );
+                          return (
+                            <div 
+                              key={d.dim} 
+                              className={`flex items-start gap-2 px-2 py-1.5 rounded cursor-pointer transition-all ${hoveredMatrixDim === d.dim ? 'bg-slate-200 ring-2 ring-cyan-400 shadow-sm' : 'hover:bg-slate-100'}`}
+                              onMouseEnter={() => setHoveredMatrixDim(d.dim)}
+                              onMouseLeave={() => setHoveredMatrixDim(null)}
+                              onClick={() => setDimensionDetailModal(d.dim)}
+                            >
+                              <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
+                              <span className="text-sm text-slate-700 font-medium leading-snug">{d.name}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                       {showBenchmarkRings && (
-                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-center gap-6 text-sm">
-                          <div className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-emerald-500"></span><span className="text-slate-600">Company Score</span></div>
-                          <div className="flex items-center gap-2"><span className="w-5 h-5 rounded-full border-2 border-dashed border-violet-500 flex items-center justify-center text-violet-600 text-[8px] font-bold">D</span><span className="text-slate-600">Peer Benchmark</span></div>
+                        <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-center gap-8 text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-full bg-emerald-500 shadow-sm"></span>
+                            <span className="text-slate-700 font-medium">Your Company</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-full bg-slate-200 border-2 border-dashed border-violet-500 flex items-center justify-center text-violet-700 text-[8px] font-bold">D</span>
+                            <span className="text-slate-700 font-medium">Peer Benchmark</span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -3614,25 +3651,34 @@ export default function ExportReportPage() {
               const total = bench?.total || 1;
               const pctCurrently = Math.round(((bench?.currently || 0) / total) * 100);
               const pctPlanning = Math.round(((bench?.planning || 0) / total) * 100);
+              const pctAssessing = Math.round(((bench?.assessing || 0) / total) * 100);
               const statusInfo = getStatusInfo(elem);
               if (statusInfo.key === 'currently') {
                 if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of peers offer this`;
-                if (pctCurrently < 50) return `You're ahead of ${100 - pctCurrently}% of benchmark companies`;
-                return `${pctCurrently}% of peers also offer this`;
+                if (pctCurrently < 50) return `You're ahead of ${100 - pctCurrently}% of benchmark companies here`;
+                if (pctCurrently < 70) return `Solid: ${pctCurrently}% of peers also offer this`;
+                return `Table stakes: ${pctCurrently}% of peers offer this`;
               }
-              if (statusInfo.key === 'planning') return `${pctCurrently}% already offer; you're in planning`;
-              if (statusInfo.key === 'assessing') return `${pctCurrently + pctPlanning}% are further along`;
-              return `Competitive gap: ${pctCurrently}% of peers offer this`;
+              if (statusInfo.key === 'planning') {
+                if (pctCurrently > 50) return `${pctCurrently}% already offer; completing brings you in line`;
+                return `You're among the ${pctPlanning}% in planning; ${pctCurrently}% already offer`;
+              }
+              if (statusInfo.key === 'assessing') {
+                const aheadPct = pctCurrently + pctPlanning;
+                return `Common inflection point: ${pctAssessing}% also assessing; ${pctCurrently}% already offer`;
+              }
+              if (pctCurrently > 50) return `Competitive gap: ${pctCurrently}% of peers offer this`;
+              return `Emerging area: ${pctCurrently}% currently offer`;
             };
             
             return (
               <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDimensionDetailModal(null)}>
-                <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
                   {/* Header */}
-                  <div className="px-8 py-6 border-b border-slate-200 flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
+                  <div className="px-8 py-5 border-b border-slate-200 flex-shrink-0" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}dd 100%)` }}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <span className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-white text-2xl font-bold">{d.dim}</span>
+                        <span className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-white text-2xl font-bold shadow-lg">{d.dim}</span>
                         <div>
                           <h3 className="text-2xl font-bold text-white">{d.name}</h3>
                           <p className="text-white/80 mt-1">Weight: {d.weight}% • {d.tier.name}</p>
@@ -3645,79 +3691,148 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   
-                  {/* Content - Scrollable */}
-                  <div className="flex-1 overflow-y-auto px-8 py-6">
-                    {/* Element Grid */}
-                    <div className="mb-6">
-                      <h4 className="font-bold text-slate-800 text-lg mb-4">Element Performance</h4>
-                      <div className="grid gap-3">
-                        {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.code?.toLowerCase()?.includes('global')).map((elem: any, i: number) => {
-                          const statusInfo = getStatusInfo(elem);
-                          const bench = elemBench[elem.code] || { currently: 0, planning: 0, assessing: 0, total: 1 };
-                          const customObs = customObservations[d.dim]?.[elem.code];
-                          const observation = customObs || getDefaultObservation(elem, bench);
-                          return (
-                            <div key={i} className="border border-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow">
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="px-2 py-0.5 rounded text-xs font-semibold" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>{statusInfo.label}</span>
-                                    <span className="text-xs text-slate-400">{elem.code}</span>
-                                  </div>
-                                  <p className="text-base text-slate-800 font-medium">{elem.label}</p>
-                                  <p className="text-sm text-slate-500 mt-1">{observation}</p>
-                                </div>
-                                <div className="text-right flex-shrink-0">
-                                  <p className="text-2xl font-bold" style={{ color: statusInfo.text }}>{elem.points}</p>
-                                  <p className="text-xs text-slate-400">points</p>
-                                </div>
-                              </div>
-                              {/* Benchmark bar */}
-                              <div className="mt-3 pt-3 border-t border-slate-100">
-                                <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-                                  <span>Benchmark distribution</span>
-                                </div>
-                                <div className="flex h-2 rounded-full overflow-hidden bg-slate-100">
-                                  <div style={{ width: `${Math.round((bench.currently / (bench.total || 1)) * 100)}%`, backgroundColor: STATUS.currently.bg }} title={`Offering: ${Math.round((bench.currently / (bench.total || 1)) * 100)}%`}></div>
-                                  <div style={{ width: `${Math.round((bench.planning / (bench.total || 1)) * 100)}%`, backgroundColor: STATUS.planning.bg }} title={`Planning: ${Math.round((bench.planning / (bench.total || 1)) * 100)}%`}></div>
-                                  <div style={{ width: `${Math.round((bench.assessing / (bench.total || 1)) * 100)}%`, backgroundColor: STATUS.assessing.bg }} title={`Assessing: ${Math.round((bench.assessing / (bench.total || 1)) * 100)}%`}></div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                  {/* Content - Full Table View */}
+                  <div className="flex-1 overflow-y-auto">
+                    {/* Table Header */}
+                    <div className="sticky top-0 bg-slate-100 border-b border-slate-200 px-6 py-3 grid grid-cols-12 gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <div className="col-span-3">Element</div>
+                      <div className="col-span-1 text-center">Your Status</div>
+                      <div className="col-span-1 text-center">Offering</div>
+                      <div className="col-span-1 text-center">Planning</div>
+                      <div className="col-span-1 text-center">Assessing</div>
+                      <div className="col-span-1 text-center">Not Offering</div>
+                      <div className="col-span-4">Observation</div>
                     </div>
                     
-                    {/* Strengths & Gaps Summary */}
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="bg-emerald-50 rounded-xl p-5 border border-emerald-200">
-                        <h5 className="font-bold text-emerald-800 mb-3">Strengths ({d.elements?.filter((el: any) => el.isStrength).length || 0})</h5>
-                        <ul className="space-y-2 text-sm text-emerald-700">
-                          {d.elements?.filter((el: any) => el.isStrength).slice(0, 5).map((el: any, i: number) => (
-                            <li key={i} className="flex items-start gap-2"><span className="text-emerald-500">✓</span>{el.label}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="bg-red-50 rounded-xl p-5 border border-red-200">
-                        <h5 className="font-bold text-red-800 mb-3">Gaps ({d.elements?.filter((el: any) => !el.isStrength && !el.isPlanning && !el.isAssessing).length || 0})</h5>
-                        <ul className="space-y-2 text-sm text-red-700">
-                          {d.elements?.filter((el: any) => !el.isStrength && !el.isPlanning && !el.isAssessing).slice(0, 5).map((el: any, i: number) => (
-                            <li key={i} className="flex items-start gap-2"><span className="text-red-400">○</span>{el.label}</li>
-                          ))}
-                        </ul>
-                      </div>
+                    {/* Table Body */}
+                    <div className="divide-y divide-slate-100">
+                      {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.code?.toLowerCase()?.includes('global')).map((elem: any, i: number) => {
+                        const statusInfo = getStatusInfo(elem);
+                        const bench = elemBench[elem.code] || { currently: 0, planning: 0, assessing: 0, total: 1 };
+                        const total = bench.total || 1;
+                        const pctCurrently = Math.round((bench.currently / total) * 100);
+                        const pctPlanning = Math.round((bench.planning / total) * 100);
+                        const pctAssessing = Math.round((bench.assessing / total) * 100);
+                        const pctNotOffering = 100 - pctCurrently - pctPlanning - pctAssessing;
+                        const customObs = customObservations[d.dim]?.[elem.code];
+                        const observation = customObs || getDefaultObservation(elem, bench);
+                        
+                        return (
+                          <div key={i} className={`px-6 py-4 grid grid-cols-12 gap-2 items-center ${i % 2 === 1 ? 'bg-slate-50/50' : ''} hover:bg-slate-50`}>
+                            {/* Element Name */}
+                            <div className="col-span-3">
+                              <p className="text-sm text-slate-800 font-medium leading-snug">{elem.label}</p>
+                            </div>
+                            
+                            {/* Your Status */}
+                            <div className="col-span-1 flex justify-center">
+                              <span className="px-2 py-1 rounded text-xs font-semibold whitespace-nowrap" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                                {statusInfo.label}
+                              </span>
+                            </div>
+                            
+                            {/* Offering % */}
+                            <div className="col-span-1 text-center">
+                              <span className={`inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded text-sm font-semibold ${
+                                statusInfo.key === 'currently' ? 'bg-emerald-100 text-emerald-700 ring-2 ring-emerald-400' : 'text-slate-600'
+                              }`}>
+                                {pctCurrently}%
+                              </span>
+                            </div>
+                            
+                            {/* Planning % */}
+                            <div className="col-span-1 text-center">
+                              <span className={`inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded text-sm font-medium ${
+                                statusInfo.key === 'planning' ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-400' : 'text-slate-500'
+                              }`}>
+                                {pctPlanning}%
+                              </span>
+                            </div>
+                            
+                            {/* Assessing % */}
+                            <div className="col-span-1 text-center">
+                              <span className={`inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded text-sm font-medium ${
+                                statusInfo.key === 'assessing' ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-400' : 'text-slate-500'
+                              }`}>
+                                {pctAssessing}%
+                              </span>
+                            </div>
+                            
+                            {/* Not Offering % */}
+                            <div className="col-span-1 text-center">
+                              <span className={`inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded text-sm font-medium ${
+                                statusInfo.key === 'notAble' ? 'bg-red-100 text-red-700 ring-2 ring-red-400' : 'text-slate-500'
+                              }`}>
+                                {pctNotOffering}%
+                              </span>
+                            </div>
+                            
+                            {/* Observation */}
+                            <div className="col-span-4">
+                              <p className="text-sm text-slate-600 leading-snug">{observation}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
+                    
+                    {/* Geographic Multiplier Section (if applicable) */}
+                    {d.hasGeographicMultiplier && (
+                      <div className="border-t-4 border-slate-200 mt-4">
+                        <div className="px-6 py-3 bg-indigo-50 border-b border-indigo-200">
+                          <h4 className="font-bold text-indigo-800 uppercase tracking-wide text-sm">Geographic Multiplier</h4>
+                        </div>
+                        <div className="px-6 py-4">
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            {[
+                              { label: 'Consistent across all locations', benchmark: '55%', multiplier: 'x1.00', selected: d.geographicScope === 'consistent' },
+                              { label: 'Varies by location', benchmark: '25%', multiplier: 'x0.90', selected: d.geographicScope === 'varies' },
+                              { label: 'Only available in select locations', benchmark: '20%', multiplier: 'x0.75', selected: d.geographicScope === 'select' },
+                            ].map((opt, i) => (
+                              <div key={i} className={`flex items-center justify-between px-4 py-3 rounded-lg border ${opt.selected ? 'bg-indigo-100 border-indigo-400' : 'bg-white border-slate-200'}`}>
+                                <div className="flex items-center gap-2">
+                                  {opt.selected && <span className="text-indigo-600">✓</span>}
+                                  <span className={opt.selected ? 'font-semibold text-indigo-900' : 'text-slate-600'}>{opt.label}</span>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-slate-500 text-xs mr-3">{opt.benchmark}</span>
+                                  <span className={`font-bold ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>{opt.multiplier}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Footer */}
                   <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex-shrink-0 flex justify-between items-center">
                     <div className="flex gap-2">
-                      <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-50">← Previous</button>
-                      <button onClick={() => setDimensionDetailModal(Math.min(13, dimensionDetailModal + 1))} disabled={dimensionDetailModal >= 13} className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-50">Next →</button>
+                      <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        <span className="flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                          Previous
+                        </span>
+                      </button>
+                      <button onClick={() => setDimensionDetailModal(Math.min(13, dimensionDetailModal + 1))} disabled={dimensionDetailModal >= 13} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        <span className="flex items-center gap-2">
+                          Next
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                        </span>
+                      </button>
                     </div>
-                    <button onClick={() => setDimensionDetailModal(null)} className="px-6 py-2 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors">Close</button>
+                    <div className="text-sm text-slate-500">
+                      Dimension {dimensionDetailModal} of 13
+                    </div>
+                    <button onClick={() => setDimensionDetailModal(null)} className="px-6 py-2 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors">
+                      Close
+                    </button>
                   </div>
+                </div>
+              </div>
+            );
+          })()}
                 </div>
               </div>
             );
