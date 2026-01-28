@@ -12,6 +12,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// ============================================
+// POLISHED DESIGN COMPONENTS (activated with ?design=polished)
+// ============================================
+
 const ChevronDownIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -4217,6 +4221,7 @@ export default function ExportReportPage() {
                     <p className="text-base text-violet-700 mt-1">Key evidence, strategic insight, recommended roadmap, and CAC programs</p>
                   </div>
                 </div>
+              </div>
               </div>
               <p className="text-base text-slate-500 mt-8 italic">
                 Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
