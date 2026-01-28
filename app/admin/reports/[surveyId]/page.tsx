@@ -4222,7 +4222,6 @@ export default function ExportReportPage() {
                   </div>
                 </div>
               </div>
-              </div>
               <p className="text-base text-slate-500 mt-8 italic">
                 Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
               </p>
