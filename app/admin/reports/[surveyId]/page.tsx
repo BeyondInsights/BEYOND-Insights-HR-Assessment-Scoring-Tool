@@ -1273,11 +1273,11 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     </p>
                   </div>
                   
-                  {/* Score Bar */}
-                  <div className="w-48 mx-6 hidden md:block">
-                    <div className={`h-2 rounded-full overflow-hidden ${isSelected ? 'bg-slate-600' : 'bg-slate-100'}`}>
+                  {/* Score Bar - Wider and better centered */}
+                  <div className="flex-1 max-w-xs mx-4 hidden md:block">
+                    <div className={`h-2.5 rounded-full overflow-hidden ${isSelected ? 'bg-slate-600' : 'bg-slate-200'}`}>
                       <div 
-                        className="h-full rounded-full transition-all"
+                        className="h-full rounded-full transition-all duration-300"
                         style={{ 
                           width: `${d.score}%`, 
                           backgroundColor: isSelected ? '#A5B4FC' : d.tier.color 
@@ -1287,32 +1287,37 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   </div>
                   
                   {/* Score */}
-                  <div className="text-right w-16 shrink-0">
+                  <div className="text-right w-14 shrink-0">
                     <p className={`text-2xl font-bold ${isSelected ? 'text-white' : ''}`} style={{ color: isSelected ? undefined : getScoreColor(d.score) }}>
                       {d.score}
                     </p>
                   </div>
                   
-                  {/* Benchmark Diff */}
-                  <div className="w-16 text-center shrink-0">
+                  {/* Benchmark Diff with "vs avg" label */}
+                  <div className="w-20 text-center shrink-0 flex flex-col items-center justify-center">
                     {diff !== null && (
-                      <span className={`text-sm font-semibold px-2 py-1 rounded ${
-                        isSelected 
-                          ? (diff > 0 ? 'text-emerald-300' : diff < 0 ? 'text-red-300' : 'text-slate-400')
-                          : (diff > 0 ? 'text-emerald-600 bg-emerald-50' : diff < 0 ? 'text-red-500 bg-red-50' : 'text-slate-500 bg-slate-50')
-                      }`}>
-                        {diff > 0 ? '+' : ''}{diff}
-                      </span>
+                      <>
+                        <span className={`text-sm font-bold ${
+                          isSelected 
+                            ? (diff > 0 ? 'text-emerald-300' : diff < 0 ? 'text-red-300' : 'text-slate-400')
+                            : (diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-slate-500')
+                        }`}>
+                          {diff > 0 ? '+' : ''}{diff}
+                        </span>
+                        <span className={`text-[10px] ${isSelected ? 'text-slate-400' : 'text-slate-400'}`}>
+                          vs avg
+                        </span>
+                      </>
                     )}
                   </div>
                   
                   {/* Tier Badge */}
-                  <div className="w-24 text-center shrink-0">
+                  <div className="w-28 text-center shrink-0">
                     <span 
-                      className={`text-xs font-medium px-3 py-1 rounded-full ${
+                      className={`text-xs font-semibold px-3 py-1.5 rounded-full inline-block ${
                         isSelected ? 'bg-white/20 text-white' : ''
                       }`}
-                      style={isSelected ? {} : { backgroundColor: `${d.tier.color}15`, color: d.tier.color }}
+                      style={isSelected ? {} : { backgroundColor: `${d.tier.color}18`, color: d.tier.color }}
                     >
                       {d.tier.name}
                     </span>
@@ -1320,7 +1325,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   
                   {/* Expand Icon */}
                   <div className={`w-8 shrink-0 flex justify-center transition-transform duration-200 ${isSelected ? 'rotate-180' : ''}`}>
-                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-400' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
@@ -1635,11 +1640,11 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     </p>
                   </div>
                   
-                  {/* Score Bar */}
-                  <div className="w-48 mx-6 hidden md:block">
-                    <div className={`h-2 rounded-full overflow-hidden ${isSelected ? 'bg-slate-600' : 'bg-slate-100'}`}>
+                  {/* Score Bar - Wider and better centered */}
+                  <div className="flex-1 max-w-xs mx-4 hidden md:block">
+                    <div className={`h-2.5 rounded-full overflow-hidden ${isSelected ? 'bg-slate-600' : 'bg-slate-200'}`}>
                       <div 
-                        className="h-full rounded-full transition-all"
+                        className="h-full rounded-full transition-all duration-300"
                         style={{ 
                           width: `${d.score}%`, 
                           backgroundColor: isSelected ? '#A5B4FC' : d.tier.color 
@@ -1649,32 +1654,37 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   </div>
                   
                   {/* Score */}
-                  <div className="text-right w-16 shrink-0">
+                  <div className="text-right w-14 shrink-0">
                     <p className={`text-2xl font-bold ${isSelected ? 'text-white' : ''}`} style={{ color: isSelected ? undefined : getScoreColor(d.score) }}>
                       {d.score}
                     </p>
                   </div>
                   
-                  {/* Benchmark Diff */}
-                  <div className="w-16 text-center shrink-0">
+                  {/* Benchmark Diff with "vs avg" label */}
+                  <div className="w-20 text-center shrink-0 flex flex-col items-center justify-center">
                     {diff !== null && (
-                      <span className={`text-sm font-semibold px-2 py-1 rounded ${
-                        isSelected 
-                          ? (diff > 0 ? 'text-emerald-300' : diff < 0 ? 'text-red-300' : 'text-slate-400')
-                          : (diff > 0 ? 'text-emerald-600 bg-emerald-50' : diff < 0 ? 'text-red-500 bg-red-50' : 'text-slate-500 bg-slate-50')
-                      }`}>
-                        {diff > 0 ? '+' : ''}{diff}
-                      </span>
+                      <>
+                        <span className={`text-sm font-bold ${
+                          isSelected 
+                            ? (diff > 0 ? 'text-emerald-300' : diff < 0 ? 'text-red-300' : 'text-slate-400')
+                            : (diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-slate-500')
+                        }`}>
+                          {diff > 0 ? '+' : ''}{diff}
+                        </span>
+                        <span className={`text-[10px] ${isSelected ? 'text-slate-400' : 'text-slate-400'}`}>
+                          vs avg
+                        </span>
+                      </>
                     )}
                   </div>
                   
                   {/* Tier Badge */}
-                  <div className="w-24 text-center shrink-0">
+                  <div className="w-28 text-center shrink-0">
                     <span 
-                      className={`text-xs font-medium px-3 py-1 rounded-full ${
+                      className={`text-xs font-semibold px-3 py-1.5 rounded-full inline-block ${
                         isSelected ? 'bg-white/20 text-white' : ''
                       }`}
-                      style={isSelected ? {} : { backgroundColor: `${d.tier.color}15`, color: d.tier.color }}
+                      style={isSelected ? {} : { backgroundColor: `${d.tier.color}18`, color: d.tier.color }}
                     >
                       {d.tier.name}
                     </span>
@@ -1682,7 +1692,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   
                   {/* Expand Icon */}
                   <div className={`w-8 shrink-0 flex justify-center transition-transform duration-200 ${isSelected ? 'rotate-180' : ''}`}>
-                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-400' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
