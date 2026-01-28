@@ -3208,14 +3208,18 @@ export default function ExportReportPage() {
                   const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
                   const cb3cArray = (cb3c && Array.isArray(cb3c)) ? cb3c : [];
                   
+                  // Debug: log what's in the array
+                  console.log('CB3C Raw Data:', cb3c);
+                  console.log('CB3C Array:', cb3cArray);
+                  
                   const healthConditions = [
                     'Cancer', 'Heart disease', 'Diabetes', 'Mental health', 'Chronic pain',
                     'Autoimmune disorders', 'Neurological conditions', 'Respiratory conditions',
                     'Kidney disease', 'Liver disease', 'HIV/AIDS', 'Pregnancy complications', 'Other'
                   ];
                   
-                  // Count how many conditions are actually selected by checking each one
-                  const selectedConditionsCount = healthConditions.filter(condition => {
+                  // Helper function to check if a condition is selected
+                  const isConditionSelected = (condition: string) => {
                     return cb3cArray.some((v: string) => {
                       const vStr = String(v).toLowerCase().trim();
                       const condStr = condition.toLowerCase().trim();
@@ -3224,21 +3228,22 @@ export default function ExportReportPage() {
                              condStr.includes(vStr) ||
                              (condStr === 'cancer' && vStr.includes('cancer')) ||
                              (condStr === 'mental health' && (vStr.includes('mental') || vStr.includes('anxiety') || vStr.includes('depression'))) ||
-                             (condStr === 'heart disease' && (vStr.includes('heart') || vStr.includes('cardiac'))) ||
+                             (condStr === 'heart disease' && (vStr.includes('heart') || vStr.includes('cardiac') || vStr.includes('cardiovascular'))) ||
                              (condStr === 'diabetes' && vStr.includes('diabet')) ||
                              (condStr === 'chronic pain' && vStr.includes('pain')) ||
                              (condStr === 'autoimmune disorders' && vStr.includes('autoimmune')) ||
-                             (condStr === 'neurological conditions' && vStr.includes('neuro')) ||
-                             (condStr === 'respiratory conditions' && (vStr.includes('respiratory') || vStr.includes('lung'))) ||
-                             (condStr === 'kidney disease' && vStr.includes('kidney')) ||
-                             (condStr === 'liver disease' && vStr.includes('liver')) ||
+                             (condStr === 'neurological conditions' && (vStr.includes('neuro') || vStr.includes('parkinson') || vStr.includes('alzheimer') || vStr.includes('ms') || vStr.includes('multiple sclerosis'))) ||
+                             (condStr === 'respiratory conditions' && (vStr.includes('respiratory') || vStr.includes('lung') || vStr.includes('copd') || vStr.includes('asthma'))) ||
+                             (condStr === 'kidney disease' && (vStr.includes('kidney') || vStr.includes('renal'))) ||
+                             (condStr === 'liver disease' && (vStr.includes('liver') || vStr.includes('hepat'))) ||
                              (condStr === 'hiv/aids' && (vStr.includes('hiv') || vStr.includes('aids'))) ||
-                             (condStr === 'pregnancy complications' && vStr.includes('pregnancy')) ||
-                             (condStr === 'other' && vStr.includes('other'));
+                             (condStr === 'pregnancy complications' && (vStr.includes('pregnancy') || vStr.includes('maternity'))) ||
+                             (condStr === 'other' && (vStr.includes('other') || vStr === 'other'));
                     });
-                  }).length;
+                  };
                   
-                  const cb3cCount = selectedConditionsCount;
+                  // Count using the same function used for display
+                  const cb3cCount = healthConditions.filter(c => isConditionSelected(c)).length;
                   const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
                   
                   const programElements = [
@@ -3316,29 +3321,7 @@ export default function ExportReportPage() {
                           </div>
                           <div className="p-3 grid grid-cols-3 gap-2">
                             {healthConditions.map((condition, i) => {
-                              // The cb3cArray contains the actual condition names as stored - check direct inclusion
-                              const isSelected = cb3cArray.some((v: string) => {
-                                const vStr = String(v).toLowerCase().trim();
-                                const condStr = condition.toLowerCase().trim();
-                                // Direct match or close match
-                                return vStr === condStr || 
-                                       vStr.includes(condStr) || 
-                                       condStr.includes(vStr) ||
-                                       // Handle common variations
-                                       (condStr === 'cancer' && vStr.includes('cancer')) ||
-                                       (condStr === 'mental health' && (vStr.includes('mental') || vStr.includes('anxiety') || vStr.includes('depression'))) ||
-                                       (condStr === 'heart disease' && (vStr.includes('heart') || vStr.includes('cardiac'))) ||
-                                       (condStr === 'diabetes' && vStr.includes('diabet')) ||
-                                       (condStr === 'chronic pain' && vStr.includes('pain')) ||
-                                       (condStr === 'autoimmune disorders' && vStr.includes('autoimmune')) ||
-                                       (condStr === 'neurological conditions' && vStr.includes('neuro')) ||
-                                       (condStr === 'respiratory conditions' && (vStr.includes('respiratory') || vStr.includes('lung'))) ||
-                                       (condStr === 'kidney disease' && vStr.includes('kidney')) ||
-                                       (condStr === 'liver disease' && vStr.includes('liver')) ||
-                                       (condStr === 'hiv/aids' && (vStr.includes('hiv') || vStr.includes('aids'))) ||
-                                       (condStr === 'pregnancy complications' && vStr.includes('pregnancy')) ||
-                                       (condStr === 'other' && vStr.includes('other'));
-                              });
+                              const isSelected = isConditionSelected(condition);
                               return (
                                 <div key={i} className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
                                   <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-400'}>{isSelected ? '✓' : '○'}</span>
