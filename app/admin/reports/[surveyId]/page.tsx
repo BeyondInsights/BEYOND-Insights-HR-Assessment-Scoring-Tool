@@ -4223,14 +4223,14 @@ export default function ExportReportPage() {
                 </div>
               </div>
               </div>
-              <p className="text-base text-slate-500 mt-8 italic px-12 pb-10">
+              <p className="text-base text-slate-500 mt-8 italic px-12 pb-6">
                 Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
               </p>
             </div>
           </div>
           
           {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-7xl mx-auto">
             <div className="divide-y-4 divide-slate-100">
               {allDimensionsByScore.slice(0, 4).map((d, idx) => {
                 const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
@@ -4461,7 +4461,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -4631,7 +4631,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
             <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
               {/* Decorative circles */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
@@ -4732,7 +4732,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ METHODOLOGY & FOOTER ============ */}
-          <div className="ppt-break bg-slate-50 rounded-xl border border-slate-200 overflow-hidden pdf-no-break" id="appendix-end" data-export="appendix-end">
+          <div className="ppt-break bg-slate-50 rounded-xl border border-slate-200 overflow-hidden pdf-no-break max-w-7xl mx-auto" id="appendix-end" data-export="appendix-end">
             <div className="px-12 py-6 border-b border-slate-200">
               <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
             </div>
