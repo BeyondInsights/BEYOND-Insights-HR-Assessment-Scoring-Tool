@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
@@ -1253,7 +1254,7 @@ function ScoreComponentCard({
   benchmarkScore?: number;
   color: 'slate' | 'amber' | 'violet';
   summary: string;
-  details?: React.ReactNode;
+  details?: ReactNode;
   getScoreColor: (score: number) => string;
 }) {
   const [expanded, setExpanded] = useState(false);
