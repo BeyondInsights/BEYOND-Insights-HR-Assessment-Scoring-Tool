@@ -2849,18 +2849,6 @@ export default function ExportReportPage() {
               )}
               
               <button 
-                onClick={generateInteractiveLink}
-                disabled={generatingLink}
-                className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm disabled:opacity-50"
-              >
-                {generatingLink ? (
-                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" /><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" /></svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                )}
-                {generatingLink ? 'Generating...' : 'Share Link'}
-              </button>
-              <button 
                 onClick={() => window.location.href = `${window.location.pathname}?export=ppt`}
                 className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
               >
@@ -4839,68 +4827,6 @@ export default function ExportReportPage() {
           </div>
           
         </div>
-        
-        {showInteractiveLinkModal && interactiveLink && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 no-print">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
-              <div className="bg-gradient-to-r from-violet-600 to-violet-700 px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-white text-lg">Interactive Report Link</h3>
-                  <button onClick={() => setShowInteractiveLinkModal(false)} className="text-white/70 hover:text-white">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
-                </div>
-              </div>
-              <div className="p-6 space-y-5">
-                <p className="text-slate-600">Share this password-protected link with stakeholders for interactive report access.</p>
-                
-                <div>
-                  <label className="text-sm font-semibold text-slate-700 mb-2 block flex items-center gap-2">
-                    <svg className="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                    Report URL
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input type="text" readOnly value={interactiveLink.url} className="flex-1 text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 font-mono text-slate-700" />
-                    <button onClick={() => { navigator.clipboard.writeText(interactiveLink.url); showToast('URL copied to clipboard', 'success'); }} className="px-4 py-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 text-sm font-semibold">Copy</button>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-semibold text-slate-700 mb-2 block flex items-center gap-2">
-                    <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                    Password (Required)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input type="text" readOnly value={interactiveLink.password} className="flex-1 text-lg bg-amber-50 border border-amber-300 rounded-lg px-3 py-2.5 font-mono font-bold tracking-wider text-amber-800" />
-                    <button onClick={() => { navigator.clipboard.writeText(interactiveLink.password); showToast('Password copied to clipboard', 'success'); }} className="px-4 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-semibold">Copy</button>
-                  </div>
-                </div>
-                
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <div className="flex gap-3">
-                    <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <div className="text-sm text-blue-800">
-                      <p className="font-medium">Interactive Features:</p>
-                      <ul className="mt-1 space-y-0.5 text-blue-700">
-                        <li>• Click any dimension for element-level details</li>
-                        <li>• View strengths, gaps, and in-progress items</li>
-                        <li>• Compare performance against benchmark</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
-                  <button onClick={() => { navigator.clipboard.writeText(`Interactive Report Link:\n${interactiveLink.url}\n\nPassword: ${interactiveLink.password}`); showToast('Link and password copied', 'success'); }} className="text-sm text-violet-600 hover:text-violet-800 font-medium flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
-                    Copy Both
-                  </button>
-                  <button onClick={() => setShowInteractiveLinkModal(false)} className="px-5 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 font-semibold">Done</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
 }
