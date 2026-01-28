@@ -4839,8 +4839,9 @@ export default function ExportReportPage() {
           </div>
           
         </div>
+      </div>
 
-        {showInteractiveLinkModal && interactiveLink && (
+      {showInteractiveLinkModal && interactiveLink && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowInteractiveLinkModal(false)}>
             <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
