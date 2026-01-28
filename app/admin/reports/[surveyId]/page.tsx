@@ -4223,7 +4223,7 @@ export default function ExportReportPage() {
                 </div>
               </div>
               </div>
-              <p className="text-base text-slate-500 mt-8 italic px-12">
+              <p className="text-base text-slate-500 mt-8 italic">
                 Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
               </p>
             </div>
@@ -4242,7 +4242,7 @@ export default function ExportReportPage() {
                 return (
                   <div key={d.dim} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
                     {/* Dimension Header */}
-                    <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
+                    <div className="px-12 py-4 bg-slate-700 border-b border-slate-600">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
                           {idx + 1}
@@ -4263,12 +4263,12 @@ export default function ExportReportPage() {
                     
                     {/* Benchmark Narrative */}
                     {benchmarkNarrative && (
-                      <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
+                      <div className="px-12 py-3 bg-slate-100 border-b border-slate-200">
                         <p className="text-base text-slate-600">{benchmarkNarrative}</p>
                       </div>
                     )}
                     
-                    <div className="px-10 py-6">
+                    <div className="px-12 py-6">
                       {/* Current State - 3 columns */}
                       <div className="grid grid-cols-3 gap-6 mb-6">
                         {/* Improvement Opportunities */}
