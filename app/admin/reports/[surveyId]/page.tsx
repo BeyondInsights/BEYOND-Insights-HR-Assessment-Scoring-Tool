@@ -3207,7 +3207,38 @@ export default function ExportReportPage() {
                   const cb3bScore = Math.min(100, Math.round((cb3bCount / 6) * 100));
                   const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
                   const cb3cArray = (cb3c && Array.isArray(cb3c)) ? cb3c : [];
-                  const cb3cCount = Math.min(cb3cArray.length, 13);
+                  
+                  const healthConditions = [
+                    'Cancer', 'Heart disease', 'Diabetes', 'Mental health', 'Chronic pain',
+                    'Autoimmune disorders', 'Neurological conditions', 'Respiratory conditions',
+                    'Kidney disease', 'Liver disease', 'HIV/AIDS', 'Pregnancy complications', 'Other'
+                  ];
+                  
+                  // Count how many conditions are actually selected by checking each one
+                  const selectedConditionsCount = healthConditions.filter(condition => {
+                    return cb3cArray.some((v: string) => {
+                      const vStr = String(v).toLowerCase().trim();
+                      const condStr = condition.toLowerCase().trim();
+                      return vStr === condStr || 
+                             vStr.includes(condStr) || 
+                             condStr.includes(vStr) ||
+                             (condStr === 'cancer' && vStr.includes('cancer')) ||
+                             (condStr === 'mental health' && (vStr.includes('mental') || vStr.includes('anxiety') || vStr.includes('depression'))) ||
+                             (condStr === 'heart disease' && (vStr.includes('heart') || vStr.includes('cardiac'))) ||
+                             (condStr === 'diabetes' && vStr.includes('diabet')) ||
+                             (condStr === 'chronic pain' && vStr.includes('pain')) ||
+                             (condStr === 'autoimmune disorders' && vStr.includes('autoimmune')) ||
+                             (condStr === 'neurological conditions' && vStr.includes('neuro')) ||
+                             (condStr === 'respiratory conditions' && (vStr.includes('respiratory') || vStr.includes('lung'))) ||
+                             (condStr === 'kidney disease' && vStr.includes('kidney')) ||
+                             (condStr === 'liver disease' && vStr.includes('liver')) ||
+                             (condStr === 'hiv/aids' && (vStr.includes('hiv') || vStr.includes('aids'))) ||
+                             (condStr === 'pregnancy complications' && vStr.includes('pregnancy')) ||
+                             (condStr === 'other' && vStr.includes('other'));
+                    });
+                  }).length;
+                  
+                  const cb3cCount = selectedConditionsCount;
                   const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
                   
                   const programElements = [
@@ -3217,12 +3248,6 @@ export default function ExportReportPage() {
                     { label: 'External initiatives/certifications', key: 'external' },
                     { label: 'Comprehensive framework', key: 'comprehensive' },
                     { label: 'Ad hoc/case-by-case support', key: 'adhoc' },
-                  ];
-                  
-                  const healthConditions = [
-                    'Cancer', 'Heart disease', 'Diabetes', 'Mental health', 'Chronic pain',
-                    'Autoimmune disorders', 'Neurological conditions', 'Respiratory conditions',
-                    'Kidney disease', 'Liver disease', 'HIV/AIDS', 'Pregnancy complications', 'Other'
                   ];
                   
                   return (
