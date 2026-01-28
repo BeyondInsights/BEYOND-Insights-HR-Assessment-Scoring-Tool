@@ -2156,6 +2156,7 @@ export default function ExportReportPage() {
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
   const [interactiveLink, setInteractiveLink] = useState<{ url: string; password: string } | null>(null);
+  const [showBenchmarkRings, setShowBenchmarkRings] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   
@@ -2789,6 +2790,46 @@ export default function ExportReportPage() {
               Back
             </button>
             <div className="flex items-center gap-4">
+              {/* Edit Mode Toggle */}
+              <button
+                onClick={() => setEditMode(!editMode)}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 border transition-colors ${
+                  editMode 
+                    ? 'bg-amber-100 border-amber-300 text-amber-700' 
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+                title={editMode ? 'Exit Edit Mode' : 'Enter Edit Mode'}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                {editMode ? 'Editing' : 'Edit'}
+              </button>
+              
+              {/* Save/Reset buttons - only show in edit mode */}
+              {editMode && (
+                <>
+                  <button
+                    onClick={handleSaveCustomizations}
+                    disabled={isSaving}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isSaving ? (
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    )}
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    onClick={handleResetCustomizations}
+                    className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-lg text-sm font-semibold"
+                  >
+                    Reset All
+                  </button>
+                </>
+              )}
+              
               <span className="text-sm bg-violet-100 text-violet-700 px-4 py-2 rounded-lg font-semibold tracking-wide uppercase">Polished Design</span>
               <a href={window.location.pathname} className="text-sm text-slate-500 hover:text-slate-700 font-medium">Original →</a>
               <button onClick={() => window.print()} className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-base">
@@ -2798,6 +2839,20 @@ export default function ExportReportPage() {
             </div>
           </div>
         </div>
+        
+        {/* Edit Mode Banner */}
+        {editMode && (
+          <div className="no-print bg-amber-50 border-b border-amber-200 px-10 py-3">
+            <div className="max-w-7xl mx-auto flex items-center gap-3">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-amber-800">
+                <strong>Edit Mode:</strong> Edit strategic insights and recommended actions. Changes are saved to the database and will appear in exported reports.
+              </p>
+            </div>
+          </div>
+        )}
         
         <div className="polished-report max-w-7xl mx-auto py-10 px-10">
         
@@ -3254,8 +3309,33 @@ export default function ExportReportPage() {
                         <p className="text-base text-slate-600 leading-relaxed">{p.implication}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-3">Recommended Action</p>
-                        <p className="text-base text-slate-600 leading-relaxed">{customCrossRecommendations[idx] || p.recommendation}</p>
+                        <p className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-3">
+                          Recommended Action
+                          {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
+                        </p>
+                        {editMode ? (
+                          <div className="flex flex-col gap-2">
+                            <textarea
+                              value={customCrossRecommendations[idx] ?? p.recommendation}
+                              onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
+                              className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                              placeholder="Enter custom recommendation..."
+                            />
+                            {customCrossRecommendations[idx] && (
+                              <button 
+                                onClick={() => updateCustomCrossRecommendation(idx, '')}
+                                className="text-sm text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Reset to default
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-base text-slate-600 leading-relaxed">{customCrossRecommendations[idx] || p.recommendation}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -3276,10 +3356,13 @@ export default function ExportReportPage() {
                   <tr className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b-2 border-slate-200">
                     <th className="pb-4 text-left w-16">Rank</th>
                     <th className="pb-4 text-left w-20">Score</th>
-                    <th className="pb-4 text-left">Dimension</th>
+                    <th className="pb-4 text-left w-56">Dimension</th>
                     <th className="pb-4 text-center w-20">Impact</th>
                     <th className="pb-4 text-center w-20">Effort</th>
-                    <th className="pb-4 text-left">Key Actions</th>
+                    <th className="pb-4 text-left">
+                      Key Actions
+                      {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -3313,7 +3396,29 @@ export default function ExportReportPage() {
                         }`}>{r.effort}</span>
                       </td>
                       <td className="py-5">
-                        <p className="text-base text-slate-600">{customRecommendations[r.dimNum] || r.keyAction || 'Focus on closing identified gaps and accelerating in-progress initiatives.'}</p>
+                        {editMode ? (
+                          <div className="flex flex-col gap-2">
+                            <textarea
+                              value={customRecommendations[r.dimNum] ?? r.keyAction ?? 'Focus on closing identified gaps and accelerating in-progress initiatives.'}
+                              onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
+                              className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[70px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                              placeholder="Enter custom key actions..."
+                            />
+                            {customRecommendations[r.dimNum] && (
+                              <button 
+                                onClick={() => updateCustomRecommendation(r.dimNum, '')}
+                                className="text-sm text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Reset
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-base text-slate-600">{customRecommendations[r.dimNum] || r.keyAction || 'Focus on closing identified gaps and accelerating in-progress initiatives.'}</p>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -3622,9 +3727,32 @@ export default function ExportReportPage() {
                             </div>
                           )}
                           
-                          <div className="border border-slate-200 rounded-xl p-4 bg-white">
-                            <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
-                            <p className="text-base text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                          <div className={`border rounded-xl p-4 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
+                            <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                              Strategic Insight
+                              {editMode && <span className="text-sm font-normal text-amber-600">(click to edit)</span>}
+                            </h5>
+                            {editMode ? (
+                              <textarea
+                                value={customInsights[d.dim]?.insight ?? dynamicInsight.insight}
+                                onChange={(e) => updateCustomInsight(d.dim, 'insight', e.target.value)}
+                                className="w-full text-base text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                                placeholder="Enter custom strategic insight..."
+                              />
+                            ) : (
+                              <p className="text-base text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                            )}
+                            {editMode && customInsights[d.dim]?.insight && (
+                              <button 
+                                onClick={() => updateCustomInsight(d.dim, 'insight', '')}
+                                className="mt-2 text-sm text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Reset to default
+                              </button>
+                            )}
                           </div>
                         </div>
                         
@@ -3658,9 +3786,32 @@ export default function ExportReportPage() {
                             </div>
                           )}
                           
-                          <div className="border border-violet-200 rounded-xl p-4 bg-violet-50">
-                            <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
-                            <p className="text-base text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                          <div className={`border rounded-xl p-4 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
+                            <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                              How Cancer and Careers Can Help
+                              {editMode && <span className="text-sm font-normal text-amber-600">(click to edit)</span>}
+                            </h5>
+                            {editMode ? (
+                              <textarea
+                                value={customInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
+                                onChange={(e) => updateCustomInsight(d.dim, 'cacHelp', e.target.value)}
+                                className="w-full text-base text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                                placeholder="Enter custom CAC help text..."
+                              />
+                            ) : (
+                              <p className="text-base text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                            )}
+                            {editMode && customInsights[d.dim]?.cacHelp && (
+                              <button 
+                                onClick={() => updateCustomInsight(d.dim, 'cacHelp', '')}
+                                className="mt-2 text-sm text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Reset to default
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -3681,68 +3832,140 @@ export default function ExportReportPage() {
               <div className="space-y-6">
                 {/* Phase 1 */}
                 <div className="bg-emerald-50 rounded-xl p-8 border border-emerald-200">
-                  <div className="flex items-center gap-4 mb-6">
-                    <span className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xl">1</span>
-                    <div>
-                      <p className="font-bold text-emerald-800 text-xl">Quick Wins</p>
-                      <p className="text-base text-emerald-600 font-medium">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {(customRoadmap.phase1?.useCustom && customRoadmap.phase1?.items?.length > 0
-                      ? customRoadmap.phase1.items
-                      : quickWinItems.slice(0, 4).map(i => i.name)
-                    ).map((item: string, idx: number) => (
-                      <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
-                        <span className="text-emerald-500 mt-0.5 font-bold">●</span>
-                        <span>{item}</span>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <span className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xl">1</span>
+                      <div>
+                        <p className="font-bold text-emerald-800 text-xl">Quick Wins</p>
+                        {editMode ? (
+                          <input
+                            type="text"
+                            value={customRoadmapTimeframes.phase1 || '0-3 months'}
+                            onChange={(e) => setCustomRoadmapTimeframes(prev => ({ ...prev, phase1: e.target.value }))}
+                            className="text-base text-emerald-600 font-medium bg-white border border-emerald-300 rounded px-2 py-1 mt-1"
+                          />
+                        ) : (
+                          <p className="text-base text-emerald-600 font-medium">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
+                        )}
                       </div>
-                    ))}
+                    </div>
+                    {editMode && <p className="text-sm text-amber-600">(editable)</p>}
                   </div>
+                  {editMode ? (
+                    <textarea
+                      value={(customRoadmap.phase1?.useCustom && customRoadmap.phase1?.items?.length > 0
+                        ? customRoadmap.phase1.items
+                        : quickWinItems.slice(0, 4).map(i => i.name)
+                      ).join('\n')}
+                      onChange={(e) => updateCustomRoadmap('phase1', e.target.value.split('\n').filter(s => s.trim()), true)}
+                      className="w-full text-base text-slate-700 bg-white border border-emerald-300 rounded-lg p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-y"
+                      placeholder="Enter items (one per line)..."
+                    />
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      {(customRoadmap.phase1?.useCustom && customRoadmap.phase1?.items?.length > 0
+                        ? customRoadmap.phase1.items
+                        : quickWinItems.slice(0, 4).map(i => i.name)
+                      ).map((item: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
+                          <span className="text-emerald-500 mt-0.5 font-bold">●</span>
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 {/* Phase 2 */}
                 <div className="bg-blue-50 rounded-xl p-8 border border-blue-200">
-                  <div className="flex items-center gap-4 mb-6">
-                    <span className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl">2</span>
-                    <div>
-                      <p className="font-bold text-blue-800 text-xl">Foundation Building</p>
-                      <p className="text-base text-blue-600 font-medium">{customRoadmapTimeframes.phase2 || '3-9 months'}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {(customRoadmap.phase2?.useCustom && customRoadmap.phase2?.items?.length > 0
-                      ? customRoadmap.phase2.items
-                      : foundationItems.slice(0, 4).map(i => i.name)
-                    ).map((item: string, idx: number) => (
-                      <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
-                        <span className="text-blue-500 mt-0.5 font-bold">●</span>
-                        <span>{item}</span>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <span className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl">2</span>
+                      <div>
+                        <p className="font-bold text-blue-800 text-xl">Foundation Building</p>
+                        {editMode ? (
+                          <input
+                            type="text"
+                            value={customRoadmapTimeframes.phase2 || '3-9 months'}
+                            onChange={(e) => setCustomRoadmapTimeframes(prev => ({ ...prev, phase2: e.target.value }))}
+                            className="text-base text-blue-600 font-medium bg-white border border-blue-300 rounded px-2 py-1 mt-1"
+                          />
+                        ) : (
+                          <p className="text-base text-blue-600 font-medium">{customRoadmapTimeframes.phase2 || '3-9 months'}</p>
+                        )}
                       </div>
-                    ))}
+                    </div>
+                    {editMode && <p className="text-sm text-amber-600">(editable)</p>}
                   </div>
+                  {editMode ? (
+                    <textarea
+                      value={(customRoadmap.phase2?.useCustom && customRoadmap.phase2?.items?.length > 0
+                        ? customRoadmap.phase2.items
+                        : foundationItems.slice(0, 4).map(i => i.name)
+                      ).join('\n')}
+                      onChange={(e) => updateCustomRoadmap('phase2', e.target.value.split('\n').filter(s => s.trim()), true)}
+                      className="w-full text-base text-slate-700 bg-white border border-blue-300 rounded-lg p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
+                      placeholder="Enter items (one per line)..."
+                    />
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      {(customRoadmap.phase2?.useCustom && customRoadmap.phase2?.items?.length > 0
+                        ? customRoadmap.phase2.items
+                        : foundationItems.slice(0, 4).map(i => i.name)
+                      ).map((item: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
+                          <span className="text-blue-500 mt-0.5 font-bold">●</span>
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 {/* Phase 3 */}
                 <div className="bg-violet-50 rounded-xl p-8 border border-violet-200">
-                  <div className="flex items-center gap-4 mb-6">
-                    <span className="w-12 h-12 rounded-full bg-violet-600 text-white flex items-center justify-center font-bold text-xl">3</span>
-                    <div>
-                      <p className="font-bold text-violet-800 text-xl">Excellence</p>
-                      <p className="text-base text-violet-600 font-medium">{customRoadmapTimeframes.phase3 || '9-18 months'}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {(customRoadmap.phase3?.useCustom && customRoadmap.phase3?.items?.length > 0
-                      ? customRoadmap.phase3.items
-                      : excellenceItems.slice(0, 4).map(i => i.name)
-                    ).map((item: string, idx: number) => (
-                      <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
-                        <span className="text-violet-500 mt-0.5 font-bold">●</span>
-                        <span>{item}</span>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <span className="w-12 h-12 rounded-full bg-violet-600 text-white flex items-center justify-center font-bold text-xl">3</span>
+                      <div>
+                        <p className="font-bold text-violet-800 text-xl">Excellence</p>
+                        {editMode ? (
+                          <input
+                            type="text"
+                            value={customRoadmapTimeframes.phase3 || '9-18 months'}
+                            onChange={(e) => setCustomRoadmapTimeframes(prev => ({ ...prev, phase3: e.target.value }))}
+                            className="text-base text-violet-600 font-medium bg-white border border-violet-300 rounded px-2 py-1 mt-1"
+                          />
+                        ) : (
+                          <p className="text-base text-violet-600 font-medium">{customRoadmapTimeframes.phase3 || '9-18 months'}</p>
+                        )}
                       </div>
-                    ))}
+                    </div>
+                    {editMode && <p className="text-sm text-amber-600">(editable)</p>}
                   </div>
+                  {editMode ? (
+                    <textarea
+                      value={(customRoadmap.phase3?.useCustom && customRoadmap.phase3?.items?.length > 0
+                        ? customRoadmap.phase3.items
+                        : excellenceItems.slice(0, 4).map(i => i.name)
+                      ).join('\n')}
+                      onChange={(e) => updateCustomRoadmap('phase3', e.target.value.split('\n').filter(s => s.trim()), true)}
+                      className="w-full text-base text-slate-700 bg-white border border-violet-300 rounded-lg p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-violet-400 resize-y"
+                      placeholder="Enter items (one per line)..."
+                    />
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      {(customRoadmap.phase3?.useCustom && customRoadmap.phase3?.items?.length > 0
+                        ? customRoadmap.phase3.items
+                        : excellenceItems.slice(0, 4).map(i => i.name)
+                      ).map((item: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
+                          <span className="text-violet-500 mt-0.5 font-bold">●</span>
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -3751,47 +3974,126 @@ export default function ExportReportPage() {
           {/* ============ HOW CAC CAN HELP ============ */}
           <div className="ppt-break bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl shadow-lg overflow-hidden mb-8 pdf-no-break">
             <div className="px-12 py-10">
-              <div className="flex items-center gap-8 mb-10">
-                <div className="bg-white rounded-xl p-5">
-                  <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={160} height={55} className="object-contain" />
+              <div className="flex items-center justify-between mb-10">
+                <div className="flex items-center gap-8">
+                  <div className="bg-white rounded-xl p-5">
+                    <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={160} height={55} className="object-contain" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-2xl">How Cancer and Careers Can Help</h3>
+                    <p className="text-slate-300 mt-2 text-lg">Resources and services to support your improvement journey</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-white text-2xl">How Cancer and Careers Can Help</h3>
-                  <p className="text-slate-300 mt-2 text-lg">Resources and services to support your improvement journey</p>
-                </div>
+                {editMode && <p className="text-sm text-amber-400">(editable below)</p>}
               </div>
               
               <div className="grid grid-cols-2 gap-8">
+                {/* Card 1 */}
                 <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
                   <div className="w-14 h-14 rounded-xl bg-violet-500 flex items-center justify-center mb-5">
                     <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                   </div>
-                  <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item1?.title || 'Manager Training Programs'}</h4>
-                  <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item1?.bullets?.[0] || 'Comprehensive training to help managers support employees navigating cancer diagnosis and treatment.'}</p>
+                  {editMode ? (
+                    <>
+                      <input
+                        type="text"
+                        value={customCacHelp.item1?.title || 'Manager Training Programs'}
+                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item1: { ...prev.item1, title: e.target.value } }))}
+                        className="w-full text-xl font-bold text-slate-800 bg-white border border-amber-300 rounded-lg px-3 py-2 mb-3"
+                      />
+                      <textarea
+                        value={customCacHelp.item1?.bullets?.[0] || 'Comprehensive training to help managers support employees navigating cancer diagnosis and treatment.'}
+                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item1: { ...prev.item1, bullets: [e.target.value] } }))}
+                        className="w-full text-base text-slate-600 bg-white border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] resize-y"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item1?.title || 'Manager Training Programs'}</h4>
+                      <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item1?.bullets?.[0] || 'Comprehensive training to help managers support employees navigating cancer diagnosis and treatment.'}</p>
+                    </>
+                  )}
                 </div>
                 
+                {/* Card 2 */}
                 <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
                   <div className="w-14 h-14 rounded-xl bg-emerald-500 flex items-center justify-center mb-5">
                     <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                   </div>
-                  <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item2?.title || 'Employee Resources'}</h4>
-                  <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item2?.bullets?.[0] || 'Direct support services for employees including navigation assistance and educational materials.'}</p>
+                  {editMode ? (
+                    <>
+                      <input
+                        type="text"
+                        value={customCacHelp.item2?.title || 'Employee Resources'}
+                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item2: { ...prev.item2, title: e.target.value } }))}
+                        className="w-full text-xl font-bold text-slate-800 bg-white border border-amber-300 rounded-lg px-3 py-2 mb-3"
+                      />
+                      <textarea
+                        value={customCacHelp.item2?.bullets?.[0] || 'Direct support services for employees including navigation assistance and educational materials.'}
+                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item2: { ...prev.item2, bullets: [e.target.value] } }))}
+                        className="w-full text-base text-slate-600 bg-white border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] resize-y"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item2?.title || 'Employee Resources'}</h4>
+                      <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item2?.bullets?.[0] || 'Direct support services for employees including navigation assistance and educational materials.'}</p>
+                    </>
+                  )}
                 </div>
                 
+                {/* Card 3 */}
                 <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
                   <div className="w-14 h-14 rounded-xl bg-amber-500 flex items-center justify-center mb-5">
                     <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                   </div>
-                  <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item3?.title || 'Policy Review'}</h4>
-                  <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item3?.bullets?.[0] || 'Expert consultation on policies and benefits to ensure comprehensive cancer support.'}</p>
+                  {editMode ? (
+                    <>
+                      <input
+                        type="text"
+                        value={customCacHelp.item3?.title || 'Policy Review'}
+                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item3: { ...prev.item3, title: e.target.value } }))}
+                        className="w-full text-xl font-bold text-slate-800 bg-white border border-amber-300 rounded-lg px-3 py-2 mb-3"
+                      />
+                      <textarea
+                        value={customCacHelp.item3?.bullets?.[0] || 'Expert consultation on policies and benefits to ensure comprehensive cancer support.'}
+                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item3: { ...prev.item3, bullets: [e.target.value] } }))}
+                        className="w-full text-base text-slate-600 bg-white border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] resize-y"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item3?.title || 'Policy Review'}</h4>
+                      <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item3?.bullets?.[0] || 'Expert consultation on policies and benefits to ensure comprehensive cancer support.'}</p>
+                    </>
+                  )}
                 </div>
                 
+                {/* Card 4 */}
                 <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
                   <div className="w-14 h-14 rounded-xl bg-blue-500 flex items-center justify-center mb-5">
                     <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                   </div>
-                  <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item4?.title || 'Ongoing Consultation'}</h4>
-                  <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item4?.bullets?.[0] || 'Year-round access to CAC experts for guidance on implementation and best practices.'}</p>
+                  {editMode ? (
+                    <>
+                      <input
+                        type="text"
+                        value={customCacHelp.item4?.title || 'Ongoing Consultation'}
+                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item4: { ...prev.item4, title: e.target.value } }))}
+                        className="w-full text-xl font-bold text-slate-800 bg-white border border-amber-300 rounded-lg px-3 py-2 mb-3"
+                      />
+                      <textarea
+                        value={customCacHelp.item4?.bullets?.[0] || 'Year-round access to CAC experts for guidance on implementation and best practices.'}
+                        onChange={(e) => setCustomCacHelp(prev => ({ ...prev, item4: { ...prev.item4, bullets: [e.target.value] } }))}
+                        className="w-full text-base text-slate-600 bg-white border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] resize-y"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="text-white font-bold text-xl mb-3">{customCacHelp.item4?.title || 'Ongoing Consultation'}</h4>
+                      <p className="text-slate-300 text-base leading-relaxed">{customCacHelp.item4?.bullets?.[0] || 'Year-round access to CAC experts for guidance on implementation and best practices.'}</p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
