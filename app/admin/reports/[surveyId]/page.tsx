@@ -3262,7 +3262,21 @@ export default function ExportReportPage() {
                           </div>
                           <div className="p-3 grid grid-cols-3 gap-2">
                             {healthConditions.map((condition, i) => {
-                              const isSelected = cb3cArray.some((v: string) => v.toLowerCase().includes(condition.toLowerCase().substring(0, 5)));
+                              // More robust matching: check if any response contains the condition name (case insensitive, partial match)
+                              const conditionLower = condition.toLowerCase();
+                              const isSelected = cb3cArray.some((v: string) => {
+                                const vLower = String(v).toLowerCase();
+                                // Match if condition is contained in response or vice versa
+                                return vLower.includes(conditionLower.substring(0, 4)) || 
+                                       conditionLower.includes(vLower.substring(0, 4)) ||
+                                       (conditionLower === 'mental health' && (vLower.includes('mental') || vLower.includes('psychological'))) ||
+                                       (conditionLower === 'heart disease' && (vLower.includes('heart') || vLower.includes('cardiac') || vLower.includes('cardiovascular'))) ||
+                                       (conditionLower === 'chronic pain' && vLower.includes('pain')) ||
+                                       (conditionLower === 'autoimmune disorders' && (vLower.includes('autoimmune') || vLower.includes('auto-immune'))) ||
+                                       (conditionLower === 'neurological conditions' && (vLower.includes('neuro') || vLower.includes('brain'))) ||
+                                       (conditionLower === 'respiratory conditions' && (vLower.includes('respiratory') || vLower.includes('lung') || vLower.includes('breathing'))) ||
+                                       (conditionLower === 'pregnancy complications' && (vLower.includes('pregnancy') || vLower.includes('maternity')));
+                              });
                               return (
                                 <div key={i} className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
                                   <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-400'}>{isSelected ? '✓' : '○'}</span>
@@ -3863,23 +3877,23 @@ export default function ExportReportPage() {
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-            <div className="px-12 py-6 bg-emerald-700">
-              <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
-              <p className="text-emerald-200 mt-1 text-base">{strengthDimensions.length} dimensions at Leading or above</p>
+            <div className="px-12 py-5 bg-emerald-700">
+              <h3 className="font-bold text-white text-lg">Areas of Excellence</h3>
+              <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
             </div>
-            <div className="px-12 py-8">
+            <div className="px-12 py-6">
               {strengthDimensions.length > 0 ? (
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-5">
                   {strengthDimensions.slice(0, 6).map((d) => (
-                    <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedDrillDownDim(d.dim)}>
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="font-bold text-slate-800 text-lg">{d.name}</p>
-                        <span className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                    <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDimensionDetailModal(d.dim)}>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="font-semibold text-slate-800 text-base">{d.name}</p>
+                        <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                       </div>
-                      <ul className="space-y-2">
+                      <ul className="space-y-1.5">
                         {d.strengths.slice(0, 3).map((e: any, i: number) => (
-                          <li key={i} className="text-base text-slate-600 flex items-start gap-2">
-                            <CheckIcon className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                            <CheckIcon className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                             <span>{e.name}</span>
                           </li>
                         ))}
@@ -3888,8 +3902,8 @@ export default function ExportReportPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-10">
-                  <p className="text-slate-500 text-lg">Focus on building foundational capabilities to reach Leading tier.</p>
+                <div className="text-center py-8">
+                  <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
                 </div>
               )}
             </div>
@@ -3897,29 +3911,29 @@ export default function ExportReportPage() {
           
           {/* ============ GROWTH OPPORTUNITIES ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-            <div className="px-12 py-6 bg-amber-600">
-              <h3 className="font-bold text-white text-xl">Growth Opportunities</h3>
-              <p className="text-amber-200 mt-1 text-base">Dimensions with improvement potential</p>
+            <div className="px-12 py-5 bg-amber-600">
+              <h3 className="font-bold text-white text-lg">Growth Opportunities</h3>
+              <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
             </div>
-            <div className="px-12 py-8">
-              <div className="grid grid-cols-2 gap-6">
+            <div className="px-12 py-6">
+              <div className="grid grid-cols-2 gap-5">
                 {allDimensionsByScore.slice(0, 6).map((d) => (
-                  <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedDrillDownDim(d.dim)}>
-                    <div className="flex items-center justify-between mb-4">
-                      <p className="font-bold text-slate-800 text-lg">{d.name}</p>
-                      <span className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                  <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDimensionDetailModal(d.dim)}>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-semibold text-slate-800 text-base">{d.name}</p>
+                      <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                     </div>
                     {d.needsAttention.length > 0 ? (
-                      <ul className="space-y-2">
+                      <ul className="space-y-1.5">
                         {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
-                          <li key={i} className="text-base text-slate-600 flex items-start gap-2">
-                            <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
+                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                            <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
                             <span>{e.name}</span>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-base text-slate-400 italic">Focus on completing planned initiatives</p>
+                      <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
                     )}
                   </div>
                 ))}
@@ -3930,21 +3944,35 @@ export default function ExportReportPage() {
           {/* ============ INITIATIVES IN PROGRESS ============ */}
           {quickWinOpportunities.length > 0 && (
             <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-              <div className="px-12 py-6 bg-blue-700">
-                <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
-                <p className="text-blue-200 mt-1 text-base">Programs currently in planning or under consideration</p>
+              <div className="px-12 py-5 bg-gradient-to-r from-blue-600 to-blue-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-white text-lg">Initiatives In Progress</h3>
+                    <p className="text-blue-200 mt-1 text-sm">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                  </div>
+                  <div className="bg-white/20 rounded-lg px-4 py-2">
+                    <p className="text-white text-sm font-medium">Fastest path to improvement</p>
+                  </div>
+                </div>
               </div>
-              <div className="px-12 py-8">
-                <p className="text-slate-600 text-base mb-6">
-                  Converting these items to active programs represents the fastest path to improving your composite score.
-                </p>
+              <div className="px-12 py-6">
                 <div className="grid grid-cols-2 gap-4">
                   {quickWinOpportunities.map((item: any, idx: number) => (
-                    <div key={idx} className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                      <span className={`text-sm font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700'}`}>{item.type}</span>
+                    <div key={idx} className="flex items-start gap-4 p-4 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200 hover:shadow-sm transition-shadow">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100' : 'bg-slate-100'}`}>
+                        {item.type === 'Planning' ? (
+                          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-base text-slate-700 font-medium">{item.name}</p>
-                        <p className="text-sm text-slate-500 mt-1">D{item.dimNum}: {item.dimName}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'}`}>{item.type}</span>
+                          <span className="text-xs text-slate-400">D{item.dimNum}</span>
+                        </div>
+                        <p className="text-sm text-slate-800 font-medium">{item.name}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{item.dimName}</p>
                       </div>
                     </div>
                   ))}
@@ -4241,150 +4269,168 @@ export default function ExportReportPage() {
           
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
-            <div className="px-12 py-6 bg-slate-800">
-              <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
-              <p className="text-slate-400 mt-1 text-base">Your phased approach to strengthen workplace cancer support</p>
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
+                  <p className="text-slate-400 mt-1">Your phased approach to strengthen workplace cancer support</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-8 h-1 bg-emerald-400 rounded"></div>
+                  <div className="w-8 h-1 bg-blue-400 rounded"></div>
+                  <div className="w-8 h-1 bg-violet-400 rounded"></div>
+                </div>
+              </div>
             </div>
             <div className="px-12 py-8">
-              <div className="grid grid-cols-3 gap-6">
+              {/* Timeline connector */}
+              <div className="relative">
+                <div className="absolute top-8 left-[16.67%] right-[16.67%] h-1 bg-gradient-to-r from-emerald-400 via-blue-400 to-violet-400 hidden lg:block"></div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-8">
                 {/* Phase 1 */}
-                <div className="border-2 border-emerald-200 rounded-xl overflow-hidden shadow-sm">
-                  <div className="bg-emerald-600 px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 font-bold text-lg shadow-md">1</span>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-white">Quick Wins</h4>
-                        {editMode ? (
-                          <input
-                            type="text"
-                            value={customRoadmapTimeframes.phase1 || '0-3 months'}
-                            onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase1: e.target.value })); setHasUnsavedChanges(true); }}
-                            className="text-sm bg-emerald-500 text-white border border-emerald-400 rounded px-2 py-0.5 w-24 focus:outline-none"
-                          />
-                        ) : (
-                          <p className="text-emerald-100 text-sm">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
-                        )}
+                <div className="relative">
+                  <div className="border-2 border-emerald-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white">
+                    <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 px-5 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
+                          <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-white text-lg">Quick Wins</h4>
+                          {editMode ? (
+                            <input type="text" value={customRoadmapTimeframes.phase1 || '0-3 months'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase1: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-emerald-400/50 text-white border border-emerald-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
+                          ) : (
+                            <p className="text-emerald-100 text-sm">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="p-5 bg-emerald-50/50">
-                    <p className="text-sm text-emerald-700 font-semibold uppercase tracking-wide mb-4">Accelerate items already in progress</p>
-                    {editMode && <p className="text-sm text-amber-600 mb-2">(editable)</p>}
-                    {editMode ? (
-                      <div className="space-y-2">
-                        <textarea
-                          value={customRoadmap.phase1?.useCustom 
-                            ? customRoadmap.phase1.items.join('\n') 
-                            : quickWinItems.map(item => item.name).join('\n')}
-                          onChange={(e) => updateCustomRoadmap('phase1', e.target.value.split('\n').filter(s => s.trim()), true)}
-                          className="w-full text-base text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                          placeholder="Enter items, one per line..."
-                        />
+                    <div className="p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded">ACCELERATE</span>
+                        <span className="text-xs text-slate-400">Items in progress</span>
                       </div>
-                    ) : (
-                      <ul className="space-y-3">
-                        {(customRoadmap.phase1?.useCustom ? customRoadmap.phase1.items.map((name: string, idx: number) => ({ name, dimNum: null })) : quickWinItems).map((item: any, idx: number) => (
-                          <li key={idx} className="text-base">
-                            <p className="text-slate-700">{item.name}</p>
-                            {item.dimNum && <p className="text-sm text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                      {editMode && <p className="text-xs text-amber-600 mb-3">(editable)</p>}
+                      {editMode ? (
+                        <textarea value={customRoadmap.phase1?.useCustom ? customRoadmap.phase1.items.join('\n') : quickWinItems.map(item => item.name).join('\n')} onChange={(e) => updateCustomRoadmap('phase1', e.target.value.split('\n').filter(s => s.trim()), true)} className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[140px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y" placeholder="Enter items, one per line..." />
+                      ) : (
+                        <ul className="space-y-3">
+                          {(customRoadmap.phase1?.useCustom ? customRoadmap.phase1.items.map((name: string) => ({ name, dimNum: null })) : quickWinItems).slice(0, 5).map((item: any, idx: number) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg className="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                              </span>
+                              <div>
+                                <p className="text-sm text-slate-700">{item.name}</p>
+                                {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
                 {/* Phase 2 */}
-                <div className="border-2 border-blue-200 rounded-xl overflow-hidden shadow-sm">
-                  <div className="bg-blue-600 px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600 font-bold text-lg shadow-md">2</span>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-white">Foundation Building</h4>
-                        {editMode ? (
-                          <input
-                            type="text"
-                            value={customRoadmapTimeframes.phase2 || '3-12 months'}
-                            onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase2: e.target.value })); setHasUnsavedChanges(true); }}
-                            className="text-sm bg-blue-500 text-white border border-blue-400 rounded px-2 py-0.5 w-24 focus:outline-none"
-                          />
-                        ) : (
-                          <p className="text-blue-100 text-sm">{customRoadmapTimeframes.phase2 || '3-12 months'}</p>
-                        )}
+                <div className="relative">
+                  <div className="border-2 border-blue-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white">
+                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 px-5 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
+                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-white text-lg">Foundation Building</h4>
+                          {editMode ? (
+                            <input type="text" value={customRoadmapTimeframes.phase2 || '3-12 months'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase2: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-blue-400/50 text-white border border-blue-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
+                          ) : (
+                            <p className="text-blue-100 text-sm">{customRoadmapTimeframes.phase2 || '3-12 months'}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="p-5 bg-blue-50/50">
-                    <p className="text-sm text-blue-700 font-semibold uppercase tracking-wide mb-4">Address high-weight dimension gaps</p>
-                    {editMode && <p className="text-sm text-amber-600 mb-2">(editable)</p>}
-                    {editMode ? (
-                      <div className="space-y-2">
-                        <textarea
-                          value={customRoadmap.phase2?.useCustom 
-                            ? customRoadmap.phase2.items.join('\n') 
-                            : foundationItems.map(item => item.name).join('\n')}
-                          onChange={(e) => updateCustomRoadmap('phase2', e.target.value.split('\n').filter(s => s.trim()), true)}
-                          className="w-full text-base text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                          placeholder="Enter items, one per line..."
-                        />
+                    <div className="p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">BUILD</span>
+                        <span className="text-xs text-slate-400">High-weight gaps</span>
                       </div>
-                    ) : (
-                      <ul className="space-y-3">
-                        {(customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items.map((name: string, idx: number) => ({ name, dimNum: null })) : foundationItems).map((item: any, idx: number) => (
-                          <li key={idx} className="text-base">
-                            <p className="text-slate-700">{item.name}</p>
-                            {item.dimNum && <p className="text-sm text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                      {editMode && <p className="text-xs text-amber-600 mb-3">(editable)</p>}
+                      {editMode ? (
+                        <textarea value={customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items.join('\n') : foundationItems.map(item => item.name).join('\n')} onChange={(e) => updateCustomRoadmap('phase2', e.target.value.split('\n').filter(s => s.trim()), true)} className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[140px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y" placeholder="Enter items, one per line..." />
+                      ) : (
+                        <ul className="space-y-3">
+                          {(customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items.map((name: string) => ({ name, dimNum: null })) : foundationItems).slice(0, 5).map((item: any, idx: number) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                              </span>
+                              <div>
+                                <p className="text-sm text-slate-700">{item.name}</p>
+                                {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
                 {/* Phase 3 */}
-                <div className="border-2 border-violet-200 rounded-xl overflow-hidden shadow-sm">
-                  <div className="bg-violet-600 px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-violet-600 font-bold text-lg shadow-md">3</span>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-white">Excellence</h4>
-                        {editMode ? (
-                          <input
-                            type="text"
-                            value={customRoadmapTimeframes.phase3 || '12-18 months'}
-                            onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase3: e.target.value })); setHasUnsavedChanges(true); }}
-                            className="text-sm bg-violet-500 text-white border border-violet-400 rounded px-2 py-0.5 w-24 focus:outline-none"
-                          />
-                        ) : (
-                          <p className="text-violet-100 text-sm">{customRoadmapTimeframes.phase3 || '12-18 months'}</p>
-                        )}
+                <div className="relative">
+                  <div className="border-2 border-violet-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white">
+                    <div className="bg-gradient-to-br from-violet-500 to-violet-600 px-5 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
+                          <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-white text-lg">Excellence</h4>
+                          {editMode ? (
+                            <input type="text" value={customRoadmapTimeframes.phase3 || '12-18 months'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase3: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-violet-400/50 text-white border border-violet-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
+                          ) : (
+                            <p className="text-violet-100 text-sm">{customRoadmapTimeframes.phase3 || '12-18 months'}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="p-5 bg-violet-50/50">
-                    <p className="text-sm text-violet-700 font-semibold uppercase tracking-wide mb-4">Build toward Exemplary status</p>
-                    {editMode && <p className="text-sm text-amber-600 mb-2">(editable)</p>}
-                    {editMode ? (
-                      <div className="space-y-2">
-                        <textarea
-                          value={customRoadmap.phase3?.useCustom 
-                            ? customRoadmap.phase3.items.join('\n') 
-                            : excellenceItems.map(item => item.name).join('\n')}
-                          onChange={(e) => updateCustomRoadmap('phase3', e.target.value.split('\n').filter(s => s.trim()), true)}
-                          className="w-full text-base text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                          placeholder="Enter items, one per line..."
-                        />
+                    <div className="p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="px-2 py-1 bg-violet-100 text-violet-700 text-xs font-semibold rounded">OPTIMIZE</span>
+                        <span className="text-xs text-slate-400">Comprehensive coverage</span>
                       </div>
-                    ) : (
-                      <ul className="space-y-3">
-                        {(customRoadmap.phase3?.useCustom ? customRoadmap.phase3.items.map((name: string, idx: number) => ({ name, dimNum: null })) : excellenceItems).map((item: any, idx: number) => (
-                          <li key={idx} className="text-base">
-                            <p className="text-slate-700">{item.name}</p>
-                            {item.dimNum && <p className="text-sm text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                      {editMode && <p className="text-xs text-amber-600 mb-3">(editable)</p>}
+                      {editMode ? (
+                        <textarea value={customRoadmap.phase3?.useCustom ? customRoadmap.phase3.items.join('\n') : stretchItems.map(item => item.name).join('\n')} onChange={(e) => updateCustomRoadmap('phase3', e.target.value.split('\n').filter(s => s.trim()), true)} className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[140px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y" placeholder="Enter items, one per line..." />
+                      ) : (
+                        stretchItems.length > 0 ? (
+                          <ul className="space-y-3">
+                            {(customRoadmap.phase3?.useCustom ? customRoadmap.phase3.items.map((name: string) => ({ name, dimNum: null })) : stretchItems).slice(0, 5).map((item: any, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <svg className="w-3 h-3 text-violet-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                </span>
+                                <div>
+                                  <p className="text-sm text-slate-700">{item.name}</p>
+                                  {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-slate-400 italic">Continue expanding strengths and monitoring program effectiveness</p>
+                        )
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -4393,111 +4439,109 @@ export default function ExportReportPage() {
           
           {/* ============ HOW CAC CAN HELP ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-            <div className="px-12 py-8 bg-gradient-to-r from-[#F37021] to-[#FF8C42]">
-              <div className="flex items-center gap-8">
-                <div className="bg-white rounded-xl p-4 shadow-lg flex-shrink-0">
+            <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
+              {/* Decorative circles */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+              
+              <div className="relative flex items-center gap-8">
+                <div className="bg-white rounded-2xl p-5 shadow-xl flex-shrink-0">
                   <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={140} height={50} className="object-contain" />
                 </div>
                 <div>
                   <h3 className="font-bold text-white text-2xl">How Cancer and Careers Can Help</h3>
-                  <p className="text-orange-100 mt-2 text-lg">Tailored support to enhance your employee experience</p>
+                  <p className="text-white/90 mt-2 text-lg">Tailored support to enhance your employee experience</p>
                 </div>
               </div>
             </div>
             <div className="px-12 py-8">
               {/* Intro paragraph */}
-              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-200 mb-8">
-                <p className="text-slate-700 text-base leading-relaxed">
-                  Every organization enters this work from a different place. Cancer and Careers consulting practice 
-                  helps organizations understand where they are, identify where they want to be, and build a realistic 
-                  path to get there—shaped by <strong>two decades of frontline experience</strong> with employees navigating cancer 
-                  and the HR teams supporting them.
-                </p>
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-200 mb-8 relative">
+                <div className="absolute top-0 left-6 w-1 h-full bg-gradient-to-b from-[#F37021] to-transparent rounded-full"></div>
+                <div className="pl-4">
+                  <p className="text-slate-700 text-base leading-relaxed">
+                    Every organization enters this work from a different place. Cancer and Careers' consulting practice 
+                    helps organizations understand where they are, identify where they want to be, and build a realistic 
+                    path to get there—shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
+                    and the HR teams supporting them.
+                  </p>
+                </div>
               </div>
               
               {editMode && <p className="text-sm text-amber-600 mb-4">(editable below)</p>}
               
-              {/* 4 Service Cards with bullets */}
+              {/* 4 Service Cards with bullets - enhanced design */}
               <div className="grid grid-cols-2 gap-6 mb-8">
                 {[
-                  { key: 'item1', num: 1, defaultTitle: 'Manager Preparedness & Training', defaultBullets: ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'], color: 'violet' },
-                  { key: 'item2', num: 2, defaultTitle: 'Navigation & Resource Architecture', defaultBullets: ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'], color: 'emerald' },
-                  { key: 'item3', num: 3, defaultTitle: 'Return to Work Excellence', defaultBullets: ['Phased return protocols', 'Check-in cadence design', 'Career continuity planning'], color: 'amber' },
-                  { key: 'item4', num: 4, defaultTitle: 'Policy & Program Assessment', defaultBullets: ['Comprehensive policy review', 'Implementation audit', 'Business case development'], color: 'blue' },
+                  { key: 'item1', num: 1, defaultTitle: 'Manager Preparedness & Training', defaultBullets: ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'], color: 'violet', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z' },
+                  { key: 'item2', num: 2, defaultTitle: 'Navigation & Resource Architecture', defaultBullets: ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'], color: 'emerald', icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
+                  { key: 'item3', num: 3, defaultTitle: 'Return to Work Excellence', defaultBullets: ['Phased return protocols', 'Check-in cadence design', 'Career continuity planning'], color: 'amber', icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' },
+                  { key: 'item4', num: 4, defaultTitle: 'Policy & Program Assessment', defaultBullets: ['Comprehensive policy review', 'Implementation audit', 'Business case development'], color: 'blue', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
                 ].map(item => {
                   const custom = customCacHelp[item.key as keyof typeof customCacHelp];
                   const title = custom?.title || item.defaultTitle;
                   const bullets = custom?.bullets || item.defaultBullets;
                   const colorClasses = {
-                    violet: { bg: 'bg-violet-500', border: 'border-violet-500', icon: 'bg-violet-100' },
-                    emerald: { bg: 'bg-emerald-500', border: 'border-emerald-500', icon: 'bg-emerald-100' },
-                    amber: { bg: 'bg-amber-500', border: 'border-amber-500', icon: 'bg-amber-100' },
-                    blue: { bg: 'bg-blue-500', border: 'border-blue-500', icon: 'bg-blue-100' },
+                    violet: { bg: 'bg-violet-500', border: 'border-violet-300', icon: 'bg-violet-100 text-violet-600', light: 'bg-violet-50' },
+                    emerald: { bg: 'bg-emerald-500', border: 'border-emerald-300', icon: 'bg-emerald-100 text-emerald-600', light: 'bg-emerald-50' },
+                    amber: { bg: 'bg-amber-500', border: 'border-amber-300', icon: 'bg-amber-100 text-amber-600', light: 'bg-amber-50' },
+                    blue: { bg: 'bg-blue-500', border: 'border-blue-300', icon: 'bg-blue-100 text-blue-600', light: 'bg-blue-50' },
                   }[item.color];
                   
                   return (
-                    <div key={item.key} className={`border-l-4 ${colorClasses?.border} bg-slate-50 rounded-r-xl p-6`}>
-                      {editMode ? (
-                        <>
-                          <div className="flex items-center gap-3 mb-4">
-                            <span className={`w-8 h-8 rounded-full ${colorClasses?.bg} text-white text-sm font-bold flex items-center justify-center flex-shrink-0`}>{item.num}</span>
-                            <input
-                              type="text"
-                              value={title}
-                              onChange={(e) => {
-                                setCustomCacHelp(prev => ({
-                                  ...prev,
-                                  [item.key]: { title: e.target.value, bullets: bullets }
-                                }));
-                                setHasUnsavedChanges(true);
-                              }}
-                              className="flex-1 font-bold text-slate-800 text-lg bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                            />
+                    <div key={item.key} className={`rounded-2xl border ${colorClasses?.border} overflow-hidden shadow-sm hover:shadow-md transition-shadow`}>
+                      <div className={`${colorClasses?.light} px-5 py-4 border-b ${colorClasses?.border}`}>
+                        {editMode ? (
+                          <div className="flex items-center gap-3">
+                            <span className={`w-10 h-10 rounded-xl ${colorClasses?.icon} flex items-center justify-center flex-shrink-0`}>
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} /></svg>
+                            </span>
+                            <input type="text" value={title} onChange={(e) => { setCustomCacHelp(prev => ({ ...prev, [item.key]: { title: e.target.value, bullets: bullets } })); setHasUnsavedChanges(true); }} className="flex-1 font-bold text-slate-800 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
                           </div>
-                          <textarea
-                            value={bullets.join('\n')}
-                            onChange={(e) => {
-                              setCustomCacHelp(prev => ({
-                                ...prev,
-                                [item.key]: { title: title, bullets: e.target.value.split('\n') }
-                              }));
-                              setHasUnsavedChanges(true);
-                            }}
-                            className="w-full text-base text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-amber-400"
-                            placeholder="One bullet per line..."
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <h4 className="font-bold text-slate-800 text-lg mb-4 flex items-center gap-3">
-                            <span className={`w-8 h-8 rounded-full ${colorClasses?.bg} text-white text-sm font-bold flex items-center justify-center`}>{item.num}</span>
-                            {title}
-                          </h4>
-                          <ul className="text-base text-slate-600 space-y-2">
+                        ) : (
+                          <div className="flex items-center gap-3">
+                            <span className={`w-10 h-10 rounded-xl ${colorClasses?.icon} flex items-center justify-center flex-shrink-0`}>
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} /></svg>
+                            </span>
+                            <h4 className="font-bold text-slate-800">{title}</h4>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-5 bg-white">
+                        {editMode ? (
+                          <textarea value={bullets.join('\n')} onChange={(e) => { setCustomCacHelp(prev => ({ ...prev, [item.key]: { title: title, bullets: e.target.value.split('\n') } })); setHasUnsavedChanges(true); }} className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[90px] focus:outline-none focus:ring-2 focus:ring-amber-400" placeholder="One bullet per line..." />
+                        ) : (
+                          <ul className="text-sm text-slate-600 space-y-2">
                             {bullets.map((b: string, i: number) => (
                               <li key={i} className="flex items-start gap-2">
-                                <span className="text-[#F37021] mt-1">•</span>
+                                <svg className="w-4 h-4 text-[#F37021] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                                 <span>{b}</span>
                               </li>
                             ))}
                           </ul>
-                        </>
-                      )}
+                        )}
+                      </div>
                     </div>
                   );
                 })}
               </div>
               
-              {/* CTA Footer */}
-              <div className="bg-gradient-to-r from-[#F37021] to-[#FF8C42] rounded-xl p-6">
-                <div className="flex items-center justify-between">
+              {/* CTA Footer - enhanced */}
+              <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#F37021]/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                <div className="relative flex items-center justify-between">
                   <div>
                     <p className="font-bold text-white text-xl">Ready to take the next step?</p>
-                    <p className="text-orange-100 mt-2 text-base">Contact Cancer and Careers to discuss how we can support your organization.</p>
+                    <p className="text-slate-400 mt-2">Contact Cancer and Careers to discuss how we can support your organization.</p>
                   </div>
-                  <div className="text-right bg-white rounded-xl px-6 py-4 shadow-lg">
-                    <p className="font-bold text-[#F37021] text-lg">cancerandcareers.org</p>
-                    <p className="text-slate-600 mt-1">cacbestcompanies@cew.org</p>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <a href="https://cancerandcareers.org" target="_blank" rel="noopener noreferrer" className="font-bold text-[#F37021] text-lg hover:underline">cancerandcareers.org</a>
+                      <p className="text-slate-400 mt-1">cacbestcompanies@cew.org</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-[#F37021] flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </div>
                   </div>
                 </div>
               </div>
