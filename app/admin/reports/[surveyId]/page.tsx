@@ -3615,10 +3615,10 @@ export default function ExportReportPage() {
                       </div>
                     )}
                     
-                    {/* Legend - ALL 13 dimensions in 4 columns plus benchmark indicator */}
+                    {/* Legend - ALL 13 dimensions */}
                     <div className="pt-4 border-t-2 border-slate-200 px-4" style={{ marginTop: '6px' }}>
                       <div className="grid grid-cols-4 gap-x-3 gap-y-2">
-                        {Array.from({ length: 13 }, (_, i) => i + 1).map(dimNum => {
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map(dimNum => {
                           const d = dimensionAnalysis.find(dim => dim.dim === dimNum);
                           if (!d) return (
                             <div key={dimNum} className="flex items-start gap-2 px-2 py-1.5 rounded text-slate-400">
@@ -3639,6 +3639,29 @@ export default function ExportReportPage() {
                             </div>
                           );
                         })}
+                      </div>
+                      {/* D13 on its own row, centered */}
+                      <div className="flex justify-center mt-2">
+                        {(() => {
+                          const d = dimensionAnalysis.find(dim => dim.dim === 13);
+                          if (!d) return (
+                            <div className="flex items-start gap-2 px-2 py-1.5 rounded text-slate-400">
+                              <span className="w-6 h-6 rounded bg-slate-200 flex items-center justify-center text-xs font-bold">13</span>
+                              <span className="text-sm">Communication & Awareness</span>
+                            </div>
+                          );
+                          return (
+                            <div 
+                              className={`flex items-start gap-2 px-2 py-1.5 rounded cursor-pointer transition-all ${hoveredMatrixDim === d.dim ? 'bg-slate-200 ring-2 ring-cyan-400 shadow-sm' : 'hover:bg-slate-100'}`}
+                              onMouseEnter={() => setHoveredMatrixDim(d.dim)}
+                              onMouseLeave={() => setHoveredMatrixDim(null)}
+                              onClick={() => setDimensionDetailModal(d.dim)}
+                            >
+                              <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
+                              <span className="text-sm text-slate-700 font-medium leading-snug">{d.name}</span>
+                            </div>
+                          );
+                        })()}
                       </div>
                       {showBenchmarkRings && (
                         <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-center gap-8 text-sm">
@@ -3977,12 +4000,6 @@ export default function ExportReportPage() {
                         idx === 1 ? 'border-cyan-200 bg-gradient-to-r from-cyan-50/50 to-white' : 
                         'border-slate-200 bg-white hover:border-slate-300'
                       }`}>
-                        {/* Priority Ribbon */}
-                        <div className={`absolute top-0 left-0 w-16 h-16 overflow-hidden ${idx < 2 ? 'block' : 'hidden'}`}>
-                          <div className={`absolute transform -rotate-45 text-white text-xs font-bold py-1 w-20 text-center ${idx === 0 ? 'bg-cyan-600' : 'bg-cyan-500'}`} style={{ top: '12px', left: '-20px' }}>
-                            #{idx + 1}
-                          </div>
-                        </div>
                         
                         <div className="flex items-stretch">
                           {/* Priority Number */}
@@ -4638,7 +4655,7 @@ export default function ExportReportPage() {
           
           {/* ============ HOW CAC CAN HELP ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-            <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
+            <div className="px-8 py-6 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
               {/* Decorative circles */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
               <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
@@ -4653,7 +4670,7 @@ export default function ExportReportPage() {
                 </div>
               </div>
             </div>
-            <div className="px-12 py-8">
+            <div className="px-8 py-6">
               {/* Intro paragraph */}
               <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-200 mb-8 relative">
                 <div className="absolute top-0 left-6 w-1 h-full bg-gradient-to-b from-[#F37021] to-transparent rounded-full"></div>
@@ -4739,11 +4756,11 @@ export default function ExportReportPage() {
           
           {/* ============ METHODOLOGY & FOOTER ============ */}
           <div className="ppt-break bg-slate-50 rounded-xl border border-slate-200 overflow-hidden pdf-no-break" id="appendix-end" data-export="appendix-end">
-            <div className="px-12 py-6 border-b border-slate-200">
+            <div className="px-8 py-4 border-b border-slate-200">
               <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
             </div>
-            <div className="px-12 py-6">
-              <div className="grid grid-cols-4 gap-6 text-sm text-slate-600">
+            <div className="px-8 py-4">
+              <div className="grid grid-cols-4 gap-4 text-xs text-slate-600">
                 <div>
                   <p className="font-bold text-slate-700 mb-2">Scoring Framework</p>
                   <p className="leading-relaxed">Organizations are assessed across 13 dimensions of workplace cancer support. The composite score combines dimension performance (90%), program maturity (5%), and support breadth (5%).</p>
@@ -4790,7 +4807,7 @@ export default function ExportReportPage() {
             </div>
             
             {/* Footer */}
-            <div className="px-12 py-5 border-t border-slate-200 bg-white">
+            <div className="px-8 py-4 border-t border-slate-200 bg-white">
               <div className="flex items-center justify-between mb-3">
                 {/* Left - CAC Logo */}
                 <div className="flex items-center gap-3">
