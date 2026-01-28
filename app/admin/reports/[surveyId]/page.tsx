@@ -4797,12 +4797,22 @@ export default function ExportReportPage() {
               <div className="flex items-center justify-between mb-3">
                 {/* Left - CAC Logo */}
                 <div className="flex items-center gap-3">
-                  <Image 
+                  <img 
                     src="/CAC_Logo.png" 
                     alt="Cancer and Careers" 
                     width={120} 
                     height={40}
                     className="object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      if (target.parentElement) {
+                        const span = document.createElement('span');
+                        span.className = 'text-slate-600 font-semibold';
+                        span.textContent = 'Cancer and Careers';
+                        target.parentElement.appendChild(span);
+                      }
+                    }}
                   />
                 </div>
                 {/* Center - Confidential */}
