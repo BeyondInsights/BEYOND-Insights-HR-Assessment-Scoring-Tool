@@ -3011,33 +3011,33 @@ export default function ExportReportPage() {
               <h3 className="font-bold text-slate-900 text-xl">Score Composition</h3>
             </div>
             <div className="px-12 py-8">
-              {/* Visual Formula */}
-              <div className="flex items-center justify-center gap-6 mb-8 flex-wrap">
-                <div className="text-center px-8 py-5 bg-slate-100 rounded-xl border-2 border-slate-300 min-w-[160px]">
-                  <p className="text-5xl font-bold" style={{ color: tier?.color || '#94a3b8' }}>{compositeScore ?? '—'}</p>
-                  <p className="text-sm text-slate-500 font-semibold uppercase tracking-wider mt-2">Composite</p>
+              {/* Visual Formula - IMPROVED CONTRAST */}
+              <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
+                <div className="text-center px-8 py-5 bg-slate-800 rounded-xl border-2 border-slate-700 min-w-[160px]">
+                  <p className="text-5xl font-bold text-white">{compositeScore ?? '—'}</p>
+                  <p className="text-sm text-slate-300 font-semibold uppercase tracking-wider mt-2">Composite</p>
                 </div>
-                <span className="text-3xl text-slate-300 font-light">=</span>
-                <div className="text-center px-6 py-4 bg-white rounded-xl border border-slate-200 min-w-[130px]">
-                  <p className="text-3xl font-bold text-slate-700">{weightedDimScore ?? '—'}</p>
-                  <p className="text-sm text-slate-400 mt-1 font-medium">Weighted Dims</p>
-                  <p className="text-xs text-slate-300 font-semibold">× 90%</p>
+                <span className="text-4xl text-slate-600 font-bold">=</span>
+                <div className="text-center px-6 py-4 bg-slate-100 rounded-xl border-2 border-slate-300 min-w-[130px]">
+                  <p className="text-3xl font-bold text-slate-800">{weightedDimScore ?? '—'}</p>
+                  <p className="text-sm text-slate-600 mt-1 font-medium">Weighted Dims</p>
+                  <p className="text-sm text-slate-500 font-bold">× 90%</p>
                 </div>
-                <span className="text-2xl text-slate-300 font-light">+</span>
-                <div className="text-center px-6 py-4 bg-white rounded-xl border border-slate-200 min-w-[130px]">
-                  <p className="text-3xl font-bold text-slate-700">{maturityScore ?? '—'}</p>
-                  <p className="text-sm text-slate-400 mt-1 font-medium">Maturity</p>
-                  <p className="text-xs text-slate-300 font-semibold">× 5%</p>
+                <span className="text-3xl text-slate-600 font-bold">+</span>
+                <div className="text-center px-6 py-4 bg-amber-50 rounded-xl border-2 border-amber-300 min-w-[130px]">
+                  <p className="text-3xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
+                  <p className="text-sm text-amber-700 mt-1 font-medium">Maturity</p>
+                  <p className="text-sm text-amber-600 font-bold">× 5%</p>
                 </div>
-                <span className="text-2xl text-slate-300 font-light">+</span>
-                <div className="text-center px-6 py-4 bg-white rounded-xl border border-slate-200 min-w-[130px]">
-                  <p className="text-3xl font-bold text-slate-700">{breadthScore ?? '—'}</p>
-                  <p className="text-sm text-slate-400 mt-1 font-medium">Breadth</p>
-                  <p className="text-xs text-slate-300 font-semibold">× 5%</p>
+                <span className="text-3xl text-slate-600 font-bold">+</span>
+                <div className="text-center px-6 py-4 bg-violet-50 rounded-xl border-2 border-violet-300 min-w-[130px]">
+                  <p className="text-3xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
+                  <p className="text-sm text-violet-700 mt-1 font-medium">Breadth</p>
+                  <p className="text-sm text-violet-600 font-bold">× 5%</p>
                 </div>
               </div>
               
-              {/* Component Cards with Expandable Details - using existing ScoreComponentCard */}
+              {/* Component Cards with Full Expandable Details */}
               <div className="grid grid-cols-3 gap-6 pt-6 border-t border-slate-100">
                 <ScoreComponentCard
                   title="Weighted Dimension Score"
@@ -3089,7 +3089,7 @@ export default function ExportReportPage() {
                   }
                 />
                 
-                {/* Support Breadth with full details */}
+                {/* Support Breadth with FULL details */}
                 {(() => {
                   const currentSupport = company?.current_support_data || {};
                   const generalBenefits = company?.general_benefits_data || {};
@@ -3098,11 +3098,28 @@ export default function ExportReportPage() {
                   if (cb3a === 3 || cb3a === '3' || String(cb3a).toLowerCase().includes('yes')) cb3aScore = 100;
                   else if (cb3a === 2 || cb3a === '2' || String(cb3a).toLowerCase().includes('developing')) cb3aScore = 50;
                   const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
-                  const cb3bCount = (cb3b && Array.isArray(cb3b)) ? Math.min(cb3b.length, 6) : 0;
+                  const cb3bArray = (cb3b && Array.isArray(cb3b)) ? cb3b.map((v: string) => v.toLowerCase()) : [];
+                  const cb3bCount = Math.min(cb3bArray.length, 6);
                   const cb3bScore = Math.min(100, Math.round((cb3bCount / 6) * 100));
                   const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
-                  const cb3cCount = (cb3c && Array.isArray(cb3c)) ? Math.min(cb3c.length, 13) : 0;
+                  const cb3cArray = (cb3c && Array.isArray(cb3c)) ? cb3c : [];
+                  const cb3cCount = Math.min(cb3cArray.length, 13);
                   const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
+                  
+                  const programElements = [
+                    { label: 'Individual benefits or policies', key: 'individual', benchPct: 72 },
+                    { label: 'Coordinated support services', key: 'coordinated', benchPct: 45 },
+                    { label: 'Internally developed formal program', key: 'internal', benchPct: 38 },
+                    { label: 'External initiatives/certifications', key: 'external', benchPct: 52 },
+                    { label: 'Comprehensive framework', key: 'comprehensive', benchPct: 28 },
+                    { label: 'Ad hoc/case-by-case support', key: 'adhoc', benchPct: 65 },
+                  ];
+                  
+                  const healthConditions = [
+                    'Cancer', 'Heart disease', 'Diabetes', 'Mental health', 'Chronic pain',
+                    'Autoimmune disorders', 'Neurological conditions', 'Respiratory conditions',
+                    'Kidney disease', 'Liver disease', 'HIV/AIDS', 'Pregnancy complications', 'Other'
+                  ];
                   
                   return (
                     <ScoreComponentCard
@@ -3111,7 +3128,7 @@ export default function ExportReportPage() {
                       weight={DEFAULT_COMPOSITE_WEIGHTS.breadth}
                       benchmarkScore={benchmarks?.breadthScore}
                       color="violet"
-                      summary="How expansive your benefits and support are—including whether you go beyond legal requirements, how structured your programs are, and how many health conditions are addressed."
+                      summary="How expansive your benefits and support are—including whether you go beyond legal requirements."
                       getScoreColor={getScoreColor}
                       details={
                         <div className="space-y-4 text-sm">
@@ -3140,26 +3157,51 @@ export default function ExportReportPage() {
                             </div>
                           </div>
                           
-                          {/* CB3b - Program Elements */}
+                          {/* CB3b - Program Elements - SHOW ALL */}
                           <div className="border border-violet-200 rounded-lg overflow-hidden">
                             <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
                               Program structure elements ({cb3bCount} of 6)
                             </div>
                             <div className="p-2">
+                              <div className="space-y-1">
+                                {programElements.map((el, i) => {
+                                  const isSelected = cb3bArray.some((v: string) => v.includes(el.key) || el.label.toLowerCase().includes(v.substring(0, 10)));
+                                  return (
+                                    <div key={i} className={`flex justify-between items-center px-2 py-1 rounded text-xs ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
+                                      <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{el.label}</span>
+                                      <div className="flex items-center">
+                                        <span className={`w-12 text-center ${isSelected ? 'text-violet-600 font-semibold' : 'text-slate-400'}`}>{isSelected ? '✓' : '—'}</span>
+                                        <span className="text-slate-500 w-14 text-center">{el.benchPct}%</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                               <div className="mt-2 pt-2 border-t border-violet-200 flex justify-between items-center px-2">
-                                <span className="text-sm text-slate-600">Score: {cb3bCount} of 6 = <span className="font-semibold text-violet-700">{cb3bScore} pts</span></span>
+                                <span className="text-xs text-slate-600">Score: {cb3bCount} of 6 = <span className="font-semibold text-violet-700">{cb3bScore} pts</span></span>
                               </div>
                             </div>
                           </div>
                           
-                          {/* CB3c - Conditions */}
+                          {/* CB3c - Health Conditions - SHOW ALL */}
                           <div className="border border-violet-200 rounded-lg overflow-hidden">
                             <div className="bg-violet-50 px-3 py-2 font-semibold text-violet-800 border-b border-violet-200">
                               Health conditions addressed ({cb3cCount} of 13)
                             </div>
                             <div className="p-2">
+                              <div className="grid grid-cols-2 gap-1">
+                                {healthConditions.map((condition, i) => {
+                                  const isSelected = cb3cArray.some((v: string) => v.toLowerCase().includes(condition.toLowerCase().substring(0, 5)));
+                                  return (
+                                    <div key={i} className={`flex items-center gap-2 px-2 py-1 rounded text-xs ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
+                                      <span className={`${isSelected ? 'text-violet-600 font-semibold' : 'text-slate-400'}`}>{isSelected ? '✓' : '○'}</span>
+                                      <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{condition}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                               <div className="mt-2 pt-2 border-t border-violet-200 flex justify-between items-center px-2">
-                                <span className="text-sm text-slate-600">Score: {cb3cCount} of 13 = <span className="font-semibold text-violet-700">{cb3cScore} pts</span></span>
+                                <span className="text-xs text-slate-600">Score: {cb3cCount} of 13 = <span className="font-semibold text-violet-700">{cb3cScore} pts</span></span>
                               </div>
                             </div>
                           </div>
@@ -3345,87 +3387,102 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-            <div className="px-12 py-6 bg-cyan-700">
-              <h3 className="font-bold text-white text-xl">Impact-Ranked Improvement Priorities</h3>
-              <p className="text-cyan-200 mt-1 text-base">Dimensions ranked by potential composite score impact relative to implementation effort</p>
-            </div>
-            <div className="px-12 py-8">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b-2 border-slate-200">
-                    <th className="pb-4 text-left w-16">Rank</th>
-                    <th className="pb-4 text-left w-20">Score</th>
-                    <th className="pb-4 text-left w-56">Dimension</th>
-                    <th className="pb-4 text-center w-20">Impact</th>
-                    <th className="pb-4 text-center w-20">Effort</th>
-                    <th className="pb-4 text-left">
-                      Key Actions
-                      {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rankings.map((r, idx) => (
-                    <tr key={r.dimNum} className={idx < rankings.length - 1 ? 'border-b border-slate-100' : ''}>
-                      <td className="py-5">
-                        <span className={`w-10 h-10 rounded-full inline-flex items-center justify-center text-white text-lg font-bold ${
-                          idx === 0 ? 'bg-cyan-600' : idx === 1 ? 'bg-cyan-500' : idx === 2 ? 'bg-cyan-400' : 'bg-slate-400'
-                        }`}>
-                          {idx + 1}
-                        </span>
-                      </td>
-                      <td className="py-5">
-                        <div>
-                          <span className="text-2xl font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
-                          <p className="text-sm text-slate-400">{r.tier}</p>
-                        </div>
-                      </td>
-                      <td className="py-5">
-                        <p className="font-semibold text-slate-800 text-base">{r.dimName}</p>
-                      </td>
-                      <td className="py-5 text-center">
-                        <span className="text-xl font-bold text-emerald-600">+{r.potentialGain}</span>
-                        <p className="text-sm text-slate-400">pts</p>
-                      </td>
-                      <td className="py-5 text-center">
-                        <span className={`text-sm font-semibold px-3 py-1.5 rounded border ${
-                          r.effort === 'Low' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                          r.effort === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                          'bg-red-50 text-red-700 border-red-200'
-                        }`}>{r.effort}</span>
-                      </td>
-                      <td className="py-5">
-                        {editMode ? (
-                          <div className="flex flex-col gap-2">
-                            <textarea
-                              value={customRecommendations[r.dimNum] ?? r.keyAction ?? 'Focus on closing identified gaps and accelerating in-progress initiatives.'}
-                              onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
-                              className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[70px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                              placeholder="Enter custom key actions..."
-                            />
-                            {customRecommendations[r.dimNum] && (
-                              <button 
-                                onClick={() => updateCustomRecommendation(r.dimNum, '')}
-                                className="text-sm text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Reset
-                              </button>
+          {(() => {
+            return (
+              <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+                <div className="px-12 py-6 bg-cyan-700">
+                  <h3 className="font-bold text-white text-xl">Impact-Ranked Improvement Priorities</h3>
+                  <p className="text-cyan-200 mt-1 text-base">Dimensions ranked by potential composite score impact relative to implementation effort</p>
+                </div>
+                <div className="px-12 py-8">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b-2 border-slate-200">
+                        <th className="pb-4 text-left w-20">Priority</th>
+                        <th className="pb-4 text-left">Dimension</th>
+                        <th className="pb-4 text-center w-28">Current</th>
+                        <th className="pb-4 text-center w-24">Impact</th>
+                        <th className="pb-4 text-center w-24">Effort</th>
+                        <th className="pb-4 text-left">
+                          Recommended Actions
+                          {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rankings.map((r, idx) => (
+                        <tr key={r.dimNum} className={idx < rankings.length - 1 ? 'border-b border-slate-100' : ''}>
+                          <td className="py-5">
+                            <span className={`w-10 h-10 rounded-full inline-flex items-center justify-center text-white text-lg font-bold ${
+                              idx === 0 ? 'bg-cyan-600' : idx === 1 ? 'bg-cyan-500' : 'bg-slate-400'
+                            }`}>
+                              {idx + 1}
+                            </span>
+                          </td>
+                          <td className="py-5">
+                            <p className="font-semibold text-slate-800 text-base">{r.dimName}</p>
+                          </td>
+                          <td className="py-5 text-center">
+                            <div className="flex flex-col items-center">
+                              <span className="font-bold text-2xl" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
+                              <span className="text-sm text-slate-400 mt-0.5">{r.tier}</span>
+                            </div>
+                          </td>
+                          <td className="py-5 text-center">
+                            <div className="flex flex-col items-center">
+                              <span className="text-xl font-bold text-emerald-600">+{r.potentialGain}</span>
+                              <span className="text-sm text-slate-400">pts</span>
+                            </div>
+                          </td>
+                          <td className="py-5 text-center">
+                            <span className={`text-sm font-semibold px-4 py-1.5 rounded-lg ${
+                              r.effort === 'Low' ? 'bg-emerald-50 text-emerald-700' :
+                              r.effort === 'Medium' ? 'bg-amber-50 text-amber-700' :
+                              'bg-red-50 text-red-700'
+                            }`}>{r.effort}</span>
+                          </td>
+                          <td className="py-5">
+                            {editMode ? (
+                              <div className="flex flex-col gap-2">
+                                <input
+                                  type="text"
+                                  value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? 'Focus on closing gaps and accelerating in-progress initiatives.'}
+                                  onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
+                                  className="w-full text-base text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                  placeholder="Enter custom recommendations..."
+                                />
+                                {customRecommendations[r.dimNum] && (
+                                  <button 
+                                    onClick={() => updateCustomRecommendation(r.dimNum, '')}
+                                    className="text-sm text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Reset
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              <ul className="text-base text-slate-600 space-y-1">
+                                {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="text-cyan-600 mt-0.5">•</span>
+                                    <span>{rec}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             )}
-                          </div>
-                        ) : (
-                          <p className="text-base text-slate-600">{customRecommendations[r.dimNum] || r.keyAction || 'Focus on closing identified gaps and accelerating in-progress initiatives.'}</p>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="text-sm text-slate-400 mt-6 italic">Impact calculated based on dimension weight and improvement potential. Effort assessed based on current gaps and in-progress initiatives.</p>
+                </div>
+              </div>
+            );
+          })()}
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
@@ -3435,34 +3492,28 @@ export default function ExportReportPage() {
             </div>
             <div className="px-12 py-8">
               {strengthDimensions.length > 0 ? (
-                <div className="space-y-6">
-                  {strengthDimensions.map((d) => (
-                    <div key={d.dim} className="border border-slate-200 rounded-xl p-6 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedDrillDownDim(d.dim)}>
+                <div className="grid grid-cols-2 gap-6">
+                  {strengthDimensions.slice(0, 6).map((d) => (
+                    <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedDrillDownDim(d.dim)}>
                       <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <span className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
-                          <div>
-                            <p className="font-bold text-slate-800 text-lg">{d.name}</p>
-                            <span className={`text-sm font-semibold px-3 py-1 rounded-lg ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
-                          </div>
-                        </div>
-                        <span className="text-3xl font-bold" style={{ color: d.tier.color }}>{d.score}</span>
+                        <p className="font-bold text-slate-800 text-lg">{d.name}</p>
+                        <span className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                       </div>
-                      {d.strengths.length > 0 && (
-                        <div className="grid grid-cols-2 gap-3 mt-4">
-                          {d.strengths.slice(0, 4).map((e: any, i: number) => (
-                            <div key={i} className="flex items-start gap-2 text-base text-slate-600">
-                              <span className="text-emerald-500 mt-1 font-bold">✓</span>
-                              <span>{e.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      <ul className="space-y-2">
+                        {d.strengths.slice(0, 3).map((e: any, i: number) => (
+                          <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                            <CheckIcon className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                            <span>{e.name}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-slate-500 py-8 text-center text-lg">No dimensions at Leading or Exemplary level yet.</p>
+                <div className="text-center py-10">
+                  <p className="text-slate-500 text-lg">Focus on building foundational capabilities to reach Leading tier.</p>
+                </div>
               )}
             </div>
           </div>
@@ -3471,70 +3522,59 @@ export default function ExportReportPage() {
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-12 py-6 bg-amber-600">
               <h3 className="font-bold text-white text-xl">Growth Opportunities</h3>
-              <p className="text-amber-200 mt-1 text-base">{gapOpportunities.length} dimensions below Leading</p>
+              <p className="text-amber-200 mt-1 text-base">Dimensions with improvement potential</p>
             </div>
             <div className="px-12 py-8">
-              {gapOpportunities.length > 0 ? (
-                <div className="space-y-6">
-                  {gapOpportunities.map((d) => (
-                    <div key={d.dim} className="border border-slate-200 rounded-xl p-6 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedDrillDownDim(d.dim)}>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <span className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
-                          <div>
-                            <p className="font-bold text-slate-800 text-lg">{d.name}</p>
-                            <span className={`text-sm font-semibold px-3 py-1 rounded-lg ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
-                          </div>
-                        </div>
-                        <span className="text-3xl font-bold" style={{ color: d.tier.color }}>{d.score}</span>
-                      </div>
-                      {d.gaps.length > 0 && (
-                        <div className="grid grid-cols-2 gap-3 mt-4">
-                          {d.gaps.slice(0, 4).map((e: any, i: number) => (
-                            <div key={i} className="flex items-start gap-2 text-base text-slate-600">
-                              <span className="text-amber-500 mt-1">○</span>
-                              <span>{e.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+              <div className="grid grid-cols-2 gap-6">
+                {allDimensionsByScore.slice(0, 6).map((d) => (
+                  <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedDrillDownDim(d.dim)}>
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="font-bold text-slate-800 text-lg">{d.name}</p>
+                      <span className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-emerald-600 py-8 text-center text-lg font-semibold">All dimensions at Leading or above!</p>
-              )}
-            </div>
-          </div>
-          
-          {/* ============ INITIATIVES IN PROGRESS ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-            <div className="px-12 py-6 bg-blue-700 flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
-                <p className="text-blue-200 mt-1 text-base">Programs currently being planned or assessed</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="bg-blue-600 text-white text-base px-5 py-2 rounded-lg font-semibold">{planningItems} Planning</span>
-                <span className="bg-blue-500 text-white text-base px-5 py-2 rounded-lg font-semibold">{assessingItems} Assessing</span>
-              </div>
-            </div>
-            <div className="px-12 py-8">
-              <div className="space-y-4">
-                {quickWinOpportunities.slice(0, 12).map((item: any, idx: number) => (
-                  <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <span className={`text-sm font-bold px-4 py-2 rounded-lg ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700'}`}>
-                      {item.type}
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-base font-medium text-slate-800">{item.name}</p>
-                      <p className="text-sm text-slate-400">{item.dimName}</p>
-                    </div>
+                    {d.needsAttention.length > 0 ? (
+                      <ul className="space-y-2">
+                        {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
+                          <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                            <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
+                            <span>{e.name}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-base text-slate-400 italic">Focus on completing planned initiatives</p>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
           </div>
+          
+          {/* ============ INITIATIVES IN PROGRESS ============ */}
+          {quickWinOpportunities.length > 0 && (
+            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+              <div className="px-12 py-6 bg-blue-700">
+                <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
+                <p className="text-blue-200 mt-1 text-base">Programs currently in planning or under consideration</p>
+              </div>
+              <div className="px-12 py-8">
+                <p className="text-slate-600 text-base mb-6">
+                  Converting these items to active programs represents the fastest path to improving your composite score.
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  {quickWinOpportunities.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className={`text-sm font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700'}`}>{item.type}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base text-slate-700 font-medium">{item.name}</p>
+                        <p className="text-sm text-slate-500 mt-1">D{item.dimNum}: {item.dimName}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before" id="appendix-start" data-export="appendix-start">
@@ -3826,146 +3866,149 @@ export default function ExportReportPage() {
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
             <div className="px-12 py-6 bg-slate-800">
               <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
-              <p className="text-slate-400 mt-1 text-base">Phased approach to strengthen workplace cancer support</p>
+              <p className="text-slate-400 mt-1 text-base">Your phased approach to strengthen workplace cancer support</p>
             </div>
             <div className="px-12 py-8">
-              <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-6">
                 {/* Phase 1 */}
-                <div className="bg-emerald-50 rounded-xl p-8 border border-emerald-200">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <span className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xl">1</span>
-                      <div>
-                        <p className="font-bold text-emerald-800 text-xl">Quick Wins</p>
+                <div className="border-2 border-emerald-200 rounded-xl overflow-hidden shadow-sm">
+                  <div className="bg-emerald-600 px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 font-bold text-lg shadow-md">1</span>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-white">Quick Wins</h4>
                         {editMode ? (
                           <input
                             type="text"
                             value={customRoadmapTimeframes.phase1 || '0-3 months'}
-                            onChange={(e) => setCustomRoadmapTimeframes(prev => ({ ...prev, phase1: e.target.value }))}
-                            className="text-base text-emerald-600 font-medium bg-white border border-emerald-300 rounded px-2 py-1 mt-1"
+                            onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase1: e.target.value })); setHasUnsavedChanges(true); }}
+                            className="text-sm bg-emerald-500 text-white border border-emerald-400 rounded px-2 py-0.5 w-24 focus:outline-none"
                           />
                         ) : (
-                          <p className="text-base text-emerald-600 font-medium">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
+                          <p className="text-emerald-100 text-sm">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
                         )}
                       </div>
                     </div>
-                    {editMode && <p className="text-sm text-amber-600">(editable)</p>}
                   </div>
-                  {editMode ? (
-                    <textarea
-                      value={(customRoadmap.phase1?.useCustom && customRoadmap.phase1?.items?.length > 0
-                        ? customRoadmap.phase1.items
-                        : quickWinItems.slice(0, 4).map(i => i.name)
-                      ).join('\n')}
-                      onChange={(e) => updateCustomRoadmap('phase1', e.target.value.split('\n').filter(s => s.trim()), true)}
-                      className="w-full text-base text-slate-700 bg-white border border-emerald-300 rounded-lg p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-y"
-                      placeholder="Enter items (one per line)..."
-                    />
-                  ) : (
-                    <div className="grid grid-cols-2 gap-4">
-                      {(customRoadmap.phase1?.useCustom && customRoadmap.phase1?.items?.length > 0
-                        ? customRoadmap.phase1.items
-                        : quickWinItems.slice(0, 4).map(i => i.name)
-                      ).map((item: string, idx: number) => (
-                        <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
-                          <span className="text-emerald-500 mt-0.5 font-bold">●</span>
-                          <span>{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div className="p-5 bg-emerald-50/50">
+                    <p className="text-sm text-emerald-700 font-semibold uppercase tracking-wide mb-4">Accelerate items already in progress</p>
+                    {editMode && <p className="text-sm text-amber-600 mb-2">(editable)</p>}
+                    {editMode ? (
+                      <div className="space-y-2">
+                        <textarea
+                          value={customRoadmap.phase1?.useCustom 
+                            ? customRoadmap.phase1.items.join('\n') 
+                            : quickWinItems.map(item => item.name).join('\n')}
+                          onChange={(e) => updateCustomRoadmap('phase1', e.target.value.split('\n').filter(s => s.trim()), true)}
+                          className="w-full text-base text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                          placeholder="Enter items, one per line..."
+                        />
+                      </div>
+                    ) : (
+                      <ul className="space-y-3">
+                        {(customRoadmap.phase1?.useCustom ? customRoadmap.phase1.items.map((name: string, idx: number) => ({ name, dimNum: null })) : quickWinItems).map((item: any, idx: number) => (
+                          <li key={idx} className="text-base">
+                            <p className="text-slate-700">{item.name}</p>
+                            {item.dimNum && <p className="text-sm text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Phase 2 */}
-                <div className="bg-blue-50 rounded-xl p-8 border border-blue-200">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <span className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl">2</span>
-                      <div>
-                        <p className="font-bold text-blue-800 text-xl">Foundation Building</p>
+                <div className="border-2 border-blue-200 rounded-xl overflow-hidden shadow-sm">
+                  <div className="bg-blue-600 px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600 font-bold text-lg shadow-md">2</span>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-white">Foundation Building</h4>
                         {editMode ? (
                           <input
                             type="text"
-                            value={customRoadmapTimeframes.phase2 || '3-9 months'}
-                            onChange={(e) => setCustomRoadmapTimeframes(prev => ({ ...prev, phase2: e.target.value }))}
-                            className="text-base text-blue-600 font-medium bg-white border border-blue-300 rounded px-2 py-1 mt-1"
+                            value={customRoadmapTimeframes.phase2 || '3-12 months'}
+                            onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase2: e.target.value })); setHasUnsavedChanges(true); }}
+                            className="text-sm bg-blue-500 text-white border border-blue-400 rounded px-2 py-0.5 w-24 focus:outline-none"
                           />
                         ) : (
-                          <p className="text-base text-blue-600 font-medium">{customRoadmapTimeframes.phase2 || '3-9 months'}</p>
+                          <p className="text-blue-100 text-sm">{customRoadmapTimeframes.phase2 || '3-12 months'}</p>
                         )}
                       </div>
                     </div>
-                    {editMode && <p className="text-sm text-amber-600">(editable)</p>}
                   </div>
-                  {editMode ? (
-                    <textarea
-                      value={(customRoadmap.phase2?.useCustom && customRoadmap.phase2?.items?.length > 0
-                        ? customRoadmap.phase2.items
-                        : foundationItems.slice(0, 4).map(i => i.name)
-                      ).join('\n')}
-                      onChange={(e) => updateCustomRoadmap('phase2', e.target.value.split('\n').filter(s => s.trim()), true)}
-                      className="w-full text-base text-slate-700 bg-white border border-blue-300 rounded-lg p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
-                      placeholder="Enter items (one per line)..."
-                    />
-                  ) : (
-                    <div className="grid grid-cols-2 gap-4">
-                      {(customRoadmap.phase2?.useCustom && customRoadmap.phase2?.items?.length > 0
-                        ? customRoadmap.phase2.items
-                        : foundationItems.slice(0, 4).map(i => i.name)
-                      ).map((item: string, idx: number) => (
-                        <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
-                          <span className="text-blue-500 mt-0.5 font-bold">●</span>
-                          <span>{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div className="p-5 bg-blue-50/50">
+                    <p className="text-sm text-blue-700 font-semibold uppercase tracking-wide mb-4">Address high-weight dimension gaps</p>
+                    {editMode && <p className="text-sm text-amber-600 mb-2">(editable)</p>}
+                    {editMode ? (
+                      <div className="space-y-2">
+                        <textarea
+                          value={customRoadmap.phase2?.useCustom 
+                            ? customRoadmap.phase2.items.join('\n') 
+                            : foundationItems.map(item => item.name).join('\n')}
+                          onChange={(e) => updateCustomRoadmap('phase2', e.target.value.split('\n').filter(s => s.trim()), true)}
+                          className="w-full text-base text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                          placeholder="Enter items, one per line..."
+                        />
+                      </div>
+                    ) : (
+                      <ul className="space-y-3">
+                        {(customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items.map((name: string, idx: number) => ({ name, dimNum: null })) : foundationItems).map((item: any, idx: number) => (
+                          <li key={idx} className="text-base">
+                            <p className="text-slate-700">{item.name}</p>
+                            {item.dimNum && <p className="text-sm text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Phase 3 */}
-                <div className="bg-violet-50 rounded-xl p-8 border border-violet-200">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <span className="w-12 h-12 rounded-full bg-violet-600 text-white flex items-center justify-center font-bold text-xl">3</span>
-                      <div>
-                        <p className="font-bold text-violet-800 text-xl">Excellence</p>
+                <div className="border-2 border-violet-200 rounded-xl overflow-hidden shadow-sm">
+                  <div className="bg-violet-600 px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-violet-600 font-bold text-lg shadow-md">3</span>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-white">Excellence</h4>
                         {editMode ? (
                           <input
                             type="text"
-                            value={customRoadmapTimeframes.phase3 || '9-18 months'}
-                            onChange={(e) => setCustomRoadmapTimeframes(prev => ({ ...prev, phase3: e.target.value }))}
-                            className="text-base text-violet-600 font-medium bg-white border border-violet-300 rounded px-2 py-1 mt-1"
+                            value={customRoadmapTimeframes.phase3 || '12-18 months'}
+                            onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase3: e.target.value })); setHasUnsavedChanges(true); }}
+                            className="text-sm bg-violet-500 text-white border border-violet-400 rounded px-2 py-0.5 w-24 focus:outline-none"
                           />
                         ) : (
-                          <p className="text-base text-violet-600 font-medium">{customRoadmapTimeframes.phase3 || '9-18 months'}</p>
+                          <p className="text-violet-100 text-sm">{customRoadmapTimeframes.phase3 || '12-18 months'}</p>
                         )}
                       </div>
                     </div>
-                    {editMode && <p className="text-sm text-amber-600">(editable)</p>}
                   </div>
-                  {editMode ? (
-                    <textarea
-                      value={(customRoadmap.phase3?.useCustom && customRoadmap.phase3?.items?.length > 0
-                        ? customRoadmap.phase3.items
-                        : excellenceItems.slice(0, 4).map(i => i.name)
-                      ).join('\n')}
-                      onChange={(e) => updateCustomRoadmap('phase3', e.target.value.split('\n').filter(s => s.trim()), true)}
-                      className="w-full text-base text-slate-700 bg-white border border-violet-300 rounded-lg p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-violet-400 resize-y"
-                      placeholder="Enter items (one per line)..."
-                    />
-                  ) : (
-                    <div className="grid grid-cols-2 gap-4">
-                      {(customRoadmap.phase3?.useCustom && customRoadmap.phase3?.items?.length > 0
-                        ? customRoadmap.phase3.items
-                        : excellenceItems.slice(0, 4).map(i => i.name)
-                      ).map((item: string, idx: number) => (
-                        <div key={idx} className="flex items-start gap-3 text-base text-slate-700 bg-white p-3 rounded-lg">
-                          <span className="text-violet-500 mt-0.5 font-bold">●</span>
-                          <span>{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div className="p-5 bg-violet-50/50">
+                    <p className="text-sm text-violet-700 font-semibold uppercase tracking-wide mb-4">Build toward Exemplary status</p>
+                    {editMode && <p className="text-sm text-amber-600 mb-2">(editable)</p>}
+                    {editMode ? (
+                      <div className="space-y-2">
+                        <textarea
+                          value={customRoadmap.phase3?.useCustom 
+                            ? customRoadmap.phase3.items.join('\n') 
+                            : excellenceItems.map(item => item.name).join('\n')}
+                          onChange={(e) => updateCustomRoadmap('phase3', e.target.value.split('\n').filter(s => s.trim()), true)}
+                          className="w-full text-base text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                          placeholder="Enter items, one per line..."
+                        />
+                      </div>
+                    ) : (
+                      <ul className="space-y-3">
+                        {(customRoadmap.phase3?.useCustom ? customRoadmap.phase3.items.map((name: string, idx: number) => ({ name, dimNum: null })) : excellenceItems).map((item: any, idx: number) => (
+                          <li key={idx} className="text-base">
+                            <p className="text-slate-700">{item.name}</p>
+                            {item.dimNum && <p className="text-sm text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
