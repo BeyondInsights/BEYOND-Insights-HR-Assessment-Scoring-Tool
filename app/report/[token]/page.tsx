@@ -1783,6 +1783,7 @@ export default function InteractiveReportPage() {
   const [activeScoreOverlay, setActiveScoreOverlay] = useState<'weightedDim' | 'maturity' | 'breadth' | null>(null);
   const [dimensionDetailModal, setDimensionDetailModal] = useState<number | null>(null);
   const [showBenchmarkRings, setShowBenchmarkRings] = useState(false);
+  const [hoveredMatrixDim, setHoveredMatrixDim] = useState<number | null>(null);
   
   // Show toast notification
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
