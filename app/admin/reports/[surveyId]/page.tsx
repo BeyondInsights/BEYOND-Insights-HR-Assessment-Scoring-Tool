@@ -3362,7 +3362,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ DIMENSION PERFORMANCE TABLE ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
@@ -3448,7 +3448,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
               <div>
                 <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
@@ -3924,7 +3924,7 @@ export default function ExportReportPage() {
           
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
-            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
+            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
               <div className="px-12 py-6 bg-indigo-700">
                 <h3 className="font-bold text-white text-xl">Cross-Dimension Insights</h3>
                 <p className="text-indigo-200 mt-1 text-base">Patterns identified across your assessment that reveal strategic opportunities</p>
@@ -3979,7 +3979,7 @@ export default function ExportReportPage() {
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
           {(() => {
             return (
-              <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
+              <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
                 <div className="px-10 py-6 bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDQwIEwgNDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
                   <div className="relative flex items-center justify-between">
@@ -4092,7 +4092,7 @@ export default function ExportReportPage() {
           })()}
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-5 bg-emerald-700">
               <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
               <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
@@ -4126,7 +4126,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ GROWTH OPPORTUNITIES ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-5 bg-amber-600">
               <h3 className="font-bold text-white text-xl">Growth Opportunities</h3>
               <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
@@ -4159,7 +4159,7 @@ export default function ExportReportPage() {
           
           {/* ============ INITIATIVES IN PROGRESS ============ */}
           {quickWinOpportunities.length > 0 && (
-            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
+            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
               <div className="px-12 py-6 bg-gradient-to-r from-blue-600 to-blue-700">
                 <div className="flex items-center justify-between">
                   <div>
@@ -4198,7 +4198,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-7xl mx-auto" id="appendix-start" data-export="appendix-start">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" id="appendix-start" data-export="appendix-start">
             <div className="px-12 py-10 bg-slate-800">
               <h3 className="font-bold text-white text-3xl">Strategic Recommendations</h3>
               <p className="text-slate-400 mt-2 text-lg">Detailed analysis and action plans for priority dimensions</p>
@@ -4254,7 +4254,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-7xl mx-auto">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1200px] mx-auto">
             <div className="divide-y-4 divide-slate-100">
               {allDimensionsByScore.slice(0, 4).map((d, idx) => {
                 const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
@@ -4300,10 +4300,10 @@ export default function ExportReportPage() {
                           <div className="px-4 py-3 bg-red-50 border-b border-red-200">
                             <h5 className="font-bold text-red-800 text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
                           </div>
-                          <div className="p-4 bg-white">
+                          <div className="p-4 bg-white max-h-64 overflow-y-auto">
                             {d.needsAttention?.length > 0 ? (
                               <ul className="space-y-2">
-                                {d.needsAttention.slice(0, 5).map((item: any, i: number) => (
+                                {d.needsAttention.map((item: any, i: number) => (
                                   <li key={i} className="text-base text-slate-600 flex items-start gap-2">
                                     <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
                                       item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'
@@ -4321,10 +4321,10 @@ export default function ExportReportPage() {
                           <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
                             <h5 className="font-bold text-blue-800 text-base">In Development ({d.planning?.length || 0})</h5>
                           </div>
-                          <div className="p-4 bg-white">
+                          <div className="p-4 bg-white max-h-64 overflow-y-auto">
                             {d.planning?.length > 0 ? (
                               <ul className="space-y-2">
-                                {d.planning.slice(0, 5).map((item: any, i: number) => (
+                                {d.planning.map((item: any, i: number) => (
                                   <li key={i} className="text-base text-slate-600 flex items-start gap-2">
                                     <span className="w-2 h-2 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
                                     <span>{item.name}</span>
@@ -4340,10 +4340,10 @@ export default function ExportReportPage() {
                           <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
                             <h5 className="font-bold text-emerald-800 text-base">Strengths ({d.strengths?.length || 0})</h5>
                           </div>
-                          <div className="p-4 bg-white">
+                          <div className="p-4 bg-white max-h-64 overflow-y-auto">
                             {d.strengths?.length > 0 ? (
                               <ul className="space-y-2">
-                                {d.strengths.slice(0, 5).map((s: any, i: number) => (
+                                {d.strengths.map((s: any, i: number) => (
                                   <li key={i} className="text-base text-slate-600 flex items-start gap-2">
                                     <span className="w-2 h-2 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
                                     <span>{s.name}</span>
@@ -4485,7 +4485,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -4655,7 +4655,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
               {/* Decorative circles */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
