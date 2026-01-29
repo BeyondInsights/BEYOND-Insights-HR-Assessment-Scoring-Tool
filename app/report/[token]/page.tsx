@@ -383,7 +383,7 @@ function getTwoStepRoadmap(
     const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
     quickWin = { 
       name: planning[0].name, 
-      reason: `Already in development; ${pct}% of peers offer this` 
+      reason: `Already in development; ${pct}% of participating organizations offer this` 
     };
   } else if (gaps.length > 0) {
     // Find gap with highest peer adoption (easiest to justify)
@@ -394,7 +394,7 @@ function getTwoStepRoadmap(
     if (gapsWithBench[0].pct > 30) {
       quickWin = { 
         name: gapsWithBench[0].name, 
-        reason: `${gapsWithBench[0].pct}% of peers already offer this` 
+        reason: `${gapsWithBench[0].pct}% of participating organizations already offer this` 
       };
     }
   }
@@ -409,7 +409,7 @@ function getTwoStepRoadmap(
     }).sort((a, b) => b.pct - a.pct);
     strategicLift = { 
       name: withBench[0].name, 
-      reason: `${withBench[0].pct}% of peers offer this—adding this would meaningfully expand your support coverage` 
+      reason: `${withBench[0].pct}% of participating organizations offer this—adding this would meaningfully expand your support coverage` 
     };
   }
   
@@ -543,7 +543,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       cacPrograms: {
         exemplary: 'Connect your executives with CAC\'s Leadership Council for peer networking and industry visibility as champions of workplace cancer support.',
         leading: 'Our Executive Engagement program develops board-level metrics, ESG integration, and external recognition strategies.',
-        progressing: 'CAC\'s Executive Briefing provides business case development, peer benchmarking data, and talking points for leadership engagement.',
+        progressing: 'CAC\'s Executive Briefing provides business case development, participant benchmarking data, and talking points for leadership engagement.',
         emerging: 'Our Leadership Foundation program identifies an executive sponsor, develops initial messaging, and creates visibility opportunities.',
         developing: 'Critical: CAC\'s Executive Quick-Brief provides immediate business case and ROI data to secure leadership attention and resources.'
       }
@@ -619,19 +619,19 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
   
   // Tier-based insight generation with specific data
   if (tierName === 'Exemplary') {
-    insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the peer average of ${benchmark}, this demonstrates exceptional commitment to employee support.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
+    insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the participant average of ${benchmark}, this demonstrates exceptional commitment to employee support.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
     cacHelp = cacProgram;
   } else if (tierName === 'Leading') {
     insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Exemplary status—consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Exemplary tier.'}`;
     cacHelp = cacProgram;
   } else if (tierName === 'Progressing') {
-    insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
+    insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
     cacHelp = cacProgram;
   } else if (tierName === 'Emerging') {
-    insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, focused investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} peer average indicates this is an area where additional focus would benefit employees.` : ''} Recommended quick win: ${ctx.quickWin}.`;
+    insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, focused investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant average indicates this is an area where additional focus would benefit employees.` : ''} Recommended quick win: ${ctx.quickWin}.`;
     cacHelp = cacProgram;
   } else {
-    insight = `Critical gap in ${ctx.focus} at ${score} points creates risk of ${ctx.risk}. ${gapCount > 0 ? `${gapCount} missing elements represent significant exposure.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap below the ${benchmark} peer average signals this as a priority area.` : ''} Employees facing health challenges may feel unsupported here, leading to disengagement, extended leave, or departure. Immediate action: implement ${ctx.quickWin}.`;
+    insight = `Critical gap in ${ctx.focus} at ${score} points creates risk of ${ctx.risk}. ${gapCount > 0 ? `${gapCount} missing elements represent significant exposure.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap below the ${benchmark} participant average signals this as a priority area.` : ''} Employees facing health challenges may feel unsupported here, leading to disengagement, extended leave, or departure. Immediate action: implement ${ctx.quickWin}.`;
     cacHelp = cacProgram;
   }
   
@@ -642,14 +642,14 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
 function getBenchmarkNarrative(score: number, benchmark: number | null, dimName: string): string {
   if (benchmark === null) return '';
   const diff = score - benchmark;
-  if (diff > 25) return `Exceptional performance at ${diff} points above the peer average—this represents a genuine organizational strength and commitment to employee wellbeing.`;
-  if (diff > 15) return `Well above the ${benchmark} peer average by ${diff} points, indicating mature, established practices that employees likely recognize and value.`;
-  if (diff > 5) return `Above benchmark by ${diff} points (peer avg: ${benchmark}), demonstrating strong commitment with opportunities to strengthen further.`;
-  if (diff > 0) return `Slightly above the ${benchmark} peer average—a good foundation to build on for differentiation.`;
-  if (diff === 0) return `Matching the peer average of ${benchmark}—an opportunity to differentiate through targeted improvements.`;
-  if (diff > -10) return `${Math.abs(diff)} points below the ${benchmark} peer benchmark—targeted improvements can close this gap within 6-12 months.`;
-  if (diff > -20) return `Notable gap of ${Math.abs(diff)} points below the ${benchmark} peer average warrants focused strategic attention.`;
-  return `Currently ${Math.abs(diff)} points below the peer average (${benchmark})—this is a priority area where focused improvements will meaningfully strengthen your employee support.`;
+  if (diff > 25) return `Exceptional performance at ${diff} points above the participant average—this represents a genuine organizational strength and commitment to employee wellbeing.`;
+  if (diff > 15) return `Well above the ${benchmark} participant average by ${diff} points, indicating mature, established practices that employees likely recognize and value.`;
+  if (diff > 5) return `Above benchmark by ${diff} points (participant avg: ${benchmark}), demonstrating strong commitment with opportunities to strengthen further.`;
+  if (diff > 0) return `Slightly above the ${benchmark} participant average—a good foundation to build on for differentiation.`;
+  if (diff === 0) return `Matching the participant average of ${benchmark}—an opportunity to differentiate through targeted improvements.`;
+  if (diff > -10) return `${Math.abs(diff)} points below the ${benchmark} participant benchmark—targeted improvements can close this gap within 6-12 months.`;
+  if (diff > -20) return `Notable gap of ${Math.abs(diff)} points below the ${benchmark} participant average warrants focused strategic attention.`;
+  return `Currently ${Math.abs(diff)} points below the participant average (${benchmark})—this is a priority area where focused improvements will meaningfully strengthen your employee support.`;
 }
 
 // Identify meaningful cross-dimension patterns
@@ -1151,7 +1151,7 @@ function ScoreComponentCard({
           </div>
           {diff !== null && (
             <div className="flex justify-between items-center pt-2 mt-2 border-t border-slate-200">
-              <span className="text-xs text-slate-500">vs. Peer Benchmark</span>
+              <span className="text-xs text-slate-500">vs. Participant Benchmark</span>
               <span className={`text-sm font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
                 {diff >= 0 ? '+' : ''}{diff} pts <span className="font-normal text-slate-400">({benchmarkScore} avg)</span>
               </span>
@@ -1212,14 +1212,14 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
     // Varied phrasing based on status - avoids repetitive "X% further along"
     if (statusInfo.key === 'currently') {
       // Rotate between phrasings for strengths
-      if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of peers offer this`;
+      if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of participating organizations offer this`;
       if (pctCurrently < 50) return `You're ahead of ${100 - pctCurrently}% of benchmark companies here`;
-      if (pctCurrently < 70) return `Solid: ${pctCurrently}% of peers also offer this`;
-      return `Table stakes: ${pctCurrently}% of peers offer this`;
+      if (pctCurrently < 70) return `Solid: ${pctCurrently}% of participating organizations also offer this`;
+      return `Table stakes: ${pctCurrently}% of participating organizations offer this`;
     }
     if (statusInfo.key === 'planning') {
       // In planning cohort
-      if (pctCurrently > 50) return `${pctCurrently}% already offer; completing this brings you in line with peer practices`;
+      if (pctCurrently > 50) return `${pctCurrently}% already offer this`;
       return `You're among the ${pctPlanning}% in planning; ${pctCurrently}% already offer`;
     }
     if (statusInfo.key === 'assessing') {
@@ -1230,7 +1230,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
     }
     // Gap / Not able
     const exploringPct = pctCurrently + pctPlanning + pctAssessing;
-    if (pctCurrently > 50) return `Competitive gap: ${pctCurrently}% of peers offer this`;
+    if (pctCurrently > 50) return `Competitive gap: ${pctCurrently}% of participating organizations offer this`;
     if (exploringPct > 60) return `${exploringPct}% are at least exploring this (${pctCurrently}% offer)`;
     return `Emerging area: ${pctCurrently}% currently offer`;
   };
@@ -1819,14 +1819,14 @@ export default function InteractiveReportPage() {
       what: 'Highlights your top-performing dimensions—those where you\'re already doing well and can leverage as competitive advantages.',
       how: 'Simply identifies dimensions with the highest scores, representing your strongest current capabilities in cancer support.',
       when: 'Use these to identify best practices to share across the organization, build employer brand messaging, and understand what\'s working well.',
-      questions: ['What are we doing right?', 'Which programs can we highlight for recruiting?', 'What best practices can we share?', 'Where are we leading vs. peers?']
+      questions: ['What are we doing right?', 'Which programs can we highlight for recruiting?', 'What best practices can we share?', 'Where are we leading vs. other participants?']
     },
     growth: {
       title: 'Areas for Growth',
       what: 'Identifies your lower-performing dimensions that represent the greatest opportunities for improvement.',
       how: 'Shows dimensions with the lowest scores, indicating where your cancer support programs need the most attention.',
       when: 'Use these to prioritize improvement initiatives and understand where you have the most room to grow.',
-      questions: ['Where do we have the most room to improve?', 'What gaps should we address first?', 'Which areas need immediate attention?', 'Where are we falling behind peers?']
+      questions: ['Where do we have the most room to improve?', 'What gaps should we address first?', 'Which areas need immediate attention?', 'Where can we improve relative to other participants?']
     },
     strategicRecos: {
       title: 'Strategic Recommendations',
@@ -3645,7 +3645,7 @@ export default function InteractiveReportPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="w-6 h-6 rounded-full bg-slate-200 border-2 border-dashed border-violet-500 flex items-center justify-center text-violet-700 text-[8px] font-bold">D</span>
-                            <span className="text-slate-700 font-medium">Peer Benchmark</span>
+                            <span className="text-slate-700 font-medium">Participant Benchmark</span>
                           </div>
                         </div>
                       )}
@@ -3684,9 +3684,9 @@ export default function InteractiveReportPage() {
               const pctAssessing = Math.round(((bench?.assessing || 0) / total) * 100);
               const statusInfo = getStatusInfo(elem);
               if (statusInfo.key === 'currently') {
-                if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of peers offer`;
+                if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of participating organizations offer`;
                 if (pctCurrently < 50) return `Ahead of ${100 - pctCurrently}% of benchmark`;
-                if (pctCurrently < 70) return `Solid: ${pctCurrently}% of peers also offer`;
+                if (pctCurrently < 70) return `Solid: ${pctCurrently}% of participating organizations also offer`;
                 return `Table stakes: ${pctCurrently}% offer`;
               }
               if (statusInfo.key === 'planning') {
@@ -3696,7 +3696,7 @@ export default function InteractiveReportPage() {
               if (statusInfo.key === 'assessing') {
                 return `${pctAssessing}% also assessing; ${pctCurrently}% offer`;
               }
-              if (pctCurrently > 50) return `Gap: ${pctCurrently}% of peers offer`;
+              if (pctCurrently > 50) return `Gap: ${pctCurrently}% of participating organizations offer`;
               return `Emerging: ${pctCurrently}% offer`;
             };
             
@@ -4311,7 +4311,7 @@ export default function InteractiveReportPage() {
                   </div>
                   <div>
                     <p className="font-bold text-red-800 text-lg">Improvement Opportunities</p>
-                    <p className="text-base text-red-700 mt-1">Specific gaps where you're not currently offering, with peer benchmarks</p>
+                    <p className="text-base text-red-700 mt-1">Specific gaps where you're not currently offering, with participant benchmarks</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4 p-5 bg-blue-50 rounded-xl border border-blue-200">
@@ -4466,7 +4466,7 @@ export default function InteractiveReportPage() {
                                     </span>
                                     <p className="text-base text-slate-700">
                                       <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
-                                      <span className="text-slate-500"> ({evidence.topStrength.benchPct}% of peers)</span>
+                                      <span className="text-slate-500"> ({evidence.topStrength.benchPct})% of participants)</span>
                                     </p>
                                   </div>
                                 )}
@@ -4477,7 +4477,7 @@ export default function InteractiveReportPage() {
                                     </span>
                                     <p className="text-base text-slate-700">
                                       <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
-                                      <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of peers)</span>
+                                      <span className="text-slate-500"> ({evidence.biggestGap.benchPct})% of participants)</span>
                                     </p>
                                   </div>
                                 )}
