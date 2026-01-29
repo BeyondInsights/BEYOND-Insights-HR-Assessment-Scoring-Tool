@@ -2452,6 +2452,7 @@ export default function InteractiveReportPage() {
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
   const patterns = getCrossDimensionPatterns(dimensionAnalysis);
+  const rankings = getImpactRankings(dimensionAnalysis, compositeScore || 0);
   
   // Initiatives in progress - sorted: Planning first, then Assessing
   const quickWinOpportunities = dimensionAnalysis
