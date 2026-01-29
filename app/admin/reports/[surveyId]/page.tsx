@@ -4166,6 +4166,9 @@ export default function ExportReportPage() {
                   const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
                   const dimWeightPct = Math.round((dimWeight / totalWeight) * 100);
                   
+                  // Use the ACTUAL dimension score as baseline (includes geo multipliers, follow-up blending, etc.)
+                  const actualDimScore = dimInfo?.score || 0;
+                  
                   // Point values for each status
                   const STATUS_POINTS: Record<string, number> = {
                     'currently': 5,
@@ -4181,8 +4184,8 @@ export default function ExportReportPage() {
                     return 'not_able';
                   };
                   
-                  // Calculate current points using status
-                  const currentPoints = dimElements.reduce((sum: number, el: any) => {
+                  // Calculate current raw points from elements
+                  const currentRawPoints = dimElements.reduce((sum: number, el: any) => {
                     const status = getStatusFromElement(el);
                     return sum + STATUS_POINTS[status];
                   }, 0);
@@ -4196,15 +4199,17 @@ export default function ExportReportPage() {
                     return STATUS_POINTS[currentStatus];
                   };
                   
-                  const projectedPoints = dimElements.reduce((sum: number, el: any) => sum + getNewPoints(el), 0);
+                  const projectedRawPoints = dimElements.reduce((sum: number, el: any) => sum + getNewPoints(el), 0);
                   
-                  // Use consistent rounding - round to nearest integer for display
-                  const currentDimScore = maxPoints > 0 ? Math.round((currentPoints / maxPoints) * 100) : 0;
-                  const projectedDimScore = maxPoints > 0 ? Math.round((projectedPoints / maxPoints) * 100) : 0;
+                  // Calculate the CHANGE in raw score (not the absolute score)
+                  const rawPointChange = projectedRawPoints - currentRawPoints;
+                  const rawScoreChange = maxPoints > 0 ? Math.round((rawPointChange / maxPoints) * 100) : 0;
                   
-                  // Composite impact based on integer dimension scores
-                  const dimScoreChange = projectedDimScore - currentDimScore;
-                  const compositeImpact = Math.round((dimScoreChange * dimWeightPct / 100) * 0.9 * 10) / 10;
+                  // Apply the change to the ACTUAL dimension score
+                  const projectedDimScore = Math.min(100, Math.max(0, actualDimScore + rawScoreChange));
+                  
+                  // Composite impact
+                  const compositeImpact = Math.round((rawScoreChange * dimWeightPct / 100) * 0.9 * 10) / 10;
                   const currentComposite = companyScores?.compositeScore || 0;
                   const projectedComposite = Math.round((currentComposite + compositeImpact) * 10) / 10;
                   
@@ -4270,8 +4275,8 @@ export default function ExportReportPage() {
                               <div className="flex items-center justify-between">
                                 <div className="text-center">
                                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Current</p>
-                                  <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getScoreBgColor(currentDimScore)} flex items-center justify-center shadow-md`}>
-                                    <span className="text-2xl font-bold text-white">{currentDimScore}</span>
+                                  <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getScoreBgColor(actualDimScore)} flex items-center justify-center shadow-md`}>
+                                    <span className="text-2xl font-bold text-white">{actualDimScore}</span>
                                   </div>
                                 </div>
                                 
