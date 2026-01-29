@@ -904,10 +904,18 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
 
 // Calculate impact-ranked improvement priorities
 function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; effort: string; recommendation: string; recommendations: string[]; topGap: string }[] {
+  // Realistic improvement potential varies by current score
+  const getRealisticImprovement = (score: number) => {
+    if (score < 40) return 25;  // Low scores: lots of quick wins available
+    if (score < 60) return 20;  // Mid scores: moderate improvement potential
+    if (score < 80) return 15;  // Higher scores: harder to move
+    return 10;                   // High performers: marginal gains
+  };
+  
   return dimAnalysis
     .map(d => {
       // Calculate potential composite score impact
-      const improvementPotential = Math.min(100 - d.score, 20); // Max 20 point improvement realistic
+      const improvementPotential = Math.min(100 - d.score, getRealisticImprovement(d.score));
       const weightedImpact = (improvementPotential * d.weight) / 100 * 0.9; // 90% dimension weight factor
       const potentialGain = Math.round(weightedImpact * 10) / 10;
       
@@ -2180,7 +2188,7 @@ export default function ExportReportPage() {
     impactRanked: {
       title: 'Impact-Ranked Improvement Priorities',
       what: 'Ranks all 13 dimensions by which ones will give you the biggest "bang for your buck" if you improve them. This considers both the potential score improvement AND the dimension\'s weight in your composite score.',
-      how: 'Calculates ROI as: (potential score gain × dimension weight) × effort multiplier. A high-weighted dimension might rank high even with a decent score, because small improvements have big composite impact. Effort is assessed based on number of gaps and current progress.',
+      how: 'Calculates ROI as: (potential score gain × dimension weight) × effort multiplier. Potential improvement varies based on your starting score—lower-scoring dimensions have more room for quick gains, while higher-scoring dimensions see more incremental improvements. Effort is assessed based on number of gaps and current progress (Low, Medium, or High).',
       when: 'Use this for tactical, short-term prioritization—deciding where to focus resources this quarter or this year.',
       questions: ['Where should we focus resources this quarter?', 'What will move our composite score the most?', 'Which improvements offer the best ROI?', 'What\'s the most efficient path to improvement?']
     },
