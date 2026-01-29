@@ -3146,7 +3146,7 @@ export default function InteractiveReportPage() {
                 <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
                 <p className="text-slate-500 mt-1 text-sm">All 13 dimensions sorted by strategic weight</p>
               </div>
-              <span className="bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-lg font-semibold text-sm">👆 Click any row for detailed breakdown</span>
+              <span className="bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-lg font-semibold text-sm">👆 Click any dimension for element-level details</span>
             </div>
             <div className="px-12 py-4">
               {/* Table Header */}
