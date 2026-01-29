@@ -919,13 +919,11 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       const weightedImpact = (improvementPotential * d.weight) / 100 * 0.9; // 90% dimension weight factor
       const potentialGain = Math.round(weightedImpact * 10) / 10;
       
-      // Determine readiness based on gap count, current score, and planning items
-      // Labels reflect "how ready" this dimension is for improvement, not difficulty
-      let effort = 'Building';  // Moderate gaps to address
-      let effortScore = 2;
-      if (d.gaps.length > 6 || d.score < 35) { effort = 'Foundational'; effortScore = 1; }  // Multiple gaps need addressing
-      else if (d.gaps.length <= 2 && d.score >= 55) { effort = 'Quick Win'; effortScore = 3; }  // Few gaps, near ready
-      else if (d.planning.length >= 2) { effort = 'Quick Win'; effortScore = 3; } // Already have momentum
+      // Determine gap level based on gap count
+      let gapLevel = 'Some Gaps';  // 3-5 gaps
+      let gapScore = 2;
+      if (d.gaps.length > 5) { gapLevel = 'Many Gaps'; gapScore = 1; }
+      else if (d.gaps.length <= 2) { gapLevel = 'Few Gaps'; gapScore = 3; }
       
       // Generate up to 3 specific recommendations based on their data
       const recommendations: string[] = [];
@@ -961,20 +959,20 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
         currentScore: d.score,
         tier: d.tier.name,
         potentialGain,
-        effort,
-        effortScore,
+        gapLevel,
+        gapScore,
         recommendation: recommendations[0], // Keep for backward compatibility
         recommendations: recommendations.slice(0, 3), // Up to 3
         topGap
       };
     })
     .sort((a, b) => {
-      // Prioritize: high impact + low effort = best ROI
-      const aROI = a.potentialGain * a.effortScore;
-      const bROI = b.potentialGain * b.effortScore;
+      // Prioritize: high impact + fewer gaps = best ROI
+      const aROI = a.potentialGain * a.gapScore;
+      const bROI = b.potentialGain * b.gapScore;
       return bROI - aROI;
     })
-    .map(({ effortScore, ...rest }) => rest) // Remove effortScore from output
+    .map(({ gapScore, ...rest }) => rest) // Remove gapScore from output
     .slice(0, 5);
 }
 
@@ -2192,7 +2190,7 @@ export default function ExportReportPage() {
     impactRanked: {
       title: 'Impact-Ranked Improvement Priorities',
       what: 'Ranks all 13 dimensions by which ones will give you the biggest "bang for your buck" if you improve them. This considers both the potential score improvement AND the dimension\'s weight in your composite score.',
-      how: 'Calculates ROI as: (potential score gain × dimension weight) × readiness multiplier. Potential improvement varies based on your starting score—lower-scoring dimensions have more room for quick gains, while higher-scoring dimensions see more incremental improvements. Readiness is assessed based on number of gaps and current progress: Quick Win (few gaps, near ready), Building (moderate gaps to address), or Foundational (multiple gaps need addressing first).',
+      how: 'Calculates ROI as: (potential score gain × dimension weight) × gap factor. Potential improvement varies based on your starting score—lower-scoring dimensions have more room for quick gains, while higher-scoring dimensions see more incremental improvements. Gap level indicates how many elements need attention: Few Gaps (1-2), Some Gaps (3-5), or Many Gaps (6+).',
       when: 'Use this for tactical, short-term prioritization—deciding where to focus resources this quarter or this year.',
       questions: ['Where should we focus resources this quarter?', 'What will move our composite score the most?', 'Which improvements offer the best ROI?', 'What\'s the most efficient path to improvement?']
     },
@@ -3053,72 +3051,84 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* Why This Matters - Working with Cancer Pledge */}
-            <div className="px-12 py-8 bg-gradient-to-r from-teal-700 to-teal-600 text-white">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            {/* Why This Matters */}
+            <div className="px-12 py-8 bg-slate-50 border-b border-slate-200">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Why This Matters</h3>
+              
+              {/* The Challenge - Cancer in the Workplace */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm text-center">
+                  <p className="text-4xl font-bold text-violet-600">40%</p>
+                  <p className="text-sm text-slate-600 mt-2">of adults will be diagnosed with cancer in their lifetime</p>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold">The Working with Cancer Pledge: A Proven Trust Signal</h3>
-                  <p className="text-teal-100 mt-2 text-base leading-relaxed">
-                    Public commitment matters. When organizations take the Working with Cancer Pledge, employees notice, and it changes how they perceive workplace support before they ever need it.
+                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm text-center">
+                  <p className="text-4xl font-bold text-violet-600">42%</p>
+                  <p className="text-sm text-slate-600 mt-2">of diagnoses occur during working years (ages 20-64)</p>
+                </div>
+                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm text-center">
+                  <p className="text-4xl font-bold text-violet-600">27M</p>
+                  <p className="text-sm text-slate-600 mt-2">U.S. workers will face a cancer diagnosis during their career</p>
+                </div>
+              </div>
+              
+              {/* The Pledge Impact */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 bg-slate-700 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-white">The Working with Cancer Pledge</h4>
+                    <p className="text-slate-300 text-sm">Public commitment changes employee perception before they ever need support</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-amber-400 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
+                    <p className="text-white text-sm">Only <span className="font-bold text-amber-400">16-18%</span> know it exists</p>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Employees Managing Cancer */}
+                    <div>
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Employees Managing Cancer</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-600">Say the pledge is important</span>
+                          <span className="font-bold text-slate-800">81%</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-600">Would trust pledge companies more</span>
+                          <span className="font-bold text-slate-800">81%</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-600">Would influence their job decisions</span>
+                          <span className="font-bold text-slate-800">75%</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* General Population */}
+                    <div>
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">General Population Employees</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-600">Say the pledge is important</span>
+                          <span className="font-bold text-slate-800">72%</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-600">Would trust pledge companies more</span>
+                          <span className="font-bold text-slate-800">69%</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-600">Would influence their job decisions</span>
+                          <span className="font-bold text-slate-800">60%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-6 py-3 bg-slate-50 border-t border-slate-200">
+                  <p className="text-sm text-slate-600 text-center">
+                    <strong className="text-slate-800">The Pledge signals intent.</strong> The "Best Companies" designation proves execution.
                   </p>
                 </div>
               </div>
-              
-              <div className="space-y-4">
-                {/* EMC Stats */}
-                <div>
-                  <p className="text-xs font-semibold text-teal-200 uppercase tracking-wider mb-3">Employees Managing Cancer</p>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
-                      <p className="text-3xl font-bold text-white">81%</p>
-                      <p className="text-xs text-teal-100 mt-1">Say it's important for employers to take</p>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
-                      <p className="text-3xl font-bold text-white">81%</p>
-                      <p className="text-xs text-teal-100 mt-1">Would trust pledge companies more</p>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
-                      <p className="text-3xl font-bold text-white">75%</p>
-                      <p className="text-xs text-teal-100 mt-1">Would influence job decisions</p>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
-                      <p className="text-3xl font-bold text-orange-400">18%</p>
-                      <p className="text-xs text-teal-100 mt-1">Currently aware pledge exists</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* GP Stats */}
-                <div>
-                  <p className="text-xs font-semibold text-teal-200 uppercase tracking-wider mb-3">General Population Employees</p>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
-                      <p className="text-3xl font-bold text-white">72%</p>
-                      <p className="text-xs text-teal-100 mt-1">Say it's important for employers to take</p>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
-                      <p className="text-3xl font-bold text-white">69%</p>
-                      <p className="text-xs text-teal-100 mt-1">Would trust pledge companies more</p>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
-                      <p className="text-3xl font-bold text-white">60%</p>
-                      <p className="text-xs text-teal-100 mt-1">Would influence job decisions</p>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
-                      <p className="text-3xl font-bold text-orange-400">16%</p>
-                      <p className="text-xs text-teal-100 mt-1">Currently aware pledge exists</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <p className="mt-6 text-sm text-center">
-                <strong className="text-white">The Pledge creates accountability; the Index validates execution.</strong>
-                <span className="text-teal-200 ml-2">Taking the Pledge signals intent; the "Best Companies" designation proves it.</span>
-              </p>
             </div>
             
             {/* Executive Summary */}
@@ -4667,12 +4677,19 @@ export default function ExportReportPage() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
                                   <h4 className="font-bold text-slate-800 text-lg">{r.dimName}</h4>
-                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                                    r.effort === 'Quick Win' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
-                                    r.effort === 'Building' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
+                                    r.gapLevel === 'Few Gaps' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                    r.gapLevel === 'Some Gaps' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
                                     'bg-slate-100 text-slate-700 border border-slate-200'
                                   }`}>
-                                    {r.effort === 'Quick Win' ? '⚡ Quick Win' : r.effort === 'Building' ? '🔨 Building' : '🏗️ Foundational'}
+                                    {r.gapLevel === 'Few Gaps' ? (
+                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    ) : r.gapLevel === 'Some Gaps' ? (
+                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01" /></svg>
+                                    ) : (
+                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                                    )}
+                                    {r.gapLevel}
                                   </span>
                                 </div>
                                 
@@ -4733,7 +4750,7 @@ export default function ExportReportPage() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-slate-400 mt-6 text-center italic">Impact calculated based on dimension weight and improvement potential. Readiness assessed based on current gaps and in-progress initiatives.</p>
+                  <p className="text-xs text-slate-400 mt-6 text-center italic">Impact calculated based on dimension weight and improvement potential. Gap level indicates number of elements needing attention.</p>
                 </div>
               </div>
             );
