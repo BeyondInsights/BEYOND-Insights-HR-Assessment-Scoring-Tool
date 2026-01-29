@@ -3222,68 +3222,68 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Stats Cards - Clean with Color Accents */}
+        {/* Stats Cards - Clean with Subtle Color Backgrounds */}
         <div className="grid grid-cols-5 gap-3 mb-6">
-          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+          <div className="bg-purple-50 rounded-lg px-4 py-3 border border-purple-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-purple-600">{stats.foundingStarted}</p>
-                <p className="text-xs text-slate-600 font-medium">Founding Partners</p>
+                <p className="text-xs text-purple-900/70 font-medium">Founding Partners</p>
               </div>
-              <div className="text-xs font-medium text-purple-500 bg-purple-50 px-2 py-1 rounded">{stats.foundingCompleted} done</div>
+              <div className="text-xs font-medium text-purple-600 bg-white/80 px-2 py-1 rounded">{stats.foundingCompleted} done</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+          <div className="bg-blue-50 rounded-lg px-4 py-3 border border-blue-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-blue-600">{stats.standardStarted}</p>
-                <p className="text-xs text-slate-600 font-medium">Standard</p>
+                <p className="text-xs text-blue-900/70 font-medium">Standard</p>
               </div>
-              <div className="text-xs font-medium text-blue-500 bg-blue-50 px-2 py-1 rounded">{stats.standardCompleted} done</div>
+              <div className="text-xs font-medium text-blue-600 bg-white/80 px-2 py-1 rounded">{stats.standardCompleted} done</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+          <div className="bg-amber-50 rounded-lg px-4 py-3 border border-amber-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-amber-600">{stats.panelStarted}</p>
-                <p className="text-xs text-slate-600 font-medium">Panel Data</p>
+                <p className="text-xs text-amber-900/70 font-medium">Panel Data</p>
               </div>
-              <div className="text-xs font-medium text-amber-500 bg-amber-50 px-2 py-1 rounded">{stats.panelCompleted} done</div>
+              <div className="text-xs font-medium text-amber-600 bg-white/80 px-2 py-1 rounded">{stats.panelCompleted} done</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+          <div className="bg-emerald-50 rounded-lg px-4 py-3 border border-emerald-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-emerald-600">${(stats.totalRevenue / 1000).toFixed(1)}K</p>
-                <p className="text-xs text-slate-600 font-medium">Total Revenue</p>
+                <p className="text-xs text-emerald-900/70 font-medium">Total Revenue</p>
               </div>
-              <div className="text-xs font-medium text-emerald-500 bg-emerald-50 px-2 py-1 rounded">{stats.paidSurveys + stats.fpSponsored} surveys</div>
+              <div className="text-xs font-medium text-emerald-600 bg-white/80 px-2 py-1 rounded">{stats.paidSurveys + stats.fpSponsored} surveys</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+          <div className="bg-orange-50 rounded-lg px-4 py-3 border border-orange-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-orange-600">{stats.avgCompletion}%</p>
-                <p className="text-xs text-slate-600 font-medium">Avg Completion</p>
+                <p className="text-xs text-orange-900/70 font-medium">Avg Completion</p>
               </div>
-              <div className="text-xs font-medium text-orange-500 bg-orange-50 px-2 py-1 rounded">{stats.avgDays}d avg</div>
+              <div className="text-xs font-medium text-orange-600 bg-white/80 px-2 py-1 rounded">{stats.avgDays}d avg</div>
             </div>
           </div>
         </div>
 
         {/* TAB TOGGLE */}
-        <div className="bg-white rounded-lg border border-slate-200 mb-6 overflow-hidden">
-          <div className="flex">
+        <div className="bg-white rounded-lg border border-slate-200 mb-6 p-1.5">
+          <div className="flex gap-1">
             <button
               onClick={() => setActiveTab('responses')}
-              className={`flex-1 py-3 text-center font-medium transition-colors flex items-center justify-center gap-2 text-sm border-b-2 ${
+              className={`flex-1 py-2.5 text-center font-medium transition-all flex items-center justify-center gap-2 text-sm rounded-md ${
                 activeTab === 'responses'
-                  ? 'text-slate-800 border-slate-800'
-                  : 'text-slate-400 border-transparent hover:text-slate-600'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3293,10 +3293,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`flex-1 py-3 text-center font-medium transition-colors flex items-center justify-center gap-2 text-sm border-b-2 ${
+              className={`flex-1 py-2.5 text-center font-medium transition-all flex items-center justify-center gap-2 text-sm rounded-md ${
                 activeTab === 'analytics'
-                  ? 'text-slate-800 border-slate-800'
-                  : 'text-slate-400 border-transparent hover:text-slate-600'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3306,10 +3306,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('verbatim')}
-              className={`flex-1 py-3 text-center font-medium transition-colors flex items-center justify-center gap-2 text-sm border-b-2 ${
+              className={`flex-1 py-2.5 text-center font-medium transition-all flex items-center justify-center gap-2 text-sm rounded-md ${
                 activeTab === 'verbatim'
-                  ? 'text-slate-800 border-slate-800'
-                  : 'text-slate-400 border-transparent hover:text-slate-600'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
