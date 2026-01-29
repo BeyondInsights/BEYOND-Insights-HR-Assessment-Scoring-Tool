@@ -4136,7 +4136,7 @@ export default function ExportReportPage() {
           {/* ============ WHAT-IF SCENARIO MODAL ============ */}
           {whatIfModal && elementDetails && (
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); }}>
-              <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="px-8 py-5 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-60"></div>
@@ -4149,8 +4149,8 @@ export default function ExportReportPage() {
                         What-If Scenario Builder
                       </h3>
                       <p className="text-violet-100 text-sm mt-2 ml-13 max-w-xl">
-                        Explore the impact of program changes on your scores. What happens if you <span className="text-emerald-300 font-medium">start offering</span> a new benefit? 
-                        Or if you <span className="text-red-300 font-medium">stop offering</span> an existing one? Adjust elements below to see real-time score projections.
+                        Explore the impact of program changes. What happens if you <span className="text-emerald-300 font-medium">start offering</span> a new benefit? 
+                        Or <span className="text-red-300 font-medium">stop offering</span> an existing one?
                       </p>
                     </div>
                     <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); }} className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
@@ -4166,12 +4166,10 @@ export default function ExportReportPage() {
                   const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
                   const dimWeightPct = Math.round((dimWeight / totalWeight) * 100);
                   
-                  // Calculate current score
                   const currentPoints = dimElements.reduce((sum: number, el: any) => sum + (el.points || 0), 0);
                   const maxPoints = dimElements.length * 5;
                   const currentDimScore = maxPoints > 0 ? Math.round((currentPoints / maxPoints) * 100) : 0;
                   
-                  // Calculate projected score with changes
                   const getNewPoints = (el: any) => {
                     const newStatus = whatIfChanges[el.name];
                     if (!newStatus) return el.points || 0;
@@ -4185,7 +4183,6 @@ export default function ExportReportPage() {
                   const projectedDimScore = maxPoints > 0 ? Math.round((projectedPoints / maxPoints) * 100) : 0;
                   const dimScoreChange = projectedDimScore - currentDimScore;
                   
-                  // Calculate composite impact
                   const compositeImpact = Math.round((dimScoreChange * dimWeightPct / 100) * 0.9 * 10) / 10;
                   const currentComposite = companyScores?.compositeScore || 0;
                   const projectedComposite = Math.round((currentComposite + compositeImpact) * 10) / 10;
@@ -4194,10 +4191,10 @@ export default function ExportReportPage() {
                   const hasChanges = changesCount > 0;
                   
                   const statusOptions = [
-                    { value: 'currently', label: 'Offering', points: 5, color: 'emerald', icon: '✓' },
-                    { value: 'planning', label: 'Planning', points: 3, color: 'blue', icon: '◐' },
-                    { value: 'assessing', label: 'Assessing', points: 2, color: 'amber', icon: '?' },
-                    { value: 'not_able', label: 'Not Offering', points: 0, color: 'slate', icon: '✗' }
+                    { value: 'currently', label: 'Offering', color: 'emerald' },
+                    { value: 'planning', label: 'Planning', color: 'blue' },
+                    { value: 'assessing', label: 'Assessing', color: 'amber' },
+                    { value: 'not_able', label: 'Not Offering', color: 'slate' }
                   ];
                   
                   const getStatusFromElement = (el: any) => {
@@ -4205,6 +4202,11 @@ export default function ExportReportPage() {
                     if (el.isPlanning) return 'planning';
                     if (el.isAssessing) return 'assessing';
                     return 'not_able';
+                  };
+                  
+                  const getStatusLabel = (status: string) => {
+                    const opt = statusOptions.find(o => o.value === status);
+                    return opt?.label || 'Unknown';
                   };
                   
                   const getScoreBgColor = (score: number) => {
@@ -4217,13 +4219,13 @@ export default function ExportReportPage() {
                   return (
                     <>
                       {/* Dimension Selector */}
-                      <div className="px-8 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                      <div className="px-8 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <label className="text-sm font-semibold text-slate-700">Dimension:</label>
                           <select 
                             value={whatIfDimension} 
                             onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); }}
-                            className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
+                            className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
                           >
                             {dimensionAnalysis.map((d: any) => (
                               <option key={d.dim} value={d.dim}>D{d.dim}: {d.name} (Score: {d.score})</option>
@@ -4233,54 +4235,46 @@ export default function ExportReportPage() {
                         {hasChanges && (
                           <button 
                             onClick={() => setWhatIfChanges({})}
-                            className="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-2 px-4 py-2 hover:bg-violet-50 rounded-lg transition-colors"
+                            className="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-2 px-3 py-1.5 hover:bg-violet-50 rounded-lg transition-colors"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                            Reset All Changes
+                            Reset
                           </button>
                         )}
                       </div>
                       
                       {/* Score Cards */}
-                      <div className="px-8 py-6 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-200">
+                      <div className="px-8 py-5 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-200">
                         <div className="grid grid-cols-2 gap-6">
                           {/* Dimension Score Card */}
-                          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div className="px-5 py-3 bg-slate-700 text-white">
+                          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white">
                               <p className="text-sm font-semibold">Dimension Score</p>
-                              <p className="text-xs text-slate-300 mt-0.5">{dimInfo?.name} • Weight: {dimWeightPct}%</p>
+                              <p className="text-xs text-violet-200 mt-0.5">{dimInfo?.name} • Weight: {dimWeightPct}%</p>
                             </div>
-                            <div className="p-5">
-                              <div className="flex items-center gap-6">
-                                {/* Current */}
+                            <div className="p-4">
+                              <div className="flex items-center justify-between">
                                 <div className="text-center">
-                                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Current</p>
-                                  <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${getScoreBgColor(currentDimScore)} flex items-center justify-center shadow-lg`}>
-                                    <span className="text-3xl font-bold text-white">{currentDimScore}</span>
+                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Current</p>
+                                  <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getScoreBgColor(currentDimScore)} flex items-center justify-center shadow-md`}>
+                                    <span className="text-2xl font-bold text-white">{currentDimScore}</span>
                                   </div>
                                 </div>
                                 
-                                {/* Arrow */}
-                                <div className="flex-1 flex flex-col items-center">
+                                <div className="flex-1 flex flex-col items-center px-4">
                                   {hasChanges ? (
-                                    <>
-                                      <div className={`w-full h-1 rounded-full ${dimScoreChange > 0 ? 'bg-emerald-200' : dimScoreChange < 0 ? 'bg-red-200' : 'bg-slate-200'}`}>
-                                        <div className={`h-full rounded-full transition-all ${dimScoreChange > 0 ? 'bg-emerald-500' : dimScoreChange < 0 ? 'bg-red-500' : 'bg-slate-400'}`} style={{ width: `${Math.min(Math.abs(dimScoreChange), 100)}%` }}></div>
-                                      </div>
-                                      <span className={`text-lg font-bold mt-2 ${dimScoreChange > 0 ? 'text-emerald-600' : dimScoreChange < 0 ? 'text-red-600' : 'text-slate-400'}`}>
-                                        {dimScoreChange > 0 ? '+' : ''}{dimScoreChange} pts
-                                      </span>
-                                    </>
+                                    <span className={`text-lg font-bold ${dimScoreChange > 0 ? 'text-emerald-600' : dimScoreChange < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                                      {dimScoreChange > 0 ? '+' : ''}{dimScoreChange}
+                                    </span>
                                   ) : (
-                                    <span className="text-sm text-slate-400">Make changes below</span>
+                                    <span className="text-xs text-slate-400">→</span>
                                   )}
                                 </div>
                                 
-                                {/* Projected */}
                                 <div className="text-center">
-                                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Projected</p>
-                                  <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
-                                    <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : '—'}</span>
+                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Projected</p>
+                                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center shadow-md transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
+                                    <span className={`text-2xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : '—'}</span>
                                   </div>
                                 </div>
                               </div>
@@ -4288,143 +4282,110 @@ export default function ExportReportPage() {
                           </div>
                           
                           {/* Composite Score Card */}
-                          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div className="px-5 py-3 bg-violet-700 text-white">
+                          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div className="px-5 py-2.5 bg-slate-700 text-white">
                               <p className="text-sm font-semibold">Composite Score</p>
-                              <p className="text-xs text-violet-200 mt-0.5">Overall company score • Impact: {dimWeightPct}% × 90%</p>
+                              <p className="text-xs text-slate-300 mt-0.5">Overall company score</p>
                             </div>
-                            <div className="p-5">
-                              <div className="flex items-center gap-6">
-                                {/* Current */}
+                            <div className="p-4">
+                              <div className="flex items-center justify-between">
                                 <div className="text-center">
-                                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Current</p>
-                                  <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${getScoreBgColor(currentComposite)} flex items-center justify-center shadow-lg`}>
-                                    <span className="text-3xl font-bold text-white">{currentComposite}</span>
+                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Current</p>
+                                  <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getScoreBgColor(currentComposite)} flex items-center justify-center shadow-md`}>
+                                    <span className="text-2xl font-bold text-white">{currentComposite}</span>
                                   </div>
                                 </div>
                                 
-                                {/* Arrow */}
-                                <div className="flex-1 flex flex-col items-center">
-                                  {hasChanges ? (
-                                    <>
-                                      <div className={`w-full h-1 rounded-full ${compositeImpact > 0 ? 'bg-emerald-200' : compositeImpact < 0 ? 'bg-red-200' : 'bg-slate-200'}`}>
-                                        <div className={`h-full rounded-full transition-all ${compositeImpact > 0 ? 'bg-emerald-500' : compositeImpact < 0 ? 'bg-red-500' : 'bg-slate-400'}`} style={{ width: `${Math.min(Math.abs(compositeImpact) * 10, 100)}%` }}></div>
-                                      </div>
-                                      <span className={`text-lg font-bold mt-2 ${compositeImpact > 0 ? 'text-emerald-600' : compositeImpact < 0 ? 'text-red-600' : 'text-slate-400'}`}>
-                                        {compositeImpact > 0 ? '+' : ''}{compositeImpact} pts
-                                      </span>
-                                    </>
+                                <div className="flex-1 flex flex-col items-center px-4">
+                                  {hasChanges && compositeImpact !== 0 ? (
+                                    <span className={`text-lg font-bold ${compositeImpact > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                      {compositeImpact > 0 ? '+' : ''}{compositeImpact}
+                                    </span>
                                   ) : (
-                                    <span className="text-sm text-slate-400">—</span>
+                                    <span className="text-xs text-slate-400">→</span>
                                   )}
                                 </div>
                                 
-                                {/* Projected */}
                                 <div className="text-center">
-                                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Projected</p>
-                                  <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedComposite)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
-                                    <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedComposite : '—'}</span>
+                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Projected</p>
+                                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center shadow-md transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedComposite)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
+                                    <span className={`text-2xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedComposite : '—'}</span>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                        
-                        {/* Changes Summary */}
-                        {hasChanges && (
-                          <div className="mt-4 p-4 bg-violet-50 border border-violet-200 rounded-xl">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-lg bg-violet-600 text-white flex items-center justify-center text-sm font-bold">{changesCount}</span>
-                                <span className="text-sm text-violet-800">element{changesCount !== 1 ? 's' : ''} modified</span>
-                              </div>
-                              <div className="text-sm text-violet-600">
-                                {dimScoreChange !== 0 && <span className="mr-4">Dimension: <strong>{dimScoreChange > 0 ? '+' : ''}{dimScoreChange}</strong></span>}
-                                {compositeImpact !== 0 && <span>Composite: <strong>{compositeImpact > 0 ? '+' : ''}{compositeImpact}</strong></span>}
-                              </div>
-                            </div>
-                          </div>
-                        )}
                       </div>
                       
-                      {/* Elements List */}
-                      <div className="px-8 py-4 overflow-y-auto max-h-[calc(92vh-480px)]">
-                        <div className="space-y-2">
+                      {/* Column Headers */}
+                      <div className="px-8 py-2 bg-slate-100 border-b border-slate-200 flex items-center">
+                        <div className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</div>
+                        <div className="w-32 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Currently</div>
+                        <div className="w-8"></div>
+                        <div className="w-40 text-center text-xs font-semibold text-violet-600 uppercase tracking-wider">What If?</div>
+                      </div>
+                      
+                      {/* Elements List - Compact */}
+                      <div className="px-8 overflow-y-auto max-h-[calc(92vh-400px)]">
+                        <div className="divide-y divide-slate-100">
                           {dimElements.map((el: any, idx: number) => {
                             const currentStatus = getStatusFromElement(el);
                             const simulatedStatus = whatIfChanges[el.name] || currentStatus;
                             const hasChange = whatIfChanges[el.name] && whatIfChanges[el.name] !== currentStatus;
-                            const currentPts = el.points || 0;
                             const newPts = getNewPoints(el);
-                            const ptsDiff = newPts - currentPts;
-                            
-                            const currentOpt = statusOptions.find(o => o.value === currentStatus);
+                            const currentPts = el.points || 0;
+                            const isImprovement = newPts > currentPts;
                             
                             return (
-                              <div key={idx} className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
+                              <div key={idx} className={`flex items-center py-2.5 transition-colors ${
                                 hasChange 
-                                  ? ptsDiff > 0 
-                                    ? 'border-emerald-300 bg-emerald-50' 
-                                    : 'border-red-300 bg-red-50'
-                                  : 'border-slate-200 bg-white hover:border-slate-300'
+                                  ? isImprovement 
+                                    ? 'bg-emerald-50' 
+                                    : 'bg-red-50'
+                                  : 'hover:bg-slate-50'
                               }`}>
-                                {/* Element Name */}
-                                <div className="flex-1 min-w-0">
-                                  <p className={`text-sm font-medium ${hasChange ? 'text-slate-800' : 'text-slate-700'}`}>{el.name}</p>
+                                <div className="flex-1 min-w-0 pr-4">
+                                  <p className="text-sm text-slate-700 truncate">{el.name}</p>
                                 </div>
                                 
-                                {/* Current Status Badge */}
-                                <div className="flex items-center gap-2">
-                                  <span className={`text-xs font-semibold px-3 py-1.5 rounded-lg ${
-                                    currentStatus === 'currently' ? 'bg-emerald-100 text-emerald-700' :
-                                    currentStatus === 'planning' ? 'bg-blue-100 text-blue-700' :
-                                    currentStatus === 'assessing' ? 'bg-amber-100 text-amber-700' :
-                                    'bg-slate-100 text-slate-600'
-                                  }`}>
-                                    {currentOpt?.label} ({currentPts} pts)
-                                  </span>
+                                <div className={`w-32 text-center text-sm ${
+                                  currentStatus === 'currently' ? 'text-emerald-600 font-medium' :
+                                  currentStatus === 'planning' ? 'text-blue-600' :
+                                  currentStatus === 'assessing' ? 'text-amber-600' :
+                                  'text-slate-400'
+                                }`}>
+                                  {getStatusLabel(currentStatus)}
                                 </div>
                                 
-                                {/* Arrow */}
-                                <svg className={`w-5 h-5 ${hasChange ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
+                                <div className="w-8 flex justify-center">
+                                  <svg className={`w-4 h-4 ${hasChange ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                  </svg>
+                                </div>
                                 
-                                {/* Simulate Dropdown */}
-                                <select
-                                  value={simulatedStatus}
-                                  onChange={(e) => {
-                                    const newVal = e.target.value;
-                                    if (newVal === currentStatus) {
-                                      const { [el.name]: _, ...rest } = whatIfChanges;
-                                      setWhatIfChanges(rest);
-                                    } else {
-                                      setWhatIfChanges({ ...whatIfChanges, [el.name]: newVal });
-                                    }
-                                  }}
-                                  className={`text-sm font-medium px-4 py-2 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 min-w-[180px] ${
-                                    hasChange 
-                                      ? 'border-violet-400 bg-violet-100 text-violet-800' 
-                                      : 'border-slate-200 bg-white text-slate-700'
-                                  }`}
-                                >
-                                  {statusOptions.map(opt => (
-                                    <option key={opt.value} value={opt.value}>
-                                      {opt.label} ({opt.points} pts)
-                                    </option>
-                                  ))}
-                                </select>
-                                
-                                {/* Point Change */}
-                                <div className="w-20 text-right">
-                                  {hasChange ? (
-                                    <span className={`text-sm font-bold ${ptsDiff > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                      {ptsDiff > 0 ? '+' : ''}{ptsDiff} pts
-                                    </span>
-                                  ) : (
-                                    <span className="text-sm text-slate-400">—</span>
-                                  )}
+                                <div className="w-40">
+                                  <select
+                                    value={simulatedStatus}
+                                    onChange={(e) => {
+                                      const newVal = e.target.value;
+                                      if (newVal === currentStatus) {
+                                        const { [el.name]: _, ...rest } = whatIfChanges;
+                                        setWhatIfChanges(rest);
+                                      } else {
+                                        setWhatIfChanges({ ...whatIfChanges, [el.name]: newVal });
+                                      }
+                                    }}
+                                    className={`w-full text-sm px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 ${
+                                      hasChange 
+                                        ? 'border-violet-400 bg-violet-100 text-violet-800 font-medium' 
+                                        : 'border-slate-200 bg-white text-slate-600'
+                                    }`}
+                                  >
+                                    {statusOptions.map(opt => (
+                                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                  </select>
                                 </div>
                               </div>
                             );
@@ -4433,16 +4394,13 @@ export default function ExportReportPage() {
                       </div>
                       
                       {/* Footer */}
-                      <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                        <div className="flex items-center gap-6 text-xs text-slate-500">
-                          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-500"></span> Offering = 5 pts</span>
-                          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-500"></span> Planning = 3 pts</span>
-                          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-500"></span> Assessing = 2 pts</span>
-                          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-slate-400"></span> Not Offering = 0 pts</span>
-                        </div>
+                      <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                        <p className="text-xs text-slate-400">
+                          {hasChanges ? `${changesCount} change${changesCount !== 1 ? 's' : ''} simulated` : 'Select elements above to simulate changes'}
+                        </p>
                         <button 
                           onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); }}
-                          className="px-6 py-2.5 bg-slate-800 text-white rounded-xl font-medium hover:bg-slate-700 transition-colors"
+                          className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
                         >
                           Close
                         </button>
