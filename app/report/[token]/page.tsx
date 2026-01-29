@@ -32,7 +32,7 @@ const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
   3: 'Manager Preparedness & Capability',
-  4: 'Navigation & Expert Resources',
+  4: 'Cancer Support Resources',
   5: 'Workplace Accommodations',
   6: 'Culture & Psychological Safety',
   7: 'Career Continuity & Advancement',
@@ -772,12 +772,12 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       const weightedImpact = (improvementPotential * d.weight) / 100 * 0.9; // 90% dimension weight factor
       const potentialGain = Math.round(weightedImpact * 10) / 10;
       
-      // Determine effort based on gap count, current score, and planning items
-      let effort = 'Medium';
+      // Determine readiness based on gap count, current score, and planning items
+      let effort = 'Building';
       let effortScore = 2;
-      if (d.gaps.length > 6 || d.score < 35) { effort = 'High'; effortScore = 1; }
-      else if (d.gaps.length <= 2 && d.score >= 55) { effort = 'Low'; effortScore = 3; }
-      else if (d.planning.length >= 2) { effort = 'Low'; effortScore = 3; } // Already have momentum
+      if (d.gaps.length > 6 || d.score < 35) { effort = 'Foundational'; effortScore = 1; }
+      else if (d.gaps.length <= 2 && d.score >= 55) { effort = 'Quick Win'; effortScore = 3; }
+      else if (d.planning.length >= 2) { effort = 'Quick Win'; effortScore = 3; } // Already have momentum
       
       // Generate up to 3 specific recommendations based on their data
       const recommendations: string[] = [];
@@ -2772,6 +2772,72 @@ export default function InteractiveReportPage() {
               </div>
             </div>
             
+            {/* Why This Matters - Working with Cancer Pledge */}
+            <div className="px-12 py-8 bg-gradient-to-r from-teal-700 to-teal-600 text-white">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">The Working with Cancer Pledge: A Proven Trust Signal</h3>
+                  <p className="text-teal-100 mt-2 text-base leading-relaxed">
+                    Public commitment matters. When organizations take the Working with Cancer Pledge, employees notice, and it changes how they perceive workplace support before they ever need it.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-semibold text-teal-200 uppercase tracking-wider mb-3">Employees Managing Cancer</p>
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
+                      <p className="text-3xl font-bold text-white">81%</p>
+                      <p className="text-xs text-teal-100 mt-1">Say it's important for employers to take</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
+                      <p className="text-3xl font-bold text-white">81%</p>
+                      <p className="text-xs text-teal-100 mt-1">Would trust pledge companies more</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
+                      <p className="text-3xl font-bold text-white">75%</p>
+                      <p className="text-xs text-teal-100 mt-1">Would influence job decisions</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
+                      <p className="text-3xl font-bold text-orange-400">18%</p>
+                      <p className="text-xs text-teal-100 mt-1">Currently aware pledge exists</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <p className="text-xs font-semibold text-teal-200 uppercase tracking-wider mb-3">General Population Employees</p>
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
+                      <p className="text-3xl font-bold text-white">72%</p>
+                      <p className="text-xs text-teal-100 mt-1">Say it's important for employers to take</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
+                      <p className="text-3xl font-bold text-white">69%</p>
+                      <p className="text-xs text-teal-100 mt-1">Would trust pledge companies more</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
+                      <p className="text-3xl font-bold text-white">60%</p>
+                      <p className="text-xs text-teal-100 mt-1">Would influence job decisions</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-4 text-center">
+                      <p className="text-3xl font-bold text-orange-400">16%</p>
+                      <p className="text-xs text-teal-100 mt-1">Currently aware pledge exists</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="mt-6 text-sm text-center">
+                <strong className="text-white">The Pledge creates accountability; the Index validates execution.</strong>
+                <span className="text-teal-200 ml-2">Taking the Pledge signals intent; the "Best Companies" designation proves it.</span>
+              </p>
+            </div>
+            
             {/* Executive Summary */}
             <div className="px-12 py-10 bg-slate-50">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
@@ -3562,7 +3628,7 @@ export default function InteractiveReportPage() {
               currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
               planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
               assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
-              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Offering' }
+              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Currently Planned' }
             };
             
             const getStatusInfo = (elem: any) => {
@@ -3643,7 +3709,7 @@ export default function InteractiveReportPage() {
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">Offering</span></div>
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">Planning</span></div>
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">Assessing</span></div>
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Offering</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Currently Planned</span></div>
                       </div>
                     </div>
                     <div className="col-span-3 pl-4">Observation</div>
@@ -3699,7 +3765,7 @@ export default function InteractiveReportPage() {
                               >
                                 {pctAssessing > 0 ? `${pctAssessing}%` : ''}
                               </div>
-                              {/* Not Offering */}
+                              {/* Not Currently Planned */}
                               <div 
                                 className="flex items-center justify-center text-xs font-bold text-slate-600"
                                 style={{ width: `${pctNotOffering}%`, backgroundColor: '#CBD5E1', minWidth: pctNotOffering > 0 ? '28px' : '0' }}
@@ -3971,11 +4037,11 @@ export default function InteractiveReportPage() {
                                 <div className="flex items-center gap-3 mb-2">
                                   <h4 className="font-bold text-slate-800 text-lg">{r.dimName}</h4>
                                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                                    r.effort === 'Low' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
-                                    r.effort === 'Medium' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                                    'bg-red-100 text-red-700 border border-red-200'
+                                    r.effort === 'Quick Win' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                    r.effort === 'Building' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                    'bg-slate-100 text-slate-700 border border-slate-200'
                                   }`}>
-                                    {r.effort === 'Low' ? '⚡' : r.effort === 'Medium' ? '⏱' : '🔧'} {r.effort} Effort
+                                    {r.effort === 'Quick Win' ? '⚡ Quick Win' : r.effort === 'Building' ? '🔨 Building' : '🏗️ Foundational'}
                                   </span>
                                 </div>
                                 
@@ -4948,7 +5014,7 @@ export default function InteractiveReportPage() {
                     { value: 'currently', label: 'Offering' },
                     { value: 'planning', label: 'Planning' },
                     { value: 'assessing', label: 'Assessing' },
-                    { value: 'not_able', label: 'Not Offering' }
+                    { value: 'not_able', label: 'Not Currently Planned' }
                   ];
                   
                   const getStatusLabel = (status: string) => statusOptions.find(o => o.value === status)?.label || 'Unknown';
