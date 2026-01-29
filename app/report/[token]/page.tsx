@@ -2480,10 +2480,23 @@ export default function InteractiveReportPage() {
     .flatMap(d => d.gaps.slice(0, 2).map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, weight: d.weight })))
     .slice(0, 5);
 
+  // Stretch items for Phase 3 Excellence roadmap: remaining gaps after quick wins and foundation
+  const stretchItems = [...dimensionAnalysis]
+    .sort((a, b) => a.weight - b.weight)
+    .flatMap(d => d.gaps.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, weight: d.weight })))
+    .filter(item => !quickWinItems.some(q => q.name === item.name) && !foundationItems.some(f => f.name === item.name))
+    .slice(0, 5);
+
   // Order from lowest to highest so .find() returns the immediate next tier up
   const tierThresholds = [{ name: 'Emerging', min: 40 }, { name: 'Progressing', min: 60 }, { name: 'Leading', min: 75 }, { name: 'Exemplary', min: 90 }];
   const nextTierUp = tierThresholds.find(t => t.min > (compositeScore || 0));
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
+
+  // For polished design inProgressItems
+  const inProgressItems = quickWinOpportunities;
+  
+  // Gap opportunities - dimensions below Leading tier
+  const gapOpportunities = dimensionAnalysis.filter((d: any) => d.tier.name !== 'Exemplary' && d.tier.name !== 'Leading');
 
   return (
     <div className="min-h-screen bg-slate-100">
