@@ -3061,17 +3061,22 @@ export default function ExportReportPage() {
                 their entire workforce and demonstrate values that resonate with all employees.
               </p>
               
-              {/* The Reality - Two key stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm text-center">
-                  <p className="text-4xl font-bold text-violet-600">40%</p>
-                  <p className="text-sm text-slate-600 mt-2">of adults will be diagnosed with cancer in their lifetime</p>
+              {/* The Reality - Two key stats - tighter layout */}
+              <div className="flex justify-center gap-4 mb-6">
+                <div className="bg-white rounded-xl px-8 py-4 border border-slate-200 shadow-sm text-center">
+                  <p className="text-3xl font-bold text-violet-600">40%</p>
+                  <p className="text-sm text-slate-600 mt-1">of adults will be diagnosed with cancer in their lifetime</p>
                 </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm text-center">
-                  <p className="text-4xl font-bold text-violet-600">42%</p>
-                  <p className="text-sm text-slate-600 mt-2">of diagnoses occur during working years (ages 20-64)</p>
+                <div className="bg-white rounded-xl px-8 py-4 border border-slate-200 shadow-sm text-center">
+                  <p className="text-3xl font-bold text-violet-600">42%</p>
+                  <p className="text-sm text-slate-600 mt-1">of diagnoses occur during working years (ages 20-64)</p>
                 </div>
               </div>
+              
+              {/* Research intro */}
+              <p className="text-sm text-slate-600 mb-4 text-center italic">
+                Here's what our research with employees managing cancer and general population employees found:
+              </p>
               
               {/* The Pledge Impact - Redesigned */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -4289,9 +4294,7 @@ export default function ExportReportPage() {
                             </svg>
                           </div>
                           <h4 className="text-lg font-semibold text-slate-700 mb-2">Select a Dimension</h4>
-                          <p className="text-sm text-slate-500 max-w-sm">
-                            Choose a dimension from the dropdown above to explore how program changes would impact your scores.
-                          </p>
+                          <p className="text-sm text-slate-500 max-w-sm">Choose a dimension from the dropdown above to explore how program changes would impact your dimension score.</p>
                         </div>
                         
                         {/* Footer */}
