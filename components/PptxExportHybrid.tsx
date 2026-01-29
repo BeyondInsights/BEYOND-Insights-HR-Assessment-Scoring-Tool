@@ -52,24 +52,45 @@ async function captureElementAsImage(elementId: string): Promise<string | null> 
   }
 
   try {
-    // Scroll element into view first
-    element.scrollIntoView({ behavior: 'instant', block: 'start' });
+    // Store original styles
+    const originalPosition = element.style.position;
+    const originalTop = element.style.top;
+    const originalLeft = element.style.left;
+    const originalZIndex = element.style.zIndex;
     
-    // Small delay to ensure rendering is complete
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Get the element's dimensions
+    const rect = element.getBoundingClientRect();
     
+    console.log(`[PPTX Export] Capturing ${elementId}: ${rect.width}x${rect.height}`);
+    
+    // Use html2canvas with specific options for better capture
     const canvas = await html2canvas(element, {
-      scale: 2, // Higher quality
+      scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
-      logging: false,
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight,
+      logging: true, // Enable logging for debugging
+      width: rect.width,
+      height: rect.height,
+      x: 0,
+      y: 0,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: document.documentElement.scrollWidth,
+      windowHeight: document.documentElement.scrollHeight,
+      onclone: (clonedDoc) => {
+        // Make sure the cloned element is visible
+        const clonedElement = clonedDoc.getElementById(elementId);
+        if (clonedElement) {
+          clonedElement.style.display = 'block';
+          clonedElement.style.visibility = 'visible';
+          clonedElement.style.opacity = '1';
+        }
+      }
     });
     
     const dataUrl = canvas.toDataURL('image/png');
-    console.log(`[PPTX Export] Captured ${elementId}: ${dataUrl.length} bytes`);
+    console.log(`[PPTX Export] Captured ${elementId}: ${Math.round(dataUrl.length / 1024)}KB`);
     return dataUrl;
   } catch (err) {
     console.error(`[PPTX Export] Failed to capture ${elementId}:`, err);
