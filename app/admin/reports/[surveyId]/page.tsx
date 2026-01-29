@@ -4249,15 +4249,23 @@ export default function ExportReportPage() {
                   
                   const projectedRawPoints = dimElements.reduce((sum: number, el: any) => sum + getNewPoints(el), 0);
                   
-                  // Calculate the CHANGE in raw score (not the absolute score)
-                  const rawPointChange = projectedRawPoints - currentRawPoints;
-                  const rawScoreChange = maxPoints > 0 ? Math.round((rawPointChange / maxPoints) * 100) : 0;
+                  // Calculate projected dimension score directly from raw points
+                  // This gives accurate results: if all elements are Offering, score = 100
+                  const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
+                  const currentRawScore = maxPoints > 0 ? Math.round((currentRawPoints / maxPoints) * 100) : 0;
+                  const rawScoreChange = projectedRawScore - currentRawScore;
                   
-                  // Apply the change to the ACTUAL dimension score
-                  const projectedDimScore = Math.min(100, Math.max(0, actualDimScore + rawScoreChange));
+                  // For dimensions without follow-ups, projected = raw score
+                  // For dimensions with follow-ups (D1, D3, D12, D13), the actual score may differ from raw
+                  // In that case, we show the change relative to current actual score
+                  const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
+                  const projectedDimScore = hasFollowUps 
+                    ? Math.min(100, Math.max(0, actualDimScore + rawScoreChange))
+                    : projectedRawScore;
                   
-                  // Composite impact
-                  const compositeImpact = Math.round((rawScoreChange * dimWeightPct / 100) * 0.9 * 10) / 10;
+                  // Composite impact based on score change
+                  const actualScoreChange = projectedDimScore - actualDimScore;
+                  const compositeImpact = Math.round((actualScoreChange * dimWeightPct / 100) * 0.9 * 10) / 10;
                   const currentComposite = companyScores?.compositeScore || 0;
                   const projectedComposite = Math.round((currentComposite + compositeImpact) * 10) / 10;
                   
@@ -4550,13 +4558,6 @@ export default function ExportReportPage() {
                       <p className="text-cyan-100 mt-1 text-base">Top opportunities ranked by potential score impact relative to implementation effort</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <button 
-                        onClick={() => setWhatIfModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-violet-500 hover:bg-violet-400 text-white text-sm font-medium rounded-lg transition-colors shadow-lg"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                        What-If Scenarios
-                      </button>
                       <button 
                         onClick={() => setInfoModal('impactRanked')}
                         className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur"
@@ -5103,10 +5104,19 @@ export default function ExportReportPage() {
                   <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
                   <p className="text-slate-400 mt-1">Your phased approach to strengthen workplace cancer support</p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-8 h-1 bg-cyan-400 rounded"></div>
-                  <div className="w-8 h-1 bg-blue-400 rounded"></div>
-                  <div className="w-8 h-1 bg-violet-400 rounded"></div>
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setWhatIfModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-violet-500 hover:bg-violet-400 text-white text-sm font-medium rounded-lg transition-colors shadow-lg"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    What-If Scenarios
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <div className="w-8 h-1 bg-cyan-400 rounded"></div>
+                    <div className="w-8 h-1 bg-blue-400 rounded"></div>
+                    <div className="w-8 h-1 bg-violet-400 rounded"></div>
+                  </div>
                 </div>
               </div>
             </div>
