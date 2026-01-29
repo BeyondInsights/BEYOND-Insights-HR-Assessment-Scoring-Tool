@@ -3275,10 +3275,11 @@ export default function InteractiveReportPage() {
                       const dx = Math.abs(positions[i].xPos - positions[j].xPos);
                       const dy = Math.abs(positions[i].yPos - positions[j].yPos);
                       if (dx < OVERLAP_THRESHOLD && dy < OVERLAP_THRESHOLD) {
-                        positions[i].offsetX = -12;
-                        positions[i].offsetY = -8;
-                        positions[j].offsetX = 12;
-                        positions[j].offsetY = 8;
+                        // Subtle offset - just enough to see both dots
+                        positions[i].offsetX = -8;
+                        positions[i].offsetY = -6;
+                        positions[j].offsetX = 8;
+                        positions[j].offsetY = 6;
                       }
                     }
                   }
