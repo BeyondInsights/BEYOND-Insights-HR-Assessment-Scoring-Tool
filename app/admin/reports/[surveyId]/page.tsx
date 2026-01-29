@@ -2176,7 +2176,7 @@ export default function ExportReportPage() {
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const [infoModal, setInfoModal] = useState<'crossDimensional' | 'impactRanked' | 'excellence' | 'growth' | 'strategicRecos' | null>(null);
   const [whatIfModal, setWhatIfModal] = useState<boolean>(false);
-  const [whatIfDimension, setWhatIfDimension] = useState<number>(1);
+  const [whatIfDimension, setWhatIfDimension] = useState<number | null>(null);
   const [whatIfChanges, setWhatIfChanges] = useState<Record<string, string>>({});
   
   // Info modal content
@@ -4135,7 +4135,7 @@ export default function ExportReportPage() {
           
           {/* ============ WHAT-IF SCENARIO MODAL ============ */}
           {whatIfModal && elementDetails && (
-            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); }}>
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }}>
               <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
                 {/* Header - Slate color to match composite */}
                 <div className="px-8 py-5 bg-slate-700 relative overflow-hidden">
@@ -4153,13 +4153,60 @@ export default function ExportReportPage() {
                         Or <span className="text-red-400 font-medium">stop offering</span> an existing one?
                       </p>
                     </div>
-                    <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); }} className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
+                    <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }} className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
                 </div>
                 
                 {(() => {
+                  // Show placeholder if no dimension selected
+                  if (whatIfDimension === null) {
+                    return (
+                      <>
+                        {/* Dimension Selector */}
+                        <div className="px-8 py-3 bg-slate-50 border-b border-slate-200">
+                          <div className="flex items-center gap-4">
+                            <label className="text-sm font-semibold text-slate-700">Dimension:</label>
+                            <select 
+                              value=""
+                              onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); }}
+                              className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
+                            >
+                              <option value="" disabled>Select a dimension...</option>
+                              {dimensionAnalysis.map((d: any) => (
+                                <option key={d.dim} value={d.dim}>D{d.dim}: {d.name} (Score: {d.score})</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        
+                        {/* Empty State */}
+                        <div className="px-8 py-16 flex flex-col items-center justify-center text-center">
+                          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                          </div>
+                          <h4 className="text-lg font-semibold text-slate-700 mb-2">Select a Dimension</h4>
+                          <p className="text-sm text-slate-500 max-w-sm">
+                            Choose a dimension from the dropdown above to explore how program changes would impact your scores.
+                          </p>
+                        </div>
+                        
+                        {/* Footer */}
+                        <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+                          <button 
+                            onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }}
+                            className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </>
+                    );
+                  }
+                  
                   const dimElements = elementDetails?.[whatIfDimension] || [];
                   const dimInfo = dimensionAnalysis.find((d: any) => d.dim === whatIfDimension);
                   const dimWeight = DEFAULT_DIMENSION_WEIGHTS[whatIfDimension] || 0;
@@ -4191,10 +4238,11 @@ export default function ExportReportPage() {
                   }, 0);
                   const maxPoints = dimElements.length * 5;
                   
-                  // Calculate projected points with changes
+                  // Calculate projected points with changes - only count elements where user made a selection
                   const getNewPoints = (el: any) => {
                     const newStatus = whatIfChanges[el.name];
                     if (newStatus) return STATUS_POINTS[newStatus];
+                    // If no selection made, use current status (no change)
                     const currentStatus = getStatusFromElement(el);
                     return STATUS_POINTS[currentStatus];
                   };
@@ -4242,10 +4290,11 @@ export default function ExportReportPage() {
                         <div className="flex items-center gap-4">
                           <label className="text-sm font-semibold text-slate-700">Dimension:</label>
                           <select 
-                            value={whatIfDimension} 
+                            value={whatIfDimension || ''} 
                             onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); }}
                             className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
                           >
+                            <option value="" disabled>Select a dimension...</option>
                             {dimensionAnalysis.map((d: any) => (
                               <option key={d.dim} value={d.dim}>D{d.dim}: {d.name} (Score: {d.score})</option>
                             ))}
@@ -4269,7 +4318,7 @@ export default function ExportReportPage() {
                           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                             <div className="px-5 py-2.5 bg-gradient-to-r from-violet-700 to-purple-700 text-white">
                               <p className="text-sm font-semibold">Dimension Score</p>
-                              <p className="text-xs text-violet-200 mt-0.5">{dimInfo?.name} • Weight: {dimWeightPct}%</p>
+                              <p className="text-xs text-violet-200 mt-0.5">{dimInfo?.name} • {dimElements.length} elements</p>
                             </div>
                             <div className="p-4">
                               <div className="flex items-center justify-between">
@@ -4342,10 +4391,10 @@ export default function ExportReportPage() {
                         <div className="divide-y divide-slate-100">
                           {dimElements.map((el: any, idx: number) => {
                             const currentStatus = getStatusFromElement(el);
-                            const simulatedStatus = whatIfChanges[el.name] || currentStatus;
-                            const hasChange = whatIfChanges[el.name] && whatIfChanges[el.name] !== currentStatus;
+                            const simulatedStatus = whatIfChanges[el.name] || null;
+                            const hasChange = simulatedStatus !== null && simulatedStatus !== currentStatus;
                             const currentPts = STATUS_POINTS[currentStatus];
-                            const newPts = STATUS_POINTS[simulatedStatus];
+                            const newPts = simulatedStatus ? STATUS_POINTS[simulatedStatus] : currentPts;
                             const isImprovement = newPts > currentPts;
                             
                             return (
@@ -4377,10 +4426,10 @@ export default function ExportReportPage() {
                                 
                                 <div className="w-40">
                                   <select
-                                    value={simulatedStatus}
+                                    value={simulatedStatus || ''}
                                     onChange={(e) => {
                                       const newVal = e.target.value;
-                                      if (newVal === currentStatus) {
+                                      if (newVal === '' || newVal === currentStatus) {
                                         const { [el.name]: _, ...rest } = whatIfChanges;
                                         setWhatIfChanges(rest);
                                       } else {
@@ -4393,6 +4442,7 @@ export default function ExportReportPage() {
                                         : 'border-slate-200 bg-white text-slate-600'
                                     }`}
                                   >
+                                    <option value="">—</option>
                                     {statusOptions.map(opt => (
                                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                                     ))}
@@ -4410,7 +4460,7 @@ export default function ExportReportPage() {
                           {hasChanges ? `${changesCount} change${changesCount !== 1 ? 's' : ''} simulated` : 'Select elements above to simulate changes'}
                         </p>
                         <button 
-                          onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); }}
+                          onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }}
                           className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
                         >
                           Close
