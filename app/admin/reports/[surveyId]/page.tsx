@@ -3212,7 +3212,7 @@ export default function ExportReportPage() {
                   console.log('CB3C Raw Data:', cb3c);
                   console.log('CB3C Array:', cb3cArray);
                   
-                  // These are the display labels - matching should be flexible
+                  // These match the actual survey options stored in the database
                   const healthConditions = [
                     'Autoimmune disorders',
                     'Cancer',
@@ -3220,13 +3220,13 @@ export default function ExportReportPage() {
                     'Heart disease',
                     'HIV / AIDS',
                     'Kidney disease',
-                    'Major surgery recovery',
-                    'Mental health crises',
-                    'Musculoskeletal conditions',
+                    'Multiple sclerosis',
                     'Neurological conditions',
                     'Organ transplant',
-                    'Respiratory conditions',
+                    'Rare diseases',
                     'Stroke',
+                    'Substance abuse disorders',
+                    'All serious conditions',
                     'Other'
                   ];
                   
@@ -3236,24 +3236,24 @@ export default function ExportReportPage() {
                     return cb3cArray.some((v: string) => {
                       const stored = String(v).toLowerCase();
                       
-                      // Check for substring matches in either direction
+                      // Direct substring match
                       if (stored.includes(condLower) || condLower.includes(stored.split('(')[0].trim())) return true;
                       
-                      // Specific mappings based on actual stored values from database
+                      // Specific mappings based on actual stored values
                       if (condLower === 'autoimmune disorders' && stored.includes('autoimmune')) return true;
                       if (condLower === 'cancer' && stored.includes('cancer')) return true;
-                      if (condLower === 'chronic conditions' && (stored.includes('chronic condition') || stored.includes('multiple sclerosis'))) return true;
+                      if (condLower === 'chronic conditions' && stored.includes('chronic condition')) return true;
                       if (condLower === 'heart disease' && (stored.includes('heart') || stored.includes('cardiovascular'))) return true;
                       if (condLower === 'hiv / aids' && (stored.includes('hiv') || stored.includes('aids'))) return true;
                       if (condLower === 'kidney disease' && (stored.includes('kidney') || stored.includes('renal'))) return true;
-                      if (condLower === 'major surgery recovery' && stored.includes('surgery')) return true;
-                      if (condLower === 'mental health crises' && stored.includes('mental health')) return true;
-                      if (condLower === 'musculoskeletal conditions' && stored.includes('musculoskeletal')) return true;
+                      if (condLower === 'multiple sclerosis' && (stored.includes('multiple sclerosis') || stored.includes('(ms)'))) return true;
                       if (condLower === 'neurological conditions' && (stored.includes('neurological') || stored.includes('parkinson') || stored.includes('als'))) return true;
                       if (condLower === 'organ transplant' && stored.includes('transplant')) return true;
-                      if (condLower === 'respiratory conditions' && (stored.includes('respiratory') || stored.includes('copd') || stored.includes('cystic'))) return true;
+                      if (condLower === 'rare diseases' && stored.includes('rare disease')) return true;
                       if (condLower === 'stroke' && stored.includes('stroke')) return true;
-                      if (condLower === 'other' && (stored.includes('other') || stored.includes('specify') || stored.includes('rare disease'))) return true;
+                      if (condLower === 'substance abuse disorders' && stored.includes('substance abuse')) return true;
+                      if (condLower === 'all serious conditions' && stored.includes('all serious')) return true;
+                      if (condLower === 'other' && (stored.includes('other condition') || stored.includes('specify'))) return true;
                       
                       return false;
                     });
