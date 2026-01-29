@@ -30,6 +30,7 @@
     "survey-core": "^2.3.7",
     "xlsx": "^0.18.5",
     "jspdf": "^2.5.1",
+    "html2canvas": "^1.4.1",
     "survey-react-ui": "^2.3.7"
   },
   "devDependencies": {
