@@ -3291,25 +3291,26 @@ export default function ExportReportPage() {
                     'Stroke'
                   ];
                   
-                  // Helper function to check if a condition is selected - matches against actual stored values
+                  // Helper function to check if a condition is selected
+                  // Must handle BOTH old survey format and new survey format
                   const isConditionSelected = (condition: string) => {
                     const condLower = condition.toLowerCase();
                     return cb3cArray.some((v: string) => {
                       const stored = String(v).toLowerCase();
                       
-                      // Specific mappings based on actual stored values
+                      // Mappings that handle both OLD and NEW survey formats
                       if (condLower === 'autoimmune disorders' && stored.includes('autoimmune')) return true;
                       if (condLower === 'cancer' && stored.includes('cancer')) return true;
                       if (condLower === 'chronic conditions' && stored.includes('chronic condition')) return true;
-                      if (condLower === 'heart disease' && stored.includes('heart disease')) return true;
+                      if (condLower === 'heart disease' && (stored.includes('heart disease') || stored.includes('cardiovascular'))) return true;
                       if (condLower === 'hiv / aids' && (stored.includes('hiv') || stored.includes('aids'))) return true;
-                      if (condLower === 'kidney disease' && stored.includes('kidney disease')) return true;
+                      if (condLower === 'kidney disease' && (stored.includes('kidney') || stored.includes('renal'))) return true;
                       if (condLower === 'major surgery recovery' && stored.includes('major surgery')) return true;
-                      if (condLower === 'mental health crises' && stored.includes('mental health')) return true;
+                      if (condLower === 'mental health crises' && (stored.includes('mental health') || stored.includes('substance abuse'))) return true;
                       if (condLower === 'musculoskeletal conditions' && stored.includes('musculoskeletal')) return true;
-                      if (condLower === 'neurological conditions' && stored.includes('neurological')) return true;
-                      if (condLower === 'organ transplant' && stored.includes('organ transplant')) return true;
-                      if (condLower === 'respiratory conditions' && stored.includes('respiratory')) return true;
+                      if (condLower === 'neurological conditions' && (stored.includes('neurological') || stored.includes('parkinson') || stored.includes('multiple sclerosis') || stored.includes('(ms)'))) return true;
+                      if (condLower === 'organ transplant' && stored.includes('transplant')) return true;
+                      if (condLower === 'respiratory conditions' && (stored.includes('respiratory') || stored.includes('copd'))) return true;
                       if (condLower === 'stroke' && stored.includes('stroke')) return true;
                       
                       return false;
