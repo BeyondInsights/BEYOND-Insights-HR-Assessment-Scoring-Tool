@@ -3212,7 +3212,7 @@ export default function ExportReportPage() {
                   console.log('CB3C Raw Data:', cb3c);
                   console.log('CB3C Array:', cb3cArray);
                   
-                  // These match the actual survey options stored in the database
+                  // These match the actual survey options stored in the database (excluding "Other")
                   const healthConditions = [
                     'Autoimmune disorders',
                     'Cancer',
@@ -3226,8 +3226,7 @@ export default function ExportReportPage() {
                     'Rare diseases',
                     'Stroke',
                     'Substance abuse disorders',
-                    'All serious conditions',
-                    'Other'
+                    'All serious conditions'
                   ];
                   
                   // Helper function to check if a condition is selected - matches against actual stored values
@@ -3253,7 +3252,6 @@ export default function ExportReportPage() {
                       if (condLower === 'stroke' && stored.includes('stroke')) return true;
                       if (condLower === 'substance abuse disorders' && stored.includes('substance abuse')) return true;
                       if (condLower === 'all serious conditions' && stored.includes('all serious')) return true;
-                      if (condLower === 'other' && (stored.includes('other condition') || stored.includes('specify'))) return true;
                       
                       return false;
                     });
@@ -3261,7 +3259,7 @@ export default function ExportReportPage() {
                   
                   // Count using the same function used for display
                   const cb3cCount = healthConditions.filter(c => isConditionSelected(c)).length;
-                  const cb3cScore = Math.min(100, Math.round((cb3cCount / 14) * 100));
+                  const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
                   
                   const programElements = [
                     { label: 'Individual benefits or policies', key: 'individual' },
@@ -3334,7 +3332,7 @@ export default function ExportReportPage() {
                         <div className="border border-violet-200 rounded-xl overflow-hidden">
                           <div className="bg-violet-50 px-4 py-3 font-semibold text-violet-800 border-b border-violet-200 flex justify-between">
                             <span>Health conditions addressed</span>
-                            <span className="text-violet-600">{cb3cCount} of 14 = {cb3cScore} pts</span>
+                            <span className="text-violet-600">{cb3cCount} of 13 = {cb3cScore} pts</span>
                           </div>
                           <div className="p-3 grid grid-cols-3 gap-2">
                             {healthConditions.map((condition, i) => {
