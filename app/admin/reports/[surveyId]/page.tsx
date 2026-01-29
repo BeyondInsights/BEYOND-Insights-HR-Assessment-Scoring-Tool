@@ -2166,6 +2166,46 @@ export default function ExportReportPage() {
   const [exportingPptx, setExportingPptx] = useState(false);
   const [exportProgress, setExportProgress] = useState({ step: '', percent: 0 });
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
+  const [infoModal, setInfoModal] = useState<'crossDimensional' | 'impactRanked' | 'excellence' | 'growth' | 'strategicRecos' | null>(null);
+  
+  // Info modal content
+  const infoContent = {
+    crossDimensional: {
+      title: 'Cross-Dimensional Insights',
+      what: 'Identifies meaningful patterns that emerge when comparing different dimensions together. These insights reveal systemic organizational issues or opportunities that wouldn\'t be visible looking at dimensions individually.',
+      how: 'The system checks for specific pattern combinations—for example, if Culture scores high but Manager Preparedness scores low, it surfaces the insight that "employees feel safe disclosing but managers lack tools to respond." Each pattern has specific score thresholds that trigger it.',
+      when: 'Use these insights to understand the "why" behind your scores and identify root causes. They\'re especially valuable for leadership discussions and strategic planning.',
+      questions: ['Why aren\'t employees using our benefits?', 'What systemic issues should leadership understand?', 'Are there hidden connections between our programs?', 'What organizational dynamics affect our cancer support?']
+    },
+    impactRanked: {
+      title: 'Impact-Ranked Improvement Priorities',
+      what: 'Ranks all 13 dimensions by which ones will give you the biggest "bang for your buck" if you improve them. This considers both the potential score improvement AND the dimension\'s weight in your composite score.',
+      how: 'Calculates ROI as: (potential score gain × dimension weight) × effort multiplier. A high-weighted dimension might rank high even with a decent score, because small improvements have big composite impact. Effort is assessed based on number of gaps and current progress.',
+      when: 'Use this for tactical, short-term prioritization—deciding where to focus resources this quarter or this year.',
+      questions: ['Where should we focus resources this quarter?', 'What will move our composite score the most?', 'Which improvements offer the best ROI?', 'What\'s the most efficient path to improvement?']
+    },
+    excellence: {
+      title: 'Areas of Excellence',
+      what: 'Highlights your top-performing dimensions—those where you\'re already doing well and can leverage as competitive advantages.',
+      how: 'Simply identifies dimensions with the highest scores, representing your strongest current capabilities in cancer support.',
+      when: 'Use these to identify best practices to share across the organization, build employer brand messaging, and understand what\'s working well.',
+      questions: ['What are we doing right?', 'Which programs can we highlight for recruiting?', 'What best practices can we share?', 'Where are we leading vs. peers?']
+    },
+    growth: {
+      title: 'Areas for Growth',
+      what: 'Identifies your lower-performing dimensions that represent the greatest opportunities for improvement.',
+      how: 'Shows dimensions with the lowest scores, indicating where your cancer support programs need the most attention.',
+      when: 'Use these to prioritize improvement initiatives and understand where you have the most room to grow.',
+      questions: ['Where do we have the most room to improve?', 'What gaps should we address first?', 'Which areas need immediate attention?', 'Where are we falling behind peers?']
+    },
+    strategicRecos: {
+      title: 'Strategic Recommendations',
+      what: 'Provides comprehensive analysis and detailed action plans for your 4 lowest-scoring dimensions. This is your long-term roadmap for addressing your biggest weaknesses.',
+      how: 'Sorts all 13 dimensions by score (lowest first) and provides deep-dive analysis including gaps, in-progress items, strengths, evidence, insights, and step-by-step roadmaps.',
+      when: 'Use this for long-term strategic planning, building detailed improvement roadmaps, and comprehensive program development.',
+      questions: ['What\'s our 12-month improvement plan?', 'What specific actions should we take?', 'How do we build comprehensive cancer support?', 'What resources does CAC offer to help?']
+    }
+  };
   
   // Show toast notification
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -3557,10 +3597,11 @@ export default function ExportReportPage() {
                       const dx = Math.abs(positions[i].xPos - positions[j].xPos);
                       const dy = Math.abs(positions[i].yPos - positions[j].yPos);
                       if (dx < OVERLAP_THRESHOLD && dy < OVERLAP_THRESHOLD) {
-                        positions[i].offsetX = -12;
-                        positions[i].offsetY = -8;
-                        positions[j].offsetX = 12;
-                        positions[j].offsetY = 8;
+                        // Subtle offset - just enough to see both dots
+                        positions[i].offsetX = -8;
+                        positions[i].offsetY = -6;
+                        positions[j].offsetX = 8;
+                        positions[j].offsetY = 6;
                       }
                     }
                   }
@@ -4017,12 +4058,79 @@ export default function ExportReportPage() {
             );
           })()}
           
+          {/* ============ INFO MODAL ============ */}
+          {infoModal && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setInfoModal(null)}>
+              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+                <div className="px-8 py-6 bg-slate-800 flex items-center justify-between">
+                  <h3 className="font-bold text-white text-xl">{infoContent[infoModal].title}</h3>
+                  <button onClick={() => setInfoModal(null)} className="text-slate-400 hover:text-white transition-colors">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                <div className="px-8 py-6 overflow-y-auto max-h-[calc(85vh-80px)] space-y-6">
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
+                      <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">?</span>
+                      What It Shows
+                    </h4>
+                    <p className="text-slate-600 leading-relaxed">{infoContent[infoModal].what}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
+                      <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">⚙</span>
+                      How It Works
+                    </h4>
+                    <p className="text-slate-600 leading-relaxed">{infoContent[infoModal].how}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
+                      <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-sm">📅</span>
+                      When to Use
+                    </h4>
+                    <p className="text-slate-600 leading-relaxed">{infoContent[infoModal].when}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-3">
+                      <span className="w-6 h-6 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-sm">💡</span>
+                      Questions This Helps Answer
+                    </h4>
+                    <ul className="space-y-2">
+                      {infoContent[infoModal].questions.map((q, i) => (
+                        <li key={i} className="flex items-start gap-2 text-slate-600">
+                          <span className="text-violet-500 mt-1">•</span>
+                          <span>{q}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className="px-8 py-4 bg-slate-50 border-t border-slate-200">
+                  <button onClick={() => setInfoModal(null)} className="w-full py-2.5 bg-slate-800 text-white rounded-lg font-medium hover:bg-slate-700 transition-colors">
+                    Got It
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
             <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
               <div className="px-12 py-6 bg-indigo-700">
-                <h3 className="font-bold text-white text-xl">Cross-Dimension Insights</h3>
-                <p className="text-indigo-200 mt-1 text-base">Patterns identified across your assessment that reveal strategic opportunities</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-white text-xl">Cross-Dimensional Insights</h3>
+                    <p className="text-indigo-200 mt-1 text-base">Patterns identified across your assessment that reveal strategic opportunities</p>
+                  </div>
+                  <button 
+                    onClick={() => setInfoModal('crossDimensional')}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Learn More
+                  </button>
+                </div>
               </div>
               <div className="px-12 py-8 space-y-6">
                 {patterns.map((p, idx) => (
@@ -4082,9 +4190,18 @@ export default function ExportReportPage() {
                       <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
                       <p className="text-cyan-100 mt-1 text-base">Top opportunities ranked by potential score impact relative to implementation effort</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-xl px-4 py-2">
-                      <svg className="w-5 h-5 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                      <span className="text-white font-semibold">Top 5 Priorities</span>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => setInfoModal('impactRanked')}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Learn More
+                      </button>
+                      <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-xl px-4 py-2">
+                        <svg className="w-5 h-5 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                        <span className="text-white font-semibold">Top 5 Priorities</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -4189,8 +4306,19 @@ export default function ExportReportPage() {
           {/* ============ AREAS OF EXCELLENCE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-5 bg-emerald-700">
-              <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
-              <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
+                  <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+                </div>
+                <button 
+                  onClick={() => setInfoModal('excellence')}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  Learn More
+                </button>
+              </div>
             </div>
             <div className="px-12 py-6">
               {strengthDimensions.length > 0 ? (
@@ -4223,8 +4351,19 @@ export default function ExportReportPage() {
           {/* ============ GROWTH OPPORTUNITIES ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-5 bg-amber-600">
-              <h3 className="font-bold text-white text-xl">Growth Opportunities</h3>
-              <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
+                  <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
+                </div>
+                <button 
+                  onClick={() => setInfoModal('growth')}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  Learn More
+                </button>
+              </div>
             </div>
             <div className="px-12 py-6">
               <div className="grid grid-cols-2 gap-5">
@@ -4295,8 +4434,19 @@ export default function ExportReportPage() {
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" id="appendix-start" data-export="appendix-start">
             <div className="px-12 py-10 bg-slate-800">
-              <h3 className="font-bold text-white text-3xl">Strategic Recommendations</h3>
-              <p className="text-slate-400 mt-2 text-lg">Detailed analysis and action plans for priority dimensions</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-3xl">Strategic Recommendations</h3>
+                  <p className="text-slate-400 mt-2 text-lg">Detailed analysis and action plans for priority dimensions</p>
+                </div>
+                <button 
+                  onClick={() => setInfoModal('strategicRecos')}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  Learn More
+                </button>
+              </div>
             </div>
             <div className="px-12 py-10">
               <p className="text-slate-600 leading-relaxed text-lg mb-8">
