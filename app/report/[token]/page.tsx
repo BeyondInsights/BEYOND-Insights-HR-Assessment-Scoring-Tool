@@ -3667,7 +3667,7 @@ export default function InteractiveReportPage() {
               currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
               planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
               assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
-              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Currently Planned' }
+              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' }
             };
             
             const getStatusInfo = (elem: any) => {
@@ -5060,7 +5060,7 @@ export default function InteractiveReportPage() {
                     { value: 'currently', label: 'Offering' },
                     { value: 'planning', label: 'Planning' },
                     { value: 'assessing', label: 'Assessing' },
-                    { value: 'not_able', label: 'Not Currently Planned' }
+                    { value: 'not_able', label: 'Not Planned' }
                   ];
                   
                   const getStatusLabel = (status: string) => statusOptions.find(o => o.value === status)?.label || 'Unknown';
