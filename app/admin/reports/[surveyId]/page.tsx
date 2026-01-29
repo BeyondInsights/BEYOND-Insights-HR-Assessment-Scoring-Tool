@@ -2951,7 +2951,7 @@ export default function ExportReportPage() {
         <div className="polished-report max-w-7xl mx-auto py-10 px-10">
         
           {/* ============ HEADER ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div id="report-hero-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             {/* Dark header band */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
               <div className="flex items-center justify-between">
@@ -3428,7 +3428,7 @@ export default function ExportReportPage() {
                 <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
                 <p className="text-slate-500 mt-1 text-sm">All 13 dimensions sorted by strategic weight</p>
               </div>
-              <span className="bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-lg font-semibold text-sm">👆 Click any row for detailed breakdown</span>
+              <span className="bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-lg font-semibold text-sm">👆 Click any dimension for element-level details</span>
             </div>
             <div className="px-12 py-4">
               {/* Table Header */}
@@ -4324,7 +4324,7 @@ export default function ExportReportPage() {
                 const tierColor = getScoreColor(d.score);
                 
                 return (
-                  <div key={d.dim} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
+                  <div key={d.dim} id={`dimension-card-${d.dim}`} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
                     {/* Dimension Header */}
                     <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                       <div className="flex items-center gap-4">
