@@ -3212,6 +3212,7 @@ export default function ExportReportPage() {
                   console.log('CB3C Raw Data:', cb3c);
                   console.log('CB3C Array:', cb3cArray);
                   
+                  // These are the display labels - matching should be flexible
                   const healthConditions = [
                     'Autoimmune disorders',
                     'Cancer',
@@ -3229,48 +3230,32 @@ export default function ExportReportPage() {
                     'Other'
                   ];
                   
-                  // Helper function to check if a condition is selected
+                  // Helper function to check if a condition is selected - matches against actual stored values
                   const isConditionSelected = (condition: string) => {
+                    const condLower = condition.toLowerCase();
                     return cb3cArray.some((v: string) => {
-                      const vStr = String(v).toLowerCase().trim();
-                      const condStr = condition.toLowerCase().trim();
+                      const stored = String(v).toLowerCase();
                       
-                      // Direct or partial match
-                      if (vStr === condStr || vStr.includes(condStr) || condStr.includes(vStr)) return true;
+                      // Check for substring matches in either direction
+                      if (stored.includes(condLower) || condLower.includes(stored.split('(')[0].trim())) return true;
                       
-                      // Specific mappings
-                      switch (condStr) {
-                        case 'autoimmune disorders':
-                          return vStr.includes('autoimmune');
-                        case 'cancer':
-                          return vStr.includes('cancer');
-                        case 'chronic conditions':
-                          return vStr.includes('chronic condition');
-                        case 'heart disease':
-                          return vStr.includes('heart');
-                        case 'hiv / aids':
-                          return vStr.includes('hiv') || vStr.includes('aids');
-                        case 'kidney disease':
-                          return vStr.includes('kidney');
-                        case 'major surgery recovery':
-                          return vStr.includes('surgery');
-                        case 'mental health crises':
-                          return vStr.includes('mental health');
-                        case 'musculoskeletal conditions':
-                          return vStr.includes('musculoskeletal');
-                        case 'neurological conditions':
-                          return vStr.includes('neurological');
-                        case 'organ transplant':
-                          return vStr.includes('transplant');
-                        case 'respiratory conditions':
-                          return vStr.includes('respiratory');
-                        case 'stroke':
-                          return vStr.includes('stroke');
-                        case 'other':
-                          return vStr.includes('other') || vStr.includes('specify');
-                        default:
-                          return false;
-                      }
+                      // Specific mappings based on actual stored values from database
+                      if (condLower === 'autoimmune disorders' && stored.includes('autoimmune')) return true;
+                      if (condLower === 'cancer' && stored.includes('cancer')) return true;
+                      if (condLower === 'chronic conditions' && (stored.includes('chronic condition') || stored.includes('multiple sclerosis'))) return true;
+                      if (condLower === 'heart disease' && (stored.includes('heart') || stored.includes('cardiovascular'))) return true;
+                      if (condLower === 'hiv / aids' && (stored.includes('hiv') || stored.includes('aids'))) return true;
+                      if (condLower === 'kidney disease' && (stored.includes('kidney') || stored.includes('renal'))) return true;
+                      if (condLower === 'major surgery recovery' && stored.includes('surgery')) return true;
+                      if (condLower === 'mental health crises' && stored.includes('mental health')) return true;
+                      if (condLower === 'musculoskeletal conditions' && stored.includes('musculoskeletal')) return true;
+                      if (condLower === 'neurological conditions' && (stored.includes('neurological') || stored.includes('parkinson') || stored.includes('als'))) return true;
+                      if (condLower === 'organ transplant' && stored.includes('transplant')) return true;
+                      if (condLower === 'respiratory conditions' && (stored.includes('respiratory') || stored.includes('copd') || stored.includes('cystic'))) return true;
+                      if (condLower === 'stroke' && stored.includes('stroke')) return true;
+                      if (condLower === 'other' && (stored.includes('other') || stored.includes('specify') || stored.includes('rare disease'))) return true;
+                      
+                      return false;
                     });
                   };
                   
