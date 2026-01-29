@@ -2164,6 +2164,10 @@ export default function ExportReportPage() {
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
+  const [customDimRoadmaps, setCustomDimRoadmaps] = useState<Record<number, { 
+    quickWin?: { name: string; reason: string }; 
+    strategicLift?: { name: string; reason: string } 
+  }>>({});
   const [interactiveLink, setInteractiveLink] = useState<{ url: string; password: string } | null>(null);
   const [showBenchmarkRings, setShowBenchmarkRings] = useState(false);
   const [activeScoreOverlay, setActiveScoreOverlay] = useState<'weightedDim' | 'maturity' | 'breadth' | null>(null);
@@ -2244,6 +2248,36 @@ export default function ExportReportPage() {
     setHasUnsavedChanges(true);
   };
   
+  // Helper to update custom dimension roadmap items
+  const updateCustomDimRoadmap = (dimNum: number, itemType: 'quickWin' | 'strategicLift', field: 'name' | 'reason', value: string) => {
+    setCustomDimRoadmaps(prev => ({
+      ...prev,
+      [dimNum]: {
+        ...prev[dimNum],
+        [itemType]: {
+          ...prev[dimNum]?.[itemType],
+          [field]: value
+        }
+      }
+    }));
+    setHasUnsavedChanges(true);
+  };
+  
+  // Helper to reset custom dimension roadmap item
+  const resetCustomDimRoadmap = (dimNum: number, itemType: 'quickWin' | 'strategicLift') => {
+    setCustomDimRoadmaps(prev => {
+      const updated = { ...prev };
+      if (updated[dimNum]) {
+        delete updated[dimNum][itemType];
+        if (Object.keys(updated[dimNum]).length === 0) {
+          delete updated[dimNum];
+        }
+      }
+      return updated;
+    });
+    setHasUnsavedChanges(true);
+  };
+  
   // Helper to update custom cross-dimension recommendation
   const updateCustomCrossRecommendation = (patternIdx: number, value: string) => {
     setCustomCrossRecommendations(prev => ({
@@ -2288,6 +2322,7 @@ export default function ExportReportPage() {
             customRoadmap,
             customCacHelp,
             customRoadmapTimeframes,
+            customDimRoadmaps,
             lastEditedAt: new Date().toISOString()
           })
         })
@@ -2313,6 +2348,7 @@ export default function ExportReportPage() {
       setCustomRecommendations({});
       setCustomCrossRecommendations({});
       setCustomRoadmap({});
+      setCustomDimRoadmaps({});
       setHasUnsavedChanges(true);
     }
   };
@@ -2341,6 +2377,7 @@ export default function ExportReportPage() {
         if (saved.customRoadmap) setCustomRoadmap(saved.customRoadmap);
         if (saved.customCacHelp) setCustomCacHelp(saved.customCacHelp);
         if (saved.customRoadmapTimeframes) setCustomRoadmapTimeframes(saved.customRoadmapTimeframes);
+        if (saved.customDimRoadmaps) setCustomDimRoadmaps(saved.customDimRoadmaps);
       } catch (e) {
         console.error('Error loading customizations:', e);
       }
@@ -5116,8 +5153,11 @@ export default function ExportReportPage() {
                         {/* Right Column: Roadmap + CAC Help */}
                         <div className="space-y-4">
                           {(roadmap.quickWin || roadmap.strategicLift) && (
-                            <div className="border border-indigo-200 rounded-xl p-4 bg-indigo-50">
-                              <h5 className="font-bold text-indigo-800 mb-3 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
+                            <div className={`border rounded-xl p-4 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-indigo-200 bg-indigo-50'}`}>
+                              <h5 className="font-bold text-indigo-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                                Recommended Roadmap
+                                {editMode && <span className="text-sm font-normal text-amber-600">(click to edit)</span>}
+                              </h5>
                               <div className="space-y-3">
                                 {roadmap.quickWin && (
                                   <div className="bg-white rounded-lg p-3 border border-indigo-100">
@@ -5125,8 +5165,40 @@ export default function ExportReportPage() {
                                       <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
                                       <span className="text-sm text-slate-500">0-60 days</span>
                                     </div>
-                                    <p className="text-base font-medium text-slate-800">{roadmap.quickWin.name}</p>
-                                    <p className="text-sm text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
+                                    {editMode ? (
+                                      <>
+                                        <input
+                                          type="text"
+                                          value={customDimRoadmaps[d.dim]?.quickWin?.name ?? roadmap.quickWin.name}
+                                          onChange={(e) => updateCustomDimRoadmap(d.dim, 'quickWin', 'name', e.target.value)}
+                                          className="w-full text-base font-medium text-slate-800 bg-white border border-amber-200 rounded px-2 py-1 mb-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                          placeholder="Quick win item name..."
+                                        />
+                                        <input
+                                          type="text"
+                                          value={customDimRoadmaps[d.dim]?.quickWin?.reason ?? roadmap.quickWin.reason}
+                                          onChange={(e) => updateCustomDimRoadmap(d.dim, 'quickWin', 'reason', e.target.value)}
+                                          className="w-full text-sm text-slate-500 bg-white border border-amber-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                          placeholder="Reason / rationale..."
+                                        />
+                                        {customDimRoadmaps[d.dim]?.quickWin && (
+                                          <button 
+                                            onClick={() => resetCustomDimRoadmap(d.dim, 'quickWin')}
+                                            className="mt-1 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                                          >
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            Reset
+                                          </button>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <p className="text-base font-medium text-slate-800">{customDimRoadmaps[d.dim]?.quickWin?.name || roadmap.quickWin.name}</p>
+                                        <p className="text-sm text-slate-500 mt-1">{customDimRoadmaps[d.dim]?.quickWin?.reason || roadmap.quickWin.reason}</p>
+                                      </>
+                                    )}
                                   </div>
                                 )}
                                 {roadmap.strategicLift && (
@@ -5135,8 +5207,40 @@ export default function ExportReportPage() {
                                       <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">STRATEGIC</span>
                                       <span className="text-sm text-slate-500">60-180 days</span>
                                     </div>
-                                    <p className="text-base font-medium text-slate-800">{roadmap.strategicLift.name}</p>
-                                    <p className="text-sm text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
+                                    {editMode ? (
+                                      <>
+                                        <input
+                                          type="text"
+                                          value={customDimRoadmaps[d.dim]?.strategicLift?.name ?? roadmap.strategicLift.name}
+                                          onChange={(e) => updateCustomDimRoadmap(d.dim, 'strategicLift', 'name', e.target.value)}
+                                          className="w-full text-base font-medium text-slate-800 bg-white border border-amber-200 rounded px-2 py-1 mb-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                          placeholder="Strategic item name..."
+                                        />
+                                        <input
+                                          type="text"
+                                          value={customDimRoadmaps[d.dim]?.strategicLift?.reason ?? roadmap.strategicLift.reason}
+                                          onChange={(e) => updateCustomDimRoadmap(d.dim, 'strategicLift', 'reason', e.target.value)}
+                                          className="w-full text-sm text-slate-500 bg-white border border-amber-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                          placeholder="Reason / rationale..."
+                                        />
+                                        {customDimRoadmaps[d.dim]?.strategicLift && (
+                                          <button 
+                                            onClick={() => resetCustomDimRoadmap(d.dim, 'strategicLift')}
+                                            className="mt-1 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                                          >
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            Reset
+                                          </button>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <p className="text-base font-medium text-slate-800">{customDimRoadmaps[d.dim]?.strategicLift?.name || roadmap.strategicLift.name}</p>
+                                        <p className="text-sm text-slate-500 mt-1">{customDimRoadmaps[d.dim]?.strategicLift?.reason || roadmap.strategicLift.reason}</p>
+                                      </>
+                                    )}
                                   </div>
                                 )}
                               </div>
