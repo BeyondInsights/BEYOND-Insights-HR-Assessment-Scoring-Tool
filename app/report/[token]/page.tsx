@@ -2992,8 +2992,9 @@ export default function InteractiveReportPage() {
                   console.log('CB3C Raw Data:', cb3c);
                   console.log('CB3C Array:', cb3cArray);
                   
-                  // These match the ACTUAL survey options stored in the database
+                  // These match the ACTUAL survey options (13 conditions, excluding "Other specify")
                   const healthConditions = [
+                    'Autoimmune disorders',
                     'Cancer',
                     'Chronic conditions',
                     'Heart disease',
@@ -3005,8 +3006,7 @@ export default function InteractiveReportPage() {
                     'Neurological conditions',
                     'Organ transplant',
                     'Respiratory conditions',
-                    'Stroke',
-                    'Other condition'
+                    'Stroke'
                   ];
                   
                   // Helper function to check if a condition is selected - matches against actual stored values
@@ -3016,6 +3016,7 @@ export default function InteractiveReportPage() {
                       const stored = String(v).toLowerCase();
                       
                       // Specific mappings based on actual stored values
+                      if (condLower === 'autoimmune disorders' && stored.includes('autoimmune')) return true;
                       if (condLower === 'cancer' && stored.includes('cancer')) return true;
                       if (condLower === 'chronic conditions' && stored.includes('chronic condition')) return true;
                       if (condLower === 'heart disease' && stored.includes('heart disease')) return true;
@@ -3028,13 +3029,12 @@ export default function InteractiveReportPage() {
                       if (condLower === 'organ transplant' && stored.includes('organ transplant')) return true;
                       if (condLower === 'respiratory conditions' && stored.includes('respiratory')) return true;
                       if (condLower === 'stroke' && stored.includes('stroke')) return true;
-                      if (condLower === 'other condition' && stored.includes('other condition')) return true;
                       
                       return false;
                     });
                   };
                   
-                  // Count using the same function used for display
+                  // Count using the same function used for display (13 conditions max)
                   const cb3cCount = healthConditions.filter(c => isConditionSelected(c)).length;
                   const cb3cScore = Math.min(100, Math.round((cb3cCount / 13) * 100));
                   
