@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
+import { exportHybridPptx } from '@/components/PptxExportHybrid';
 
 // Create Supabase client directly
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -2162,6 +2163,8 @@ export default function ExportReportPage() {
   const [hoveredMatrixDim, setHoveredMatrixDim] = useState<number | null>(null);
   const [dimensionDetailModal, setDimensionDetailModal] = useState<number | null>(null);
   const [generatingLink, setGeneratingLink] = useState(false);
+  const [exportingPptx, setExportingPptx] = useState(false);
+  const [exportProgress, setExportProgress] = useState({ step: '', percent: 0 });
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   
   // Show toast notification
@@ -2609,6 +2612,52 @@ export default function ExportReportPage() {
     window.open(url, '_blank');
   }
 
+  // ============================================
+  // HYBRID PPTX EXPORT (Screenshots + Editable Text)
+  // ============================================
+  async function handlePptxExport() {
+    setExportingPptx(true);
+    setExportProgress({ step: 'Preparing...', percent: 0 });
+    
+    try {
+      // Build the export config from current report data
+      const exportConfig = {
+        companyName: company?.firmographics_data?.company_name || company?.company_name || 'Company',
+        compositeScore: compositeScore || 0,
+        benchmarkScore: benchmarks?.compositeScore || 65,
+        weightedDimScore: weightedDimScore || 0,
+        maturityScore: maturityScore || 0,
+        breadthScore: breadthScore || 0,
+        tier: getTier(compositeScore || 0).name,
+        executiveSummary: customExecutiveSummary || `${company?.firmographics_data?.company_name || 'This organization'} demonstrates ${getTier(compositeScore || 0).name.toLowerCase()} performance in supporting employees managing cancer, with a composite score of ${compositeScore || 0}. The strongest dimension is ${dimensionAnalysis[0]?.name || 'N/A'} (${dimensionAnalysis[0]?.score || 0}), while ${dimensionAnalysis[dimensionAnalysis.length - 1]?.name || 'N/A'} (${dimensionAnalysis[dimensionAnalysis.length - 1]?.score || 0}) represents the greatest opportunity for growth.`,
+        dimensions: dimensionAnalysis.map(d => ({
+          dim: d.dim,
+          name: d.name,
+          weight: d.weight,
+          score: d.score,
+          benchmark: d.benchmark,
+          tier: d.tier,
+          strengths: d.strengths || [],
+          planning: d.planning || [],
+          gaps: d.gaps || [],
+        })),
+        customInsights: customInsights,
+      };
+      
+      await exportHybridPptx(exportConfig, (step, percent) => {
+        setExportProgress({ step, percent });
+      });
+      
+      showToast('PowerPoint exported successfully!', 'success');
+    } catch (err) {
+      console.error('PPTX export error:', err);
+      showToast('Export failed. Please try again.', 'error');
+    } finally {
+      setExportingPptx(false);
+      setExportProgress({ step: '', percent: 0 });
+    }
+  }
+
   // Generate interactive report link with password
   async function generateInteractiveLink() {
     if (!company?.id) return;
@@ -2862,11 +2911,24 @@ export default function ExportReportPage() {
                 {generatingLink ? 'Generating...' : 'Share Link'}
               </button>
               <button 
-                onClick={() => window.location.href = `${window.location.pathname}?export=ppt`}
-                className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                onClick={handlePptxExport}
+                disabled={exportingPptx}
+                className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                Export PowerPoint
+                {exportingPptx ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    {exportProgress.step || 'Exporting...'}
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                    Export PowerPoint
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -3038,7 +3100,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ SCORE COMPOSITION ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div id="score-composition-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             <div className="px-12 py-6 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-xl">Score Composition</h3>
               <p className="text-slate-500 mt-1 text-base">Click any component to see detailed breakdown</p>
@@ -3360,7 +3422,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ DIMENSION PERFORMANCE TABLE ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="dimension-performance-table" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
@@ -3446,7 +3508,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
+          <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
               <div>
                 <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
