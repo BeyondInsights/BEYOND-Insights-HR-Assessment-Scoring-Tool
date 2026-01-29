@@ -4137,8 +4137,8 @@ export default function ExportReportPage() {
           {whatIfModal && elementDetails && (
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); }}>
               <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-                {/* Header - Darker violet */}
-                <div className="px-8 py-5 bg-gradient-to-r from-violet-800 via-purple-800 to-indigo-800 relative overflow-hidden">
+                {/* Header - Slate color to match composite */}
+                <div className="px-8 py-5 bg-slate-700 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-60"></div>
                   <div className="relative flex items-start justify-between">
                     <div>
@@ -4148,9 +4148,9 @@ export default function ExportReportPage() {
                         </span>
                         What-If Scenario Builder
                       </h3>
-                      <p className="text-violet-200 text-sm mt-2 ml-13 max-w-xl">
-                        Explore the impact of program changes. What happens if you <span className="text-emerald-300 font-medium">start offering</span> a new benefit? 
-                        Or <span className="text-red-300 font-medium">stop offering</span> an existing one?
+                      <p className="text-slate-300 text-sm mt-2 ml-13 max-w-xl">
+                        Explore the impact of program changes. What happens if you <span className="text-emerald-400 font-medium">start offering</span> a new benefit? 
+                        Or <span className="text-red-400 font-medium">stop offering</span> an existing one?
                       </p>
                     </div>
                     <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); }} className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
@@ -4181,13 +4181,12 @@ export default function ExportReportPage() {
                     return 'not_able';
                   };
                   
-                  // Calculate current points using status (not stored el.points which may be inconsistent)
+                  // Calculate current points using status
                   const currentPoints = dimElements.reduce((sum: number, el: any) => {
                     const status = getStatusFromElement(el);
                     return sum + STATUS_POINTS[status];
                   }, 0);
                   const maxPoints = dimElements.length * 5;
-                  const currentDimScore = maxPoints > 0 ? Math.round((currentPoints / maxPoints) * 100 * 10) / 10 : 0;
                   
                   // Calculate projected points with changes
                   const getNewPoints = (el: any) => {
@@ -4198,9 +4197,13 @@ export default function ExportReportPage() {
                   };
                   
                   const projectedPoints = dimElements.reduce((sum: number, el: any) => sum + getNewPoints(el), 0);
-                  const projectedDimScore = maxPoints > 0 ? Math.round((projectedPoints / maxPoints) * 100 * 10) / 10 : 0;
-                  const dimScoreChange = Math.round((projectedDimScore - currentDimScore) * 10) / 10;
                   
+                  // Use consistent rounding - round to nearest integer for display
+                  const currentDimScore = maxPoints > 0 ? Math.round((currentPoints / maxPoints) * 100) : 0;
+                  const projectedDimScore = maxPoints > 0 ? Math.round((projectedPoints / maxPoints) * 100) : 0;
+                  
+                  // Composite impact based on integer dimension scores
+                  const dimScoreChange = projectedDimScore - currentDimScore;
                   const compositeImpact = Math.round((dimScoreChange * dimWeightPct / 100) * 0.9 * 10) / 10;
                   const currentComposite = companyScores?.compositeScore || 0;
                   const projectedComposite = Math.round((currentComposite + compositeImpact) * 10) / 10;
@@ -4254,7 +4257,7 @@ export default function ExportReportPage() {
                         )}
                       </div>
                       
-                      {/* Score Cards */}
+                      {/* Score Cards - No point gain shown, just Current → Projected */}
                       <div className="px-8 py-5 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-200">
                         <div className="grid grid-cols-2 gap-6">
                           {/* Dimension Score Card */}
@@ -4268,24 +4271,20 @@ export default function ExportReportPage() {
                                 <div className="text-center">
                                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Current</p>
                                   <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getScoreBgColor(currentDimScore)} flex items-center justify-center shadow-md`}>
-                                    <span className="text-2xl font-bold text-white">{Math.round(currentDimScore)}</span>
+                                    <span className="text-2xl font-bold text-white">{currentDimScore}</span>
                                   </div>
                                 </div>
                                 
-                                <div className="flex-1 flex flex-col items-center px-4">
-                                  {hasChanges ? (
-                                    <span className={`text-lg font-bold ${dimScoreChange > 0 ? 'text-emerald-600' : dimScoreChange < 0 ? 'text-red-600' : 'text-slate-400'}`}>
-                                      {dimScoreChange > 0 ? '+' : ''}{dimScoreChange}
-                                    </span>
-                                  ) : (
-                                    <span className="text-xs text-slate-400">→</span>
-                                  )}
+                                <div className="flex-1 flex justify-center px-4">
+                                  <svg className={`w-6 h-6 ${hasChanges ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                  </svg>
                                 </div>
                                 
                                 <div className="text-center">
                                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Projected</p>
                                   <div className={`w-16 h-16 rounded-xl flex items-center justify-center shadow-md transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
-                                    <span className={`text-2xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? Math.round(projectedDimScore) : '—'}</span>
+                                    <span className={`text-2xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : '—'}</span>
                                   </div>
                                 </div>
                               </div>
@@ -4307,14 +4306,10 @@ export default function ExportReportPage() {
                                   </div>
                                 </div>
                                 
-                                <div className="flex-1 flex flex-col items-center px-4">
-                                  {hasChanges && compositeImpact !== 0 ? (
-                                    <span className={`text-lg font-bold ${compositeImpact > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                      {compositeImpact > 0 ? '+' : ''}{compositeImpact}
-                                    </span>
-                                  ) : (
-                                    <span className="text-xs text-slate-400">→</span>
-                                  )}
+                                <div className="flex-1 flex justify-center px-4">
+                                  <svg className={`w-6 h-6 ${hasChanges ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                  </svg>
                                 </div>
                                 
                                 <div className="text-center">
