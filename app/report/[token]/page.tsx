@@ -4601,7 +4601,7 @@ export default function InteractiveReportPage() {
                 {/* Center - Confidential */}
                 <div className="text-center">
                   <p className="text-sm text-slate-500 font-semibold uppercase tracking-wider">Confidential</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Survey ID: {surveyId}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Survey ID: {company?.survey_id || 'N/A'}</p>
                 </div>
                 {/* Right - BEYOND Insights */}
                 <div className="flex items-center gap-3">
