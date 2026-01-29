@@ -3377,7 +3377,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ DIMENSION PERFORMANCE TABLE ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
             <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
@@ -3463,7 +3463,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
             <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
               <div>
                 <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
@@ -3939,7 +3939,7 @@ export default function ExportReportPage() {
           
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
-            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
               <div className="px-12 py-6 bg-indigo-700">
                 <h3 className="font-bold text-white text-xl">Cross-Dimension Insights</h3>
                 <p className="text-indigo-200 mt-1 text-base">Patterns identified across your assessment that reveal strategic opportunities</p>
@@ -3994,7 +3994,7 @@ export default function ExportReportPage() {
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
           {(() => {
             return (
-              <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+              <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
                 <div className="px-10 py-6 bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDQwIEwgNDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
                   <div className="relative flex items-center justify-between">
@@ -4107,7 +4107,7 @@ export default function ExportReportPage() {
           })()}
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
             <div className="px-12 py-5 bg-emerald-700">
               <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
               <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
@@ -4141,7 +4141,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ GROWTH OPPORTUNITIES ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
             <div className="px-12 py-5 bg-amber-600">
               <h3 className="font-bold text-white text-xl">Growth Opportunities</h3>
               <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
@@ -4174,7 +4174,7 @@ export default function ExportReportPage() {
           
           {/* ============ INITIATIVES IN PROGRESS ============ */}
           {quickWinOpportunities.length > 0 && (
-            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-7xl mx-auto">
               <div className="px-12 py-6 bg-gradient-to-r from-blue-600 to-blue-700">
                 <div className="flex items-center justify-between">
                   <div>
