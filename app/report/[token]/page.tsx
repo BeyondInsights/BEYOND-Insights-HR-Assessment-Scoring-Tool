@@ -3259,9 +3259,40 @@ export default function InteractiveReportPage() {
                   return benchmarks.dimensionScores[`d${dimNum}`] || benchmarks.dimensionScores[dimNum] || null;
                 };
                 
+                // Calculate offsets for overlapping dots
+                const calculateOffsets = () => {
+                  const positions = dimensionAnalysis.map((d) => ({
+                    dim: d.dim,
+                    xPos: (d.score / 100) * PLOT_WIDTH,
+                    yPos: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
+                    offsetX: 0,
+                    offsetY: 0
+                  }));
+                  
+                  const OVERLAP_THRESHOLD = 25;
+                  for (let i = 0; i < positions.length; i++) {
+                    for (let j = i + 1; j < positions.length; j++) {
+                      const dx = Math.abs(positions[i].xPos - positions[j].xPos);
+                      const dy = Math.abs(positions[i].yPos - positions[j].yPos);
+                      if (dx < OVERLAP_THRESHOLD && dy < OVERLAP_THRESHOLD) {
+                        positions[i].offsetX = -12;
+                        positions[i].offsetY = -8;
+                        positions[j].offsetX = 12;
+                        positions[j].offsetY = 8;
+                      }
+                    }
+                  }
+                  return positions;
+                };
+                
+                const offsetPositions = calculateOffsets();
+                
                 const getBubblePosition = (d: any) => {
-                  const xPercent = (MARGIN.left + (d.score / 100) * PLOT_WIDTH) / CHART_WIDTH * 100;
-                  const yPercent = (MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT))) / CHART_HEIGHT * 100;
+                  const offset = offsetPositions.find(p => p.dim === d.dim);
+                  const offsetX = offset?.offsetX || 0;
+                  const offsetY = offset?.offsetY || 0;
+                  const xPercent = (MARGIN.left + (d.score / 100) * PLOT_WIDTH + offsetX) / CHART_WIDTH * 100;
+                  const yPercent = (MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT)) + offsetY) / CHART_HEIGHT * 100;
                   return { xPercent, yPercent };
                 };
                 
@@ -3366,12 +3397,18 @@ export default function InteractiveReportPage() {
                         })}
                         
                         {/* Data points - Company scores */}
-                        {dimensionAnalysis.map((d) => {
-                          const xPos = (d.score / 100) * PLOT_WIDTH;
-                          const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                        {offsetPositions.map((pos) => {
+                          const d = dimensionAnalysis.find(dim => dim.dim === pos.dim)!;
+                          const xPos = pos.xPos + pos.offsetX;
+                          const yPos = pos.yPos + pos.offsetY;
                           const isHovered = hoveredMatrixDim === d.dim;
+                          const hasOffset = pos.offsetX !== 0 || pos.offsetY !== 0;
                           return (
                             <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                              {/* Connection line to actual position if offset */}
+                              {hasOffset && (
+                                <line x1={0} y1={0} x2={-pos.offsetX} y2={-pos.offsetY} stroke="#94A3B8" strokeWidth="1" strokeDasharray="3 2" />
+                              )}
                               <circle r={isHovered ? 24 : 20} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
                               <circle r={isHovered ? 20 : 16} fill={getScoreColor(d.score)} style={{ transition: 'all 0.2s ease' }} />
                               <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize={isHovered ? 12 : 11} fontWeight="800" fontFamily="system-ui">D{d.dim}</text>
