@@ -3947,7 +3947,7 @@ export default function ExportReportPage() {
               currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
               planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
               assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
-              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Currently Planned' }
+              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' }
             };
             
             const getStatusInfo = (elem: any) => {
@@ -4028,7 +4028,7 @@ export default function ExportReportPage() {
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">Offering</span></div>
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">Planning</span></div>
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">Assessing</span></div>
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Currently Planned</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Planned</span></div>
                       </div>
                     </div>
                     <div className="col-span-3 pl-4">Observation</div>
@@ -4379,7 +4379,7 @@ export default function ExportReportPage() {
                     { value: 'currently', label: 'Offering', color: 'emerald' },
                     { value: 'planning', label: 'Planning', color: 'blue' },
                     { value: 'assessing', label: 'Assessing', color: 'amber' },
-                    { value: 'not_able', label: 'Not Currently Planned', color: 'slate' }
+                    { value: 'not_able', label: 'Not Planned', color: 'slate' }
                   ];
                   
                   const getStatusLabel = (status: string) => {
