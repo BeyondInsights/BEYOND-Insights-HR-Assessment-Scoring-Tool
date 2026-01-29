@@ -2773,10 +2773,16 @@ export default function InteractiveReportPage() {
             
             {/* Why This Matters */}
             <div className="px-12 py-8 bg-slate-50 border-b border-slate-200">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Why This Matters</h3>
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Why This Matters</h3>
               
-              {/* The Challenge - Cancer in the Workplace */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <p className="text-slate-700 leading-relaxed mb-6">
+                When employees face a cancer diagnosis, workplace support can transform one of life's most challenging experiences. 
+                Organizations that invest in comprehensive cancer support don't just help those directly affected—they build trust across 
+                their entire workforce and demonstrate values that resonate with all employees.
+              </p>
+              
+              {/* The Reality - Two key stats */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm text-center">
                   <p className="text-4xl font-bold text-violet-600">40%</p>
                   <p className="text-sm text-slate-600 mt-2">of adults will be diagnosed with cancer in their lifetime</p>
@@ -2785,67 +2791,82 @@ export default function InteractiveReportPage() {
                   <p className="text-4xl font-bold text-violet-600">42%</p>
                   <p className="text-sm text-slate-600 mt-2">of diagnoses occur during working years (ages 20-64)</p>
                 </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm text-center">
-                  <p className="text-4xl font-bold text-violet-600">27M</p>
-                  <p className="text-sm text-slate-600 mt-2">U.S. workers will face a cancer diagnosis during their career</p>
-                </div>
               </div>
               
-              {/* The Pledge Impact */}
+              {/* The Pledge Impact - Redesigned */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 bg-slate-700 flex items-center justify-between">
-                  <div>
-                    <h4 className="font-semibold text-white">The Working with Cancer Pledge</h4>
-                    <p className="text-slate-300 text-sm">Public commitment changes employee perception before they ever need support</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-amber-400 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
-                    <p className="text-white text-sm">Only <span className="font-bold text-amber-400">16-18%</span> know it exists</p>
+                <div className="px-6 py-4 bg-slate-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold text-white text-lg">The Working with Cancer Pledge</h4>
+                      <p className="text-slate-300 text-sm mt-1">Public commitment builds trust before employees ever need support</p>
+                    </div>
+                    <div className="bg-amber-500/20 border border-amber-400/30 rounded-lg px-4 py-2 text-right">
+                      <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Opportunity</p>
+                      <p className="text-white text-sm font-medium">Only <span className="text-amber-300">16-18%</span> aware</p>
+                    </div>
                   </div>
                 </div>
+                
                 <div className="p-6">
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-8">
                     {/* Employees Managing Cancer */}
-                    <div>
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Employees Managing Cancer</p>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-600">Say the pledge is important</span>
-                          <span className="font-bold text-slate-800">81%</span>
+                    <div className="bg-violet-50 rounded-xl p-5 border border-violet-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-600">Would trust pledge companies more</span>
-                          <span className="font-bold text-slate-800">81%</span>
+                        <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Say the pledge is important</span>
+                          <span className="text-lg font-bold text-violet-700">81%</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-600">Would influence their job decisions</span>
-                          <span className="font-bold text-slate-800">75%</span>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would trust pledge companies more</span>
+                          <span className="text-lg font-bold text-violet-700">81%</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would influence their job decisions</span>
+                          <span className="text-lg font-bold text-violet-700">75%</span>
                         </div>
                       </div>
                     </div>
+                    
                     {/* General Population */}
-                    <div>
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">General Population Employees</p>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-600">Say the pledge is important</span>
-                          <span className="font-bold text-slate-800">72%</span>
+                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-600">Would trust pledge companies more</span>
-                          <span className="font-bold text-slate-800">69%</span>
+                        <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Say the pledge is important</span>
+                          <span className="text-lg font-bold text-slate-700">72%</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-600">Would influence their job decisions</span>
-                          <span className="font-bold text-slate-800">60%</span>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would trust pledge companies more</span>
+                          <span className="text-lg font-bold text-slate-700">69%</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would influence their job decisions</span>
+                          <span className="text-lg font-bold text-slate-700">60%</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="px-6 py-3 bg-slate-50 border-t border-slate-200">
-                  <p className="text-sm text-slate-600 text-center">
-                    <strong className="text-slate-800">The Pledge signals intent.</strong> The "Best Companies" designation proves execution.
+                
+                <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-violet-50 border-t border-slate-200">
+                  <p className="text-sm text-slate-700 text-center">
+                    <strong className="text-slate-800">The Pledge signals intent.</strong>
+                    <span className="mx-2">•</span>
+                    <strong className="text-violet-700">This Index measures execution.</strong>
+                    <span className="mx-2">•</span>
+                    <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
                   </p>
                 </div>
               </div>
@@ -5064,53 +5085,38 @@ export default function InteractiveReportPage() {
                         )}
                       </div>
                       
+                      {/* Score Card - Dimension Only */}
                       <div className="px-8 py-5 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-200">
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="max-w-md mx-auto">
                           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div className="px-5 py-2.5 bg-gradient-to-r from-violet-700 to-purple-700 text-white">
-                              <p className="text-sm font-semibold">Dimension Score</p>
-                              <p className="text-xs text-violet-200 mt-0.5">{dimInfo?.name} • {dimElements.length} elements</p>
+                            <div className="px-5 py-3 bg-gradient-to-r from-violet-700 to-purple-700 text-white text-center">
+                              <p className="text-base font-semibold">{dimInfo?.name}</p>
+                              <p className="text-xs text-violet-200 mt-0.5">{dimElements.length} elements in this dimension</p>
                             </div>
-                            <div className="p-4">
-                              <div className="flex items-center justify-between">
+                            <div className="p-5">
+                              <div className="flex items-center justify-center gap-8">
                                 <div className="text-center">
-                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Current</p>
-                                  <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getScoreBgColor(actualDimScore)} flex items-center justify-center shadow-md`}>
-                                    <span className="text-2xl font-bold text-white">{actualDimScore}</span>
+                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Current Score</p>
+                                  <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${getScoreBgColor(actualDimScore)} flex items-center justify-center shadow-md`}>
+                                    <span className="text-3xl font-bold text-white">{actualDimScore}</span>
                                   </div>
                                 </div>
-                                <div className="flex-1 flex justify-center px-4">
-                                  <svg className={`w-6 h-6 ${hasChanges ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                
+                                <div className="flex flex-col items-center">
+                                  <svg className={`w-8 h-8 ${hasChanges ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                  </svg>
+                                  {hasChanges && (
+                                    <span className={`text-sm font-bold mt-1 ${projectedDimScore > actualDimScore ? 'text-emerald-600' : projectedDimScore < actualDimScore ? 'text-red-600' : 'text-slate-400'}`}>
+                                      {projectedDimScore > actualDimScore ? '+' : ''}{projectedDimScore - actualDimScore}
+                                    </span>
+                                  )}
                                 </div>
+                                
                                 <div className="text-center">
-                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Projected</p>
-                                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center shadow-md ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
-                                    <span className={`text-2xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : '—'}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div className="px-5 py-2.5 bg-slate-700 text-white">
-                              <p className="text-sm font-semibold">Composite Score</p>
-                              <p className="text-xs text-slate-300 mt-0.5">Overall company score</p>
-                            </div>
-                            <div className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="text-center">
-                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Current</p>
-                                  <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getScoreBgColor(currentComposite)} flex items-center justify-center shadow-md`}>
-                                    <span className="text-2xl font-bold text-white">{currentComposite}</span>
-                                  </div>
-                                </div>
-                                <div className="flex-1 flex justify-center px-4">
-                                  <svg className={`w-6 h-6 ${hasChanges ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                </div>
-                                <div className="text-center">
-                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Projected</p>
-                                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center shadow-md ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedComposite)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
-                                    <span className={`text-2xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedComposite : '—'}</span>
+                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Projected Score</p>
+                                  <div className={`w-20 h-20 rounded-xl flex items-center justify-center shadow-md transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
+                                    <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : '—'}</span>
                                   </div>
                                 </div>
                               </div>
