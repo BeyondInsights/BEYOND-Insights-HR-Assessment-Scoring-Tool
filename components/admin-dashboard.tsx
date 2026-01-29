@@ -3192,22 +3192,22 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 py-5">
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-12 brightness-0 invert" />
-              <div className="h-10 w-px bg-slate-600"></div>
+            <div className="flex items-center gap-5">
+              <img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-10" />
+              <div className="h-8 w-px bg-slate-200"></div>
               <div>
-                <h1 className="text-xl font-bold text-white">Survey Administration Dashboard</h1>
-                <p className="text-sm text-slate-400">Best Companies for Working with Cancer Initiative • 2026</p>
+                <h1 className="text-lg font-semibold text-slate-800">Survey Administration Dashboard</h1>
+                <p className="text-xs text-slate-500">Best Companies for Working with Cancer • 2026</p>
               </div>
             </div>
             <a
               href="/admin/scoring"
-              className="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg hover:from-cyan-600 hover:to-cyan-700 transition-all flex items-center gap-2 text-sm"
+              className="px-4 py-2 bg-slate-800 text-white rounded-lg font-medium shadow-sm hover:bg-slate-700 transition-all flex items-center gap-2 text-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -3219,90 +3219,68 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-5 gap-4 mb-6">
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Founding Partners</p>
-              <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
+        {/* Stats Cards - Minimal Professional Style */}
+        <div className="grid grid-cols-5 gap-3 mb-6">
+          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-purple-600">{stats.foundingStarted}</p>
+                <p className="text-xs text-slate-500 font-medium">Founding Partners</p>
               </div>
+              <div className="text-xs text-slate-400">{stats.foundingCompleted} done</div>
             </div>
-            <p className="text-3xl font-bold text-slate-800">{stats.foundingStarted}</p>
-            <p className="text-sm text-slate-500 mt-1">{stats.foundingCompleted} completed</p>
           </div>
 
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Standard Participants</p>
-              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
+          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-blue-600">{stats.standardStarted}</p>
+                <p className="text-xs text-slate-500 font-medium">Standard</p>
               </div>
+              <div className="text-xs text-slate-400">{stats.standardCompleted} done</div>
             </div>
-            <p className="text-3xl font-bold text-slate-800">{stats.standardStarted}</p>
-            <p className="text-sm text-slate-500 mt-1">{stats.standardCompleted} completed</p>
           </div>
 
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Panel Data</p>
-              <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                  <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                </svg>
+          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-amber-600">{stats.panelStarted}</p>
+                <p className="text-xs text-slate-500 font-medium">Panel Data</p>
               </div>
+              <div className="text-xs text-slate-400">{stats.panelCompleted} done</div>
             </div>
-            <p className="text-3xl font-bold text-slate-800">{stats.panelStarted}</p>
-            <p className="text-sm text-slate-500 mt-1">{stats.panelCompleted} completed</p>
           </div>
 
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Revenue</p>
-              <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                </svg>
+          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-emerald-600">${(stats.totalRevenue / 1000).toFixed(1)}K</p>
+                <p className="text-xs text-slate-500 font-medium">Total Revenue</p>
               </div>
+              <div className="text-xs text-slate-400">{stats.paidSurveys + stats.fpSponsored} total</div>
             </div>
-            <p className="text-3xl font-bold text-slate-800">${(stats.totalRevenue / 1000).toFixed(1)}K</p>
-            <p className="text-sm text-slate-500 mt-1">{stats.paidSurveys} paid • {stats.fpSponsored} FP sponsored</p>
           </div>
 
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Avg Completion</p>
-              <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
-                <svg className="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-slate-700">{stats.avgCompletion}%</p>
+                <p className="text-xs text-slate-500 font-medium">Avg Completion</p>
               </div>
+              <div className="text-xs text-slate-400">{stats.avgDays}d avg</div>
             </div>
-            <p className="text-3xl font-bold text-slate-800">{stats.avgCompletion}%</p>
-            <p className="text-sm text-slate-500 mt-1">Avg {stats.avgDays} days to complete</p>
           </div>
         </div>
 
         {/* TAB TOGGLE */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
-          <div className="flex border-b border-slate-200">
+        <div className="bg-white rounded-lg border border-slate-200 mb-6 overflow-hidden">
+          <div className="flex">
             <button
               onClick={() => setActiveTab('responses')}
-              className={`flex-1 py-3.5 text-center font-semibold transition-colors flex items-center justify-center gap-2 text-sm ${
+              className={`flex-1 py-3 text-center font-medium transition-colors flex items-center justify-center gap-2 text-sm border-b-2 ${
                 activeTab === 'responses'
-                  ? 'text-cyan-600 border-b-2 border-cyan-500 bg-cyan-50/50'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  ? 'text-slate-800 border-slate-800'
+                  : 'text-slate-400 border-transparent hover:text-slate-600'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3312,10 +3290,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`flex-1 py-3.5 text-center font-semibold transition-colors flex items-center justify-center gap-2 text-sm ${
+              className={`flex-1 py-3 text-center font-medium transition-colors flex items-center justify-center gap-2 text-sm border-b-2 ${
                 activeTab === 'analytics'
-                  ? 'text-cyan-600 border-b-2 border-cyan-500 bg-cyan-50/50'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  ? 'text-slate-800 border-slate-800'
+                  : 'text-slate-400 border-transparent hover:text-slate-600'
               }`}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3325,10 +3303,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('verbatim')}
-              className={`flex-1 py-3.5 text-center font-semibold transition-colors flex items-center justify-center gap-2 text-sm ${
+              className={`flex-1 py-3 text-center font-medium transition-colors flex items-center justify-center gap-2 text-sm border-b-2 ${
                 activeTab === 'verbatim'
-                  ? 'text-cyan-600 border-b-2 border-cyan-500 bg-cyan-50/50'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  ? 'text-slate-800 border-slate-800'
+                  : 'text-slate-400 border-transparent hover:text-slate-600'
               }`}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3343,20 +3321,20 @@ export default function AdminDashboard() {
         {activeTab === 'responses' && (
           <>
             {/* Filters */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+            <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4">
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">SEARCH</label>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">SEARCH</label>
                   <input
                     type="text"
                     placeholder="Company, name, or email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">STATUS</label>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">STATUS</label>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
@@ -3422,40 +3400,40 @@ export default function AdminDashboard() {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Company</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Payment</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Progress</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Started</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Last Updated</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wide">Action</th>
+                  <tr className="border-b border-slate-200">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Company</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Payment</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Progress</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Started</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Updated</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredAssessments.map((assessment) => (
-                    <tr key={assessment.id} className="hover:bg-slate-50/50 transition">
+                    <tr key={assessment.id} className="hover:bg-slate-50 transition-colors">
                       {/* Company */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${
-                            assessment.isPanel ? 'bg-amber-600' : assessment.isFoundingPartner ? 'bg-purple-600' : 'bg-blue-600'
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 ${
+                            assessment.isPanel ? 'bg-amber-500' : assessment.isFoundingPartner ? 'bg-purple-500' : 'bg-blue-500'
                           }`}>
                             {(assessment.company_name || 'NA').substring(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">{assessment.company_name || 'N/A'}</p>
-                            <p className="text-xs text-gray-600 truncate">
+                            <p className="text-sm font-medium text-slate-800 truncate">{assessment.company_name || 'N/A'}</p>
+                            <p className="text-xs text-slate-500 truncate">
                               {assessment.firmographics_data?.firstName} {assessment.firmographics_data?.lastName}
                               {(assessment.firmographics_data?.title || assessment.firmographics_data?.s5) && (
-                                <span className="text-gray-400"> • {assessment.firmographics_data?.title || assessment.firmographics_data?.s5}</span>
+                                <span className="text-slate-400"> • {assessment.firmographics_data?.title || assessment.firmographics_data?.s5}</span>
                               )}
                             </p>
-                            <p className="text-xs text-gray-500 truncate">{assessment.email}</p>
-                            <p className="text-xs text-gray-400 font-mono truncate">{assessment.survey_id || assessment.app_id || 'No ID'}</p>
+                            <p className="text-xs text-slate-400 truncate">{assessment.email}</p>
+                            <p className="text-[10px] text-slate-300 font-mono truncate">{assessment.survey_id || assessment.app_id || 'No ID'}</p>
                           </div>
                         </div>
                       </td>
@@ -3463,76 +3441,68 @@ export default function AdminDashboard() {
                       {/* Type */}
                       <td className="px-4 py-3">
                         {assessment.isPanel ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                            Panel
-                          </span>
+                          <span className="text-xs font-medium text-amber-600">Panel</span>
                         ) : assessment.isFoundingPartner ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                            Founding
-                          </span>
+                          <span className="text-xs font-medium text-purple-600">Founding</span>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Standard
-                          </span>
+                          <span className="text-xs font-medium text-blue-600">Standard</span>
                         )}
                       </td>
 
                       {/* Payment */}
                       <td className="px-4 py-3">
                         {assessment.isPanel ? (
-                          <span className="text-xs font-medium text-amber-700">Panel</span>
+                          <span className="text-xs text-slate-400">—</span>
                         ) : assessment.isFoundingPartner ? (
-                          <span className="text-xs font-medium text-purple-700">FP Comp</span>
+                          <span className="text-xs text-slate-500">FP Comp</span>
                         ) : assessment.payment_completed ? (
-                          <span className="text-xs font-medium text-green-700">
-                            Paid - {assessment.payment_method || 'invoice'}
-                          </span>
+                          <span className="text-xs text-emerald-600">Paid - {assessment.payment_method || 'invoice'}</span>
                         ) : (
-                          <span className="text-xs font-medium text-red-700">Unpaid</span>
+                          <span className="text-xs text-red-500">Unpaid</span>
                         )}
                       </td>
 
                       {/* Progress */}
                       <td className="px-4 py-3">
-                        <div className="w-48">
+                        <div className="w-36">
                           <div className="flex items-center justify-between mb-1">
-                            <span className={`text-xs font-semibold ${
-                              assessment.status === 'Completed' ? 'text-green-700' :
-                              assessment.status === 'In Progress' ? 'text-blue-700' : 'text-gray-500'
+                            <span className={`text-xs font-medium ${
+                              assessment.status === 'Completed' ? 'text-emerald-600' :
+                              assessment.status === 'In Progress' ? 'text-blue-600' : 'text-slate-400'
                             }`}>
                               {assessment.status}
                             </span>
-                            <span className="text-xs font-semibold text-gray-700">{assessment.completionPercentage}%</span>
+                            <span className="text-xs text-slate-500">{assessment.completionPercentage}%</span>
                           </div>
-                          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div 
-                              className={`h-full transition-all ${
-                                assessment.completionPercentage === 100 ? 'bg-green-600' : 'bg-blue-600'
+                              className={`h-full transition-all rounded-full ${
+                                assessment.completionPercentage === 100 ? 'bg-emerald-500' : 'bg-blue-500'
                               }`}
                               style={{ width: `${assessment.completionPercentage}%` }}
                             />
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">{assessment.sectionsCompleted}/{assessment.totalSections} sections</p>
+                          <p className="text-[10px] text-slate-400 mt-1">{assessment.sectionsCompleted}/{assessment.totalSections} sections</p>
                         </div>
                       </td>
 
                       {/* Started */}
                       <td className="px-4 py-3">
                         <div>
-                          <p className="text-sm text-gray-900">
+                          <p className="text-xs text-slate-700">
                             {new Date(assessment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </p>
-                          <p className="text-xs text-gray-500">{assessment.daysInProgress}d ago</p>
+                          <p className="text-[10px] text-slate-400">{assessment.daysInProgress}d ago</p>
                         </div>
                       </td>
 
                       {/* Last Updated */}
                       <td className="px-4 py-3">
                         <div>
-                          <p className="text-sm text-gray-900">
+                          <p className="text-xs text-slate-700">
                             {new Date(assessment.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-[10px] text-slate-400">
                             {new Date(assessment.updated_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                           </p>
                         </div>
@@ -3543,7 +3513,7 @@ export default function AdminDashboard() {
                         <div className="flex flex-col gap-1 items-center">
                           <button
                             onClick={() => setSelectedAssessment(assessment)}
-                            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition w-full"
+                            className="px-3 py-1.5 bg-slate-800 text-white text-xs font-medium rounded hover:bg-slate-700 transition w-full"
                           >
                             View Details
                           </button>
@@ -3551,7 +3521,7 @@ export default function AdminDashboard() {
                           {assessment.payment_completed && assessment.payment_method === 'invoice' && (
                             <button
                               onClick={() => handleViewInvoice(assessment)}
-                              className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition w-full flex items-center justify-center gap-1"
+                              className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-700 transition w-full flex items-center justify-center gap-1"
                             >
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -3568,11 +3538,11 @@ export default function AdminDashboard() {
 
               {filteredAssessments.length === 0 && (
                 <div className="text-center py-12">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No responses found</h3>
-                  <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
+                  <h3 className="mt-2 text-sm font-medium text-slate-700">No responses found</h3>
+                  <p className="mt-1 text-xs text-slate-400">Try adjusting your search or filter criteria.</p>
                 </div>
               )}
             </div>
