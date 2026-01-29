@@ -15,6 +15,7 @@ interface Assessment {
   company_name: string | null
   created_at: string
   updated_at: string
+  last_survey_edit_at?: string | null  // True survey edits only (not admin/testing touches)
   payment_completed: boolean
   payment_method: string | null
   payment_date?: string
@@ -3148,8 +3149,10 @@ export default function AdminDashboard() {
     // Sort: FP first, then Standard, then Panel at end
     if (a.isPanel && !b.isPanel) return 1;
     if (!a.isPanel && b.isPanel) return -1;
-    // Within same category, sort by updated_at (most recent first)
-    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    // Within same category, sort by last_survey_edit_at (most recent first)
+    const bTime = b.last_survey_edit_at ? new Date(b.last_survey_edit_at).getTime() : 0;
+    const aTime = a.last_survey_edit_at ? new Date(a.last_survey_edit_at).getTime() : 0;
+    return bTime - aTime;
   })
 
   const stats = {
@@ -3409,7 +3412,7 @@ export default function AdminDashboard() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Payment</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Progress</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Started</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Updated</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Survey Edit</th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
@@ -3496,16 +3499,23 @@ export default function AdminDashboard() {
                         </div>
                       </td>
 
-                      {/* Last Updated */}
+                      {/* Last Survey Edit */}
                       <td className="px-4 py-3">
-                        <div>
-                          <p className="text-xs font-medium text-slate-800">
-                            {new Date(assessment.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </p>
-                          <p className="text-[10px] text-slate-500">
-                            {new Date(assessment.updated_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                          </p>
-                        </div>
+                        {assessment.last_survey_edit_at ? (
+                          <div>
+                            <p className="text-xs font-medium text-slate-800">
+                              {new Date(assessment.last_survey_edit_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </p>
+                            <p className="text-[10px] text-slate-500">
+                              {new Date(assessment.last_survey_edit_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-xs text-slate-400">—</p>
+                            <p className="text-[10px] text-slate-400">No edits</p>
+                          </div>
+                        )}
                       </td>
 
                       {/* Action */}
