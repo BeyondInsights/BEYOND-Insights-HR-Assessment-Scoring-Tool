@@ -3219,15 +3219,15 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Stats Cards - Minimal Professional Style */}
+        {/* Stats Cards - Clean with Color Accents */}
         <div className="grid grid-cols-5 gap-3 mb-6">
           <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-purple-600">{stats.foundingStarted}</p>
-                <p className="text-xs text-slate-500 font-medium">Founding Partners</p>
+                <p className="text-xs text-slate-600 font-medium">Founding Partners</p>
               </div>
-              <div className="text-xs text-slate-400">{stats.foundingCompleted} done</div>
+              <div className="text-xs font-medium text-purple-500 bg-purple-50 px-2 py-1 rounded">{stats.foundingCompleted} done</div>
             </div>
           </div>
 
@@ -3235,9 +3235,9 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-blue-600">{stats.standardStarted}</p>
-                <p className="text-xs text-slate-500 font-medium">Standard</p>
+                <p className="text-xs text-slate-600 font-medium">Standard</p>
               </div>
-              <div className="text-xs text-slate-400">{stats.standardCompleted} done</div>
+              <div className="text-xs font-medium text-blue-500 bg-blue-50 px-2 py-1 rounded">{stats.standardCompleted} done</div>
             </div>
           </div>
 
@@ -3245,9 +3245,9 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-amber-600">{stats.panelStarted}</p>
-                <p className="text-xs text-slate-500 font-medium">Panel Data</p>
+                <p className="text-xs text-slate-600 font-medium">Panel Data</p>
               </div>
-              <div className="text-xs text-slate-400">{stats.panelCompleted} done</div>
+              <div className="text-xs font-medium text-amber-500 bg-amber-50 px-2 py-1 rounded">{stats.panelCompleted} done</div>
             </div>
           </div>
 
@@ -3255,19 +3255,19 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-emerald-600">${(stats.totalRevenue / 1000).toFixed(1)}K</p>
-                <p className="text-xs text-slate-500 font-medium">Total Revenue</p>
+                <p className="text-xs text-slate-600 font-medium">Total Revenue</p>
               </div>
-              <div className="text-xs text-slate-400">{stats.paidSurveys + stats.fpSponsored} total</div>
+              <div className="text-xs font-medium text-emerald-500 bg-emerald-50 px-2 py-1 rounded">{stats.paidSurveys + stats.fpSponsored} surveys</div>
             </div>
           </div>
 
           <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-slate-700">{stats.avgCompletion}%</p>
-                <p className="text-xs text-slate-500 font-medium">Avg Completion</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.avgCompletion}%</p>
+                <p className="text-xs text-slate-600 font-medium">Avg Completion</p>
               </div>
-              <div className="text-xs text-slate-400">{stats.avgDays}d avg</div>
+              <div className="text-xs font-medium text-orange-500 bg-orange-50 px-2 py-1 rounded">{stats.avgDays}d avg</div>
             </div>
           </div>
         </div>
@@ -3419,21 +3419,21 @@ export default function AdminDashboard() {
                       {/* Company */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 ${
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0 ${
                             assessment.isPanel ? 'bg-amber-500' : assessment.isFoundingPartner ? 'bg-purple-500' : 'bg-blue-500'
                           }`}>
-                            {(assessment.company_name || 'NA').substring(0, 2).toUpperCase()}
+                            {(assessment.company_name || 'N')[0].toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-slate-800 truncate">{assessment.company_name || 'N/A'}</p>
-                            <p className="text-xs text-slate-500 truncate">
+                            <p className="text-sm font-semibold text-slate-900 truncate">{assessment.company_name || 'N/A'}</p>
+                            <p className="text-xs text-slate-600 truncate">
                               {assessment.firmographics_data?.firstName} {assessment.firmographics_data?.lastName}
                               {(assessment.firmographics_data?.title || assessment.firmographics_data?.s5) && (
-                                <span className="text-slate-400"> • {assessment.firmographics_data?.title || assessment.firmographics_data?.s5}</span>
+                                <span className="text-slate-500"> • {assessment.firmographics_data?.title || assessment.firmographics_data?.s5}</span>
                               )}
                             </p>
-                            <p className="text-xs text-slate-400 truncate">{assessment.email}</p>
-                            <p className="text-[10px] text-slate-300 font-mono truncate">{assessment.survey_id || assessment.app_id || 'No ID'}</p>
+                            <p className="text-xs text-slate-500 truncate">{assessment.email}</p>
+                            <p className="text-[10px] text-slate-400 font-mono truncate">{assessment.survey_id || assessment.app_id || 'No ID'}</p>
                           </div>
                         </div>
                       </td>
@@ -3441,11 +3441,11 @@ export default function AdminDashboard() {
                       {/* Type */}
                       <td className="px-4 py-3">
                         {assessment.isPanel ? (
-                          <span className="text-xs font-medium text-amber-600">Panel</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">Panel</span>
                         ) : assessment.isFoundingPartner ? (
-                          <span className="text-xs font-medium text-purple-600">Founding</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700">Founding</span>
                         ) : (
-                          <span className="text-xs font-medium text-blue-600">Standard</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">Standard</span>
                         )}
                       </td>
 
@@ -3454,11 +3454,11 @@ export default function AdminDashboard() {
                         {assessment.isPanel ? (
                           <span className="text-xs text-slate-400">—</span>
                         ) : assessment.isFoundingPartner ? (
-                          <span className="text-xs text-slate-500">FP Comp</span>
+                          <span className="text-xs font-medium text-purple-600">FP Comp</span>
                         ) : assessment.payment_completed ? (
-                          <span className="text-xs text-emerald-600">Paid - {assessment.payment_method || 'invoice'}</span>
+                          <span className="text-xs font-medium text-emerald-600">Paid - {assessment.payment_method || 'invoice'}</span>
                         ) : (
-                          <span className="text-xs text-red-500">Unpaid</span>
+                          <span className="text-xs font-medium text-red-600">Unpaid</span>
                         )}
                       </td>
 
@@ -3466,15 +3466,15 @@ export default function AdminDashboard() {
                       <td className="px-4 py-3">
                         <div className="w-36">
                           <div className="flex items-center justify-between mb-1">
-                            <span className={`text-xs font-medium ${
+                            <span className={`text-xs font-semibold ${
                               assessment.status === 'Completed' ? 'text-emerald-600' :
-                              assessment.status === 'In Progress' ? 'text-blue-600' : 'text-slate-400'
+                              assessment.status === 'In Progress' ? 'text-blue-600' : 'text-slate-500'
                             }`}>
                               {assessment.status}
                             </span>
-                            <span className="text-xs text-slate-500">{assessment.completionPercentage}%</span>
+                            <span className="text-xs font-semibold text-slate-700">{assessment.completionPercentage}%</span>
                           </div>
-                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                             <div 
                               className={`h-full transition-all rounded-full ${
                                 assessment.completionPercentage === 100 ? 'bg-emerald-500' : 'bg-blue-500'
@@ -3482,27 +3482,27 @@ export default function AdminDashboard() {
                               style={{ width: `${assessment.completionPercentage}%` }}
                             />
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-1">{assessment.sectionsCompleted}/{assessment.totalSections} sections</p>
+                          <p className="text-[10px] text-slate-500 mt-1">{assessment.sectionsCompleted}/{assessment.totalSections} sections</p>
                         </div>
                       </td>
 
                       {/* Started */}
                       <td className="px-4 py-3">
                         <div>
-                          <p className="text-xs text-slate-700">
+                          <p className="text-xs font-medium text-slate-800">
                             {new Date(assessment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </p>
-                          <p className="text-[10px] text-slate-400">{assessment.daysInProgress}d ago</p>
+                          <p className="text-[10px] text-slate-500">{assessment.daysInProgress}d ago</p>
                         </div>
                       </td>
 
                       {/* Last Updated */}
                       <td className="px-4 py-3">
                         <div>
-                          <p className="text-xs text-slate-700">
+                          <p className="text-xs font-medium text-slate-800">
                             {new Date(assessment.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </p>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[10px] text-slate-500">
                             {new Date(assessment.updated_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                           </p>
                         </div>
