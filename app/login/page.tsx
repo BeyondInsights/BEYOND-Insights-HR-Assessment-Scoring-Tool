@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
 import { isSharedFP, loadSharedFPData } from '@/lib/supabase/fp-shared-storage'
 import { loadUserDataFromSupabase } from '@/lib/supabase/load-data-from-supabase'
+import { startHydration, endHydration } from '@/lib/supabase/auto-data-sync'
 import Footer from '@/components/Footer'
 
 // ============================================
@@ -50,17 +51,21 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
     
     console.log('✅ Found existing record, populating localStorage...')
     
-    // Load DATA fields
-    if (data.firmographics_data) localStorage.setItem('firmographics_data', JSON.stringify(data.firmographics_data))
-    if (data.general_benefits_data) localStorage.setItem('general_benefits_data', JSON.stringify(data.general_benefits_data))
-    if (data.current_support_data) localStorage.setItem('current_support_data', JSON.stringify(data.current_support_data))
-    if (data.cross_dimensional_data) localStorage.setItem('cross_dimensional_data', JSON.stringify(data.cross_dimensional_data))
-    if (data.employee_impact_data) localStorage.setItem('employee-impact-assessment_data', JSON.stringify(data.employee_impact_data))
-    for (let i = 1; i <= 13; i++) {
-      const dimData = data[`dimension${i}_data`]
-      if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData))
-    }
-    if (data.company_name) localStorage.setItem('login_company_name', data.company_name)
+    // START HYDRATION - prevents auto-sync from marking these writes as "dirty"
+    startHydration()
+    
+    try {
+      // Load DATA fields
+      if (data.firmographics_data) localStorage.setItem('firmographics_data', JSON.stringify(data.firmographics_data))
+      if (data.general_benefits_data) localStorage.setItem('general_benefits_data', JSON.stringify(data.general_benefits_data))
+      if (data.current_support_data) localStorage.setItem('current_support_data', JSON.stringify(data.current_support_data))
+      if (data.cross_dimensional_data) localStorage.setItem('cross_dimensional_data', JSON.stringify(data.cross_dimensional_data))
+      if (data.employee_impact_data) localStorage.setItem('employee-impact-assessment_data', JSON.stringify(data.employee_impact_data))
+      for (let i = 1; i <= 13; i++) {
+        const dimData = data[`dimension${i}_data`]
+        if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData))
+      }
+      if (data.company_name) localStorage.setItem('login_company_name', data.company_name)
     
     // Load COMPLETION FLAGS
     // ============================================
@@ -121,6 +126,11 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
       if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
       if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
       if (firmo.title) localStorage.setItem('login_title', firmo.title)
+    }
+    
+    } finally {
+      // END HYDRATION - re-enable dirty tracking
+      endHydration()
     }
     
     console.log('✅ User data loaded successfully from Supabase')
@@ -357,76 +367,84 @@ export default function LoginPage() {
           console.log('firmographics_data exists:', !!existing.firmographics_data)
           console.log('dimension1_data exists:', !!existing.dimension1_data)
           
-          // Load DATA fields
-          if (existing.firmographics_data) {
-            localStorage.setItem('firmographics_data', JSON.stringify(existing.firmographics_data))
-            console.log('  ✓ Set firmographics_data')
-          }
-          if (existing.general_benefits_data) {
-            localStorage.setItem('general_benefits_data', JSON.stringify(existing.general_benefits_data))
-            console.log('  ✓ Set general_benefits_data')
-          }
-          if (existing.current_support_data) {
-            localStorage.setItem('current_support_data', JSON.stringify(existing.current_support_data))
-            console.log('  ✓ Set current_support_data')
-          }
-          if (existing.cross_dimensional_data) {
-            localStorage.setItem('cross_dimensional_data', JSON.stringify(existing.cross_dimensional_data))
-            console.log('  ✓ Set cross_dimensional_data')
-          }
-          if (existing.employee_impact_data) {
-            localStorage.setItem('employee-impact-assessment_data', JSON.stringify(existing.employee_impact_data))
-            console.log('  ✓ Set employee_impact_data')
-          }
-          for (let i = 1; i <= 13; i++) {
-            const dimData = existing[`dimension${i}_data`]
-            if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData))
-          }
-          if (existing.company_name) localStorage.setItem('login_company_name', existing.company_name)
+          // START HYDRATION - prevents auto-sync from marking these writes as "dirty"
+          startHydration()
           
-          // Load COMPLETION FLAGS
-          if (existing.auth_completed) {
-            localStorage.setItem('auth_completed', 'true')
-          } else {
-            localStorage.removeItem('auth_completed')
-          }
-          if (existing.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
-          if (existing.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
-          if (existing.current_support_complete) localStorage.setItem('current_support_complete', 'true')
-          if (existing.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
-          if (existing.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
-          for (let i = 1; i <= 13; i++) {
-            if (existing[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true')
-          }
-          
-          // ============================================
-          // EMPLOYEE SURVEY OPT-IN & SUBMISSION STATUS (FP)
-          // ============================================
-          if (existing.employee_survey_opt_in !== null && existing.employee_survey_opt_in !== undefined) {
-            localStorage.setItem('employee_survey_opt_in', String(existing.employee_survey_opt_in))
-            console.log('  ✓ Set employee_survey_opt_in:', existing.employee_survey_opt_in)
-          }
-          if (existing.survey_submitted) {
-            localStorage.setItem('survey_fully_submitted', 'true')
-            localStorage.setItem('assessment_completion_shown', 'true')
-            console.log('  ✓ Set survey submission flags')
-          }
-          
-          // Invoice data (FP)
-          if (existing.invoice_data) {
-            localStorage.setItem('invoice_data', JSON.stringify(existing.invoice_data))
-            console.log('  ✓ Set invoice_data')
-          }
-          if (existing.invoice_number) {
-            localStorage.setItem('current_invoice_number', existing.invoice_number)
-          }
-          
-          // First/last name from firmographics (FP)
-          if (existing.firmographics_data) {
-            const firmo = existing.firmographics_data
-            if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
-            if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
-            if (firmo.title) localStorage.setItem('login_title', firmo.title)
+          try {
+            // Load DATA fields
+            if (existing.firmographics_data) {
+              localStorage.setItem('firmographics_data', JSON.stringify(existing.firmographics_data))
+              console.log('  ✓ Set firmographics_data')
+            }
+            if (existing.general_benefits_data) {
+              localStorage.setItem('general_benefits_data', JSON.stringify(existing.general_benefits_data))
+              console.log('  ✓ Set general_benefits_data')
+            }
+            if (existing.current_support_data) {
+              localStorage.setItem('current_support_data', JSON.stringify(existing.current_support_data))
+              console.log('  ✓ Set current_support_data')
+            }
+            if (existing.cross_dimensional_data) {
+              localStorage.setItem('cross_dimensional_data', JSON.stringify(existing.cross_dimensional_data))
+              console.log('  ✓ Set cross_dimensional_data')
+            }
+            if (existing.employee_impact_data) {
+              localStorage.setItem('employee-impact-assessment_data', JSON.stringify(existing.employee_impact_data))
+              console.log('  ✓ Set employee_impact_data')
+            }
+            for (let i = 1; i <= 13; i++) {
+              const dimData = existing[`dimension${i}_data`]
+              if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData))
+            }
+            if (existing.company_name) localStorage.setItem('login_company_name', existing.company_name)
+            
+            // Load COMPLETION FLAGS
+            if (existing.auth_completed) {
+              localStorage.setItem('auth_completed', 'true')
+            } else {
+              localStorage.removeItem('auth_completed')
+            }
+            if (existing.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
+            if (existing.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
+            if (existing.current_support_complete) localStorage.setItem('current_support_complete', 'true')
+            if (existing.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
+            if (existing.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
+            for (let i = 1; i <= 13; i++) {
+              if (existing[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true')
+            }
+            
+            // ============================================
+            // EMPLOYEE SURVEY OPT-IN & SUBMISSION STATUS (FP)
+            // ============================================
+            if (existing.employee_survey_opt_in !== null && existing.employee_survey_opt_in !== undefined) {
+              localStorage.setItem('employee_survey_opt_in', String(existing.employee_survey_opt_in))
+              console.log('  ✓ Set employee_survey_opt_in:', existing.employee_survey_opt_in)
+            }
+            if (existing.survey_submitted) {
+              localStorage.setItem('survey_fully_submitted', 'true')
+              localStorage.setItem('assessment_completion_shown', 'true')
+              console.log('  ✓ Set survey submission flags')
+            }
+            
+            // Invoice data (FP)
+            if (existing.invoice_data) {
+              localStorage.setItem('invoice_data', JSON.stringify(existing.invoice_data))
+              console.log('  ✓ Set invoice_data')
+            }
+            if (existing.invoice_number) {
+              localStorage.setItem('current_invoice_number', existing.invoice_number)
+            }
+            
+            // First/last name from firmographics (FP)
+            if (existing.firmographics_data) {
+              const firmo = existing.firmographics_data
+              if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
+              if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
+              if (firmo.title) localStorage.setItem('login_title', firmo.title)
+            }
+          } finally {
+            // END HYDRATION - re-enable dirty tracking
+            endHydration()
           }
           
           console.log('✅ Loaded all FP data and completion flags from Supabase')
