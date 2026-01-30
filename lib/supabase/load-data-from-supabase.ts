@@ -53,17 +53,71 @@ function setStoredVersion(version: number, surveyId?: string): void {
 }
 
 // ============================================
+// SURVEY KEYS (for clearing stale data)
+// ============================================
+
+const SURVEY_DATA_KEYS = [
+  'firmographics_data', 'general_benefits_data', 'current_support_data',
+  'cross_dimensional_data', 'employee-impact-assessment_data',
+  ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
+]
+
+const SURVEY_COMPLETE_KEYS = [
+  'firmographics_complete', 'general_benefits_complete', 'current_support_complete',
+  'cross_dimensional_complete', 'employee-impact-assessment_complete',
+  ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
+]
+
+// ============================================
+// CHECK IF LOCALSTORAGE IDENTITY MATCHES CURRENT SURVEY
+// ============================================
+
+function localIdentityMatches(surveyId: string): boolean {
+  const storedSurveyId = localStorage.getItem('survey_id') || ''
+  const storedAppId = localStorage.getItem('app_id') || ''
+  
+  // If no stored identity, assume match (new user)
+  if (!storedSurveyId && !storedAppId) return true
+  
+  const raw = surveyId
+  const normalized = surveyId.replace(/-/g, '').toUpperCase()
+  
+  return (
+    storedSurveyId === raw ||
+    storedAppId === raw ||
+    storedAppId === normalized ||
+    storedSurveyId === normalized
+  )
+}
+
+// ============================================
+// CLEAR STALE SURVEY DATA (when switching accounts)
+// ============================================
+
+function clearStaleSurveyData(): void {
+  startHydration()
+  try {
+    // Clear data keys
+    SURVEY_DATA_KEYS.forEach(k => localStorage.removeItem(k))
+    // Clear completion flags
+    SURVEY_COMPLETE_KEYS.forEach(k => localStorage.removeItem(k))
+    // Clear identity keys
+    localStorage.removeItem('survey_id')
+    localStorage.removeItem('app_id')
+    localStorage.removeItem('assessment_version')
+    localStorage.removeItem('auth_completed')
+    console.log('[LOAD] Cleared stale survey data from localStorage')
+  } finally {
+    endHydration()
+  }
+}
+
+// ============================================
 // CHECK IF LOCALSTORAGE HAS DATA
 // ============================================
 
 function localStorageHasData(): boolean {
-  const dataKeys = [
-    'firmographics_data', 'general_benefits_data', 'current_support_data',
-    'cross_dimensional_data', 'employee-impact-assessment_data',
-    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
-  ]
-  
-  for (const key of dataKeys) {
+  for (const key of SURVEY_DATA_KEYS) {
     const value = localStorage.getItem(key)
     if (value) {
       try {
@@ -86,13 +140,7 @@ function localStorageHasData(): boolean {
 function collectLocalStorageData(): Record<string, any> {
   const data: Record<string, any> = {}
   
-  const dataKeys = [
-    'firmographics_data', 'general_benefits_data', 'current_support_data',
-    'cross_dimensional_data', 'employee-impact-assessment_data',
-    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
-  ]
-  
-  for (const key of dataKeys) {
+  for (const key of SURVEY_DATA_KEYS) {
     const value = localStorage.getItem(key)
     if (value) {
       try {
@@ -245,9 +293,17 @@ function writeMetadataToLocalStorage(dbRow: Record<string, any>): void {
       setStoredVersion(dbRow.version, dbRow.survey_id)
     }
     
+    // Check if user has dirty (unsynced) changes - if not, we can clear stale flags
+    const idKey = getIdKey(dbRow.survey_id)
+    const dirtyData = localStorage.getItem(`dirty_${idKey}`)
+    const isDirty = dirtyData && dirtyData !== '0' && dirtyData !== ''
+    
     // Auth/completion status (important for routing)
     if (dbRow.auth_completed) {
       localStorage.setItem('auth_completed', 'true')
+    } else if (!isDirty) {
+      // Only clear if not dirty (avoid wiping in-progress work)
+      localStorage.removeItem('auth_completed')
     }
     
     // Payment info
@@ -263,17 +319,25 @@ function writeMetadataToLocalStorage(dbRow: Record<string, any>): void {
     if (dbRow.survey_submitted) {
       localStorage.setItem('survey_fully_submitted', 'true')
       localStorage.setItem('assessment_completion_shown', 'true')
+    } else if (!isDirty) {
+      // Only clear if not dirty
+      localStorage.removeItem('survey_fully_submitted')
+      localStorage.removeItem('assessment_completion_shown')
     }
     
     // Invoice data
     if (dbRow.invoice_data) {
       localStorage.setItem('invoice_data', JSON.stringify(dbRow.invoice_data))
+    } else if (!isDirty) {
+      localStorage.removeItem('invoice_data')
     }
     if (dbRow.invoice_number) {
       localStorage.setItem('current_invoice_number', dbRow.invoice_number)
+    } else if (!isDirty) {
+      localStorage.removeItem('current_invoice_number')
     }
     
-    console.log('[LOAD] Metadata reconciled from DB')
+    console.log('[LOAD] Metadata reconciled from DB (isDirty:', isDirty, ')')
   } finally {
     endHydration()
   }
@@ -377,9 +441,27 @@ export async function loadDataFromSupabase(
   // ============================================
   const hasLocalData = localStorageHasData()
   
-  if (hasLocalData) {
-    // localStorage has data - DO NOT overwrite it from DB
-    console.log('[LOAD] localStorage has data - using localStorage (not overwriting)')
+  // ============================================
+  // IDENTITY GUARD: If localStorage has data for DIFFERENT survey, clear it
+  // This prevents "wrong profile" bugs when testing multiple accounts
+  // ============================================
+  if (hasLocalData && !localIdentityMatches(surveyId)) {
+    console.warn('[LOAD] localStorage data belongs to different survey/app_id. Clearing stale data.')
+    clearStaleSurveyData()
+    // Re-check after clearing
+    const stillHasData = localStorageHasData()
+    if (!stillHasData) {
+      // Cleared successfully, fall through to DB load
+      console.log('[LOAD] Stale data cleared, will load from DB')
+    }
+  }
+  
+  // Re-check hasLocalData after potential clearing
+  const hasValidLocalData = localStorageHasData() && localIdentityMatches(surveyId)
+  
+  if (hasValidLocalData) {
+    // localStorage has data FOR THIS SURVEY - DO NOT overwrite it from DB
+    console.log('[LOAD] localStorage has valid data for this survey - using localStorage')
     
     // ALWAYS fetch DB to reconcile metadata (identity, version, flags)
     // This fixes stale survey_id/app_id/company_name issues
