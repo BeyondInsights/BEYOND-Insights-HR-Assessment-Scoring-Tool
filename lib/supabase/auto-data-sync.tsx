@@ -47,21 +47,46 @@ function setStoredVersion(version: number): void {
 }
 
 // ============================================
-// CONFLICT STATE (namespaced by survey ID with TTL auto-heal)
+// CONFLICT STATE (namespaced by survey/app ID with TTL auto-heal)
 // ============================================
 
 const CONFLICT_TTL_MS = 5 * 60 * 1000;  // 5 minutes TTL for conflict flags
 
+function getIdKey(): string {
+  const surveyId = localStorage.getItem('survey_id') || '';
+  const appId = localStorage.getItem('app_id') || '';
+  // Fallback chain: survey_id → app_id → 'unknown'
+  return surveyId || appId || 'unknown';
+}
+
 function getConflictKey(): string {
-  const surveyId = localStorage.getItem('survey_id') || 'unknown';
-  return `version_conflict_${surveyId}`;
+  return `version_conflict_${getIdKey()}`;
+}
+
+function getDirtyKey(): string {
+  return `dirty_${getIdKey()}`;
+}
+
+// Mark local data as dirty (unsynced changes exist)
+export function markDirty(): void {
+  localStorage.setItem(getDirtyKey(), '1');
+}
+
+// Clear dirty flag (after successful sync)
+export function clearDirty(): void {
+  localStorage.setItem(getDirtyKey(), '0');
+}
+
+// Check if there are unsynced local changes
+function isDirty(): boolean {
+  return localStorage.getItem(getDirtyKey()) === '1';
 }
 
 function setConflictFlag(): void {
   const key = getConflictKey();
   const conflictData = JSON.stringify({
     ts: Date.now(),
-    surveyId: localStorage.getItem('survey_id') || 'unknown'
+    id: getIdKey()
   });
   sessionStorage.setItem(key, conflictData);
   // Dispatch event for UI to react
@@ -88,27 +113,36 @@ export function hasConflict(): boolean {
     return false;
   }
   
-  // Check TTL - auto-heal if conflict is stale
+  // Check TTL - but DON'T auto-heal if there are dirty (unsynced) changes
   if (conflictData) {
     try {
       const parsed = JSON.parse(conflictData);
       if (Date.now() - parsed.ts > CONFLICT_TTL_MS) {
+        // Only auto-heal if no dirty changes - prevents pushing stale data
+        if (isDirty()) {
+          console.log('⚠️ AUTO-HEAL: Conflict expired but dirty changes exist - keeping conflict');
+          return true;
+        }
         console.log('🔄 AUTO-HEAL: Conflict flag expired, clearing...');
         clearConflictFlag();
         return false;
       }
     } catch {
-      // Invalid data, clear it
-      clearConflictFlag();
-      return false;
+      // Invalid data, clear it (but only if not dirty)
+      if (!isDirty()) {
+        clearConflictFlag();
+        return false;
+      }
     }
   }
   
-  // Legacy flag without TTL - clear it after first check to migrate
+  // Legacy flag without TTL - clear it after first check to migrate (if not dirty)
   if (legacyConflict && !conflictData) {
-    console.log('🔄 AUTO-HEAL: Clearing legacy conflict flag');
-    sessionStorage.removeItem('version_conflict');
-    return false;
+    if (!isDirty()) {
+      console.log('🔄 AUTO-HEAL: Clearing legacy conflict flag');
+      sessionStorage.removeItem('version_conflict');
+      return false;
+    }
   }
   
   return true;
@@ -385,10 +419,11 @@ async function syncViaNetlifyFunction(
       return { success: false, rowsAffected: 0, error: 'No rows updated' }
     }
     
-    // SUCCESS - store new version, clear conflict
+    // SUCCESS - store new version, clear conflict and dirty flag
     if (result.newVersion) {
       setStoredVersion(result.newVersion)
       clearConflictFlag()
+      clearDirty()  // Local changes are now synced
       console.log('✅ AUTO-SYNC: Success, new version:', result.newVersion)
     }
     
@@ -641,6 +676,9 @@ export default function AutoDataSync() {
       originalSetItem(key, value)
       
       if (key.includes('_data') || key.includes('_complete')) {
+        // Mark as dirty - we have unsynced local changes
+        markDirty()
+        
         if (syncTimeout) clearTimeout(syncTimeout)
         syncTimeout = setTimeout(() => doSync(`localStorage write: ${key}`), 500)
       }
