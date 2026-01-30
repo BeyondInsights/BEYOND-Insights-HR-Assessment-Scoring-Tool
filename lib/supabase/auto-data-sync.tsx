@@ -47,11 +47,23 @@ function setStoredVersion(version: number): void {
 }
 
 // ============================================
-// CONFLICT STATE
+// CONFLICT STATE (namespaced by survey ID with TTL auto-heal)
 // ============================================
 
+const CONFLICT_TTL_MS = 5 * 60 * 1000;  // 5 minutes TTL for conflict flags
+
+function getConflictKey(): string {
+  const surveyId = localStorage.getItem('survey_id') || 'unknown';
+  return `version_conflict_${surveyId}`;
+}
+
 function setConflictFlag(): void {
-  sessionStorage.setItem('version_conflict', '1')
+  const key = getConflictKey();
+  const conflictData = JSON.stringify({
+    ts: Date.now(),
+    surveyId: localStorage.getItem('survey_id') || 'unknown'
+  });
+  sessionStorage.setItem(key, conflictData);
   // Dispatch event for UI to react
   window.dispatchEvent(new CustomEvent('sync-conflict', { 
     detail: { message: 'A newer version exists on the server' }
@@ -59,11 +71,47 @@ function setConflictFlag(): void {
 }
 
 function clearConflictFlag(): void {
-  sessionStorage.removeItem('version_conflict')
+  const key = getConflictKey();
+  sessionStorage.removeItem(key);
+  // Also clear legacy non-namespaced flag if exists
+  sessionStorage.removeItem('version_conflict');
 }
 
 export function hasConflict(): boolean {
-  return sessionStorage.getItem('version_conflict') === '1'
+  const key = getConflictKey();
+  const conflictData = sessionStorage.getItem(key);
+  
+  // Also check legacy non-namespaced flag
+  const legacyConflict = sessionStorage.getItem('version_conflict') === '1';
+  
+  if (!conflictData && !legacyConflict) {
+    return false;
+  }
+  
+  // Check TTL - auto-heal if conflict is stale
+  if (conflictData) {
+    try {
+      const parsed = JSON.parse(conflictData);
+      if (Date.now() - parsed.ts > CONFLICT_TTL_MS) {
+        console.log('🔄 AUTO-HEAL: Conflict flag expired, clearing...');
+        clearConflictFlag();
+        return false;
+      }
+    } catch {
+      // Invalid data, clear it
+      clearConflictFlag();
+      return false;
+    }
+  }
+  
+  // Legacy flag without TTL - clear it after first check to migrate
+  if (legacyConflict && !conflictData) {
+    console.log('🔄 AUTO-HEAL: Clearing legacy conflict flag');
+    sessionStorage.removeItem('version_conflict');
+    return false;
+  }
+  
+  return true;
 }
 
 // ============================================
