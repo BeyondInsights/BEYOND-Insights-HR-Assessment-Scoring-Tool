@@ -367,6 +367,7 @@ function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean }
 // ============================================
 
 let lastSyncedDataHash: string = ''
+let pendingDataHash: string = ''  // Track hash being synced
 
 function getStableDataHash(data: Record<string, any>): string {
   return stableStringify(data, { dropNull: true })
@@ -375,10 +376,19 @@ function getStableDataHash(data: Record<string, any>): string {
 function hasDataChanged(newData: Record<string, any>): boolean {
   const newHash = getStableDataHash(newData)
   if (newHash === lastSyncedDataHash) {
+    console.log('⏭️ AUTO-SYNC: Skipping - no data changes since last successful sync')
     return false
   }
-  lastSyncedDataHash = newHash
+  // Store pending hash - will be committed on successful sync
+  pendingDataHash = newHash
   return true
+}
+
+function commitSyncedHash(): void {
+  if (pendingDataHash) {
+    lastSyncedDataHash = pendingDataHash
+    pendingDataHash = ''
+  }
 }
 
 // ============================================
@@ -542,6 +552,7 @@ async function syncViaNetlifyFunction(
       setStoredVersion(result.newVersion)
       clearConflictFlag()
       clearDirty()  // Local changes are now synced
+      commitSyncedHash()  // Mark this data as successfully synced
       console.log('✅ AUTO-SYNC: Success, new version:', result.newVersion)
     }
     
