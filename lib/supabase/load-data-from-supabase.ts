@@ -1,5 +1,5 @@
 /**
- * LOAD DATA FROM SUPABASE v5 - With hydration guard
+ * LOAD DATA FROM SUPABASE v6 - With namespaced versions + metadata reconciliation
  * 
  * FIXES APPLIED:
  * 1. GLOBAL GUARDRAIL: Only write DB→localStorage if localStorage is EMPTY
@@ -7,6 +7,9 @@
  * 3. Stores assessment_version after loading from DB
  * 4. REMOVED direct user_id linking - now handled atomically via autosync
  * 5. Hydration guard prevents DB→localStorage writes from triggering dirty/sync
+ * 6. Namespaced assessment_version by idKey (prevents cross-record contamination)
+ * 7. Metadata reconciliation even when localStorage has data
+ * 8. app_id lookup tries both raw and normalized
  */
 
 import { supabase } from './client'
@@ -17,6 +20,37 @@ import { startHydration, endHydration } from './auto-data-sync'
 const RESCUE_SURVEY_IDS = [
   'CAC25120273411EF',  // Janet - Blood Cancer United
 ]
+
+// ============================================
+// ID KEY HELPERS (for namespacing)
+// ============================================
+
+function getIdKey(surveyId?: string): string {
+  const sid = surveyId || localStorage.getItem('survey_id') || ''
+  const appId = localStorage.getItem('app_id') || ''
+  return sid || appId || 'unknown'
+}
+
+function versionKey(surveyId?: string): string {
+  return `assessment_version_${getIdKey(surveyId)}`
+}
+
+function getStoredVersion(surveyId?: string): number {
+  const idKey = getIdKey(surveyId)
+  // Try namespaced key first, fall back to legacy
+  let stored = localStorage.getItem(`assessment_version_${idKey}`)
+  if (!stored) {
+    stored = localStorage.getItem('assessment_version')
+  }
+  return stored ? Number(stored) : 0
+}
+
+function setStoredVersion(version: number, surveyId?: string): void {
+  const idKey = getIdKey(surveyId)
+  localStorage.setItem(`assessment_version_${idKey}`, String(version))
+  // Also set legacy for backwards compatibility
+  localStorage.setItem('assessment_version', String(version))
+}
 
 // ============================================
 // CHECK IF LOCALSTORAGE HAS DATA
@@ -115,9 +149,9 @@ function writeToLocalStorage(dbRow: Record<string, any>): void {
       localStorage.setItem('app_id', dbRow.app_id)
     }
     
-    // Store version for future syncs
+    // Store version for future syncs (namespaced)
     if (dbRow.version) {
-      localStorage.setItem('assessment_version', String(dbRow.version))
+      setStoredVersion(dbRow.version, dbRow.survey_id)
     }
     
     // ============================================
@@ -188,6 +222,64 @@ function writeToLocalStorage(dbRow: Record<string, any>): void {
 }
 
 // ============================================
+// WRITE METADATA ONLY (for when localStorage has data but needs identity/version reconciliation)
+// ============================================
+
+function writeMetadataToLocalStorage(dbRow: Record<string, any>): void {
+  startHydration()
+  try {
+    // Identity keys
+    if (dbRow.company_name) {
+      localStorage.setItem('login_company_name', dbRow.company_name)
+      localStorage.setItem('company_name', dbRow.company_name)
+    }
+    if (dbRow.survey_id) {
+      localStorage.setItem('survey_id', dbRow.survey_id)
+    }
+    if (dbRow.app_id) {
+      localStorage.setItem('app_id', dbRow.app_id)
+    }
+    
+    // Version (namespaced)
+    if (dbRow.version) {
+      setStoredVersion(dbRow.version, dbRow.survey_id)
+    }
+    
+    // Auth/completion status (important for routing)
+    if (dbRow.auth_completed) {
+      localStorage.setItem('auth_completed', 'true')
+    }
+    
+    // Payment info
+    if (dbRow.payment_completed) localStorage.setItem('payment_completed', 'true')
+    if (dbRow.payment_method) localStorage.setItem('payment_method', dbRow.payment_method)
+    
+    // Employee survey opt-in
+    if (dbRow.employee_survey_opt_in !== null && dbRow.employee_survey_opt_in !== undefined) {
+      localStorage.setItem('employee_survey_opt_in', String(dbRow.employee_survey_opt_in))
+    }
+    
+    // Survey submission status
+    if (dbRow.survey_submitted) {
+      localStorage.setItem('survey_fully_submitted', 'true')
+      localStorage.setItem('assessment_completion_shown', 'true')
+    }
+    
+    // Invoice data
+    if (dbRow.invoice_data) {
+      localStorage.setItem('invoice_data', JSON.stringify(dbRow.invoice_data))
+    }
+    if (dbRow.invoice_number) {
+      localStorage.setItem('current_invoice_number', dbRow.invoice_number)
+    }
+    
+    console.log('[LOAD] Metadata reconciled from DB')
+  } finally {
+    endHydration()
+  }
+}
+
+// ============================================
 // FETCH FROM DATABASE
 // ============================================
 
@@ -222,23 +314,23 @@ async function fetchFromDatabase(
     if (!error && data) {
       dbRow = data
       console.log('[LOAD] Found record via survey_id')
-      // NOTE: user_id linking will happen atomically via next autosync
     }
   }
   
-  // Strategy 3: app_id
+  // Strategy 3: app_id - try BOTH raw and normalized (FP IDs have hyphens)
   if (!dbRow && surveyId) {
-    const normalizedAppId = surveyId.replace(/-/g, '').toUpperCase()
+    const raw = surveyId
+    const normalized = surveyId.replace(/-/g, '').toUpperCase()
+    
     const { data, error } = await supabase
       .from('assessments')
       .select('*')
-      .eq('app_id', normalizedAppId)
-      .single()
+      .or(`app_id.eq.${raw},app_id.eq.${normalized}`)
+      .maybeSingle()
     
     if (!error && data) {
       dbRow = data
-      console.log('[LOAD] Found record via app_id')
-      // NOTE: user_id linking will happen atomically via next autosync
+      console.log('[LOAD] Found record via app_id (raw or normalized)')
     }
   }
   
@@ -272,9 +364,9 @@ export async function loadDataFromSupabase(
       return { success: false, data: null, source: 'none' }
     }
     
-    // Store version but DO NOT write data to localStorage
+    // Store version (namespaced)
     if (dbRow.version) {
-      localStorage.setItem('assessment_version', String(dbRow.version))
+      setStoredVersion(dbRow.version, surveyId)
     }
     
     return { success: true, data: dbRow, source: 'database' }
@@ -289,19 +381,15 @@ export async function loadDataFromSupabase(
     // localStorage has data - DO NOT overwrite it from DB
     console.log('[LOAD] localStorage has data - using localStorage (not overwriting)')
     
-    // But ensure we have assessment_version
-    const storedVersion = localStorage.getItem('assessment_version')
-    if (!storedVersion) {
-      console.log('[LOAD] No stored version - fetching version from DB...')
-      try {
-        const dbRow = await fetchFromDatabase(surveyId, userId)
-        if (dbRow?.version) {
-          localStorage.setItem('assessment_version', String(dbRow.version))
-          console.log('[LOAD] Fetched and stored version:', dbRow.version)
-        }
-      } catch (e) {
-        console.warn('[LOAD] Could not fetch version from DB')
+    // ALWAYS fetch DB to reconcile metadata (identity, version, flags)
+    // This fixes stale survey_id/app_id/company_name issues
+    try {
+      const dbRow = await fetchFromDatabase(surveyId, userId)
+      if (dbRow) {
+        writeMetadataToLocalStorage(dbRow)
       }
+    } catch (e) {
+      console.warn('[LOAD] Could not fetch metadata from DB:', e)
     }
     
     const localData = collectLocalStorageData()
