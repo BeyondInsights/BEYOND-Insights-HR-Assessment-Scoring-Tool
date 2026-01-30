@@ -237,10 +237,39 @@ function getPerformanceTier(score: number, isProvisional: boolean): { name: stri
 }
 
 export default function DetailedResponseView({ assessment, onClose }: DetailedViewProps) {
+  // Helper to check if data object has actual content
+  const hasData = (data: any) => data && typeof data === 'object' && Object.keys(data).length > 0;
+  
+  // Helper to check if dimension has its main grid populated
+  const hasDimensionData = (dim: number) => {
+    const dimData = assessment[`dimension${dim}_data`];
+    if (!dimData || typeof dimData !== 'object') return false;
+    const mainGrid = dimData[`d${dim}a`];
+    return mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0;
+  };
+  
+  // Map section keys to their data check functions
+  const getDataBasedCompletion = (key: string): boolean => {
+    if (key === 'firmographics_complete') return hasData(assessment.firmographics_data);
+    if (key === 'general_benefits_complete') return hasData(assessment.general_benefits_data);
+    if (key === 'current_support_complete') return hasData(assessment.current_support_data);
+    if (key === 'cross_dimensional_complete') return hasData(assessment.cross_dimensional_data);
+    if (key === 'employee-impact-assessment_complete') return hasData(assessment.employee_impact_data);
+    
+    // Dimension keys: dimension1_complete through dimension13_complete
+    const dimMatch = key.match(/^dimension(\d+)_complete$/);
+    if (dimMatch) {
+      return hasDimensionData(parseInt(dimMatch[1]));
+    }
+    
+    return false;
+  };
+  
   const sections = Object.entries(sectionNames).map(([key, name]) => ({
     key,
     name,
-    completed: assessment[key as keyof typeof assessment] === true
+    // Use flag OR data presence (whichever is true)
+    completed: assessment[key as keyof typeof assessment] === true || getDataBasedCompletion(key)
   }))
 
   const completedSections = sections.filter(s => s.completed).length
