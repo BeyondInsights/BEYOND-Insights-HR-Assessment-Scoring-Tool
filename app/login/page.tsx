@@ -51,6 +51,11 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
     
     console.log('✅ Found existing record, populating localStorage...')
     
+    // Calculate this BEFORE hydration so it's available after
+    const inferredAuthComplete = data.auth_completed || 
+      data.survey_submitted || 
+      (data.firmographics_complete && data.general_benefits_complete && data.current_support_complete && data.dimension1_complete)
+    
     // START HYDRATION - prevents auto-sync from marking these writes as "dirty"
     startHydration()
     
@@ -67,66 +72,56 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
       }
       if (data.company_name) localStorage.setItem('login_company_name', data.company_name)
     
-    // Load COMPLETION FLAGS
-    // ============================================
-    // SMART AUTH_COMPLETED INFERENCE
-    // If survey_submitted is true OR all major sections are complete, 
-    // treat auth_completed as true even if the flag is false in DB
-    // This handles data inconsistency cases
-    // ============================================
-    const inferredAuthComplete = data.auth_completed || 
-      data.survey_submitted || 
-      (data.firmographics_complete && data.general_benefits_complete && data.current_support_complete && data.dimension1_complete)
+      // Load COMPLETION FLAGS
+      if (inferredAuthComplete) {
+        localStorage.setItem('auth_completed', 'true')
+        console.log('  ✓ Set auth_completed: true (inferred:', !data.auth_completed, ')')
+      } else {
+        localStorage.removeItem('auth_completed')
+      }
+      if (data.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
+      if (data.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
+      if (data.current_support_complete) localStorage.setItem('current_support_complete', 'true')
+      if (data.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
+      if (data.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
+      for (let i = 1; i <= 13; i++) {
+        if (data[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true')
+      }
     
-    if (inferredAuthComplete) {
-      localStorage.setItem('auth_completed', 'true')
-      console.log('  ✓ Set auth_completed: true (inferred:', !data.auth_completed, ')')
-    } else {
-      localStorage.removeItem('auth_completed')
-    }
-    if (data.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
-    if (data.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
-    if (data.current_support_complete) localStorage.setItem('current_support_complete', 'true')
-    if (data.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
-    if (data.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
-    for (let i = 1; i <= 13; i++) {
-      if (data[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true')
-    }
+      // Also store payment info if present
+      if (data.payment_completed) localStorage.setItem('payment_completed', 'true')
+      if (data.payment_method) localStorage.setItem('payment_method', data.payment_method)
     
-    // Also store payment info if present
-    if (data.payment_completed) localStorage.setItem('payment_completed', 'true')
-    if (data.payment_method) localStorage.setItem('payment_method', data.payment_method)
+      // ============================================
+      // EMPLOYEE SURVEY OPT-IN & SUBMISSION STATUS
+      // Critical to prevent re-asking the question!
+      // ============================================
+      if (data.employee_survey_opt_in !== null && data.employee_survey_opt_in !== undefined) {
+        localStorage.setItem('employee_survey_opt_in', String(data.employee_survey_opt_in))
+        console.log('  ✓ Set employee_survey_opt_in:', data.employee_survey_opt_in)
+      }
+      if (data.survey_submitted) {
+        localStorage.setItem('survey_fully_submitted', 'true')
+        localStorage.setItem('assessment_completion_shown', 'true')
+        console.log('  ✓ Set survey submission flags')
+      }
     
-    // ============================================
-    // EMPLOYEE SURVEY OPT-IN & SUBMISSION STATUS
-    // Critical to prevent re-asking the question!
-    // ============================================
-    if (data.employee_survey_opt_in !== null && data.employee_survey_opt_in !== undefined) {
-      localStorage.setItem('employee_survey_opt_in', String(data.employee_survey_opt_in))
-      console.log('  ✓ Set employee_survey_opt_in:', data.employee_survey_opt_in)
-    }
-    if (data.survey_submitted) {
-      localStorage.setItem('survey_fully_submitted', 'true')
-      localStorage.setItem('assessment_completion_shown', 'true')
-      console.log('  ✓ Set survey submission flags')
-    }
+      // Invoice data
+      if (data.invoice_data) {
+        localStorage.setItem('invoice_data', JSON.stringify(data.invoice_data))
+        console.log('  ✓ Set invoice_data')
+      }
+      if (data.invoice_number) {
+        localStorage.setItem('current_invoice_number', data.invoice_number)
+      }
     
-    // Invoice data
-    if (data.invoice_data) {
-      localStorage.setItem('invoice_data', JSON.stringify(data.invoice_data))
-      console.log('  ✓ Set invoice_data')
-    }
-    if (data.invoice_number) {
-      localStorage.setItem('current_invoice_number', data.invoice_number)
-    }
-    
-    // First/last name from firmographics
-    if (data.firmographics_data) {
-      const firmo = data.firmographics_data
-      if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
-      if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
-      if (firmo.title) localStorage.setItem('login_title', firmo.title)
-    }
+      // First/last name from firmographics
+      if (data.firmographics_data) {
+        const firmo = data.firmographics_data
+        if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
+        if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
+        if (firmo.title) localStorage.setItem('login_title', firmo.title)
+      }
     
     } finally {
       // END HYDRATION - re-enable dirty tracking
