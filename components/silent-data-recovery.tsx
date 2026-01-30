@@ -245,11 +245,16 @@ export function SilentDataRecovery() {
             localStorage.setItem('assessment_version', String(newVersion));
             console.log('[Recovery] Updated localStorage version to:', newVersion);
             
-            // CRITICAL: Clear any version conflict flags (both namespaced and legacy)
-            const conflictKey = `version_conflict_${surveyId}`;
+            // CRITICAL: Clear dirty flag - local changes are now synced
+            const idKey = surveyId || normalizedAppId || 'unknown';
+            localStorage.setItem(`dirty_${idKey}`, '0');
+            
+            // CRITICAL: Clear any version conflict flags (namespaced with fallback + legacy)
+            const conflictKey = `version_conflict_${idKey}`;
             sessionStorage.removeItem(conflictKey);
+            sessionStorage.removeItem(`version_conflict_${surveyId}`);  // Also try surveyId directly
             sessionStorage.removeItem('version_conflict');  // Legacy
-            console.log('[Recovery] Cleared version_conflict flags');
+            console.log('[Recovery] Cleared version_conflict and dirty flags');
           }
         } else {
           console.log('[Recovery] No differences found - localStorage matches database');
@@ -260,9 +265,14 @@ export function SilentDataRecovery() {
             console.log('[Recovery] Synced localStorage version to:', dbRecord.version);
           }
           
+          // Clear dirty flag - nothing to sync
+          const idKey = surveyId || normalizedAppId || 'unknown';
+          localStorage.setItem(`dirty_${idKey}`, '0');
+          
           // Also clear conflict flags if everything is in sync
-          const conflictKey = `version_conflict_${surveyId}`;
+          const conflictKey = `version_conflict_${idKey}`;
           sessionStorage.removeItem(conflictKey);
+          sessionStorage.removeItem(`version_conflict_${surveyId}`);  // Also try surveyId directly
           sessionStorage.removeItem('version_conflict');  // Legacy
         }
 
