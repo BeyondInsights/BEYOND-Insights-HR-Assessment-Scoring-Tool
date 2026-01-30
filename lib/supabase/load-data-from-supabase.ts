@@ -1,15 +1,17 @@
 /**
- * LOAD DATA FROM SUPABASE v4 - Final fixes per ChatGPT review
+ * LOAD DATA FROM SUPABASE v5 - With hydration guard
  * 
  * FIXES APPLIED:
  * 1. GLOBAL GUARDRAIL: Only write DB→localStorage if localStorage is EMPTY
  * 2. For rescue users: calls rescue gate first, then DB-only mode
  * 3. Stores assessment_version after loading from DB
  * 4. REMOVED direct user_id linking - now handled atomically via autosync
+ * 5. Hydration guard prevents DB→localStorage writes from triggering dirty/sync
  */
 
 import { supabase } from './client'
 import { runRescueGate } from './rescue-gate'
+import { startHydration, endHydration } from './auto-data-sync'
 
 // Survey IDs that need rescue / DB-first mode
 const RESCUE_SURVEY_IDS = [
@@ -79,101 +81,109 @@ function collectLocalStorageData(): Record<string, any> {
 // ============================================
 
 function writeToLocalStorage(dbRow: Record<string, any>): void {
-  const dataKeyMap: Record<string, string> = {
-    'firmographics_data': 'firmographics_data',
-    'general_benefits_data': 'general_benefits_data',
-    'current_support_data': 'current_support_data',
-    'cross_dimensional_data': 'cross_dimensional_data',
-    'employee_impact_data': 'employee-impact-assessment_data',
-  }
+  // START HYDRATION - prevents auto-sync from marking these writes as "dirty"
+  startHydration()
   
-  for (let i = 1; i <= 13; i++) {
-    dataKeyMap[`dimension${i}_data`] = `dimension${i}_data`
-  }
-  
-  for (const [dbKey, localKey] of Object.entries(dataKeyMap)) {
-    if (dbRow[dbKey] && typeof dbRow[dbKey] === 'object' && Object.keys(dbRow[dbKey]).length > 0) {
-      localStorage.setItem(localKey, JSON.stringify(dbRow[dbKey]))
+  try {
+    const dataKeyMap: Record<string, string> = {
+      'firmographics_data': 'firmographics_data',
+      'general_benefits_data': 'general_benefits_data',
+      'current_support_data': 'current_support_data',
+      'cross_dimensional_data': 'cross_dimensional_data',
+      'employee_impact_data': 'employee-impact-assessment_data',
     }
-  }
-  
-  // Store metadata
-  if (dbRow.company_name) {
-    localStorage.setItem('login_company_name', dbRow.company_name)
-    localStorage.setItem('company_name', dbRow.company_name)
-  }
-  if (dbRow.survey_id) {
-    localStorage.setItem('survey_id', dbRow.survey_id)
-  }
-  if (dbRow.app_id) {
-    localStorage.setItem('app_id', dbRow.app_id)
-  }
-  
-  // Store version for future syncs
-  if (dbRow.version) {
-    localStorage.setItem('assessment_version', String(dbRow.version))
-  }
-  
-  // ============================================
-  // COMPLETION FLAGS - Must load these to prevent re-asking questions!
-  // ============================================
-  
-  // Auth completed flag
-  if (dbRow.auth_completed) {
-    localStorage.setItem('auth_completed', 'true')
-  } else {
-    localStorage.removeItem('auth_completed')
-  }
-  
-  // Section completion flags
-  if (dbRow.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
-  if (dbRow.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
-  if (dbRow.current_support_complete) localStorage.setItem('current_support_complete', 'true')
-  if (dbRow.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
-  if (dbRow.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
-  
-  // Dimension completion flags
-  for (let i = 1; i <= 13; i++) {
-    if (dbRow[`dimension${i}_complete`]) {
-      localStorage.setItem(`dimension${i}_complete`, 'true')
+    
+    for (let i = 1; i <= 13; i++) {
+      dataKeyMap[`dimension${i}_data`] = `dimension${i}_data`
     }
-  }
-  
-  // Payment info
-  if (dbRow.payment_completed) localStorage.setItem('payment_completed', 'true')
-  if (dbRow.payment_method) localStorage.setItem('payment_method', dbRow.payment_method)
-  
-  // ============================================
-  // EMPLOYEE SURVEY OPT-IN - Critical to prevent re-asking!
-  // ============================================
-  if (dbRow.employee_survey_opt_in !== null && dbRow.employee_survey_opt_in !== undefined) {
-    localStorage.setItem('employee_survey_opt_in', String(dbRow.employee_survey_opt_in))
-  }
-  
-  // Survey submission status - if submitted, don't show completion page again
-  if (dbRow.survey_submitted) {
-    localStorage.setItem('survey_fully_submitted', 'true')
-    localStorage.setItem('assessment_completion_shown', 'true')
-  }
-  
-  // ============================================
-  // INVOICE DATA - so View Invoice works after returning
-  // ============================================
-  if (dbRow.invoice_data) {
-    localStorage.setItem('invoice_data', JSON.stringify(dbRow.invoice_data))
-  }
-  if (dbRow.invoice_number) {
-    localStorage.setItem('current_invoice_number', dbRow.invoice_number)
-  }
-  
-  // ============================================
-  // FIRST NAME, LAST NAME, TITLE from firmographics
-  // ============================================
-  if (dbRow.firmographics_data) {
-    const firmo = dbRow.firmographics_data
-    if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
-    if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
-    if (firmo.title) localStorage.setItem('login_title', firmo.title)
+    
+    for (const [dbKey, localKey] of Object.entries(dataKeyMap)) {
+      if (dbRow[dbKey] && typeof dbRow[dbKey] === 'object' && Object.keys(dbRow[dbKey]).length > 0) {
+        localStorage.setItem(localKey, JSON.stringify(dbRow[dbKey]))
+      }
+    }
+    
+    // Store metadata
+    if (dbRow.company_name) {
+      localStorage.setItem('login_company_name', dbRow.company_name)
+      localStorage.setItem('company_name', dbRow.company_name)
+    }
+    if (dbRow.survey_id) {
+      localStorage.setItem('survey_id', dbRow.survey_id)
+    }
+    if (dbRow.app_id) {
+      localStorage.setItem('app_id', dbRow.app_id)
+    }
+    
+    // Store version for future syncs
+    if (dbRow.version) {
+      localStorage.setItem('assessment_version', String(dbRow.version))
+    }
+    
+    // ============================================
+    // COMPLETION FLAGS - Must load these to prevent re-asking questions!
+    // ============================================
+    
+    // Auth completed flag
+    if (dbRow.auth_completed) {
+      localStorage.setItem('auth_completed', 'true')
+    } else {
+      localStorage.removeItem('auth_completed')
+    }
+    
+    // Section completion flags
+    if (dbRow.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
+    if (dbRow.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
+    if (dbRow.current_support_complete) localStorage.setItem('current_support_complete', 'true')
+    if (dbRow.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
+    if (dbRow.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
+    
+    // Dimension completion flags
+    for (let i = 1; i <= 13; i++) {
+      if (dbRow[`dimension${i}_complete`]) {
+        localStorage.setItem(`dimension${i}_complete`, 'true')
+      }
+    }
+    
+    // Payment info
+    if (dbRow.payment_completed) localStorage.setItem('payment_completed', 'true')
+    if (dbRow.payment_method) localStorage.setItem('payment_method', dbRow.payment_method)
+    
+    // ============================================
+    // EMPLOYEE SURVEY OPT-IN - Critical to prevent re-asking!
+    // ============================================
+    if (dbRow.employee_survey_opt_in !== null && dbRow.employee_survey_opt_in !== undefined) {
+      localStorage.setItem('employee_survey_opt_in', String(dbRow.employee_survey_opt_in))
+    }
+    
+    // Survey submission status - if submitted, don't show completion page again
+    if (dbRow.survey_submitted) {
+      localStorage.setItem('survey_fully_submitted', 'true')
+      localStorage.setItem('assessment_completion_shown', 'true')
+    }
+    
+    // ============================================
+    // INVOICE DATA - so View Invoice works after returning
+    // ============================================
+    if (dbRow.invoice_data) {
+      localStorage.setItem('invoice_data', JSON.stringify(dbRow.invoice_data))
+    }
+    if (dbRow.invoice_number) {
+      localStorage.setItem('current_invoice_number', dbRow.invoice_number)
+    }
+    
+    // ============================================
+    // FIRST NAME, LAST NAME, TITLE from firmographics
+    // ============================================
+    if (dbRow.firmographics_data) {
+      const firmo = dbRow.firmographics_data
+      if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
+      if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
+      if (firmo.title) localStorage.setItem('login_title', firmo.title)
+    }
+  } finally {
+    // END HYDRATION - re-enable dirty tracking
+    endHydration()
   }
 }
 
