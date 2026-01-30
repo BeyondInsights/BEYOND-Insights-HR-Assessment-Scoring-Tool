@@ -1,11 +1,11 @@
 /**
- * AUTO DATA SYNC v4 - Final fixes per ChatGPT review
+ * AUTO DATA SYNC v5 - Per ChatGPT final review
  * 
  * FIXES APPLIED:
- * 1. Handles 409 (version conflict) - sets flag, dispatches event for UI
- * 2. Handles 400 (missing expectedVersion) - fetches version from DB first
- * 3. Ensures assessment_version exists before syncing
- * 4. Dispatches custom events for UI to show conflict banner
+ * 1. Namespaced assessment_version by idKey (prevents cross-survey conflicts)
+ * 2. Hydration guard for localStorage patch (prevents false dirty on DB→local writes)
+ * 3. TTL auto-heal verifies DB version before clearing
+ * 4. Patch guard to prevent double-patching
  */
 
 'use client'
@@ -34,23 +34,8 @@ function isCompdUser(surveyId: string): boolean {
 }
 
 // ============================================
-// VERSION TRACKING
+// ID KEY HELPER (used for all namespacing)
 // ============================================
-
-function getStoredVersion(): number {
-  const stored = localStorage.getItem('assessment_version')
-  return stored ? Number(stored) : 0
-}
-
-function setStoredVersion(version: number): void {
-  localStorage.setItem('assessment_version', String(version))
-}
-
-// ============================================
-// CONFLICT STATE (namespaced by survey/app ID with TTL auto-heal)
-// ============================================
-
-const CONFLICT_TTL_MS = 5 * 60 * 1000;  // 5 minutes TTL for conflict flags
 
 function getIdKey(): string {
   const surveyId = localStorage.getItem('survey_id') || '';
@@ -58,6 +43,59 @@ function getIdKey(): string {
   // Fallback chain: survey_id → app_id → 'unknown'
   return surveyId || appId || 'unknown';
 }
+
+// ============================================
+// VERSION TRACKING (namespaced by idKey)
+// ============================================
+
+function getVersionKey(): string {
+  return `assessment_version_${getIdKey()}`;
+}
+
+function getStoredVersion(): number {
+  const idKey = getIdKey();
+  // Try namespaced key first, fall back to legacy
+  let stored = localStorage.getItem(`assessment_version_${idKey}`);
+  if (!stored) {
+    // Migration: check legacy key
+    stored = localStorage.getItem('assessment_version');
+    if (stored) {
+      // Migrate to namespaced
+      localStorage.setItem(`assessment_version_${idKey}`, stored);
+      console.log(`🔄 Migrated assessment_version to namespaced key for ${idKey}`);
+    }
+  }
+  return stored ? Number(stored) : 0;
+}
+
+function setStoredVersion(version: number): void {
+  const idKey = getIdKey();
+  localStorage.setItem(`assessment_version_${idKey}`, String(version));
+  // Also set legacy for backwards compatibility during transition
+  localStorage.setItem('assessment_version', String(version));
+}
+
+// ============================================
+// HYDRATION GUARD (prevents false dirty during DB→localStorage writes)
+// ============================================
+
+export function startHydration(): void {
+  sessionStorage.setItem('ls_hydrating', '1');
+}
+
+export function endHydration(): void {
+  sessionStorage.removeItem('ls_hydrating');
+}
+
+function isHydrating(): boolean {
+  return sessionStorage.getItem('ls_hydrating') === '1';
+}
+
+// ============================================
+// CONFLICT STATE (namespaced by survey/app ID with TTL auto-heal)
+// ============================================
+
+const CONFLICT_TTL_MS = 5 * 60 * 1000;  // 5 minutes TTL for conflict flags
 
 function getConflictKey(): string {
   return `version_conflict_${getIdKey()}`;
@@ -68,18 +106,28 @@ function getDirtyKey(): string {
 }
 
 // Mark local data as dirty (unsynced changes exist)
-export function markDirty(): void {
-  localStorage.setItem(getDirtyKey(), '1');
+export function markDirty(reason?: string): void {
+  const data = JSON.stringify({ ts: Date.now(), reason: reason || 'user_edit' });
+  localStorage.setItem(getDirtyKey(), data);
 }
 
 // Clear dirty flag (after successful sync)
 export function clearDirty(): void {
-  localStorage.setItem(getDirtyKey(), '0');
+  localStorage.removeItem(getDirtyKey());
 }
 
 // Check if there are unsynced local changes
 function isDirty(): boolean {
-  return localStorage.getItem(getDirtyKey()) === '1';
+  const data = localStorage.getItem(getDirtyKey());
+  if (!data) return false;
+  // Handle both old format ('1') and new format (JSON)
+  if (data === '1') return true;
+  try {
+    const parsed = JSON.parse(data);
+    return !!parsed.ts;
+  } catch {
+    return data === '1';
+  }
 }
 
 function setConflictFlag(): void {
@@ -100,6 +148,56 @@ function clearConflictFlag(): void {
   sessionStorage.removeItem(key);
   // Also clear legacy non-namespaced flag if exists
   sessionStorage.removeItem('version_conflict');
+}
+
+// Async conflict resolution - verifies DB version before clearing
+// Call this from UI "Reload from server" button
+export async function resolveConflictFromServer(): Promise<boolean> {
+  const surveyId = localStorage.getItem('survey_id') || '';
+  const appId = localStorage.getItem('app_id') || '';
+  
+  if (!surveyId && !appId) {
+    console.error('[resolveConflict] No survey_id or app_id');
+    return false;
+  }
+  
+  try {
+    // Fetch current DB version
+    const matchField = surveyId ? 'survey_id' : 'app_id';
+    const matchValue = surveyId || appId;
+    
+    const { data, error } = await supabase
+      .from('assessments')
+      .select('version')
+      .eq(matchField, matchValue)
+      .single();
+    
+    if (error || !data) {
+      console.error('[resolveConflict] Failed to fetch DB version:', error);
+      return false;
+    }
+    
+    const dbVersion = data.version || 1;
+    
+    // Update local version to match DB
+    setStoredVersion(dbVersion);
+    
+    // Clear dirty flag (discarding local changes)
+    clearDirty();
+    
+    // Clear conflict flag
+    clearConflictFlag();
+    
+    console.log(`✅ [resolveConflict] Resolved - local version set to ${dbVersion}, dirty cleared`);
+    
+    // Dispatch event for UI to react
+    window.dispatchEvent(new CustomEvent('sync-conflict-resolved'));
+    
+    return true;
+  } catch (e) {
+    console.error('[resolveConflict] Error:', e);
+    return false;
+  }
 }
 
 export function hasConflict(): boolean {
@@ -667,17 +765,29 @@ export default function AutoDataSync() {
     }
   }, [pathname, doSync])
   
-  // Intercept localStorage writes
+  // Intercept localStorage writes - with hydration guard and patch-once protection
   useEffect(() => {
+    // Prevent double-patching
+    if ((window as any).__LS_PATCHED) {
+      console.log('⚠️ localStorage already patched, skipping');
+      return;
+    }
+    (window as any).__LS_PATCHED = true;
+    
     const originalSetItem = localStorage.setItem.bind(localStorage)
     let syncTimeout: ReturnType<typeof setTimeout> | null = null
     
     localStorage.setItem = (key: string, value: string) => {
       originalSetItem(key, value)
       
+      // Skip dirty tracking and sync during hydration (DB→localStorage writes)
+      if (isHydrating()) {
+        return;
+      }
+      
       if (key.includes('_data') || key.includes('_complete')) {
         // Mark as dirty - we have unsynced local changes
-        markDirty()
+        markDirty(`localStorage write: ${key}`)
         
         if (syncTimeout) clearTimeout(syncTimeout)
         syncTimeout = setTimeout(() => doSync(`localStorage write: ${key}`), 500)
@@ -686,6 +796,7 @@ export default function AutoDataSync() {
     
     return () => {
       localStorage.setItem = originalSetItem
+      ;(window as any).__LS_PATCHED = false;
       if (syncTimeout) clearTimeout(syncTimeout)
     }
   }, [doSync])
