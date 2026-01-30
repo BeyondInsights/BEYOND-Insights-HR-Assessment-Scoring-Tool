@@ -219,13 +219,19 @@ export function SilentDataRecovery() {
         if (changesFound > 0) {
           console.log(`[Recovery] PUSHING ${changesFound} changed sections to database`);
           
+          // Get current version from DB record
+          const currentVersion = dbRecord.version || 1;
+          const newVersion = currentVersion + 1;
+          
           updates.updated_at = new Date().toISOString();
           updates.last_survey_edit_at = new Date().toISOString();
+          updates.version = newVersion;
 
           const { error: updateError } = await supabase
             .from('assessments')
             .update(updates)
-            .eq(matchColumn, matchValue);
+            .eq(matchColumn, matchValue)
+            .eq('version', currentVersion);  // Optimistic lock
 
           if (updateError) {
             console.error('[Recovery] FAILED:', updateError.message);
@@ -235,12 +241,22 @@ export function SilentDataRecovery() {
           } else {
             console.log('[Recovery] SUCCESS - All changes synced');
             
+            // CRITICAL: Update localStorage version to match DB
+            localStorage.setItem('assessment_version', String(newVersion));
+            console.log('[Recovery] Updated localStorage version to:', newVersion);
+            
             // CRITICAL: Clear any version conflict flag so auto-sync can resume
             sessionStorage.removeItem('version_conflict');
             console.log('[Recovery] Cleared version_conflict flag');
           }
         } else {
           console.log('[Recovery] No differences found - localStorage matches database');
+          
+          // Sync localStorage version with DB version
+          if (dbRecord.version) {
+            localStorage.setItem('assessment_version', String(dbRecord.version));
+            console.log('[Recovery] Synced localStorage version to:', dbRecord.version);
+          }
           
           // Also clear conflict flag if everything is in sync
           sessionStorage.removeItem('version_conflict');
