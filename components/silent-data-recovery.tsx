@@ -188,99 +188,31 @@ export function SilentDataRecovery() {
         }
 
         // ============================================
-        // COMPARE AND SYNC: localStorage vs database
-        // Sync if DIFFERENT, not just if more
+        // SYNC VERSION ONLY - Don't push data changes
+        // Auto-sync handles all writes to prevent race conditions
+        // Recovery only ensures version alignment
         // ============================================
-        const updates: Record<string, any> = {};
-        let changesFound = 0;
-
-        for (const localKey of DATA_KEYS) {
-          const localValue = localStorage.getItem(localKey);
-          if (!localValue) continue;
-
-          try {
-            const localData = JSON.parse(localValue);
-            const dbColumn = DB_COLUMN_MAP[localKey];
-            const dbData = dbRecord[dbColumn];
-
-            // If data is DIFFERENT, use localStorage (it's more recent)
-            if (isDifferent(localData, dbData)) {
-              const localFields = countFields(localData);
-              const dbFields = countFields(dbData);
-              console.log(`[Recovery] ${localKey}: DIFFERENT - local has ${localFields} fields, DB has ${dbFields}`);
-              updates[dbColumn] = localData;
-              changesFound++;
-            }
-          } catch (e) {
-            console.warn(`[Recovery] Could not parse ${localKey}`);
-          }
-        }
-
-        // ============================================
-        // PUSH UPDATES
-        // ============================================
-        if (changesFound > 0) {
-          console.log(`[Recovery] PUSHING ${changesFound} changed sections to database`);
+        
+        // Sync localStorage version with DB version
+        const idKey = surveyId || normalizedAppId || 'unknown';
+        if (dbRecord.version) {
+          const localVersion = parseInt(localStorage.getItem(`assessment_version_${idKey}`) || localStorage.getItem('assessment_version') || '0');
           
-          // Get current version from DB record
-          const currentVersion = dbRecord.version || 1;
-          const newVersion = currentVersion + 1;
-          
-          updates.updated_at = new Date().toISOString();
-          updates.last_survey_edit_at = new Date().toISOString();
-          updates.version = newVersion;
-
-          const { error: updateError } = await supabase
-            .from('assessments')
-            .update(updates)
-            .eq(matchColumn, matchValue)
-            .eq('version', currentVersion);  // Optimistic lock
-
-          if (updateError) {
-            console.error('[Recovery] FAILED:', updateError.message);
-            
-            // If direct update fails, data will sync via auto-sync with fallbacks
-            console.log('[Recovery] Will retry via auto-sync fallbacks');
-          } else {
-            console.log('[Recovery] SUCCESS - All changes synced');
-            
-            // CRITICAL: Update localStorage version to match DB (namespaced)
-            const idKey = surveyId || normalizedAppId || 'unknown';
-            localStorage.setItem(`assessment_version_${idKey}`, String(newVersion));
-            localStorage.setItem('assessment_version', String(newVersion)); // Legacy
-            console.log('[Recovery] Updated localStorage version to:', newVersion);
-            
-            // CRITICAL: Clear dirty flag - local changes are now synced
-            clearDirty();
-            
-            // CRITICAL: Clear any version conflict flags (namespaced with fallback + legacy)
-            const conflictKey = `version_conflict_${idKey}`;
-            sessionStorage.removeItem(conflictKey);
-            sessionStorage.removeItem(`version_conflict_${surveyId}`);  // Also try surveyId directly
-            sessionStorage.removeItem('version_conflict');  // Legacy
-            console.log('[Recovery] Cleared version_conflict and dirty flags');
-          }
-        } else {
-          console.log('[Recovery] No differences found - localStorage matches database');
-          
-          // Sync localStorage version with DB version (namespaced)
-          if (dbRecord.version) {
-            const idKey = surveyId || normalizedAppId || 'unknown';
+          if (localVersion !== dbRecord.version) {
+            console.log(`[Recovery] Version mismatch: local=${localVersion}, db=${dbRecord.version} - syncing`);
             localStorage.setItem(`assessment_version_${idKey}`, String(dbRecord.version));
-            localStorage.setItem('assessment_version', String(dbRecord.version)); // Legacy
-            console.log('[Recovery] Synced localStorage version to:', dbRecord.version);
+            localStorage.setItem('assessment_version', String(dbRecord.version));
           }
-          
-          // Clear dirty flag - nothing to sync
-          clearDirty();
-          
-          // Also clear conflict flags if everything is in sync
-          const idKey = surveyId || normalizedAppId || 'unknown';
-          const conflictKey = `version_conflict_${idKey}`;
-          sessionStorage.removeItem(conflictKey);
-          sessionStorage.removeItem(`version_conflict_${surveyId}`);  // Also try surveyId directly
-          sessionStorage.removeItem('version_conflict');  // Legacy
         }
+        
+        // Clear any stale conflict flags if versions are now aligned
+        clearDirty();
+        const conflictKey = `version_conflict_${idKey}`;
+        sessionStorage.removeItem(conflictKey);
+        sessionStorage.removeItem(`version_conflict_${surveyId}`);
+        sessionStorage.removeItem('version_conflict');
+        
+        console.log('[Recovery] Version check complete - auto-sync handles data writes');
 
       } catch (err) {
         console.error('[Recovery] Error:', err);
