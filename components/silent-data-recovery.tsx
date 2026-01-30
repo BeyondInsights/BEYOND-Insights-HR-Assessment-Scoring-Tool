@@ -3,15 +3,18 @@
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { startHydration, endHydration, clearDirty } from '@/lib/supabase/auto-data-sync';
 
 /**
- * SILENT DATA RECOVERY - BULLETPROOF VERSION
+ * SILENT DATA RECOVERY - BULLETPROOF VERSION v2
  * 
  * CRITICAL FIXES:
  * 1. Syncs if data is DIFFERENT, not just if localStorage has MORE
  * 2. Falls back through: user_id → survey_id → app_id
  * 3. Links user_id to record when found via fallback
  * 4. Uses updated_at comparison to determine which is newer
+ * 5. Uses hydration guard to prevent false dirty during DB→localStorage writes
+ * 6. Namespaced version keys
  */
 
 const DISABLED_PATHS = ['/admin', '/report/', '/scoring'];
@@ -241,13 +244,14 @@ export function SilentDataRecovery() {
           } else {
             console.log('[Recovery] SUCCESS - All changes synced');
             
-            // CRITICAL: Update localStorage version to match DB
-            localStorage.setItem('assessment_version', String(newVersion));
+            // CRITICAL: Update localStorage version to match DB (namespaced)
+            const idKey = surveyId || normalizedAppId || 'unknown';
+            localStorage.setItem(`assessment_version_${idKey}`, String(newVersion));
+            localStorage.setItem('assessment_version', String(newVersion)); // Legacy
             console.log('[Recovery] Updated localStorage version to:', newVersion);
             
             // CRITICAL: Clear dirty flag - local changes are now synced
-            const idKey = surveyId || normalizedAppId || 'unknown';
-            localStorage.setItem(`dirty_${idKey}`, '0');
+            clearDirty();
             
             // CRITICAL: Clear any version conflict flags (namespaced with fallback + legacy)
             const conflictKey = `version_conflict_${idKey}`;
@@ -259,17 +263,19 @@ export function SilentDataRecovery() {
         } else {
           console.log('[Recovery] No differences found - localStorage matches database');
           
-          // Sync localStorage version with DB version
+          // Sync localStorage version with DB version (namespaced)
           if (dbRecord.version) {
-            localStorage.setItem('assessment_version', String(dbRecord.version));
+            const idKey = surveyId || normalizedAppId || 'unknown';
+            localStorage.setItem(`assessment_version_${idKey}`, String(dbRecord.version));
+            localStorage.setItem('assessment_version', String(dbRecord.version)); // Legacy
             console.log('[Recovery] Synced localStorage version to:', dbRecord.version);
           }
           
           // Clear dirty flag - nothing to sync
-          const idKey = surveyId || normalizedAppId || 'unknown';
-          localStorage.setItem(`dirty_${idKey}`, '0');
+          clearDirty();
           
           // Also clear conflict flags if everything is in sync
+          const idKey = surveyId || normalizedAppId || 'unknown';
           const conflictKey = `version_conflict_${idKey}`;
           sessionStorage.removeItem(conflictKey);
           sessionStorage.removeItem(`version_conflict_${surveyId}`);  // Also try surveyId directly
