@@ -73,25 +73,27 @@ export default function DashboardPage() {
         const genComplete = localStorage.getItem('general_benefits_complete') === 'true';
         const curComplete = localStorage.getItem('current_support_complete') === 'true';
         
-        // Helper to check if dimension has its main grid populated
-        const hasDimensionData = (dimNum: number, dimData: any): boolean => {
-          if (!dimData || typeof dimData !== 'object') return false;
+        // Helper to check if dimension has its main grid populated (for partial progress)
+        const getDimensionProgress = (dimNum: number, dimData: any): number => {
+          if (!dimData || typeof dimData !== 'object') return 0;
           const mainGrid = dimData[`d${dimNum}a`];
-          return mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0;
+          if (!mainGrid || typeof mainGrid !== 'object') return 0;
+          const itemCount = Object.keys(mainGrid).length;
+          // Each dimension has ~10-19 items, cap at 95% if not flagged complete
+          return itemCount === 0 ? 0 : Math.min(95, Math.round((itemCount / 12) * 100));
         };
         
         const dimProgress = [];
         for (let i = 1; i <= 13; i++) {
           const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
           const flagComplete = localStorage.getItem(`dimension${i}_complete`) === 'true';
-          const dataComplete = hasDimensionData(i, dimData);
           
-          // Use flag OR data presence (whichever indicates complete)
-          if (flagComplete || dataComplete) {
+          // Only show 100% if the completion FLAG is set
+          // Otherwise show partial progress based on items filled
+          if (flagComplete) {
             dimProgress.push(100);
           } else {
-            const keys = Object.keys(dimData).length;
-            dimProgress.push(keys === 0 ? 0 : Math.min(95, Math.round((keys / 25) * 100)));
+            dimProgress.push(getDimensionProgress(i, dimData));
           }
         }
         setDimensionProgress(dimProgress);
