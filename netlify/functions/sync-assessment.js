@@ -1,16 +1,38 @@
 /**
- * SYNC-ASSESSMENT v5 - Fixed per ChatGPT diagnosis
+ * SYNC-ASSESSMENT v6 - With error logging
  * 
  * FIXES APPLIED:
  * 1. Log actual updateError with full details
  * 2. Treat success:false as failure at response level
  * 3. Sanitize payload - strip forbidden keys, normalize user_id
+ * 4. Added last_survey_edit_at tracking
+ * 5. Added sync_errors logging for debugging
  */
 
 const { createClient } = require('@supabase/supabase-js')
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+// Helper to log sync errors for debugging
+async function logSyncError(supabase, errorData) {
+  try {
+    await supabase.from('sync_errors').insert({
+      survey_id: errorData.survey_id || null,
+      app_id: errorData.app_id || null,
+      error_type: errorData.error_type || 'unknown',
+      expected_version: errorData.expected_version || null,
+      actual_version: errorData.actual_version || null,
+      client_id: errorData.client_id || null,
+      source: errorData.source || null,
+      error_message: errorData.error_message || null,
+      created_at: new Date().toISOString()
+    })
+  } catch (e) {
+    // Don't fail the main request if logging fails
+    console.warn('[sync-assessment] Failed to log sync error:', e.message)
+  }
+}
 
 exports.handler = async (event) => {
   const headers = {
@@ -120,6 +142,19 @@ exports.handler = async (event) => {
           expected: expectedVersion,
           actual: currentVersion
         })
+        
+        // Log the conflict for debugging
+        await logSyncError(supabase, {
+          survey_id: survey_id,
+          app_id: matchValue,
+          error_type: 'version_conflict',
+          expected_version: expectedVersion,
+          actual_version: currentVersion,
+          client_id: client_id,
+          source: safeSource,
+          error_message: `Expected v${expectedVersion}, got v${currentVersion}`
+        })
+        
         return {
           success: false,
           conflict: true,
