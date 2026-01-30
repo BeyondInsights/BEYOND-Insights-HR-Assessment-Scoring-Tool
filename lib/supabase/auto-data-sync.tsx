@@ -728,10 +728,26 @@ export default function AutoDataSync() {
   const syncInProgress = useRef(false)
   const initialSyncDone = useRef(false)
   
+  // Whitelist of keys that actually get synced - prevents dirty getting stuck on non-survey keys
+  const SYNC_KEYS = new Set([
+    'firmographics_data', 'general_benefits_data', 'current_support_data', 
+    'cross_dimensional_data', 'employee-impact-assessment_data',
+    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`),
+    'auth_completed', 'firmographics_complete', 'general_benefits_complete', 
+    'current_support_complete', 'cross_dimensional_complete', 'employee-impact-assessment_complete',
+    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
+  ])
+  
   const doSync = useCallback(async (reason: string) => {
     if (syncInProgress.current) return
     if (hasConflict()) {
       console.log('⏸️ AUTO-SYNC: Skipping - conflict unresolved')
+      return
+    }
+    
+    // Only sync if there are dirty changes (prevents unnecessary version bumps)
+    if (!isDirty()) {
+      console.log('⏭️ AUTO-SYNC: Skipping - no dirty changes')
       return
     }
     
@@ -745,20 +761,24 @@ export default function AutoDataSync() {
     }
   }, [])
   
-  // Initial sync with delay
+  // Initial sync with delay - only if dirty
   useEffect(() => {
     if (!initialSyncDone.current) {
       initialSyncDone.current = true
-      setTimeout(() => doSync('Initial page load'), 3000)
+      setTimeout(() => {
+        if (isDirty()) {
+          doSync('Initial page load')
+        }
+      }, 3000)
     }
   }, [doSync])
   
-  // Route change sync
+  // Route change sync - only if dirty
   useEffect(() => {
     if (pathname !== lastPath.current) {
       const prevPath = lastPath.current
       lastPath.current = pathname
-      if (prevPath !== '') {
+      if (prevPath !== '' && isDirty()) {
         doSync(`Route: ${prevPath} → ${pathname}`)
       }
     }
@@ -784,7 +804,8 @@ export default function AutoDataSync() {
         return;
       }
       
-      if (key.includes('_data') || key.includes('_complete')) {
+      // Only mark dirty for keys we actually sync (whitelist)
+      if (SYNC_KEYS.has(key)) {
         // Mark as dirty - we have unsynced local changes
         markDirty(`localStorage write: ${key}`)
         
@@ -800,20 +821,20 @@ export default function AutoDataSync() {
     }
   }, [doSync])
   
-  // Periodic sync
+  // Periodic sync - only if dirty
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!hasConflict()) {
+      if (!hasConflict() && isDirty()) {
         doSync('Periodic (15s)')
       }
     }, 15000)
     return () => clearInterval(interval)
   }, [doSync])
   
-  // Visibility change
+  // Visibility change - only if dirty
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !hasConflict()) {
+      if (document.visibilityState === 'visible' && !hasConflict() && isDirty()) {
         doSync('Tab became visible')
       }
     }
