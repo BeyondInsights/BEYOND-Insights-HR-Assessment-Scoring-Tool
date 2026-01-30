@@ -73,11 +73,21 @@ export default function DashboardPage() {
         const genComplete = localStorage.getItem('general_benefits_complete') === 'true';
         const curComplete = localStorage.getItem('current_support_complete') === 'true';
         
+        // Helper to check if dimension has its main grid populated
+        const hasDimensionData = (dimNum: number, dimData: any): boolean => {
+          if (!dimData || typeof dimData !== 'object') return false;
+          const mainGrid = dimData[`d${dimNum}a`];
+          return mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0;
+        };
+        
         const dimProgress = [];
         for (let i = 1; i <= 13; i++) {
           const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
-          const complete = localStorage.getItem(`dimension${i}_complete`) === 'true';
-          if (complete) {
+          const flagComplete = localStorage.getItem(`dimension${i}_complete`) === 'true';
+          const dataComplete = hasDimensionData(i, dimData);
+          
+          // Use flag OR data presence (whichever indicates complete)
+          if (flagComplete || dataComplete) {
             dimProgress.push(100);
           } else {
             const keys = Object.keys(dimData).length;
@@ -90,7 +100,13 @@ export default function DashboardPage() {
         let genProg = 0;
         let curProg = 0;
         
-        if (firmComplete) {
+        // Helper to check if section has substantial data
+        const hasSubstantialData = (data: any, minFields: number = 3): boolean => {
+          return data && typeof data === 'object' && Object.keys(data).length >= minFields;
+        };
+        
+        // Firmographics: use flag OR data presence
+        if (firmComplete || hasSubstantialData(firmo, 5)) {
           firmProg = 100;
         } else {
           const firmCount = firmRequired.filter(field => {
@@ -102,7 +118,8 @@ export default function DashboardPage() {
           firmProg = Math.round((firmCount / firmRequired.length) * 100);
         }
         
-        if (genComplete) {
+        // General Benefits: use flag OR data presence
+        if (genComplete || hasSubstantialData(general, 3)) {
           genProg = 100;
         } else if (general && Object.keys(general).length > 0) {
           const genCount = genRequired.filter(field => {
@@ -114,7 +131,8 @@ export default function DashboardPage() {
           genProg = Math.round((genCount / genRequired.length) * 100);
         }
         
-        if (curComplete) {
+        // Current Support: use flag OR data presence
+        if (curComplete || hasSubstantialData(current, 3)) {
           curProg = 100;
         } else if (current && Object.keys(current).length > 0) {
           const curCount = curRequired.filter(field => {
@@ -141,7 +159,8 @@ export default function DashboardPage() {
         let empImpactProg = 0;
         let crossDimProg = 0;
         
-        if (empImpactComplete) {
+        // Employee Impact: use flag OR data presence
+        if (empImpactComplete || hasSubstantialData(empImpact, 2)) {
           empImpactProg = 100;
         } else {
           let completedSteps = 0;
@@ -157,7 +176,8 @@ export default function DashboardPage() {
           empImpactProg = Math.round((completedSteps / 4) * 100);
         }
         
-        if (crossDimComplete) {
+        // Cross-Dimensional: use flag OR data presence
+        if (crossDimComplete || hasSubstantialData(crossDim, 2)) {
           crossDimProg = 100;
         } else {
           const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0;
