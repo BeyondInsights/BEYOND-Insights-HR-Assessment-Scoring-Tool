@@ -687,38 +687,6 @@ export async function forceSyncNow(): Promise<boolean> {
   return await syncToSupabase()
 }
 
-/**
- * Clear conflict and reload from server
- * Call this when user clicks "Reload from server" button
- */
-export async function resolveConflictFromServer(): Promise<boolean> {
-  console.log('🔄 Resolving conflict - reloading from server...')
-  
-  const surveyId = localStorage.getItem('survey_id') || ''
-  
-  // Clear local answer data
-  const dataKeys = [
-    'firmographics_data', 'general_benefits_data', 'current_support_data',
-    'cross_dimensional_data', 'employee-impact-assessment_data',
-    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
-  ]
-  dataKeys.forEach(key => localStorage.removeItem(key))
-  
-  // Clear conflict flag
-  clearConflictFlag()
-  
-  // Clear version so load will fetch fresh
-  localStorage.removeItem('assessment_version')
-  
-  // Dispatch event for UI to reload
-  window.dispatchEvent(new CustomEvent('sync-conflict-resolved'))
-  
-  // Force page reload to fetch fresh data
-  window.location.reload()
-  
-  return true
-}
-
 // ============================================
 // COMPONENT
 // ============================================
