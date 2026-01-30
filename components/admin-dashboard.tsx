@@ -3057,7 +3057,43 @@ export default function AdminDashboard() {
           assessment.cross_dimensional_complete,
           assessment.employee_impact_complete,
         ]
-        const sectionsCompleted = completionFlags.filter(Boolean).length
+        
+        // Calculate completion based on ACTUAL DATA presence (more reliable than flags)
+        const hasData = (data: any) => data && typeof data === 'object' && Object.keys(data).length > 0;
+        const hasDimensionData = (dim: number) => {
+          const dimData = assessment[`dimension${dim}_data` as keyof Assessment];
+          if (!dimData || typeof dimData !== 'object') return false;
+          const mainGrid = (dimData as any)[`d${dim}a`];
+          return mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0;
+        };
+        
+        const dataBasedCompletion = [
+          assessment.auth_completed || hasData(assessment.firmographics_data), // Auth - use flag or infer from firmographics
+          hasData(assessment.firmographics_data),
+          hasData(assessment.general_benefits_data),
+          hasData(assessment.current_support_data),
+          hasDimensionData(1),
+          hasDimensionData(2),
+          hasDimensionData(3),
+          hasDimensionData(4),
+          hasDimensionData(5),
+          hasDimensionData(6),
+          hasDimensionData(7),
+          hasDimensionData(8),
+          hasDimensionData(9),
+          hasDimensionData(10),
+          hasDimensionData(11),
+          hasDimensionData(12),
+          hasDimensionData(13),
+          hasData(assessment.cross_dimensional_data),
+          hasData(assessment.employee_impact_data),
+        ];
+        
+        // Use the higher of flag-based or data-based completion (covers both scenarios)
+        const flagBasedCount = completionFlags.filter(Boolean).length;
+        const dataBasedCount = dataBasedCompletion.filter(Boolean).length;
+        const sectionsCompleted = Math.max(flagBasedCount, dataBasedCount);
+        
         const totalSections = 19
         const completionPercentage = Math.round((sectionsCompleted / totalSections) * 100)
         
