@@ -220,6 +220,7 @@ export function SilentDataRecovery() {
           console.log(`[Recovery] PUSHING ${changesFound} changed sections to database`);
           
           updates.updated_at = new Date().toISOString();
+          updates.last_survey_edit_at = new Date().toISOString();
 
           const { error: updateError } = await supabase
             .from('assessments')
@@ -233,9 +234,16 @@ export function SilentDataRecovery() {
             console.log('[Recovery] Will retry via auto-sync fallbacks');
           } else {
             console.log('[Recovery] SUCCESS - All changes synced');
+            
+            // CRITICAL: Clear any version conflict flag so auto-sync can resume
+            sessionStorage.removeItem('version_conflict');
+            console.log('[Recovery] Cleared version_conflict flag');
           }
         } else {
           console.log('[Recovery] No differences found - localStorage matches database');
+          
+          // Also clear conflict flag if everything is in sync
+          sessionStorage.removeItem('version_conflict');
         }
 
       } catch (err) {
