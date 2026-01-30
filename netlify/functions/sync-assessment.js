@@ -1,5 +1,5 @@
 /**
- * SYNC-ASSESSMENT v6 - With error logging
+ * SYNC-ASSESSMENT v7 - With CORS restriction
  * 
  * FIXES APPLIED:
  * 1. Log actual updateError with full details
@@ -7,12 +7,30 @@
  * 3. Sanitize payload - strip forbidden keys, normalize user_id
  * 4. Added last_survey_edit_at tracking
  * 5. Added sync_errors logging for debugging
+ * 6. CORS restricted to allowed domains
  */
 
 const { createClient } = require('@supabase/supabase-js')
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://effervescent-concha-95d2df.netlify.app',
+  'https://bestcompaniesforworkingwithcancer.com',
+  'https://www.bestcompaniesforworkingwithcancer.com',
+  'http://localhost:3000',
+  'http://localhost:3001'
+]
+
+function getCorsOrigin(requestOrigin) {
+  if (!requestOrigin) return ALLOWED_ORIGINS[0]
+  if (ALLOWED_ORIGINS.includes(requestOrigin)) return requestOrigin
+  // Check if it's a Netlify deploy preview
+  if (requestOrigin.includes('netlify.app')) return requestOrigin
+  return ALLOWED_ORIGINS[0]
+}
 
 // Helper to log sync errors for debugging
 async function logSyncError(supabase, errorData) {
@@ -35,8 +53,11 @@ async function logSyncError(supabase, errorData) {
 }
 
 exports.handler = async (event) => {
+  const requestOrigin = event.headers?.origin || event.headers?.Origin
+  const corsOrigin = getCorsOrigin(requestOrigin)
+  
   const headers = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Content-Type': 'application/json'
