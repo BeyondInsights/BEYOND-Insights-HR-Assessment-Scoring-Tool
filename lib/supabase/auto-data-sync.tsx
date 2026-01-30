@@ -431,8 +431,12 @@ async function syncViaNetlifyFunction(
   data: Record<string, any>,
   accessToken: string,
   userType: 'regular' | 'fp' | 'compd' = 'regular',
-  surveyId?: string
+  surveyId?: string,
+  retryCount: number = 0
 ): Promise<SyncResponse> {
+  // Prevent infinite retry loops
+  const MAX_RETRIES = 2;
+  
   try {
     const clientId = getOrCreateTabId('sync_client_id')
     let expectedVersion = getStoredVersion()
@@ -503,6 +507,22 @@ async function syncViaNetlifyFunction(
       console.error('❌ AUTO-SYNC: VERSION CONFLICT!')
       console.error('   Expected:', result.expectedVersion)
       console.error('   Actual:', result.actualVersion)
+      
+      // CRITICAL: Update localStorage to the ACTUAL version from DB
+      // This way, next sync attempt uses the correct version
+      if (result.actualVersion) {
+        setStoredVersion(result.actualVersion)
+        console.log('🔄 AUTO-SYNC: Updated localStorage version to:', result.actualVersion)
+        
+        // Retry with correct version (but limit retries to prevent infinite loop)
+        if (retryCount < MAX_RETRIES) {
+          console.log(`🔄 AUTO-SYNC: Retrying with correct version (attempt ${retryCount + 1}/${MAX_RETRIES})...`)
+          return syncViaNetlifyFunction(userId, data, accessToken, userType, surveyId, retryCount + 1)
+        }
+      }
+      
+      // Only set conflict flag if we can't auto-recover after retries
+      console.error('❌ AUTO-SYNC: Max retries exceeded, setting conflict flag')
       setConflictFlag()
       return { success: false, error: 'Version conflict', conflict: true }
     }
