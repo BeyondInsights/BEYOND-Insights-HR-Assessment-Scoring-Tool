@@ -132,6 +132,7 @@ exports.handler = async (event) => {
       const updatePayload = {
         ...safeData,  // Use sanitized data, not raw data
         updated_at: new Date().toISOString(),
+        last_survey_edit_at: new Date().toISOString(),  // Track when user last edited survey
         last_update_source: safeSource,
         last_update_client_id: client_id || null,
         version: currentVersion + 1
@@ -216,6 +217,7 @@ exports.handler = async (event) => {
           version: 1,
           ...safeData,  // Use sanitized data
           updated_at: new Date().toISOString(),
+          last_survey_edit_at: new Date().toISOString(),  // Track when user last edited survey
           last_update_source: safeSource,
           last_update_client_id: client_id || null
         }
