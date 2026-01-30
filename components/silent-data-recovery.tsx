@@ -245,9 +245,11 @@ export function SilentDataRecovery() {
             localStorage.setItem('assessment_version', String(newVersion));
             console.log('[Recovery] Updated localStorage version to:', newVersion);
             
-            // CRITICAL: Clear any version conflict flag so auto-sync can resume
-            sessionStorage.removeItem('version_conflict');
-            console.log('[Recovery] Cleared version_conflict flag');
+            // CRITICAL: Clear any version conflict flags (both namespaced and legacy)
+            const conflictKey = `version_conflict_${surveyId}`;
+            sessionStorage.removeItem(conflictKey);
+            sessionStorage.removeItem('version_conflict');  // Legacy
+            console.log('[Recovery] Cleared version_conflict flags');
           }
         } else {
           console.log('[Recovery] No differences found - localStorage matches database');
@@ -258,8 +260,10 @@ export function SilentDataRecovery() {
             console.log('[Recovery] Synced localStorage version to:', dbRecord.version);
           }
           
-          // Also clear conflict flag if everything is in sync
-          sessionStorage.removeItem('version_conflict');
+          // Also clear conflict flags if everything is in sync
+          const conflictKey = `version_conflict_${surveyId}`;
+          sessionStorage.removeItem(conflictKey);
+          sessionStorage.removeItem('version_conflict');  // Legacy
         }
 
       } catch (err) {
