@@ -228,7 +228,7 @@ export default function Dimension4Page() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
-              Dimension 4: Navigation & Expert Resources
+              Dimension 4: Cancer Support Resources
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -254,7 +254,7 @@ export default function Dimension4Page() {
               </p>
 
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl mb-8">
-                <h2 className="text-3xl font-bold text-white mb-3">NAVIGATION & EXPERT RESOURCES</h2>
+                <h2 className="text-3xl font-bold text-white mb-3">CANCER SUPPORT RESOURCES</h2>
                 <p className="text-blue-100 text-lg">
                   Professionals providing healthcare coordination and guidance including resources that help employees understand benefits and treatment access and access to expert support.
                 </p>
@@ -303,7 +303,7 @@ export default function Dimension4Page() {
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 rounded-t-xl">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-white mb-2">NAVIGATION & EXPERT RESOURCES</h2>
+                  <h2 className="text-2xl font-bold text-white mb-2">CANCER SUPPORT RESOURCES</h2>
                   <p className="text-gray-300 text-sm">
                     Professionals providing healthcare coordination and guidance
                   </p>
@@ -457,7 +457,7 @@ export default function Dimension4Page() {
             }`}>
               {/* VALIDATION: Required asterisk */}
               <p className="font-bold text-gray-900 mb-4">
-                Are the <span className="text-blue-600 font-bold">Navigation & Expert Resources</span> your 
+                Are the <span className="text-blue-600 font-bold">Cancer Support Resources</span> your 
                 organization <span className="text-blue-600 font-bold">currently offers</span>...?
                 <span className="text-red-600 ml-1">*</span>
               </p>
@@ -647,7 +647,7 @@ export default function Dimension4Page() {
               Dimension 4 Complete!
             </h2>
             <p className="text-gray-600 mb-8">
-              You've successfully completed the Navigation & Expert Resources dimension.
+              You've successfully completed the Cancer Support Resources dimension.
             </p>
             <button
               onClick={async () => { 
