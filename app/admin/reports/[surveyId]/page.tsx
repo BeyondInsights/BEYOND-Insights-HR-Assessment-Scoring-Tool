@@ -3075,7 +3075,7 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="pt-1">
-                  <h3 className="text-lg font-bold text-slate-800 mb-2">When employees face a cancer diagnosis, your company's response defines your culture.</h3>
+                  <h3 className="text-lg font-bold text-slate-800 mb-2">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
                   <p className="text-sm text-slate-600 leading-relaxed">
                     Organizations that invest in comprehensive cancer support don't just help those directly affected. They build trust 
                     across their entire workforce and demonstrate values that resonate with every employee.
@@ -3092,26 +3092,26 @@ export default function ExportReportPage() {
                 
                 <div className="p-6">
                   <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                    The 13 dimensions in this assessment weren't created in a boardroom. They were shaped by extensive research 
-                    with the people who live this every day: HR leaders managing benefits and leave programs, employees who have 
-                    navigated a cancer diagnosis while working, and general employee populations whose expectations around 
-                    workplace support continue to evolve.
+                    The 13 dimensions in this assessment weren't developed in a silo. They were shaped through qualitative 
+                    and quantitative research with the people who live this every day: HR leaders who helped define what each 
+                    dimension should cover, employees whose lived experiences navigating cancer while working revealed what 
+                    support actually looks like in practice, and the broader workforce whose expectations continue to evolve.
                   </p>
                   
                   <div className="grid grid-cols-3 gap-4 mb-5">
                     <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 text-center">
                       <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                       </div>
                       <p className="text-sm font-bold text-violet-800">HR Leaders</p>
-                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">Identified which support structures matter most and what's operationally realistic</p>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                     </div>
                     <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 text-center">
                       <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center mx-auto mb-3">
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                       </div>
                       <p className="text-sm font-bold text-amber-800">Employees Managing Cancer</p>
-                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">Shared what support they needed most and where workplaces fell short</p>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">Drew on lived experience to reveal what support they needed most and where workplaces fell short</p>
                     </div>
                     <div className="bg-sky-50 rounded-xl p-4 border border-sky-100 text-center">
                       <div className="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center mx-auto mb-3">
@@ -4112,7 +4112,7 @@ export default function ExportReportPage() {
                     <div className="col-span-3">Element</div>
                     <div className="col-span-1 text-center">Your Status</div>
                     <div className="col-span-5 text-center">
-                      <div>Peer Distribution</div>
+                      <div>Benchmark Distribution</div>
                       <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">Offering</span></div>
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">Planning</span></div>
@@ -4149,7 +4149,7 @@ export default function ExportReportPage() {
                             </span>
                           </div>
                           
-                          {/* Peer Distribution - Wide Stacked Bar */}
+                          {/* Benchmark Distribution - Wide Stacked Bar */}
                           <div className="col-span-5">
                             <div className="h-8 rounded-lg overflow-hidden flex bg-slate-200 border border-slate-300">
                               {/* Offering */}
