@@ -3129,7 +3129,7 @@ export default function InteractiveReportPage() {
                       <p className="text-slate-600 mb-6">Combined performance across all 13 support dimensions, weighted by their strategic importance to cancer support programs.</p>
                       <div className="bg-slate-50 rounded-xl p-4 mb-4">
                         <p className="text-sm font-semibold text-slate-700 mb-3">How It's Calculated</p>
-                        <p className="text-sm text-slate-600">Each dimension score is multiplied by its weight, then summed and normalized to 100. Higher-weighted dimensions (like Manager Training at 14%) have more influence than lower-weighted ones.</p>
+                        <p className="text-sm text-slate-600">Each dimension score is multiplied by its weight, then summed and normalized to 100. Higher-weighted dimensions (like Manager Training at 12%) have more influence than lower-weighted ones.</p>
                       </div>
                       <div className="space-y-2">
                         <p className="text-sm font-semibold text-slate-700">Top 5 Dimensions by Weight:</p>
