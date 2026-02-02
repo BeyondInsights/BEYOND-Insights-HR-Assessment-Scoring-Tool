@@ -3072,6 +3072,9 @@ export default function ExportReportPage() {
                       {contactEmail && <span>{contactEmail}</span>}
                     </div>
                   )}
+                  <p className="mt-4 text-slate-500 text-sm leading-relaxed max-w-xl italic">
+                    40% of adults will be diagnosed with cancer in their lifetime — 42% during their working years. How your company responds matters.
+                  </p>
                 </div>
                 <div className="flex items-center gap-8">
                   <div className="text-right">
@@ -3088,34 +3091,85 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* Why This Matters */}
-            <div className="px-12 py-8 bg-slate-50 border-b border-slate-200">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Why This Matters</h3>
-              
-              <p className="text-slate-700 leading-relaxed mb-6">
-                When employees face a cancer diagnosis, workplace support can transform one of life's most challenging experiences. 
-                Organizations that invest in comprehensive cancer support don't just help those directly affected—they build trust across 
-                their entire workforce and demonstrate values that resonate with all employees.
+            {/* Executive Summary */}
+            <div className="px-12 py-10 bg-slate-50">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
+              <p className="text-slate-700 leading-relaxed text-lg" data-export="executive-summary-text">
+                {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
+                in supporting employees managing cancer, achieving a composite score of <strong>{compositeScore}</strong>
+                {percentileRank !== null && totalCompanies > 1 && (
+                  <span>, which places the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
+                )}.
+                {topDimension && bottomDimension && (
+                  <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
+                  while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
+                )}
               </p>
               
-              {/* The Reality - Two key stats - tighter layout */}
-              <div className="flex justify-center gap-4 mb-6">
-                <div className="bg-white rounded-xl px-8 py-4 border border-slate-200 shadow-sm text-center">
-                  <p className="text-3xl font-bold text-violet-600">40%</p>
-                  <p className="text-sm text-slate-600 mt-1">of adults will be diagnosed with cancer in their lifetime</p>
+              {/* Tier Progress */}
+              {(() => {
+                const topGrowthDims = allDimensionsByScore.slice(0, 3).map(d => d.name);
+                const dimList = topGrowthDims.length === 3 
+                  ? `${topGrowthDims[0]}, ${topGrowthDims[1]}, or ${topGrowthDims[2]}`
+                  : topGrowthDims.length === 2
+                  ? `${topGrowthDims[0]} or ${topGrowthDims[1]}`
+                  : topGrowthDims[0];
+                
+                return (
+                  <div className="mt-6 p-5 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-4">
+                    <TrendUpIcon className="w-6 h-6 text-violet-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      {nextTierUp && pointsToNextTier ? (
+                        <>
+                          <p className="text-base font-bold text-violet-800">
+                            {pointsToNextTier} points from {nextTierUp.name} tier
+                            {nextTierUp.name !== 'Exemplary' && (
+                              <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points from Exemplary</span>
+                            )}
+                          </p>
+                          <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-base font-bold text-violet-800">Exemplary tier achieved</p>
+                          <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+              
+              {/* Key Metrics */}
+              <div className="mt-8 grid grid-cols-4 gap-6">
+                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                  <p className="text-4xl font-bold text-slate-800" data-export="metric-currently-offering">{currentlyOffering}</p>
+                  <p className="text-sm text-slate-500 mt-2 font-medium">of {totalElements} elements offered</p>
                 </div>
-                <div className="bg-white rounded-xl px-8 py-4 border border-slate-200 shadow-sm text-center">
-                  <p className="text-3xl font-bold text-violet-600">42%</p>
-                  <p className="text-sm text-slate-600 mt-1">of diagnoses occur during working years (ages 20-64)</p>
+                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                  <p className="text-4xl font-bold text-slate-800" data-export="metric-in-development">{planningItems + assessingItems}</p>
+                  <p className="text-sm text-slate-500 mt-2 font-medium">initiatives in development</p>
+                </div>
+                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                  <p className="text-4xl font-bold text-slate-800" data-export="metric-gaps">{gapItems}</p>
+                  <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
+                </div>
+                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                  <p className="text-4xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
+                  <p className="text-sm text-slate-500 mt-2 font-medium">dimensions at Leading+</p>
                 </div>
               </div>
-              
-              {/* Research intro */}
-              <p className="text-sm text-slate-600 mb-4 text-center italic">
-                Here's what our research with employees managing cancer and general population employees found:
+            </div>
+            
+            {/* What Employees Have Told Us */}
+            <div className="px-12 py-10 bg-white border-b border-slate-200">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">What Employees Have Told Us</h3>
+              <p className="text-slate-600 leading-relaxed mb-6">
+                Through our research with employees managing cancer and the general working population, 
+                here's what we've learned about the impact of workplace commitment:
               </p>
               
-              {/* The Pledge Impact - Redesigned */}
+              {/* The Pledge Impact */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-slate-700">
                   <div className="flex items-center justify-between">
@@ -3190,76 +3244,6 @@ export default function ExportReportPage() {
                     <span className="mx-2">•</span>
                     <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
                   </p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Executive Summary */}
-            <div className="px-12 py-10 bg-slate-50">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
-              <p className="text-slate-700 leading-relaxed text-lg" data-export="executive-summary-text">
-                {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
-                in supporting employees managing cancer, achieving a composite score of <strong>{compositeScore}</strong>
-                {percentileRank !== null && totalCompanies > 1 && (
-                  <span>, which places the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
-                )}.
-                {topDimension && bottomDimension && (
-                  <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
-                  while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
-                )}
-              </p>
-              
-              {/* Tier Progress */}
-              {(() => {
-                const topGrowthDims = allDimensionsByScore.slice(0, 3).map(d => d.name);
-                const dimList = topGrowthDims.length === 3 
-                  ? `${topGrowthDims[0]}, ${topGrowthDims[1]}, or ${topGrowthDims[2]}`
-                  : topGrowthDims.length === 2
-                  ? `${topGrowthDims[0]} or ${topGrowthDims[1]}`
-                  : topGrowthDims[0];
-                
-                return (
-                  <div className="mt-6 p-5 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-4">
-                    <TrendUpIcon className="w-6 h-6 text-violet-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      {nextTierUp && pointsToNextTier ? (
-                        <>
-                          <p className="text-base font-bold text-violet-800">
-                            {pointsToNextTier} points from {nextTierUp.name} tier
-                            {nextTierUp.name !== 'Exemplary' && (
-                              <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points from Exemplary</span>
-                            )}
-                          </p>
-                          <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-base font-bold text-violet-800">Exemplary tier achieved</p>
-                          <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
-              
-              {/* Key Metrics */}
-              <div className="mt-8 grid grid-cols-4 gap-6">
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800" data-export="metric-currently-offering">{currentlyOffering}</p>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">of {totalElements} elements offered</p>
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800" data-export="metric-in-development">{planningItems + assessingItems}</p>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">initiatives in development</p>
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800" data-export="metric-gaps">{gapItems}</p>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">dimensions at Leading+</p>
                 </div>
               </div>
             </div>
