@@ -3175,7 +3175,7 @@ export default function ExportReportPage() {
                   </div>
                   <div className="text-left">
                     <span className="text-sm font-bold text-slate-800 group-hover:text-sky-800 transition-colors">How to Use This Report</span>
-                    <span className="text-xs text-slate-500 ml-3">A guide to getting the most from your assessment</span>
+                    <span className="text-sm text-slate-600 ml-3 font-medium">A guide to getting the most from your assessment</span>
                   </div>
                 </div>
                 <div className={`w-7 h-7 rounded-full bg-white border border-sky-200 flex items-center justify-center transition-transform duration-200 ${showReportGuide ? 'rotate-180' : ''}`}>
@@ -3227,10 +3227,10 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    <div className="px-6 py-4 bg-sky-600 flex items-center gap-3">
-                      <svg className="w-5 h-5 text-sky-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                      <p className="text-sm text-white">
-                        <strong>Ready for next steps?</strong> The Cancer and Careers team can provide hands-on guidance, 
+                    <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
+                      <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                      <p className="text-sm text-slate-200">
+                        <strong className="text-white">Ready for next steps?</strong> The Cancer and Careers team can provide hands-on guidance, 
                         industry context, and implementation support to help you prioritize what matters most for your workforce.
                       </p>
                     </div>
