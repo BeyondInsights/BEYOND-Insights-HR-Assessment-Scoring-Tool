@@ -469,7 +469,7 @@ const CD1A_ITEMS: InstrumentItem[] = [
   {
     id: "CD1a.4",
     section: "CD1a",
-    text: "Navigation & Expert Resources",
+    text: "Cancer Support Resources",
     route: "/survey/cross-dimensional-assessment",
     type: "multi-select",
     fieldName: "cd1a"
