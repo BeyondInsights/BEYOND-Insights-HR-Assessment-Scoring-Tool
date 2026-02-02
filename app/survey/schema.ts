@@ -194,7 +194,7 @@ const INTRO: Record<number,string> = {
   1:'Time off and flexibility enabling treatment without risking job or income.',
   2:'Financial protections preventing hardship during treatment.',
   3:'Manager capability and resources to support employees.',
-  4:'Navigation and expert resources to coordinate care/benefits.',
+  4:'Cancer support resources to help employees navigate care and benefits.',
   5:'Practical accommodations to keep work feasible.',
   6:'Culture that protects, includes, and reduces stigma.',
   7:'Career continuity and advancement protections.',
