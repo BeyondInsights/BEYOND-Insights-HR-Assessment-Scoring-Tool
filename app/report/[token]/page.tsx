@@ -2754,7 +2754,7 @@ export default function InteractiveReportPage() {
                   </div>
                   <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
                     <p className="text-4xl font-bold text-violet-600">42%</p>
-                    <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of diagnoses during<br/>working years (20-64)</p>
+                    <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of diagnoses occur during<br/>working years (20-64)</p>
                   </div>
                 </div>
                 <div className="pt-1">
