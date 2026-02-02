@@ -1750,6 +1750,7 @@ export default function InteractiveReportPage() {
   // Password protection state
   const [authenticated, setAuthenticated] = useState(false);
   const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
+  const [showReportGuide, setShowReportGuide] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState('');
   const [benchmarks, setBenchmarks] = useState<any>(null);
@@ -2742,6 +2743,185 @@ export default function InteractiveReportPage() {
               </div>
             </div>
             
+            {/* The Context — Why This Work Matters */}
+            <div className="bg-gradient-to-b from-slate-50 to-white px-12 py-10 border-b border-slate-200">
+              {/* Lead stat + narrative */}
+              <div className="flex items-start gap-10 mb-8">
+                <div className="flex-shrink-0 flex gap-4">
+                  <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
+                    <p className="text-4xl font-bold text-violet-600">40%</p>
+                    <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
+                  </div>
+                  <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
+                    <p className="text-4xl font-bold text-violet-600">42%</p>
+                    <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of diagnoses during<br/>working years (20-64)</p>
+                  </div>
+                </div>
+                <div className="pt-1">
+                  <h3 className="text-lg font-bold text-slate-800 mb-2">When employees face a cancer diagnosis, your company's response defines your culture.</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Organizations that invest in comprehensive cancer support don't just help those directly affected. They build trust 
+                    across their entire workforce. Our research with employees managing cancer and the general working population 
+                    reveals just how much workplace commitment matters.
+                  </p>
+                </div>
+              </div>
+              
+              {/* Employee Research — The Pledge */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 bg-slate-800">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">What Employees Have Told Us</p>
+                      <h4 className="font-semibold text-white text-lg">The Working with Cancer Pledge</h4>
+                    </div>
+                    <div className="bg-amber-500/15 border border-amber-400/25 rounded-lg px-4 py-2 text-right">
+                      <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
+                      <p className="text-white text-sm font-medium">Only <span className="text-amber-300 font-bold">16-18%</span> of employees aware</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <div className="grid grid-cols-2 gap-8">
+                    {/* Employees Managing Cancer */}
+                    <div className="bg-violet-50 rounded-xl p-5 border border-violet-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                        </div>
+                        <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Say the pledge is important</span>
+                          <span className="text-lg font-bold text-violet-700">81%</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would trust pledge companies more</span>
+                          <span className="text-lg font-bold text-violet-700">81%</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would influence their job decisions</span>
+                          <span className="text-lg font-bold text-violet-700">75%</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* General Population */}
+                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        </div>
+                        <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Say the pledge is important</span>
+                          <span className="text-lg font-bold text-slate-700">72%</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would trust pledge companies more</span>
+                          <span className="text-lg font-bold text-slate-700">69%</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would influence their job decisions</span>
+                          <span className="text-lg font-bold text-slate-700">60%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-violet-50 border-t border-slate-200">
+                  <p className="text-sm text-slate-700 text-center">
+                    <strong className="text-slate-800">The Pledge signals intent.</strong>
+                    <span className="mx-2">•</span>
+                    <strong className="text-violet-700">This Index measures execution.</strong>
+                    <span className="mx-2">•</span>
+                    <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* How to Use This Report — Collapsible */}
+            <div className="px-12 py-5 bg-white border-b border-slate-200">
+              <button 
+                onClick={() => setShowReportGuide(!showReportGuide)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-sky-50 to-sky-100/60 border border-sky-200 rounded-xl hover:from-sky-100 hover:to-sky-100 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-sky-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-sky-800 transition-colors">How to Use This Report</span>
+                    <span className="text-sm text-slate-600 ml-3 font-medium">A guide to getting the most from your assessment</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-sky-200 flex items-center justify-center transition-transform duration-200 ${showReportGuide ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              
+              {showReportGuide && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
+                    <div className="p-6">
+                      <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                        This report provides a comprehensive baseline of your organization's cancer support infrastructure across 
+                        13 dimensions. It is designed as a <strong className="text-slate-800">starting point for strategic conversations</strong>, not 
+                        a one-size-fits-all prescription.
+                      </p>
+                      <p className="text-sm text-slate-700 leading-relaxed mb-5">
+                        We recognize that every organization is different. Your industry, workforce, benefits structure, and current 
+                        capabilities all shape what's realistic and impactful for your team. Some recommendations may already align 
+                        with your priorities; others may not be feasible given where you're starting, and that's expected.
+                      </p>
+                      
+                      <p className="text-sm font-semibold text-slate-800 mb-3">To get the most from this assessment:</p>
+                      <div className="grid grid-cols-2 gap-3 mb-5">
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-sky-700">1</span>
+                          </div>
+                          <p className="text-sm text-slate-600">Review your dimension scores and the specific elements within each</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-sky-700">2</span>
+                          </div>
+                          <p className="text-sm text-slate-600">Identify where quick wins align with your existing infrastructure</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-sky-700">3</span>
+                          </div>
+                          <p className="text-sm text-slate-600">Note areas where deeper exploration would be valuable</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-sky-700">4</span>
+                          </div>
+                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Connect with Cancer and Careers</strong> to build a tailored action plan for {companyName}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
+                      <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                      <p className="text-sm text-slate-200">
+                        <strong className="text-white">Ready for next steps?</strong> The Cancer and Careers team can provide hands-on guidance, 
+                        industry context, and implementation support to help you prioritize what matters most for your workforce.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
             {/* Company info + score */}
             <div className="px-12 py-10 border-b border-slate-100">
               <div className="flex items-end justify-between">
@@ -2755,9 +2935,6 @@ export default function InteractiveReportPage() {
                       {contactEmail && <span>{contactEmail}</span>}
                     </div>
                   )}
-                  <p className="mt-4 text-slate-500 text-sm leading-relaxed max-w-xl italic">
-                    40% of adults will be diagnosed with cancer in their lifetime — 42% during their working years. How your company responds matters.
-                  </p>
                 </div>
                 <div className="flex items-center gap-8">
                   <div className="text-right">
@@ -2840,93 +3017,6 @@ export default function InteractiveReportPage() {
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                   <p className="text-4xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
                   <p className="text-sm text-slate-500 mt-2 font-medium">dimensions at Leading+</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* What Employees Have Told Us */}
-            <div className="px-12 py-10 bg-white border-b border-slate-200">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">What Employees Have Told Us</h3>
-              <p className="text-slate-600 leading-relaxed mb-6">
-                Through our research with employees managing cancer and the general working population, 
-                here's what we've learned about the impact of workplace commitment:
-              </p>
-              
-              {/* The Pledge Impact */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 bg-slate-700">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-white text-lg">The Working with Cancer Pledge</h4>
-                      <p className="text-slate-300 text-sm mt-1">Public commitment builds trust before employees ever need support</p>
-                    </div>
-                    <div className="bg-amber-500/20 border border-amber-400/30 rounded-lg px-4 py-2 text-right">
-                      <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Opportunity</p>
-                      <p className="text-white text-sm font-medium">Only <span className="text-amber-300">16-18%</span> aware</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <div className="grid grid-cols-2 gap-8">
-                    {/* Employees Managing Cancer */}
-                    <div className="bg-violet-50 rounded-xl p-5 border border-violet-100">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                        </div>
-                        <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Say the pledge is important</span>
-                          <span className="text-lg font-bold text-violet-700">81%</span>
-                        </div>
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                          <span className="text-lg font-bold text-violet-700">81%</span>
-                        </div>
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                          <span className="text-lg font-bold text-violet-700">75%</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* General Population */}
-                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                        </div>
-                        <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Say the pledge is important</span>
-                          <span className="text-lg font-bold text-slate-700">72%</span>
-                        </div>
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                          <span className="text-lg font-bold text-slate-700">69%</span>
-                        </div>
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                          <span className="text-lg font-bold text-slate-700">60%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-violet-50 border-t border-slate-200">
-                  <p className="text-sm text-slate-700 text-center">
-                    <strong className="text-slate-800">The Pledge signals intent.</strong>
-                    <span className="mx-2">•</span>
-                    <strong className="text-violet-700">This Index measures execution.</strong>
-                    <span className="mx-2">•</span>
-                    <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
-                  </p>
                 </div>
               </div>
             </div>
