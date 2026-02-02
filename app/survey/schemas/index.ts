@@ -63,7 +63,7 @@ export const surveySchema = {
         { id: 'd1', title: 'Medical Leave & Flexibility', schema: d1Schema },
         { id: 'd2', title: 'Insurance & Financial Protection', schema: d2Schema },
         { id: 'd3', title: 'Manager Preparedness & Capability', schema: d3Schema },
-        { id: 'd4', title: 'Navigation & Expert Resources', schema: d4Schema },
+        { id: 'd4', title: 'Cancer Support Resources', schema: d4Schema },
         { id: 'd5', title: 'Workplace Accommodations', schema: d5Schema },
         { id: 'd6', title: 'Culture & Psychological Safety', schema: d6Schema },
         { id: 'd7', title: 'Career Continuity & Advancement', schema: d7Schema },
