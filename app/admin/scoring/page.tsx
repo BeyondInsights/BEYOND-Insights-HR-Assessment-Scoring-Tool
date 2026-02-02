@@ -55,7 +55,7 @@ const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
   3: 'Manager Preparedness & Capability',
-  4: 'Navigation & Expert Resources',
+  4: 'Cancer Support Resources',
   5: 'Workplace Accommodations',
   6: 'Culture & Psychological Safety',
   7: 'Career Continuity & Advancement',
@@ -2514,7 +2514,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                     {[
                       { dim: 'D10: Caregiver & Family', items: 19, n: 35, alpha: 0.90, quality: 'Excellent', color: 'text-green-600' },
                       { dim: 'D8: Work Continuation', items: 12, n: 35, alpha: 0.87, quality: 'Good', color: 'text-blue-600' },
-                      { dim: 'D4: Navigation & Expert', items: 10, n: 36, alpha: 0.83, quality: 'Good', color: 'text-blue-600' },
+                      { dim: 'D4: Cancer Support', items: 10, n: 36, alpha: 0.83, quality: 'Good', color: 'text-blue-600' },
                       { dim: 'D7: Career Continuity', items: 9, n: 34, alpha: 0.82, quality: 'Good', color: 'text-blue-600' },
                       { dim: 'D11: Prevention & Wellness', items: 13, n: 36, alpha: 0.81, quality: 'Good', color: 'text-blue-600' },
                       { dim: 'D2: Insurance & Financial', items: 17, n: 35, alpha: 0.80, quality: 'Good', color: 'text-blue-600' },
