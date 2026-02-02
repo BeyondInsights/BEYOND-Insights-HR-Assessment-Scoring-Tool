@@ -3092,15 +3092,12 @@ export default function ExportReportPage() {
                 
                 <div className="p-6">
                   <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                    The 13 dimensions in this assessment weren't developed in a silo. They were shaped through qualitative 
-                    and quantitative research with the people who live this every day: HR leaders who helped define what each 
-                    dimension should cover, employees whose lived experiences navigating cancer while working revealed what 
-                    support actually looks like in practice, and the broader workforce whose expectations continue to evolve. 
-                    All of this was guided by Cancer and Careers leadership, drawing on decades of experience supporting 
-                    employees and employers through cancer in the workplace.
+                    The 13 dimensions in this assessment weren't developed in a silo. They were shaped through <strong className="text-slate-800">qualitative 
+                    and quantitative research</strong> with the people who live this every day, and guided by an organization with 
+                    decades of frontline experience in cancer and the workplace.
                   </p>
                   
-                  <div className="grid grid-cols-3 gap-4 mb-5">
+                  <div className="grid grid-cols-4 gap-4 mb-5">
                     <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 text-center">
                       <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
@@ -3113,7 +3110,7 @@ export default function ExportReportPage() {
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                       </div>
                       <p className="text-sm font-bold text-amber-800">Employees Managing Cancer</p>
-                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">Drew on lived experience to reveal what support they needed most and where workplaces fell short</p>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">Drew on lived experience to reveal what support they needed most and where gaps exist</p>
                     </div>
                     <div className="bg-sky-50 rounded-xl p-4 border border-sky-100 text-center">
                       <div className="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center mx-auto mb-3">
@@ -3121,6 +3118,13 @@ export default function ExportReportPage() {
                       </div>
                       <p className="text-sm font-bold text-sky-800">General Workforce</p>
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">Revealed how workplace cancer support shapes trust, loyalty, and job decisions</p>
+                    </div>
+                    <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100 text-center">
+                      <div className="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                      </div>
+                      <p className="text-sm font-bold text-emerald-800">Cancer and Careers Leadership</p>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">Guided the development of the framework, drawing on decades of frontline experience</p>
                     </div>
                   </div>
                   
