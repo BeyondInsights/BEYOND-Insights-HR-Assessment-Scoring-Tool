@@ -135,7 +135,7 @@ const DIMENSION_CONFIG = {
     ]
   },
   d4: {
-    name: 'Navigation & Expert Resources',
+    name: 'Cancer Support Resources',
     dataKey: 'dimension4_data',
     gridField: 'd4a',
     items: [
@@ -495,7 +495,7 @@ const CROSS_DIMENSIONAL_OPTIONS = {
     'Medical Leave & Flexibility',
     'Insurance & Financial Protection',
     'Manager Preparedness & Capability',
-    'Navigation & Expert Resources',
+    'Cancer Support Resources',
     'Workplace Accommodations',
     'Culture & Psychological Safety',
     'Career Continuity & Advancement',
@@ -2570,7 +2570,7 @@ const VERBATIM_QUESTIONS = [
   { id: 'd1b', name: 'D1b: Medical Leave & Flexibility - Other', dataKey: 'dimension1_data', field: 'd1b' },
   { id: 'd2b', name: 'D2b: Insurance & Financial Protection - Other', dataKey: 'dimension2_data', field: 'd2b' },
   { id: 'd3b', name: 'D3b: Manager Preparedness - Other', dataKey: 'dimension3_data', field: 'd3b' },
-  { id: 'd4b', name: 'D4b: Navigation & Expert Resources - Other', dataKey: 'dimension4_data', field: 'd4b' },
+  { id: 'd4b', name: 'D4b: Cancer Support Resources - Other', dataKey: 'dimension4_data', field: 'd4b' },
   { id: 'd5b', name: 'D5b: Workplace Accommodations - Other', dataKey: 'dimension5_data', field: 'd5b' },
   { id: 'd6b', name: 'D6b: Culture & Psychological Safety - Other', dataKey: 'dimension6_data', field: 'd6b' },
   { id: 'd7b', name: 'D7b: Career Continuity - Other', dataKey: 'dimension7_data', field: 'd7b' },
