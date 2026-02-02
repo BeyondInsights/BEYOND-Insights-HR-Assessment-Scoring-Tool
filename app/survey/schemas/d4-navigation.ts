@@ -1,7 +1,7 @@
 export const d4Schema = {
   d4a: {
     type: 'grid',
-    label: 'Navigation & Expert Resources Programs',
+    label: 'Cancer Support Resources Programs',
     statusOptions: [
       'Currently offer',
       'In active planning / development',
@@ -33,7 +33,7 @@ export const d4Schema = {
   },
   d4b: {
     type: 'textarea',
-    label: 'Additional navigation & expert resources not listed',
+    label: 'Additional cancer support resources not listed',
     hasNone: true
   },
   d4_1a: {
