@@ -20,7 +20,7 @@ const DIMENSIONS_BASE = [
   "Medical Leave & Flexibility",
   "Insurance & Financial Protection",
   "Manager Preparedness & Capability",
-  "Navigation & Expert Resources",
+  "Cancer Support Resources",
   "Workplace Accommodations & Modifications",
   "Culture & Psychological Safety",
   "Career Continuity & Advancement",
@@ -39,7 +39,7 @@ const DIMENSION_DEFINITIONS: Record<string, string> = {
   
   "Manager Preparedness & Capability": "Training, resources, and support for managers to effectively lead and support team members facing serious health conditions. Includes communication skills, understanding of available resources, and ability to balance empathy with business needs.",
   
-  "Navigation & Expert Resources": "Access to care coordinators, patient advocates, benefits specialists, and expert resources that help employees navigate the healthcare system, understand their benefits, and connect with appropriate support services.",
+  "Cancer Support Resources": "Access to care coordinators, patient advocates, benefits specialists, and expert resources that help employees navigate the healthcare system, understand their benefits, and connect with appropriate support services.",
   
   "Workplace Accommodations & Modifications": "Physical and operational adjustments to the work environment that enable employees to continue working during and after treatment. Includes ergonomic modifications, schedule adjustments, job restructuring, and accessibility improvements.",
   
