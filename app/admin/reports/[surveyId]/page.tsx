@@ -3075,7 +3075,7 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="pt-1">
-                  <h3 className="text-lg font-bold text-slate-800 mb-2">When employees face a cancer diagnosis, your company's response defines your culture.</h3>
+                  <h3 className="text-lg font-bold text-slate-800 mb-2">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
                   <p className="text-sm text-slate-600 leading-relaxed">
                     Organizations that invest in comprehensive cancer support don't just help those directly affected. They build trust 
                     across their entire workforce. Our research with employees managing cancer and the general working population 
