@@ -2137,6 +2137,7 @@ export default function ExportReportPage() {
   
   // Edit Mode State
   const [editMode, setEditMode] = useState(false);
+  const [showReportGuide, setShowReportGuide] = useState(false);
   const [customInsights, setCustomInsights] = useState<Record<number, { insight: string; cacHelp: string }>>({});
   const [customExecutiveSummary, setCustomExecutiveSummary] = useState<string>('');
   const [customPatterns, setCustomPatterns] = useState<{ pattern: string; implication: string; recommendation: string }[]>([]);
@@ -3160,6 +3161,66 @@ export default function ExportReportPage() {
                   </p>
                 </div>
               </div>
+            </div>
+            
+            {/* How to Use This Report — Collapsible */}
+            <div className="px-12 py-0 bg-white border-b border-slate-200">
+              <button 
+                onClick={() => setShowReportGuide(!showReportGuide)}
+                className="w-full flex items-center justify-between py-4 group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <span className="text-sm font-semibold text-slate-700 group-hover:text-sky-700 transition-colors">How to Use This Report</span>
+                </div>
+                <svg className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${showReportGuide ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              
+              {showReportGuide && (
+                <div className="pb-6 animate-in fade-in duration-200">
+                  <div className="bg-sky-50 border border-sky-200 rounded-xl p-6">
+                    <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                      This report provides a comprehensive baseline of your organization's cancer support infrastructure across 
+                      13 dimensions. It is designed as a <strong className="text-slate-800">starting point for strategic conversations</strong> — not 
+                      a one-size-fits-all prescription.
+                    </p>
+                    <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                      We recognize that every organization is different. Your industry, workforce, benefits structure, and current 
+                      capabilities all shape what's realistic and impactful for your team. Some recommendations may already align 
+                      with your priorities; others may not be feasible given where you're starting — and that's expected.
+                    </p>
+                    <div className="mb-4">
+                      <p className="text-sm font-semibold text-slate-800 mb-2">To get the most from this assessment:</p>
+                      <div className="space-y-2 ml-1">
+                        <div className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-1.5 flex-shrink-0"></div>
+                          <p className="text-sm text-slate-600">Review your dimension scores and the specific elements within each</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-1.5 flex-shrink-0"></div>
+                          <p className="text-sm text-slate-600">Identify where quick wins align with your existing infrastructure</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-1.5 flex-shrink-0"></div>
+                          <p className="text-sm text-slate-600">Note areas where deeper exploration would be valuable</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-1.5 flex-shrink-0"></div>
+                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Connect with the Cancer and Careers team</strong> to translate these findings into a tailored action plan for {companyName}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg px-4 py-3 border border-sky-200">
+                      <p className="text-sm text-slate-600">
+                        <strong className="text-sky-700">Next step:</strong> The Cancer and Careers team can provide hands-on guidance, 
+                        industry context, and implementation support to help you prioritize what matters most for your workforce.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Company info + score */}
