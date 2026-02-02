@@ -24,7 +24,7 @@
 
 // Dimension weights for base score (sum = 100)
 export const DIMENSION_WEIGHTS: Record<number, number> = {
-  4: 14,   // Navigation & Expert Resources
+  4: 14,   // Cancer Support Resources
   8: 13,   // Work Continuation & Resumption  
   3: 12,   // Manager Preparedness
   2: 11,   // Insurance & Financial
@@ -70,7 +70,7 @@ export const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
   3: 'Manager Preparedness & Capability',
-  4: 'Navigation & Expert Resources',
+  4: 'Cancer Support Resources',
   5: 'Workplace Accommodations & Modifications',
   6: 'Culture & Psychological Safety',
   7: 'Career Continuity & Advancement',
