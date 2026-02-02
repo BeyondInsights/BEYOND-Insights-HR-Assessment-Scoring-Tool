@@ -409,7 +409,7 @@ function getLabel(key: string): string {
       '1': 'Medical Leave',
       '2': 'Insurance',
       '3': 'Manager Training',
-      '4': 'Navigation',
+      '4': 'Cancer Support',
       '5': 'Accommodations',
       '6': 'Culture',
       '7': 'Career',
