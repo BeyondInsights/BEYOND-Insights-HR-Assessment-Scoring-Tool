@@ -3059,6 +3059,109 @@ export default function ExportReportPage() {
               </div>
             </div>
             
+            {/* The Context — Why This Work Matters */}
+            <div className="bg-gradient-to-b from-slate-50 to-white px-12 py-10 border-b border-slate-200">
+              {/* Lead stat + narrative */}
+              <div className="flex items-start gap-10 mb-8">
+                <div className="flex-shrink-0 flex gap-4">
+                  <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
+                    <p className="text-4xl font-bold text-violet-600">40%</p>
+                    <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
+                  </div>
+                  <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
+                    <p className="text-4xl font-bold text-violet-600">42%</p>
+                    <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of diagnoses during<br/>working years (20-64)</p>
+                  </div>
+                </div>
+                <div className="pt-1">
+                  <h3 className="text-lg font-bold text-slate-800 mb-2">When employees face a cancer diagnosis, your company's response defines your culture.</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Organizations that invest in comprehensive cancer support don't just help those directly affected — they build trust 
+                    across their entire workforce. Our research with employees managing cancer and the general working population 
+                    reveals just how much workplace commitment matters.
+                  </p>
+                </div>
+              </div>
+              
+              {/* Employee Research — The Pledge */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 bg-slate-800">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">What Employees Have Told Us</p>
+                      <h4 className="font-semibold text-white text-lg">The Working with Cancer Pledge</h4>
+                    </div>
+                    <div className="bg-amber-500/15 border border-amber-400/25 rounded-lg px-4 py-2 text-right">
+                      <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
+                      <p className="text-white text-sm font-medium">Only <span className="text-amber-300 font-bold">16-18%</span> of employees aware</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <div className="grid grid-cols-2 gap-8">
+                    {/* Employees Managing Cancer */}
+                    <div className="bg-violet-50 rounded-xl p-5 border border-violet-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                        </div>
+                        <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Say the pledge is important</span>
+                          <span className="text-lg font-bold text-violet-700">81%</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would trust pledge companies more</span>
+                          <span className="text-lg font-bold text-violet-700">81%</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would influence their job decisions</span>
+                          <span className="text-lg font-bold text-violet-700">75%</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* General Population */}
+                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        </div>
+                        <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Say the pledge is important</span>
+                          <span className="text-lg font-bold text-slate-700">72%</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would trust pledge companies more</span>
+                          <span className="text-lg font-bold text-slate-700">69%</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <span className="text-sm text-slate-700">Would influence their job decisions</span>
+                          <span className="text-lg font-bold text-slate-700">60%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-violet-50 border-t border-slate-200">
+                  <p className="text-sm text-slate-700 text-center">
+                    <strong className="text-slate-800">The Pledge signals intent.</strong>
+                    <span className="mx-2">•</span>
+                    <strong className="text-violet-700">This Index measures execution.</strong>
+                    <span className="mx-2">•</span>
+                    <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             {/* Company info + score */}
             <div className="px-12 py-10 border-b border-slate-100">
               <div className="flex items-end justify-between">
@@ -3072,9 +3175,6 @@ export default function ExportReportPage() {
                       {contactEmail && <span>{contactEmail}</span>}
                     </div>
                   )}
-                  <p className="mt-4 text-slate-500 text-sm leading-relaxed max-w-xl italic">
-                    40% of adults will be diagnosed with cancer in their lifetime — 42% during their working years. How your company responds matters.
-                  </p>
                 </div>
                 <div className="flex items-center gap-8">
                   <div className="text-right">
@@ -3157,93 +3257,6 @@ export default function ExportReportPage() {
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                   <p className="text-4xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
                   <p className="text-sm text-slate-500 mt-2 font-medium">dimensions at Leading+</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* What Employees Have Told Us */}
-            <div className="px-12 py-10 bg-white border-b border-slate-200">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">What Employees Have Told Us</h3>
-              <p className="text-slate-600 leading-relaxed mb-6">
-                Through our research with employees managing cancer and the general working population, 
-                here's what we've learned about the impact of workplace commitment:
-              </p>
-              
-              {/* The Pledge Impact */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 bg-slate-700">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-white text-lg">The Working with Cancer Pledge</h4>
-                      <p className="text-slate-300 text-sm mt-1">Public commitment builds trust before employees ever need support</p>
-                    </div>
-                    <div className="bg-amber-500/20 border border-amber-400/30 rounded-lg px-4 py-2 text-right">
-                      <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Opportunity</p>
-                      <p className="text-white text-sm font-medium">Only <span className="text-amber-300">16-18%</span> aware</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <div className="grid grid-cols-2 gap-8">
-                    {/* Employees Managing Cancer */}
-                    <div className="bg-violet-50 rounded-xl p-5 border border-violet-100">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                        </div>
-                        <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Say the pledge is important</span>
-                          <span className="text-lg font-bold text-violet-700">81%</span>
-                        </div>
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                          <span className="text-lg font-bold text-violet-700">81%</span>
-                        </div>
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                          <span className="text-lg font-bold text-violet-700">75%</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* General Population */}
-                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                        </div>
-                        <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Say the pledge is important</span>
-                          <span className="text-lg font-bold text-slate-700">72%</span>
-                        </div>
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                          <span className="text-lg font-bold text-slate-700">69%</span>
-                        </div>
-                        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
-                          <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                          <span className="text-lg font-bold text-slate-700">60%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-violet-50 border-t border-slate-200">
-                  <p className="text-sm text-slate-700 text-center">
-                    <strong className="text-slate-800">The Pledge signals intent.</strong>
-                    <span className="mx-2">•</span>
-                    <strong className="text-violet-700">This Index measures execution.</strong>
-                    <span className="mx-2">•</span>
-                    <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
-                  </p>
                 </div>
               </div>
             </div>
