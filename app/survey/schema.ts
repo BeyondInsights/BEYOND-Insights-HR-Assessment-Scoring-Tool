@@ -494,7 +494,7 @@ export const DIMENSIONS: DimBlock[] = Array.from({length:13}, (_,i) => {
   const n=i+1;
   const titleList = [
     'Medical Leave & Flexibility','Insurance & Financial Protection','Manager Preparedness & Capability',
-    'Navigation & Expert Resources','Workplace Accommodations','Culture & Psychological Safety',
+    'Cancer Support Resources','Workplace Accommodations','Culture & Psychological Safety',
     'Career Continuity & Advancement','Return-to-Work Excellence','Executive Commitment & Resources',
     'Caregiver & Family Support','Prevention, Wellness & Legal Compliance','Continuous Improvement & Outcomes',
     'Communication & Awareness'
