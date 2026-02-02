@@ -3095,7 +3095,9 @@ export default function ExportReportPage() {
                     The 13 dimensions in this assessment weren't developed in a silo. They were shaped through qualitative 
                     and quantitative research with the people who live this every day: HR leaders who helped define what each 
                     dimension should cover, employees whose lived experiences navigating cancer while working revealed what 
-                    support actually looks like in practice, and the broader workforce whose expectations continue to evolve.
+                    support actually looks like in practice, and the broader workforce whose expectations continue to evolve. 
+                    All of this was guided by Cancer and Careers leadership, drawing on decades of experience supporting 
+                    employees and employers through cancer in the workplace.
                   </p>
                   
                   <div className="grid grid-cols-3 gap-4 mb-5">
@@ -3129,13 +3131,13 @@ export default function ExportReportPage() {
                   </p>
                 </div>
                 
-                <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-violet-50 border-t border-slate-200">
-                  <p className="text-sm text-slate-700 text-center">
-                    <strong className="text-slate-800">13 dimensions.</strong>
-                    <span className="mx-2">•</span>
-                    <strong className="text-violet-700">Research-driven weights.</strong>
-                    <span className="mx-2">•</span>
-                    <span className="text-slate-600">Grounded in the voices of HR leaders and employees.</span>
+                <div className="px-6 py-5 bg-slate-800">
+                  <p className="text-sm text-center leading-relaxed">
+                    <strong className="text-white">13 dimensions.</strong>
+                    <span className="text-slate-500 mx-2">•</span>
+                    <strong className="text-violet-400">Research-driven weights.</strong>
+                    <span className="text-slate-500 mx-2">•</span>
+                    <span className="text-slate-300">Grounded in the voices of HR leaders, employees, and Cancer and Careers leadership.</span>
                   </p>
                 </div>
               </div>
