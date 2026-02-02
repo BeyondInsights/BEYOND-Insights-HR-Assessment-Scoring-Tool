@@ -2400,7 +2400,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                 <h3 className="font-bold text-gray-900 text-lg mb-3">13 Dimensions Assessed</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {[
-                    { num: 4, name: 'Navigation & Expert Support', weight: '14%' },
+                    { num: 4, name: 'Cancer Support Resources', weight: '14%' },
                     { num: 8, name: 'Work Continuation & Reintegration', weight: '13%' },
                     { num: 3, name: 'Manager Preparedness', weight: '12%' },
                     { num: 2, name: 'Insurance & Financial Protection', weight: '11%' },
