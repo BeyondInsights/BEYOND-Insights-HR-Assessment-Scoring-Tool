@@ -30,7 +30,7 @@ const POINTS = {
 // Dimension weights (Total = 100%)
 const DIMENSION_WEIGHTS: Record<number, number> = {
   // Tier 1: Highest Impact (50%)
-  4: 14,   // D4: Navigation & Expert Resources
+  4: 14,   // D4: Cancer Support Resources
   8: 13,   // D8: Work Continuation & Resumption
   3: 12,   // D3: Manager Preparedness & Capability
   2: 11,   // D2: Insurance & Financial Protection
@@ -53,7 +53,7 @@ const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
   3: 'Manager Preparedness & Capability',
-  4: 'Navigation & Expert Resources',
+  4: 'Cancer Support Resources',
   5: 'Workplace Accommodations',
   6: 'Culture & Psychological Safety',
   7: 'Career Continuity & Advancement',
