@@ -7,6 +7,7 @@ import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
 import { exportHybridPptx } from '@/components/PptxExportHybrid';
+import PresentationMode from '@/components/PresentationMode';
 
 // Create Supabase client directly
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -2182,6 +2183,7 @@ export default function ExportReportPage() {
   const [whatIfModal, setWhatIfModal] = useState<boolean>(false);
   const [whatIfDimension, setWhatIfDimension] = useState<number | null>(null);
   const [whatIfChanges, setWhatIfChanges] = useState<Record<string, string>>({});
+  const [presentationMode, setPresentationMode] = useState(false);
   
   // Info modal content
   const infoContent = {
@@ -2997,6 +2999,13 @@ export default function ExportReportPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                 )}
                 {generatingLink ? 'Generating...' : 'Share Link'}
+              </button>
+              <button 
+                onClick={() => setPresentationMode(true)}
+                className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                Present
               </button>
               <button 
                 onClick={handlePptxExport}
@@ -5942,6 +5951,34 @@ export default function ExportReportPage() {
             </div>
           </div>
         )}
+
+        {/* Presentation Mode */}
+        <PresentationMode
+          isActive={presentationMode}
+          onExit={() => setPresentationMode(false)}
+          company={company}
+          compositeScore={compositeScore || 0}
+          dimensionAnalysis={dimensionAnalysis}
+          elementBenchmarks={elementBenchmarks}
+          patterns={patterns}
+          rankings={rankings}
+          strengthDimensions={strengthDimensions}
+          gapOpportunities={gapOpportunities}
+          inProgressItems={inProgressItems}
+          quickWinItems={quickWinItems}
+          foundationItems={foundationItems}
+          excellenceItems={excellenceItems}
+          tierCounts={tierCounts}
+          percentileRank={percentileRank}
+          totalCompanies={totalCompanies}
+          customInsights={customInsights}
+          customObservations={customObservations}
+          customExecutiveSummary={customExecutiveSummary}
+          customRecommendations={customRecommendations}
+          isSingleCountryCompany={isSingleCountryCompany}
+          getTier={getTier}
+          getScoreColor={getScoreColor}
+        />
 
       </div>
     );
