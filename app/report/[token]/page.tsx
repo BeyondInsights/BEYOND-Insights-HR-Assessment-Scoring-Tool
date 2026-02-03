@@ -4820,6 +4820,13 @@ export default function InteractiveReportPage() {
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-8 bg-slate-50">
+              {/* Pledge Description */}
+              <p className="text-slate-700 leading-relaxed mb-6">
+                The <strong className="text-slate-800">Working with Cancer Pledge</strong> is a global commitment by 850+ organizations to create open, 
+                supportive, recovery-forward workplace cultures for employees managing cancer. Launched in 2023, it aims to abolish 
+                workplace stigma and insecurity around cancer diagnoses.
+              </p>
+              
               {/* The Pledge Impact */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-slate-700">
@@ -4836,6 +4843,11 @@ export default function InteractiveReportPage() {
                 </div>
                 
                 <div className="p-6">
+                  {/* Research attribution */}
+                  <p className="text-xs text-slate-500 italic text-center mb-4">
+                    Based on research conducted by Cancer and Careers with employees managing cancer and general population employees
+                  </p>
+                  
                   <div className="grid grid-cols-2 gap-8">
                     {/* Employees Managing Cancer */}
                     <div className="bg-violet-50 rounded-xl p-5 border border-violet-100">
