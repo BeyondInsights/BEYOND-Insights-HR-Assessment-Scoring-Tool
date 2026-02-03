@@ -2183,6 +2183,11 @@ export default function ExportReportPage() {
   const [whatIfDimension, setWhatIfDimension] = useState<number | null>(null);
   const [whatIfChanges, setWhatIfChanges] = useState<Record<string, string>>({});
   
+  // Presentation Mode State
+  const [presentationMode, setPresentationMode] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const presentationRef = useRef<HTMLDivElement>(null);
+  
   // Info modal content
   const infoContent = {
     crossDimensional: {
@@ -2922,6 +2927,62 @@ export default function ExportReportPage() {
   const patterns = getCrossDimensionPatterns(dimensionAnalysis);
   const rankings = getImpactRankings(dimensionAnalysis, compositeScore || 0);
   
+  // ============================================
+  // PRESENTATION MODE
+  // ============================================
+  const slideDefinitions = [
+    { id: 'hero', title: 'Title' },
+    { id: 'exec-summary', title: 'Executive Summary' },
+    { id: 'dimension-overview', title: 'Dimension Overview' },
+    ...dimensionAnalysis.map((d: any) => ({ id: `dimension-${d.dim}`, title: d.name })),
+    { id: 'strategic-roadmap', title: 'Strategic Roadmap' },
+    { id: 'pledge', title: 'Working with Cancer Pledge' },
+    { id: 'cac-help', title: 'How CAC Can Help' },
+  ];
+  
+  const totalSlides = slideDefinitions.length;
+  
+  // Keyboard navigation for presentation mode
+  useEffect(() => {
+    if (!presentationMode) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setPresentationMode(false);
+        document.exitFullscreen?.();
+      } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1));
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+        e.preventDefault();
+        setCurrentSlide(prev => Math.max(prev - 1, 0));
+      } else if (e.key === 'Home') {
+        setCurrentSlide(0);
+      } else if (e.key === 'End') {
+        setCurrentSlide(totalSlides - 1);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [presentationMode, totalSlides]);
+  
+  // Enter presentation mode
+  const startPresentation = () => {
+    setCurrentSlide(0);
+    setPresentationMode(true);
+    // Try to go fullscreen
+    document.documentElement.requestFullscreen?.().catch(() => {
+      // Fullscreen not available, continue anyway
+    });
+  };
+  
+  // Exit presentation mode
+  const exitPresentation = () => {
+    setPresentationMode(false);
+    document.exitFullscreen?.().catch(() => {});
+  };
+  
   return (
       <div className="min-h-screen bg-slate-100">
         <style jsx global>{`
@@ -2936,7 +2997,373 @@ export default function ExportReportPage() {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
             letter-spacing: -0.01em; 
           }
+          .presentation-mode { 
+            position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            display: flex; flex-direction: column; overflow: hidden;
+          }
+          .presentation-slide { 
+            flex: 1; display: flex; align-items: center; justify-content: center; 
+            padding: 40px; overflow: auto;
+          }
+          .presentation-slide-content {
+            background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            max-width: 1400px; width: 100%; max-height: calc(100vh - 160px); overflow: auto;
+            transform: scale(0.98); animation: slideIn 0.3s ease-out forwards;
+          }
+          @keyframes slideIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+          .presentation-controls {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(to top, rgba(15,23,42,0.95) 0%, transparent 100%);
+            padding: 20px 40px 30px; display: flex; align-items: center; justify-content: space-between;
+          }
+          .presentation-nav-btn {
+            width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2); color: white; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; backdrop-filter: blur(8px);
+          }
+          .presentation-nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+          .presentation-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+          .presentation-progress { flex: 1; margin: 0 30px; }
+          .presentation-progress-bar { height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; }
+          .presentation-progress-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #a855f7); transition: width 0.3s ease; }
+          .presentation-slide-indicator { color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 500; min-width: 80px; text-align: center; }
+          .presentation-exit { position: absolute; top: 20px; right: 20px; }
         `}</style>
+        
+        {/* ============ PRESENTATION MODE OVERLAY ============ */}
+        {presentationMode && (
+          <div className="presentation-mode">
+            {/* Exit button */}
+            <button 
+              onClick={exitPresentation}
+              className="presentation-exit presentation-nav-btn"
+              title="Exit (ESC)"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Slide title */}
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium tracking-wide uppercase">
+              {slideDefinitions[currentSlide]?.title}
+            </div>
+            
+            {/* Slide content area */}
+            <div className="presentation-slide" onClick={() => setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1))}>
+              <div className="presentation-slide-content" onClick={(e) => e.stopPropagation()}>
+                {/* Slide 0: Hero */}
+                {currentSlide === 0 && (
+                  <div className="p-12 text-center">
+                    <div className="flex justify-center mb-8">
+                      <Image src="/CAC-Logo.png" alt="Cancer and Careers" width={180} height={60} className="object-contain" />
+                    </div>
+                    <h1 className="text-4xl font-bold text-slate-800 mb-4">Best Companies for Working with Cancer</h1>
+                    <h2 className="text-2xl font-semibold text-slate-600 mb-8">{company?.company_name || 'Company Report'}</h2>
+                    <div className="inline-flex items-center gap-6 bg-slate-50 rounded-2xl px-10 py-6">
+                      <div className="text-center">
+                        <p className="text-6xl font-bold" style={{ color: getScoreColor(compositeScore || 0) }}>{compositeScore}</p>
+                        <p className="text-sm text-slate-500 mt-1">Composite Score</p>
+                      </div>
+                      <div className="w-px h-16 bg-slate-200"></div>
+                      <div className="text-center">
+                        <p className="text-3xl font-bold" style={{ color: overallTier?.color }}>{overallTier?.name}</p>
+                        <p className="text-sm text-slate-500 mt-1">Performance Tier</p>
+                      </div>
+                    </div>
+                    {percentileRank && (
+                      <p className="mt-6 text-slate-500">Top {100 - percentileRank}% of {totalCompanies} participating organizations</p>
+                    )}
+                  </div>
+                )}
+                
+                {/* Slide 1: Executive Summary */}
+                {currentSlide === 1 && (
+                  <div className="p-10">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                      <span className="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center text-lg">📊</span>
+                      Executive Summary
+                    </h2>
+                    <div className="grid grid-cols-4 gap-4 mb-8">
+                      <div className="bg-slate-50 rounded-xl p-5 text-center">
+                        <p className="text-4xl font-bold" style={{ color: getScoreColor(compositeScore || 0) }}>{compositeScore}</p>
+                        <p className="text-sm text-slate-500 mt-1">Composite Score</p>
+                      </div>
+                      <div className="bg-slate-50 rounded-xl p-5 text-center">
+                        <p className="text-4xl font-bold text-emerald-600">{excellenceCount}</p>
+                        <p className="text-sm text-slate-500 mt-1">Exemplary Dimensions</p>
+                      </div>
+                      <div className="bg-slate-50 rounded-xl p-5 text-center">
+                        <p className="text-4xl font-bold text-blue-600">{leadingCount}</p>
+                        <p className="text-sm text-slate-500 mt-1">Leading Dimensions</p>
+                      </div>
+                      <div className="bg-slate-50 rounded-xl p-5 text-center">
+                        <p className="text-4xl font-bold text-amber-600">{growthCount}</p>
+                        <p className="text-sm text-slate-500 mt-1">Growth Opportunities</p>
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-6">
+                      <h3 className="font-semibold text-slate-700 mb-3">Key Highlights</h3>
+                      <ul className="space-y-2 text-slate-600">
+                        <li className="flex items-start gap-2">
+                          <span className="text-emerald-500 mt-1">✓</span>
+                          <span>Strongest performance in {dimensionAnalysis.sort((a: any, b: any) => b.score - a.score)[0]?.name}</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-amber-500 mt-1">→</span>
+                          <span>Greatest opportunity in {dimensionAnalysis.sort((a: any, b: any) => a.score - b.score)[0]?.name}</span>
+                        </li>
+                        {percentileRank && (
+                          <li className="flex items-start gap-2">
+                            <span className="text-blue-500 mt-1">★</span>
+                            <span>Outperforming {percentileRank}% of participating organizations</span>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Slide 2: Dimension Overview */}
+                {currentSlide === 2 && (
+                  <div className="p-10">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-6">All 13 Dimensions at a Glance</h2>
+                    <div className="space-y-3">
+                      {[...dimensionAnalysis].sort((a: any, b: any) => b.weight - a.weight).map((d: any) => (
+                        <div key={d.dim} className="flex items-center gap-4">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: d.tier.color }}>{d.dim}</div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium text-slate-700">{d.name}</span>
+                              <span className="text-sm font-bold" style={{ color: d.tier.color }}>{d.score}</span>
+                            </div>
+                            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full transition-all" style={{ width: `${d.score}%`, backgroundColor: d.tier.color }}></div>
+                            </div>
+                          </div>
+                          <span className={`text-xs font-medium px-2 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Slides 3-15: Individual Dimensions */}
+                {currentSlide >= 3 && currentSlide <= 15 && (() => {
+                  const dimIndex = currentSlide - 3;
+                  const d = dimensionAnalysis[dimIndex];
+                  if (!d) return null;
+                  return (
+                    <div className="p-10">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl font-bold" style={{ backgroundColor: d.tier.color }}>
+                          {d.dim}
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-slate-800">{d.name}</h2>
+                          <p className="text-slate-500">Weight: {d.weight}% • {d.tier.name} Tier</p>
+                        </div>
+                        <div className="ml-auto text-right">
+                          <p className="text-5xl font-bold" style={{ color: d.tier.color }}>{d.score}</p>
+                          <p className="text-sm text-slate-400">/ 100</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-6 mb-6">
+                        <div className="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
+                          <p className="text-3xl font-bold text-emerald-600">{d.strengths?.length || 0}</p>
+                          <p className="text-sm text-emerald-700">Strengths</p>
+                        </div>
+                        <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+                          <p className="text-3xl font-bold text-blue-600">{d.inProgress?.length || 0}</p>
+                          <p className="text-sm text-blue-700">In Progress</p>
+                        </div>
+                        <div className="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+                          <p className="text-3xl font-bold text-amber-600">{d.gaps?.length || 0}</p>
+                          <p className="text-sm text-amber-700">Opportunities</p>
+                        </div>
+                      </div>
+                      
+                      {d.strengths?.length > 0 && (
+                        <div className="mb-4">
+                          <h3 className="text-sm font-semibold text-emerald-700 uppercase tracking-wider mb-2">Strengths</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {d.strengths.slice(0, 6).map((s: any, i: number) => (
+                              <span key={i} className="bg-emerald-100 text-emerald-800 text-sm px-3 py-1 rounded-full">{s.name}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {d.gaps?.length > 0 && (
+                        <div>
+                          <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-wider mb-2">Opportunities</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {d.gaps.slice(0, 6).map((g: any, i: number) => (
+                              <span key={i} className="bg-amber-100 text-amber-800 text-sm px-3 py-1 rounded-full">{g.name}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+                
+                {/* Slide 16: Strategic Roadmap */}
+                {currentSlide === 16 && (
+                  <div className="p-10">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-6">Strategic Roadmap</h2>
+                    <div className="grid grid-cols-3 gap-6">
+                      <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">1</span>
+                          <h3 className="font-bold text-emerald-800">Quick Wins</h3>
+                        </div>
+                        <p className="text-sm text-emerald-700 mb-3">0-6 months</p>
+                        <ul className="space-y-2 text-sm text-slate-700">
+                          {quickWinItems.slice(0, 4).map((item, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-emerald-500">→</span>
+                              <span>{item.name}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">2</span>
+                          <h3 className="font-bold text-blue-800">Foundation</h3>
+                        </div>
+                        <p className="text-sm text-blue-700 mb-3">6-12 months</p>
+                        <ul className="space-y-2 text-sm text-slate-700">
+                          {foundationItems.slice(0, 4).map((item, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-blue-500">→</span>
+                              <span>{item.name}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">3</span>
+                          <h3 className="font-bold text-purple-800">Excellence</h3>
+                        </div>
+                        <p className="text-sm text-purple-700 mb-3">12+ months</p>
+                        <ul className="space-y-2 text-sm text-slate-700">
+                          {stretchItems.slice(0, 4).map((item, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-purple-500">→</span>
+                              <span>{item.name}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Slide 17: Pledge */}
+                {currentSlide === 17 && (
+                  <div className="p-10">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-2">The Working with Cancer Pledge</h2>
+                    <p className="text-slate-500 mb-6">850+ companies committed globally</p>
+                    <div className="bg-slate-800 rounded-xl p-6 mb-6">
+                      <p className="text-violet-400 text-xs font-semibold uppercase tracking-widest mb-4">Pledge Signatories Commit To:</p>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-white/10 rounded-lg p-4">
+                          <p className="text-white font-medium">Job Security</p>
+                          <p className="text-slate-400 text-sm mt-1">Protect employment for diagnosed employees</p>
+                        </div>
+                        <div className="bg-white/10 rounded-lg p-4">
+                          <p className="text-white font-medium">Open Culture</p>
+                          <p className="text-slate-400 text-sm mt-1">Create stigma-free environments</p>
+                        </div>
+                        <div className="bg-white/10 rounded-lg p-4">
+                          <p className="text-white font-medium">Recovery Support</p>
+                          <p className="text-slate-400 text-sm mt-1">Accommodations for treatment & return</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-violet-50 rounded-xl p-6 border border-violet-200">
+                      <p className="text-center text-slate-700">
+                        <strong className="text-slate-800">The Pledge signals intent.</strong>
+                        <span className="mx-2">•</span>
+                        <strong className="text-violet-700">This Index measures execution.</strong>
+                        <span className="mx-2">•</span>
+                        <span>Together, they demonstrate genuine commitment.</span>
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Slide 18: How CAC Can Help */}
+                {currentSlide === 18 && (
+                  <div className="p-10">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-6">How Cancer and Careers Can Help</h2>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="bg-slate-50 rounded-xl p-6">
+                        <h3 className="font-bold text-slate-800 mb-3">📚 Manager Training</h3>
+                        <p className="text-slate-600 text-sm">Equip managers with skills to support employees through diagnosis, treatment, and return to work.</p>
+                      </div>
+                      <div className="bg-slate-50 rounded-xl p-6">
+                        <h3 className="font-bold text-slate-800 mb-3">📋 Policy Review</h3>
+                        <p className="text-slate-600 text-sm">Expert review of leave, accommodation, and benefits policies for cancer-specific gaps.</p>
+                      </div>
+                      <div className="bg-slate-50 rounded-xl p-6">
+                        <h3 className="font-bold text-slate-800 mb-3">🎯 Employee Resources</h3>
+                        <p className="text-slate-600 text-sm">Direct support resources for employees and caregivers managing cancer at work.</p>
+                      </div>
+                      <div className="bg-slate-50 rounded-xl p-6">
+                        <h3 className="font-bold text-slate-800 mb-3">🏆 Recognition</h3>
+                        <p className="text-slate-600 text-sm">Public recognition and certification for companies demonstrating commitment.</p>
+                      </div>
+                    </div>
+                    <div className="mt-8 text-center">
+                      <p className="text-slate-600">Learn more at <span className="text-blue-600 font-semibold">cancerandcareers.org</span></p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Navigation controls */}
+            <div className="presentation-controls">
+              <button 
+                className="presentation-nav-btn"
+                onClick={() => setCurrentSlide(prev => Math.max(prev - 1, 0))}
+                disabled={currentSlide === 0}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <div className="presentation-progress">
+                <div className="presentation-progress-bar">
+                  <div 
+                    className="presentation-progress-fill" 
+                    style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="presentation-slide-indicator">
+                {currentSlide + 1} / {totalSlides}
+              </div>
+              
+              <button 
+                className="presentation-nav-btn"
+                onClick={() => setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1))}
+                disabled={currentSlide === totalSlides - 1}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
         
         {/* ============ ACTION BAR ============ */}
         <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
@@ -2999,24 +3426,11 @@ export default function ExportReportPage() {
                 {generatingLink ? 'Generating...' : 'Share Link'}
               </button>
               <button 
-                onClick={handlePptxExport}
-                disabled={exportingPptx}
-                className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                onClick={startPresentation}
+                className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
               >
-                {exportingPptx ? (
-                  <>
-                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    {exportProgress.step || 'Exporting...'}
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                    Export PowerPoint
-                  </>
-                )}
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                Present
               </button>
             </div>
           </div>
