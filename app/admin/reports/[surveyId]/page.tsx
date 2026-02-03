@@ -2973,10 +2973,12 @@ export default function ExportReportPage() {
   const startPresentation = () => {
     setCurrentSlide(0);
     setPresentationMode(true);
-    // Try to go fullscreen
-    document.documentElement.requestFullscreen?.().catch(() => {
-      // Fullscreen not available, continue anyway
-    });
+    // Request fullscreen
+    document.documentElement.requestFullscreen?.().catch(() => {});
+    // Scroll to first slide
+    setTimeout(() => {
+      document.querySelector('[data-slide="0"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
   
   // Exit presentation mode
@@ -2986,7 +2988,7 @@ export default function ExportReportPage() {
   };
   
   return (
-      <div className={`min-h-screen bg-slate-100 ${presentationMode ? 'presentation-active' : ''}`}>
+      <div className="min-h-screen bg-slate-100">
         <style jsx global>{`
           @media print { 
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } 
@@ -2999,44 +3001,29 @@ export default function ExportReportPage() {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
             letter-spacing: -0.01em; 
           }
-          /* Presentation mode styles */
-          .presentation-active { background: #0f172a !important; }
-          .presentation-active .polished-report { max-width: 100% !important; padding: 0 !important; }
-          .presentation-active [data-slide] { 
-            min-height: 100vh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            padding: 60px 40px;
-            box-sizing: border-box;
-          }
-          .presentation-active [data-slide] > * {
-            max-width: 1400px;
-            width: 100%;
-            margin: 0 auto;
-          }
-          .presentation-active .no-print { display: none !important; }
+          /* Presentation nav bar */
           .presentation-nav-bar {
             position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
-            background: linear-gradient(to top, rgba(15,23,42,0.98) 0%, rgba(15,23,42,0.9) 70%, transparent 100%);
-            padding: 20px 40px 30px; display: flex; align-items: center; justify-content: center; gap: 20px;
+            background: linear-gradient(to top, rgba(15,23,42,0.98) 0%, rgba(15,23,42,0.95) 80%, transparent 100%);
+            padding: 16px 40px 24px; display: flex; align-items: center; justify-content: center; gap: 20px;
           }
           .presentation-nav-btn {
-            width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2); color: white; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.2s; backdrop-filter: blur(8px);
+            width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3); color: white; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
           }
-          .presentation-nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+          .presentation-nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.25); transform: scale(1.05); }
           .presentation-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-          .presentation-nav-btn.exit-btn { position: absolute; right: 40px; }
-          .presentation-progress { width: 300px; }
+          .presentation-nav-btn.exit-btn { position: absolute; right: 40px; background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); }
+          .presentation-nav-btn.exit-btn:hover { background: rgba(239,68,68,0.4); }
+          .presentation-progress { width: 200px; }
           .presentation-progress-bar { height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; }
           .presentation-progress-fill { height: 100%; background: linear-gradient(90deg, #f97316, #f59e0b); transition: width 0.3s ease; }
-          .presentation-slide-indicator { color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 600; min-width: 80px; text-align: center; }
-          .presentation-slide-title { color: rgba(255,255,255,0.6); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
+          .presentation-slide-indicator { color: white; font-size: 14px; font-weight: 600; min-width: 60px; text-align: center; }
+          .presentation-slide-title { color: rgba(255,255,255,0.7); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; text-align: center; margin-bottom: 2px; }
         `}</style>
         
-        {/* ============ PRESENTATION NAV BAR (only when active) ============ */}
+        {/* ============ PRESENTATION NAV BAR (floating, only when active) ============ */}
         {presentationMode && (
           <div className="presentation-nav-bar">
             <button 
@@ -3044,7 +3031,7 @@ export default function ExportReportPage() {
               onClick={() => {
                 const newSlide = Math.max(currentSlide - 1, 0);
                 setCurrentSlide(newSlide);
-                document.querySelector(`[data-slide="${newSlide}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.querySelector(`[data-slide="${newSlide}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
               disabled={currentSlide === 0}
             >
@@ -3069,7 +3056,7 @@ export default function ExportReportPage() {
               onClick={() => {
                 const newSlide = Math.min(currentSlide + 1, totalSlides - 1);
                 setCurrentSlide(newSlide);
-                document.querySelector(`[data-slide="${newSlide}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.querySelector(`[data-slide="${newSlide}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
               disabled={currentSlide === totalSlides - 1}
             >
@@ -3081,7 +3068,7 @@ export default function ExportReportPage() {
             <button 
               className="presentation-nav-btn exit-btn"
               onClick={exitPresentation}
-              title="Exit (ESC)"
+              title="Exit Presentation (ESC)"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
