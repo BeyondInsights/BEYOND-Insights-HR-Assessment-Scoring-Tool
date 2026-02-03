@@ -4819,6 +4819,55 @@ export default function InteractiveReportPage() {
             </div>
           </div>
           
+          {/* ============ WORKING WITH CANCER PLEDGE ============ */}
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div className="px-12 py-6 bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDQwIEwgNDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
+              <div className="relative flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-xl">The Working with Cancer Pledge</h3>
+                  <p className="text-teal-100 mt-1 text-base">Public commitment creates employee trust</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
+                  <p className="text-white text-sm font-semibold">Employee Research Insights</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-12 py-8">
+              <p className="text-slate-600 text-base leading-relaxed mb-6">
+                For employees navigating cancer, workplace uncertainty compounds health uncertainty. When organizations publicly 
+                commit through the <strong className="text-teal-700">Working with Cancer Pledge</strong>, they signal to employees that support exists 
+                before it's needed. Our research with employees managing cancer reveals the impact of that commitment:
+              </p>
+              
+              <div className="grid grid-cols-3 gap-6 mb-6">
+                <div className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl p-6 border border-teal-200 text-center">
+                  <div className="text-4xl font-bold text-teal-700 mb-2">81%</div>
+                  <p className="text-sm text-slate-700 font-medium">Would trust pledge companies more</p>
+                  <p className="text-xs text-slate-500 mt-2">Employees managing cancer say public commitment builds confidence</p>
+                </div>
+                <div className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl p-6 border border-teal-200 text-center">
+                  <div className="text-4xl font-bold text-teal-700 mb-2">72%</div>
+                  <p className="text-sm text-slate-700 font-medium">Report confidentiality preserved</p>
+                  <p className="text-xs text-slate-500 mt-2">Among those who disclosed, most felt their privacy was respected</p>
+                </div>
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200 text-center">
+                  <div className="text-4xl font-bold text-amber-600 mb-2">63pt</div>
+                  <p className="text-sm text-slate-700 font-medium">Awareness gap</p>
+                  <p className="text-xs text-slate-500 mt-2">Only 18% aware of pledge vs. 81% who say it matters</p>
+                </div>
+              </div>
+              
+              <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  <strong className="text-slate-800">The Pledge creates accountability; the Best Companies designation creates transparency.</strong> Taking the 
+                  Pledge signals intent, but the "Best Companies for Working with Cancer" designation validates that commitment through 
+                  measurable action. Your participation in this assessment demonstrates both the commitment and the willingness to be measured.
+                </p>
+              </div>
+            </div>
+          </div>
+          
           {/* ============ HOW CAC CAN HELP ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
