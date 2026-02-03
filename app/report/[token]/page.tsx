@@ -2682,7 +2682,7 @@ export default function InteractiveReportPage() {
               {currentSlide === 0 && (
                 <div className="p-12 text-center">
                   <div className="flex justify-center mb-8">
-                    <Image src="/CAC-Logo.png" alt="Cancer and Careers" width={180} height={60} className="object-contain" />
+                    <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={180} height={60} className="object-contain" />
                   </div>
                   <h1 className="text-4xl font-bold text-slate-800 mb-4">Best Companies for Working with Cancer</h1>
                   <h2 className="text-2xl font-semibold text-slate-600 mb-8">{company?.company_name || 'Company Report'}</h2>
@@ -2716,15 +2716,15 @@ export default function InteractiveReportPage() {
                       <p className="text-sm text-slate-500 mt-1">Composite Score</p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-5 text-center">
-                      <p className="text-4xl font-bold text-emerald-600">{excellenceCount}</p>
+                      <p className="text-4xl font-bold text-violet-600">{tierCounts.exemplary}</p>
                       <p className="text-sm text-slate-500 mt-1">Exemplary Dimensions</p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-5 text-center">
-                      <p className="text-4xl font-bold text-blue-600">{leadingCount}</p>
+                      <p className="text-4xl font-bold text-emerald-600">{tierCounts.leading}</p>
                       <p className="text-sm text-slate-500 mt-1">Leading Dimensions</p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-5 text-center">
-                      <p className="text-4xl font-bold text-amber-600">{growthCount}</p>
+                      <p className="text-4xl font-bold text-amber-600">{tierCounts.progressing + tierCounts.emerging + tierCounts.developing}</p>
                       <p className="text-sm text-slate-500 mt-1">Growth Opportunities</p>
                     </div>
                   </div>
@@ -2733,11 +2733,11 @@ export default function InteractiveReportPage() {
                     <ul className="space-y-2 text-slate-600">
                       <li className="flex items-start gap-2">
                         <span className="text-emerald-500 mt-1">✓</span>
-                        <span>Strongest performance in {dimensionAnalysis.sort((a: any, b: any) => b.score - a.score)[0]?.name}</span>
+                        <span>Strongest performance in {[...dimensionAnalysis].sort((a: any, b: any) => b.score - a.score)[0]?.name}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-amber-500 mt-1">→</span>
-                        <span>Greatest opportunity in {dimensionAnalysis.sort((a: any, b: any) => a.score - b.score)[0]?.name}</span>
+                        <span>Greatest opportunity in {[...dimensionAnalysis].sort((a: any, b: any) => a.score - b.score)[0]?.name}</span>
                       </li>
                       {percentileRank && (
                         <li className="flex items-start gap-2">
