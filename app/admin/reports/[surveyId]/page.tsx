@@ -4652,6 +4652,135 @@ export default function ExportReportPage() {
             </div>
           )}
           
+
+          {/* ============ AREAS OF EXCELLENCE ============ */}
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div className="px-12 py-5 bg-emerald-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
+                  <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+                </div>
+                <button 
+                  onClick={() => setInfoModal('excellence')}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  Learn More
+                </button>
+              </div>
+            </div>
+            <div className="px-12 py-6">
+              {strengthDimensions.length > 0 ? (
+                <div className="grid grid-cols-2 gap-5">
+                  {strengthDimensions.slice(0, 6).map((d) => (
+                    <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDimensionDetailModal(d.dim)}>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="font-semibold text-slate-800 text-base">{d.name}</p>
+                        <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                      </div>
+                      <ul className="space-y-1.5">
+                        {d.strengths.slice(0, 3).map((e: any, i: number) => (
+                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                            <CheckIcon className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                            <span>{e.name}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ============ GROWTH OPPORTUNITIES ============ */}
+          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div className="px-12 py-5 bg-amber-600">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
+                  <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
+                </div>
+                <button 
+                  onClick={() => setInfoModal('growth')}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  Learn More
+                </button>
+              </div>
+            </div>
+            <div className="px-12 py-6">
+              <div className="grid grid-cols-2 gap-5">
+                {allDimensionsByScore.slice(0, 6).map((d) => (
+                  <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDimensionDetailModal(d.dim)}>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-semibold text-slate-800 text-base">{d.name}</p>
+                      <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                    </div>
+                    {d.needsAttention.length > 0 ? (
+                      <ul className="space-y-1.5">
+                        {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
+                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                            <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
+                            <span>{e.name}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ============ INITIATIVES IN PROGRESS ============ */}
+          {quickWinOpportunities.length > 0 && (
+            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+              <div className="px-12 py-6 bg-gradient-to-r from-blue-600 to-blue-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
+                    <p className="text-blue-200 mt-1">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                  </div>
+                  <div className="bg-white/20 rounded-lg px-5 py-2.5">
+                    <p className="text-white font-semibold">Fastest path to improvement</p>
+                  </div>
+                </div>
+              </div>
+              <div className="px-12 py-8">
+                <div className="grid grid-cols-2 gap-5">
+                  {quickWinOpportunities.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-4 p-5 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100' : 'bg-amber-100'}`}>
+                        {item.type === 'Planning' ? (
+                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        ) : (
+                          <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{item.type}</span>
+                          <span className="text-sm text-slate-500 font-medium">D{item.dimNum}</span>
+                        </div>
+                        <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
+                        <p className="text-sm text-slate-500 mt-1">{item.dimName}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
             <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
@@ -4716,7 +4845,7 @@ export default function ExportReportPage() {
               </div>
             </div>
           )}
-          
+
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
           {(() => {
             return (
@@ -4847,134 +4976,7 @@ export default function ExportReportPage() {
               </div>
             );
           })()}
-          
-          {/* ============ AREAS OF EXCELLENCE ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-            <div className="px-12 py-5 bg-emerald-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
-                  <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
-                </div>
-                <button 
-                  onClick={() => setInfoModal('excellence')}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  Learn More
-                </button>
-              </div>
-            </div>
-            <div className="px-12 py-6">
-              {strengthDimensions.length > 0 ? (
-                <div className="grid grid-cols-2 gap-5">
-                  {strengthDimensions.slice(0, 6).map((d) => (
-                    <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDimensionDetailModal(d.dim)}>
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="font-semibold text-slate-800 text-base">{d.name}</p>
-                        <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                      </div>
-                      <ul className="space-y-1.5">
-                        {d.strengths.slice(0, 3).map((e: any, i: number) => (
-                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <CheckIcon className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                            <span>{e.name}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* ============ GROWTH OPPORTUNITIES ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-            <div className="px-12 py-5 bg-amber-600">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
-                  <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
-                </div>
-                <button 
-                  onClick={() => setInfoModal('growth')}
-                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  Learn More
-                </button>
-              </div>
-            </div>
-            <div className="px-12 py-6">
-              <div className="grid grid-cols-2 gap-5">
-                {allDimensionsByScore.slice(0, 6).map((d) => (
-                  <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDimensionDetailModal(d.dim)}>
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="font-semibold text-slate-800 text-base">{d.name}</p>
-                      <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                    </div>
-                    {d.needsAttention.length > 0 ? (
-                      <ul className="space-y-1.5">
-                        {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
-                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
-                            <span>{e.name}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          {/* ============ INITIATIVES IN PROGRESS ============ */}
-          {quickWinOpportunities.length > 0 && (
-            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-              <div className="px-12 py-6 bg-gradient-to-r from-blue-600 to-blue-700">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
-                    <p className="text-blue-200 mt-1">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
-                  </div>
-                  <div className="bg-white/20 rounded-lg px-5 py-2.5">
-                    <p className="text-white font-semibold">Fastest path to improvement</p>
-                  </div>
-                </div>
-              </div>
-              <div className="px-12 py-8">
-                <div className="grid grid-cols-2 gap-5">
-                  {quickWinOpportunities.map((item: any, idx: number) => (
-                    <div key={idx} className="flex items-start gap-4 p-5 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100' : 'bg-amber-100'}`}>
-                        {item.type === 'Planning' ? (
-                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                        ) : (
-                          <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{item.type}</span>
-                          <span className="text-sm text-slate-500 font-medium">D{item.dimNum}</span>
-                        </div>
-                        <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
-                        <p className="text-sm text-slate-500 mt-1">{item.dimName}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+
           
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" id="appendix-start" data-export="appendix-start">
