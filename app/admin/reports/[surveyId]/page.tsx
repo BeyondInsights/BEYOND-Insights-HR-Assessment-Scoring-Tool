@@ -3067,7 +3067,7 @@ export default function ExportReportPage() {
                       </div>
                       <div className="w-px h-16 bg-slate-200"></div>
                       <div className="text-center">
-                        <p className="text-3xl font-bold" style={{ color: overallTier?.color }}>{overallTier?.name}</p>
+                        <p className="text-3xl font-bold" style={{ color: getTier(compositeScore || 0)?.color }}>{getTier(compositeScore || 0)?.name}</p>
                         <p className="text-sm text-slate-500 mt-1">Performance Tier</p>
                       </div>
                     </div>
@@ -3427,7 +3427,7 @@ export default function ExportReportPage() {
               </button>
               <button 
                 onClick={startPresentation}
-                className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
                 Present
