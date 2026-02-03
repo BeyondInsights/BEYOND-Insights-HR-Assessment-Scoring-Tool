@@ -2390,6 +2390,31 @@ export default function ExportReportPage() {
     }
   }, [company]);
 
+  // Presentation mode keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!presentationMode) return;
+      
+      if (e.key === 'Escape') {
+        setPresentationMode(false);
+        document.exitFullscreen?.().catch(() => {});
+      } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        setCurrentSlide(prev => prev + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+        e.preventDefault();
+        setCurrentSlide(prev => Math.max(prev - 1, 0));
+      } else if (e.key === 'Home') {
+        setCurrentSlide(0);
+      } else if (e.key === 'End') {
+        setCurrentSlide(18); // Max slides
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [presentationMode]);
+
   useEffect(() => {
     // CRITICAL: Reset ALL state when surveyId changes
     setLoading(true);
@@ -2941,31 +2966,6 @@ export default function ExportReportPage() {
   ];
   
   const totalSlides = slideDefinitions.length;
-  
-  // Keyboard navigation for presentation mode
-  useEffect(() => {
-    if (!presentationMode) return;
-    
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setPresentationMode(false);
-        document.exitFullscreen?.();
-      } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1));
-      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
-        e.preventDefault();
-        setCurrentSlide(prev => Math.max(prev - 1, 0));
-      } else if (e.key === 'Home') {
-        setCurrentSlide(0);
-      } else if (e.key === 'End') {
-        setCurrentSlide(totalSlides - 1);
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [presentationMode, totalSlides]);
   
   // Enter presentation mode
   const startPresentation = () => {
