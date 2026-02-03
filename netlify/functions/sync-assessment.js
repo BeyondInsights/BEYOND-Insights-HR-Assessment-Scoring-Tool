@@ -1,13 +1,17 @@
 /**
- * SYNC-ASSESSMENT v7 - With CORS restriction
+ * SYNC-ASSESSMENT v8 - Fixed last_survey_edit_at tracking
  * 
  * FIXES APPLIED:
  * 1. Log actual updateError with full details
  * 2. Treat success:false as failure at response level
  * 3. Sanitize payload - strip forbidden keys, normalize user_id
- * 4. Added last_survey_edit_at tracking
+ * 4. REMOVED last_survey_edit_at from function - now handled by DB trigger based on hash changes
  * 5. Added sync_errors logging for debugging
  * 6. CORS restricted to allowed domains
+ * 7. Returns dataChanged flag to indicate if actual survey data changed
+ * 
+ * NOTE: last_survey_edit_at is now managed by DB trigger that fires when last_snapshot_hash changes.
+ * This prevents false "edit" timestamps when syncs occur without actual data changes.
  */
 
 const { createClient } = require('@supabase/supabase-js')
@@ -131,10 +135,10 @@ exports.handler = async (event) => {
     // HELPER: Update with REQUIRED version enforcement
     // ============================================
     async function updateWithVersionCheck(matchField, matchValue, linkUserId = null) {
-      // Step 1: Get current row
+      // Step 1: Get current row INCLUDING last_snapshot_hash for change detection
       const { data: currentRow, error: fetchError } = await supabase
         .from('assessments')
-        .select('id, version')
+        .select('id, version, last_snapshot_hash')
         .eq(matchField, matchValue)
         .single()
       
@@ -185,10 +189,11 @@ exports.handler = async (event) => {
       }
       
       // Step 4: Prepare update payload with SAFE data
+      // NOTE: Do NOT set last_survey_edit_at here - let DB trigger handle it based on hash changes
       const updatePayload = {
         ...safeData,  // Use sanitized data, not raw data
         updated_at: new Date().toISOString(),
-        last_survey_edit_at: new Date().toISOString(),  // Track when user last edited survey
+        // REMOVED: last_survey_edit_at - DB trigger handles this when hash changes
         last_update_source: safeSource,
         last_update_client_id: client_id || null,
         version: currentVersion + 1
@@ -233,11 +238,15 @@ exports.handler = async (event) => {
         }
       }
       
+      // Check if hash actually changed (DB trigger computes new hash)
+      const hashChanged = currentRow.last_snapshot_hash !== updateResult[0].last_snapshot_hash
+      
       return {
         success: true,
         rowsAffected: updateResult.length,
         newVersion: updateResult[0].version,
-        snapshotHash: updateResult[0].last_snapshot_hash
+        snapshotHash: updateResult[0].last_snapshot_hash,
+        dataChanged: hashChanged  // Inform client if actual survey data changed
       }
     }
 
@@ -273,7 +282,7 @@ exports.handler = async (event) => {
           version: 1,
           ...safeData,  // Use sanitized data
           updated_at: new Date().toISOString(),
-          last_survey_edit_at: new Date().toISOString(),  // Track when user last edited survey
+          // NOTE: last_survey_edit_at intentionally omitted - DB trigger will set it on first real data
           last_update_source: safeSource,
           last_update_client_id: client_id || null
         }
