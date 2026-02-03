@@ -2183,10 +2183,11 @@ export default function ExportReportPage() {
   const [whatIfDimension, setWhatIfDimension] = useState<number | null>(null);
   const [whatIfChanges, setWhatIfChanges] = useState<Record<string, string>>({});
   
-  // Presentation Mode State
+  // ============================================
+  // PRESENTATION MODE STATE
+  // ============================================
   const [presentationMode, setPresentationMode] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [presentationRecoIndex, setPresentationRecoIndex] = useState(0); // Which of the 4 reco cards to show
   
   // Info modal content
   const infoContent = {
@@ -2930,90 +2931,84 @@ export default function ExportReportPage() {
   // ============================================
   // PRESENTATION MODE CONFIGURATION
   // ============================================
-  // Get top 4 dimensions for strategic recommendations (sorted by opportunity)
-  const allDimensionsByScore = [...dimensionAnalysis].sort((a: any, b: any) => {
-    const tierPriority: Record<string, number> = { 'Developing': 0, 'Emerging': 1, 'Progressing': 2, 'Leading': 3, 'Exemplary': 4 };
-    if (tierPriority[a.tier.name] !== tierPriority[b.tier.name]) {
-      return tierPriority[a.tier.name] - tierPriority[b.tier.name];
-    }
+  // Sort dimensions by opportunity (lowest tier/score first) for recommendations
+  const dimsSortedByOpportunity = [...dimensionAnalysis].sort((a: any, b: any) => {
+    const tierOrder: Record<string, number> = { 'Developing': 0, 'Emerging': 1, 'Progressing': 2, 'Leading': 3, 'Exemplary': 4 };
+    if (tierOrder[a.tier.name] !== tierOrder[b.tier.name]) return tierOrder[a.tier.name] - tierOrder[b.tier.name];
     return a.score - b.score;
   });
-  const top4RecommendationDims = allDimensionsByScore.slice(0, 4);
-
-  // Build comprehensive slide definitions
-  // Total: 2 (overview) + 13 (dims) + 1 (insights) + 1 (reco intro) + 4 (reco cards) + 1 (roadmap) + 1 (pledge) + 1 (cac) + 1 (methodology) = 25 slides
-  const presentationSlides = [
-    { id: 'header', title: 'Company Overview', type: 'section' as const },
-    { id: 'dimensions', title: 'Dimension Performance', type: 'section' as const },
-    // 13 dimension drilldowns
-    ...[1,2,3,4,5,6,7,8,9,10,11,12,13].map(dimNum => {
-      const dim = dimensionAnalysis.find((d: any) => d.dim === dimNum);
-      return { 
-        id: `dim-${dimNum}`, 
-        title: `D${dimNum}: ${dim?.name || `Dimension ${dimNum}`}`, 
-        type: 'dimension' as const,
-        dimNum 
-      };
-    }),
-    { id: 'insights', title: 'Cross-Dimensional Insights', type: 'section' as const },
-    { id: 'reco-intro', title: 'Strategic Recommendations', type: 'section' as const },
-    // 4 strategic recommendation cards
-    ...top4RecommendationDims.map((d: any, idx: number) => ({
-      id: `reco-${d.dim}`,
-      title: `Priority ${idx + 1}: ${d.name}`,
-      type: 'reco' as const,
-      dimNum: d.dim,
-      recoIndex: idx
-    })),
-    { id: 'roadmap', title: 'Implementation Roadmap', type: 'section' as const },
-    { id: 'pledge', title: 'Working with Cancer Pledge', type: 'section' as const },
-    { id: 'cac', title: 'How CAC Can Help', type: 'section' as const },
-    { id: 'methodology', title: 'Methodology', type: 'section' as const },
+  const top4RecoDims = dimsSortedByOpportunity.slice(0, 4);
+  
+  // Build slide definitions - 35 total slides
+  const presentationSlides: { id: string; title: string; type: string; dimNum?: number; recoIdx?: number }[] = [
+    { id: 'title', title: 'Title', type: 'title' },
+    { id: 'how-developed', title: 'How Index Was Developed', type: 'how-developed' },
+    { id: 'how-to-use', title: 'How To Use This Report', type: 'how-to-use' },
+    { id: 'exec-summary', title: 'Executive Summary', type: 'exec-summary' },
+    { id: 'score-overview', title: 'Score Overview', type: 'score-overview' },
+    { id: 'dim-table', title: 'Dimension Performance', type: 'dim-table' },
+    // 13 dimension deep dives
+    ...[1,2,3,4,5,6,7,8,9,10,11,12,13].map(n => ({ id: `dim-${n}`, title: `D${n}: ${dimensionAnalysis.find((d:any) => d.dim === n)?.name || ''}`, type: 'dim-deep-dive', dimNum: n })),
+    { id: 'matrix', title: 'Strategic Priority Matrix', type: 'matrix' },
+    { id: 'cross-dim', title: 'Cross-Dimensional Insights', type: 'cross-dim' },
+    { id: 'impact-ranked', title: 'Impact-Ranked Priorities', type: 'impact-ranked' },
+    { id: 'excellence', title: 'Areas of Excellence', type: 'excellence' },
+    { id: 'growth', title: 'Areas for Growth', type: 'growth' },
+    { id: 'in-progress', title: 'Initiatives in Progress', type: 'in-progress' },
+    { id: 'reco-intro', title: 'Strategic Recommendations', type: 'reco-intro' },
+    // 4 recommendation cards
+    ...top4RecoDims.map((d: any, i: number) => ({ id: `reco-${i}`, title: `Priority ${i+1}: ${d.name}`, type: 'reco-card', dimNum: d.dim, recoIdx: i })),
+    { id: 'roadmap', title: 'Implementation Roadmap', type: 'roadmap' },
+    { id: 'pledge', title: 'Working with Cancer Pledge', type: 'pledge' },
+    { id: 'cac-help', title: 'How CAC Can Help', type: 'cac-help' },
+    { id: 'methodology', title: 'Methodology', type: 'methodology' },
+    { id: 'thank-you', title: 'Thank You', type: 'thank-you' },
   ];
   
   const totalSlides = presentationSlides.length;
-  const currentSlideInfo = presentationSlides[currentSlide];
+  const slideInfo = presentationSlides[currentSlide];
   
-  // Presentation navigation functions
-  const startPresentation = () => {
-    setCurrentSlide(0);
-    setPresentationMode(true);
-    document.documentElement.requestFullscreen?.().catch(() => {});
-  };
+  // Navigation
+  const goToSlide = (idx: number) => setCurrentSlide(Math.max(0, Math.min(idx, totalSlides - 1)));
+  const startPresentation = () => { setCurrentSlide(0); setPresentationMode(true); document.documentElement.requestFullscreen?.().catch(() => {}); };
+  const exitPresentation = () => { setPresentationMode(false); setCurrentSlide(0); document.exitFullscreen?.().catch(() => {}); };
   
-  const exitPresentation = () => {
-    setPresentationMode(false);
-    setCurrentSlide(0);
-    document.exitFullscreen?.().catch(() => {});
-  };
-  
-  const goToSlide = (index: number) => {
-    setCurrentSlide(Math.max(0, Math.min(index, totalSlides - 1)));
-  };
-  
-  // Keyboard navigation for presentation mode
+  // Keyboard navigation
   useEffect(() => {
     if (!presentationMode) return;
-    
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        exitPresentation();
-      } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        goToSlide(currentSlide + 1);
-      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
-        e.preventDefault();
-        goToSlide(currentSlide - 1);
-      } else if (e.key === 'Home') {
-        goToSlide(0);
-      } else if (e.key === 'End') {
-        goToSlide(totalSlides - 1);
-      }
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') exitPresentation();
+      else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goToSlide(currentSlide + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goToSlide(currentSlide - 1); }
+      else if (e.key === 'Home') goToSlide(0);
+      else if (e.key === 'End') goToSlide(totalSlides - 1);
     };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
   }, [presentationMode, currentSlide, totalSlides]);
+  
+  // Helper for dimension drilldowns
+  const STATUS_COLORS = {
+    currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
+    planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
+    assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
+    notAble: { bg: '#9CA3AF', light: '#F3F4F6', text: '#374151', label: 'Not Planned' }
+  };
+  const getElemStatus = (elem: any) => {
+    if (elem.isStrength) return { key: 'currently', ...STATUS_COLORS.currently };
+    if (elem.isPlanning) return { key: 'planning', ...STATUS_COLORS.planning };
+    if (elem.isAssessing) return { key: 'assessing', ...STATUS_COLORS.assessing };
+    return { key: 'notAble', ...STATUS_COLORS.notAble };
+  };
+  const getObs = (elem: any, bench: any) => {
+    const tot = bench?.total || 1;
+    const pct = Math.round(((bench?.currently || 0) / tot) * 100);
+    const st = getElemStatus(elem);
+    if (st.key === 'currently') return pct < 30 ? `Differentiator: Only ${pct}% offer` : pct < 50 ? `Ahead of ${100-pct}% of benchmark` : pct < 70 ? `Solid: ${pct}% also offer` : `Table stakes: ${pct}% offer`;
+    if (st.key === 'planning') return `Among those planning; ${pct}% currently offer`;
+    if (st.key === 'assessing') return `Still assessing; ${pct}% offer`;
+    return pct > 50 ? `Gap: ${pct}% offer this` : `Emerging: ${pct}% offer`;
+  };
   
   return (
       <div className="min-h-screen bg-slate-100">
@@ -3029,126 +3024,131 @@ export default function ExportReportPage() {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
             letter-spacing: -0.01em; 
           }
-          
-          /* Presentation Mode Styles */
-          .pres-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-          }
-          .pres-slide-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px 40px 90px 40px;
-            overflow: auto;
-          }
-          .pres-slide {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            max-width: 1400px;
-            width: 100%;
-            max-height: calc(100vh - 140px);
-            overflow: auto;
-            animation: presSlideIn 0.3s ease-out;
-          }
-          @keyframes presSlideIn {
-            from { opacity: 0; transform: scale(0.96) translateY(10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-          }
-          .pres-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(15,23,42,0.98) 0%, rgba(15,23,42,0.9) 80%, transparent 100%);
-            padding: 12px 30px 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-          }
-          .pres-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.15s;
-            flex-shrink: 0;
-          }
-          .pres-btn:hover:not(:disabled) {
-            background: rgba(139,92,246,0.4);
-            border-color: rgba(139,92,246,0.6);
-            transform: scale(1.05);
-          }
+          /* Presentation Mode */
+          .pres-overlay { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); display: flex; flex-direction: column; }
+          .pres-content { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px 40px 100px; overflow: auto; }
+          .pres-slide { background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-width: 1400px; width: 100%; max-height: calc(100vh - 140px); overflow: auto; animation: presIn 0.3s ease-out; }
+          @keyframes presIn { from { opacity: 0; transform: scale(0.96) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+          .pres-nav { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(15,23,42,0.98), rgba(15,23,42,0.9) 80%, transparent); padding: 12px 30px 18px; display: flex; align-items: center; gap: 12px; }
+          .pres-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+          .pres-btn:hover:not(:disabled) { background: rgba(139,92,246,0.4); border-color: rgba(139,92,246,0.6); transform: scale(1.05); }
           .pres-btn:disabled { opacity: 0.3; cursor: not-allowed; }
           .pres-btn.exit:hover { background: rgba(239,68,68,0.4); border-color: rgba(239,68,68,0.6); }
           .pres-center { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
           .pres-title { color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 600; }
           .pres-bar { width: 100%; max-width: 300px; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; }
-          .pres-bar-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #a855f7); transition: width 0.3s; }
+          .pres-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #a855f7); transition: width 0.3s; }
           .pres-count { color: rgba(255,255,255,0.6); font-size: 12px; min-width: 60px; text-align: center; }
         `}</style>
         
         {/* ============ PRESENTATION MODE OVERLAY ============ */}
         {presentationMode && (() => {
-          const slide = currentSlideInfo;
-          if (!slide) return null;
+          const s = slideInfo;
+          if (!s) return null;
           
-          // Helper constants for dimension drilldowns
-          const STATUS = {
-            currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
-            planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
-            assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
-            notAble: { bg: '#9CA3AF', light: '#F3F4F6', text: '#374151', label: 'Not Planned' }
-          };
-          
-          const getStatusInfo = (elem: any) => {
-            if (elem.isStrength) return { key: 'currently', ...STATUS.currently };
-            if (elem.isPlanning) return { key: 'planning', ...STATUS.planning };
-            if (elem.isAssessing) return { key: 'assessing', ...STATUS.assessing };
-            return { key: 'notAble', ...STATUS.notAble };
-          };
-          
-          const getObservation = (elem: any, bench: any) => {
-            const total = bench?.total || 1;
-            const pctCurrently = Math.round(((bench?.currently || 0) / total) * 100);
-            const statusInfo = getStatusInfo(elem);
-            if (statusInfo.key === 'currently') {
-              if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% offer`;
-              if (pctCurrently < 50) return `Ahead of ${100 - pctCurrently}% of benchmark`;
-              if (pctCurrently < 70) return `Solid: ${pctCurrently}% also offer`;
-              return `Table stakes: ${pctCurrently}% offer`;
+          // ===== SLIDE CONTENT RENDERER =====
+          const renderSlide = () => {
+            // TITLE SLIDE
+            if (s.type === 'title') {
+              return (
+                <div className="p-0">
+                  <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-12">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-10">
+                        <div className="bg-white rounded-xl p-5 shadow-lg">
+                          <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
+                        </div>
+                        <div>
+                          <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
+                          <h1 className="text-4xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
+                          <p className="text-slate-300 mt-1 text-xl">Index 2026</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-slate-400 text-sm font-medium">Report Date</p>
+                        <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="px-12 py-10 bg-gradient-to-b from-slate-50 to-white">
+                    <div className="text-center mb-8">
+                      <p className="text-slate-500 text-lg font-medium uppercase tracking-wider">Presented To</p>
+                      <h2 className="text-4xl font-bold text-slate-900 mt-2">{company?.firmographics_data?.company_name || company?.company_name || 'Company'}</h2>
+                    </div>
+                    <div className="flex justify-center gap-6 mt-10">
+                      <div className="bg-white rounded-2xl px-8 py-6 border border-slate-200 shadow-sm text-center">
+                        <p className="text-5xl font-bold text-violet-600">40%</p>
+                        <p className="text-sm text-slate-500 mt-2 font-medium">of adults will be<br/>diagnosed with cancer</p>
+                      </div>
+                      <div className="bg-white rounded-2xl px-8 py-6 border border-slate-200 shadow-sm text-center">
+                        <p className="text-5xl font-bold text-violet-600">42%</p>
+                        <p className="text-sm text-slate-500 mt-2 font-medium">of diagnoses during<br/>working years (20-64)</p>
+                      </div>
+                    </div>
+                    <p className="text-center text-slate-600 mt-8 text-lg max-w-3xl mx-auto">
+                      When employees face a cancer diagnosis, an organization's response defines its culture. This assessment measures your organization's readiness to support employees through serious health challenges.
+                    </p>
+                  </div>
+                </div>
+              );
             }
-            if (statusInfo.key === 'planning') return `Among those planning; ${pctCurrently}% currently offer`;
-            if (statusInfo.key === 'assessing') return `Still assessing; ${pctCurrently}% offer`;
-            if (pctCurrently > 50) return `Gap: ${pctCurrently}% offer this`;
-            return `Emerging: ${pctCurrently}% offer`;
-          };
-          
-          // Render slide content based on type
-          const renderSlideContent = () => {
-            // DIMENSION DRILLDOWN SLIDES
-            if (slide.type === 'dimension') {
-              const d = dimensionAnalysis.find((dim: any) => dim.dim === slide.dimNum);
+            
+            // HOW INDEX DEVELOPED
+            if (s.type === 'how-developed') {
+              return (
+                <div className="p-8">
+                  <div className="px-6 py-4 bg-slate-800 rounded-t-xl">
+                    <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
+                    <h2 className="font-bold text-white text-2xl">How This Index Was Developed</h2>
+                  </div>
+                  <div className="p-8 bg-white rounded-b-xl border border-slate-200">
+                    <p className="text-lg text-slate-700 leading-relaxed mb-8">
+                      The 13 dimensions in this assessment weren't developed in a silo. They were shaped through <strong>qualitative and quantitative research</strong> with the people who live this every day, and guided by Cancer and Careers' decades of frontline experience.
+                    </p>
+                    <div className="grid grid-cols-4 gap-6">
+                      <div className="bg-violet-50 rounded-xl p-6 border border-violet-100 text-center">
+                        <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        </div>
+                        <p className="text-lg font-bold text-violet-800">HR Leaders</p>
+                        <p className="text-sm text-slate-600 mt-2">Shaped each dimension and what elements to measure</p>
+                      </div>
+                      <div className="bg-amber-50 rounded-xl p-6 border border-amber-100 text-center">
+                        <div className="w-12 h-12 rounded-full bg-amber-600 flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                        </div>
+                        <p className="text-lg font-bold text-amber-800">Employees with Cancer</p>
+                        <p className="text-sm text-slate-600 mt-2">Revealed what support matters most and where gaps exist</p>
+                      </div>
+                      <div className="bg-sky-50 rounded-xl p-6 border border-sky-100 text-center">
+                        <div className="w-12 h-12 rounded-full bg-sky-600 flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        </div>
+                        <p className="text-lg font-bold text-sky-800">General Workforce</p>
+                        <p className="text-sm text-slate-600 mt-2">Showed how cancer support shapes trust and loyalty</p>
+                      </div>
+                      <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-100 text-center">
+                        <div className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        </div>
+                        <p className="text-lg font-bold text-emerald-800">Cancer and Careers</p>
+                        <p className="text-sm text-slate-600 mt-2">25+ years of expertise in cancer and employment</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            // DIMENSION DEEP DIVE SLIDES
+            if (s.type === 'dim-deep-dive' && s.dimNum) {
+              const d = dimensionAnalysis.find((dim: any) => dim.dim === s.dimNum);
               if (!d) return <div className="p-8 text-center text-slate-500">Dimension data not available</div>;
-              
-              const elemBench = elementBenchmarks[slide.dimNum] || {};
+              const elemBench = elementBenchmarks[s.dimNum] || {};
               const diff = d.benchmark !== null ? d.score - d.benchmark : null;
               
               return (
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full max-h-[calc(100vh-160px)]">
                   {/* Header */}
                   <div className="px-8 py-5 flex-shrink-0" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}dd 100%)` }}>
                     <div className="flex items-center justify-between">
@@ -3196,29 +3196,29 @@ export default function ExportReportPage() {
                   {/* Table Body */}
                   <div className="flex-1 overflow-y-auto">
                     {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).map((elem: any, i: number) => {
-                      const statusInfo = getStatusInfo(elem);
+                      const st = getElemStatus(elem);
                       const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, total: 1 };
-                      const total = bench.total || 1;
-                      const pctCurrently = Math.round((bench.currently / total) * 100);
-                      const pctPlanning = Math.round((bench.planning / total) * 100);
-                      const pctAssessing = Math.round((bench.assessing / total) * 100);
-                      const pctNot = Math.max(0, 100 - pctCurrently - pctPlanning - pctAssessing);
+                      const tot = bench.total || 1;
+                      const pC = Math.round((bench.currently / tot) * 100);
+                      const pP = Math.round((bench.planning / tot) * 100);
+                      const pA = Math.round((bench.assessing / tot) * 100);
+                      const pN = Math.max(0, 100 - pC - pP - pA);
                       
                       return (
                         <div key={i} className={`px-8 py-4 grid grid-cols-12 gap-4 items-center border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50/30' : ''}`}>
                           <div className="col-span-3"><p className="text-sm text-slate-800 font-medium">{elem.name}</p></div>
                           <div className="col-span-1 flex justify-center">
-                            <span className="px-2.5 py-1.5 rounded text-xs font-bold" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>{statusInfo.label}</span>
+                            <span className="px-2.5 py-1.5 rounded text-xs font-bold" style={{ backgroundColor: st.light, color: st.text }}>{st.label}</span>
                           </div>
                           <div className="col-span-5">
                             <div className="h-8 rounded-lg overflow-hidden flex bg-slate-200 border border-slate-300">
-                              <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#10B981', minWidth: pctCurrently > 0 ? '28px' : '0' }}>{pctCurrently > 0 && `${pctCurrently}%`}</div>
-                              <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6', minWidth: pctPlanning > 0 ? '28px' : '0' }}>{pctPlanning > 0 && `${pctPlanning}%`}</div>
-                              <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pctAssessing}%`, backgroundColor: '#F59E0B', minWidth: pctAssessing > 0 ? '28px' : '0' }}>{pctAssessing > 0 && `${pctAssessing}%`}</div>
-                              <div className="flex items-center justify-center text-xs font-bold text-slate-600" style={{ width: `${pctNot}%`, backgroundColor: '#CBD5E1', minWidth: pctNot > 0 ? '28px' : '0' }}>{pctNot > 0 && `${pctNot}%`}</div>
+                              {pC > 0 && <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pC}%`, backgroundColor: '#10B981', minWidth: '28px' }}>{pC}%</div>}
+                              {pP > 0 && <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pP}%`, backgroundColor: '#3B82F6', minWidth: '28px' }}>{pP}%</div>}
+                              {pA > 0 && <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pA}%`, backgroundColor: '#F59E0B', minWidth: '28px' }}>{pA}%</div>}
+                              {pN > 0 && <div className="flex items-center justify-center text-xs font-bold text-slate-600" style={{ width: `${pN}%`, backgroundColor: '#CBD5E1', minWidth: '28px' }}>{pN}%</div>}
                             </div>
                           </div>
-                          <div className="col-span-3 pl-4"><p className="text-xs text-slate-700 font-medium">{customObservations[`dim${d.dim}_${elem.name}`] || getObservation(elem, bench)}</p></div>
+                          <div className="col-span-3 pl-4"><p className="text-xs text-slate-700 font-medium">{customObservations[`dim${d.dim}_${elem.name}`] || getObs(elem, bench)}</p></div>
                         </div>
                       );
                     })}
@@ -3227,42 +3227,64 @@ export default function ExportReportPage() {
               );
             }
             
-            // SECTION SLIDES - Reference existing sections
-            // For now, show placeholder with section title - actual content would need significant refactoring
+            // THANK YOU SLIDE
+            if (s.type === 'thank-you') {
+              return (
+                <div className="p-12 text-center bg-gradient-to-br from-violet-600 via-violet-700 to-indigo-800 min-h-[500px] flex flex-col items-center justify-center rounded-xl">
+                  <div className="bg-white rounded-2xl p-6 shadow-xl mb-8">
+                    <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={180} height={60} className="object-contain" />
+                  </div>
+                  <h2 className="text-5xl font-bold text-white mb-4">Thank You</h2>
+                  <p className="text-2xl text-white/90 mb-8">{company?.firmographics_data?.company_name || company?.company_name || 'Company'}</p>
+                  <p className="text-lg text-white/80 max-w-2xl">
+                    Your commitment to supporting employees through cancer and other serious health challenges makes a real difference. Together, we're building more compassionate workplaces.
+                  </p>
+                  <div className="mt-10 flex items-center gap-8">
+                    <div className="text-center">
+                      <p className="text-white/60 text-sm">Questions? Contact</p>
+                      <p className="text-white font-semibold">index@cancerandcareers.org</p>
+                    </div>
+                    <div className="w-px h-12 bg-white/30"></div>
+                    <div className="text-center">
+                      <p className="text-white/60 text-sm">Learn More</p>
+                      <p className="text-white font-semibold">cancerandcareers.org</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            // DEFAULT - For slides not yet implemented, show a styled placeholder
             return (
-              <div className="p-12 text-center">
-                <h2 className="text-3xl font-bold text-slate-800 mb-4">{slide.title}</h2>
-                <p className="text-slate-500 text-lg">This section is rendered inline in the report below.</p>
-                <p className="text-slate-400 text-sm mt-2">Slide {currentSlide + 1} of {totalSlides} • Type: {slide.type}</p>
-                <p className="text-violet-600 mt-6 text-sm">Press ESC to exit, then scroll to this section in the report</p>
+              <div className="p-12">
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-10 h-10 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl font-bold text-slate-800 mb-3">{s.title}</h2>
+                  <p className="text-slate-500 text-lg">Slide {currentSlide + 1} of {totalSlides}</p>
+                  <p className="text-sm text-slate-400 mt-2">Content rendering for this section type ({s.type}) coming soon</p>
+                </div>
               </div>
             );
           };
           
           return (
             <div className="pres-overlay">
-              <div className="pres-slide-container">
-                <div className="pres-slide" key={currentSlide}>
-                  {renderSlideContent()}
-                </div>
+              <div className="pres-content">
+                <div className="pres-slide" key={currentSlide}>{renderSlide()}</div>
               </div>
-              
-              {/* Navigation */}
               <div className="pres-nav">
-                <button className="pres-btn" onClick={() => goToSlide(currentSlide - 1)} disabled={currentSlide === 0} title="Previous (←)">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                </button>
+                <button className="pres-btn" onClick={() => goToSlide(currentSlide - 1)} disabled={currentSlide === 0}><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
                 <div className="pres-center">
-                  <div className="pres-title">{slide.title}</div>
-                  <div className="pres-bar"><div className="pres-bar-fill" style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }} /></div>
+                  <div className="pres-title">{s.title}</div>
+                  <div className="pres-bar"><div className="pres-fill" style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }} /></div>
                 </div>
                 <div className="pres-count">{currentSlide + 1} / {totalSlides}</div>
-                <button className="pres-btn" onClick={() => goToSlide(currentSlide + 1)} disabled={currentSlide === totalSlides - 1} title="Next (→)">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                </button>
-                <button className="pres-btn exit" onClick={exitPresentation} title="Exit (ESC)">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
+                <button className="pres-btn" onClick={() => goToSlide(currentSlide + 1)} disabled={currentSlide === totalSlides - 1}><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
+                <button className="pres-btn exit" onClick={exitPresentation}><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
               </div>
             </div>
           );
