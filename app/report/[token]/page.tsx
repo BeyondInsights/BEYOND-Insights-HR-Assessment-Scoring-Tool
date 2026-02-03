@@ -4819,35 +4819,63 @@ export default function InteractiveReportPage() {
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-            <div className="px-12 py-8 bg-slate-50">
-              {/* Pledge Description */}
-              <p className="text-slate-700 leading-relaxed mb-6">
-                The <strong className="text-slate-800">Working with Cancer Pledge</strong> is a global commitment by 850+ organizations to create open, 
-                supportive, recovery-forward workplace cultures for employees managing cancer. Launched in 2023, it aims to abolish 
-                workplace stigma and insecurity around cancer diagnoses.
-              </p>
-              
-              {/* The Pledge Impact */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 bg-slate-700">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-white text-lg">The Working with Cancer Pledge</h4>
-                      <p className="text-slate-300 text-sm mt-1">Public commitment builds trust before employees ever need support</p>
+            {/* Header */}
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-50"></div>
+              <div className="relative flex items-center justify-between">
+                <div>
+                  <p className="text-violet-400 text-xs font-semibold uppercase tracking-widest mb-1">Global Initiative</p>
+                  <h3 className="font-bold text-white text-2xl">The Working with Cancer Pledge</h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
+                    <p className="text-white text-2xl font-bold">850+</p>
+                    <p className="text-slate-300 text-xs">Companies Worldwide</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Story + Context */}
+            <div className="px-12 py-8 bg-gradient-to-b from-slate-50 to-white">
+              <div className="grid grid-cols-3 gap-8 mb-8">
+                {/* Origin Story */}
+                <div className="col-span-2">
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0 w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                    <div className="bg-amber-500/20 border border-amber-400/30 rounded-lg px-4 py-2 text-right">
-                      <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
-                      <p className="text-white text-sm font-medium">Only <span className="text-amber-300">16-18%</span> of employees aware</p>
+                    <div>
+                      <h4 className="font-semibold text-slate-800 mb-2">Launched at Davos, January 2023</h4>
+                      <p className="text-slate-600 text-sm leading-relaxed">
+                        The Working with Cancer Pledge was created by the Publicis Foundation after CEO Arthur Sadoun went public 
+                        about his own cancer diagnosis. The initiative aims to abolish workplace stigma and insecurity, creating 
+                        open, supportive, recovery-forward cultures for employees managing cancer.
+                      </p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="p-6">
-                  {/* Research attribution */}
-                  <p className="text-xs text-slate-500 italic text-center mb-4">
-                    Based on research conducted by Cancer and Careers with employees managing cancer and general population employees
+                {/* Awareness Gap Callout */}
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-5 border border-amber-200">
+                  <p className="text-amber-700 text-xs font-semibold uppercase tracking-wider mb-2">Awareness Gap</p>
+                  <p className="text-3xl font-bold text-amber-600 mb-1">16-18%</p>
+                  <p className="text-sm text-slate-600">of employees are aware the pledge exists</p>
+                  <div className="mt-3 pt-3 border-t border-amber-200">
+                    <p className="text-xs text-slate-500 italic">Yet 81% say it would matter to them</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Research Stats */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-3 bg-slate-100 border-b border-slate-200">
+                  <p className="text-xs text-slate-500 text-center">
+                    <span className="font-medium text-slate-700">Research conducted by Cancer and Careers</span> with employees managing cancer and general population employees
                   </p>
-                  
+                </div>
+                
+                <div className="p-6">
                   <div className="grid grid-cols-2 gap-8">
                     {/* Employees Managing Cancer */}
                     <div className="bg-violet-50 rounded-xl p-5 border border-violet-100">
