@@ -5995,7 +5995,7 @@ export default function ExportReportPage() {
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="rounded-xl overflow-hidden h-full flex flex-col">
                     {/* Top section - dark header with logo and title */}
                     <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
                       <div className="flex items-center justify-between">
@@ -6016,22 +6016,22 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Bottom section - stats and "When employees face" text (from Image 1) */}
-                    <div className="bg-gradient-to-b from-slate-800 to-slate-700 px-12 py-10">
+                    {/* Bottom section - WHITE background like the report */}
+                    <div className="flex-1 bg-white px-12 py-10">
                       <div className="flex items-start gap-10">
                         <div className="flex-shrink-0 flex gap-4">
-                          <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
+                          <div className="bg-slate-50 rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
                             <p className="text-5xl font-bold text-violet-600">40%</p>
                             <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
                           </div>
-                          <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
+                          <div className="bg-slate-50 rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
                             <p className="text-5xl font-bold text-violet-600">42%</p>
                             <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of diagnoses during<br/>working years (20-64)</p>
                           </div>
                         </div>
                         <div className="pt-2">
-                          <h3 className="text-xl font-bold text-white mb-3">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
-                          <p className="text-base text-slate-300 leading-relaxed">
+                          <h3 className="text-xl font-bold text-slate-800 mb-3">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
+                          <p className="text-base text-slate-600 leading-relaxed">
                             Organizations that invest in comprehensive cancer support don't just help those directly affected. They build trust 
                             across their entire workforce and demonstrate values that resonate with every employee.
                           </p>
@@ -7727,73 +7727,77 @@ export default function ExportReportPage() {
 
                 {/* Slide 34: Thank You - professional improved design */}
                 {currentSlide === 34 && (
-                  <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative">
-                    {/* Background decorative elements */}
-                    <div className="absolute inset-0 overflow-hidden">
-                      <div className="absolute top-0 right-0 w-96 h-96 bg-[#F37021]/10 rounded-full blur-3xl"></div>
-                      <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl"></div>
+                  <div className="rounded-xl overflow-hidden h-full flex flex-col">
+                    {/* Dark main section */}
+                    <div className="flex-1 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative">
+                      {/* Background decorative elements */}
+                      <div className="absolute inset-0 overflow-hidden">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-[#F37021]/10 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl"></div>
+                      </div>
+                      
+                      <div className="relative px-12 py-8 h-full flex flex-col">
+                        {/* Top row - logos in corners */}
+                        <div className="flex items-start justify-between mb-8">
+                          <div className="bg-white rounded-xl p-4 shadow-xl">
+                            <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={80} height={80} className="object-contain" />
+                          </div>
+                          <div className="bg-white rounded-xl p-4 shadow-xl">
+                            <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={140} height={45} className="object-contain" />
+                          </div>
+                        </div>
+                        
+                        {/* Main message - centered */}
+                        <div className="flex-1 flex flex-col items-center justify-center">
+                          <h2 className="text-5xl font-bold text-white mb-4">Thank You</h2>
+                          <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed text-center mb-10">
+                            For your commitment to creating a workplace where employees managing cancer can thrive
+                          </p>
+                          
+                          {/* Stats row */}
+                          <div className="grid grid-cols-3 gap-6 max-w-3xl w-full mb-10">
+                            <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
+                              <p className="text-3xl font-bold text-[#F37021]">{compositeScore || '--'}</p>
+                              <p className="text-slate-400 text-sm mt-1">Your Score</p>
+                            </div>
+                            <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
+                              <p className="text-3xl font-bold text-emerald-400">{strengthDimensions?.length || '--'}</p>
+                              <p className="text-slate-400 text-sm mt-1">Leading Dimensions</p>
+                            </div>
+                            <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
+                              <p className="text-3xl font-bold text-violet-400">{quickWinOpportunities?.length || '--'}</p>
+                              <p className="text-slate-400 text-sm mt-1">Quick Wins Identified</p>
+                            </div>
+                          </div>
+                          
+                          {/* CTA */}
+                          <div className="bg-gradient-to-r from-[#F37021]/20 to-violet-500/20 rounded-2xl p-6 border border-white/10 backdrop-blur max-w-2xl w-full text-center">
+                            <p className="text-white font-semibold text-lg mb-2">Ready for next steps?</p>
+                            <p className="text-slate-300 mb-4">We're here to help you build on this foundation</p>
+                            <div className="flex items-center justify-center gap-6">
+                              <div className="text-center">
+                                <p className="text-[#F37021] font-bold text-lg">cacbestcompanies@cew.org</p>
+                                <p className="text-slate-400 text-sm">Email Us</p>
+                              </div>
+                              <div className="w-px h-12 bg-white/20"></div>
+                              <div className="text-center">
+                                <p className="text-white font-bold text-lg">cancerandcareers.org</p>
+                                <p className="text-slate-400 text-sm">Visit Our Site</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div className="relative px-16 py-16">
-                      {/* Logos */}
-                      <div className="flex items-center justify-center gap-8 mb-12">
-                        <div className="bg-white rounded-2xl p-6 shadow-2xl">
-                          <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={100} height={100} className="object-contain" />
-                        </div>
-                        <div className="text-white text-4xl font-light">×</div>
-                        <div className="bg-white rounded-2xl p-6 shadow-2xl">
-                          <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={150} height={50} className="object-contain" />
-                        </div>
-                      </div>
-                      
-                      {/* Main message */}
-                      <div className="text-center mb-12">
-                        <h2 className="text-5xl font-bold text-white mb-4">Thank You</h2>
-                        <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
-                          For your commitment to creating a workplace where employees managing cancer can thrive
-                        </p>
-                      </div>
-                      
-                      {/* Stats row */}
-                      <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-12">
-                        <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                          <p className="text-3xl font-bold text-[#F37021]">{compositeScore || '--'}</p>
-                          <p className="text-slate-400 text-sm mt-1">Your Score</p>
-                        </div>
-                        <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                          <p className="text-3xl font-bold text-emerald-400">{strengthDimensions?.length || '--'}</p>
-                          <p className="text-slate-400 text-sm mt-1">Leading Dimensions</p>
-                        </div>
-                        <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                          <p className="text-3xl font-bold text-violet-400">{quickWinOpportunities?.length || '--'}</p>
-                          <p className="text-slate-400 text-sm mt-1">Quick Wins Identified</p>
-                        </div>
-                      </div>
-                      
-                      {/* CTA */}
-                      <div className="bg-gradient-to-r from-[#F37021]/20 to-violet-500/20 rounded-2xl p-8 border border-white/10 backdrop-blur max-w-2xl mx-auto text-center">
-                        <p className="text-white font-semibold text-lg mb-2">Ready for next steps?</p>
-                        <p className="text-slate-300 mb-4">We're here to help you build on this foundation</p>
-                        <div className="flex items-center justify-center gap-6">
-                          <div className="text-center">
-                            <p className="text-[#F37021] font-bold text-lg">cacbestcompanies@cew.org</p>
-                            <p className="text-slate-400 text-sm">Email Us</p>
-                          </div>
-                          <div className="w-px h-12 bg-white/20"></div>
-                          <div className="text-center">
-                            <p className="text-white font-bold text-lg">cancerandcareers.org</p>
-                            <p className="text-slate-400 text-sm">Visit Our Site</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Footer */}
-                      <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between">
+                    {/* White footer */}
+                    <div className="bg-white px-12 py-4 border-t border-slate-200">
+                      <div className="flex items-center justify-between">
                         <p className="text-slate-500 text-sm">© 2026 Cancer and Careers. All rights reserved.</p>
                         <p className="text-slate-500 text-sm">Best Companies for Working with Cancer Index</p>
                         <div className="flex items-center gap-2">
-                          <span className="text-slate-500 text-xs">Powered by</span>
-                          <Image src="/beyond-insights-logo.png" alt="BEYOND Insights" width={80} height={24} className="object-contain opacity-70" />
+                          <span className="text-slate-400 text-xs">Powered by</span>
+                          <Image src="/beyond-insights-logo.png" alt="BEYOND Insights" width={80} height={24} className="object-contain" />
                         </div>
                       </div>
                     </div>
