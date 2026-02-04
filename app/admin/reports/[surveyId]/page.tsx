@@ -5993,207 +5993,293 @@ export default function ExportReportPage() {
             <div className="flex-1 overflow-auto p-8 flex items-center justify-center">
               <div className="bg-white rounded-2xl shadow-2xl max-w-7xl w-full max-h-[calc(100vh-120px)] overflow-auto">
                 
-                {/* Slide 0: Title */}
+                {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
-                  <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-16 rounded-2xl">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-10">
-                        <div className="bg-white rounded-xl p-5 shadow-lg">
-                          <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
+                  <div className="rounded-2xl overflow-hidden">
+                    {/* Top section - dark header with logo and title */}
+                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-10">
+                          <div className="bg-white rounded-xl p-5 shadow-lg">
+                            <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
+                          </div>
+                          <div>
+                            <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
+                            <h1 className="text-4xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
+                            <p className="text-slate-300 mt-2 text-xl">Index 2026</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
-                          <h1 className="text-4xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
-                          <p className="text-slate-300 mt-2 text-xl">Index 2026</p>
+                        <div className="text-right">
+                          <p className="text-slate-400 text-sm font-medium">Report Date</p>
+                          <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-slate-400 text-sm font-medium">Report Date</p>
-                        <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Slide 1: How Index Developed (Context) */}
-                {currentSlide === 1 && (
-                  <div className="p-10">
-                    <div className="flex items-start gap-10 mb-8">
-                      <div className="flex-shrink-0 flex gap-4">
-                        <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
-                          <p className="text-4xl font-bold text-violet-600">40%</p>
-                          <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
-                        </div>
-                        <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
-                          <p className="text-4xl font-bold text-violet-600">42%</p>
-                          <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of diagnoses during<br/>working years (20-64)</p>
-                        </div>
-                      </div>
-                      <div className="pt-1">
-                        <h3 className="text-xl font-bold text-slate-800 mb-2">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
-                        <p className="text-base text-slate-600 leading-relaxed">
-                          Organizations that invest in comprehensive cancer support don't just help those directly affected. They build trust 
-                          across their entire workforce and demonstrate values that resonate with every employee.
-                        </p>
                       </div>
                     </div>
                     
-                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                      <div className="px-6 py-4 bg-slate-800">
-                        <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
-                        <h4 className="font-semibold text-white text-lg">How This Index Was Developed</h4>
-                      </div>
-                      <div className="p-6">
-                        <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                          The 13 dimensions in this assessment were shaped through <strong className="text-slate-800">qualitative 
-                          and quantitative research</strong> with the people who live this every day.
-                        </p>
-                        <div className="grid grid-cols-4 gap-4">
-                          <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 text-center">
-                            <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
-                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                            </div>
-                            <p className="text-sm font-bold text-violet-800">HR Leaders</p>
+                    {/* Bottom section - stats and "When employees face" text (from Image 1) */}
+                    <div className="bg-gradient-to-b from-slate-800 to-slate-700 px-12 py-10">
+                      <div className="flex items-start gap-10">
+                        <div className="flex-shrink-0 flex gap-4">
+                          <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
+                            <p className="text-5xl font-bold text-violet-600">40%</p>
+                            <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
                           </div>
-                          <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 text-center">
-                            <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center mx-auto mb-3">
-                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                            </div>
-                            <p className="text-sm font-bold text-amber-800">Employees Managing Cancer</p>
+                          <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
+                            <p className="text-5xl font-bold text-violet-600">42%</p>
+                            <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of diagnoses during<br/>working years (20-64)</p>
                           </div>
-                          <div className="bg-sky-50 rounded-xl p-4 border border-sky-100 text-center">
-                            <div className="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center mx-auto mb-3">
-                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                            </div>
-                            <p className="text-sm font-bold text-sky-800">General Workforce</p>
-                          </div>
-                          <div className="bg-orange-50 rounded-xl p-4 border border-orange-200 text-center">
-                            <div className="w-10 h-10 flex items-center justify-center mx-auto mb-3">
-                              <img src="/cac-icon.png" alt="Cancer and Careers" className="w-10 h-10 object-contain" />
-                            </div>
-                            <p className="text-sm font-bold text-orange-800">Cancer and Careers</p>
-                          </div>
+                        </div>
+                        <div className="pt-2">
+                          <h3 className="text-xl font-bold text-white mb-3">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
+                          <p className="text-base text-slate-300 leading-relaxed">
+                            Organizations that invest in comprehensive cancer support don't just help those directly affected. They build trust 
+                            across their entire workforce and demonstrate values that resonate with every employee.
+                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Slide 2: How to Use (Expanded) */}
+                {/* Slide 1: How Index Was Developed (matches Image 2) */}
+                {currentSlide === 1 && (
+                  <div className="p-10">
+                    {/* Header */}
+                    <div className="mb-6">
+                      <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
+                      <h2 className="text-2xl font-bold text-slate-900">How This Index Was Developed</h2>
+                    </div>
+                    
+                    {/* Intro text */}
+                    <p className="text-base text-slate-700 leading-relaxed mb-6">
+                      The 13 dimensions in this assessment weren't developed in a silo. They were shaped through <strong className="text-slate-800">qualitative 
+                      and quantitative research</strong> with the people who live this every day, and guided by an organization with 
+                      decades of frontline experience in cancer and the workplace.
+                    </p>
+                    
+                    {/* 4 Research Cards with descriptions */}
+                    <div className="grid grid-cols-4 gap-4 mb-6">
+                      <div className="bg-violet-50 rounded-xl p-5 border border-violet-100 text-center">
+                        <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        </div>
+                        <p className="text-sm font-bold text-violet-800 mb-2">HR Leaders</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
+                      </div>
+                      <div className="bg-amber-50 rounded-xl p-5 border border-amber-100 text-center">
+                        <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center mx-auto mb-3">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                        </div>
+                        <p className="text-sm font-bold text-amber-800 mb-2">Employees Managing Cancer</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">Drew on lived experience to reveal what support they needed most and where gaps exist</p>
+                      </div>
+                      <div className="bg-sky-50 rounded-xl p-5 border border-sky-100 text-center">
+                        <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center mx-auto mb-3">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        </div>
+                        <p className="text-sm font-bold text-sky-800 mb-2">General Workforce</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">Revealed how workplace cancer support shapes trust, loyalty, and job decisions</p>
+                      </div>
+                      <div className="bg-cyan-50 rounded-xl p-5 border border-cyan-200 text-center">
+                        <div className="w-12 h-12 rounded-full bg-cyan-500 flex items-center justify-center mx-auto mb-3">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        </div>
+                        <p className="text-sm font-bold text-cyan-800 mb-2">Cancer and Careers Leadership</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">Guided the development of the framework, drawing on decades of frontline experience</p>
+                      </div>
+                    </div>
+                    
+                    {/* Weighting explanation */}
+                    <p className="text-base text-slate-700 leading-relaxed mb-6">
+                      This same research drives how each dimension is weighted in your composite score. Dimensions that 
+                      employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your 
+                      score reflects what actually matters to the people in your organization.
+                    </p>
+                    
+                    {/* Bottom bar */}
+                    <div className="px-6 py-4 bg-slate-800 rounded-xl">
+                      <p className="text-sm text-center leading-relaxed">
+                        <strong className="text-white">13 dimensions.</strong>
+                        <span className="text-slate-500 mx-2">•</span>
+                        <strong className="text-amber-400">Research-driven weights.</strong>
+                        <span className="text-slate-500 mx-2">•</span>
+                        <span className="text-slate-300">Grounded in the voices of HR leaders, employees, and Cancer and Careers leadership.</span>
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Slide 2: How to Use This Report (matches Image 3) */}
                 {currentSlide === 2 && (
                   <div className="p-10">
-                    <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
-                      <div className="px-8 py-5 bg-sky-600">
-                        <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                          How to Use This Report
-                        </h3>
+                    {/* Header bar matching the collapsible style */}
+                    <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-sky-50 to-sky-100/60 border border-sky-200 rounded-xl mb-6">
+                      <div className="w-9 h-9 rounded-lg bg-sky-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                       </div>
-                      <div className="p-8">
-                        <p className="text-base text-slate-700 leading-relaxed mb-5">
+                      <div className="text-left">
+                        <span className="text-sm font-bold text-slate-800">How to Use This Report</span>
+                        <span className="text-sm text-slate-600 ml-3 font-medium">A guide to getting the most from your assessment</span>
+                      </div>
+                      <div className="ml-auto w-7 h-7 rounded-full bg-white border border-sky-200 flex items-center justify-center rotate-180">
+                        <svg className="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                    </div>
+                    
+                    {/* Content box */}
+                    <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
+                      <div className="p-6">
+                        {/* First paragraph */}
+                        <p className="text-sm text-slate-700 leading-relaxed mb-4">
                           This report provides a comprehensive baseline of your organization's cancer support infrastructure across 
                           13 dimensions. It is designed as a <strong className="text-slate-800">starting point for strategic conversations</strong>, not 
                           a one-size-fits-all prescription.
                         </p>
                         
-                        <p className="text-base font-semibold text-slate-800 mb-4">To get the most from this assessment:</p>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white rounded-lg px-5 py-4 border border-slate-200 flex items-start gap-4">
-                            <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
-                              <span className="text-sm font-bold text-sky-700">1</span>
+                        {/* Second paragraph */}
+                        <p className="text-sm text-slate-700 leading-relaxed mb-5">
+                          We recognize that every organization is different. Your industry, workforce, benefits structure, and current 
+                          capabilities all shape what's realistic and impactful for your team. Some recommendations may already align 
+                          with your priorities; others may not be feasible given where you're starting, and that's expected.
+                        </p>
+                        
+                        {/* Steps header */}
+                        <p className="text-sm font-semibold text-slate-800 mb-3">To get the most from this assessment:</p>
+                        
+                        {/* 4 numbered steps in 2x2 grid */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-sky-700">1</span>
                             </div>
-                            <p className="text-base text-slate-600">Review your dimension scores and the specific elements within each</p>
+                            <p className="text-sm text-slate-600">Review your dimension scores and the specific elements within each</p>
                           </div>
-                          <div className="bg-white rounded-lg px-5 py-4 border border-slate-200 flex items-start gap-4">
-                            <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
-                              <span className="text-sm font-bold text-sky-700">2</span>
+                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-sky-700">2</span>
                             </div>
-                            <p className="text-base text-slate-600">Identify where quick wins align with your existing infrastructure</p>
+                            <p className="text-sm text-slate-600">Identify where quick wins align with your existing infrastructure</p>
                           </div>
-                          <div className="bg-white rounded-lg px-5 py-4 border border-slate-200 flex items-start gap-4">
-                            <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
-                              <span className="text-sm font-bold text-sky-700">3</span>
+                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-sky-700">3</span>
                             </div>
-                            <p className="text-base text-slate-600">Note areas where deeper exploration would be valuable</p>
+                            <p className="text-sm text-slate-600">Note areas where deeper exploration would be valuable</p>
                           </div>
-                          <div className="bg-white rounded-lg px-5 py-4 border border-slate-200 flex items-start gap-4">
-                            <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
-                              <span className="text-sm font-bold text-sky-700">4</span>
+                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-sky-700">4</span>
                             </div>
-                            <p className="text-base text-slate-600"><strong className="text-slate-800">Connect with Cancer and Careers</strong> to build a tailored action plan</p>
+                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Connect with Cancer and Careers</strong> to build a tailored action plan for {companyName}</p>
                           </div>
                         </div>
+                      </div>
+                      
+                      {/* Dark footer bar */}
+                      <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
+                        <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        <p className="text-sm text-slate-200">
+                          <strong className="text-white">Ready for next steps?</strong> The Cancer and Careers team can provide hands-on guidance, 
+                          industry context, and implementation support to help you prioritize what matters most for your workforce.
+                        </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Slide 3: Prepared For + Exec Summary */}
+                {/* Slide 3: Prepared For + Exec Summary + Key Findings (matches Image 1) */}
                 {currentSlide === 3 && (
-                  <div className="p-10">
-                    <div className="flex items-end justify-between mb-10 pb-8 border-b border-slate-200">
-                      <div>
-                        <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
-                        <h2 className="text-5xl font-bold text-slate-900 mt-2">{companyName}</h2>
-                        {(contactName || contactEmail) && (
-                          <div className="mt-3 text-lg text-slate-500">
-                            {contactName && <span className="font-medium text-slate-600">{contactName}</span>}
-                            {contactName && contactEmail && <span className="mx-3 text-slate-300">|</span>}
-                            {contactEmail && <span>{contactEmail}</span>}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-8">
-                        <div className="text-right">
-                          <p className="text-slate-500 text-sm font-medium">Composite Score</p>
-                          <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '-'}</p>
+                  <div className="rounded-2xl overflow-hidden">
+                    {/* Top section - Prepared For header */}
+                    <div className="px-12 py-8 border-b border-slate-100">
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
+                          <h2 className="text-5xl font-bold text-slate-900 mt-2">{companyName}</h2>
                         </div>
-                        {tier && (
-                          <div className={`px-8 py-5 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
-                            <p className="text-3xl font-bold" style={{ color: tier.color }}>{tier.name}</p>
-                            <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
+                        <div className="flex items-center gap-8">
+                          <div className="text-right">
+                            <p className="text-slate-500 text-sm font-medium">Composite Score</p>
+                            <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
                           </div>
+                          {tier && (
+                            <div className={`px-8 py-5 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
+                              <p className="text-3xl font-bold" style={{ color: tier.color }}>{tier.name}</p>
+                              <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Executive Summary section */}
+                    <div className="px-12 py-8 bg-slate-50">
+                      <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
+                      <p className="text-slate-700 leading-relaxed text-lg">
+                        {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
+                        in supporting employees managing cancer, achieving a composite score of <strong>{compositeScore}</strong>
+                        {percentileRank !== null && totalCompanies > 1 && (
+                          <span>, which places the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
+                        )}.
+                        {topDimension && bottomDimension && (
+                          <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
+                          while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
                         )}
+                      </p>
+                      
+                      {/* Tier Progress Box */}
+                      {(() => {
+                        const topGrowthDims = [...dimensionAnalysis].sort((a, b) => a.score - b.score).slice(0, 3).map(d => d.name);
+                        const dimList = topGrowthDims.length === 3 
+                          ? `${topGrowthDims[0]}, ${topGrowthDims[1]}, or ${topGrowthDims[2]}`
+                          : topGrowthDims.length === 2
+                          ? `${topGrowthDims[0]} or ${topGrowthDims[1]}`
+                          : topGrowthDims[0];
+                        
+                        return (
+                          <div className="mt-6 p-5 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-4">
+                            <svg className="w-6 h-6 text-violet-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                            <div>
+                              {nextTierUp && pointsToNextTier ? (
+                                <>
+                                  <p className="text-base font-bold text-violet-800">
+                                    {pointsToNextTier} points from {nextTierUp.name} tier
+                                  </p>
+                                  <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-base font-bold text-violet-800">Exemplary tier achieved</p>
+                                  <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      
+                      {/* 4 Stats Boxes */}
+                      <div className="mt-8 grid grid-cols-4 gap-6">
+                        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                          <p className="text-4xl font-bold text-slate-800">{currentlyOffering}</p>
+                          <p className="text-sm text-slate-500 mt-2 font-medium">of {totalElements} elements offered</p>
+                        </div>
+                        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                          <p className="text-4xl font-bold text-slate-800">{planningItems + assessingItems}</p>
+                          <p className="text-sm text-slate-500 mt-2 font-medium">initiatives in development</p>
+                        </div>
+                        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                          <p className="text-4xl font-bold text-slate-800">{gapItems}</p>
+                          <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
+                        </div>
+                        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                          <p className="text-4xl font-bold text-slate-800">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
+                          <p className="text-sm text-slate-500 mt-2 font-medium">dimensions at Leading+</p>
+                        </div>
                       </div>
                     </div>
                     
-                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
-                    <p className="text-slate-700 leading-relaxed text-xl">
-                      {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
-                      in supporting employees managing cancer, achieving a composite score of <strong>{compositeScore}</strong>
-                      {percentileRank !== null && totalCompanies > 1 && (
-                        <span>, placing in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
-                      )}.
-                      {topDimension && bottomDimension && (
-                        <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
-                        while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity.</span>
-                      )}
-                    </p>
-                    
-                    <div className="mt-8 grid grid-cols-4 gap-6">
-                      <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                        <p className="text-5xl font-bold text-slate-800">{currentlyOffering}</p>
-                        <p className="text-sm text-slate-500 mt-2 font-medium">of {totalElements} elements offered</p>
-                      </div>
-                      <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                        <p className="text-5xl font-bold text-slate-800">{planningItems + assessingItems}</p>
-                        <p className="text-sm text-slate-500 mt-2 font-medium">initiatives in development</p>
-                      </div>
-                      <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                        <p className="text-5xl font-bold text-slate-800">{gapItems}</p>
-                        <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
-                      </div>
-                      <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                        <p className="text-5xl font-bold text-slate-800">{tierCounts.exemplary + tierCounts.leading}<span className="text-2xl font-normal text-slate-400 ml-1">/13</span></p>
-                        <p className="text-sm text-slate-500 mt-2 font-medium">dimensions at Leading+</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Slide 4: Key Findings + Score Composition */}
-                {currentSlide === 4 && (
-                  <div>
+                    {/* Key Findings Dark Strip */}
                     <div className="bg-slate-900 px-12 py-8">
                       <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">Key Findings</h3>
                       <div className="grid grid-cols-4 gap-6">
@@ -6219,82 +6305,101 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="px-12 py-8">
-                      <h3 className="font-bold text-slate-900 text-xl mb-6">Score Composition</h3>
-                      <div className="flex items-center justify-center gap-4 flex-wrap">
-                        <div className="text-center px-6 py-4 bg-slate-50 rounded-lg border-2 border-slate-200 min-w-[140px]">
-                          <p className="text-4xl font-bold" style={{ color: compositeScore ? getScoreColor(compositeScore) : '#94a3b8' }}>{compositeScore ?? '-'}</p>
-                          <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Composite</p>
-                        </div>
-                        <span className="text-2xl text-slate-300 font-light">=</span>
-                        <div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]">
-                          <p className="text-2xl font-semibold text-slate-700">{weightedDimScore ?? '-'}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">Weighted Dims</p>
-                          <p className="text-xs text-slate-300">x 90%</p>
-                        </div>
-                        <span className="text-xl text-slate-300 font-light">+</span>
-                        <div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]">
-                          <p className="text-2xl font-semibold text-slate-700">{maturityScore ?? '-'}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">Maturity</p>
-                          <p className="text-xs text-slate-300">x 5%</p>
-                        </div>
-                        <span className="text-xl text-slate-300 font-light">+</span>
-                        <div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]">
-                          <p className="text-2xl font-semibold text-slate-700">{breadthScore ?? '-'}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">Breadth</p>
-                          <p className="text-xs text-slate-300">x 5%</p>
-                        </div>
+                  </div>
+                )}
+
+                {/* Slide 4: Dimension Performance Table (matches Image 2 exactly) */}
+                {currentSlide === 4 && (
+                  <div className="p-8">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-2xl">Dimension Performance</h3>
+                        <p className="text-slate-500 mt-1">All 13 dimensions sorted by strategic weight</p>
                       </div>
+                      <span className="bg-cyan-100 text-cyan-700 px-4 py-2 rounded-lg font-semibold text-sm">👆 Click any dimension for element-level details</span>
                     </div>
-                  </div>
-                )}
-
-                {/* Slide 5: Dimension Performance Table */}
-                {currentSlide === 5 && (
-                  <div className="p-10">
-                    <h3 className="font-bold text-slate-900 text-xl mb-2">Dimension Performance</h3>
-                    <p className="text-slate-500 mb-6">All 13 dimensions sorted by strategic weight</p>
-                    <div className="overflow-hidden rounded-xl border border-slate-200">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="bg-slate-100 border-b border-slate-200">
-                            <th className="text-left px-4 py-3 font-semibold text-slate-700">Dimension</th>
-                            <th className="text-center px-4 py-3 font-semibold text-slate-700 w-20">Weight</th>
-                            <th className="text-center px-4 py-3 font-semibold text-slate-700 w-20">Score</th>
-                            <th className="text-center px-4 py-3 font-semibold text-slate-700 w-24">Benchmark</th>
-                            <th className="text-center px-4 py-3 font-semibold text-slate-700 w-28">Tier</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d) => (
-                            <tr key={d.dim} className="hover:bg-slate-50">
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-3">
-                                  <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>
-                                    {d.dim}
+                    
+                    {/* Table Header */}
+                    <div className="flex items-center gap-3 py-3 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <div className="w-8"></div>
+                      <div className="flex-1">Dimension</div>
+                      <div className="w-16 text-center">Weight</div>
+                      <div className="w-56 text-center">Performance</div>
+                      <div className="w-16 text-center">Score</div>
+                      <div className="w-24 text-center">Benchmark</div>
+                      <div className="w-24 text-center">Tier</div>
+                    </div>
+                    
+                    {/* Table Rows */}
+                    <div className="divide-y divide-slate-100">
+                      {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, idx) => {
+                        const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+                        return (
+                          <div 
+                            key={d.dim} 
+                            className={`flex items-center gap-3 py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}
+                          >
+                            <div className="w-8 flex justify-center">
+                              <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm" style={{ backgroundColor: d.tier.color }}>
+                                {d.dim}
+                              </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm text-slate-800 font-semibold">{d.name}</span>
+                            </div>
+                            <div className="w-16 text-center">
+                              <span className="text-sm text-slate-600 font-medium">{d.weight}%</span>
+                            </div>
+                            <div className="w-56">
+                              <div className="relative h-2.5 bg-slate-100 rounded-full overflow-visible">
+                                <div 
+                                  className="absolute left-0 top-0 h-full rounded-full transition-all" 
+                                  style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} 
+                                />
+                                {d.benchmark !== null && (
+                                  <div 
+                                    className="absolute -top-3" 
+                                    style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
+                                  >
+                                    <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#475569"/></svg>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="w-16 text-center">
+                              <span className="text-lg font-bold" style={{ color: d.tier.color }}>{d.score}</span>
+                            </div>
+                            <div className="w-24 text-center">
+                              {d.benchmark !== null ? (
+                                <div>
+                                  <span className="text-sm text-slate-500 font-medium">{d.benchmark}</span>
+                                  <span className={`ml-1 text-xs font-bold ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                    ({diff !== null && diff >= 0 ? '+' : ''}{diff})
                                   </span>
-                                  <span className="font-medium text-slate-800">{d.name}</span>
                                 </div>
-                              </td>
-                              <td className="text-center px-4 py-3 font-medium text-slate-600">{d.weight}%</td>
-                              <td className="text-center px-4 py-3 font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</td>
-                              <td className="text-center px-4 py-3 text-slate-500">{d.benchmark ?? '-'}</td>
-                              <td className="text-center px-4 py-3">
-                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${d.tier.bgColor}`} style={{ color: d.tier.color }}>
-                                  {d.tier.name}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                              ) : (
+                                <span className="text-sm text-slate-300">—</span>
+                              )}
+                            </div>
+                            <div className="w-24 flex justify-center">
+                              <span 
+                                className={`text-xs font-bold px-3 py-1 rounded-lg ${d.tier.bgColor} border ${d.tier.borderColor}`} 
+                                style={{ color: d.tier.color }}
+                              >
+                                {d.tier.name}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
-                {/* Slides 6-18: D1-D13 Deep Dives */}
-                {currentSlide >= 6 && currentSlide <= 18 && (() => {
-                  const dimNum = currentSlide - 5;
+                {/* Slides 5-17: D1-D13 Deep Dives */}
+                {currentSlide >= 5 && currentSlide <= 17 && (() => {
+                  const dimNum = currentSlide - 4;
                   const d = dimensionAnalysis.find(dim => dim.dim === dimNum);
                   if (!d) return <div className="p-10 text-center text-slate-500">Dimension {dimNum} data not available</div>;
                   
@@ -6317,20 +6422,30 @@ export default function ExportReportPage() {
                   
                   const getObservation = (elem: any, bench: any) => {
                     const total = bench?.total || 1;
-                    const pct = Math.round(((bench?.currently || 0) / total) * 100);
+                    const pctCurrently = Math.round(((bench?.currently || 0) / total) * 100);
+                    const pctPlanning = Math.round(((bench?.planning || 0) / total) * 100);
+                    const pctAssessing = Math.round(((bench?.assessing || 0) / total) * 100);
                     const statusInfo = getStatusInfo(elem);
                     if (statusInfo.key === 'currently') {
-                      if (pct < 50) return `Solid: ${pct}% of participating organizations also offer`;
-                      return `Table stakes: ${pct}% offer`;
+                      if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of participating organizations offer`;
+                      if (pctCurrently < 50) return `Ahead of ${100 - pctCurrently}% of benchmark`;
+                      if (pctCurrently < 70) return `Solid: ${pctCurrently}% of participating organizations also offer`;
+                      return `Table stakes: ${pctCurrently}% offer`;
                     }
-                    if (statusInfo.key === 'planning') return `${pct}% already offer`;
-                    if (statusInfo.key === 'assessing') return `${pct}% offer, assessing feasibility`;
-                    return `Gap: ${pct}% of participating organizations offer`;
+                    if (statusInfo.key === 'planning') {
+                      if (pctCurrently > 50) return `${pctCurrently}% already offer`;
+                      return `Among ${pctPlanning}% planning; ${pctCurrently}% offer`;
+                    }
+                    if (statusInfo.key === 'assessing') {
+                      return `${pctAssessing}% also assessing; ${pctCurrently}% offer`;
+                    }
+                    if (pctCurrently > 50) return `Gap: ${pctCurrently}% of participating organizations offer`;
+                    return `Emerging: ${pctCurrently}% offer`;
                   };
                   
                   return (
                     <div className="flex flex-col h-full">
-                      {/* Header */}
+                      {/* Header - matches actual modal styling */}
                       <div className="px-6 py-4 flex-shrink-0" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}dd 100%)` }}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
@@ -6338,8 +6453,8 @@ export default function ExportReportPage() {
                             <div>
                               <h3 className="text-xl font-bold text-white">{d.name}</h3>
                               <div className="flex items-center gap-2 mt-1">
-                                <span className="px-2 py-0.5 bg-white/20 rounded text-sm font-medium text-white/90">Weight: {d.weight}%</span>
-                                <span className="px-2 py-0.5 bg-white/30 rounded text-sm font-semibold text-white">{d.tier.name}</span>
+                                <span className="px-2 py-0.5 bg-white/20 rounded text-xs font-medium text-white/90">Weight: {d.weight}%</span>
+                                <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-semibold text-white">{d.tier.name}</span>
                               </div>
                             </div>
                           </div>
@@ -6423,171 +6538,481 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 19: Strategic Matrix */}
+                {/* Slide 18: Strategic Matrix WITHOUT Benchmarks */}
+                {currentSlide === 18 && (
+                  <div className="p-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-2xl">Strategic Priority Matrix</h3>
+                        <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. strategic weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
+                      </div>
+                      <div className="px-4 py-2 rounded-lg border-2 border-slate-200 text-slate-600 text-sm font-semibold">
+                        ○ Show Benchmarks
+                      </div>
+                    </div>
+                    
+                    {/* Matrix Chart */}
+                    {(() => {
+                      const MAX_WEIGHT = 15;
+                      const CHART_WIDTH = 900;
+                      const CHART_HEIGHT = 420;
+                      const MARGIN = { top: 34, right: 20, bottom: 80, left: 60 };
+                      const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
+                      const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
+                      
+                      return (
+                        <div className="flex flex-col items-center">
+                          <svg className="w-full max-w-4xl" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+                            <defs>
+                              <filter id="dropShadow18" x="-50%" y="-50%" width="200%" height="200%">
+                                <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
+                              </filter>
+                            </defs>
+                            
+                            <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
+                              {/* Top labels */}
+                              <rect x={0} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#EF4444" />
+                              <text x={PLOT_WIDTH/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
+                              
+                              <rect x={PLOT_WIDTH/2 + 2} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#10B981" />
+                              <text x={PLOT_WIDTH * 3/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
+                              
+                              {/* Quadrant backgrounds */}
+                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEF2F2" opacity="0.5" />
+                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#ECFDF5" opacity="0.5" />
+                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F8FAFC" opacity="0.5" />
+                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#EFF6FF" opacity="0.3" />
+                              
+                              {/* Grid lines */}
+                              <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4 4" />
+                              <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4 4" />
+                              
+                              {/* Border */}
+                              <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#E2E8F0" strokeWidth="1" />
+                              
+                              {/* Bottom labels */}
+                              <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#6B7280" />
+                              <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">MONITOR</text>
+                              
+                              <rect x={PLOT_WIDTH/2 + 2} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#3B82F6" />
+                              <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
+                              
+                              {/* X-axis */}
+                              <g transform={`translate(0, ${PLOT_HEIGHT + 32})`}>
+                                {[0, 25, 50, 75, 100].map((val) => (
+                                  <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
+                                    <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
+                                  </g>
+                                ))}
+                                <text x={PLOT_WIDTH/2} y="22" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE →</text>
+                              </g>
+                              
+                              {/* Y-axis */}
+                              {[0, 5, 10, 15].map((val) => {
+                                const yPos = PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
+                                return (
+                                  <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
+                                );
+                              })}
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
+                              
+                              {/* Data points */}
+                              {dimensionAnalysis.map((d) => {
+                                const xPos = (d.score / 100) * PLOT_WIDTH;
+                                const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                                return (
+                                  <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
+                                    <circle r={18} fill="white" filter="url(#dropShadow18)" />
+                                    <circle r={15} fill={d.tier.color} />
+                                    <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
+                                  </g>
+                                );
+                              })}
+                            </g>
+                          </svg>
+                          
+                          {/* Legend */}
+                          <div className="grid grid-cols-4 gap-x-8 gap-y-2 mt-4 text-sm">
+                            {dimensionAnalysis.map((d) => (
+                              <div key={d.dim} className="flex items-center gap-2">
+                                <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
+                                <span className="text-slate-700">{d.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* Slide 19: Strategic Matrix WITH Benchmarks */}
                 {currentSlide === 19 && (
-                  <div className="p-10">
-                    <h3 className="font-bold text-slate-900 text-xl mb-2">Strategic Priority Matrix</h3>
-                    <p className="text-slate-500 mb-6">Dimensions plotted by performance vs strategic importance</p>
-                    <div className="flex justify-center">
-                      <StrategicPriorityMatrix dimensionAnalysis={dimensionAnalysis} getScoreColor={getScoreColor} />
+                  <div className="p-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-2xl">Strategic Priority Matrix</h3>
+                        <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. strategic weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
+                      </div>
+                      <div className="px-4 py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold">
+                        ● Benchmarks On
+                      </div>
+                    </div>
+                    
+                    {/* Matrix Chart with Benchmarks */}
+                    {(() => {
+                      const MAX_WEIGHT = 15;
+                      const CHART_WIDTH = 900;
+                      const CHART_HEIGHT = 420;
+                      const MARGIN = { top: 34, right: 20, bottom: 80, left: 60 };
+                      const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
+                      const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
+                      
+                      return (
+                        <div className="flex flex-col items-center">
+                          <svg className="w-full max-w-4xl" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+                            <defs>
+                              <filter id="dropShadow19" x="-50%" y="-50%" width="200%" height="200%">
+                                <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
+                              </filter>
+                            </defs>
+                            
+                            <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
+                              {/* Top labels */}
+                              <rect x={0} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#EF4444" />
+                              <text x={PLOT_WIDTH/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
+                              
+                              <rect x={PLOT_WIDTH/2 + 2} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#10B981" />
+                              <text x={PLOT_WIDTH * 3/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
+                              
+                              {/* Quadrant backgrounds */}
+                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEF2F2" opacity="0.5" />
+                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#ECFDF5" opacity="0.5" />
+                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F8FAFC" opacity="0.5" />
+                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#EFF6FF" opacity="0.3" />
+                              
+                              {/* Grid lines */}
+                              <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4 4" />
+                              <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4 4" />
+                              
+                              {/* Border */}
+                              <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#E2E8F0" strokeWidth="1" />
+                              
+                              {/* Bottom labels */}
+                              <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#6B7280" />
+                              <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">MONITOR</text>
+                              
+                              <rect x={PLOT_WIDTH/2 + 2} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#3B82F6" />
+                              <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
+                              
+                              {/* X-axis */}
+                              <g transform={`translate(0, ${PLOT_HEIGHT + 32})`}>
+                                {[0, 25, 50, 75, 100].map((val) => (
+                                  <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
+                                    <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
+                                  </g>
+                                ))}
+                                <text x={PLOT_WIDTH/2} y="22" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE →</text>
+                              </g>
+                              
+                              {/* Y-axis */}
+                              {[0, 5, 10, 15].map((val) => {
+                                const yPos = PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
+                                return (
+                                  <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
+                                );
+                              })}
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
+                              
+                              {/* Benchmark circles (dashed) */}
+                              {dimensionAnalysis.map((d) => {
+                                const benchScore = d.benchmark || 50;
+                                const xPos = (benchScore / 100) * PLOT_WIDTH;
+                                const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                                return (
+                                  <circle 
+                                    key={`bench-${d.dim}`} 
+                                    cx={xPos} 
+                                    cy={yPos} 
+                                    r={18} 
+                                    fill="none" 
+                                    stroke="#6366F1" 
+                                    strokeWidth="2" 
+                                    strokeDasharray="4 3"
+                                    opacity="0.7"
+                                  />
+                                );
+                              })}
+                              
+                              {/* Benchmark labels */}
+                              {dimensionAnalysis.map((d) => {
+                                const benchScore = d.benchmark || 50;
+                                const xPos = (benchScore / 100) * PLOT_WIDTH;
+                                const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                                return (
+                                  <text 
+                                    key={`bench-label-${d.dim}`} 
+                                    x={xPos} 
+                                    y={yPos} 
+                                    textAnchor="middle" 
+                                    dominantBaseline="central" 
+                                    fill="#6366F1" 
+                                    fontSize="9" 
+                                    fontWeight="600"
+                                    opacity="0.8"
+                                  >
+                                    D{d.dim}
+                                  </text>
+                                );
+                              })}
+                              
+                              {/* Data points (company) */}
+                              {dimensionAnalysis.map((d) => {
+                                const xPos = (d.score / 100) * PLOT_WIDTH;
+                                const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                                return (
+                                  <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
+                                    <circle r={18} fill="white" filter="url(#dropShadow19)" />
+                                    <circle r={15} fill={d.tier.color} />
+                                    <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
+                                  </g>
+                                );
+                              })}
+                            </g>
+                          </svg>
+                          
+                          {/* Legend */}
+                          <div className="grid grid-cols-4 gap-x-8 gap-y-2 mt-4 text-sm">
+                            {dimensionAnalysis.map((d) => (
+                              <div key={d.dim} className="flex items-center gap-2">
+                                <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
+                                <span className="text-slate-700">{d.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* Slide 20: Cross-Dimensional Insights - exact match to report */}
+                {currentSlide === 20 && (
+                  <div className="rounded-2xl overflow-hidden">
+                    <div className="px-12 py-6 bg-indigo-700">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-bold text-white text-xl">Cross-Dimensional Insights</h3>
+                          <p className="text-indigo-200 mt-1 text-base">Patterns identified across your assessment that reveal strategic opportunities</p>
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          Learn More
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-12 py-8 space-y-6">
+                      {patterns.map((p, idx) => (
+                        <div key={idx} className="border border-slate-200 rounded-xl overflow-hidden">
+                          <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                            <p className="font-bold text-slate-800 text-lg">{p.pattern}</p>
+                          </div>
+                          <div className="px-6 py-5 grid grid-cols-2 gap-8">
+                            <div>
+                              <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">What This Means</p>
+                              <p className="text-base text-slate-600 leading-relaxed">{p.implication}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-3">Recommended Action</p>
+                              <p className="text-base text-slate-600 leading-relaxed">{customCrossRecommendations[idx] || p.recommendation}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
 
-                {/* Slide 20: Cross-Dimensional Insights */}
-                {currentSlide === 20 && (
-                  <div className="p-10">
-                    <h3 className="font-bold text-slate-900 text-xl mb-2">Cross-Dimensional Insights</h3>
-                    <p className="text-slate-500 mb-6">Patterns that emerge across multiple dimensions</p>
-                    <div className="space-y-4">
-                      {patterns.length > 0 ? patterns.map((p, idx) => (
-                        <div key={idx} className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl p-6 border border-violet-200">
-                          <h4 className="font-bold text-violet-900 text-lg mb-2">{p.pattern}</h4>
-                          <p className="text-slate-700 mb-3">{p.implication}</p>
-                          <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
-                            <p className="text-sm font-semibold text-violet-800 mb-1">Recommendation</p>
-                            <p className="text-slate-600">{p.recommendation}</p>
+                {/* Slide 21: Impact-Ranked Priorities - exact match to report */}
+                {currentSlide === 21 && (
+                  <div className="rounded-2xl overflow-hidden">
+                    <div className="px-10 py-6 bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 relative overflow-hidden">
+                      <div className="relative flex items-center justify-between">
+                        <div>
+                          <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
+                          <p className="text-cyan-100 mt-1 text-base">Top opportunities ranked by potential score impact and readiness to improve</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-medium rounded-lg backdrop-blur">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Learn More
+                          </div>
+                          <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-xl px-4 py-2">
+                            <svg className="w-5 h-5 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                            <span className="text-white font-semibold">Top 5 Priorities</span>
                           </div>
                         </div>
-                      )) : (
-                        <p className="text-slate-500 italic">No cross-dimensional patterns identified at this time.</p>
+                      </div>
+                    </div>
+                    <div className="p-8">
+                      <div className="space-y-4">
+                        {rankings.slice(0, 5).map((r, idx) => (
+                          <div key={r.dimNum} className={`relative rounded-xl border-2 overflow-hidden ${
+                            idx === 0 ? 'border-cyan-300 bg-gradient-to-r from-cyan-50 to-white' : 
+                            idx === 1 ? 'border-cyan-200 bg-gradient-to-r from-cyan-50/50 to-white' : 
+                            'border-slate-200 bg-white'
+                          }`}>
+                            <div className="flex items-stretch">
+                              {/* Priority Number */}
+                              <div className={`flex items-center justify-center w-20 text-3xl font-black ${
+                                idx === 0 ? 'bg-gradient-to-b from-cyan-500 to-cyan-600 text-white' : 
+                                idx === 1 ? 'bg-gradient-to-b from-cyan-400 to-cyan-500 text-white' : 
+                                'bg-slate-100 text-slate-400'
+                              }`}>
+                                {idx + 1}
+                              </div>
+                              
+                              {/* Content */}
+                              <div className="flex-1 p-5">
+                                <div className="flex items-start justify-between gap-6">
+                                  {/* Dimension Info */}
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                      <h4 className="font-bold text-slate-800 text-lg">{r.dimName}</h4>
+                                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
+                                        r.gapLevel === 'Few Gaps' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                        r.gapLevel === 'Some Gaps' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                        'bg-slate-100 text-slate-700 border border-slate-200'
+                                      }`}>
+                                        {r.gapLevel === 'Few Gaps' ? (
+                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                        ) : r.gapLevel === 'Some Gaps' ? (
+                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01" /></svg>
+                                        ) : null}
+                                        {r.gapLevel}
+                                      </span>
+                                    </div>
+                                    
+                                    {/* Recommendations */}
+                                    <div className="text-sm text-slate-600 space-y-1">
+                                      {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
+                                        <p key={i} className="flex items-start gap-2">
+                                          <span className="text-cyan-500 mt-0.5">→</span>
+                                          <span>{rec}</span>
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Metrics */}
+                                  <div className="flex items-center gap-4 flex-shrink-0">
+                                    {/* Current Score */}
+                                    <div className="text-center px-4 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                      <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-1">Current</p>
+                                      <p className="text-2xl font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</p>
+                                      <p className="text-xs text-slate-400">{r.tier}</p>
+                                    </div>
+                                    
+                                    {/* Arrow */}
+                                    <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                    
+                                    {/* Potential Gain */}
+                                    <div className="text-center px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
+                                      <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Impact</p>
+                                      <p className="text-2xl font-bold text-emerald-600">+{r.potentialGain}</p>
+                                      <p className="text-xs text-emerald-500">points</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-slate-400 mt-6 text-center italic">Impact calculated based on dimension weight and improvement potential. Gap level indicates number of elements needing attention.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Slide 22: Areas of Excellence - exact match to report */}
+                {currentSlide === 22 && (
+                  <div className="rounded-2xl overflow-hidden">
+                    <div className="px-12 py-5 bg-emerald-700">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
+                          <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          Learn More
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-12 py-6">
+                      {strengthDimensions.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-5">
+                          {strengthDimensions.slice(0, 6).map((d) => (
+                            <div key={d.dim} className="border border-slate-200 rounded-xl p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <p className="font-semibold text-slate-800 text-base">{d.name}</p>
+                                <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                              </div>
+                              <ul className="space-y-1.5">
+                                {d.strengths.slice(0, 3).map((e: any, i: number) => (
+                                  <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                    <svg className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    <span>{e.name}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
+                        </div>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* Slide 21: Impact-Ranked Priorities */}
-                {currentSlide === 21 && (
-                  <div className="p-10">
-                    <h3 className="font-bold text-slate-900 text-xl mb-2">Impact-Ranked Improvement Priorities</h3>
-                    <p className="text-slate-500 mb-6">Dimensions ranked by potential impact on your composite score</p>
-                    <div className="space-y-3">
-                      {rankings.slice(0, 6).map((r, idx) => (
-                        <div key={r.dim} className="flex items-center gap-4 bg-slate-50 rounded-xl p-4 border border-slate-200">
-                          <span className="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-lg">{idx + 1}</span>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: getScoreColor(r.score) }}>{r.dim}</span>
-                              <span className="font-semibold text-slate-800">{r.name}</span>
-                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${r.tier.bgColor}`} style={{ color: r.tier.color }}>{r.tier.name}</span>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-slate-800">{r.score}</p>
-                            <p className="text-xs text-slate-500">{r.weight}% weight</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Slide 22: Areas of Excellence */}
-                {currentSlide === 22 && (
-                  <div className="p-10">
-                    <h3 className="font-bold text-slate-900 text-xl mb-2">Areas of Excellence</h3>
-                    <p className="text-slate-500 mb-6">Dimensions where you demonstrate strong performance</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      {strengthDimensions.slice(0, 6).map((d) => (
-                        <div key={d.dim} className="bg-emerald-50 rounded-xl p-5 border border-emerald-200">
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
-                            <div>
-                              <p className="font-bold text-slate-800">{d.name}</p>
-                              <p className="text-sm text-emerald-600 font-semibold">Score: {d.score}</p>
-                            </div>
-                          </div>
-                          {d.strengths?.slice(0, 2).map((s: any, i: number) => (
-                            <p key={i} className="text-sm text-slate-600 flex items-start gap-2 mt-1">
-                              <span className="text-emerald-500">+</span> {s.name}
-                            </p>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Slide 23: Areas for Growth */}
+                {/* Slide 23: Areas for Growth - exact match to report */}
                 {currentSlide === 23 && (
-                  <div className="p-10">
-                    <h3 className="font-bold text-slate-900 text-xl mb-2">Areas for Growth</h3>
-                    <p className="text-slate-500 mb-6">Dimensions with the most opportunity for improvement</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      {allDimensionsByScore.slice(0, 6).map((d) => (
-                        <div key={d.dim} className="bg-amber-50 rounded-xl p-5 border border-amber-200">
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
-                            <div>
-                              <p className="font-bold text-slate-800">{d.name}</p>
-                              <p className="text-sm text-amber-600 font-semibold">Score: {d.score}</p>
-                            </div>
-                          </div>
-                          {d.needsAttention?.slice(0, 2).map((g: any, i: number) => (
-                            <p key={i} className="text-sm text-slate-600 flex items-start gap-2 mt-1">
-                              <span className="text-amber-500">o</span> {g.name}
-                            </p>
-                          ))}
+                  <div className="rounded-2xl overflow-hidden">
+                    <div className="px-12 py-5 bg-amber-600">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
+                          <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Slide 24: Initiatives in Progress */}
-                {currentSlide === 24 && (
-                  <div className="p-10">
-                    <h3 className="font-bold text-slate-900 text-xl mb-2">Initiatives in Progress</h3>
-                    <p className="text-slate-500 mb-6">Elements currently being planned or assessed</p>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                          <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                          In Active Planning ({planningItems})
-                        </h4>
-                        <div className="space-y-2">
-                          {dimensionAnalysis.flatMap(d => d.planning?.slice(0, 2).map((p: any) => ({ ...p, dimName: d.name })) || []).slice(0, 6).map((item: any, i: number) => (
-                            <div key={i} className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                              <p className="text-sm text-slate-700">{item.name}</p>
-                              <p className="text-xs text-blue-600 mt-1">{item.dimName}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
-                          <span className="w-3 h-3 rounded-full bg-amber-500"></span>
-                          Assessing Feasibility ({assessingItems})
-                        </h4>
-                        <div className="space-y-2">
-                          {dimensionAnalysis.flatMap(d => d.assessing?.slice(0, 2).map((a: any) => ({ ...a, dimName: d.name })) || []).slice(0, 6).map((item: any, i: number) => (
-                            <div key={i} className="bg-amber-50 rounded-lg p-3 border border-amber-200">
-                              <p className="text-sm text-slate-700">{item.name}</p>
-                              <p className="text-xs text-amber-600 mt-1">{item.dimName}</p>
-                            </div>
-                          ))}
+                        <div className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          Learn More
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* Slide 25: Strategic Recommendations Setup */}
-                {currentSlide === 25 && (
-                  <div className="p-10">
-                    <h3 className="font-bold text-slate-900 text-xl mb-2">Strategic Recommendations</h3>
-                    <p className="text-slate-500 mb-6">Detailed analysis and action plans for priority dimensions</p>
-                    <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-xl p-8 text-white">
-                      <p className="text-lg leading-relaxed mb-6">
-                        The following slides provide comprehensive analysis for the <strong>{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong> - those 
-                        with the greatest potential impact on your overall performance.
-                      </p>
-                      <div className="grid grid-cols-4 gap-4">
-                        {allDimensionsByScore.slice(0, 4).map((d, idx) => (
-                          <div key={d.dim} className="bg-white/10 rounded-xl p-4 text-center">
-                            <span className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold mx-auto mb-2" style={{ backgroundColor: getScoreColor(d.score) }}>{idx + 1}</span>
-                            <p className="text-sm font-medium">{d.name}</p>
-                            <p className="text-xs text-white/70 mt-1">Score: {d.score}</p>
+                    <div className="px-12 py-6">
+                      <div className="grid grid-cols-2 gap-5">
+                        {allDimensionsByScore.slice(0, 6).map((d) => (
+                          <div key={d.dim} className="border border-slate-200 rounded-xl p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <p className="font-semibold text-slate-800 text-base">{d.name}</p>
+                              <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                            </div>
+                            {d.needsAttention.length > 0 ? (
+                              <ul className="space-y-1.5">
+                                {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
+                                  <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                    <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
+                                    <span>{e.name}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -6595,17 +7020,129 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slides 26-29: 4 Strategic Rec Cards */}
+                {/* Slide 24: Initiatives in Progress - exact match to report */}
+                {currentSlide === 24 && (
+                  <div className="rounded-2xl overflow-hidden">
+                    <div className="px-12 py-6 bg-gradient-to-r from-blue-600 to-blue-700">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
+                          <p className="text-blue-200 mt-1">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                        </div>
+                        <div className="bg-white/20 rounded-lg px-5 py-2.5">
+                          <p className="text-white font-semibold">Fastest path to improvement</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-12 py-8">
+                      <div className="grid grid-cols-2 gap-5">
+                        {quickWinOpportunities.map((item: any, idx: number) => (
+                          <div key={idx} className="flex items-start gap-4 p-5 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100' : 'bg-amber-100'}`}>
+                              {item.type === 'Planning' ? (
+                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                              ) : (
+                                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{item.type}</span>
+                                <span className="text-sm text-slate-500 font-medium">D{item.dimNum}</span>
+                              </div>
+                              <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
+                              <p className="text-sm text-slate-500 mt-1">{item.dimName}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Slide 25: Strategic Recommendations Setup - exact match to report */}
+                {currentSlide === 25 && (
+                  <div className="rounded-2xl overflow-hidden">
+                    <div className="px-12 py-10 bg-slate-800">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-bold text-white text-3xl">Strategic Recommendations</h3>
+                          <p className="text-slate-400 mt-2 text-lg">Detailed analysis and action plans for priority dimensions</p>
+                        </div>
+                        <div className="flex items-center gap-2 px-5 py-2.5 bg-slate-700 text-white text-sm font-medium rounded-lg">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          Learn More
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-12 py-10">
+                      <p className="text-slate-600 leading-relaxed text-lg mb-8">
+                        The following pages provide comprehensive analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                        with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
+                      </p>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="flex items-start gap-4 p-5 bg-red-50 rounded-xl border border-red-200">
+                          <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                          </div>
+                          <div>
+                            <p className="font-bold text-red-800 text-lg">Improvement Opportunities</p>
+                            <p className="text-base text-red-700 mt-1">Specific gaps where you're not currently offering, with participant benchmarks</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4 p-5 bg-blue-50 rounded-xl border border-blue-200">
+                          <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                          </div>
+                          <div>
+                            <p className="font-bold text-blue-800 text-lg">In Development</p>
+                            <p className="text-base text-blue-700 mt-1">Initiatives in planning that can be accelerated for faster impact</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4 p-5 bg-emerald-50 rounded-xl border border-emerald-200">
+                          <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                          </div>
+                          <div>
+                            <p className="font-bold text-emerald-800 text-lg">Current Strengths</p>
+                            <p className="text-base text-emerald-700 mt-1">Elements you're already offering that form your foundation</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4 p-5 bg-violet-50 rounded-xl border border-violet-200">
+                          <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                          </div>
+                          <div>
+                            <p className="font-bold text-violet-800 text-lg">Tailored Insights & CAC Support</p>
+                            <p className="text-base text-violet-700 mt-1">Key evidence, strategic insight, recommended roadmap, and CAC programs</p>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-base text-slate-500 mt-8 italic">
+                        Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Slides 26-29: 4 Strategic Rec Cards - exact match to report */}
                 {currentSlide >= 26 && currentSlide <= 29 && (() => {
                   const recIdx = currentSlide - 26;
                   const d = allDimensionsByScore[recIdx];
                   if (!d) return <div className="p-10 text-center text-slate-500">Recommendation data not available</div>;
                   
+                  const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
+                  const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
+                  const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
+                  const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
+                  const tierColor = getScoreColor(d.score);
+                  
                   return (
-                    <div>
-                      <div className="px-10 py-5 bg-slate-700">
+                    <div className="rounded-2xl overflow-hidden border-l-4" style={{ borderLeftColor: tierColor }}>
+                      {/* Dimension Header */}
+                      <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-md" style={{ backgroundColor: getScoreColor(d.score) }}>
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
                             {recIdx + 1}
                           </div>
                           <div className="flex-1">
@@ -6614,49 +7151,157 @@ export default function ExportReportPage() {
                               <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
                               <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
                               <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                              {d.benchmark !== null && (
+                                <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                              )}
                             </div>
                           </div>
                         </div>
                       </div>
-                      <div className="p-8">
-                        <div className="grid grid-cols-3 gap-6">
+                      
+                      {/* Benchmark Narrative */}
+                      {benchmarkNarrative && (
+                        <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
+                          <p className="text-base text-slate-600">{benchmarkNarrative}</p>
+                        </div>
+                      )}
+                      
+                      <div className="px-10 py-6">
+                        {/* Current State - 3 columns */}
+                        <div className="grid grid-cols-3 gap-6 mb-6">
+                          {/* Improvement Opportunities */}
                           <div className="border border-red-200 rounded-xl overflow-hidden">
                             <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                              <h5 className="font-bold text-red-800">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                              <h5 className="font-bold text-red-800 text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white max-h-48 overflow-y-auto">
-                              {d.needsAttention?.length > 0 ? d.needsAttention.map((item: any, i: number) => (
-                                <p key={i} className="text-sm text-slate-600 flex items-start gap-2 mb-2">
-                                  <span className="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></span>
-                                  {item.name}
-                                </p>
-                              )) : <p className="text-sm text-slate-400 italic">No gaps identified</p>}
+                            <div className="p-4 bg-white">
+                              {d.needsAttention?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.needsAttention.slice(0, 6).map((item: any, i: number) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                      <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                                        item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'
+                                      }`}></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-sm text-slate-400 italic">No gaps identified</p>}
                             </div>
                           </div>
+                          
+                          {/* In Development */}
                           <div className="border border-blue-200 rounded-xl overflow-hidden">
                             <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-                              <h5 className="font-bold text-blue-800">In Development ({d.planning?.length || 0})</h5>
+                              <h5 className="font-bold text-blue-800 text-base">In Development ({d.planning?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white max-h-48 overflow-y-auto">
-                              {d.planning?.length > 0 ? d.planning.map((item: any, i: number) => (
-                                <p key={i} className="text-sm text-slate-600 flex items-start gap-2 mb-2">
-                                  <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></span>
-                                  {item.name}
-                                </p>
-                              )) : <p className="text-sm text-slate-400 italic">No initiatives in planning</p>}
+                            <div className="p-4 bg-white">
+                              {d.planning?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.planning.slice(0, 6).map((item: any, i: number) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-sm text-slate-400 italic">No initiatives in planning</p>}
                             </div>
                           </div>
+                          
+                          {/* Strengths */}
                           <div className="border border-emerald-200 rounded-xl overflow-hidden">
                             <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
-                              <h5 className="font-bold text-emerald-800">Strengths ({d.strengths?.length || 0})</h5>
+                              <h5 className="font-bold text-emerald-800 text-base">Strengths ({d.strengths?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white max-h-48 overflow-y-auto">
-                              {d.strengths?.length > 0 ? d.strengths.map((s: any, i: number) => (
-                                <p key={i} className="text-sm text-slate-600 flex items-start gap-2 mb-2">
-                                  <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></span>
-                                  {s.name}
-                                </p>
-                              )) : <p className="text-sm text-slate-400 italic">Building toward first strengths</p>}
+                            <div className="p-4 bg-white">
+                              {d.strengths?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.strengths.slice(0, 6).map((s: any, i: number) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
+                                      <span>{s.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-sm text-slate-400 italic">Building toward first strengths</p>}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Strategic Insight & CAC Help - 2 columns */}
+                        <div className="grid grid-cols-2 gap-6">
+                          {/* Left Column: Evidence + Insight */}
+                          <div className="space-y-4">
+                            {(evidence.topStrength || evidence.biggestGap) && (
+                              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                                <h5 className="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wide">Key Evidence</h5>
+                                <div className="space-y-2">
+                                  {evidence.topStrength && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-emerald-600 text-sm">✓</span>
+                                      </span>
+                                      <p className="text-sm text-slate-700">
+                                        <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                        <span className="text-slate-500"> ({evidence.topStrength.benchPct}% of participants)</span>
+                                      </p>
+                                    </div>
+                                  )}
+                                  {evidence.biggestGap && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-red-600 text-sm">✗</span>
+                                      </span>
+                                      <p className="text-sm text-slate-700">
+                                        <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                        <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of participants)</span>
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="border border-slate-200 rounded-xl p-4 bg-white">
+                              <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
+                              <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                            </div>
+                          </div>
+                          
+                          {/* Right Column: Roadmap + CAC Help */}
+                          <div className="space-y-4">
+                            {(roadmap.quickWin || roadmap.strategicLift) && (
+                              <div className="border border-indigo-200 rounded-xl p-4 bg-indigo-50">
+                                <h5 className="font-bold text-indigo-800 mb-3 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
+                                <div className="space-y-3">
+                                  {roadmap.quickWin && (
+                                    <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">QUICK WIN</span>
+                                        <span className="text-xs text-slate-500">0-60 days</span>
+                                      </div>
+                                      <p className="text-sm font-medium text-slate-800">{customDimRoadmaps[d.dim]?.quickWin?.name || roadmap.quickWin.name}</p>
+                                      <p className="text-xs text-slate-500 mt-1">{customDimRoadmaps[d.dim]?.quickWin?.reason || roadmap.quickWin.reason}</p>
+                                    </div>
+                                  )}
+                                  {roadmap.strategicLift && (
+                                    <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="px-2 py-1 bg-violet-100 text-violet-700 text-xs font-bold rounded">STRATEGIC</span>
+                                        <span className="text-xs text-slate-500">60-180 days</span>
+                                      </div>
+                                      <p className="text-sm font-medium text-slate-800">{customDimRoadmaps[d.dim]?.strategicLift?.name || roadmap.strategicLift.name}</p>
+                                      <p className="text-xs text-slate-500 mt-1">{customDimRoadmaps[d.dim]?.strategicLift?.reason || roadmap.strategicLift.reason}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="border border-orange-200 rounded-xl p-4 bg-orange-50">
+                              <h5 className="font-bold text-orange-800 mb-2 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                              <p className="text-sm text-orange-700">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
                             </div>
                           </div>
                         </div>
