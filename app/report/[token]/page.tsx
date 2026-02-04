@@ -5905,7 +5905,7 @@ export default function ExportReportPage() {
           <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
             {/* Slide Content Area - centered */}
             <div className="flex-1 overflow-hidden flex items-center justify-center p-2">
-              <div className="bg-slate-900 shadow-2xl max-w-7xl w-full max-h-full overflow-auto">
+              <div className="bg-white shadow-2xl max-w-7xl w-full max-h-full overflow-hidden">
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
@@ -6545,9 +6545,9 @@ export default function ExportReportPage() {
                             </g>
                           </svg>
                           
-                          {/* Legend */}
+                          {/* Legend - sorted by dimension number */}
                           <div className="grid grid-cols-4 gap-x-8 gap-y-2 mt-4 text-sm">
-                            {dimensionAnalysis.map((d) => (
+                            {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d) => (
                               <div key={d.dim} className="flex items-center gap-2">
                                 <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
                                 <span className="text-slate-700">{d.name}</span>
@@ -6695,9 +6695,9 @@ export default function ExportReportPage() {
                             </g>
                           </svg>
                           
-                          {/* Legend */}
+                          {/* Legend - sorted by dimension number */}
                           <div className="grid grid-cols-4 gap-x-8 gap-y-2 mt-4 text-sm">
-                            {dimensionAnalysis.map((d) => (
+                            {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d) => (
                               <div key={d.dim} className="flex items-center gap-2">
                                 <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
                                 <span className="text-slate-700">{d.name}</span>
