@@ -3015,7 +3015,7 @@ export default function InteractiveReportPage() {
                     </svg>
                     <div>
                       <p className="text-sm font-semibold text-amber-800">Provisional Classification</p>
-                      <p className="text-sm text-amber-700 mt-1">This assessment includes a high number of "Unsure" responses ({unsureItems} items), which may affect score reliability. We recommend following up internally to clarify these responses for a more accurate assessment.</p>
+                      <p className="text-sm text-amber-700 mt-1">This assessment includes {unsureItems} "Unsure" responses across {dimsWithHighUnsure} dimensions (40%+ Unsure in each), which may affect score reliability. We recommend following up internally to clarify these responses for a more accurate assessment.</p>
                     </div>
                   </div>
                 </div>
@@ -3794,13 +3794,15 @@ export default function InteractiveReportPage() {
               currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
               planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
               assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
-              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' }
+              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' },
+              unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Needs Confirmation' }
             };
             
             const getStatusInfo = (elem: any) => {
               if (elem.isStrength) return { key: 'currently', ...STATUS.currently };
               if (elem.isPlanning) return { key: 'planning', ...STATUS.planning };
               if (elem.isAssessing) return { key: 'assessing', ...STATUS.assessing };
+              if (elem.isUnsure) return { key: 'unsure', ...STATUS.unsure };
               return { key: 'notAble', ...STATUS.notAble };
             };
             
@@ -3875,7 +3877,7 @@ export default function InteractiveReportPage() {
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">Offering</span></div>
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">Planning</span></div>
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">Assessing</span></div>
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Currently Planned</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Planned</span></div>
                       </div>
                     </div>
                     <div className="col-span-3 pl-4">Observation</div>
@@ -5702,7 +5704,7 @@ export default function InteractiveReportPage() {
                             </svg>
                             <div>
                               <p className="text-sm font-semibold text-amber-800">Provisional Classification</p>
-                              <p className="text-sm text-amber-700 mt-1">This assessment includes a high number of "Unsure" responses ({unsureItems} items), which may affect score reliability.</p>
+                              <p className="text-sm text-amber-700 mt-1">{unsureItems} "Unsure" responses across {dimsWithHighUnsure} dimensions (40%+ each) may affect score reliability.</p>
                             </div>
                           </div>
                         </div>
@@ -5889,13 +5891,15 @@ export default function InteractiveReportPage() {
                     currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
                     planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
                     assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
-                    notAble: { bg: '#CBD5E1', light: '#F1F5F9', text: '#475569', label: 'Not Planned' }
+                    notAble: { bg: '#CBD5E1', light: '#F1F5F9', text: '#475569', label: 'Not Planned' },
+                    unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Needs Confirmation' }
                   };
                   
                   const getStatusInfo = (elem: any) => {
                     if (elem.isStrength) return { key: 'currently', ...STATUS.currently };
                     if (elem.isPlanning) return { key: 'planning', ...STATUS.planning };
                     if (elem.isAssessing) return { key: 'assessing', ...STATUS.assessing };
+                    if (elem.isUnsure) return { key: 'unsure', ...STATUS.unsure };
                     return { key: 'notAble', ...STATUS.notAble };
                   };
                   
