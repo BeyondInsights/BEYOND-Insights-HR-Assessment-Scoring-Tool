@@ -3033,7 +3033,7 @@ export default function ExportReportPage() {
                   setPresentationMode(true);
                   document.documentElement.requestFullscreen?.().catch(() => {});
                 }}
-                className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -7695,7 +7695,7 @@ export default function ExportReportPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-slate-400 text-xs">Powered by:</span>
-                          <Image src="/beyond-insights-logo.png" alt="BEYOND Insights" width={100} height={30} className="object-contain" />
+                          <Image src="/BI_LOGO_FINAL.png" alt="BEYOND Insights" width={100} height={30} className="object-contain" />
                         </div>
                       </div>
                       <div className="text-center mt-4 pt-4 border-t border-slate-100">
@@ -7708,6 +7708,19 @@ export default function ExportReportPage() {
                 {/* Slide 34: Thank You - professional improved design */}
                 {currentSlide === 34 && (
                   <div className="rounded-xl overflow-hidden h-full flex flex-col">
+                    {/* White header section with logos and Thank You */}
+                    <div className="bg-white px-12 py-8">
+                      <div className="flex items-center justify-center gap-10">
+                        <div className="rounded-xl p-2">
+                          <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={100} height={100} className="object-contain" />
+                        </div>
+                        <h2 className="text-5xl font-bold text-slate-800">Thank You</h2>
+                        <div className="rounded-xl p-2">
+                          <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={180} height={60} className="object-contain" />
+                        </div>
+                      </div>
+                    </div>
+                    
                     {/* Dark main section */}
                     <div className="flex-1 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative flex flex-col">
                       {/* Background decorative elements */}
@@ -7716,18 +7729,7 @@ export default function ExportReportPage() {
                         <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl"></div>
                       </div>
                       
-                      <div className="relative flex-1 flex flex-col items-center justify-center px-12 py-8">
-                        {/* Logos flanking Thank You */}
-                        <div className="flex items-center justify-center gap-8 mb-6">
-                          <div className="bg-white rounded-xl p-3 shadow-lg">
-                            <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={60} height={60} className="object-contain" />
-                          </div>
-                          <h2 className="text-5xl font-bold text-white">Thank You</h2>
-                          <div className="bg-white rounded-xl p-3 shadow-lg">
-                            <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={120} height={40} className="object-contain" />
-                          </div>
-                        </div>
-                        
+                      <div className="relative flex-1 flex flex-col items-center justify-center px-12 py-6">
                         <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed text-center mb-8">
                           For your commitment to creating a workplace where employees managing cancer can thrive
                         </p>
@@ -7774,7 +7776,7 @@ export default function ExportReportPage() {
                         <p className="text-slate-500 text-sm">Best Companies for Working with Cancer Index</p>
                         <div className="flex items-center gap-2">
                           <span className="text-slate-400 text-xs">Powered by</span>
-                          <Image src="/beyond-insights-logo.png" alt="BEYOND Insights" width={80} height={24} className="object-contain" />
+                          <Image src="/BI_LOGO_FINAL.png" alt="BEYOND Insights" width={80} height={24} className="object-contain" />
                         </div>
                       </div>
                     </div>
