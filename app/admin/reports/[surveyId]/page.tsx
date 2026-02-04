@@ -6302,12 +6302,12 @@ export default function ExportReportPage() {
                     
                     {/* Table Header */}
                     <div className="flex items-center py-3 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      <div className="w-72 pl-2">Dimension</div>
-                      <div className="w-20 text-center">Weight</div>
-                      <div className="flex-1 text-center px-4">Performance</div>
-                      <div className="w-20 text-center">Score</div>
-                      <div className="w-28 text-center">Benchmark</div>
-                      <div className="w-28 text-center">Tier</div>
+                      <div className="w-64 pl-2">Dimension</div>
+                      <div className="w-16 text-center">Weight</div>
+                      <div className="flex-1 text-center px-6">Performance</div>
+                      <div className="w-16 text-center">Score</div>
+                      <div className="w-24 text-center">Benchmark</div>
+                      <div className="w-24 text-center">Tier</div>
                     </div>
                     
                     {/* Table Rows */}
@@ -6319,39 +6319,39 @@ export default function ExportReportPage() {
                             key={d.dim} 
                             className={`flex items-center py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}
                           >
-                            <div className="w-72 flex items-center gap-3 pl-2">
+                            <div className="w-64 flex items-center gap-3 pl-2">
                               <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
                                 {d.dim}
                               </span>
-                              <span className="text-sm text-slate-800 font-semibold">{d.name}</span>
+                              <span className="text-sm text-slate-800 font-medium">{d.name}</span>
                             </div>
-                            <div className="w-20 text-center">
-                              <span className="text-sm text-slate-600 font-medium">{d.weight}%</span>
+                            <div className="w-16 text-center">
+                              <span className="text-sm text-slate-500">{d.weight}%</span>
                             </div>
-                            <div className="flex-1 px-4">
-                              <div className="relative h-2.5 bg-slate-100 rounded-full overflow-visible">
+                            <div className="flex-1 px-6">
+                              <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
                                 <div 
                                   className="absolute left-0 top-0 h-full rounded-full transition-all" 
                                   style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} 
                                 />
                                 {d.benchmark !== null && (
                                   <div 
-                                    className="absolute -top-3" 
+                                    className="absolute -top-2.5" 
                                     style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
                                   >
-                                    <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#475569"/></svg>
+                                    <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#475569"/></svg>
                                   </div>
                                 )}
                               </div>
                             </div>
-                            <div className="w-20 text-center">
+                            <div className="w-16 text-center">
                               <span className="text-lg font-bold" style={{ color: d.tier.color }}>{d.score}</span>
                             </div>
-                            <div className="w-28 text-center">
+                            <div className="w-24 text-center">
                               {d.benchmark !== null ? (
                                 <div>
-                                  <span className="text-sm text-slate-500 font-medium">{d.benchmark}</span>
-                                  <span className={`ml-1 text-xs font-bold ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                  <span className="text-sm text-slate-400">{d.benchmark}</span>
+                                  <span className={`ml-1 text-xs font-semibold ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
                                     ({diff !== null && diff >= 0 ? '+' : ''}{diff})
                                   </span>
                                 </div>
@@ -6359,7 +6359,7 @@ export default function ExportReportPage() {
                                 <span className="text-sm text-slate-300">—</span>
                               )}
                             </div>
-                            <div className="w-28 flex justify-center">
+                            <div className="w-24 flex justify-center">
                               <span 
                                 className={`text-xs font-bold px-3 py-1 rounded-lg ${d.tier.bgColor} border ${d.tier.borderColor}`} 
                                 style={{ color: d.tier.color }}
