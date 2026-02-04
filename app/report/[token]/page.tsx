@@ -2520,6 +2520,16 @@ export default function InteractiveReportPage() {
   const planningItems = allElements.filter(e => e.isPlanning).length;
   const assessingItems = allElements.filter(e => e.isAssessing).length;
   const gapItems = allElements.filter(e => e.isGap).length;
+  const unsureItems = allElements.filter(e => e.isUnsure).length;
+  const notPlannedItems = gapItems; // isGap = not_able (Not Planned), separate from Unsure
+  
+  // Provisional classification: 4+ dimensions with 40%+ Unsure responses
+  const dimsWithHighUnsure = dimensionAnalysis.filter(d => {
+    const totalInDim = d.elements.length;
+    const unsureInDim = d.unsure.length;
+    return totalInDim > 0 && (unsureInDim / totalInDim) >= 0.4;
+  }).length;
+  const isProvisional = dimsWithHighUnsure >= 4;
   
   const tierCounts = {
     exemplary: dimensionAnalysis.filter(d => d.tier.name === 'Exemplary').length,
@@ -2972,6 +2982,9 @@ export default function InteractiveReportPage() {
                     <div className={`px-6 py-4 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
                       <p className="text-2xl font-bold" style={{ color: tier.color }} data-export="tier-name">{tier.name}</p>
                       <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
+                      {isProvisional && (
+                        <p className="text-xs text-amber-600 font-medium mt-1">Provisional*</p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -2992,6 +3005,21 @@ export default function InteractiveReportPage() {
                   while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
                 )}
               </p>
+              
+              {/* Provisional Classification Notice */}
+              {isProvisional && (
+                <div className="mt-4 p-4 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-semibold text-amber-800">Provisional Classification</p>
+                      <p className="text-sm text-amber-700 mt-1">This assessment includes a high number of "Unsure" responses ({unsureItems} items), which may affect score reliability. We recommend following up internally to clarify these responses for a more accurate assessment.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Tier Progress */}
               {(() => {
@@ -3038,8 +3066,9 @@ export default function InteractiveReportPage() {
                   <p className="text-sm text-slate-500 mt-2 font-medium">initiatives in development</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800" data-export="metric-gaps">{gapItems}</p>
+                  <p className="text-4xl font-bold text-slate-800" data-export="metric-gaps">{gapItems + unsureItems}</p>
                   <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
+                  <p className="text-xs text-slate-400 mt-1">({notPlannedItems} Not Planned · {unsureItems} Unsure)</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                   <p className="text-4xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
@@ -5640,6 +5669,9 @@ export default function InteractiveReportPage() {
                             <div className={`px-8 py-5 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
                               <p className="text-3xl font-bold" style={{ color: tier.color }}>{tier.name}</p>
                               <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
+                              {isProvisional && (
+                                <p className="text-xs text-amber-600 font-medium mt-1">Provisional*</p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -5660,6 +5692,21 @@ export default function InteractiveReportPage() {
                           while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
                         )}
                       </p>
+                      
+                      {/* Provisional Classification Notice */}
+                      {isProvisional && (
+                        <div className="mt-4 p-4 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl">
+                          <div className="flex items-start gap-3">
+                            <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <div>
+                              <p className="text-sm font-semibold text-amber-800">Provisional Classification</p>
+                              <p className="text-sm text-amber-700 mt-1">This assessment includes a high number of "Unsure" responses ({unsureItems} items), which may affect score reliability.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       
                       {/* Tier Progress Box */}
                       {(() => {
@@ -5703,8 +5750,9 @@ export default function InteractiveReportPage() {
                           <p className="text-sm text-slate-500 mt-2 font-medium">initiatives in development</p>
                         </div>
                         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                          <p className="text-4xl font-bold text-slate-800">{gapItems}</p>
+                          <p className="text-4xl font-bold text-slate-800">{gapItems + unsureItems}</p>
                           <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
+                          <p className="text-xs text-slate-400 mt-1">({notPlannedItems} Not Planned · {unsureItems} Unsure)</p>
                         </div>
                         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                           <p className="text-4xl font-bold text-slate-800">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
