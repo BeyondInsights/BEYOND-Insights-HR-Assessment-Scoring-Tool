@@ -1787,6 +1787,10 @@ export default function InteractiveReportPage() {
     phase2?: string;
     phase3?: string;
   }>({});
+  const [customDimRoadmaps, setCustomDimRoadmaps] = useState<Record<number, { 
+    quickWin?: { name: string; reason: string }; 
+    strategicLift?: { name: string; reason: string } 
+  }>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
