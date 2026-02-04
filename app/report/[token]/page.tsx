@@ -1746,6 +1746,7 @@ export default function InteractiveReportPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<any>(null);
+  const [surveyId, setSurveyId] = useState<string | null>(null);
   
   // Password protection state
   const [authenticated, setAuthenticated] = useState(false);
@@ -2070,13 +2071,14 @@ export default function InteractiveReportPage() {
         return;
       }
       
-      const { assessmentId, surveyId, companyName } = await verifyResponse.json();
+      const { assessmentId, surveyId: returnedSurveyId, companyName } = await verifyResponse.json();
+      setSurveyId(returnedSurveyId);
       
       // Step 3: Fetch full report data using assessmentId
       const reportResponse = await fetch('/.netlify/functions/get-public-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assessmentId, surveyId }),
+        body: JSON.stringify({ assessmentId, surveyId: returnedSurveyId }),
       });
       
       if (!reportResponse.ok) {
