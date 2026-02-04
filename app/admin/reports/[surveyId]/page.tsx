@@ -5970,8 +5970,8 @@ export default function ExportReportPage() {
         {presentationMode && (
           <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
             {/* Slide Content Area - centered */}
-            <div className="flex-1 overflow-hidden flex items-center justify-center p-2">
-              <div className="bg-white shadow-2xl max-w-7xl w-full max-h-full overflow-hidden">
+            <div className="flex-1 overflow-hidden flex items-center justify-center p-3">
+              <div className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden">
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
@@ -7118,7 +7118,7 @@ export default function ExportReportPage() {
                   const tierColor = getScoreColor(d.score);
                   
                   return (
-                    <div className="rounded-2xl overflow-hidden border-l-4" style={{ borderLeftColor: tierColor }}>
+                    <div className="overflow-hidden border-l-4" style={{ borderLeftColor: tierColor }}>
                       {/* Dimension Header */}
                       <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                         <div className="flex items-center gap-4">
