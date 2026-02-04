@@ -5637,7 +5637,7 @@ export default function ExportReportPage() {
                     </div>
                     <div>
                       <p className="text-white font-semibold">What Employees Say About the Pledge</p>
-                      <p className="text-violet-200 text-sm">Research conducted by Cancer and Careers with employees managing cancer and general workforce</p>
+                      <p className="text-violet-200 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
                     </div>
                   </div>
                   <div className="bg-white/20 rounded-lg px-4 py-2 text-center">
@@ -7310,148 +7310,491 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 30: Roadmap */}
+                {/* Slide 30: Implementation Roadmap - exact match to report */}
                 {currentSlide === 30 && (
-                  <div className="p-10">
-                    <h3 className="font-bold text-slate-900 text-xl mb-6">Implementation Roadmap</h3>
-                    <div className="grid grid-cols-3 gap-6">
-                      <div className="bg-emerald-50 rounded-xl p-6 border-2 border-emerald-200">
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">1</span>
-                          <div>
-                            <h4 className="font-bold text-emerald-800">Quick Wins</h4>
-                            <p className="text-xs text-emerald-600">0-3 months</p>
+                  <div className="rounded-2xl overflow-hidden">
+                    <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
+                          <p className="text-slate-400 mt-1">Your phased approach to strengthen workplace cancer support</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-violet-500 text-white text-sm font-medium rounded-lg">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                            What-If Scenarios
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-8 h-1 bg-cyan-400 rounded"></div>
+                            <div className="w-8 h-1 bg-blue-400 rounded"></div>
+                            <div className="w-8 h-1 bg-violet-400 rounded"></div>
                           </div>
                         </div>
-                        <p className="text-sm text-slate-600">Immediate actions that build momentum and demonstrate commitment.</p>
                       </div>
-                      <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200">
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">2</span>
-                          <div>
-                            <h4 className="font-bold text-blue-800">Foundation Building</h4>
-                            <p className="text-xs text-blue-600">3-6 months</p>
+                    </div>
+                    <div className="px-12 py-8">
+                      <div className="grid grid-cols-3 gap-8">
+                        {/* Phase 1: Quick Wins */}
+                        <div className="border-2 border-cyan-200 rounded-2xl overflow-hidden bg-white">
+                          <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 px-5 py-5">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
+                                <svg className="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-bold text-white text-lg">Quick Wins</h4>
+                                <p className="text-cyan-100 text-sm">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                              <span className="px-2 py-1 bg-cyan-100 text-cyan-700 text-xs font-semibold rounded">ACCELERATE</span>
+                              <span className="text-xs text-slate-400">Items in progress</span>
+                            </div>
+                            <ul className="space-y-3">
+                              {(customRoadmap.phase1?.useCustom ? customRoadmap.phase1.items.map((name: string) => ({ name, dimNum: null })) : quickWinItems).slice(0, 5).map((item: any, idx: number) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <span className="w-5 h-5 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg className="w-3 h-3 text-cyan-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                  </span>
+                                  <div>
+                                    <p className="text-sm text-slate-700">{item.name}</p>
+                                    {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         </div>
-                        <p className="text-sm text-slate-600">Systematic improvements that strengthen core infrastructure.</p>
-                      </div>
-                      <div className="bg-violet-50 rounded-xl p-6 border-2 border-violet-200">
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className="w-10 h-10 rounded-full bg-violet-600 text-white flex items-center justify-center font-bold">3</span>
-                          <div>
-                            <h4 className="font-bold text-violet-800">Strategic Initiatives</h4>
-                            <p className="text-xs text-violet-600">6-12 months</p>
+                        
+                        {/* Phase 2: Foundation Building */}
+                        <div className="border-2 border-blue-200 rounded-2xl overflow-hidden bg-white">
+                          <div className="bg-gradient-to-br from-blue-500 to-blue-600 px-5 py-5">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
+                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-bold text-white text-lg">Foundation Building</h4>
+                                <p className="text-blue-100 text-sm">{customRoadmapTimeframes.phase2 || '3-12 months'}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">BUILD</span>
+                              <span className="text-xs text-slate-400">High-weight gaps</span>
+                            </div>
+                            <ul className="space-y-3">
+                              {(customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items.map((name: string) => ({ name, dimNum: null })) : foundationItems).slice(0, 5).map((item: any, idx: number) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                  </span>
+                                  <div>
+                                    <p className="text-sm text-slate-700">{item.name}</p>
+                                    {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         </div>
-                        <p className="text-sm text-slate-600">Longer-term investments that differentiate your organization.</p>
+                        
+                        {/* Phase 3: Excellence */}
+                        <div className="border-2 border-violet-200 rounded-2xl overflow-hidden bg-white">
+                          <div className="bg-gradient-to-br from-violet-500 to-violet-600 px-5 py-5">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
+                                <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-bold text-white text-lg">Excellence</h4>
+                                <p className="text-violet-100 text-sm">{customRoadmapTimeframes.phase3 || '12-18 months'}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                              <span className="px-2 py-1 bg-violet-100 text-violet-700 text-xs font-semibold rounded">OPTIMIZE</span>
+                              <span className="text-xs text-slate-400">Comprehensive coverage</span>
+                            </div>
+                            <ul className="space-y-3">
+                              {(customRoadmap.phase3?.useCustom ? customRoadmap.phase3.items.map((name: string) => ({ name, dimNum: null })) : excellenceItems).slice(0, 5).map((item: any, idx: number) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <span className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg className="w-3 h-3 text-violet-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                  </span>
+                                  <div>
+                                    <p className="text-sm text-slate-700">{item.name}</p>
+                                    {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Slide 31: Pledge */}
+                {/* Slide 31: Working with Cancer Pledge - exact match to report */}
                 {currentSlide === 31 && (
-                  <div className="p-10 bg-gradient-to-br from-violet-600 to-indigo-700 rounded-2xl text-white">
-                    <div className="text-center mb-8">
-                      <h3 className="text-3xl font-bold mb-2">Working with Cancer Pledge</h3>
-                      <p className="text-violet-200">Join a growing community of organizations committed to supporting employees managing cancer</p>
+                  <div className="rounded-2xl overflow-hidden">
+                    {/* Header */}
+                    <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 relative overflow-hidden">
+                      <div className="relative flex items-center justify-between">
+                        <div>
+                          <p className="text-violet-400 text-xs font-semibold uppercase tracking-widest mb-1">Global Initiative</p>
+                          <h3 className="font-bold text-white text-2xl">The Working with Cancer Pledge</h3>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
+                            <p className="text-white text-2xl font-bold">850+</p>
+                            <p className="text-slate-300 text-xs">Companies Worldwide</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="bg-white/10 rounded-xl p-8 backdrop-blur">
-                      <p className="text-lg leading-relaxed text-center">
-                        By signing the Working with Cancer Pledge, you commit to creating a supportive, open, and inclusive working 
-                        environment for employees who are managing cancer - one that enables them to be productive while they balance 
-                        treatment and work.
-                      </p>
+                    
+                    <div className="px-12 py-8 bg-gradient-to-b from-slate-50 to-white">
+                      {/* Pledge Commitments */}
+                      <div className="bg-slate-800 rounded-xl p-6 mb-6">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-4">Pledge Signatories Commit To:</p>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="bg-white/10 rounded-lg p-4 border border-white/10">
+                            <div className="w-8 h-8 rounded-full bg-violet-500/30 flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                            <p className="text-white font-medium text-sm">Job Security</p>
+                            <p className="text-slate-400 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
+                          </div>
+                          <div className="bg-white/10 rounded-lg p-4 border border-white/10">
+                            <div className="w-8 h-8 rounded-full bg-violet-500/30 flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            </div>
+                            <p className="text-white font-medium text-sm">Open Culture</p>
+                            <p className="text-slate-400 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
+                          </div>
+                          <div className="bg-white/10 rounded-lg p-4 border border-white/10">
+                            <div className="w-8 h-8 rounded-full bg-violet-500/30 flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                            </div>
+                            <p className="text-white font-medium text-sm">Recovery Support</p>
+                            <p className="text-slate-400 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Research Stats Header */}
+                      <div className="bg-gradient-to-r from-violet-600 to-violet-700 rounded-xl p-5 mb-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                            </div>
+                            <div>
+                              <p className="text-white font-semibold">What Employees Say About the Pledge</p>
+                              <p className="text-violet-200 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
+                            </div>
+                          </div>
+                          <div className="bg-white/20 rounded-lg px-4 py-2 text-center">
+                            <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
+                            <p className="text-white font-bold">Only 16-18% aware</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Two-column stats */}
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="bg-violet-50 rounded-xl p-5 border border-violet-100">
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center">
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                            </div>
+                            <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                              <span className="text-sm text-slate-700">Say the pledge is important</span>
+                              <span className="text-lg font-bold text-violet-700">81%</span>
+                            </div>
+                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                              <span className="text-sm text-slate-700">Would trust pledge companies more</span>
+                              <span className="text-lg font-bold text-violet-700">81%</span>
+                            </div>
+                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                              <span className="text-sm text-slate-700">Would influence their job decisions</span>
+                              <span className="text-lg font-bold text-violet-700">75%</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            </div>
+                            <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                              <span className="text-sm text-slate-700">Say the pledge is important</span>
+                              <span className="text-lg font-bold text-slate-700">72%</span>
+                            </div>
+                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                              <span className="text-sm text-slate-700">Would trust pledge companies more</span>
+                              <span className="text-lg font-bold text-slate-700">69%</span>
+                            </div>
+                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                              <span className="text-sm text-slate-700">Would influence their job decisions</span>
+                              <span className="text-lg font-bold text-slate-700">60%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-center mt-8">
-                      <p className="text-violet-200 text-sm">Learn more at workingwithcancerpledge.com</p>
+                    
+                    {/* Footer */}
+                    <div className="px-12 py-4 bg-slate-800 text-center">
+                      <p className="text-slate-300 text-sm"><strong className="text-white">The Pledge signals intent.</strong> • <span className="text-orange-400 font-medium">This Index measures execution.</span> • Together, they demonstrate genuine commitment.</p>
                     </div>
                   </div>
                 )}
 
-                {/* Slide 32: How CAC Can Help */}
+                {/* Slide 32: How Cancer and Careers Can Help - exact match to report */}
                 {currentSlide === 32 && (
-                  <div className="p-10">
-                    <div className="text-center mb-8">
-                      <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={180} height={60} className="mx-auto mb-4" />
-                      <h3 className="text-2xl font-bold text-slate-900">How Cancer and Careers Can Help</h3>
-                    </div>
-                    <div className="grid grid-cols-3 gap-6">
-                      <div className="bg-orange-50 rounded-xl p-6 border border-orange-200 text-center">
-                        <div className="w-14 h-14 rounded-full bg-orange-500 flex items-center justify-center mx-auto mb-4">
-                          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                  <div className="rounded-2xl overflow-hidden">
+                    {/* Header */}
+                    <div className="px-12 py-8 bg-gradient-to-r from-[#F37021] to-orange-500 relative overflow-hidden">
+                      <div className="relative flex items-center gap-8">
+                        <div className="bg-white rounded-2xl p-5 shadow-xl flex-shrink-0">
+                          <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={140} height={50} className="object-contain" />
                         </div>
-                        <h4 className="font-bold text-slate-800 mb-2">Training and Education</h4>
-                        <p className="text-sm text-slate-600">Manager training, HR workshops, and employee resources</p>
-                      </div>
-                      <div className="bg-orange-50 rounded-xl p-6 border border-orange-200 text-center">
-                        <div className="w-14 h-14 rounded-full bg-orange-500 flex items-center justify-center mx-auto mb-4">
-                          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                        <div>
+                          <h3 className="font-bold text-white text-2xl">How Cancer and Careers Can Help</h3>
+                          <p className="text-white/90 mt-2 text-lg">Tailored support to enhance your employee experience</p>
                         </div>
-                        <h4 className="font-bold text-slate-800 mb-2">Policy Consulting</h4>
-                        <p className="text-sm text-slate-600">Review and enhance your cancer support policies</p>
-                      </div>
-                      <div className="bg-orange-50 rounded-xl p-6 border border-orange-200 text-center">
-                        <div className="w-14 h-14 rounded-full bg-orange-500 flex items-center justify-center mx-auto mb-4">
-                          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                        </div>
-                        <h4 className="font-bold text-slate-800 mb-2">Community Connection</h4>
-                        <p className="text-sm text-slate-600">Connect with other organizations on this journey</p>
                       </div>
                     </div>
-                    <div className="text-center mt-8">
-                      <p className="text-slate-600">Contact: <strong>cacbestcompanies@cew.org</strong></p>
+                    
+                    <div className="px-12 py-8">
+                      {/* Intro paragraph */}
+                      <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-200 mb-8 relative">
+                        <div className="absolute top-0 left-6 w-1 h-full bg-gradient-to-b from-[#F37021] to-transparent rounded-full"></div>
+                        <div className="pl-4">
+                          <p className="text-slate-700 text-base leading-relaxed">
+                            Every organization enters this work from a different place. Cancer and Careers' consulting practice 
+                            helps organizations understand where they are, identify where they want to be, and build a realistic 
+                            path to get there—shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
+                            and the HR teams supporting them.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* 4 Service Cards */}
+                      <div className="grid grid-cols-2 gap-6 mb-8">
+                        {[
+                          { title: customCacHelp.item1?.title || 'Manager Preparedness & Training', bullets: customCacHelp.item1?.bullets || ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'], color: 'violet' },
+                          { title: customCacHelp.item2?.title || 'Navigation & Resource Architecture', bullets: customCacHelp.item2?.bullets || ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'], color: 'emerald' },
+                          { title: customCacHelp.item3?.title || 'Return to Work Excellence', bullets: customCacHelp.item3?.bullets || ['Phased return protocols', 'Check-in cadence design', 'Career continuity planning'], color: 'amber' },
+                          { title: customCacHelp.item4?.title || 'Policy & Program Assessment', bullets: customCacHelp.item4?.bullets || ['Comprehensive policy review', 'Implementation audit', 'Business case development'], color: 'blue' },
+                        ].map((item, idx) => {
+                          const colorClasses: Record<string, { border: string; light: string }> = {
+                            violet: { border: 'border-violet-300', light: 'bg-violet-50' },
+                            emerald: { border: 'border-emerald-300', light: 'bg-emerald-50' },
+                            amber: { border: 'border-amber-300', light: 'bg-amber-50' },
+                            blue: { border: 'border-blue-300', light: 'bg-blue-50' },
+                          };
+                          const classes = colorClasses[item.color];
+                          
+                          return (
+                            <div key={idx} className={`rounded-2xl border ${classes.border} overflow-hidden`}>
+                              <div className={`${classes.light} px-5 py-4 border-b ${classes.border}`}>
+                                <h4 className="font-bold text-slate-800">{item.title}</h4>
+                              </div>
+                              <div className="p-5 bg-white">
+                                <ul className="text-sm text-slate-600 space-y-2">
+                                  {item.bullets.map((b: string, i: number) => (
+                                    <li key={i} className="flex items-start gap-2">
+                                      <svg className="w-4 h-4 text-[#F37021] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                      <span>{b}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* CTA Footer */}
+                      <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-[#F37021]/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                        <div className="relative flex items-center justify-between">
+                          <div>
+                            <p className="font-bold text-white text-xl">Ready to take the next step?</p>
+                            <p className="text-slate-400 mt-2">Contact Cancer and Careers to discuss how we can support your organization.</p>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className="font-bold text-[#F37021] text-lg">cancerandcareers.org</p>
+                              <p className="text-slate-400 mt-1">cacbestcompanies@cew.org</p>
+                            </div>
+                            <div className="w-12 h-12 rounded-xl bg-[#F37021] flex items-center justify-center">
+                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Slide 33: Methodology */}
+                {/* Slide 33: Methodology - exact match to report */}
                 {currentSlide === 33 && (
-                  <div className="p-10">
-                    <h3 className="font-bold text-slate-900 text-xl mb-6">Assessment Methodology</h3>
-                    <div className="grid grid-cols-2 gap-8">
-                      <div>
-                        <h4 className="font-semibold text-slate-800 mb-3">Scoring Framework</h4>
-                        <p className="text-sm text-slate-600 leading-relaxed mb-6">
-                          Organizations are assessed across 13 dimensions of workplace cancer support. The composite score combines 
-                          dimension performance (90%), program maturity (5%), and support breadth (5%).
-                        </p>
-                        <h4 className="font-semibold text-slate-800 mb-3">Dimension Weights</h4>
-                        <p className="text-sm text-slate-600 leading-relaxed">
-                          Each dimension carries a specific weight reflecting its relative importance. Weights were derived from 
-                          extensive research with HR leaders, employees managing cancer, and general employee populations.
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-slate-800 mb-3">Performance Tiers</h4>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-3"><span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#5B21B6' }}></span><span className="font-medium" style={{ color: '#5B21B6' }}>Exemplary</span><span className="text-slate-400 text-sm">90+ points</span></div>
-                          <div className="flex items-center gap-3"><span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#047857' }}></span><span className="font-medium" style={{ color: '#047857' }}>Leading</span><span className="text-slate-400 text-sm">75-89 points</span></div>
-                          <div className="flex items-center gap-3"><span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#1D4ED8' }}></span><span className="font-medium" style={{ color: '#1D4ED8' }}>Progressing</span><span className="text-slate-400 text-sm">60-74 points</span></div>
-                          <div className="flex items-center gap-3"><span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#B45309' }}></span><span className="font-medium" style={{ color: '#B45309' }}>Emerging</span><span className="text-slate-400 text-sm">40-59 points</span></div>
-                          <div className="flex items-center gap-3"><span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#B91C1C' }}></span><span className="font-medium" style={{ color: '#B91C1C' }}>Developing</span><span className="text-slate-400 text-sm">Less than 40 points</span></div>
+                  <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
+                    <div className="px-12 py-6 border-b border-slate-200">
+                      <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
+                    </div>
+                    <div className="px-12 py-6">
+                      <div className="grid grid-cols-4 gap-6 text-base text-slate-600">
+                        <div>
+                          <p className="font-bold text-slate-700 mb-2">Scoring Framework</p>
+                          <p className="leading-relaxed text-sm">Organizations are assessed across 13 dimensions of workplace cancer support. The composite score combines dimension performance (90%), program maturity (5%), and support breadth (5%).</p>
                         </div>
+                        <div>
+                          <p className="font-bold text-slate-700 mb-2">Dimension Weights</p>
+                          <p className="leading-relaxed text-sm">Each dimension carries a specific weight reflecting its relative importance. Weights were derived from extensive research with HR leaders, employees managing cancer, and general employee populations.</p>
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-700 mb-2">Benchmarking</p>
+                          <p className="leading-relaxed text-sm">Benchmark scores represent average performance across all organizations in the Index. Percentile rankings indicate relative positioning within the cohort.</p>
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-700 mb-2">Performance Tiers</p>
+                          <div className="space-y-1.5 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#5B21B6' }}></span>
+                              <span style={{ color: '#5B21B6' }} className="font-medium">Exemplary</span>
+                              <span className="text-slate-400 text-xs">90+ points</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#047857' }}></span>
+                              <span style={{ color: '#047857' }} className="font-medium">Leading</span>
+                              <span className="text-slate-400 text-xs">75-89 points</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1D4ED8' }}></span>
+                              <span style={{ color: '#1D4ED8' }} className="font-medium">Progressing</span>
+                              <span className="text-slate-400 text-xs">60-74 points</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B45309' }}></span>
+                              <span style={{ color: '#B45309' }} className="font-medium">Emerging</span>
+                              <span className="text-slate-400 text-xs">40-59 points</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B91C1C' }}></span>
+                              <span style={{ color: '#B91C1C' }} className="font-medium">Developing</span>
+                              <span className="text-slate-400 text-xs">&lt;40 points</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Footer with logos */}
+                    <div className="px-12 py-6 border-t border-slate-200 bg-white">
+                      <div className="flex items-center justify-between">
+                        <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={120} height={40} className="object-contain" />
+                        <div className="text-center">
+                          <p className="font-semibold text-slate-600 text-sm">CONFIDENTIAL</p>
+                          <p className="text-slate-400 text-xs">Survey ID: {surveyId}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-400 text-xs">Powered by:</span>
+                          <Image src="/beyond-insights-logo.png" alt="BEYOND Insights" width={100} height={30} className="object-contain" />
+                        </div>
+                      </div>
+                      <div className="text-center mt-4 pt-4 border-t border-slate-100">
+                        <p className="text-slate-400 text-xs">© 2026 Cancer and Careers. All rights reserved. | Best Companies for Working with Cancer Index</p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Slide 34: Thank You */}
+                {/* Slide 34: Thank You - professional improved design */}
                 {currentSlide === 34 && (
-                  <div className="p-10 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl text-white text-center">
-                    <div className="py-16">
-                      <div className="flex items-center justify-center gap-8 mb-10">
-                        <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={120} height={120} className="bg-white rounded-xl p-4" />
-                        <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={160} height={50} className="bg-white rounded-xl p-4" />
+                  <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative">
+                    {/* Background decorative elements */}
+                    <div className="absolute inset-0 overflow-hidden">
+                      <div className="absolute top-0 right-0 w-96 h-96 bg-[#F37021]/10 rounded-full blur-3xl"></div>
+                      <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl"></div>
+                    </div>
+                    
+                    <div className="relative px-16 py-16">
+                      {/* Logos */}
+                      <div className="flex items-center justify-center gap-8 mb-12">
+                        <div className="bg-white rounded-2xl p-6 shadow-2xl">
+                          <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={100} height={100} className="object-contain" />
+                        </div>
+                        <div className="text-white text-4xl font-light">×</div>
+                        <div className="bg-white rounded-2xl p-6 shadow-2xl">
+                          <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={150} height={50} className="object-contain" />
+                        </div>
                       </div>
-                      <h2 className="text-4xl font-bold mb-4">Thank You</h2>
-                      <p className="text-xl text-slate-300 mb-8">
-                        For your commitment to supporting employees managing cancer
-                      </p>
-                      <div className="bg-white/10 rounded-xl p-6 max-w-xl mx-auto backdrop-blur">
-                        <p className="text-lg mb-4">Questions or next steps?</p>
-                        <p className="text-2xl font-bold text-orange-400">cacbestcompanies@cew.org</p>
-                        <p className="text-sm text-slate-400 mt-4">cancerandcareers.org | workingwithcancerpledge.com</p>
+                      
+                      {/* Main message */}
+                      <div className="text-center mb-12">
+                        <h2 className="text-5xl font-bold text-white mb-4">Thank You</h2>
+                        <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+                          For your commitment to creating a workplace where employees managing cancer can thrive
+                        </p>
+                      </div>
+                      
+                      {/* Stats row */}
+                      <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-12">
+                        <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
+                          <p className="text-3xl font-bold text-[#F37021]">{compositeScore || '--'}</p>
+                          <p className="text-slate-400 text-sm mt-1">Your Score</p>
+                        </div>
+                        <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
+                          <p className="text-3xl font-bold text-emerald-400">{strengthDimensions?.length || '--'}</p>
+                          <p className="text-slate-400 text-sm mt-1">Leading Dimensions</p>
+                        </div>
+                        <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
+                          <p className="text-3xl font-bold text-violet-400">{quickWinOpportunities?.length || '--'}</p>
+                          <p className="text-slate-400 text-sm mt-1">Quick Wins Identified</p>
+                        </div>
+                      </div>
+                      
+                      {/* CTA */}
+                      <div className="bg-gradient-to-r from-[#F37021]/20 to-violet-500/20 rounded-2xl p-8 border border-white/10 backdrop-blur max-w-2xl mx-auto text-center">
+                        <p className="text-white font-semibold text-lg mb-2">Ready for next steps?</p>
+                        <p className="text-slate-300 mb-4">We're here to help you build on this foundation</p>
+                        <div className="flex items-center justify-center gap-6">
+                          <div className="text-center">
+                            <p className="text-[#F37021] font-bold text-lg">cacbestcompanies@cew.org</p>
+                            <p className="text-slate-400 text-sm">Email Us</p>
+                          </div>
+                          <div className="w-px h-12 bg-white/20"></div>
+                          <div className="text-center">
+                            <p className="text-white font-bold text-lg">cancerandcareers.org</p>
+                            <p className="text-slate-400 text-sm">Visit Our Site</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Footer */}
+                      <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between">
+                        <p className="text-slate-500 text-sm">© 2026 Cancer and Careers. All rights reserved.</p>
+                        <p className="text-slate-500 text-sm">Best Companies for Working with Cancer Index</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-500 text-xs">Powered by</span>
+                          <Image src="/beyond-insights-logo.png" alt="BEYOND Insights" width={80} height={24} className="object-contain opacity-70" />
+                        </div>
                       </div>
                     </div>
                   </div>
