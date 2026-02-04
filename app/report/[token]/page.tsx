@@ -3068,7 +3068,7 @@ export default function InteractiveReportPage() {
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                   <p className="text-4xl font-bold text-slate-800" data-export="metric-gaps">{gapItems + unsureItems}</p>
                   <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
-                  <p className="text-xs text-slate-400 mt-1">({notPlannedItems} Not Planned · {unsureItems} Unsure)</p>
+                  <p className="text-xs text-slate-400 mt-1">({notPlannedItems} Not Planned · {unsureItems} Needs Confirmation)</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                   <p className="text-4xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
@@ -3904,7 +3904,7 @@ export default function InteractiveReportPage() {
                           
                           {/* Your Status */}
                           <div className="col-span-1 flex justify-center">
-                            <span className="px-2.5 py-1.5 rounded text-xs font-bold whitespace-nowrap" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                            <span className="px-2.5 py-1.5 rounded text-xs font-bold text-center leading-tight max-w-[90px]" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
                               {statusInfo.label}
                             </span>
                           </div>
@@ -5754,7 +5754,7 @@ export default function InteractiveReportPage() {
                         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                           <p className="text-4xl font-bold text-slate-800">{gapItems + unsureItems}</p>
                           <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
-                          <p className="text-xs text-slate-400 mt-1">({notPlannedItems} Not Planned · {unsureItems} Unsure)</p>
+                          <p className="text-xs text-slate-400 mt-1">({notPlannedItems} Not Planned · {unsureItems} Needs Confirmation)</p>
                         </div>
                         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                           <p className="text-4xl font-bold text-slate-800">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
@@ -5990,7 +5990,7 @@ export default function InteractiveReportPage() {
                                 <p className="text-sm text-slate-800 font-medium leading-snug">{elem.name}</p>
                               </div>
                               <div className="col-span-1 flex justify-center">
-                                <span className="px-2.5 py-1.5 rounded text-xs font-bold whitespace-nowrap" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                                <span className="px-2.5 py-1.5 rounded text-xs font-bold text-center leading-tight max-w-[90px]" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
                                   {statusInfo.label}
                                 </span>
                               </div>
