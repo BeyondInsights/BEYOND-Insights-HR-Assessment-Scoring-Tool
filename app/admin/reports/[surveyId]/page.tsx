@@ -5989,13 +5989,13 @@ export default function ExportReportPage() {
         {/* ============ PRESENTATION MODE OVERLAY ============ */}
         {presentationMode && (
           <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
-            {/* Slide Content Area - maximizes vertical space */}
-            <div className="flex-1 overflow-hidden p-2 flex items-center justify-center">
-              <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full h-[calc(100vh-56px)] overflow-auto">
+            {/* Slide Content Area - content aligned to top, scrollable */}
+            <div className="flex-1 overflow-auto p-4 pt-4">
+              <div className="bg-white rounded-xl shadow-2xl max-w-7xl mx-auto">
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
-                  <div className="rounded-xl overflow-hidden h-full flex flex-col">
+                  <div className="rounded-xl overflow-hidden">
                     {/* Top section - dark header with logo and title */}
                     <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
                       <div className="flex items-center justify-between">
@@ -6017,7 +6017,7 @@ export default function ExportReportPage() {
                     </div>
                     
                     {/* Bottom section - WHITE background like the report */}
-                    <div className="flex-1 bg-white px-12 py-10">
+                    <div className="bg-white px-12 py-10">
                       <div className="flex items-start gap-10">
                         <div className="flex-shrink-0 flex gap-4">
                           <div className="bg-slate-50 rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
@@ -6057,7 +6057,7 @@ export default function ExportReportPage() {
                       decades of frontline experience in cancer and the workplace.
                     </p>
                     
-                    {/* 4 Research Cards with descriptions */}
+                    {/* 4 Research Cards - exact match to report */}
                     <div className="grid grid-cols-4 gap-4 mb-6">
                       <div className="bg-violet-50 rounded-xl p-5 border border-violet-100 text-center">
                         <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
@@ -6067,22 +6067,22 @@ export default function ExportReportPage() {
                         <p className="text-xs text-slate-600 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                       </div>
                       <div className="bg-amber-50 rounded-xl p-5 border border-amber-100 text-center">
-                        <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center mx-auto mb-3">
+                        <div className="w-12 h-12 rounded-full bg-amber-600 flex items-center justify-center mx-auto mb-3">
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                         </div>
                         <p className="text-sm font-bold text-amber-800 mb-2">Employees Managing Cancer</p>
                         <p className="text-xs text-slate-600 leading-relaxed">Drew on lived experience to reveal what support they needed most and where gaps exist</p>
                       </div>
                       <div className="bg-sky-50 rounded-xl p-5 border border-sky-100 text-center">
-                        <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center mx-auto mb-3">
+                        <div className="w-12 h-12 rounded-full bg-sky-600 flex items-center justify-center mx-auto mb-3">
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                         </div>
                         <p className="text-sm font-bold text-sky-800 mb-2">General Workforce</p>
                         <p className="text-xs text-slate-600 leading-relaxed">Revealed how workplace cancer support shapes trust, loyalty, and job decisions</p>
                       </div>
                       <div className="bg-cyan-50 rounded-xl p-5 border border-cyan-200 text-center">
-                        <div className="w-12 h-12 rounded-full bg-cyan-500 flex items-center justify-center mx-auto mb-3">
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                          <img src="/cac-icon.png" alt="Cancer and Careers" className="w-12 h-12 object-contain" />
                         </div>
                         <p className="text-sm font-bold text-cyan-800 mb-2">Cancer and Careers Leadership</p>
                         <p className="text-xs text-slate-600 leading-relaxed">Guided the development of the framework, drawing on decades of frontline experience</p>
@@ -7727,16 +7727,16 @@ export default function ExportReportPage() {
 
                 {/* Slide 34: Thank You - professional improved design */}
                 {currentSlide === 34 && (
-                  <div className="rounded-xl overflow-hidden h-full flex flex-col">
+                  <div className="rounded-xl overflow-hidden">
                     {/* Dark main section */}
-                    <div className="flex-1 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative">
+                    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative">
                       {/* Background decorative elements */}
                       <div className="absolute inset-0 overflow-hidden">
                         <div className="absolute top-0 right-0 w-96 h-96 bg-[#F37021]/10 rounded-full blur-3xl"></div>
                         <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl"></div>
                       </div>
                       
-                      <div className="relative px-12 py-8 h-full flex flex-col">
+                      <div className="relative px-12 py-10">
                         {/* Top row - logos in corners */}
                         <div className="flex items-start justify-between mb-8">
                           <div className="bg-white rounded-xl p-4 shadow-xl">
@@ -7748,14 +7748,14 @@ export default function ExportReportPage() {
                         </div>
                         
                         {/* Main message - centered */}
-                        <div className="flex-1 flex flex-col items-center justify-center">
+                        <div className="text-center">
                           <h2 className="text-5xl font-bold text-white mb-4">Thank You</h2>
-                          <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed text-center mb-10">
+                          <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed mb-10">
                             For your commitment to creating a workplace where employees managing cancer can thrive
                           </p>
                           
                           {/* Stats row */}
-                          <div className="grid grid-cols-3 gap-6 max-w-3xl w-full mb-10">
+                          <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-10">
                             <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                               <p className="text-3xl font-bold text-[#F37021]">{compositeScore || '--'}</p>
                               <p className="text-slate-400 text-sm mt-1">Your Score</p>
@@ -7771,7 +7771,7 @@ export default function ExportReportPage() {
                           </div>
                           
                           {/* CTA */}
-                          <div className="bg-gradient-to-r from-[#F37021]/20 to-violet-500/20 rounded-2xl p-6 border border-white/10 backdrop-blur max-w-2xl w-full text-center">
+                          <div className="bg-gradient-to-r from-[#F37021]/20 to-violet-500/20 rounded-2xl p-6 border border-white/10 backdrop-blur max-w-2xl mx-auto">
                             <p className="text-white font-semibold text-lg mb-2">Ready for next steps?</p>
                             <p className="text-slate-300 mb-4">We're here to help you build on this foundation</p>
                             <div className="flex items-center justify-center gap-6">
