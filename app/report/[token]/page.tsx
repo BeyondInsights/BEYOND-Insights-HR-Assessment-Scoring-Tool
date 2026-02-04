@@ -5758,14 +5758,13 @@ export default function InteractiveReportPage() {
                     </div>
                     
                     {/* Table Header */}
-                    <div className="flex items-center gap-3 py-3 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      <div className="w-8"></div>
-                      <div className="flex-1">Dimension</div>
-                      <div className="w-16 text-center">Weight</div>
-                      <div className="w-56 text-center">Performance</div>
-                      <div className="w-16 text-center">Score</div>
-                      <div className="w-24 text-center">Benchmark</div>
-                      <div className="w-24 text-center">Tier</div>
+                    <div className="flex items-center py-3 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <div className="w-72 pl-2">Dimension</div>
+                      <div className="w-20 text-center">Weight</div>
+                      <div className="flex-1 text-center px-4">Performance</div>
+                      <div className="w-20 text-center">Score</div>
+                      <div className="w-28 text-center">Benchmark</div>
+                      <div className="w-28 text-center">Tier</div>
                     </div>
                     
                     {/* Table Rows */}
@@ -5775,20 +5774,18 @@ export default function InteractiveReportPage() {
                         return (
                           <div 
                             key={d.dim} 
-                            className={`flex items-center gap-3 py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}
+                            className={`flex items-center py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}
                           >
-                            <div className="w-8 flex justify-center">
-                              <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm" style={{ backgroundColor: d.tier.color }}>
+                            <div className="w-72 flex items-center gap-3 pl-2">
+                              <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
                                 {d.dim}
                               </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
                               <span className="text-sm text-slate-800 font-semibold">{d.name}</span>
                             </div>
-                            <div className="w-16 text-center">
+                            <div className="w-20 text-center">
                               <span className="text-sm text-slate-600 font-medium">{d.weight}%</span>
                             </div>
-                            <div className="w-56">
+                            <div className="flex-1 px-4">
                               <div className="relative h-2.5 bg-slate-100 rounded-full overflow-visible">
                                 <div 
                                   className="absolute left-0 top-0 h-full rounded-full transition-all" 
@@ -5804,10 +5801,10 @@ export default function InteractiveReportPage() {
                                 )}
                               </div>
                             </div>
-                            <div className="w-16 text-center">
+                            <div className="w-20 text-center">
                               <span className="text-lg font-bold" style={{ color: d.tier.color }}>{d.score}</span>
                             </div>
-                            <div className="w-24 text-center">
+                            <div className="w-28 text-center">
                               {d.benchmark !== null ? (
                                 <div>
                                   <span className="text-sm text-slate-500 font-medium">{d.benchmark}</span>
@@ -5819,7 +5816,7 @@ export default function InteractiveReportPage() {
                                 <span className="text-sm text-slate-300">—</span>
                               )}
                             </div>
-                            <div className="w-24 flex justify-center">
+                            <div className="w-28 flex justify-center">
                               <span 
                                 className={`text-xs font-bold px-3 py-1 rounded-lg ${d.tier.bgColor} border ${d.tier.borderColor}`} 
                                 style={{ color: d.tier.color }}
