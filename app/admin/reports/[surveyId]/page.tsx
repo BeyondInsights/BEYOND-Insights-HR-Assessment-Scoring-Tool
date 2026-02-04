@@ -5989,9 +5989,9 @@ export default function ExportReportPage() {
         {/* ============ PRESENTATION MODE OVERLAY ============ */}
         {presentationMode && (
           <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
-            {/* Slide Content Area */}
-            <div className="flex-1 overflow-auto p-8 flex items-center justify-center">
-              <div className="bg-white rounded-2xl shadow-2xl max-w-7xl w-full max-h-[calc(100vh-120px)] overflow-auto">
+            {/* Slide Content Area - maximizes vertical space */}
+            <div className="flex-1 overflow-hidden p-2 flex items-center justify-center">
+              <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full h-[calc(100vh-56px)] overflow-auto">
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
@@ -7803,14 +7803,14 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* Navigation Bar */}
-            <div className="flex-shrink-0 bg-slate-800 px-8 py-4 flex items-center justify-between">
+            {/* Navigation Bar - compact */}
+            <div className="flex-shrink-0 bg-slate-800 px-6 py-2 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="text-white text-sm">
                   <span className="font-bold">{currentSlide + 1}</span>
                   <span className="text-slate-400"> / 35</span>
                 </div>
-                <div className="w-48 h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div className="w-40 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                   <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / 35) * 100}%` }}></div>
                 </div>
               </div>
@@ -7819,14 +7819,14 @@ export default function ExportReportPage() {
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.max(prev - 1, 0))}
                   disabled={currentSlide === 0}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
+                  className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                 >
                   Previous
                 </button>
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 34))}
                   disabled={currentSlide === 34}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
+                  className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                 >
                   Next
                 </button>
@@ -7835,7 +7835,7 @@ export default function ExportReportPage() {
                     setPresentationMode(false);
                     document.exitFullscreen?.().catch(() => {});
                   }}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium ml-4"
+                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium ml-4"
                 >
                   Exit
                 </button>
