@@ -7278,9 +7278,6 @@ export default function InteractiveReportPage() {
           </div>
         )}
 
-      </div>
-    );
-}
       {/* Toast Notification */}
       {toast.show && (
         <div className="fixed bottom-6 right-6 z-[100]">
