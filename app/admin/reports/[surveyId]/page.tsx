@@ -3364,8 +3364,9 @@ export default function ExportReportPage() {
                 </div>
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                   <p className="text-4xl font-bold text-slate-800" data-export="metric-gaps">{gapItems + unsureItems}</p>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
-                  <p className="text-xs text-slate-400 mt-1">({notPlannedItems} Not Planned · {unsureItems} Needs Confirmation)</p>
+                  <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps:</p>
+                  <p className="text-xs text-slate-400 mt-1">{notPlannedItems} Not Planned</p>
+                  <p className="text-xs text-slate-400">{unsureItems} Needs Confirmation</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                   <p className="text-4xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
@@ -6296,8 +6297,9 @@ export default function ExportReportPage() {
                         </div>
                         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                           <p className="text-4xl font-bold text-slate-800">{gapItems + unsureItems}</p>
-                          <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps</p>
-                          <p className="text-xs text-slate-400 mt-1">({notPlannedItems} Not Planned · {unsureItems} Needs Confirmation)</p>
+                          <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps:</p>
+                          <p className="text-xs text-slate-400 mt-1">{notPlannedItems} Not Planned</p>
+                          <p className="text-xs text-slate-400">{unsureItems} Needs Confirmation</p>
                         </div>
                         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                           <p className="text-4xl font-bold text-slate-800">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
