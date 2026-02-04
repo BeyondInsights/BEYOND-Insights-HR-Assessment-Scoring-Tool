@@ -5971,11 +5971,11 @@ export default function ExportReportPage() {
           <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
             {/* Slide Content Area - centered */}
             <div className="flex-1 overflow-hidden flex items-center justify-center p-2">
-              <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full max-h-full overflow-auto">
+              <div className="bg-slate-900 shadow-2xl max-w-7xl w-full max-h-full overflow-auto">
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
-                  <div className="rounded-xl overflow-hidden">
+                  <div className="overflow-hidden">
                     {/* Top section - dark header with logo and title */}
                     <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
                       <div className="flex items-center justify-between">
@@ -6169,7 +6169,7 @@ export default function ExportReportPage() {
 
                 {/* Slide 3: Prepared For + Exec Summary + Key Findings (matches Image 1) */}
                 {currentSlide === 3 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="overflow-hidden">
                     {/* Top section - Prepared For header */}
                     <div className="px-12 py-8 border-b border-slate-100">
                       <div className="flex items-end justify-between">
@@ -6778,7 +6778,7 @@ export default function ExportReportPage() {
 
                 {/* Slide 20: Cross-Dimensional Insights - exact match to report */}
                 {currentSlide === 20 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-indigo-700">
                       <div className="flex items-center justify-between">
                         <div>
@@ -6815,7 +6815,7 @@ export default function ExportReportPage() {
 
                 {/* Slide 21: Impact-Ranked Priorities - exact match to report */}
                 {currentSlide === 21 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="overflow-hidden">
                     <div className="px-10 py-6 bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 relative overflow-hidden">
                       <div className="relative flex items-center justify-between">
                         <div>
@@ -6916,7 +6916,7 @@ export default function ExportReportPage() {
 
                 {/* Slide 22: Areas of Excellence - exact match to report */}
                 {currentSlide === 22 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-emerald-700">
                       <div className="flex items-center justify-between">
                         <div>
@@ -6960,7 +6960,7 @@ export default function ExportReportPage() {
 
                 {/* Slide 23: Areas for Growth - exact match to report */}
                 {currentSlide === 23 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-amber-600">
                       <div className="flex items-center justify-between">
                         <div>
@@ -7002,7 +7002,7 @@ export default function ExportReportPage() {
 
                 {/* Slide 24: Initiatives in Progress - exact match to report */}
                 {currentSlide === 24 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-blue-600 to-blue-700">
                       <div className="flex items-center justify-between">
                         <div>
@@ -7042,7 +7042,7 @@ export default function ExportReportPage() {
 
                 {/* Slide 25: Strategic Recommendations Setup - exact match to report */}
                 {currentSlide === 25 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="overflow-hidden">
                     <div className="px-12 py-10 bg-slate-800">
                       <div className="flex items-center justify-between">
                         <div>
@@ -7292,7 +7292,7 @@ export default function ExportReportPage() {
 
                 {/* Slide 30: Implementation Roadmap - exact match to report */}
                 {currentSlide === 30 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
                       <div className="flex items-center justify-between">
                         <div>
@@ -7422,7 +7422,7 @@ export default function ExportReportPage() {
 
                 {/* Slide 31: Working with Cancer Pledge - exact match to report */}
                 {currentSlide === 31 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="overflow-hidden">
                     {/* Header */}
                     <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 relative overflow-hidden">
                       <div className="relative flex items-center justify-between">
@@ -7545,7 +7545,7 @@ export default function ExportReportPage() {
 
                 {/* Slide 32: How Cancer and Careers Can Help - exact match to report */}
                 {currentSlide === 32 && (
-                  <div className="rounded-2xl overflow-hidden">
+                  <div className="overflow-hidden">
                     {/* Header */}
                     <div className="px-12 py-8 bg-gradient-to-r from-[#F37021] to-orange-500 relative overflow-hidden">
                       <div className="relative flex items-center gap-8">
@@ -7707,16 +7707,16 @@ export default function ExportReportPage() {
 
                 {/* Slide 34: Thank You - professional improved design */}
                 {currentSlide === 34 && (
-                  <div className="rounded-xl overflow-hidden h-full flex flex-col">
-                    {/* White header section with logos and Thank You */}
+                  <div className="overflow-hidden h-full flex flex-col">
+                    {/* White header section with logos on sides and Thank You centered */}
                     <div className="bg-white px-12 py-8">
-                      <div className="flex items-center justify-center gap-10">
-                        <div className="rounded-xl p-2">
-                          <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={100} height={100} className="object-contain" />
+                      <div className="flex items-center justify-between">
+                        <div className="p-2">
+                          <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={120} height={120} className="object-contain" />
                         </div>
                         <h2 className="text-5xl font-bold text-slate-800">Thank You</h2>
-                        <div className="rounded-xl p-2">
-                          <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={180} height={60} className="object-contain" />
+                        <div className="p-2">
+                          <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={200} height={70} className="object-contain" />
                         </div>
                       </div>
                     </div>
