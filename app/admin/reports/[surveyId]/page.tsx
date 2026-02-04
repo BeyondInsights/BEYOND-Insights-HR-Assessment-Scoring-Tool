@@ -3312,7 +3312,7 @@ export default function ExportReportPage() {
                     </svg>
                     <div>
                       <p className="text-sm font-semibold text-amber-800">Provisional Classification</p>
-                      <p className="text-sm text-amber-700 mt-1">This assessment includes {unsureItems} "Unsure" responses across {dimsWithHighUnsure} dimensions (40%+ Unsure in each), which may affect score reliability. We recommend following up internally to clarify these responses for a more accurate assessment.</p>
+                      <p className="text-sm text-amber-700 mt-1">{dimsWithHighUnsure} dimensions have 40% or more "Unsure" responses, which may affect score reliability. Results will remain provisional until these items are confirmed. We recommend following up internally to clarify these responses.</p>
                     </div>
                   </div>
                 </div>
@@ -6248,7 +6248,7 @@ export default function ExportReportPage() {
                             </svg>
                             <div>
                               <p className="text-sm font-semibold text-amber-800">Provisional Classification</p>
-                              <p className="text-sm text-amber-700 mt-1">{unsureItems} "Unsure" responses across {dimsWithHighUnsure} dimensions (40%+ each) may affect score reliability.</p>
+                              <p className="text-sm text-amber-700 mt-1">{dimsWithHighUnsure} dimensions have 40%+ "Unsure" responses. Results provisional until confirmed.</p>
                             </div>
                           </div>
                         </div>
