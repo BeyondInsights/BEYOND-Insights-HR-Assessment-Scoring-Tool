@@ -5601,8 +5601,9 @@ export default function ExportReportPage() {
               {/* Origin + What It Is */}
               <div className="mb-8">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
-                    <svg className="w-7 h-7" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2v20C6.48 22 2 17.52 2 12S6.48 2 12 2z"/></svg>
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden flex">
+                    <div className="w-1/2 h-full bg-red-500"></div>
+                    <div className="w-1/2 h-full bg-red-100"></div>
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-800 text-lg mb-2">A Public Commitment to Support Employees Managing Cancer</h4>
@@ -7495,8 +7496,9 @@ export default function ExportReportPage() {
                     <div className="px-12 py-6 bg-gradient-to-b from-slate-50 to-white">
                       {/* Intro Section */}
                       <div className="flex items-start gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2v20C6.48 22 2 17.52 2 12S6.48 2 12 2z"/></svg>
+                        <div className="w-12 h-12 rounded-full overflow-hidden flex flex-shrink-0">
+                          <div className="w-1/2 h-full bg-red-500"></div>
+                          <div className="w-1/2 h-full bg-red-100"></div>
                         </div>
                         <div>
                           <h4 className="font-semibold text-slate-800 text-lg mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
