@@ -2325,12 +2325,12 @@ export default function ExportReportPage() {
     const customNote = customNotes[noteKey] || '';
     
     const defaultNotes: Record<number, string> = {
-      0: '• Start with composite score: ${compositeScore} (${tier?.name} tier)\n• Assessment date reflects current state\n• ${totalElements} support elements across ${Object.keys(dimensionScores).length} dimensions',
+      0: '• Highlight the composite score and tier placement\n• Note the assessment date reflects current state\n• Mention total support elements evaluated across all dimensions',
       1: '• Evidence-based methodology with peer-reviewed research\n• Based on ILO, NICE international standards\n• First comprehensive benchmark for cancer support at work',
-      3: '• Top dimension: ${dimensionAnalysis[0]?.name} (${dimensionAnalysis[0]?.score})\n• Greatest opportunity: ${dimensionAnalysis[dimensionAnalysis.length-1]?.name}\n• ${unsureItems > 0 ? unsureItems + " items need confirmation" : "All items confirmed"}',
-      4: '• Exemplary: ${dimensionAnalysis.filter(d => d.tier.name === "Exemplary").length} dimensions\n• Proficient: ${dimensionAnalysis.filter(d => d.tier.name === "Proficient").length} dimensions\n• Focus on highest-weighted dimensions first',
+      3: '• Call out the top-performing dimension by name\n• Note the greatest opportunity area\n• If provisional, mention items needing confirmation',
+      4: '• Note how many dimensions are Exemplary vs Emerging\n• Focus discussion on highest-weighted dimensions first\n• Use the tier colors to guide the conversation',
       30: '• This is suggested phasing - can be customized\n• Phase 1: Quick wins to build momentum\n• Phase 2: Strategic medium-term investments\n• Phase 3: Long-term culture optimization',
-      31: '• 5,000+ companies globally signed\n• Pledge = intent, Index = execution\n• 81% of cancer employees say it matters for trust\n• Only 16-18% awareness - communicate better',
+      31: '• 5,000+ companies globally signed the pledge\n• Pledge = intent, Index = execution\n• 81% of cancer employees say it matters for trust\n• Only 16-18% awareness gap - opportunity to communicate',
       32: '• 20+ years frontline experience\n• Can support implementation at any phase\n• Discuss next steps and contacts'
     };
     
@@ -2340,6 +2340,11 @@ export default function ExportReportPage() {
     }
     
     const defaultNote = defaultNotes[slideNum] || 'Focus on the visual content and respond to questions.';
+    
+    // SVG icons as strings for the popup window
+    const clipboardIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>';
+    const pencilIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>';
+    const lightbulbIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fdba74" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>';
     
     win.document.open();
     win.document.write(`
@@ -2370,7 +2375,9 @@ export default function ExportReportPage() {
           .section-title { 
             font-size: 11px; font-weight: 700; text-transform: uppercase; 
             letter-spacing: 1px; color: #f59e0b; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
           }
+          .section-title svg { flex-shrink: 0; }
           .default-notes { 
             background: #1e293b; border-radius: 8px; padding: 12px; 
             font-size: 14px; line-height: 1.6; white-space: pre-wrap; color: #cbd5e1;
@@ -2389,7 +2396,9 @@ export default function ExportReportPage() {
           .tip { 
             background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3);
             border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 13px; color: #fdba74;
+            display: flex; align-items: flex-start; gap: 8px;
           }
+          .tip svg { flex-shrink: 0; margin-top: 2px; }
         </style>
       </head>
       <body>
@@ -2404,12 +2413,12 @@ export default function ExportReportPage() {
         </div>
         
         <div class="section">
-          <div class="section-title">📋 Suggested Talking Points</div>
+          <div class="section-title">${clipboardIcon} SUGGESTED TALKING POINTS</div>
           <div class="default-notes">${defaultNote.replace(/\\n/g, '\n')}</div>
         </div>
         
         <div class="section">
-          <div class="section-title">✏️ Your Custom Notes</div>
+          <div class="section-title">${pencilIcon} YOUR CUSTOM NOTES</div>
           <div class="custom-notes">
             <textarea 
               id="customNotes" 
@@ -2425,7 +2434,7 @@ export default function ExportReportPage() {
         </div>
         
         <div class="tip">
-          💡 <strong>Tip:</strong> This window is separate from your presentation. Share only the main report window to keep notes private.
+          ${lightbulbIcon} <strong>Tip:</strong> This window is separate from your presentation. Share only the main report window to keep notes private.
         </div>
         
         <script>
