@@ -2297,12 +2297,12 @@ export default function ExportReportPage() {
     const notesWindow = window.open('', 'PresenterNotes', 'width=450,height=700,left=100,top=100,resizable=yes,scrollbars=yes');
     if (notesWindow) {
       setPresenterNotesWindow(notesWindow);
-      renderPresenterNotesWindow(notesWindow, currentSlide);
+      renderPresenterNotesWindow(notesWindow, currentSlide, true);
     }
   };
   
   // Render presenter notes window content
-  const renderPresenterNotesWindow = (win: Window, slideNum: number) => {
+  const renderPresenterNotesWindow = (win: Window, slideNum: number, isInitialRender: boolean = false) => {
     if (!win || win.closed) return;
     
     const slideNames: Record<number, string> = {
@@ -2340,6 +2340,32 @@ export default function ExportReportPage() {
     }
     
     const defaultNote = defaultNotes[slideNum] || 'Focus on the visual content and respond to questions.';
+    
+    // If the document already has content, just update the dynamic parts
+    if (!isInitialRender && win.document.getElementById('slideNumber')) {
+      try {
+        const slideNumberEl = win.document.getElementById('slideNumber');
+        const slideNameEl = win.document.getElementById('slideName');
+        const defaultNotesEl = win.document.getElementById('defaultNotesContent');
+        const customNotesEl = win.document.getElementById('customNotes') as HTMLTextAreaElement;
+        const currentSlideData = win.document.getElementById('currentSlideData');
+        
+        if (slideNumberEl) slideNumberEl.textContent = `SLIDE ${slideNum + 1} OF 35`;
+        if (slideNameEl) slideNameEl.textContent = slideName;
+        if (defaultNotesEl) defaultNotesEl.textContent = defaultNote;
+        if (customNotesEl && customNotesEl.value !== customNote) {
+          // Only update if different to avoid losing cursor position
+          customNotesEl.value = customNote;
+        }
+        if (currentSlideData) currentSlideData.setAttribute('data-slide', String(slideNum));
+        
+        win.document.title = `Presenter Notes - ${slideName}`;
+        return;
+      } catch (e) {
+        // If DOM update fails, fall through to full render
+        console.log('DOM update failed, doing full render');
+      }
+    }
     
     // SVG icons as strings for the popup window
     const clipboardIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>';
@@ -2402,9 +2428,10 @@ export default function ExportReportPage() {
         </style>
       </head>
       <body>
+        <div id="currentSlideData" data-slide="${slideNum}"></div>
         <div class="header">
-          <h1>SLIDE ${slideNum + 1} OF 35</h1>
-          <h2>${slideName}</h2>
+          <h1 id="slideNumber">SLIDE ${slideNum + 1} OF 35</h1>
+          <h2 id="slideName">${slideName}</h2>
         </div>
         
         <div class="slide-nav">
@@ -2414,7 +2441,7 @@ export default function ExportReportPage() {
         
         <div class="section">
           <div class="section-title">${clipboardIcon} SUGGESTED TALKING POINTS</div>
-          <div class="default-notes">${defaultNote.replace(/\\n/g, '\n')}</div>
+          <div class="default-notes" id="defaultNotesContent">${defaultNote}</div>
         </div>
         
         <div class="section">
@@ -2444,10 +2471,11 @@ export default function ExportReportPage() {
           
           textarea.addEventListener('input', () => {
             clearTimeout(saveTimeout);
+            const currentSlide = document.getElementById('currentSlideData').getAttribute('data-slide');
             saveTimeout = setTimeout(() => {
               window.opener.postMessage({
                 type: 'saveNote',
-                slideNum: ${slideNum},
+                slideNum: parseInt(currentSlide),
                 note: textarea.value
               }, '*');
               saveStatus.style.display = 'flex';
@@ -2464,7 +2492,7 @@ export default function ExportReportPage() {
   // Update presenter notes window when slide changes
   useEffect(() => {
     if (presenterNotesWindow && !presenterNotesWindow.closed && presentationMode) {
-      renderPresenterNotesWindow(presenterNotesWindow, currentSlide);
+      renderPresenterNotesWindow(presenterNotesWindow, currentSlide, false);
     }
   }, [currentSlide, presenterNotesWindow, presentationMode, customNotes]);
   
