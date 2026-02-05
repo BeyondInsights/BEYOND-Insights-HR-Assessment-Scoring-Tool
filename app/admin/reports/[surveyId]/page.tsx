@@ -2342,11 +2342,11 @@ export default function ExportReportPage() {
     const defaultNote = defaultNotes[slideNum] || 'Focus on the visual content and respond to questions.';
     
     win.document.open();
-    win.document.write(\`
+    win.document.write(`
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Presenter Notes - \${slideName}</title>
+        <title>Presenter Notes - ${slideName}</title>
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body { 
@@ -2394,8 +2394,8 @@ export default function ExportReportPage() {
       </head>
       <body>
         <div class="header">
-          <h1>SLIDE \${slideNum + 1} OF 35</h1>
-          <h2>\${slideName}</h2>
+          <h1>SLIDE ${slideNum + 1} OF 35</h1>
+          <h2>${slideName}</h2>
         </div>
         
         <div class="slide-nav">
@@ -2405,7 +2405,7 @@ export default function ExportReportPage() {
         
         <div class="section">
           <div class="section-title">📋 Suggested Talking Points</div>
-          <div class="default-notes">\${defaultNote.replace(/\\n/g, '\n')}</div>
+          <div class="default-notes">${defaultNote.replace(/\\n/g, '\n')}</div>
         </div>
         
         <div class="section">
@@ -2414,7 +2414,7 @@ export default function ExportReportPage() {
             <textarea 
               id="customNotes" 
               placeholder="Add your own notes here... They'll be saved automatically and persist across sessions."
-            >\${customNote}</textarea>
+            >${customNote}</textarea>
             <div class="save-status" id="saveStatus" style="display: none;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                 <path d="M5 13l4 4L19 7"/>
@@ -2438,7 +2438,7 @@ export default function ExportReportPage() {
             saveTimeout = setTimeout(() => {
               window.opener.postMessage({
                 type: 'saveNote',
-                slideNum: \${slideNum},
+                slideNum: ${slideNum},
                 note: textarea.value
               }, '*');
               saveStatus.style.display = 'flex';
@@ -2448,7 +2448,7 @@ export default function ExportReportPage() {
         </script>
       </body>
       </html>
-    \`);
+    `);
     win.document.close();
   };
   
