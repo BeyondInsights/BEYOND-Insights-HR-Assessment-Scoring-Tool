@@ -2517,6 +2517,64 @@ export default function ExportReportPage() {
       format: [1280, 720]
     });
     
+    // Helper to convert oklch to hex using canvas
+    const oklchToHex = (oklchStr: string): string | null => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
+        ctx.fillStyle = oklchStr;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        return `rgb(${r}, ${g}, ${b})`;
+      } catch {
+        return null;
+      }
+    };
+    
+    // Helper to fix oklch colors in cloned element
+    const fixOklchColors = (element: HTMLElement) => {
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_ELEMENT);
+      let node: Node | null = walker.currentNode;
+      
+      while (node) {
+        if (node instanceof HTMLElement) {
+          const computed = window.getComputedStyle(node);
+          
+          // Fix background-color
+          const bg = computed.backgroundColor;
+          if (bg && bg.includes('oklch')) {
+            const converted = oklchToHex(bg);
+            if (converted) node.style.backgroundColor = converted;
+          }
+          
+          // Fix color
+          const color = computed.color;
+          if (color && color.includes('oklch')) {
+            const converted = oklchToHex(color);
+            if (converted) node.style.color = converted;
+          }
+          
+          // Fix border-color
+          const borderColor = computed.borderColor;
+          if (borderColor && borderColor.includes('oklch')) {
+            const converted = oklchToHex(borderColor);
+            if (converted) node.style.borderColor = converted;
+          }
+          
+          // Fix outline-color
+          const outlineColor = computed.outlineColor;
+          if (outlineColor && outlineColor.includes('oklch')) {
+            const converted = oklchToHex(outlineColor);
+            if (converted) node.style.outlineColor = converted;
+          }
+        }
+        node = walker.nextNode();
+      }
+    };
+    
     try {
       for (let i = 0; i < totalSlides; i++) {
         // Navigate to slide
@@ -2529,86 +2587,16 @@ export default function ExportReportPage() {
         const slideElement = slideContainerRef.current;
         if (!slideElement) continue;
         
-        // Capture slide with oklch color overrides
+        // Capture slide
         const canvas = await html2canvas(slideElement, {
           scale: 2,
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#ffffff',
-          width: 1280,
-          height: 720,
           logging: false,
-          onclone: (clonedDoc) => {
-            // Override all oklch colors with RGB equivalents
-            const style = clonedDoc.createElement('style');
-            style.textContent = `
-              *, *::before, *::after {
-                --tw-ring-color: rgba(59, 130, 246, 0.5) !important;
-                --tw-ring-offset-color: #fff !important;
-                --tw-border-opacity: 1 !important;
-                --tw-bg-opacity: 1 !important;
-                --tw-text-opacity: 1 !important;
-              }
-              .bg-white { background-color: #ffffff !important; }
-              .bg-slate-50 { background-color: #f8fafc !important; }
-              .bg-slate-100 { background-color: #f1f5f9 !important; }
-              .bg-slate-200 { background-color: #e2e8f0 !important; }
-              .bg-slate-300 { background-color: #cbd5e1 !important; }
-              .bg-slate-400 { background-color: #94a3b8 !important; }
-              .bg-slate-500 { background-color: #64748b !important; }
-              .bg-slate-600 { background-color: #475569 !important; }
-              .bg-slate-700 { background-color: #334155 !important; }
-              .bg-slate-800 { background-color: #1e293b !important; }
-              .bg-slate-900 { background-color: #0f172a !important; }
-              .bg-red-50 { background-color: #fef2f2 !important; }
-              .bg-red-100 { background-color: #fee2e2 !important; }
-              .bg-red-500 { background-color: #ef4444 !important; }
-              .bg-red-600 { background-color: #dc2626 !important; }
-              .bg-orange-50 { background-color: #fff7ed !important; }
-              .bg-orange-500 { background-color: #f97316 !important; }
-              .bg-amber-50 { background-color: #fffbeb !important; }
-              .bg-amber-100 { background-color: #fef3c7 !important; }
-              .bg-amber-500 { background-color: #f59e0b !important; }
-              .bg-yellow-50 { background-color: #fefce8 !important; }
-              .bg-green-50 { background-color: #f0fdf4 !important; }
-              .bg-green-100 { background-color: #dcfce7 !important; }
-              .bg-green-500 { background-color: #22c55e !important; }
-              .bg-emerald-50 { background-color: #ecfdf5 !important; }
-              .bg-emerald-100 { background-color: #d1fae5 !important; }
-              .bg-emerald-500 { background-color: #10b981 !important; }
-              .bg-emerald-600 { background-color: #059669 !important; }
-              .bg-cyan-100 { background-color: #cffafe !important; }
-              .bg-cyan-500 { background-color: #06b6d4 !important; }
-              .bg-cyan-600 { background-color: #0891b2 !important; }
-              .bg-blue-50 { background-color: #eff6ff !important; }
-              .bg-blue-100 { background-color: #dbeafe !important; }
-              .bg-blue-500 { background-color: #3b82f6 !important; }
-              .bg-blue-600 { background-color: #2563eb !important; }
-              .bg-violet-50 { background-color: #f5f3ff !important; }
-              .bg-violet-100 { background-color: #ede9fe !important; }
-              .bg-violet-500 { background-color: #8b5cf6 !important; }
-              .bg-violet-600 { background-color: #7c3aed !important; }
-              .text-white { color: #ffffff !important; }
-              .text-slate-400 { color: #94a3b8 !important; }
-              .text-slate-500 { color: #64748b !important; }
-              .text-slate-600 { color: #475569 !important; }
-              .text-slate-700 { color: #334155 !important; }
-              .text-slate-800 { color: #1e293b !important; }
-              .text-red-600 { color: #dc2626 !important; }
-              .text-orange-500 { color: #f97316 !important; }
-              .text-amber-500 { color: #f59e0b !important; }
-              .text-green-600 { color: #16a34a !important; }
-              .text-emerald-600 { color: #059669 !important; }
-              .text-blue-600 { color: #2563eb !important; }
-              .text-violet-600 { color: #7c3aed !important; }
-              .text-violet-700 { color: #6d28d9 !important; }
-              .border-slate-200 { border-color: #e2e8f0 !important; }
-              .border-slate-300 { border-color: #cbd5e1 !important; }
-              .border-violet-200 { border-color: #ddd6fe !important; }
-              .border-blue-200 { border-color: #bfdbfe !important; }
-              .border-cyan-200 { border-color: #a5f3fc !important; }
-            `;
-            clonedDoc.head.appendChild(style);
+          onclone: (_doc, clonedElement) => {
+            // Fix oklch colors in the cloned element
+            fixOklchColors(clonedElement);
           }
         });
         
@@ -2618,7 +2606,10 @@ export default function ExportReportPage() {
           pdf.addPage([1280, 720], 'landscape');
         }
         
-        pdf.addImage(imgData, 'JPEG', 0, 0, 1280, 720);
+        // Scale to fit 1280x720
+        const imgWidth = 1280;
+        const imgHeight = (canvas.height / canvas.width) * imgWidth;
+        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, 720));
       }
       
       // Save PDF
