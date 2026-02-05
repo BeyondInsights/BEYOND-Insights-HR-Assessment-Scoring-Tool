@@ -1187,6 +1187,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                     const cy = cluster.y - 18;
                     return (
                       <g key={dim}>
+                        <line x1={cx} y1={cy + 7} x2={cluster.x + 10} y2={cluster.y - 10} stroke="#94A3B8" strokeWidth="1" strokeDasharray="2 2" />
                         <circle cx={cx} cy={cy} r="9" fill={getScoreColor(d?.score || 0)} opacity="0.4" stroke={getScoreColor(d?.score || 0)} strokeWidth="1.5" />
                         <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
                       </g>
@@ -4076,7 +4077,7 @@ export default function ExportReportPage() {
                         </g>
                         <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">↑ STRATEGIC IMPORTANCE</text>
                         
-                        {/* Benchmark rings with grey fill and overlap nudging */}
+                        {/* Benchmark rings at true positions + overlap indicators */}
                         {showBenchmarkRings && (() => {
                           const benchDims = dimensionAnalysis.filter((d) => getBenchmarkScore(d.dim) !== null);
                           const benchPositions = benchDims.map((d) => {
@@ -4085,25 +4086,46 @@ export default function ExportReportPage() {
                               dim: d.dim,
                               x: (bs / 100) * PLOT_WIDTH,
                               y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
-                              nudgeX: 0, nudgeY: 0,
                             };
                           });
+                          // Detect overlapping benchmark clusters
+                          const visited = new Set<number>();
+                          const benchClusters: { dims: number[]; x: number; y: number }[] = [];
                           for (let i = 0; i < benchPositions.length; i++) {
+                            if (visited.has(i)) continue;
+                            const group = [i]; visited.add(i);
                             for (let j = i + 1; j < benchPositions.length; j++) {
+                              if (visited.has(j)) continue;
                               const dx = benchPositions[j].x - benchPositions[i].x;
                               const dy = benchPositions[j].y - benchPositions[i].y;
-                              if (Math.sqrt(dx*dx + dy*dy) < 34) {
-                                benchPositions[i].nudgeX = -16; benchPositions[i].nudgeY = -7;
-                                benchPositions[j].nudgeX = 16; benchPositions[j].nudgeY = 7;
-                              }
+                              if (Math.sqrt(dx*dx + dy*dy) < 34) { group.push(j); visited.add(j); }
+                            }
+                            if (group.length > 1) {
+                              benchClusters.push({ dims: group.map(idx => benchPositions[idx].dim).sort((a,b) => a-b), x: benchPositions[i].x, y: benchPositions[i].y });
                             }
                           }
-                          return benchPositions.map((bp) => (
-                            <g key={`bench-${bp.dim}`}>
-                              <circle cx={bp.x + bp.nudgeX} cy={bp.y + bp.nudgeY} r={20} fill="#E2E8F0" fillOpacity="0.8" stroke="#8B5CF6" strokeWidth="2.5" strokeDasharray="5 3" />
-                              <text x={bp.x + bp.nudgeX} y={bp.y + bp.nudgeY + 1} textAnchor="middle" dominantBaseline="middle" fill="#6D28D9" fontSize="10" fontWeight="800" fontFamily="system-ui">D{bp.dim}</text>
-                            </g>
-                          ));
+                          return (<>
+                            {benchPositions.map((bp) => (
+                              <g key={`bench-${bp.dim}`}>
+                                <circle cx={bp.x} cy={bp.y} r={20} fill="#E2E8F0" fillOpacity="0.8" stroke="#8B5CF6" strokeWidth="2.5" strokeDasharray="5 3" />
+                                <text x={bp.x} y={bp.y + 1} textAnchor="middle" dominantBaseline="middle" fill="#6D28D9" fontSize="10" fontWeight="800" fontFamily="system-ui">D{bp.dim}</text>
+                              </g>
+                            ))}
+                            {benchClusters.map((cluster, ci) => {
+                              const hiddenDims = cluster.dims.slice(0, -1);
+                              return hiddenDims.map((dim, i) => {
+                                const cx = cluster.x + 28 + i * 24;
+                                const cy = cluster.y - 22;
+                                return (
+                                  <g key={`bench-callout-${ci}-${dim}`}>
+                                    <line x1={cx} y1={cy + 8} x2={cluster.x + 12} y2={cluster.y - 12} stroke="#8B5CF6" strokeWidth="1" strokeDasharray="2 2" opacity="0.5" />
+                                    <circle cx={cx} cy={cy} r="10" fill="#E2E8F0" fillOpacity="0.5" stroke="#8B5CF6" strokeWidth="1.5" strokeDasharray="3 2" />
+                                    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="#6D28D9" fontSize="8" fontWeight="700" opacity="0.7">D{dim}</text>
+                                  </g>
+                                );
+                              });
+                            })}
+                          </>);
                         })()}
                         
                         {/* Data points - Company scores at true positions */}
@@ -4132,6 +4154,7 @@ export default function ExportReportPage() {
                                 const cy = cluster.y - 22;
                                 return (
                                   <g key={dim}>
+                                    <line x1={cx} y1={cy + 8} x2={cluster.x + 12} y2={cluster.y - 12} stroke="#94A3B8" strokeWidth="1" strokeDasharray="2 2" />
                                     <circle cx={cx} cy={cy} r="10" fill={getScoreColor(dd?.score || 0)} opacity="0.4" stroke={getScoreColor(dd?.score || 0)} strokeWidth="1.5" />
                                     <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="8" fontWeight="700">D{dim}</text>
                                   </g>
@@ -6863,6 +6886,7 @@ export default function ExportReportPage() {
                                             const cy = cluster.y - 18;
                                             return (
                                               <g key={dim}>
+                                                <line x1={cx} y1={cy + 7} x2={cluster.x + 10} y2={cluster.y - 10} stroke="#94A3B8" strokeWidth="1" strokeDasharray="2 2" />
                                                 <circle cx={cx} cy={cy} r="9" fill={dd?.tier?.color || '#94A3B8'} opacity="0.4" stroke={dd?.tier?.color || '#94A3B8'} strokeWidth="1.5" />
                                                 <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
                                               </g>
@@ -6970,31 +6994,51 @@ export default function ExportReportPage() {
                               })}
                               <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
                               
-                              {/* Benchmark circles (dashed) - with overlap nudging */}
+                              {/* Benchmark circles (dashed) at true positions + overlap indicators */}
                               {(() => {
                                 const benchDims = dimensionAnalysis.filter((d: any) => d.benchmark !== null && d.benchmark !== undefined);
                                 const benchPositions = benchDims.map((d: any) => ({
                                   dim: d.dim,
                                   x: (d.benchmark / 100) * PLOT_WIDTH,
                                   y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
-                                  nudgeX: 0, nudgeY: 0,
                                 }));
+                                const bVisited = new Set<number>();
+                                const bClusters: { dims: number[]; x: number; y: number }[] = [];
                                 for (let i = 0; i < benchPositions.length; i++) {
+                                  if (bVisited.has(i)) continue;
+                                  const group = [i]; bVisited.add(i);
                                   for (let j = i + 1; j < benchPositions.length; j++) {
+                                    if (bVisited.has(j)) continue;
                                     const dx = benchPositions[j].x - benchPositions[i].x;
                                     const dy = benchPositions[j].y - benchPositions[i].y;
-                                    if (Math.sqrt(dx*dx + dy*dy) < 30) {
-                                      benchPositions[i].nudgeX = -14; benchPositions[i].nudgeY = -6;
-                                      benchPositions[j].nudgeX = 14; benchPositions[j].nudgeY = 6;
-                                    }
+                                    if (Math.sqrt(dx*dx + dy*dy) < 30) { group.push(j); bVisited.add(j); }
+                                  }
+                                  if (group.length > 1) {
+                                    bClusters.push({ dims: group.map(idx => benchPositions[idx].dim).sort((a,b) => a-b), x: benchPositions[i].x, y: benchPositions[i].y });
                                   }
                                 }
-                                return benchPositions.map((bp) => (
-                                  <g key={`bench-group-${bp.dim}`}>
-                                    <circle cx={bp.x + bp.nudgeX} cy={bp.y + bp.nudgeY} r={18} fill="none" stroke="#6366F1" strokeWidth="2" strokeDasharray="4 3" opacity="0.7" />
-                                    <text x={bp.x + bp.nudgeX} y={bp.y + bp.nudgeY} textAnchor="middle" dominantBaseline="central" fill="#6366F1" fontSize="9" fontWeight="600" opacity="0.8">D{bp.dim}</text>
-                                  </g>
-                                ));
+                                return (<>
+                                  {benchPositions.map((bp) => (
+                                    <g key={`bench-group-${bp.dim}`}>
+                                      <circle cx={bp.x} cy={bp.y} r={18} fill="none" stroke="#6366F1" strokeWidth="2" strokeDasharray="4 3" opacity="0.7" />
+                                      <text x={bp.x} y={bp.y} textAnchor="middle" dominantBaseline="central" fill="#6366F1" fontSize="9" fontWeight="600" opacity="0.8">D{bp.dim}</text>
+                                    </g>
+                                  ))}
+                                  {bClusters.map((cluster, ci) => {
+                                    const hiddenDims = cluster.dims.slice(0, -1);
+                                    return hiddenDims.map((dim, i) => {
+                                      const cx = cluster.x + 26 + i * 22;
+                                      const cy = cluster.y - 20;
+                                      return (
+                                        <g key={`bench-callout-${ci}-${dim}`}>
+                                          <line x1={cx} y1={cy + 7} x2={cluster.x + 10} y2={cluster.y - 10} stroke="#6366F1" strokeWidth="1" strokeDasharray="2 2" opacity="0.5" />
+                                          <circle cx={cx} cy={cy} r="9" fill="none" stroke="#6366F1" strokeWidth="1.5" strokeDasharray="3 2" opacity="0.5" />
+                                          <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="#6366F1" fontSize="7" fontWeight="600" opacity="0.6">D{dim}</text>
+                                        </g>
+                                      );
+                                    });
+                                  })}
+                                </>);
                               })()}
                               
                               {/* Data points (company) - at true positions */}
@@ -7039,6 +7083,7 @@ export default function ExportReportPage() {
                                             const cy = cluster.y - 18;
                                             return (
                                               <g key={dim}>
+                                                <line x1={cx} y1={cy + 7} x2={cluster.x + 10} y2={cluster.y - 10} stroke="#94A3B8" strokeWidth="1" strokeDasharray="2 2" />
                                                 <circle cx={cx} cy={cy} r="9" fill={dd?.tier?.color || '#94A3B8'} opacity="0.4" stroke={dd?.tier?.color || '#94A3B8'} strokeWidth="1.5" />
                                                 <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
                                               </g>
