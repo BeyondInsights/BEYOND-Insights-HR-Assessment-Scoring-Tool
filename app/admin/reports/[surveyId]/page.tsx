@@ -7,6 +7,8 @@ import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
 import { exportHybridPptx } from '@/components/PptxExportHybrid';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Create Supabase client directly
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -2187,6 +2189,9 @@ export default function ExportReportPage() {
   // Presentation mode state
   const [presentationMode, setPresentationMode] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
+  const slideContainerRef = useRef<HTMLDivElement>(null);
   
   // Info modal content
   const infoContent = {
@@ -2494,6 +2499,71 @@ export default function ExportReportPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [presentationMode]);
+
+  // PDF Export function
+  const exportToPdf = async () => {
+    if (!slideContainerRef.current || isExportingPdf) return;
+    
+    setIsExportingPdf(true);
+    setExportProgress(0);
+    
+    const totalSlides = 35; // Slides 0-34
+    const originalSlide = currentSlide;
+    
+    // Create PDF in landscape 16:9 format
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'px',
+      format: [1280, 720]
+    });
+    
+    try {
+      for (let i = 0; i < totalSlides; i++) {
+        // Navigate to slide
+        setCurrentSlide(i);
+        setExportProgress(Math.round(((i + 1) / totalSlides) * 100));
+        
+        // Wait for render
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const slideElement = slideContainerRef.current;
+        if (!slideElement) continue;
+        
+        // Capture slide
+        const canvas = await html2canvas(slideElement, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: 1280,
+          height: 720,
+          windowWidth: 1280,
+          windowHeight: 720,
+        });
+        
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        
+        if (i > 0) {
+          pdf.addPage([1280, 720], 'landscape');
+        }
+        
+        pdf.addImage(imgData, 'JPEG', 0, 0, 1280, 720);
+      }
+      
+      // Save PDF
+      const companyName = company?.company_name?.replace(/[^a-zA-Z0-9]/g, '_') || 'Report';
+      pdf.save(`${companyName}_Cancer_Support_Report.pdf`);
+      
+    } catch (err) {
+      console.error('PDF export error:', err);
+      alert('Error exporting PDF. Please try again.');
+    } finally {
+      // Restore original slide
+      setCurrentSlide(originalSlide);
+      setIsExportingPdf(false);
+      setExportProgress(0);
+    }
+  };
 
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
@@ -6006,7 +6076,7 @@ export default function ExportReportPage() {
           <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
             {/* Slide Content Area - centered */}
             <div className="flex-1 overflow-hidden flex items-center justify-center p-3">
-              <div className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden">
+              <div ref={slideContainerRef} className="bg-white rounded-lg shadow-2xl w-[1280px] h-[720px] overflow-hidden" style={{ aspectRatio: '16/9' }}>
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
@@ -7868,16 +7938,37 @@ export default function ExportReportPage() {
               </div>
               
               <div className="flex items-center gap-2">
+                {/* Export to PDF button */}
+                <button 
+                  onClick={exportToPdf}
+                  disabled={isExportingPdf}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white rounded-lg text-sm font-medium flex items-center gap-2"
+                >
+                  {isExportingPdf ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      <span>Exporting... {exportProgress}%</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                      <span>Export PDF</span>
+                    </>
+                  )}
+                </button>
+                
+                <div className="w-px h-6 bg-slate-600 mx-2"></div>
+                
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.max(prev - 1, 0))}
-                  disabled={currentSlide === 0}
+                  disabled={currentSlide === 0 || isExportingPdf}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                 >
                   Previous
                 </button>
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 34))}
-                  disabled={currentSlide === 34}
+                  disabled={currentSlide === 34 || isExportingPdf}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                 >
                   Next
@@ -7887,7 +7978,8 @@ export default function ExportReportPage() {
                     setPresentationMode(false);
                     document.exitFullscreen?.().catch(() => {});
                   }}
-                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium ml-4"
+                  disabled={isExportingPdf}
+                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white rounded-lg text-sm font-medium ml-4"
                 >
                   Exit
                 </button>
