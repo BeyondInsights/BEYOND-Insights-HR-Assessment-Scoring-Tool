@@ -860,8 +860,46 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
   
   const hoveredData = hoveredDim !== null ? dimensionAnalysis.find(d => d.dim === hoveredDim) : null;
   
+  // Calculate bubble positions as percentages for HTML overlay, with overlap nudging
+  const getNudgedPositions = () => {
+    const DOT_R = 18;
+    const MIN_DIST = DOT_R * 2;
+    const positions = dimensionAnalysis.map((d: any) => {
+      const svgX = MARGIN.left + (d.score / 100) * PLOT_WIDTH;
+      const svgY = MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT));
+      return { dim: d.dim, x: svgX, y: svgY };
+    });
+    for (let i = 0; i < positions.length; i++) {
+      for (let j = i + 1; j < positions.length; j++) {
+        const dx = positions[j].x - positions[i].x;
+        const dy = positions[j].y - positions[i].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MIN_DIST && dist > 0) {
+          const overlap = (MIN_DIST - dist) / 2 + 2;
+          const angle = Math.atan2(dy, dx);
+          positions[i].x -= Math.cos(angle) * overlap;
+          positions[i].y -= Math.sin(angle) * overlap;
+          positions[j].x += Math.cos(angle) * overlap;
+          positions[j].y += Math.sin(angle) * overlap;
+        } else if (dist === 0) {
+          positions[j].x += MIN_DIST * 0.6;
+          positions[j].y -= MIN_DIST * 0.3;
+        }
+      }
+    }
+    return positions.map(p => ({
+      dim: p.dim,
+      xPercent: (p.x / CHART_WIDTH) * 100,
+      yPercent: (p.y / CHART_HEIGHT) * 100,
+    }));
+  };
+  
+  const nudgedPositions = getNudgedPositions();
+  
   // Calculate bubble positions as percentages for HTML overlay
   const getBubblePosition = (d: any) => {
+    const nudged = nudgedPositions.find(p => p.dim === d.dim);
+    if (nudged) return { xPercent: nudged.xPercent, yPercent: nudged.yPercent };
     const xPercent = (MARGIN.left + (d.score / 100) * PLOT_WIDTH) / CHART_WIDTH * 100;
     const yPercent = (MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT))) / CHART_HEIGHT * 100;
     return { xPercent, yPercent };
@@ -970,22 +1008,50 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               ↑ STRATEGIC IMPORTANCE
             </text>
             
-            {/* Data points - visual only */}
-            {dimensionAnalysis.map((d) => {
-              const xPos = (d.score / 100) * PLOT_WIDTH;
-              const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
-              const isHovered = hoveredDim === d.dim;
-              
-              return (
-                <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
-                  <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
-                  <circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
-                  <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">
-                    D{d.dim}
-                  </text>
-                </g>
-              );
-            })}
+            {/* Data points - visual only, with overlap nudging */}
+            {(() => {
+              const DOT_R = 18;
+              const MIN_DIST = DOT_R * 2;
+              const positions = dimensionAnalysis.map((d: any) => ({
+                dim: d.dim,
+                origX: (d.score / 100) * PLOT_WIDTH,
+                origY: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
+                x: (d.score / 100) * PLOT_WIDTH,
+                y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
+              }));
+              // Nudge overlapping dots apart
+              for (let i = 0; i < positions.length; i++) {
+                for (let j = i + 1; j < positions.length; j++) {
+                  const dx = positions[j].x - positions[i].x;
+                  const dy = positions[j].y - positions[i].y;
+                  const dist = Math.sqrt(dx * dx + dy * dy);
+                  if (dist < MIN_DIST && dist > 0) {
+                    const overlap = (MIN_DIST - dist) / 2 + 2;
+                    const angle = Math.atan2(dy, dx);
+                    positions[i].x -= Math.cos(angle) * overlap;
+                    positions[i].y -= Math.sin(angle) * overlap;
+                    positions[j].x += Math.cos(angle) * overlap;
+                    positions[j].y += Math.sin(angle) * overlap;
+                  } else if (dist === 0) {
+                    positions[j].x += MIN_DIST * 0.6;
+                    positions[j].y -= MIN_DIST * 0.3;
+                  }
+                }
+              }
+              return positions.map((pos) => {
+                const d = dimensionAnalysis.find((dd: any) => dd.dim === pos.dim);
+                const isHovered = hoveredDim === d.dim;
+                return (
+                  <g key={d.dim} transform={`translate(${pos.x}, ${pos.y})`}>
+                    <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
+                    <circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
+                    <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">
+                      D{d.dim}
+                    </text>
+                  </g>
+                );
+              });
+            })()}
           </g>
         </svg>
         
@@ -7522,13 +7588,15 @@ export default function InteractiveReportPage() {
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
-                  <div className="space-y-3 text-sm">
-                    {/* Navigation Section */}
-                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-1">Navigation</div>
-                    <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-1.5 items-center">
+                  <div className="text-sm">
+                    {/* Single unified grid for both sections */}
+                    <div className="grid grid-cols-[1fr_minmax(140px,auto)_minmax(140px,auto)] gap-x-4 gap-y-1.5 items-center">
                       <div></div>
                       <div className="text-[10px] font-semibold text-slate-400 text-center">WINDOWS</div>
                       <div className="text-[10px] font-semibold text-slate-400 text-center">MAC</div>
+                      
+                      {/* Navigation Section Header */}
+                      <div className="col-span-3 text-xs font-semibold text-slate-400 uppercase tracking-wider pt-1">Navigation</div>
                       
                       <span className="text-slate-600">Next slide</span>
                       <div className="flex gap-1 justify-center">
@@ -7581,16 +7649,12 @@ export default function InteractiveReportPage() {
                       <div className="flex gap-1 justify-center">
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">G</kbd>
                       </div>
-                    </div>
-                    
-                    <div className="border-t border-slate-100 pt-2"></div>
-                    
-                    {/* View Controls Section */}
-                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">View Controls</div>
-                    <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-1.5 items-center">
-                      <div></div>
-                      <div className="text-[10px] font-semibold text-slate-400 text-center">WINDOWS</div>
-                      <div className="text-[10px] font-semibold text-slate-400 text-center">MAC</div>
+                      
+                      {/* Divider */}
+                      <div className="col-span-3 border-t border-slate-100 my-1"></div>
+                      
+                      {/* View Controls Section Header */}
+                      <div className="col-span-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">View Controls</div>
                       
                       <span className="text-slate-600">Zoom in / out</span>
                       <div className="flex gap-1 justify-center">
