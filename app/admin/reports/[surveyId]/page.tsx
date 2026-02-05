@@ -2633,7 +2633,7 @@ export default function ExportReportPage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [editMode, presentationMode]);
+  }, [editMode, presentationMode, handleSaveCustomizations]);
 
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
@@ -3022,6 +3022,25 @@ export default function ExportReportPage() {
     })
     .sort((a, b) => b.score - a.score);
   
+  const allElements = Object.values(elementDetails || {}).flat() as any[];
+  const totalElements = allElements.length;
+  const currentlyOffering = allElements.filter(e => e.isStrength).length;
+  const planningItems = allElements.filter(e => e.isPlanning).length;
+  const assessingItems = allElements.filter(e => e.isAssessing).length;
+  const gapItems = allElements.filter(e => e.isGap).length;
+  const unsureItems = allElements.filter(e => e.isUnsure).length;
+  const notPlannedItems = gapItems; // isGap = not_able (Not Planned), separate from Unsure
+  
+  // Check if company is a WWC Pledge Signatory
+  const currentSupportData = company.current_support_data || {};
+  const or2c = currentSupportData.or2c || [];
+  const isFoundingPartner = company.is_founding_partner === true || 
+    company.payment_method === 'founding_partner' || 
+    (company.application_id && company.application_id.startsWith('FP-'));
+  const isWwcPledge = isFoundingPartner || (Array.isArray(or2c) && or2c.some((v: string) => 
+    typeof v === 'string' && (v.toLowerCase().includes('working with cancer') || v.toLowerCase().includes('wwc'))
+  ));
+  
   // Section navigation for Jump To dropdown
   const reportSections = [
     { id: 'report-hero-section', label: 'Overview & Score', icon: '📊' },
@@ -3048,25 +3067,6 @@ export default function ExportReportPage() {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
-  
-  const allElements = Object.values(elementDetails || {}).flat() as any[];
-  const totalElements = allElements.length;
-  const currentlyOffering = allElements.filter(e => e.isStrength).length;
-  const planningItems = allElements.filter(e => e.isPlanning).length;
-  const assessingItems = allElements.filter(e => e.isAssessing).length;
-  const gapItems = allElements.filter(e => e.isGap).length;
-  const unsureItems = allElements.filter(e => e.isUnsure).length;
-  const notPlannedItems = gapItems; // isGap = not_able (Not Planned), separate from Unsure
-  
-  // Check if company is a WWC Pledge Signatory
-  const currentSupportData = company.current_support_data || {};
-  const or2c = currentSupportData.or2c || [];
-  const isFoundingPartner = company.is_founding_partner === true || 
-    company.payment_method === 'founding_partner' || 
-    (company.application_id && company.application_id.startsWith('FP-'));
-  const isWwcPledge = isFoundingPartner || (Array.isArray(or2c) && or2c.some((v: string) => 
-    typeof v === 'string' && (v.toLowerCase().includes('working with cancer') || v.toLowerCase().includes('wwc'))
-  ));
   
   // Provisional classification: 4+ dimensions with 40%+ Unsure responses
   const dimsWithHighUnsure = dimensionAnalysis.filter(d => {
