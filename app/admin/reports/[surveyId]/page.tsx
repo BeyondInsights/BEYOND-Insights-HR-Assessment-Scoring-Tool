@@ -2266,8 +2266,25 @@ export default function ExportReportPage() {
   const [showJumpTo, setShowJumpTo] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showPresenterNotes, setShowPresenterNotes] = useState(false);
-  const [presenterNotesWindow, setPresenterNotesWindow] = useState<Window | null>(null);
   const [customNotes, setCustomNotes] = useState<Record<string, string>>({});
+  
+  // Use ref for presenter notes window to avoid re-render issues
+  const presenterNotesWindowRef = useRef<Window | null>(null);
+  const [presenterNotesOpen, setPresenterNotesOpen] = useState(false);
+  
+  // Monitor presenter notes window - check if it's been closed externally
+  useEffect(() => {
+    if (!presenterNotesOpen) return;
+    
+    const checkWindow = setInterval(() => {
+      if (presenterNotesWindowRef.current && presenterNotesWindowRef.current.closed) {
+        presenterNotesWindowRef.current = null;
+        setPresenterNotesOpen(false);
+      }
+    }, 500);
+    
+    return () => clearInterval(checkWindow);
+  }, [presenterNotesOpen]);
   
   // Load custom notes from localStorage on mount
   useEffect(() => {
@@ -2289,10 +2306,9 @@ export default function ExportReportPage() {
   
   // Open presenter notes in separate window
   const openPresenterNotesWindow = () => {
-    if (presenterNotesWindow && !presenterNotesWindow.closed) {
-      presenterNotesWindow.focus();
-      // Return focus to main window so keyboard shortcuts still work
-      setTimeout(() => window.focus(), 100);
+    if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed) {
+      // Window already open, just make sure it's visible
+      presenterNotesWindowRef.current.focus();
       return;
     }
     
@@ -2305,10 +2321,12 @@ export default function ExportReportPage() {
     if (notesWindow) {
       // Move to right side after opening (more reliable across browsers)
       notesWindow.moveTo(rightPosition, topPosition);
-      setPresenterNotesWindow(notesWindow);
+      presenterNotesWindowRef.current = notesWindow;
+      setPresenterNotesOpen(true);
       renderPresenterNotesWindow(notesWindow, currentSlide, true);
-      // Return focus to main window so keyboard shortcuts still work
-      setTimeout(() => window.focus(), 200);
+      // Blur the popup so main window keeps focus for keyboard shortcuts
+      notesWindow.blur();
+      window.focus();
     }
   };
   
@@ -2502,10 +2520,10 @@ export default function ExportReportPage() {
   
   // Update presenter notes window when slide changes
   useEffect(() => {
-    if (presenterNotesWindow && !presenterNotesWindow.closed && presentationMode) {
-      renderPresenterNotesWindow(presenterNotesWindow, currentSlide, false);
+    if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed && presentationMode) {
+      renderPresenterNotesWindow(presenterNotesWindowRef.current, currentSlide, false);
     }
-  }, [currentSlide, presenterNotesWindow, presentationMode, customNotes]);
+  }, [currentSlide, presentationMode, customNotes, presenterNotesOpen]);
   
   // Listen for messages from presenter notes window
   useEffect(() => {
@@ -8813,7 +8831,7 @@ export default function ExportReportPage() {
                 
                 <button
                   onClick={openPresenterNotesWindow}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${presenterNotesWindow && !presenterNotesWindow.closed ? 'bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${presenterNotesOpen ? 'bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                   title="Open Presenter Notes (separate window)"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
