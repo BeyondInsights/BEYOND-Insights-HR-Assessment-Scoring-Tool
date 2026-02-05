@@ -7,6 +7,7 @@ import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
 import { exportHybridPptx } from '@/components/PptxExportHybrid';
+import { isFoundingPartner } from '@/lib/founding-partners';
 
 // Create Supabase client directly
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -2212,6 +2213,7 @@ export default function ExportReportPage() {
   // Edit Mode State
   const [editMode, setEditMode] = useState(false);
   const [showReportGuide, setShowReportGuide] = useState(false);
+  const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
   const [customInsights, setCustomInsights] = useState<Record<number, { insight: string; cacHelp: string }>>({});
   const [customExecutiveSummary, setCustomExecutiveSummary] = useState<string>('');
   const [customPatterns, setCustomPatterns] = useState<{ pattern: string; implication: string; recommendation: string }[]>([]);
@@ -2266,7 +2268,6 @@ export default function ExportReportPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
-  const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
   
   // Info modal content
   const infoContent = {
@@ -2969,17 +2970,6 @@ export default function ExportReportPage() {
   const contactName = company.firmographics_data?.primary_contact_name || '';
   const contactEmail = company.firmographics_data?.primary_contact_email || '';
   
-  // Check if company is a WWC Pledge Signatory
-  // All Founding Partners are WWC Pledge Signatories by definition
-  const currentSupportData = company.current_support_data || {};
-  const or2c = currentSupportData.or2c || [];
-  const isFoundingPartner = company.is_founding_partner === true || 
-    company.payment_method === 'founding_partner' || 
-    (company.application_id && company.application_id.startsWith('FP-'));
-  const isWwcPledge = isFoundingPartner || (Array.isArray(or2c) && or2c.some((v: string) => 
-    typeof v === 'string' && (v.toLowerCase().includes('working with cancer') || v.toLowerCase().includes('wwc'))
-  ));
-  
   const dimensionAnalysis = Object.entries(dimensionScores)
     .map(([dim, score]) => {
       const dimNum = parseInt(dim);
@@ -3390,19 +3380,14 @@ export default function ExportReportPage() {
                 <div>
                   <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
                   <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
-                  {isWwcPledge && (
-                    <div className="mt-4 flex items-center gap-3">
-                      {/* WWC Short Logo */}
-                      <div className="w-10 h-10 flex-shrink-0">
-                        <svg viewBox="0 0 300 300" className="w-full h-full">
-                          <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                          <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
-                        </svg>
+                  {isFoundingPartner(surveyId || '') && (
+                    <div className="mt-3 inline-flex items-center gap-3 bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg px-4 py-2.5 shadow-sm">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        <span className="text-white text-sm font-semibold">Working with Cancer</span>
                       </div>
-                      <div className="border-l-2 pl-3" style={{ borderColor: '#ff353c' }}>
-                        <p className="text-xs font-medium text-slate-600">The <span className="font-bold text-slate-800">#workingwithcancer</span></p>
-                        <p className="text-sm font-semibold text-slate-800">Pledge <span className="font-bold" style={{ color: '#ff353c' }}>Signatory</span></p>
-                      </div>
+                      <div className="w-px h-4 bg-slate-600"></div>
+                      <span className="text-slate-300 text-xs font-medium uppercase tracking-wider">Pledge Signatory</span>
                     </div>
                   )}
                   {(contactName || contactEmail) && (
@@ -3546,34 +3531,34 @@ export default function ExportReportPage() {
             </div>
           </div>
           
-          {/* ============ ITEMS REQUIRING CONFIRMATION (Collapsible) ============ */}
+          {/* ============ CONFIRMATORY CHECKLIST (Collapsible) ============ */}
           {unsureItems > 0 && (
             <div className="px-12 py-5 bg-white border-b border-slate-200 max-w-[1200px] mx-auto">
               <button 
                 onClick={() => setShowConfirmatoryChecklist(!showConfirmatoryChecklist)}
-                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-violet-50 to-violet-100/60 border border-violet-200 rounded-xl hover:from-violet-100 hover:to-violet-100 transition-all group"
+                className="w-full flex items-center justify-between px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl hover:from-amber-100 hover:to-orange-100 transition-all group"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0 shadow-sm">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-violet-800 transition-colors">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-amber-800 transition-colors">
                       {unsureItems} Items Requiring Confirmation
                     </span>
-                    <span className="text-sm text-slate-600 ml-3 font-medium">
-                      Review items marked as Unsure to finalize scores
+                    <span className="text-sm text-slate-500 ml-2">
+                      Review items marked "Unsure" to validate status and update scores
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="bg-violet-100 text-violet-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                  <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full">
                     {dimensionAnalysis.filter(d => d.unsure?.length > 0).length} dimensions
                   </span>
-                  <div className={`w-7 h-7 rounded-full bg-white border border-violet-200 flex items-center justify-center transition-transform duration-200 ${showConfirmatoryChecklist ? 'rotate-180' : ''}`}>
-                    <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className={`w-7 h-7 rounded-full bg-white border border-amber-200 flex items-center justify-center transition-transform duration-200 ${showConfirmatoryChecklist ? 'rotate-180' : ''}`}>
+                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
@@ -3581,42 +3566,22 @@ export default function ExportReportPage() {
               </button>
               
               {showConfirmatoryChecklist && (
-                <div className="mt-4 pb-1">
-                  <div className="bg-gradient-to-br from-violet-50 to-slate-50 border border-violet-200 rounded-xl overflow-hidden">
+                <div className="mt-4">
+                  <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 rounded-xl overflow-hidden">
                     {/* Explanation */}
-                    <div className="p-5 border-b border-violet-100">
+                    <div className="p-5 border-b border-amber-100">
                       <p className="text-sm text-slate-700 leading-relaxed">
-                        These items should be confirmed before finalizing your score. Cancer and Careers can work with your team to 
-                        determine the status of these items. Once confirmed as Offered, Planning, Assessing, or Not Planned, your scores will be updated accordingly.
+                        <strong className="text-slate-800">Why this matters:</strong> Items marked "Unsure" represent a validation gap, not necessarily a program gap. 
+                        These are currently scored as <strong className="text-amber-700">Not Planned (0 points)</strong> until confirmed.
+                      </p>
+                      <p className="text-sm text-slate-600 mt-2">
+                        <strong className="text-slate-700">Next step:</strong> Cancer and Careers can work with your team to validate these items. 
+                        If confirmed as Offered, Planning, or Assessing, your scores will update accordingly.
                       </p>
                     </div>
                     
-                    {/* Grid of dimensions with unsure items */}
+                    {/* Compact grid of dimensions with unsure items */}
                     <div className="p-5">
-                      <div className="flex justify-end mb-4">
-                        <button
-                          onClick={() => {
-                            const rows = [['Dimension', 'Tier', 'Weight', 'Item Name']];
-                            dimensionAnalysis.filter(d => d.unsure && d.unsure.length > 0).forEach(dim => {
-                              dim.unsure.forEach((item: any) => {
-                                rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, dim.tier.label, dim.weight + '%', item.name]);
-                              });
-                            });
-                            const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(blob);
-                            link.download = `${companyName?.replace(/[^a-zA-Z0-9]/g, '_') || 'company'}_confirmation_items.csv`;
-                            link.click();
-                          }}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-xs font-medium text-slate-600"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Export to CSV
-                        </button>
-                      </div>
                       <div className="grid grid-cols-2 gap-4">
                         {dimensionAnalysis
                           .filter(d => d.unsure && d.unsure.length > 0)
@@ -3630,15 +3595,18 @@ export default function ExportReportPage() {
                                   </span>
                                   <span className="text-sm font-medium text-slate-700">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
                                 </div>
-                                <span className="text-xs text-violet-600 font-semibold">{dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''}</span>
+                                <span className="text-xs text-amber-600 font-semibold">{dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''}</span>
                               </div>
-                              <div className="px-4 py-2">
-                                {dim.unsure.map((item: any, idx: number) => (
+                              <div className="px-4 py-2 max-h-32 overflow-y-auto">
+                                {dim.unsure.slice(0, 4).map((item: any, idx: number) => (
                                   <div key={idx} className="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0"></span>
-                                    <span className="text-sm text-slate-600 leading-tight">{item.name}</span>
+                                    <span className="text-amber-500 text-xs mt-0.5">?</span>
+                                    <span className="text-xs text-slate-600 leading-tight">{item.name}</span>
                                   </div>
                                 ))}
+                                {dim.unsure.length > 4 && (
+                                  <p className="text-xs text-slate-400 py-1.5">+{dim.unsure.length - 4} more items</p>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -3652,7 +3620,7 @@ export default function ExportReportPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                         <p className="text-sm text-slate-200">
-                          <strong className="text-white">Ready to confirm?</strong> Cancer and Careers can schedule a review session.
+                          <strong className="text-white">Ready to validate?</strong> Cancer and Careers can schedule a review session.
                         </p>
                       </div>
                       <span className="text-slate-400 text-sm">info@cancerandcareers.org</span>
@@ -3662,6 +3630,7 @@ export default function ExportReportPage() {
               )}
             </div>
           )}
+          
           
           {/* ============ SCORE COMPOSITION ============ */}
           <div id="score-composition-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
@@ -4887,7 +4856,7 @@ export default function ExportReportPage() {
                           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                             <div className="px-5 py-3 bg-gradient-to-r from-violet-700 to-purple-700 text-white text-center">
                               <p className="text-base font-semibold">{dimInfo?.name}</p>
-                              <p className="text-xs text-violet-200 mt-0.5">{dimElements.length} elements in this dimension</p>
+                              <p className="text-xs text-slate-300 mt-0.5">{dimElements.length} elements in this dimension</p>
                             </div>
                             <div className="p-5">
                               <div className="flex items-center justify-center gap-8">
@@ -5886,50 +5855,20 @@ export default function ExportReportPage() {
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-            {/* Header - light warm gray background with full logo and red stat boxes */}
-            <div className="px-12 py-8 relative overflow-hidden" style={{ backgroundColor: '#f5f3f0' }}>
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 left-0 w-80 h-80 rounded-full -translate-y-1/2 -translate-x-1/4" style={{ backgroundColor: '#ff353c' }}></div>
-              </div>
+            {/* Header */}
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-50"></div>
               <div className="relative flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  {/* WWC Long Logo - larger, proper size */}
-                  <div className="h-16 flex-shrink-0" style={{ width: '320px' }}>
-                    <svg viewBox="0 0 1450 300" className="h-full w-full">
-                      <path fill="#ff353c" fillRule="evenodd" d="m972.3,70s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V70Z"/>
-                      <path fill="#434345" d="m138.18,160.02h-.42l-5.71,68.29h-29.18l-13.74-156.46h30.23l4.02,72.1h.42l4.02-72.1h22.62l4.23,72.1h.42l4.02-72.1h27.49l-13.74,156.46h-29.18l-5.5-68.29Z"/>
-                      <path fill="#434345" d="m262.5,194.48c0,23.26-13.11,35.52-34.88,35.52s-34.89-12.26-34.89-35.52v-88.8c0-23.26,12.9-35.52,34.89-35.52s34.88,12.26,34.88,35.52v88.8Zm-34.88,11.42c2.33,0,3.17-2.54,3.17-6.34v-98.95c0-3.81-.85-6.34-3.17-6.34-2.54,0-3.38,2.54-3.38,6.34v98.95c0,3.81.85,6.34,3.38,6.34Z"/>
-                      <path fill="#434345" d="m311.33,169.95c0-5.28-1.06-7.4-3.59-7.4h-2.96v65.75h-31.71V71.85h41.02c17.97,0,28.97,10.57,28.97,29.6v28.12c0,8.88-2.32,16.07-12.26,20.93,9.94,5.07,12.26,12.26,12.26,21.35v39.11c0,5.71.42,11.63,1.9,17.34h-31.71c-1.69-5.07-1.9-11.84-1.9-17.34v-41.02Zm0-67.45c0-5.29-1.06-7.4-3.59-7.4h-2.96v44.19h2.96c2.54,0,3.59-2.11,3.59-7.4v-29.39Z"/>
-                      <path fill="#434345" d="m353.82,71.85h31.29v60.47h.63l9.3-60.47h32.56l-12.69,74.63,12.69,81.82h-32.77l-9.09-66.18h-.63v66.18h-31.29V71.85Z"/>
-                      <path fill="#434345" d="m436.06,71.85h31.71v156.46h-31.71V71.85Z"/>
-                      <path fill="#434345" d="m518.73,133.59h.42v-61.74h28.97v156.46h-28.33l-11.84-68.93h-.42v68.93h-28.97V71.85h31.08l9.09,61.74Z"/>
-                      <path fill="#434345" d="m597.16,175.03h-2.96v-26.85h32.98v80.34c-9.72,0-16.28-1.9-19.24-9.52-2.75,6.34-10.78,10.99-19.66,10.99-18.39,0-29.6-12.9-29.6-36.15v-88.16c0-23.26,12.9-35.52,34.89-35.52s33.62,12.26,33.62,35.52v29.39h-30.44v-34.25c0-4.02-.85-6.56-3.17-6.56-2.54,0-3.38,2.54-3.38,6.56v98.53c0,3.81.85,6.55,3.81,6.55,2.11,0,3.17-1.9,3.17-4.44v-26.43Z"/>
-                      <path fill="#434345" d="m1038.88,71.85l18.39,156.46h-32.35l-1.69-29.18h-8.03l-1.48,29.18h-31.5l18.18-156.46h38.48Zm-22.41,102.12h5.5l-1.27-22.62-1.06-32.98h-.63l-1.27,32.98-1.27,22.62Z"/>
-                      <path fill="#434345" d="m1105.9,133.59h.42v-61.74h28.97v156.46h-28.33l-11.84-68.93h-.42v68.93h-28.97V71.85h31.08l9.09,61.74Z"/>
-                      <path fill="#434345" d="m1214.36,194.48c0,23.26-11.42,35.52-33.62,35.52s-34.89-12.26-34.89-35.52v-88.8c0-23.26,13.11-35.52,34.89-35.52s33.62,12.26,33.62,35.52v29.39h-30.45v-34.25c0-4.02-.85-6.56-3.17-6.56-2.54,0-3.38,2.54-3.38,6.56v98.74c0,3.81.85,6.34,3.38,6.34,2.32,0,3.17-2.54,3.17-6.34v-37h30.45v31.93Z"/>
-                      <path fill="#434345" d="m1224.5,71.85h54.97v25.16h-23.47v39.54h20.93v25.37h-20.93v41.23h23.47v25.16h-54.97V71.85Z"/>
-                      <path fill="#434345" d="m1327.25,169.95c0-5.28-1.06-7.4-3.6-7.4h-2.96v65.75h-31.71V71.85h41.02c17.97,0,28.96,10.57,28.96,29.6v28.12c0,8.88-2.32,16.07-12.26,20.93,9.94,5.07,12.26,12.26,12.26,21.35v39.11c0,5.71.42,11.63,1.9,17.34h-31.72c-1.69-5.07-1.9-11.84-1.9-17.34v-41.02Zm0-67.45c0-5.29-1.06-7.4-3.6-7.4h-2.96v44.19h2.96c2.54,0,3.6-2.11,3.6-7.4v-29.39Z"/>
-                      <path fill="#434345" d="m678.4,100.18h-.42l-10.78,128.12h-12.69l-14.17-156.46h11.63l10.36,127.49h.42l10.57-127.49h10.36l10.78,127.49h.42l10.36-127.49h10.99l-14.38,156.46h-12.69l-10.78-128.12Z"/>
-                      <path fill="#434345" d="m731.47,71.85h11.84v156.46h-11.84V71.85Z"/>
-                      <path fill="#434345" d="m790.03,81.79v146.52h-11.84V81.79h-19.88v-9.94h51.59v9.94h-19.88Z"/>
-                      <path fill="#434345" d="m864.66,153.67h-28.12v74.63h-11.84V71.85h11.84v71.67h28.12v-71.67h11.84v156.46h-11.84v-74.63Z"/>
-                    </svg>
-                  </div>
-                  <div className="border-l-2 pl-6" style={{ borderColor: '#ddd' }}>
-                    <p className="text-sm font-medium uppercase tracking-wider" style={{ color: '#666' }}>The</p>
-                    <p className="text-xl font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
-                    <p className="text-lg" style={{ color: '#434345' }}>Pledge</p>
+                <div>
+                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-2">Global Initiative</p>
+                  <div className="h-8">
+                    <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-full object-contain brightness-0 invert" />
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  {/* Stats boxes with red fill */}
-                  <div className="rounded-lg px-5 py-3 text-center shadow-md" style={{ backgroundColor: '#ff353c' }}>
-                    <p className="text-white text-2xl font-bold">5,000+</p>
-                    <p className="text-white/90 text-xs font-medium">Companies Worldwide</p>
-                  </div>
-                  <div className="rounded-lg px-5 py-3 text-center shadow-md" style={{ backgroundColor: '#ff353c' }}>
-                    <p className="text-white text-2xl font-bold">40M+</p>
-                    <p className="text-white/90 text-xs font-medium">Workers Protected</p>
+                  <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
+                    <p className="text-white text-2xl font-bold">850+</p>
+                    <p className="text-slate-300 text-xs">Companies Worldwide</p>
                   </div>
                 </div>
               </div>
@@ -5940,12 +5879,9 @@ export default function ExportReportPage() {
               {/* Origin + What It Is */}
               <div className="mb-8">
                 <div className="flex items-start gap-4 mb-6">
-                  {/* WWC Color Logo - Short version inline SVG */}
-                  <div className="flex-shrink-0 w-14 h-14">
-                    <svg viewBox="0 0 300 300" className="w-full h-full">
-                      <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                      <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
-                    </svg>
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden flex">
+                    <div className="w-1/2 h-full bg-red-500"></div>
+                    <div className="w-1/2 h-full bg-red-100"></div>
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-800 text-lg mb-2">A Public Commitment to Support Employees Managing Cancer</h4>
@@ -5957,84 +5893,81 @@ export default function ExportReportPage() {
                 </div>
                 
                 {/* What Companies Commit To */}
-                <div className="rounded-xl p-6 border-2" style={{ borderColor: '#ff353c', background: 'linear-gradient(to br, #fff8f8, #ffffff)' }}>
-                  <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#ff353c' }}>Pledge Signatories Commit To:</p>
+                <div className="bg-slate-800 rounded-xl p-6">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">Pledge Signatories Commit To:</p>
                   <div className="grid grid-cols-3 gap-4">
-                    {/* Job Security - white card */}
-                    <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <div className="bg-white/10 rounded-lg p-4 border border-white/10">
+                      <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
-                      <p className="font-semibold text-slate-800 text-sm">Job Security</p>
-                      <p className="text-slate-500 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
+                      <p className="text-white font-medium text-sm">Job Security</p>
+                      <p className="text-slate-400 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
                     </div>
-                    {/* Open Culture - RED FILL card, DARK GRAY icon */}
-                    <div className="rounded-lg p-4 shadow-lg transform scale-105" style={{ backgroundColor: '#ff353c' }}>
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#434345' }}>
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    <div className="bg-white/10 rounded-lg p-4 border border-white/10">
+                      <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                       </div>
-                      <p className="font-semibold text-white text-sm">Open Culture</p>
-                      <p className="text-white/80 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
+                      <p className="text-white font-medium text-sm">Open Culture</p>
+                      <p className="text-slate-400 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
                     </div>
-                    {/* Recovery Support - white card */}
-                    <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    <div className="bg-white/10 rounded-lg p-4 border border-white/10">
+                      <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                       </div>
-                      <p className="font-semibold text-slate-800 text-sm">Recovery Support</p>
-                      <p className="text-slate-500 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
+                      <p className="text-white font-medium text-sm">Recovery Support</p>
+                      <p className="text-slate-400 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
                     </div>
                   </div>
                 </div>
               </div>
               
-              {/* Research Attribution - dark gray for contrast, RED FILL icon */}
-              <div className="rounded-xl p-5 mb-6" style={{ backgroundColor: '#434345' }}>
+              {/* Research Attribution - More Prominent */}
+              <div className="bg-gradient-to-r from-slate-700 to-slate-600 rounded-xl p-5 mb-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ff353c' }}>
+                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                     </div>
                     <div>
                       <p className="text-white font-semibold">What Employees Say About the Pledge</p>
-                      <p className="text-slate-300 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers</p>
+                      <p className="text-slate-300 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg px-4 py-2 text-center shadow-lg">
-                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#ff353c' }}>Awareness Gap</p>
-                    <p className="font-bold text-slate-800">Only 16-18% aware</p>
+                  <div className="bg-white/20 rounded-lg px-4 py-2 text-center">
+                    <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
+                    <p className="text-white font-bold">Only 16-18% aware</p>
                   </div>
                 </div>
               </div>
               
-              {/* Research Stats - clean and bright */}
+              {/* Research Stats */}
               <div className="grid grid-cols-2 gap-6">
                 {/* Employees Managing Cancer */}
-                <div className="rounded-xl p-5 border-2" style={{ borderColor: '#ff353c', backgroundColor: '#fff5f5' }}>
+                <div className="bg-orange-50 rounded-xl p-5 border border-orange-100">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ff353c' }}>
+                    <div className="w-8 h-8 rounded-full bg-[#F37021] flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
-                    <p className="text-sm font-bold uppercase tracking-wider" style={{ color: '#ff353c' }}>Employees Managing Cancer</p>
+                    <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Say the pledge is important</span>
-                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
+                      <span className="text-lg font-bold text-[#F37021]">81%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
+                      <span className="text-lg font-bold text-[#F37021]">81%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>75%</span>
+                      <span className="text-lg font-bold text-[#F37021]">75%</span>
                     </div>
                   </div>
                 </div>
                 
                 {/* General Population */}
-                <div className="rounded-xl p-5 border border-slate-200 bg-slate-50">
+                <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
@@ -6042,15 +5975,15 @@ export default function ExportReportPage() {
                     <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Say the pledge is important</span>
                       <span className="text-lg font-bold text-slate-700">72%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Would trust pledge companies more</span>
                       <span className="text-lg font-bold text-slate-700">69%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Would influence their job decisions</span>
                       <span className="text-lg font-bold text-slate-700">60%</span>
                     </div>
@@ -6059,14 +5992,14 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* Footer - RED fill */}
-            <div className="px-6 py-4" style={{ backgroundColor: '#ff353c' }}>
-              <p className="text-sm text-center">
-                <strong className="text-white">The Pledge signals intent.</strong>
-                <span className="mx-2 text-white/60">•</span>
-                <strong className="text-white">This Index measures execution.</strong>
-                <span className="mx-2 text-white/60">•</span>
-                <span className="text-white/90">Together, they demonstrate genuine commitment.</span>
+            {/* Footer */}
+            <div className="px-6 py-4 bg-gradient-to-r from-slate-100 to-slate-50 border-t border-slate-200">
+              <p className="text-sm text-slate-700 text-center">
+                <strong className="text-slate-800">The Pledge signals intent.</strong>
+                <span className="mx-2">•</span>
+                <strong className="text-[#F37021]">This Index measures execution.</strong>
+                <span className="mx-2">•</span>
+                <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
               </p>
             </div>
           </div>
@@ -6445,7 +6378,7 @@ export default function ExportReportPage() {
                     
                     {/* 4 Research Cards - exact match to report */}
                     <div className="grid grid-cols-4 gap-4 mb-6">
-                      <div className="bg-violet-50 rounded-xl p-5 border border-violet-100 text-center">
+                      <div className="bg-orange-50 rounded-xl p-5 border border-orange-100 text-center">
                         <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         </div>
@@ -7939,195 +7872,145 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 31: Working with Cancer Pledge - EXACT COPY of report section */}
+                {/* Slide 31: Working with Cancer Pledge - exact match to report */}
                 {currentSlide === 31 && (
                   <div className="overflow-hidden">
-                    {/* Header - light warm gray background with full logo and red stat boxes */}
-                    <div className="px-12 py-8 relative overflow-hidden" style={{ backgroundColor: '#f5f3f0' }}>
-                      <div className="absolute inset-0 opacity-10">
-                        <div className="absolute top-0 left-0 w-80 h-80 rounded-full -translate-y-1/2 -translate-x-1/4" style={{ backgroundColor: '#ff353c' }}></div>
-                      </div>
+                    {/* Header */}
+                    <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 relative overflow-hidden">
                       <div className="relative flex items-center justify-between">
-                        <div className="flex items-center gap-6">
-                          {/* WWC Long Logo - larger, proper size */}
-                          <div className="h-16 flex-shrink-0" style={{ width: '320px' }}>
-                            <svg viewBox="0 0 1450 300" className="h-full w-full">
-                              <path fill="#ff353c" fillRule="evenodd" d="m972.3,70s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V70Z"/>
-                              <path fill="#434345" d="m138.18,160.02h-.42l-5.71,68.29h-29.18l-13.74-156.46h30.23l4.02,72.1h.42l4.02-72.1h22.62l4.23,72.1h.42l4.02-72.1h27.49l-13.74,156.46h-29.18l-5.5-68.29Z"/>
-                              <path fill="#434345" d="m262.5,194.48c0,23.26-13.11,35.52-34.88,35.52s-34.89-12.26-34.89-35.52v-88.8c0-23.26,12.9-35.52,34.89-35.52s34.88,12.26,34.88,35.52v88.8Zm-34.88,11.42c2.33,0,3.17-2.54,3.17-6.34v-98.95c0-3.81-.85-6.34-3.17-6.34-2.54,0-3.38,2.54-3.38,6.34v98.95c0,3.81.85,6.34,3.38,6.34Z"/>
-                              <path fill="#434345" d="m311.33,169.95c0-5.28-1.06-7.4-3.59-7.4h-2.96v65.75h-31.71V71.85h41.02c17.97,0,28.97,10.57,28.97,29.6v28.12c0,8.88-2.32,16.07-12.26,20.93,9.94,5.07,12.26,12.26,12.26,21.35v39.11c0,5.71.42,11.63,1.9,17.34h-31.71c-1.69-5.07-1.9-11.84-1.9-17.34v-41.02Zm0-67.45c0-5.29-1.06-7.4-3.59-7.4h-2.96v44.19h2.96c2.54,0,3.59-2.11,3.59-7.4v-29.39Z"/>
-                              <path fill="#434345" d="m353.82,71.85h31.29v60.47h.63l9.3-60.47h32.56l-12.69,74.63,12.69,81.82h-32.77l-9.09-66.18h-.63v66.18h-31.29V71.85Z"/>
-                              <path fill="#434345" d="m436.06,71.85h31.71v156.46h-31.71V71.85Z"/>
-                              <path fill="#434345" d="m518.73,133.59h.42v-61.74h28.97v156.46h-28.33l-11.84-68.93h-.42v68.93h-28.97V71.85h31.08l9.09,61.74Z"/>
-                              <path fill="#434345" d="m597.16,175.03h-2.96v-26.85h32.98v80.34c-9.72,0-16.28-1.9-19.24-9.52-2.75,6.34-10.78,10.99-19.66,10.99-18.39,0-29.6-12.9-29.6-36.15v-88.16c0-23.26,12.9-35.52,34.89-35.52s33.62,12.26,33.62,35.52v29.39h-30.44v-34.25c0-4.02-.85-6.56-3.17-6.56-2.54,0-3.38,2.54-3.38,6.56v98.53c0,3.81.85,6.55,3.81,6.55,2.11,0,3.17-1.9,3.17-4.44v-26.43Z"/>
-                              <path fill="#434345" d="m1038.88,71.85l18.39,156.46h-32.35l-1.69-29.18h-8.03l-1.48,29.18h-31.5l18.18-156.46h38.48Zm-22.41,102.12h5.5l-1.27-22.62-1.06-32.98h-.63l-1.27,32.98-1.27,22.62Z"/>
-                              <path fill="#434345" d="m1105.9,133.59h.42v-61.74h28.97v156.46h-28.33l-11.84-68.93h-.42v68.93h-28.97V71.85h31.08l9.09,61.74Z"/>
-                              <path fill="#434345" d="m1214.36,194.48c0,23.26-11.42,35.52-33.62,35.52s-34.89-12.26-34.89-35.52v-88.8c0-23.26,13.11-35.52,34.89-35.52s33.62,12.26,33.62,35.52v29.39h-30.45v-34.25c0-4.02-.85-6.56-3.17-6.56-2.54,0-3.38,2.54-3.38,6.56v98.74c0,3.81.85,6.34,3.38,6.34,2.32,0,3.17-2.54,3.17-6.34v-37h30.45v31.93Z"/>
-                              <path fill="#434345" d="m1224.5,71.85h54.97v25.16h-23.47v39.54h20.93v25.37h-20.93v41.23h23.47v25.16h-54.97V71.85Z"/>
-                              <path fill="#434345" d="m1327.25,169.95c0-5.28-1.06-7.4-3.6-7.4h-2.96v65.75h-31.71V71.85h41.02c17.97,0,28.96,10.57,28.96,29.6v28.12c0,8.88-2.32,16.07-12.26,20.93,9.94,5.07,12.26,12.26,12.26,21.35v39.11c0,5.71.42,11.63,1.9,17.34h-31.72c-1.69-5.07-1.9-11.84-1.9-17.34v-41.02Zm0-67.45c0-5.29-1.06-7.4-3.6-7.4h-2.96v44.19h2.96c2.54,0,3.6-2.11,3.6-7.4v-29.39Z"/>
-                              <path fill="#434345" d="m678.4,100.18h-.42l-10.78,128.12h-12.69l-14.17-156.46h11.63l10.36,127.49h.42l10.57-127.49h10.36l10.78,127.49h.42l10.36-127.49h10.99l-14.38,156.46h-12.69l-10.78-128.12Z"/>
-                              <path fill="#434345" d="m731.47,71.85h11.84v156.46h-11.84V71.85Z"/>
-                              <path fill="#434345" d="m790.03,81.79v146.52h-11.84V81.79h-19.88v-9.94h51.59v9.94h-19.88Z"/>
-                              <path fill="#434345" d="m864.66,153.67h-28.12v74.63h-11.84V71.85h11.84v71.67h28.12v-71.67h11.84v156.46h-11.84v-74.63Z"/>
-                            </svg>
-                          </div>
-                          <div className="border-l-2 pl-6" style={{ borderColor: '#ddd' }}>
-                            <p className="text-sm font-medium uppercase tracking-wider" style={{ color: '#666' }}>The</p>
-                            <p className="text-xl font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
-                            <p className="text-lg" style={{ color: '#434345' }}>Pledge</p>
-                          </div>
+                        <div>
+                          <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-2">Global Initiative</p>
+                  <div className="h-8">
+                    <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-full object-contain brightness-0 invert" />
+                  </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          {/* Stats boxes with red fill */}
-                          <div className="rounded-lg px-5 py-3 text-center shadow-md" style={{ backgroundColor: '#ff353c' }}>
-                            <p className="text-white text-2xl font-bold">5,000+</p>
-                            <p className="text-white/90 text-xs font-medium">Companies Worldwide</p>
-                          </div>
-                          <div className="rounded-lg px-5 py-3 text-center shadow-md" style={{ backgroundColor: '#ff353c' }}>
-                            <p className="text-white text-2xl font-bold">40M+</p>
-                            <p className="text-white/90 text-xs font-medium">Workers Protected</p>
+                          <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
+                            <p className="text-white text-2xl font-bold">850+</p>
+                            <p className="text-slate-300 text-xs">Companies Worldwide</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* What is the Pledge + Commitments */}
-                    <div className="px-12 py-8 bg-gradient-to-b from-slate-50 to-white">
-                      {/* Origin + What It Is */}
-                      <div className="mb-8">
-                        <div className="flex items-start gap-4 mb-6">
-                          {/* WWC Color Logo - Short version inline SVG */}
-                          <div className="flex-shrink-0 w-14 h-14">
-                            <svg viewBox="0 0 300 300" className="w-full h-full">
-                              <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                              <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
-                            </svg>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-slate-800 text-lg mb-2">A Public Commitment to Support Employees Managing Cancer</h4>
-                            <p className="text-slate-600 leading-relaxed">
-                              Launched at Davos in January 2023 by the Publicis Foundation after CEO Arthur Sadoun went public about his own cancer diagnosis, 
-                              the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
-                            </p>
-                          </div>
+                    <div className="px-12 py-6 bg-gradient-to-b from-slate-50 to-white">
+                      {/* Intro Section */}
+                      <div className="flex items-start gap-4 mb-6">
+                        <div className="w-12 h-12 rounded-full overflow-hidden flex flex-shrink-0">
+                          <div className="w-1/2 h-full bg-red-500"></div>
+                          <div className="w-1/2 h-full bg-red-100"></div>
                         </div>
-                        
-                        {/* What Companies Commit To */}
-                        <div className="rounded-xl p-6 border-2" style={{ borderColor: '#ff353c', background: 'linear-gradient(to br, #fff8f8, #ffffff)' }}>
-                          <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#ff353c' }}>Pledge Signatories Commit To:</p>
-                          <div className="grid grid-cols-3 gap-4">
-                            {/* Job Security - white card */}
-                            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                              <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
-                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                              </div>
-                              <p className="font-semibold text-slate-800 text-sm">Job Security</p>
-                              <p className="text-slate-500 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
+                        <div>
+                          <h4 className="font-semibold text-slate-800 text-lg mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
+                          <p className="text-slate-600 text-sm leading-relaxed">
+                            Launched at Davos in January 2023 by the Publicis Foundation after CEO Arthur Sadoun went public about his own cancer diagnosis, 
+                            the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Pledge Commitments */}
+                      <div className="bg-slate-800 rounded-xl p-5 mb-5">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">Pledge Signatories Commit To:</p>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="bg-white/10 rounded-lg p-4 border border-white/10">
+                            <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
-                            {/* Open Culture - RED FILL card, DARK GRAY icon */}
-                            <div className="rounded-lg p-4 shadow-lg transform scale-105" style={{ backgroundColor: '#ff353c' }}>
-                              <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#434345' }}>
-                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                              </div>
-                              <p className="font-semibold text-white text-sm">Open Culture</p>
-                              <p className="text-white/80 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
+                            <p className="text-white font-medium text-sm">Job Security</p>
+                            <p className="text-slate-400 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
+                          </div>
+                          <div className="bg-white/10 rounded-lg p-4 border border-white/10">
+                            <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
-                            {/* Recovery Support - white card */}
-                            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                              <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
-                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                              </div>
-                              <p className="font-semibold text-slate-800 text-sm">Recovery Support</p>
-                              <p className="text-slate-500 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
+                            <p className="text-white font-medium text-sm">Open Culture</p>
+                            <p className="text-slate-400 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
+                          </div>
+                          <div className="bg-white/10 rounded-lg p-4 border border-white/10">
+                            <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
+                            <p className="text-white font-medium text-sm">Recovery Support</p>
+                            <p className="text-slate-400 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Research Attribution - dark gray for contrast, RED FILL icon */}
-                      <div className="rounded-xl p-5 mb-6" style={{ backgroundColor: '#434345' }}>
+                      {/* Research Stats Header */}
+                      <div className="bg-gradient-to-r from-slate-700 to-slate-600 rounded-xl p-4 mb-5">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ff353c' }}>
-                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                             </div>
                             <div>
-                              <p className="text-white font-semibold">What Employees Say About the Pledge</p>
-                              <p className="text-slate-300 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers</p>
+                              <p className="text-white font-semibold text-sm">What Employees Say About the Pledge</p>
+                              <p className="text-slate-300 text-xs">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
                             </div>
                           </div>
-                          <div className="bg-white rounded-lg px-4 py-2 text-center shadow-lg">
-                            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#ff353c' }}>Awareness Gap</p>
-                            <p className="font-bold text-slate-800">Only 16-18% aware</p>
+                          <div className="bg-white/20 rounded-lg px-3 py-1.5 text-center">
+                            <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
+                            <p className="text-white font-bold text-sm">Only 16-18% aware</p>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Research Stats - clean and bright */}
-                      <div className="grid grid-cols-2 gap-6">
-                        {/* Employees Managing Cancer */}
-                        <div className="rounded-xl p-5 border-2" style={{ borderColor: '#ff353c', backgroundColor: '#fff5f5' }}>
-                          <div className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ff353c' }}>
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                      {/* Two-column stats */}
+                      <div className="grid grid-cols-2 gap-5">
+                        <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-7 h-7 rounded-full bg-[#F37021] flex items-center justify-center">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
-                            <p className="text-sm font-bold uppercase tracking-wider" style={{ color: '#ff353c' }}>Employees Managing Cancer</p>
+                            <p className="text-xs font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
                           </div>
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Say the pledge is important</span>
-                              <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
+                              <span className="text-base font-bold text-[#F37021]">81%</span>
                             </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                              <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
+                              <span className="text-base font-bold text-[#F37021]">81%</span>
                             </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                              <span className="text-lg font-bold" style={{ color: '#ff353c' }}>75%</span>
+                              <span className="text-base font-bold text-[#F37021]">75%</span>
                             </div>
                           </div>
                         </div>
-                        
-                        {/* General Population */}
-                        <div className="rounded-xl p-5 border border-slate-200 bg-slate-50">
-                          <div className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-7 h-7 rounded-full bg-slate-600 flex items-center justify-center">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
-                            <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
+                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
                           </div>
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Say the pledge is important</span>
-                              <span className="text-lg font-bold text-slate-700">72%</span>
+                              <span className="text-base font-bold text-slate-700">72%</span>
                             </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                              <span className="text-lg font-bold text-slate-700">69%</span>
+                              <span className="text-base font-bold text-slate-700">69%</span>
                             </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                              <span className="text-lg font-bold text-slate-700">60%</span>
+                              <span className="text-base font-bold text-slate-700">60%</span>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Footer - RED fill */}
-                    <div className="px-6 py-4" style={{ backgroundColor: '#ff353c' }}>
-                      <p className="text-sm text-center">
-                        <strong className="text-white">The Pledge signals intent.</strong>
-                        <span className="mx-2 text-white/60">•</span>
-                        <strong className="text-white">This Index measures execution.</strong>
-                        <span className="mx-2 text-white/60">•</span>
-                        <span className="text-white/90">Together, they demonstrate genuine commitment.</span>
-                      </p>
+                    {/* Footer */}
+                    <div className="px-12 py-4 bg-slate-800 text-center">
+                      <p className="text-slate-300 text-sm"><strong className="text-white">The Pledge signals intent.</strong> • <span className="text-orange-400 font-medium">This Index measures execution.</span> • Together, they demonstrate genuine commitment.</p>
                     </div>
                   </div>
                 )}
-
 
                 {/* Slide 32: How Cancer and Careers Can Help - exact match to report */}
                 {currentSlide === 32 && (
