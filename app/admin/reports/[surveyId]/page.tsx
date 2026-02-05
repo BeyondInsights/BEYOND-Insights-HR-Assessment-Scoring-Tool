@@ -7,8 +7,6 @@ import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
 import { exportHybridPptx } from '@/components/PptxExportHybrid';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 // Create Supabase client directly
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -2500,127 +2498,81 @@ export default function ExportReportPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [presentationMode]);
 
-  // PDF Export function
+  // PDF Export function - uses browser print
   const exportToPdf = async () => {
     if (!slideContainerRef.current || isExportingPdf) return;
     
     setIsExportingPdf(true);
     setPdfExportProgress(0);
     
-    const totalSlides = 35; // Slides 0-34
+    const totalSlides = 35;
     const originalSlide = currentSlide;
     
-    // Create PDF in landscape 16:9 format
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'px',
-      format: [1280, 720]
-    });
-    
-    // Helper to convert oklch to hex using canvas
-    const oklchToHex = (oklchStr: string): string | null => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return null;
-        ctx.fillStyle = oklchStr;
-        ctx.fillRect(0, 0, 1, 1);
-        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-        return `rgb(${r}, ${g}, ${b})`;
-      } catch {
-        return null;
-      }
-    };
-    
-    // Helper to fix oklch colors in cloned element
-    const fixOklchColors = (element: HTMLElement) => {
-      const walker = document.createTreeWalker(element, NodeFilter.SHOW_ELEMENT);
-      let node: Node | null = walker.currentNode;
-      
-      while (node) {
-        if (node instanceof HTMLElement) {
-          const computed = window.getComputedStyle(node);
-          
-          // Fix background-color
-          const bg = computed.backgroundColor;
-          if (bg && bg.includes('oklch')) {
-            const converted = oklchToHex(bg);
-            if (converted) node.style.backgroundColor = converted;
-          }
-          
-          // Fix color
-          const color = computed.color;
-          if (color && color.includes('oklch')) {
-            const converted = oklchToHex(color);
-            if (converted) node.style.color = converted;
-          }
-          
-          // Fix border-color
-          const borderColor = computed.borderColor;
-          if (borderColor && borderColor.includes('oklch')) {
-            const converted = oklchToHex(borderColor);
-            if (converted) node.style.borderColor = converted;
-          }
-          
-          // Fix outline-color
-          const outlineColor = computed.outlineColor;
-          if (outlineColor && outlineColor.includes('oklch')) {
-            const converted = oklchToHex(outlineColor);
-            if (converted) node.style.outlineColor = converted;
-          }
-        }
-        node = walker.nextNode();
-      }
-    };
-    
     try {
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('Please allow popups to export PDF');
+        return;
+      }
+      
+      // Start HTML document
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${company?.company_name || 'Report'} - Cancer Support Report</title>
+          <style>
+            @page { size: landscape; margin: 0; }
+            @media print {
+              body { margin: 0; padding: 0; }
+              .slide { page-break-after: always; width: 100vw; height: 100vh; overflow: hidden; }
+              .slide:last-child { page-break-after: avoid; }
+            }
+            body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+            .slide { width: 100vw; height: 100vh; overflow: hidden; background: white; }
+          </style>
+        </head>
+        <body>
+      `);
+      
+      // Capture each slide
       for (let i = 0; i < totalSlides; i++) {
-        // Navigate to slide
         setCurrentSlide(i);
         setPdfExportProgress(Math.round(((i + 1) / totalSlides) * 100));
         
-        // Wait for render
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await new Promise(resolve => setTimeout(resolve, 300));
         
         const slideElement = slideContainerRef.current;
         if (!slideElement) continue;
         
-        // Capture slide
-        const canvas = await html2canvas(slideElement, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          onclone: (_doc, clonedElement) => {
-            // Fix oklch colors in the cloned element
-            fixOklchColors(clonedElement);
-          }
-        });
+        // Clone and add to print document
+        const clone = slideElement.cloneNode(true) as HTMLElement;
+        clone.className = 'slide';
+        clone.style.cssText = 'width: 100vw; height: 100vh; overflow: hidden;';
         
-        const imgData = canvas.toDataURL('image/jpeg', 0.92);
-        
-        if (i > 0) {
-          pdf.addPage([1280, 720], 'landscape');
-        }
-        
-        // Scale to fit 1280x720
-        const imgWidth = 1280;
-        const imgHeight = (canvas.height / canvas.width) * imgWidth;
-        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, 720));
+        printWindow.document.write(`<div class="slide">${clone.innerHTML}</div>`);
       }
       
-      // Save PDF
-      const companyName = company?.company_name?.replace(/[^a-zA-Z0-9]/g, '_') || 'Report';
-      pdf.save(`${companyName}_Cancer_Support_Report.pdf`);
+      // Copy styles
+      const styles = document.querySelectorAll('style, link[rel="stylesheet"]');
+      styles.forEach(style => {
+        printWindow.document.head.appendChild(style.cloneNode(true));
+      });
+      
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      
+      // Wait for styles to load then print
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 1000);
       
     } catch (err) {
       console.error('PDF export error:', err);
       alert('Error exporting PDF. Please try again.');
     } finally {
-      // Restore original slide
       setCurrentSlide(originalSlide);
       setIsExportingPdf(false);
       setPdfExportProgress(0);
