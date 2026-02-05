@@ -2191,6 +2191,8 @@ export default function ExportReportPage() {
   const [showSlideNav, setShowSlideNav] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [laserPointer, setLaserPointer] = useState(false);
+  const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
   
   // Info modal content
   const infoContent = {
@@ -2516,6 +2518,8 @@ export default function ExportReportPage() {
           document.documentElement.requestFullscreen?.();
           setIsFullscreen(true);
         }
+      } else if (e.key === 'l' || e.key === 'L') {
+        setLaserPointer(prev => !prev);
       }
     };
     
@@ -6039,7 +6043,30 @@ export default function ExportReportPage() {
 
         {/* ============ PRESENTATION MODE OVERLAY ============ */}
         {presentationMode && (
-          <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
+          <div 
+            className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col"
+            onMouseMove={(e) => {
+              if (laserPointer) {
+                setLaserPosition({ x: e.clientX, y: e.clientY });
+              }
+            }}
+            style={{ cursor: laserPointer ? 'none' : 'default' }}
+          >
+            {/* Laser Pointer */}
+            {laserPointer && (
+              <div 
+                className="pointer-events-none fixed z-[10000]"
+                style={{ 
+                  left: laserPosition.x - 8, 
+                  top: laserPosition.y - 8,
+                  transition: 'left 0.02s, top 0.02s'
+                }}
+              >
+                <div className="w-4 h-4 bg-red-500 rounded-full shadow-lg shadow-red-500/50 animate-pulse"></div>
+                <div className="absolute inset-0 w-4 h-4 bg-red-400 rounded-full animate-ping opacity-75"></div>
+              </div>
+            )}
+            
             {/* Slide Content Area - centered */}
             <div className="flex-1 overflow-hidden flex items-center justify-center p-3">
               <div 
@@ -7909,6 +7936,14 @@ export default function ExportReportPage() {
                 <div className="w-40 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                   <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / 35) * 100}%` }}></div>
                 </div>
+                <button
+                  onClick={() => setShowSlideNav(true)}
+                  className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium flex items-center gap-1.5"
+                  title="Go to slide (G)"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                  <span>Slides</span>
+                </button>
               </div>
               
               {/* Center - zoom controls */}
@@ -7935,6 +7970,20 @@ export default function ExportReportPage() {
                   title="Zoom in (+)"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                </button>
+                
+                <div className="w-px h-6 bg-slate-600 mx-2"></div>
+                
+                {/* Laser Pointer Toggle */}
+                <button
+                  onClick={() => setLaserPointer(prev => !prev)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${laserPointer ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-700 hover:bg-slate-600'} text-white`}
+                  title="Laser pointer (L)"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <circle cx="12" cy="12" r="3" fill={laserPointer ? "currentColor" : "none"} />
+                    <path strokeLinecap="round" d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                  </svg>
                 </button>
               </div>
               
@@ -8049,6 +8098,10 @@ export default function ExportReportPage() {
                     <div className="flex justify-between py-1.5 border-b border-slate-100">
                       <span className="text-slate-600">Toggle fullscreen</span>
                       <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">F</kbd>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Laser pointer</span>
+                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">L</kbd>
                     </div>
                     <div className="flex justify-between py-1.5">
                       <span className="text-slate-600">Exit presentation</span>
