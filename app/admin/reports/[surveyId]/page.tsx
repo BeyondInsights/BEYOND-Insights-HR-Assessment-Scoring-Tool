@@ -2370,29 +2370,19 @@ export default function ExportReportPage() {
     
     const defaultNote = defaultNotes[slideNum] || 'Focus on the visual content and respond to questions.';
     
-    // If the document already has content, just update the dynamic parts
-    if (!isInitialRender && win.document.getElementById('slideNumber')) {
+    // Use postMessage to update the popup window - more reliable than direct DOM manipulation
+    if (!isInitialRender) {
       try {
-        const slideNumberEl = win.document.getElementById('slideNumber');
-        const slideNameEl = win.document.getElementById('slideName');
-        const defaultNotesEl = win.document.getElementById('defaultNotesContent');
-        const customNotesEl = win.document.getElementById('customNotes') as HTMLTextAreaElement;
-        const currentSlideData = win.document.getElementById('currentSlideData');
-        
-        if (slideNumberEl) slideNumberEl.textContent = `SLIDE ${slideNum + 1} OF 35`;
-        if (slideNameEl) slideNameEl.textContent = slideName;
-        if (defaultNotesEl) defaultNotesEl.textContent = defaultNote;
-        if (customNotesEl && customNotesEl.value !== customNote) {
-          // Only update if different to avoid losing cursor position
-          customNotesEl.value = customNote;
-        }
-        if (currentSlideData) currentSlideData.setAttribute('data-slide', String(slideNum));
-        
-        win.document.title = `Presenter Notes - ${slideName}`;
+        win.postMessage({
+          type: 'updateSlide',
+          slideNum: slideNum,
+          slideName: slideName,
+          defaultNote: defaultNote,
+          customNote: customNote
+        }, '*');
         return;
       } catch (e) {
-        // If DOM update fails, fall through to full render
-        console.log('DOM update failed, doing full render');
+        console.log('postMessage failed, doing full render');
       }
     }
     
@@ -2497,6 +2487,21 @@ export default function ExportReportPage() {
           let saveTimeout;
           const textarea = document.getElementById('customNotes');
           const saveStatus = document.getElementById('saveStatus');
+          
+          // Listen for slide updates from main window
+          window.addEventListener('message', (event) => {
+            if (event.data.type === 'updateSlide') {
+              document.getElementById('slideNumber').textContent = 'SLIDE ' + (event.data.slideNum + 1) + ' OF 35';
+              document.getElementById('slideName').textContent = event.data.slideName;
+              document.getElementById('defaultNotesContent').textContent = event.data.defaultNote;
+              document.getElementById('currentSlideData').setAttribute('data-slide', event.data.slideNum);
+              document.title = 'Presenter Notes - ' + event.data.slideName;
+              // Only update textarea if user isn't actively typing
+              if (document.activeElement !== textarea) {
+                textarea.value = event.data.customNote || '';
+              }
+            }
+          });
           
           textarea.addEventListener('input', () => {
             clearTimeout(saveTimeout);
