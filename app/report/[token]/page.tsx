@@ -1890,8 +1890,11 @@ export default function InteractiveReportPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
-  const [presenterNotesWindow, setPresenterNotesWindow] = useState<Window | null>(null);
   const [customNotes, setCustomNotes] = useState<Record<string, string>>({});
+  
+  // Use ref for presenter notes window to avoid re-render issues
+  const presenterNotesWindowRef = useRef<Window | null>(null);
+  const [presenterNotesOpen, setPresenterNotesOpen] = useState(false);
   
   // Info modal content
   const infoContent = {
@@ -2141,22 +2144,45 @@ export default function InteractiveReportPage() {
     localStorage.setItem(`presenter_notes_${company?.survey_id || 'default'}`, JSON.stringify(notes));
   };
   
+  // Monitor presenter notes window - check if it's been closed externally
+  useEffect(() => {
+    if (!presenterNotesOpen) return;
+    
+    const checkWindow = setInterval(() => {
+      if (presenterNotesWindowRef.current && presenterNotesWindowRef.current.closed) {
+        presenterNotesWindowRef.current = null;
+        setPresenterNotesOpen(false);
+      }
+    }, 500);
+    
+    return () => clearInterval(checkWindow);
+  }, [presenterNotesOpen]);
+  
   // Open presenter notes in separate window
   const openPresenterNotesWindow = () => {
-    if (presenterNotesWindow && !presenterNotesWindow.closed) {
-      presenterNotesWindow.focus();
+    if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed) {
+      presenterNotesWindowRef.current.focus();
+      setTimeout(() => window.focus(), 100);
       return;
     }
     
-    const notesWindow = window.open('', 'PresenterNotes', 'width=450,height=700,left=100,top=100,resizable=yes,scrollbars=yes');
+    // Position window on the right side of screen
+    const windowWidth = 450;
+    const windowHeight = 700;
+    const rightPosition = window.screen.availWidth - windowWidth - 20;
+    const topPosition = 100;
+    const notesWindow = window.open('', 'PresenterNotes', `width=${windowWidth},height=${windowHeight},resizable=yes,scrollbars=yes`);
     if (notesWindow) {
-      setPresenterNotesWindow(notesWindow);
-      renderPresenterNotesWindow(notesWindow, currentSlide);
+      notesWindow.moveTo(rightPosition, topPosition);
+      presenterNotesWindowRef.current = notesWindow;
+      setPresenterNotesOpen(true);
+      renderPresenterNotesWindow(notesWindow, currentSlide, true);
+      setTimeout(() => window.focus(), 200);
     }
   };
   
   // Render presenter notes window content
-  const renderPresenterNotesWindow = (win: Window, slideNum: number) => {
+  const renderPresenterNotesWindow = (win: Window, slideNum: number, isInitialRender: boolean = false) => {
     if (!win || win.closed) return;
     
     const slideNames: Record<number, string> = {
@@ -2173,7 +2199,7 @@ export default function InteractiveReportPage() {
     
     const defaultNotes: Record<number, string> = {
       0: '• Start with composite score and tier\n• Assessment date reflects current state\n• Overview of support elements evaluated',
-      1: '• Evidence-based methodology\n• Based on ILO, NICE international standards\n• First comprehensive benchmark',
+      1: '• Shaped by CAC\'s 20+ years of frontline experience\n• Validated through stakeholder research\n• Weights reflect what matters most to employees',
       3: '• Highlight top performing dimension\n• Note areas for growth\n• Discuss meaning for employees',
       4: '• Walk through dimension breakdown\n• Focus on highest-weighted first\n• Note tier distribution',
       30: '• Suggested phasing - customizable\n• Phase 1: Quick wins\n• Phase 2: Strategic investments\n• Phase 3: Culture optimization',
@@ -2185,24 +2211,53 @@ export default function InteractiveReportPage() {
     }
     const defaultNote = defaultNotes[slideNum] || 'Focus on visual content and respond to questions.';
     
+    // If the document already has content, just update the dynamic parts
+    if (!isInitialRender && win.document.getElementById('slideNumber')) {
+      try {
+        const slideNumberEl = win.document.getElementById('slideNumber');
+        const slideNameEl = win.document.getElementById('slideName');
+        const defaultNotesEl = win.document.getElementById('defaultNotesContent');
+        const customNotesEl = win.document.getElementById('customNotes') as HTMLTextAreaElement;
+        const currentSlideData = win.document.getElementById('currentSlideData');
+        
+        if (slideNumberEl) slideNumberEl.textContent = `SLIDE ${slideNum + 1} OF 35`;
+        if (slideNameEl) slideNameEl.textContent = slideName;
+        if (defaultNotesEl) defaultNotesEl.textContent = defaultNote;
+        if (customNotesEl && customNotesEl.value !== customNote) {
+          customNotesEl.value = customNote;
+        }
+        if (currentSlideData) currentSlideData.setAttribute('data-slide', String(slideNum));
+        
+        win.document.title = `Presenter Notes - ${slideName}`;
+        return;
+      } catch (e) {
+        console.log('DOM update failed, doing full render');
+      }
+    }
+    
+    // SVG icons for the popup
+    const clipboardIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>';
+    const pencilIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>';
+    const lightbulbIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fdba74" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>';
+    
     win.document.open();
     win.document.write(`<!DOCTYPE html><html><head><title>Presenter Notes - ${slideName}</title>
-      <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#1e293b;color:#e2e8f0;padding:20px}.header{background:linear-gradient(135deg,#f97316,#ea580c);margin:-20px -20px 20px -20px;padding:16px 20px;border-radius:0 0 12px 12px}.header h1{font-size:14px;color:white;opacity:0.9;margin-bottom:4px}.header h2{font-size:20px;font-weight:700;color:white}.slide-nav{display:flex;gap:8px;margin-bottom:20px}.slide-nav button{background:#334155;border:none;color:#94a3b8;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}.slide-nav button:hover{background:#475569;color:white}.section{background:#334155;border-radius:12px;padding:16px;margin-bottom:16px}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f59e0b;margin-bottom:12px}.default-notes{background:#1e293b;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#cbd5e1}.custom-notes textarea{width:100%;min-height:150px;background:#1e293b;border:2px solid #475569;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;color:#e2e8f0;resize:vertical;font-family:inherit}.custom-notes textarea:focus{outline:none;border-color:#f59e0b}.custom-notes textarea::placeholder{color:#64748b}.save-status{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#22c55e}.tip{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:8px;padding:12px;margin-top:16px;font-size:13px;color:#fdba74}</style></head>
-      <body><div class="header"><h1>SLIDE ${slideNum + 1} OF 35</h1><h2>${slideName}</h2></div>
+      <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#1e293b;color:#e2e8f0;padding:20px}.header{background:linear-gradient(135deg,#f97316,#ea580c);margin:-20px -20px 20px -20px;padding:16px 20px;border-radius:0 0 12px 12px}.header h1{font-size:14px;color:white;opacity:0.9;margin-bottom:4px}.header h2{font-size:20px;font-weight:700;color:white}.slide-nav{display:flex;gap:8px;margin-bottom:20px}.slide-nav button{background:#334155;border:none;color:#94a3b8;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}.slide-nav button:hover{background:#475569;color:white}.section{background:#334155;border-radius:12px;padding:16px;margin-bottom:16px}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f59e0b;margin-bottom:12px;display:flex;align-items:center;gap:8px}.section-title svg{flex-shrink:0}.default-notes{background:#1e293b;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#cbd5e1}.custom-notes textarea{width:100%;min-height:150px;background:#1e293b;border:2px solid #475569;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;color:#e2e8f0;resize:vertical;font-family:inherit}.custom-notes textarea:focus{outline:none;border-color:#f59e0b}.custom-notes textarea::placeholder{color:#64748b}.save-status{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#22c55e}.tip{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:8px;padding:12px;margin-top:16px;font-size:13px;color:#fdba74;display:flex;align-items:flex-start;gap:8px}.tip svg{flex-shrink:0;margin-top:2px}</style></head>
+      <body><div id="currentSlideData" data-slide="${slideNum}"></div><div class="header"><h1 id="slideNumber">SLIDE ${slideNum + 1} OF 35</h1><h2 id="slideName">${slideName}</h2></div>
       <div class="slide-nav"><button onclick="window.opener.postMessage({type:'prevSlide'},'*')">← Previous</button><button onclick="window.opener.postMessage({type:'nextSlide'},'*')">Next →</button></div>
-      <div class="section"><div class="section-title">📋 Suggested Talking Points</div><div class="default-notes">${defaultNote}</div></div>
-      <div class="section"><div class="section-title">✏️ Your Custom Notes</div><div class="custom-notes"><textarea id="customNotes" placeholder="Add your own notes here...">${customNote}</textarea><div class="save-status" id="saveStatus" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>Saved</div></div></div>
-      <div class="tip">💡 <strong>Tip:</strong> This window is separate from your presentation. Share only the main report window to keep notes private.</div>
-      <script>let saveTimeout;const textarea=document.getElementById('customNotes');const saveStatus=document.getElementById('saveStatus');textarea.addEventListener('input',()=>{clearTimeout(saveTimeout);saveTimeout=setTimeout(()=>{window.opener.postMessage({type:'saveNote',slideNum:${slideNum},note:textarea.value},'*');saveStatus.style.display='flex';setTimeout(()=>saveStatus.style.display='none',2000);},500);});</script></body></html>`);
+      <div class="section"><div class="section-title">${clipboardIcon} SUGGESTED TALKING POINTS</div><div class="default-notes" id="defaultNotesContent">${defaultNote}</div></div>
+      <div class="section"><div class="section-title">${pencilIcon} YOUR CUSTOM NOTES</div><div class="custom-notes"><textarea id="customNotes" placeholder="Add your own notes here...">${customNote}</textarea><div class="save-status" id="saveStatus" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>Saved</div></div></div>
+      <div class="tip">${lightbulbIcon} <strong>Tip:</strong> This window is separate from your presentation. Share only the main report window to keep notes private.</div>
+      <script>let saveTimeout;const textarea=document.getElementById('customNotes');const saveStatus=document.getElementById('saveStatus');textarea.addEventListener('input',()=>{clearTimeout(saveTimeout);const currentSlide=document.getElementById('currentSlideData').getAttribute('data-slide');saveTimeout=setTimeout(()=>{window.opener.postMessage({type:'saveNote',slideNum:parseInt(currentSlide),note:textarea.value},'*');saveStatus.style.display='flex';setTimeout(()=>saveStatus.style.display='none',2000);},500);});</script></body></html>`);
     win.document.close();
   };
   
   // Update presenter notes window when slide changes
   useEffect(() => {
-    if (presenterNotesWindow && !presenterNotesWindow.closed && presentationMode) {
-      renderPresenterNotesWindow(presenterNotesWindow, currentSlide);
+    if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed && presentationMode) {
+      renderPresenterNotesWindow(presenterNotesWindowRef.current, currentSlide, false);
     }
-  }, [currentSlide, presenterNotesWindow, presentationMode, customNotes]);
+  }, [currentSlide, presentationMode, customNotes, presenterNotesOpen]);
   
   // Listen for messages from presenter notes window
   useEffect(() => {
@@ -2767,22 +2822,41 @@ export default function InteractiveReportPage() {
   ));
   
   // Section navigation for Jump To dropdown
+  // SVG icons for Jump To navigation
+  const sectionIcons: Record<string, JSX.Element> = {
+    overview: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+    checklist: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>,
+    composition: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>,
+    performance: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>,
+    matrix: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" strokeWidth={1.5} /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-7.07l-2.83 2.83M9.76 14.24l-2.83 2.83m0-10.14l2.83 2.83m4.48 4.48l2.83 2.83" /></svg>,
+    insights: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>,
+    impact: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
+    excellence: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
+    growth: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>,
+    progress: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
+    recommendations: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>,
+    roadmap: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>,
+    pledge: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>,
+    help: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
+    methodology: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+  };
+  
   const reportSections = [
-    { id: 'report-hero-section', label: 'Overview & Score', icon: '📊' },
-    { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', icon: '✅', show: unsureItems > 0 },
-    { id: 'score-composition-section', label: 'Score Composition', icon: '🧮' },
-    { id: 'dimension-performance-table', label: 'Dimension Performance', icon: '📈' },
-    { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', icon: '🎯' },
-    { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', icon: '🔗' },
-    { id: 'impact-ranked-priorities', label: 'Impact-Ranked Priorities', icon: '⚡' },
-    { id: 'areas-of-excellence', label: 'Areas of Excellence', icon: '🌟' },
-    { id: 'growth-opportunities', label: 'Growth Opportunities', icon: '📈' },
-    { id: 'initiatives-in-progress', label: 'Initiatives in Progress', icon: '🚀' },
-    { id: 'strategic-recommendations', label: 'Strategic Recommendations', icon: '💡' },
-    { id: 'implementation-roadmap', label: 'Implementation Roadmap', icon: '🗺️' },
-    { id: 'wwc-pledge-section', label: 'Working with Cancer Pledge', icon: '🤝' },
-    { id: 'cac-help-section', label: 'How CAC Can Help', icon: '🧡' },
-    { id: 'methodology-section', label: 'Methodology', icon: '📋' },
+    { id: 'report-hero-section', label: 'Overview & Score', iconKey: 'overview' },
+    { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', iconKey: 'checklist', show: unsureItems > 0 },
+    { id: 'score-composition-section', label: 'Score Composition', iconKey: 'composition' },
+    { id: 'dimension-performance-table', label: 'Dimension Performance', iconKey: 'performance' },
+    { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', iconKey: 'matrix' },
+    { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', iconKey: 'insights' },
+    { id: 'impact-ranked-priorities', label: 'Impact-Ranked Priorities', iconKey: 'impact' },
+    { id: 'areas-of-excellence', label: 'Areas of Excellence', iconKey: 'excellence' },
+    { id: 'growth-opportunities', label: 'Growth Opportunities', iconKey: 'growth' },
+    { id: 'initiatives-in-progress', label: 'Initiatives in Progress', iconKey: 'progress' },
+    { id: 'strategic-recommendations', label: 'Strategic Recommendations', iconKey: 'recommendations' },
+    { id: 'implementation-roadmap', label: 'Implementation Roadmap', iconKey: 'roadmap' },
+    { id: 'wwc-pledge-section', label: 'Working with Cancer Pledge', iconKey: 'pledge' },
+    { id: 'cac-help-section', label: 'How CAC Can Help', iconKey: 'help' },
+    { id: 'methodology-section', label: 'Methodology', iconKey: 'methodology' },
   ].filter(s => s.show !== false);
   
   const scrollToSection = (id: string) => {
@@ -3043,7 +3117,7 @@ export default function InteractiveReportPage() {
                       onClick={() => scrollToSection(section.id)}
                       className="w-full px-4 py-2.5 text-left hover:bg-slate-50 flex items-center gap-3 text-sm text-slate-700 hover:text-slate-900 transition-colors"
                     >
-                      <span className="text-base">{section.icon}</span>
+                      <span className="text-slate-400">{sectionIcons[section.iconKey]}</span>
                       <span className="font-medium">{section.label}</span>
                     </button>
                   ))}
@@ -5465,21 +5539,21 @@ export default function InteractiveReportPage() {
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     </div>
                     <p className="font-bold text-slate-900 text-base mb-1">Job Security</p>
-                    <p className="text-slate-600 text-xs leading-relaxed">Protect employment for employees diagnosed with cancer</p>
+                    <p className="text-slate-600 text-xs leading-relaxed">Secure jobs, salary, and benefits so employees can focus on treatment</p>
                   </div>
                   <div className="rounded-lg p-4 shadow-md" style={{ backgroundColor: '#ff353c' }}>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2 bg-white/20">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
                     <p className="font-bold text-white text-base mb-1">Open Culture</p>
-                    <p className="text-white/90 text-xs leading-relaxed">Create stigma-free environments for disclosure</p>
+                    <p className="text-white/90 text-xs leading-relaxed">Foster stigma-free environments where employees feel safe to disclose</p>
                   </div>
                   <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
                     <p className="font-bold text-slate-900 text-base mb-1">Recovery Support</p>
-                    <p className="text-slate-600 text-xs leading-relaxed">Accommodations for treatment and return-to-work</p>
+                    <p className="text-slate-600 text-xs leading-relaxed">Provide flexible working, phased return, and personalized accommodations</p>
                   </div>
                 </div>
               </div>
@@ -7654,21 +7728,21 @@ export default function InteractiveReportPage() {
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                             </div>
                             <p className="font-bold text-slate-900 text-sm">Job Security</p>
-                            <p className="text-slate-500 text-xs mt-1">Protect employment</p>
+                            <p className="text-slate-500 text-xs mt-1">Secure jobs, salary, and benefits so employees can focus on treatment</p>
                           </div>
                           <div className="rounded-lg p-4 shadow-lg" style={{ backgroundColor: '#ff353c' }}>
                             <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-white/20">
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
                             <p className="font-bold text-white text-sm">Open Culture</p>
-                            <p className="text-white/80 text-xs mt-1">Stigma-free environment</p>
+                            <p className="text-white/80 text-xs mt-1">Foster stigma-free environments where employees feel safe to disclose</p>
                           </div>
                           <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                             <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
                             <p className="font-bold text-slate-900 text-sm">Recovery Support</p>
-                            <p className="text-slate-500 text-xs mt-1">Accommodations & support</p>
+                            <p className="text-slate-500 text-xs mt-1">Provide flexible working, phased return, and personalized accommodations</p>
                           </div>
                         </div>
                       </div>
@@ -8081,7 +8155,7 @@ export default function InteractiveReportPage() {
                 
                 <button
                   onClick={openPresenterNotesWindow}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${presenterNotesWindow && !presenterNotesWindow.closed ? 'bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${presenterNotesOpen ? 'bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                   title="Open Presenter Notes (separate window)"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
