@@ -869,7 +869,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
   
   // Detect overlapping clusters - groups of dots too close together to distinguish
   const getOverlapClusters = () => {
-    const OVERLAP_DIST = 28;
+    const OVERLAP_DIST = 18;
     const positions = dimensionAnalysis.map((d: any) => ({
       dim: d.dim,
       x: (d.score / 100) * PLOT_WIDTH,
@@ -1041,7 +1041,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                     const d = dimensionAnalysis.find(dd => dd.dim === dim);
                     return (
                       <g key={dim}>
-                        <circle cx={calloutX + 6 + i * 26} cy={calloutY + 5} r="8" fill={getScoreColor(d?.score || 0)} />
+                        <circle cx={calloutX + 6 + i * 26} cy={calloutY + 5} r="8" fill={getScoreColor(d?.score || 0)} opacity="0.4" stroke={getScoreColor(d?.score || 0)} strokeWidth="1.5" />
                         <text x={calloutX + 6 + i * 26} y={calloutY + 5} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
                       </g>
                     );
@@ -3670,7 +3670,7 @@ export default function InteractiveReportPage() {
                 
                 // Detect overlap clusters (no nudging - dots stay at true positions)
                 const getOverlapClusters = () => {
-                  const OVERLAP_DIST = 28;
+                  const OVERLAP_DIST = 18;
                   const positions = dimensionAnalysis.map((d) => ({
                     dim: d.dim,
                     x: (d.score / 100) * PLOT_WIDTH,
@@ -3831,7 +3831,7 @@ export default function InteractiveReportPage() {
                                 const dd = dimensionAnalysis.find(d => d.dim === dim);
                                 return (
                                   <g key={dim}>
-                                    <circle cx={calloutX + 8 + i * 28} cy={calloutY + 6} r="9" fill={getScoreColor(dd?.score || 0)} />
+                                    <circle cx={calloutX + 8 + i * 28} cy={calloutY + 6} r="9" fill={getScoreColor(dd?.score || 0)} opacity="0.4" stroke={getScoreColor(dd?.score || 0)} strokeWidth="1.5" />
                                     <text x={calloutX + 8 + i * 28} y={calloutY + 6} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="8" fontWeight="700">D{dim}</text>
                                   </g>
                                 );
@@ -6271,7 +6271,7 @@ export default function InteractiveReportPage() {
                               
                               {/* Data points - at true positions, no nudging */}
                               {(() => {
-                                const OVERLAP_DIST = 28;
+                                const OVERLAP_DIST = 18;
                                 const positions = dimensionAnalysis.map((d: any) => ({
                                   dim: d.dim,
                                   x: (d.score / 100) * PLOT_WIDTH,
@@ -6317,7 +6317,7 @@ export default function InteractiveReportPage() {
                                             const dd = dimensionAnalysis.find(d => d.dim === dim);
                                             return (
                                               <g key={dim}>
-                                                <circle cx={calloutX + 6 + i * 26} cy={calloutY + 5} r="8" fill={dd?.tier?.color || '#94A3B8'} />
+                                                <circle cx={calloutX + 6 + i * 26} cy={calloutY + 5} r="8" fill={dd?.tier?.color || '#94A3B8'} opacity="0.4" stroke={dd?.tier?.color || '#94A3B8'} strokeWidth="1.5" />
                                                 <text x={calloutX + 6 + i * 26} y={calloutY + 5} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
                                               </g>
                                             );
@@ -6438,7 +6438,7 @@ export default function InteractiveReportPage() {
                               
                               {/* Data points (company) - at true positions */}
                               {(() => {
-                                const OVERLAP_DIST = 28;
+                                const OVERLAP_DIST = 18;
                                 const positions = dimensionAnalysis.map((d: any) => ({
                                   dim: d.dim,
                                   x: (d.score / 100) * PLOT_WIDTH,
@@ -6480,7 +6480,7 @@ export default function InteractiveReportPage() {
                                             const dd = dimensionAnalysis.find(d => d.dim === dim);
                                             return (
                                               <g key={dim}>
-                                                <circle cx={calloutX + 6 + i * 26} cy={calloutY + 5} r="8" fill={dd?.tier?.color || '#94A3B8'} />
+                                                <circle cx={calloutX + 6 + i * 26} cy={calloutY + 5} r="8" fill={dd?.tier?.color || '#94A3B8'} opacity="0.4" stroke={dd?.tier?.color || '#94A3B8'} strokeWidth="1.5" />
                                                 <text x={calloutX + 6 + i * 26} y={calloutY + 5} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
                                               </g>
                                             );
