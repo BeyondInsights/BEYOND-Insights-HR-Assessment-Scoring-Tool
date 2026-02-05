@@ -919,11 +919,12 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       const weightedImpact = (improvementPotential * d.weight) / 100 * 0.9; // 90% dimension weight factor
       const potentialGain = Math.round(weightedImpact * 10) / 10;
       
-      // Determine gap level based on gap count
+      // Determine gap level based on gap count (includes both Not Planned and Needs Confirmation)
+      const totalGapCount = d.gaps.length + (d.unsure?.length || 0);
       let gapLevel = 'Some Gaps';  // 3-5 gaps
       let gapScore = 2;
-      if (d.gaps.length > 5) { gapLevel = 'Many Gaps'; gapScore = 1; }
-      else if (d.gaps.length <= 2) { gapLevel = 'Few Gaps'; gapScore = 3; }
+      if (totalGapCount > 5) { gapLevel = 'Many Gaps'; gapScore = 1; }
+      else if (totalGapCount <= 2) { gapLevel = 'Few Gaps'; gapScore = 3; }
       
       // Generate up to 3 specific recommendations based on their data
       const recommendations: string[] = [];
