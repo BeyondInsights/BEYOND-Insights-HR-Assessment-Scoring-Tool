@@ -6381,47 +6381,61 @@ export default function InteractiveReportPage() {
                               })}
                               <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
                               
-                              {/* Benchmark circles (dashed) */}
-                              {dimensionAnalysis.map((d) => {
-                                const benchScore = d.benchmark || 50;
-                                const xPos = (benchScore / 100) * PLOT_WIDTH;
-                                const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
-                                return (
-                                  <circle 
-                                    key={`bench-${d.dim}`} 
-                                    cx={xPos} 
-                                    cy={yPos} 
-                                    r={18} 
-                                    fill="none" 
-                                    stroke="#6366F1" 
-                                    strokeWidth="2" 
-                                    strokeDasharray="4 3"
-                                    opacity="0.7"
-                                  />
-                                );
-                              })}
-                              
-                              {/* Benchmark labels */}
-                              {dimensionAnalysis.map((d) => {
-                                const benchScore = d.benchmark || 50;
-                                const xPos = (benchScore / 100) * PLOT_WIDTH;
-                                const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
-                                return (
-                                  <text 
-                                    key={`bench-label-${d.dim}`} 
-                                    x={xPos} 
-                                    y={yPos} 
-                                    textAnchor="middle" 
-                                    dominantBaseline="central" 
-                                    fill="#6366F1" 
-                                    fontSize="9" 
-                                    fontWeight="600"
-                                    opacity="0.8"
-                                  >
-                                    D{d.dim}
-                                  </text>
-                                );
-                              })}
+                              {/* Benchmark circles (dashed) - with overlap nudging, skip null benchmarks */}
+                              {(() => {
+                                const validBench = dimensionAnalysis.filter((d: any) => d.benchmark !== null && d.benchmark !== undefined);
+                                const DOT_R = 18;
+                                const MIN_DIST = DOT_R * 2;
+                                const positions = validBench.map((d: any) => ({
+                                  dim: d.dim,
+                                  x: (d.benchmark / 100) * PLOT_WIDTH,
+                                  y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
+                                }));
+                                for (let i = 0; i < positions.length; i++) {
+                                  for (let j = i + 1; j < positions.length; j++) {
+                                    const dx = positions[j].x - positions[i].x;
+                                    const dy = positions[j].y - positions[i].y;
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    if (dist < MIN_DIST && dist > 0) {
+                                      const overlap = (MIN_DIST - dist) / 2 + 2;
+                                      const angle = Math.atan2(dy, dx);
+                                      positions[i].x -= Math.cos(angle) * overlap;
+                                      positions[i].y -= Math.sin(angle) * overlap;
+                                      positions[j].x += Math.cos(angle) * overlap;
+                                      positions[j].y += Math.sin(angle) * overlap;
+                                    } else if (dist === 0) {
+                                      positions[j].x += MIN_DIST * 0.6;
+                                      positions[j].y -= MIN_DIST * 0.3;
+                                    }
+                                  }
+                                }
+                                return positions.map((pos) => (
+                                  <g key={`bench-group-${pos.dim}`}>
+                                    <circle 
+                                      cx={pos.x} 
+                                      cy={pos.y} 
+                                      r={18} 
+                                      fill="none" 
+                                      stroke="#6366F1" 
+                                      strokeWidth="2" 
+                                      strokeDasharray="4 3"
+                                      opacity="0.7"
+                                    />
+                                    <text 
+                                      x={pos.x} 
+                                      y={pos.y} 
+                                      textAnchor="middle" 
+                                      dominantBaseline="central" 
+                                      fill="#6366F1" 
+                                      fontSize="9" 
+                                      fontWeight="600"
+                                      opacity="0.8"
+                                    >
+                                      D{pos.dim}
+                                    </text>
+                                  </g>
+                                ));
+                              })()}
                               
                               {/* Data points (company) - with overlap nudging */}
                               {(() => {
