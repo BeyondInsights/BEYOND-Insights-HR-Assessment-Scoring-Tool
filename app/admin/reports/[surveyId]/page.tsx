@@ -1413,7 +1413,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
     currently: { bg: '#10B981', light: '#ECFDF5', text: '#065F46', label: 'Offering' },
     planning: { bg: '#3B82F6', light: '#EFF6FF', text: '#1E40AF', label: 'Planning' },
     assessing: { bg: '#F59E0B', light: '#FFFBEB', text: '#92400E', label: 'Assessing' },
-    notAble: { bg: '#EF4444', light: '#FEF2F2', text: '#991B1B', label: 'Not Able' }
+    notAble: { bg: '#EF4444', light: '#FEF2F2', text: '#991B1B', label: 'Not Planned' }
   };
 
   const getStatusInfo = (elem: any) => {
@@ -1590,7 +1590,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24 border-l border-slate-200" style={{ color: STATUS.currently.bg }}>Offering</th>
                             <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>Planning</th>
                             <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>Assessing</th>
-                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Able</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Planned</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2263,6 +2263,9 @@ export default function ExportReportPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideZoom, setSlideZoom] = useState(100); // percentage
   const [showSlideNav, setShowSlideNav] = useState(false);
+  const [showJumpTo, setShowJumpTo] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [showPresenterNotes, setShowPresenterNotes] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
@@ -2610,6 +2613,27 @@ export default function ExportReportPage() {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, [presentationMode, showSlideNav, showKeyboardHelp]);
+  
+  // Scroll listener for Back to Top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 800);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  // Ctrl+S keyboard shortcut for save
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's' && editMode && !presentationMode) {
+        e.preventDefault();
+        handleSaveCustomizations();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [editMode, presentationMode]);
 
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
@@ -2998,6 +3022,33 @@ export default function ExportReportPage() {
     })
     .sort((a, b) => b.score - a.score);
   
+  // Section navigation for Jump To dropdown
+  const reportSections = [
+    { id: 'report-hero-section', label: 'Overview & Score', icon: '📊' },
+    { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', icon: '✅', show: unsureItems > 0 },
+    { id: 'score-composition-section', label: 'Score Composition', icon: '🧮' },
+    { id: 'dimension-performance-table', label: 'Dimension Performance', icon: '📈' },
+    { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', icon: '🎯' },
+    { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', icon: '🔗' },
+    { id: 'impact-ranked-priorities', label: 'Impact-Ranked Priorities', icon: '⚡' },
+    { id: 'areas-of-excellence', label: 'Areas of Excellence', icon: '🌟' },
+    { id: 'growth-opportunities', label: 'Growth Opportunities', icon: '📈' },
+    { id: 'initiatives-in-progress', label: 'Initiatives in Progress', icon: '🚀' },
+    { id: 'strategic-recommendations', label: 'Strategic Recommendations', icon: '💡' },
+    { id: 'implementation-roadmap', label: 'Implementation Roadmap', icon: '🗺️' },
+    { id: 'wwc-pledge-section', label: 'Working with Cancer Pledge', icon: '🤝' },
+    { id: 'cac-help-section', label: 'How CAC Can Help', icon: '🧡' },
+    { id: 'methodology-section', label: 'Methodology', icon: '📋' },
+  ].filter(s => s.show !== false);
+  
+  const scrollToSection = (id: string) => {
+    setShowJumpTo(false);
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+  
   const allElements = Object.values(elementDetails || {}).flat() as any[];
   const totalElements = allElements.length;
   const currentlyOffering = allElements.filter(e => e.isStrength).length;
@@ -3107,10 +3158,55 @@ export default function ExportReportPage() {
         {/* ============ ACTION BAR ============ */}
         <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
           <div className="max-w-7xl mx-auto px-10 py-4 flex items-center justify-between">
-            <button onClick={() => window.history.back()} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium text-base">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              Back
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={() => window.history.back()} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium text-base">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                Back
+              </button>
+              
+              {/* Jump To Dropdown */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowJumpTo(!showJumpTo)}
+                  className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" /></svg>
+                  Jump to
+                  <svg className={`w-4 h-4 transition-transform ${showJumpTo ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                {showJumpTo && (
+                  <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 max-h-96 overflow-y-auto">
+                    {reportSections.map((section) => (
+                      <button
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className="w-full px-4 py-2.5 text-left hover:bg-slate-50 flex items-center gap-3 text-sm text-slate-700 hover:text-slate-900 transition-colors"
+                      >
+                        <span className="text-base">{section.icon}</span>
+                        <span className="font-medium">{section.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Needs Confirmation Quick Button */}
+              {unsureItems > 0 && (
+                <button 
+                  onClick={() => {
+                    setShowConfirmatoryChecklist(true);
+                    setTimeout(() => {
+                      document.getElementById('confirmatory-checklist')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  style={{ backgroundColor: '#fef3e6', color: '#F37021', border: '1px solid #F37021' }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  Confirm ({unsureItems})
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-4">
               {/* Edit Mode Toggle */}
               <button
@@ -3134,7 +3230,7 @@ export default function ExportReportPage() {
                   <button
                     onClick={handleSaveCustomizations}
                     disabled={savingEdits}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+                    className="relative px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
                   >
                     {savingEdits ? (
                       <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -3142,6 +3238,9 @@ export default function ExportReportPage() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                     )}
                     {savingEdits ? 'Saving...' : 'Save'}
+                    {hasUnsavedChanges && !savingEdits && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white"></span>
+                    )}
                   </button>
                   <button
                     onClick={handleResetCustomizations}
@@ -3431,7 +3530,7 @@ export default function ExportReportPage() {
             
             {/* ============ CONFIRMATORY CHECKLIST ============ */}
             {unsureItems > 0 && (
-              <div className="px-12 py-6 bg-white border-b border-slate-200 max-w-[1200px] mx-auto">
+              <div id="confirmatory-checklist" className="px-12 py-6 bg-white border-b border-slate-200 max-w-[1200px] mx-auto">
                 <button 
                   onClick={() => setShowConfirmatoryChecklist(!showConfirmatoryChecklist)}
                   className="w-full flex items-center justify-between px-6 py-4 border-2 rounded-xl transition-all group"
@@ -5019,7 +5118,7 @@ export default function ExportReportPage() {
           
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
-            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
               <div className="px-12 py-6 bg-indigo-700">
                 <div className="flex items-center justify-between">
                   <div>
@@ -5085,7 +5184,7 @@ export default function ExportReportPage() {
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
           {(() => {
             return (
-              <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+              <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
                 <div className="px-10 py-6 bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDQwIEwgNDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
                   <div className="relative flex items-center justify-between">
@@ -5214,7 +5313,7 @@ export default function ExportReportPage() {
           })()}
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="areas-of-excellence" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-5 bg-emerald-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -5259,7 +5358,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ GROWTH OPPORTUNITIES ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="growth-opportunities" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-5 bg-amber-600">
               <div className="flex items-center justify-between">
                 <div>
@@ -5303,7 +5402,7 @@ export default function ExportReportPage() {
           
           {/* ============ INITIATIVES IN PROGRESS ============ */}
           {quickWinOpportunities.length > 0 && (
-            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div id="initiatives-in-progress" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
               <div className="px-12 py-6 bg-gradient-to-r from-blue-600 to-blue-700">
                 <div className="flex items-center justify-between">
                   <div>
@@ -5342,7 +5441,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" id="appendix-start" data-export="appendix-start">
+          <div id="strategic-recommendations" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" id="appendix-start" data-export="appendix-start">
             <div className="px-12 py-10 bg-slate-800">
               <div className="flex items-center justify-between">
                 <div>
@@ -5707,7 +5806,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
+          <div id="implementation-roadmap" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -5886,7 +5985,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="wwc-pledge-section" className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             {/* Header - Clean white/cream with full logo */}
             <div className="px-12 py-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
               <div className="absolute inset-0 opacity-5">
@@ -6064,7 +6163,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="cac-help-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
               {/* Decorative circles */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
@@ -6165,7 +6264,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ METHODOLOGY & FOOTER ============ */}
-          <div className="ppt-break bg-slate-50 rounded-xl border border-slate-200 overflow-hidden pdf-no-break max-w-7xl mx-auto" id="appendix-end" data-export="appendix-end">
+          <div id="methodology-section" className="ppt-break bg-slate-50 rounded-xl border border-slate-200 overflow-hidden pdf-no-break max-w-7xl mx-auto" id="appendix-end" data-export="appendix-end">
             <div className="px-12 py-6 border-b border-slate-200">
               <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
             </div>
@@ -6338,6 +6437,19 @@ export default function ExportReportPage() {
           </div>
         )}
 
+        {/* Back to Top Floating Button */}
+        {showBackToTop && !presentationMode && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-8 right-8 z-40 w-12 h-12 bg-slate-800 hover:bg-slate-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"
+            title="Back to top"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+          </button>
+        )}
+        
         {/* ============ PRESENTATION MODE OVERLAY ============ */}
         {presentationMode && (
           <div 
@@ -8593,6 +8705,112 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Presenter Notes Panel (Admin Only) */}
+            {showPresenterNotes && (
+              <div className="absolute bottom-20 left-4 right-4 bg-slate-900/95 backdrop-blur rounded-xl p-5 shadow-2xl border border-slate-700 max-h-48 overflow-y-auto z-40">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span className="text-amber-400 text-sm font-bold uppercase tracking-wider">Presenter Notes</span>
+                  </div>
+                  <button onClick={() => setShowPresenterNotes(false)} className="text-slate-400 hover:text-white">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                <div className="text-slate-200 text-sm leading-relaxed">
+                  {currentSlide === 0 && (
+                    <div>
+                      <p className="mb-2"><strong>Key talking points:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Start with the composite score - <strong style={{ color: tier?.color }}>{compositeScore}</strong> places them in the <strong>{tier?.name}</strong> tier</li>
+                        <li>Highlight assessment date and that this represents current state, not aspirational</li>
+                        <li>Mention the {totalElements} support elements evaluated across {Object.keys(dimensionScores).length} dimensions</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 1 && (
+                    <div>
+                      <p className="mb-2"><strong>Framework context:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Emphasize the evidence-based methodology - peer-reviewed research foundation</li>
+                        <li>Mention international standards (ILO, NICE guidelines)</li>
+                        <li>Note this is the first comprehensive benchmark for cancer support at work</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 3 && (
+                    <div>
+                      <p className="mb-2"><strong>Executive summary focus:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Top dimension: <strong className="text-emerald-400">{dimensionAnalysis[0]?.name}</strong> ({dimensionAnalysis[0]?.score})</li>
+                        <li>Greatest opportunity: <strong className="text-amber-400">{dimensionAnalysis[dimensionAnalysis.length - 1]?.name}</strong></li>
+                        <li>{unsureItems > 0 ? `Note: ${unsureItems} items need confirmation before final scoring` : 'All items confirmed - score is final'}</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 4 && (
+                    <div>
+                      <p className="mb-2"><strong>Dimension overview:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Exemplary dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Exemplary').length}</li>
+                        <li>Proficient dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Proficient').length}</li>
+                        <li>Developing/Foundational: {dimensionAnalysis.filter(d => d.tier.name === 'Developing' || d.tier.name === 'Foundational').length}</li>
+                        <li>Walk through the highest-weighted dimensions first</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide >= 5 && currentSlide <= 17 && (
+                    <div>
+                      <p className="mb-2"><strong>Dimension {currentSlide - 4} deep dive:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Review strengths (green) - acknowledge what's working well</li>
+                        <li>Highlight planning items (blue) - show momentum</li>
+                        <li>Address gaps constructively - frame as opportunities</li>
+                        <li>Connect to real employee impact where possible</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 30 && (
+                    <div>
+                      <p className="mb-2"><strong>Roadmap discussion:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>This is a suggested phasing - can be customized to your priorities</li>
+                        <li>Phase 1 (Quick Wins): Low effort, high impact items to build momentum</li>
+                        <li>Phase 2 (Strategic): Medium-term investments for sustainable change</li>
+                        <li>Phase 3 (Optimize): Long-term culture and system enhancements</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 31 && (
+                    <div>
+                      <p className="mb-2"><strong>WWC Pledge context:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>5,000+ companies globally have signed - creates accountability</li>
+                        <li>The Pledge is about intent; this Index measures actual execution</li>
+                        <li>81% of employees managing cancer say this matters for trust</li>
+                        <li>Only 16-18% employee awareness - opportunity to communicate better</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 32 && (
+                    <div>
+                      <p className="mb-2"><strong>CAC partnership:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>20+ years of frontline experience with employees and HR teams</li>
+                        <li>Can support implementation at any phase</li>
+                        <li>Offer to schedule a follow-up call to discuss priorities</li>
+                      </ul>
+                    </div>
+                  )}
+                  {(currentSlide === 2 || currentSlide >= 18 && currentSlide <= 29 || currentSlide >= 33) && (
+                    <p className="text-slate-400 italic">No specific notes for this slide. Focus on the visual content and respond to questions.</p>
+                  )}
                 </div>
               </div>
             )}
