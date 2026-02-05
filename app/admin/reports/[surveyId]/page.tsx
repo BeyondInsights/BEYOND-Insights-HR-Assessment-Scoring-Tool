@@ -2187,9 +2187,6 @@ export default function ExportReportPage() {
   // Presentation mode state
   const [presentationMode, setPresentationMode] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
-  const [pdfExportProgress, setPdfExportProgress] = useState(0);
-  const slideContainerRef = useRef<HTMLDivElement>(null);
   
   // Info modal content
   const infoContent = {
@@ -2497,87 +2494,6 @@ export default function ExportReportPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [presentationMode]);
-
-  // PDF Export function - uses browser print
-  const exportToPdf = async () => {
-    if (!slideContainerRef.current || isExportingPdf) return;
-    
-    setIsExportingPdf(true);
-    setPdfExportProgress(0);
-    
-    const totalSlides = 35;
-    const originalSlide = currentSlide;
-    
-    try {
-      // Create a new window for printing
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) {
-        alert('Please allow popups to export PDF');
-        return;
-      }
-      
-      // Start HTML document
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${company?.company_name || 'Report'} - Cancer Support Report</title>
-          <style>
-            @page { size: landscape; margin: 0; }
-            @media print {
-              body { margin: 0; padding: 0; }
-              .slide { page-break-after: always; width: 100vw; height: 100vh; overflow: hidden; }
-              .slide:last-child { page-break-after: avoid; }
-            }
-            body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-            .slide { width: 100vw; height: 100vh; overflow: hidden; background: white; }
-          </style>
-        </head>
-        <body>
-      `);
-      
-      // Capture each slide
-      for (let i = 0; i < totalSlides; i++) {
-        setCurrentSlide(i);
-        setPdfExportProgress(Math.round(((i + 1) / totalSlides) * 100));
-        
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        const slideElement = slideContainerRef.current;
-        if (!slideElement) continue;
-        
-        // Clone and add to print document
-        const clone = slideElement.cloneNode(true) as HTMLElement;
-        clone.className = 'slide';
-        clone.style.cssText = 'width: 100vw; height: 100vh; overflow: hidden;';
-        
-        printWindow.document.write(`<div class="slide">${clone.innerHTML}</div>`);
-      }
-      
-      // Copy styles
-      const styles = document.querySelectorAll('style, link[rel="stylesheet"]');
-      styles.forEach(style => {
-        printWindow.document.head.appendChild(style.cloneNode(true));
-      });
-      
-      printWindow.document.write('</body></html>');
-      printWindow.document.close();
-      
-      // Wait for styles to load then print
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 1000);
-      
-    } catch (err) {
-      console.error('PDF export error:', err);
-      alert('Error exporting PDF. Please try again.');
-    } finally {
-      setCurrentSlide(originalSlide);
-      setIsExportingPdf(false);
-      setPdfExportProgress(0);
-    }
-  };
 
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
@@ -6090,7 +6006,7 @@ export default function ExportReportPage() {
           <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
             {/* Slide Content Area - centered */}
             <div className="flex-1 overflow-hidden flex items-center justify-center p-3">
-              <div ref={slideContainerRef} className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden">
+              <div className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden">
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
@@ -7952,37 +7868,16 @@ export default function ExportReportPage() {
               </div>
               
               <div className="flex items-center gap-2">
-                {/* Export to PDF button */}
-                <button 
-                  onClick={exportToPdf}
-                  disabled={isExportingPdf}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white rounded-lg text-sm font-medium flex items-center gap-2"
-                >
-                  {isExportingPdf ? (
-                    <>
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                      <span>Exporting... {pdfExportProgress}%</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                      <span>Export PDF</span>
-                    </>
-                  )}
-                </button>
-                
-                <div className="w-px h-6 bg-slate-600 mx-2"></div>
-                
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.max(prev - 1, 0))}
-                  disabled={currentSlide === 0 || isExportingPdf}
+                  disabled={currentSlide === 0}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                 >
                   Previous
                 </button>
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 34))}
-                  disabled={currentSlide === 34 || isExportingPdf}
+                  disabled={currentSlide === 34}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                 >
                   Next
@@ -7992,8 +7887,7 @@ export default function ExportReportPage() {
                     setPresentationMode(false);
                     document.exitFullscreen?.().catch(() => {});
                   }}
-                  disabled={isExportingPdf}
-                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white rounded-lg text-sm font-medium ml-4"
+                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium ml-4"
                 >
                   Exit
                 </button>
