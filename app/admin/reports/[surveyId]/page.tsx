@@ -2294,7 +2294,9 @@ export default function ExportReportPage() {
       return;
     }
     
-    const notesWindow = window.open('', 'PresenterNotes', 'width=450,height=700,left=100,top=100,resizable=yes,scrollbars=yes');
+    // Position window on the right side of screen (screen.width - window width - margin)
+    const rightPosition = window.screen.width - 470;
+    const notesWindow = window.open('', 'PresenterNotes', `width=450,height=700,left=${rightPosition},top=100,resizable=yes,scrollbars=yes`);
     if (notesWindow) {
       setPresenterNotesWindow(notesWindow);
       renderPresenterNotesWindow(notesWindow, currentSlide, true);
@@ -2326,7 +2328,7 @@ export default function ExportReportPage() {
     
     const defaultNotes: Record<number, string> = {
       0: '• Highlight the composite score and tier placement\n• Note the assessment date reflects current state\n• Mention total support elements evaluated across all dimensions',
-      1: '• Evidence-based methodology with peer-reviewed research\n• Based on ILO, NICE international standards\n• First comprehensive benchmark for cancer support at work',
+      1: '• Evidence-based methodology with peer-reviewed research\n• Grounded in recognized workplace health frameworks\n• First comprehensive benchmark for cancer support at work',
       3: '• Call out the top-performing dimension by name\n• Note the greatest opportunity area\n• If provisional, mention items needing confirmation',
       4: '• Note how many dimensions are Exemplary vs Emerging\n• Focus discussion on highest-weighted dimensions first\n• Use the tier colors to guide the conversation',
       30: '• This is suggested phasing - can be customized\n• Phase 1: Quick wins to build momentum\n• Phase 2: Strategic medium-term investments\n• Phase 3: Long-term culture optimization',
