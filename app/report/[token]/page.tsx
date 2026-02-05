@@ -6949,9 +6949,23 @@ export default function InteractiveReportPage() {
                       </div>
                     </div>
                     
-                    <div className="px-12 py-8 bg-gradient-to-b from-slate-50 to-white">
+                    <div className="px-12 py-6 bg-gradient-to-b from-slate-50 to-white">
+                      {/* Intro Section */}
+                      <div className="flex items-start gap-4 mb-6">
+                        <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-slate-800 text-lg mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
+                          <p className="text-slate-600 text-sm leading-relaxed">
+                            Launched at Davos in January 2023 by the Publicis Foundation after CEO Arthur Sadoun went public about his own cancer diagnosis, 
+                            the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
+                          </p>
+                        </div>
+                      </div>
+                      
                       {/* Pledge Commitments */}
-                      <div className="bg-slate-800 rounded-xl p-6 mb-6">
+                      <div className="bg-slate-800 rounded-xl p-5 mb-5">
                         <p className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-4">Pledge Signatories Commit To:</p>
                         <div className="grid grid-cols-3 gap-4">
                           <div className="bg-white/10 rounded-lg p-4 border border-white/10">
@@ -6979,67 +6993,67 @@ export default function InteractiveReportPage() {
                       </div>
                       
                       {/* Research Stats Header */}
-                      <div className="bg-gradient-to-r from-violet-600 to-violet-700 rounded-xl p-5 mb-6">
+                      <div className="bg-gradient-to-r from-violet-600 to-violet-700 rounded-xl p-4 mb-5">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                             </div>
                             <div>
-                              <p className="text-white font-semibold">What Employees Say About the Pledge</p>
-                              <p className="text-violet-200 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
+                              <p className="text-white font-semibold text-sm">What Employees Say About the Pledge</p>
+                              <p className="text-violet-200 text-xs">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
                             </div>
                           </div>
-                          <div className="bg-white/20 rounded-lg px-4 py-2 text-center">
+                          <div className="bg-white/20 rounded-lg px-3 py-1.5 text-center">
                             <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
-                            <p className="text-white font-bold">Only 16-18% aware</p>
+                            <p className="text-white font-bold text-sm">Only 16-18% aware</p>
                           </div>
                         </div>
                       </div>
                       
                       {/* Two-column stats */}
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="bg-violet-50 rounded-xl p-5 border border-violet-100">
-                          <div className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                      <div className="grid grid-cols-2 gap-5">
+                        <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
-                            <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
+                            <p className="text-xs font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
                           </div>
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Say the pledge is important</span>
-                              <span className="text-lg font-bold text-violet-700">81%</span>
+                              <span className="text-base font-bold text-violet-700">81%</span>
                             </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                              <span className="text-lg font-bold text-violet-700">81%</span>
+                              <span className="text-base font-bold text-violet-700">81%</span>
                             </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                              <span className="text-lg font-bold text-violet-700">75%</span>
+                              <span className="text-base font-bold text-violet-700">75%</span>
                             </div>
                           </div>
                         </div>
-                        <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-                          <div className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-7 h-7 rounded-full bg-slate-600 flex items-center justify-center">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
-                            <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
+                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
                           </div>
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Say the pledge is important</span>
-                              <span className="text-lg font-bold text-slate-700">72%</span>
+                              <span className="text-base font-bold text-slate-700">72%</span>
                             </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                              <span className="text-lg font-bold text-slate-700">69%</span>
+                              <span className="text-base font-bold text-slate-700">69%</span>
                             </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                              <span className="text-lg font-bold text-slate-700">60%</span>
+                              <span className="text-base font-bold text-slate-700">60%</span>
                             </div>
                           </div>
                         </div>
