@@ -2307,26 +2307,27 @@ export default function ExportReportPage() {
   // Open presenter notes in separate window
   const openPresenterNotesWindow = () => {
     if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed) {
-      // Window already open, just make sure it's visible
+      // Window already open, just bring it to front
       presenterNotesWindowRef.current.focus();
       return;
     }
     
-    // Position window on the right side of screen (screen.width - window width - margin)
+    // Position window on the right side of screen
     const windowWidth = 450;
     const windowHeight = 700;
     const rightPosition = window.screen.availWidth - windowWidth - 20;
     const topPosition = 100;
-    const notesWindow = window.open('', 'PresenterNotes', `width=${windowWidth},height=${windowHeight},resizable=yes,scrollbars=yes`);
+    
+    // Pass left/top directly in window.open features (more reliable than moveTo)
+    const features = `width=${windowWidth},height=${windowHeight},left=${rightPosition},top=${topPosition},resizable=yes,scrollbars=yes`;
+    const notesWindow = window.open('', 'PresenterNotes', features);
+    
     if (notesWindow) {
-      // Move to right side after opening (more reliable across browsers)
-      notesWindow.moveTo(rightPosition, topPosition);
       presenterNotesWindowRef.current = notesWindow;
       setPresenterNotesOpen(true);
       renderPresenterNotesWindow(notesWindow, currentSlide, true);
-      // Blur the popup so main window keeps focus for keyboard shortcuts
-      notesWindow.blur();
-      window.focus();
+      // NOTE: Removed blur/focus - this was causing the window to disappear behind main window
+      // User can click back to main window if they want keyboard shortcuts there
     }
   };
   
@@ -2502,7 +2503,7 @@ export default function ExportReportPage() {
         </div>
         
         <div class="tip">
-          ${lightbulbIcon} <strong>Tip:</strong> This window is separate from your presentation. Share only the main report window to keep notes private.
+          ${lightbulbIcon} <strong>Tip:</strong> Use arrow keys or spacebar here to control slides. Share only the main report window to keep notes private.
         </div>
         
         <script>
@@ -2512,11 +2513,11 @@ export default function ExportReportPage() {
           
           // Listen for slide updates from main window
           window.addEventListener('message', (event) => {
-            if (event.data.type === 'updateSlide') {
+            if (event.data && event.data.type === 'updateSlide') {
               document.getElementById('slideNumber').textContent = 'SLIDE ' + (event.data.slideNum + 1) + ' OF 35';
               document.getElementById('slideName').textContent = event.data.slideName;
               document.getElementById('defaultNotesContent').textContent = event.data.defaultNote;
-              document.getElementById('currentSlideData').setAttribute('data-slide', event.data.slideNum);
+              document.getElementById('currentSlideData').setAttribute('data-slide', String(event.data.slideNum));
               document.title = 'Presenter Notes - ' + event.data.slideName;
               // Only update textarea if user isn't actively typing
               if (document.activeElement !== textarea) {
@@ -2525,11 +2526,24 @@ export default function ExportReportPage() {
             }
           });
           
+          // Keyboard navigation - control main presentation from notes window
+          window.addEventListener('keydown', (e) => {
+            if (document.activeElement === textarea) return; // Don't capture if typing
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              window.opener && window.opener.postMessage({ type: 'prevSlide' }, '*');
+            }
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+              e.preventDefault();
+              window.opener && window.opener.postMessage({ type: 'nextSlide' }, '*');
+            }
+          });
+          
           textarea.addEventListener('input', () => {
             clearTimeout(saveTimeout);
             const currentSlide = document.getElementById('currentSlideData').getAttribute('data-slide');
             saveTimeout = setTimeout(() => {
-              window.opener.postMessage({
+              window.opener && window.opener.postMessage({
                 type: 'saveNote',
                 slideNum: parseInt(currentSlide),
                 note: textarea.value
