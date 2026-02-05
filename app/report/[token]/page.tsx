@@ -2162,7 +2162,6 @@ export default function InteractiveReportPage() {
   const openPresenterNotesWindow = () => {
     if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed) {
       presenterNotesWindowRef.current.focus();
-      setTimeout(() => window.focus(), 100);
       return;
     }
     
@@ -2171,13 +2170,16 @@ export default function InteractiveReportPage() {
     const windowHeight = 700;
     const rightPosition = window.screen.availWidth - windowWidth - 20;
     const topPosition = 100;
-    const notesWindow = window.open('', 'PresenterNotes', `width=${windowWidth},height=${windowHeight},resizable=yes,scrollbars=yes`);
+    
+    // Pass left/top directly in window.open features (more reliable than moveTo)
+    const features = `width=${windowWidth},height=${windowHeight},left=${rightPosition},top=${topPosition},resizable=yes,scrollbars=yes`;
+    const notesWindow = window.open('', 'PresenterNotes', features);
+    
     if (notesWindow) {
-      notesWindow.moveTo(rightPosition, topPosition);
       presenterNotesWindowRef.current = notesWindow;
       setPresenterNotesOpen(true);
       renderPresenterNotesWindow(notesWindow, currentSlide, true);
-      setTimeout(() => window.focus(), 200);
+      // NOTE: Removed window.focus() - was causing window to disappear behind main window
     }
   };
   
@@ -2256,8 +2258,8 @@ export default function InteractiveReportPage() {
       <div class="slide-nav"><button onclick="window.opener.postMessage({type:'prevSlide'},'*')">← Previous</button><button onclick="window.opener.postMessage({type:'nextSlide'},'*')">Next →</button></div>
       <div class="section"><div class="section-title">${clipboardIcon} SUGGESTED TALKING POINTS</div><div class="default-notes" id="defaultNotesContent">${defaultNote}</div></div>
       <div class="section"><div class="section-title">${pencilIcon} YOUR CUSTOM NOTES</div><div class="custom-notes"><textarea id="customNotes" placeholder="Add your own notes here...">${customNote}</textarea><div class="save-status" id="saveStatus" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>Saved</div></div></div>
-      <div class="tip">${lightbulbIcon} <strong>Tip:</strong> This window is separate from your presentation. Share only the main report window to keep notes private.</div>
-      <script>let saveTimeout;const textarea=document.getElementById('customNotes');const saveStatus=document.getElementById('saveStatus');window.addEventListener('message',(event)=>{if(event.data.type==='updateSlide'){document.getElementById('slideNumber').textContent='SLIDE '+(event.data.slideNum+1)+' OF 35';document.getElementById('slideName').textContent=event.data.slideName;document.getElementById('defaultNotesContent').textContent=event.data.defaultNote;document.getElementById('currentSlideData').setAttribute('data-slide',event.data.slideNum);document.title='Presenter Notes - '+event.data.slideName;if(document.activeElement!==textarea){textarea.value=event.data.customNote||'';}}});textarea.addEventListener('input',()=>{clearTimeout(saveTimeout);const currentSlide=document.getElementById('currentSlideData').getAttribute('data-slide');saveTimeout=setTimeout(()=>{window.opener.postMessage({type:'saveNote',slideNum:parseInt(currentSlide),note:textarea.value},'*');saveStatus.style.display='flex';setTimeout(()=>saveStatus.style.display='none',2000);},500);});</script></body></html>`);
+      <div class="tip">${lightbulbIcon} <strong>Tip:</strong> Use arrow keys or spacebar here to control slides. Share only the main report window to keep notes private.</div>
+      <script>let saveTimeout;const textarea=document.getElementById('customNotes');const saveStatus=document.getElementById('saveStatus');window.addEventListener('message',(event)=>{if(event.data&&event.data.type==='updateSlide'){document.getElementById('slideNumber').textContent='SLIDE '+(event.data.slideNum+1)+' OF 35';document.getElementById('slideName').textContent=event.data.slideName;document.getElementById('defaultNotesContent').textContent=event.data.defaultNote;document.getElementById('currentSlideData').setAttribute('data-slide',String(event.data.slideNum));document.title='Presenter Notes - '+event.data.slideName;if(document.activeElement!==textarea){textarea.value=event.data.customNote||'';}}});window.addEventListener('keydown',(e)=>{if(document.activeElement===textarea)return;if(e.key==='ArrowLeft'){e.preventDefault();window.opener&&window.opener.postMessage({type:'prevSlide'},'*');}if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();window.opener&&window.opener.postMessage({type:'nextSlide'},'*');}});textarea.addEventListener('input',()=>{clearTimeout(saveTimeout);const currentSlide=document.getElementById('currentSlideData').getAttribute('data-slide');saveTimeout=setTimeout(()=>{window.opener&&window.opener.postMessage({type:'saveNote',slideNum:parseInt(currentSlide),note:textarea.value},'*');saveStatus.style.display='flex';setTimeout(()=>saveStatus.style.display='none',2000);},500);});</script></body></html>`);
     win.document.close();
   };
   
