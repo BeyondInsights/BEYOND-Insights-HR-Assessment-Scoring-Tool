@@ -6247,18 +6247,44 @@ export default function InteractiveReportPage() {
                               })}
                               <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
                               
-                              {/* Data points */}
-                              {dimensionAnalysis.map((d) => {
-                                const xPos = (d.score / 100) * PLOT_WIDTH;
-                                const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
-                                return (
-                                  <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
-                                    <circle r={18} fill="white" filter="url(#dropShadow18)" />
-                                    <circle r={15} fill={d.tier.color} />
-                                    <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
-                                  </g>
-                                );
-                              })}
+                              {/* Data points - with overlap nudging */}
+                              {(() => {
+                                const DOT_R = 18;
+                                const MIN_DIST = DOT_R * 2;
+                                const positions = dimensionAnalysis.map((d: any) => ({
+                                  dim: d.dim,
+                                  x: (d.score / 100) * PLOT_WIDTH,
+                                  y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
+                                }));
+                                for (let i = 0; i < positions.length; i++) {
+                                  for (let j = i + 1; j < positions.length; j++) {
+                                    const dx = positions[j].x - positions[i].x;
+                                    const dy = positions[j].y - positions[i].y;
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    if (dist < MIN_DIST && dist > 0) {
+                                      const overlap = (MIN_DIST - dist) / 2 + 2;
+                                      const angle = Math.atan2(dy, dx);
+                                      positions[i].x -= Math.cos(angle) * overlap;
+                                      positions[i].y -= Math.sin(angle) * overlap;
+                                      positions[j].x += Math.cos(angle) * overlap;
+                                      positions[j].y += Math.sin(angle) * overlap;
+                                    } else if (dist === 0) {
+                                      positions[j].x += MIN_DIST * 0.6;
+                                      positions[j].y -= MIN_DIST * 0.3;
+                                    }
+                                  }
+                                }
+                                return positions.map((pos) => {
+                                  const d = dimensionAnalysis.find((dd: any) => dd.dim === pos.dim);
+                                  return (
+                                    <g key={d.dim} transform={`translate(${pos.x}, ${pos.y})`}>
+                                      <circle r={18} fill="white" filter="url(#dropShadow18)" />
+                                      <circle r={15} fill={d.tier.color} />
+                                      <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
+                                    </g>
+                                  );
+                                });
+                              })()}
                             </g>
                           </svg>
                           
@@ -6397,18 +6423,44 @@ export default function InteractiveReportPage() {
                                 );
                               })}
                               
-                              {/* Data points (company) */}
-                              {dimensionAnalysis.map((d) => {
-                                const xPos = (d.score / 100) * PLOT_WIDTH;
-                                const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
-                                return (
-                                  <g key={d.dim} transform={`translate(${xPos}, ${yPos})`}>
-                                    <circle r={18} fill="white" filter="url(#dropShadow19)" />
-                                    <circle r={15} fill={d.tier.color} />
-                                    <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
-                                  </g>
-                                );
-                              })}
+                              {/* Data points (company) - with overlap nudging */}
+                              {(() => {
+                                const DOT_R = 18;
+                                const MIN_DIST = DOT_R * 2;
+                                const positions = dimensionAnalysis.map((d: any) => ({
+                                  dim: d.dim,
+                                  x: (d.score / 100) * PLOT_WIDTH,
+                                  y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
+                                }));
+                                for (let i = 0; i < positions.length; i++) {
+                                  for (let j = i + 1; j < positions.length; j++) {
+                                    const dx = positions[j].x - positions[i].x;
+                                    const dy = positions[j].y - positions[i].y;
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    if (dist < MIN_DIST && dist > 0) {
+                                      const overlap = (MIN_DIST - dist) / 2 + 2;
+                                      const angle = Math.atan2(dy, dx);
+                                      positions[i].x -= Math.cos(angle) * overlap;
+                                      positions[i].y -= Math.sin(angle) * overlap;
+                                      positions[j].x += Math.cos(angle) * overlap;
+                                      positions[j].y += Math.sin(angle) * overlap;
+                                    } else if (dist === 0) {
+                                      positions[j].x += MIN_DIST * 0.6;
+                                      positions[j].y -= MIN_DIST * 0.3;
+                                    }
+                                  }
+                                }
+                                return positions.map((pos) => {
+                                  const d = dimensionAnalysis.find((dd: any) => dd.dim === pos.dim);
+                                  return (
+                                    <g key={d.dim} transform={`translate(${pos.x}, ${pos.y})`}>
+                                      <circle r={18} fill="white" filter="url(#dropShadow19)" />
+                                      <circle r={15} fill={d.tier.color} />
+                                      <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
+                                    </g>
+                                  );
+                                });
+                              })()}
                             </g>
                           </svg>
                           
