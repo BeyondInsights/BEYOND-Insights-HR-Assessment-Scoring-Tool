@@ -4918,8 +4918,8 @@ export default function InteractiveReportPage() {
               {/* Origin + What It Is */}
               <div className="mb-8">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center">
-                    <svg className="w-7 h-7 text-violet-600" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.82 0 3.53-.5 5-1.35-2.99-1.73-5-4.95-5-8.65s2.01-6.92 5-8.65C15.53 2.5 13.82 2 12 2z"/></svg>
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                    <svg className="w-7 h-7" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2v20C6.48 22 2 17.52 2 12S6.48 2 12 2z"/></svg>
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-800 text-lg mb-2">A Public Commitment to Support Employees Managing Cancer</h4>
@@ -6952,8 +6952,8 @@ export default function InteractiveReportPage() {
                     <div className="px-12 py-6 bg-gradient-to-b from-slate-50 to-white">
                       {/* Intro Section */}
                       <div className="flex items-start gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-7 h-7 text-violet-600" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.82 0 3.53-.5 5-1.35-2.99-1.73-5-4.95-5-8.65s2.01-6.92 5-8.65C15.53 2.5 13.82 2 12 2z"/></svg>
+                        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2v20C6.48 22 2 17.52 2 12S6.48 2 12 2z"/></svg>
                         </div>
                         <div>
                           <h4 className="font-semibold text-slate-800 text-lg mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
