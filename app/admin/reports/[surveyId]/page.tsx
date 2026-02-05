@@ -3381,13 +3381,10 @@ export default function ExportReportPage() {
                   <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
                   <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
                   {isFoundingPartner(surveyId || '') && (
-                    <div className="mt-3 inline-flex items-center gap-3 rounded-lg px-4 py-2.5 shadow-sm" style={{ backgroundColor: '#434345' }}>
-                      <svg viewBox="0 0 300 300" className="h-6 w-auto">
-                        <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                        <path fill="#fff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
-                      </svg>
+                    <div className="mt-3 inline-flex items-center gap-2.5 bg-[#434345] rounded-lg px-4 py-2 shadow-sm">
+                      <img src="/working-with-cancer-logo.png" alt="WWC" className="h-5 object-contain" />
                       <div className="w-px h-4 bg-white/30"></div>
-                      <span className="text-white text-xs font-medium uppercase tracking-wider">Pledge Signatory</span>
+                      <span className="text-white text-xs font-semibold uppercase tracking-wider">Pledge Signatory</span>
                     </div>
                   )}
                   {(contactName || contactEmail) && (
@@ -3531,103 +3528,120 @@ export default function ExportReportPage() {
             </div>
           </div>
           
-          {/* ============ ITEMS REQUIRING CONFIRMATION (Always visible) ============ */}
+          {/* ============ ITEMS REQUIRING CONFIRMATION (Collapsible) ============ */}
           {unsureItems > 0 && (
             <div className="px-12 py-5 bg-white border-b border-slate-200 max-w-[1200px] mx-auto">
-              <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 rounded-xl overflow-hidden">
-                {/* Header with Export button */}
-                <div className="px-5 py-4 border-b border-amber-100 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0 shadow-sm">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                      </svg>
-                    </div>
-                    <div>
-                      <span className="text-sm font-bold text-slate-800">{unsureItems} Items Requiring Confirmation</span>
-                      <span className="text-xs text-amber-600 font-semibold ml-3 bg-amber-100 px-2 py-0.5 rounded-full">
-                        {dimensionAnalysis.filter(d => d.unsure?.length > 0).length} dimensions
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      const rows = [['Dimension', 'Item Name']];
-                      dimensionAnalysis.filter(d => d.unsure && d.unsure.length > 0).forEach(dim => {
-                        dim.unsure.forEach((item: any) => {
-                          rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, item.name]);
-                        });
-                      });
-                      const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-                      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                      const link = document.createElement('a');
-                      link.href = URL.createObjectURL(blob);
-                      link.download = `${companyName?.replace(/[^a-zA-Z0-9]/g, '_') || 'company'}_confirmation_items.csv`;
-                      link.click();
-                    }}
-                    className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium text-slate-700"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <button 
+                onClick={() => setShowConfirmatoryChecklist(!showConfirmatoryChecklist)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-violet-50 to-violet-100/60 border border-violet-200 rounded-xl hover:from-violet-100 hover:to-violet-100 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Export CSV
-                  </button>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-violet-800 transition-colors">
+                      {unsureItems} Items Requiring Confirmation
+                    </span>
+                    <span className="text-sm text-slate-600 ml-3 font-medium">
+                      Review items marked "Unsure" to finalize scores
+                    </span>
+                  </div>
                 </div>
-                
-                {/* Explanation */}
-                <div className="p-5 border-b border-amber-100">
-                  <p className="text-sm text-slate-700 leading-relaxed">
-                    These items should be confirmed before finalizing your score.
-                  </p>
-                  <p className="text-sm text-slate-600 mt-2">
-                    <strong className="text-slate-700">Next step:</strong> Cancer and Careers can work with your team to determine the status of these items. 
-                    Once confirmed as Offered, Planning, Assessing, or Not Planned, your scores will be updated accordingly.
-                  </p>
+                <div className="flex items-center gap-3">
+                  <span className="bg-violet-100 text-violet-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                    {dimensionAnalysis.filter(d => d.unsure?.length > 0).length} dimensions
+                  </span>
+                  <div className={`w-7 h-7 rounded-full bg-white border border-violet-200 flex items-center justify-center transition-transform duration-200 ${showConfirmatoryChecklist ? 'rotate-180' : ''}`}>
+                    <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
-                
-                {/* Grid of dimensions with unsure items - show ALL items */}
-                <div className="p-5">
-                  <div className="grid grid-cols-2 gap-4">
-                    {dimensionAnalysis
-                      .filter(d => d.unsure && d.unsure.length > 0)
-                      .sort((a, b) => b.weight - a.weight)
-                      .map((dim) => (
-                        <div key={dim.dim} className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-                          <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: dim.tier.color }}>
-                                {dim.dim}
-                              </span>
-                              <span className="text-sm font-medium text-slate-700">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
-                            </div>
-                            <span className="text-xs text-amber-600 font-semibold">{dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''}</span>
-                          </div>
-                          <div className="px-4 py-2 max-h-48 overflow-y-auto">
-                            {dim.unsure.map((item: any, idx: number) => (
-                              <div key={idx} className="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 flex-shrink-0"></span>
-                                <span className="text-sm text-slate-600 leading-tight">{item.name}</span>
+              </button>
+              
+              {showConfirmatoryChecklist && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-gradient-to-br from-violet-50 to-slate-50 border border-violet-200 rounded-xl overflow-hidden">
+                    {/* Explanation */}
+                    <div className="p-5 border-b border-violet-100">
+                      <p className="text-sm text-slate-700 leading-relaxed">
+                        These items were marked "Unsure" during the assessment. Cancer and Careers can work with your team to 
+                        confirm their status. Once verified, your scores will be updated accordingly.
+                      </p>
+                    </div>
+                    
+                    {/* Grid of dimensions with unsure items */}
+                    <div className="p-5">
+                      <div className="flex justify-end mb-4">
+                        <button
+                          onClick={() => {
+                            const rows = [['Dimension', 'Tier', 'Weight', 'Item Name']];
+                            dimensionAnalysis.filter(d => d.unsure && d.unsure.length > 0).forEach(dim => {
+                              dim.unsure.forEach((item: any) => {
+                                rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, dim.tier.label, dim.weight + '%', item.name]);
+                              });
+                            });
+                            const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = `${companyName?.replace(/[^a-zA-Z0-9]/g, '_') || 'company'}_confirmation_items.csv`;
+                            link.click();
+                          }}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-xs font-medium text-slate-600"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Export to CSV
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        {dimensionAnalysis
+                          .filter(d => d.unsure && d.unsure.length > 0)
+                          .sort((a, b) => b.weight - a.weight)
+                          .map((dim) => (
+                            <div key={dim.dim} className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                              <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-6 h-6 rounded flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: dim.tier.color }}>
+                                    {dim.dim}
+                                  </span>
+                                  <span className="text-sm font-medium text-slate-700">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
+                                </div>
+                                <span className="text-xs text-violet-600 font-semibold">{dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''}</span>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
+                              <div className="px-4 py-2 max-h-40 overflow-y-auto">
+                                {dim.unsure.map((item: any, idx: number) => (
+                                  <div key={idx} className="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0"></span>
+                                    <span className="text-xs text-slate-600 leading-tight">{item.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                    
+                    {/* CTA */}
+                    <div className="px-5 py-4 bg-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <p className="text-sm text-slate-200">
+                          <strong className="text-white">Ready to confirm?</strong> Cancer and Careers can schedule a review session.
+                        </p>
+                      </div>
+                      <span className="text-slate-400 text-sm">info@cancerandcareers.org</span>
+                    </div>
                   </div>
                 </div>
-                
-                {/* CTA */}
-                <div className="px-5 py-4 bg-slate-800 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    <p className="text-sm text-slate-200">
-                      <strong className="text-white">Ready to validate?</strong> Cancer and Careers can schedule a review session.
-                    </p>
-                  </div>
-                  <span className="text-slate-400 text-sm">info@cancerandcareers.org</span>
-                </div>
-              </div>
+              )}
             </div>
           )}
           
@@ -5856,20 +5870,20 @@ export default function ExportReportPage() {
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             {/* Header */}
-            <div className="px-12 py-6 relative overflow-hidden" style={{ backgroundColor: '#434345' }}>
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 relative overflow-hidden">
               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-50"></div>
               <div className="relative flex items-center justify-between">
                 <div>
-                  <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-2">Global Initiative</p>
-                  <svg viewBox="0 0 300 300" className="h-8 w-auto">
-                    <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                    <path fill="#fff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
-                  </svg>
+                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-2">Global Initiative</p>
+                  <div className="flex items-center gap-3 h-8">
+                    <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-full object-contain" />
+                    <span className="text-white text-xl font-bold tracking-wide">WORKINGWITHCANCER</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
                     <p className="text-white text-2xl font-bold">850+</p>
-                    <p className="text-white/70 text-xs">Companies Worldwide</p>
+                    <p className="text-slate-300 text-xs">Companies Worldwide</p>
                   </div>
                 </div>
               </div>
@@ -5880,10 +5894,9 @@ export default function ExportReportPage() {
               {/* Origin + What It Is */}
               <div className="mb-8">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden">
-                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                      <path fill="#ff353c" d="M100,0 L100,100 L50,100 C22.4,100 0,77.6 0,50 C0,22.4 22.4,0 50,0 L100,0 Z"/>
-                    </svg>
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden flex">
+                    <div className="w-1/2 h-full bg-red-500"></div>
+                    <div className="w-1/2 h-full bg-red-100"></div>
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-800 text-lg mb-2">A Public Commitment to Support Employees Managing Cancer</h4>
@@ -5895,36 +5908,36 @@ export default function ExportReportPage() {
                 </div>
                 
                 {/* What Companies Commit To */}
-                <div className="rounded-xl p-6" style={{ backgroundColor: '#434345' }}>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-4">Pledge Signatories Commit To:</p>
+                <div className="bg-slate-800 rounded-xl p-6">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">Pledge Signatories Commit To:</p>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(255,53,60,0.3)' }}>
-                        <svg className="w-4 h-4" fill="none" stroke="#ff353c" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <div className="w-8 h-8 rounded-full bg-[#ff353c] flex items-center justify-center mb-3">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
                       <p className="text-white font-medium text-sm">Job Security</p>
-                      <p className="text-white/60 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
+                      <p className="text-slate-400 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(255,53,60,0.3)' }}>
-                        <svg className="w-4 h-4" fill="none" stroke="#ff353c" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                      <div className="w-8 h-8 rounded-full bg-[#ff353c] flex items-center justify-center mb-3">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                       </div>
                       <p className="text-white font-medium text-sm">Open Culture</p>
-                      <p className="text-white/60 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
+                      <p className="text-slate-400 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(255,53,60,0.3)' }}>
-                        <svg className="w-4 h-4" fill="none" stroke="#ff353c" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                      <div className="w-8 h-8 rounded-full bg-[#ff353c] flex items-center justify-center mb-3">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                       </div>
                       <p className="text-white font-medium text-sm">Recovery Support</p>
-                      <p className="text-white/60 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
+                      <p className="text-slate-400 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
                     </div>
                   </div>
                 </div>
               </div>
               
               {/* Research Attribution - More Prominent */}
-              <div className="rounded-xl p-5 mb-6" style={{ backgroundColor: '#434345' }}>
+              <div className="bg-gradient-to-r from-slate-700 to-slate-600 rounded-xl p-5 mb-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -5932,11 +5945,11 @@ export default function ExportReportPage() {
                     </div>
                     <div>
                       <p className="text-white font-semibold">What Employees Say About the Pledge</p>
-                      <p className="text-white/70 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers</p>
+                      <p className="text-slate-300 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
                     </div>
                   </div>
-                  <div className="rounded-lg px-4 py-2 text-center" style={{ backgroundColor: 'rgba(255,53,60,0.2)' }}>
-                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#ff353c' }}>Awareness Gap</p>
+                  <div className="bg-white/20 rounded-lg px-4 py-2 text-center">
+                    <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
                     <p className="text-white font-bold">Only 16-18% aware</p>
                   </div>
                 </div>
@@ -5945,25 +5958,25 @@ export default function ExportReportPage() {
               {/* Research Stats */}
               <div className="grid grid-cols-2 gap-6">
                 {/* Employees Managing Cancer */}
-                <div className="rounded-xl p-5 border" style={{ backgroundColor: '#fff5f5', borderColor: '#fecaca' }}>
+                <div className="bg-orange-50 rounded-xl p-5 border border-orange-100">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ff353c' }}>
+                    <div className="w-8 h-8 rounded-full bg-[#F37021] flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
-                    <p className="text-sm font-bold uppercase tracking-wider" style={{ color: '#ff353c' }}>Employees Managing Cancer</p>
+                    <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Say the pledge is important</span>
-                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
+                      <span className="text-lg font-bold text-[#F37021]">81%</span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
+                      <span className="text-lg font-bold text-[#F37021]">81%</span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>75%</span>
+                      <span className="text-lg font-bold text-[#F37021]">75%</span>
                     </div>
                   </div>
                 </div>
@@ -5971,10 +5984,10 @@ export default function ExportReportPage() {
                 {/* General Population */}
                 <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#434345' }}>
+                    <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
-                    <p className="text-sm font-bold uppercase tracking-wider" style={{ color: '#434345' }}>All Employees</p>
+                    <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
@@ -5995,13 +6008,13 @@ export default function ExportReportPage() {
             </div>
             
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-200" style={{ backgroundColor: '#434345' }}>
-              <p className="text-sm text-center">
-                <strong className="text-white">The Pledge signals intent.</strong>
-                <span className="text-white/50 mx-2">•</span>
-                <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong>
-                <span className="text-white/50 mx-2">•</span>
-                <span className="text-white/70">Together, they demonstrate genuine commitment.</span>
+            <div className="px-6 py-4 bg-gradient-to-r from-slate-100 to-slate-50 border-t border-slate-200">
+              <p className="text-sm text-slate-700 text-center">
+                <strong className="text-slate-800">The Pledge signals intent.</strong>
+                <span className="mx-2">â€¢</span>
+                <strong className="text-[#F37021]">This Index measures execution.</strong>
+                <span className="mx-2">â€¢</span>
+                <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
               </p>
             </div>
           </div>
@@ -7882,9 +7895,10 @@ export default function ExportReportPage() {
                       <div className="relative flex items-center justify-between">
                         <div>
                           <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-2">Global Initiative</p>
-                  <div className="h-8">
-                    <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-full object-contain brightness-0 invert" />
-                  </div>
+                          <div className="flex items-center gap-3 h-8">
+                            <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-full object-contain" />
+                            <span className="text-white text-xl font-bold tracking-wide">WORKINGWITHCANCER</span>
+                          </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
@@ -7916,22 +7930,22 @@ export default function ExportReportPage() {
                         <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">Pledge Signatories Commit To:</p>
                         <div className="grid grid-cols-3 gap-4">
                           <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                            <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
-                              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <div className="w-8 h-8 rounded-full bg-[#ff353c] flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
                             <p className="text-white font-medium text-sm">Job Security</p>
                             <p className="text-slate-400 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
                           </div>
                           <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                            <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
-                              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            <div className="w-8 h-8 rounded-full bg-[#ff353c] flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
                             <p className="text-white font-medium text-sm">Open Culture</p>
                             <p className="text-slate-400 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
                           </div>
                           <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                            <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
-                              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                            <div className="w-8 h-8 rounded-full bg-[#ff353c] flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
                             <p className="text-white font-medium text-sm">Recovery Support</p>
                             <p className="text-slate-400 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
