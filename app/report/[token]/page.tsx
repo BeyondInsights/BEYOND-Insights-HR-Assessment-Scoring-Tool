@@ -3815,20 +3815,20 @@ export default function InteractiveReportPage() {
               const pctAssessing = Math.round(((bench?.assessing || 0) / total) * 100);
               const statusInfo = getStatusInfo(elem);
               if (statusInfo.key === 'currently') {
-                if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of participating organizations offer`;
-                if (pctCurrently < 50) return `Ahead of ${100 - pctCurrently}% of benchmark`;
-                if (pctCurrently < 70) return `Solid: ${pctCurrently}% of participating organizations also offer`;
-                return `Table stakes: ${pctCurrently}% offer`;
+                if (pctCurrently < 30) return { prefix: 'Differentiator:', text: `Only ${pctCurrently}% of participating organizations offer`, color: '#7C3AED' };
+                if (pctCurrently < 50) return { prefix: 'Ahead:', text: `${100 - pctCurrently}% of benchmark`, color: '#059669' };
+                if (pctCurrently < 70) return { prefix: 'Solid:', text: `${pctCurrently}% of participating organizations also offer`, color: '#059669' };
+                return { prefix: 'Table stakes:', text: `${pctCurrently}% offer`, color: '#6B7280' };
               }
               if (statusInfo.key === 'planning') {
-                if (pctCurrently > 50) return `${pctCurrently}% already offer`;
-                return `Among ${pctPlanning}% planning; ${pctCurrently}% offer`;
+                if (pctCurrently > 50) return { prefix: 'In progress:', text: `${pctCurrently}% already offer`, color: '#2563EB' };
+                return { prefix: 'In progress:', text: `Among ${pctPlanning}% planning; ${pctCurrently}% offer`, color: '#2563EB' };
               }
               if (statusInfo.key === 'assessing') {
-                return `${pctAssessing}% also assessing; ${pctCurrently}% offer`;
+                return { prefix: 'Assessing:', text: `${pctAssessing}% also assessing; ${pctCurrently}% offer`, color: '#D97706' };
               }
-              if (pctCurrently > 50) return `Gap: ${pctCurrently}% of participating organizations offer`;
-              return `Emerging: ${pctCurrently}% offer`;
+              if (pctCurrently > 50) return { prefix: 'Gap:', text: `${pctCurrently}% of participating organizations offer`, color: '#DC2626' };
+              return { prefix: 'Emerging:', text: `${pctCurrently}% offer`, color: '#6B7280' };
             };
             
             // Count by status
@@ -3950,7 +3950,7 @@ export default function InteractiveReportPage() {
                             {editMode ? (
                               <input
                                 type="text"
-                                value={customObservations[`dim${d.dim}_${elem.name}`] ?? observation}
+                                value={customObservations[`dim${d.dim}_${elem.name}`] ?? `${observation.prefix} ${observation.text}`}
                                 onChange={(e) => {
                                   setCustomObservations(prev => ({
                                     ...prev,
@@ -3962,7 +3962,11 @@ export default function InteractiveReportPage() {
                                 placeholder="Custom observation..."
                               />
                             ) : (
-                              <p className="text-xs text-slate-700 font-medium leading-snug">{customObservations[`dim${d.dim}_${elem.name}`] || observation}</p>
+                              <p className="text-xs text-slate-600 leading-snug">
+                                {customObservations[`dim${d.dim}_${elem.name}`] || (
+                                  <><span className="font-bold" style={{ color: observation.color }}>{observation.prefix}</span> {observation.text}</>
+                                )}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -5913,20 +5917,20 @@ export default function InteractiveReportPage() {
                     const pctAssessing = Math.round(((bench?.assessing || 0) / total) * 100);
                     const statusInfo = getStatusInfo(elem);
                     if (statusInfo.key === 'currently') {
-                      if (pctCurrently < 30) return `Differentiator: Only ${pctCurrently}% of participating organizations offer`;
-                      if (pctCurrently < 50) return `Ahead of ${100 - pctCurrently}% of benchmark`;
-                      if (pctCurrently < 70) return `Solid: ${pctCurrently}% of participating organizations also offer`;
-                      return `Table stakes: ${pctCurrently}% offer`;
+                      if (pctCurrently < 30) return { prefix: 'Differentiator:', text: `Only ${pctCurrently}% of participating organizations offer`, color: '#7C3AED' };
+                      if (pctCurrently < 50) return { prefix: 'Ahead:', text: `${100 - pctCurrently}% of benchmark`, color: '#059669' };
+                      if (pctCurrently < 70) return { prefix: 'Solid:', text: `${pctCurrently}% of participating organizations also offer`, color: '#059669' };
+                      return { prefix: 'Table stakes:', text: `${pctCurrently}% offer`, color: '#6B7280' };
                     }
                     if (statusInfo.key === 'planning') {
-                      if (pctCurrently > 50) return `${pctCurrently}% already offer`;
-                      return `Among ${pctPlanning}% planning; ${pctCurrently}% offer`;
+                      if (pctCurrently > 50) return { prefix: 'In progress:', text: `${pctCurrently}% already offer`, color: '#2563EB' };
+                      return { prefix: 'In progress:', text: `Among ${pctPlanning}% planning; ${pctCurrently}% offer`, color: '#2563EB' };
                     }
                     if (statusInfo.key === 'assessing') {
-                      return `${pctAssessing}% also assessing; ${pctCurrently}% offer`;
+                      return { prefix: 'Assessing:', text: `${pctAssessing}% also assessing; ${pctCurrently}% offer`, color: '#D97706' };
                     }
-                    if (pctCurrently > 50) return `Gap: ${pctCurrently}% of participating organizations offer`;
-                    return `Emerging: ${pctCurrently}% offer`;
+                    if (pctCurrently > 50) return { prefix: 'Gap:', text: `${pctCurrently}% of participating organizations offer`, color: '#DC2626' };
+                    return { prefix: 'Emerging:', text: `${pctCurrently}% offer`, color: '#6B7280' };
                   };
                   
                   return (
@@ -6014,7 +6018,7 @@ export default function InteractiveReportPage() {
                                 </div>
                               </div>
                               <div className="col-span-3 pl-4">
-                                <span className="text-xs text-slate-500">{observation}</span>
+                                <span className="text-xs text-slate-600"><span className="font-bold" style={{ color: observation.color }}>{observation.prefix}</span> {observation.text}</span>
                               </div>
                             </div>
                           );
