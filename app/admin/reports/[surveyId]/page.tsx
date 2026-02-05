@@ -8067,7 +8067,6 @@ export default function ExportReportPage() {
                         <span className="mx-2 text-slate-400">•</span>
                         <span className="text-slate-300">Together, they demonstrate genuine commitment.</span>
                       </p>
-                      </p>
                     </div>
                   </div>
                 )}
