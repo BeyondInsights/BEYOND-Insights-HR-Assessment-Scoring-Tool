@@ -3533,30 +3533,30 @@ export default function ExportReportPage() {
               <div id="confirmatory-checklist" className="px-12 py-6 bg-white border-b border-slate-200 max-w-[1200px] mx-auto">
                 <button 
                   onClick={() => setShowConfirmatoryChecklist(!showConfirmatoryChecklist)}
-                  className="w-full flex items-center justify-between px-6 py-4 border-2 rounded-xl transition-all group"
+                  className="w-full flex items-center justify-between px-5 py-3 border-2 rounded-xl transition-all group"
                   style={{ background: 'linear-gradient(135deg, #fef7f0 0%, #fff5eb 100%)', borderColor: '#F37021' }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md" style={{ backgroundColor: '#F37021' }}>
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm" style={{ backgroundColor: '#F37021' }}>
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                       </svg>
                     </div>
                     <div className="text-left">
-                      <p className="text-lg font-bold text-slate-800 group-hover:text-[#F37021] transition-colors">
+                      <p className="text-base font-bold text-slate-800 group-hover:text-[#F37021] transition-colors">
                         Confirmatory Checklist — {unsureItems} Items Requiring Confirmation
                       </p>
-                      <p className="text-base text-slate-600 mt-1">
+                      <p className="text-sm text-slate-600">
                         Review items marked "Unsure" to finalize your assessment scores
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-bold px-4 py-2 rounded-full shadow-sm" style={{ backgroundColor: '#fff5eb', color: '#F37021', border: '1px solid #F37021' }}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold px-3 py-1.5 rounded-full shadow-sm" style={{ backgroundColor: '#fff5eb', color: '#F37021', border: '1px solid #F37021' }}>
                       {dimensionAnalysis.filter(d => d.unsure?.length > 0).length} dimensions affected
                     </span>
-                    <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center transition-transform duration-300 shadow-sm ${showConfirmatoryChecklist ? 'rotate-180' : ''}`} style={{ borderColor: '#F37021' }}>
-                      <svg className="w-5 h-5" style={{ color: '#F37021' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className={`w-8 h-8 rounded-full bg-white border-2 flex items-center justify-center transition-transform duration-300 shadow-sm ${showConfirmatoryChecklist ? 'rotate-180' : ''}`} style={{ borderColor: '#F37021' }}>
+                      <svg className="w-4 h-4" style={{ color: '#F37021' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
@@ -3566,15 +3566,15 @@ export default function ExportReportPage() {
                 {showConfirmatoryChecklist && (
                   <div className="mt-5">
                     <div className="bg-white border-2 rounded-xl overflow-hidden shadow-lg" style={{ borderColor: '#F37021' }}>
-                      <div className="p-6 border-b" style={{ borderColor: '#fde5d8', background: 'linear-gradient(135deg, #fffcfa 0%, #fff8f3 100%)' }}>
-                        <p className="text-base text-slate-700 leading-relaxed">
+                      <div className="p-4 border-b" style={{ borderColor: '#fde5d8', background: 'linear-gradient(135deg, #fffcfa 0%, #fff8f3 100%)' }}>
+                        <p className="text-sm text-slate-700 leading-relaxed">
                           These items should be confirmed before finalizing your score. Cancer and Careers can work with your team to 
                           determine the status of these items. Once confirmed as <strong className="text-emerald-700">Offered</strong>, <strong className="text-blue-700">Planning</strong>, <strong className="text-violet-700">Assessing</strong>, or <strong className="text-slate-600">Not Planned</strong>, your scores will be updated accordingly.
                         </p>
                       </div>
                       
-                      <div className="p-6">
-                        <div className="flex justify-end mb-5">
+                      <div className="p-4">
+                        <div className="flex justify-end mb-3">
                           <button
                             onClick={() => {
                               const rows = [['Dimension', 'Tier', 'Weight', 'Item Name']];
@@ -3599,28 +3599,28 @@ export default function ExportReportPage() {
                             Export to CSV
                           </button>
                         </div>
-                        <div className="grid grid-cols-2 gap-5">
+                        <div className="grid grid-cols-2 gap-4">
                           {dimensionAnalysis
                             .filter(d => d.unsure && d.unsure.length > 0)
                             .sort((a, b) => b.weight - a.weight)
                             .map((dim) => (
-                              <div key={dim.dim} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm" style={{ backgroundColor: dim.tier.color }}>
+                              <div key={dim.dim} className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                <div className="px-4 py-2.5 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded flex items-center justify-center text-white font-bold text-xs shadow-sm" style={{ backgroundColor: dim.tier.color }}>
                                       {dim.dim}
                                     </span>
-                                    <span className="text-base font-semibold text-slate-800">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
+                                    <span className="text-sm font-semibold text-slate-800">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
                                   </div>
-                                  <span className="text-sm font-bold px-3 py-1 rounded-full" style={{ backgroundColor: '#fff5eb', color: '#F37021' }}>
-                                    {dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''}
+                                  <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: '#fff5eb', color: '#F37021' }}>
+                                    {dim.unsure.length}
                                   </span>
                                 </div>
-                                <div className="px-5 py-3">
+                                <div className="px-4 py-2">
                                   {dim.unsure.map((item: any, idx: number) => (
-                                    <div key={idx} className="flex items-start gap-3 py-2 border-b border-slate-100 last:border-0">
-                                      <span className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: '#F37021' }}></span>
-                                      <span className="text-sm text-slate-700 leading-relaxed">{item.name}</span>
+                                    <div key={idx} className="flex items-start gap-2 py-1.5 border-b border-slate-100 last:border-0">
+                                      <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: '#F37021' }}></span>
+                                      <span className="text-xs text-slate-700 leading-relaxed">{item.name}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -3629,18 +3629,18 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       
-                      <div className="px-6 py-5 flex items-center justify-between" style={{ backgroundColor: '#434345' }}>
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(243, 112, 33, 0.2)' }}>
-                            <svg className="w-5 h-5" style={{ color: '#F37021' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="px-4 py-3 flex items-center justify-between" style={{ backgroundColor: '#434345' }}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(243, 112, 33, 0.2)' }}>
+                            <svg className="w-4 h-4" style={{ color: '#F37021' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
                           </div>
-                          <p className="text-base text-slate-200">
+                          <p className="text-sm text-slate-200">
                             <strong className="text-white">Ready to confirm?</strong> Cancer and Careers can schedule a review session.
                           </p>
                         </div>
-                        <span className="text-slate-400 text-base font-medium">info@cancerandcareers.org</span>
+                        <span className="text-slate-400 text-sm font-medium">info@cancerandcareers.org</span>
                       </div>
                     </div>
                   </div>
@@ -5987,14 +5987,14 @@ export default function ExportReportPage() {
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div id="wwc-pledge-section" className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             {/* Header - Clean white/cream with full logo */}
-            <div className="px-12 py-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
+            <div className="px-10 py-4 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
               <div className="absolute inset-0 opacity-5">
-                <div className="absolute top-0 left-0 w-96 h-96 rounded-full -translate-y-1/2 -translate-x-1/4" style={{ backgroundColor: '#ff353c' }}></div>
+                <div className="absolute top-0 left-0 w-64 h-64 rounded-full -translate-y-1/2 -translate-x-1/4" style={{ backgroundColor: '#ff353c' }}></div>
               </div>
               <div className="relative flex items-center justify-between">
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-6">
                   {/* WWC Long Logo */}
-                  <div className="h-14 flex-shrink-0" style={{ width: '280px' }}>
+                  <div className="h-10 flex-shrink-0" style={{ width: '220px' }}>
                     <svg viewBox="0 0 1450 300" className="h-full w-full">
                       <path fill="#ff353c" fillRule="evenodd" d="m972.3,70s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V70Z"/>
                       <path fill="#434345" d="m138.18,160.02h-.42l-5.71,68.29h-29.18l-13.74-156.46h30.23l4.02,72.1h.42l4.02-72.1h22.62l4.23,72.1h.42l4.02-72.1h27.49l-13.74,156.46h-29.18l-5.5-68.29Z"/>
@@ -6015,135 +6015,134 @@ export default function ExportReportPage() {
                       <path fill="#434345" d="m864.66,153.67h-28.12v74.63h-11.84V71.85h11.84v71.67h28.12v-71.67h11.84v156.46h-11.84v-74.63Z"/>
                     </svg>
                   </div>
-                  <div className="border-l-2 pl-6" style={{ borderColor: '#e5e5e5' }}>
-                    <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#888' }}>The</p>
-                    <p className="text-2xl font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
-                    <p className="text-lg font-medium" style={{ color: '#434345' }}>Pledge</p>
+                  <div className="border-l-2 pl-4" style={{ borderColor: '#e5e5e5' }}>
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#888' }}>The</p>
+                    <p className="text-lg font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
+                    <p className="text-sm font-medium" style={{ color: '#434345' }}>Pledge</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="rounded-xl px-6 py-4 text-center shadow-lg" style={{ backgroundColor: '#ff353c' }}>
-                    <p className="text-white text-3xl font-bold">5,000+</p>
-                    <p className="text-white/90 text-sm font-medium">Companies Worldwide</p>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg px-4 py-2 text-center shadow-md" style={{ backgroundColor: '#ff353c' }}>
+                    <p className="text-white text-xl font-bold">5,000+</p>
+                    <p className="text-white/90 text-xs font-medium">Companies</p>
                   </div>
-                  <div className="rounded-xl px-6 py-4 text-center shadow-lg" style={{ backgroundColor: '#434345' }}>
-                    <p className="text-white text-3xl font-bold">40M+</p>
-                    <p className="text-white/90 text-sm font-medium">Workers Protected</p>
+                  <div className="rounded-lg px-4 py-2 text-center shadow-md" style={{ backgroundColor: '#434345' }}>
+                    <p className="text-white text-xl font-bold">40M+</p>
+                    <p className="text-white/90 text-xs font-medium">Workers</p>
                   </div>
                 </div>
               </div>
             </div>
             
             {/* Content Section */}
-            <div className="px-12 py-10 bg-white">
+            <div className="px-10 py-5 bg-white">
               {/* Origin + What It Is */}
-              <div className="flex items-start gap-5 mb-10">
-                <div className="flex-shrink-0 w-16 h-16">
+              <div className="flex items-start gap-4 mb-5">
+                <div className="flex-shrink-0 w-12 h-12">
                   <svg viewBox="0 0 300 300" className="w-full h-full">
                     <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
                     <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900 text-xl mb-3">A Public Commitment to Support Employees Managing Cancer</h4>
-                  <p className="text-slate-600 text-base leading-relaxed">
-                    Launched at Davos in January 2023 by the Publicis Foundation after CEO Arthur Sadoun went public about his own cancer diagnosis, 
-                    the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
+                  <h4 className="font-bold text-slate-900 text-base mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    Launched at Davos in January 2023 by the Publicis Foundation, the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
                   </p>
                 </div>
               </div>
               
-              {/* Three Commitments - Clean Professional Cards */}
-              <div className="rounded-2xl p-8 mb-10" style={{ background: 'linear-gradient(135deg, #fff8f7 0%, #ffffff 100%)', border: '2px solid #ff353c' }}>
-                <p className="text-sm font-bold uppercase tracking-widest mb-6" style={{ color: '#ff353c' }}>Pledge Signatories Commit To:</p>
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#ff353c' }}>
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              {/* Three Commitments - Compact Cards */}
+              <div className="rounded-xl p-4 mb-5" style={{ background: 'linear-gradient(135deg, #fff8f7 0%, #ffffff 100%)', border: '2px solid #ff353c' }}>
+                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#ff353c' }}>Pledge Signatories Commit To:</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     </div>
-                    <p className="font-bold text-slate-900 text-base mb-2">Job Security</p>
-                    <p className="text-slate-600 text-sm leading-relaxed">Protect employment for employees diagnosed with cancer</p>
+                    <p className="font-bold text-slate-900 text-sm mb-1">Job Security</p>
+                    <p className="text-slate-600 text-xs leading-relaxed">Protect employment for employees diagnosed with cancer</p>
                   </div>
-                  <div className="rounded-xl p-6 shadow-lg" style={{ backgroundColor: '#ff353c' }}>
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-white/20">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                  <div className="rounded-lg p-4 shadow-md" style={{ backgroundColor: '#ff353c' }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2 bg-white/20">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
-                    <p className="font-bold text-white text-base mb-2">Open Culture</p>
-                    <p className="text-white/90 text-sm leading-relaxed">Create stigma-free environments where employees feel safe to disclose</p>
+                    <p className="font-bold text-white text-sm mb-1">Open Culture</p>
+                    <p className="text-white/90 text-xs leading-relaxed">Create stigma-free environments for disclosure</p>
                   </div>
-                  <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#ff353c' }}>
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                  <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
-                    <p className="font-bold text-slate-900 text-base mb-2">Recovery Support</p>
-                    <p className="text-slate-600 text-sm leading-relaxed">Provide accommodations and support for treatment and return-to-work</p>
+                    <p className="font-bold text-slate-900 text-sm mb-1">Recovery Support</p>
+                    <p className="text-slate-600 text-xs leading-relaxed">Accommodations for treatment and return-to-work</p>
                   </div>
                 </div>
               </div>
               
               {/* Research Section */}
-              <div className="rounded-2xl p-6 mb-8" style={{ backgroundColor: '#434345' }}>
+              <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: '#434345' }}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,53,60,0.15)' }}>
-                      <svg className="w-7 h-7" style={{ color: '#ff353c' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(255,53,60,0.15)' }}>
+                      <svg className="w-5 h-5" style={{ color: '#ff353c' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                     </div>
                     <div>
-                      <p className="text-white font-bold text-lg">What Employees Say About the Pledge</p>
-                      <p className="text-slate-300 text-sm mt-1">Research conducted by BEYOND Insights on behalf of Cancer and Careers</p>
+                      <p className="text-white font-bold text-sm">What Employees Say About the Pledge</p>
+                      <p className="text-slate-400 text-xs">Research by BEYOND Insights for Cancer and Careers</p>
                     </div>
                   </div>
-                  <div className="bg-white rounded-xl px-5 py-3 text-center shadow-lg">
-                    <p className="text-xs font-bold uppercase tracking-wider" style={{ color: '#ff353c' }}>Awareness Gap</p>
-                    <p className="font-bold text-slate-900 text-lg">Only 16-18% aware</p>
+                  <div className="bg-white rounded-lg px-3 py-2 text-center shadow-md">
+                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#ff353c' }}>Awareness Gap</p>
+                    <p className="font-bold text-slate-900 text-sm">Only 16-18%</p>
                   </div>
                 </div>
               </div>
               
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-8">
-                <div className="rounded-2xl p-6 border-2" style={{ borderColor: '#ff353c', backgroundColor: '#fff8f7' }}>
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#ff353c' }}>
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-xl p-4 border-2" style={{ borderColor: '#ff353c', backgroundColor: '#fff8f7' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#ff353c' }}>
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
-                    <p className="text-base font-bold uppercase tracking-wider" style={{ color: '#ff353c' }}>Employees Managing Cancer</p>
+                    <p className="text-xs font-bold uppercase tracking-wider" style={{ color: '#ff353c' }}>Employees Managing Cancer</p>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between bg-white rounded-xl px-5 py-3 shadow-sm">
-                      <span className="text-base text-slate-700">Say the pledge is important</span>
-                      <span className="text-2xl font-bold" style={{ color: '#ff353c' }}>81%</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
+                      <span className="text-xs text-slate-700">Pledge is important</span>
+                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-xl px-5 py-3 shadow-sm">
-                      <span className="text-base text-slate-700">Would trust pledge companies more</span>
-                      <span className="text-2xl font-bold" style={{ color: '#ff353c' }}>81%</span>
+                    <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
+                      <span className="text-xs text-slate-700">Trust pledge companies more</span>
+                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-xl px-5 py-3 shadow-sm">
-                      <span className="text-base text-slate-700">Would influence their job decisions</span>
-                      <span className="text-2xl font-bold" style={{ color: '#ff353c' }}>75%</span>
+                    <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
+                      <span className="text-xs text-slate-700">Influences job decisions</span>
+                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>75%</span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="rounded-2xl p-6 border border-slate-200 bg-slate-50">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#434345' }}>
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                <div className="rounded-xl p-4 border border-slate-200 bg-slate-50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#434345' }}>
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
-                    <p className="text-base font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
+                    <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between bg-white rounded-xl px-5 py-3 shadow-sm">
-                      <span className="text-base text-slate-700">Say the pledge is important</span>
-                      <span className="text-2xl font-bold text-slate-700">72%</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
+                      <span className="text-xs text-slate-700">Pledge is important</span>
+                      <span className="text-lg font-bold text-slate-700">72%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-xl px-5 py-3 shadow-sm">
-                      <span className="text-base text-slate-700">Would trust pledge companies more</span>
-                      <span className="text-2xl font-bold text-slate-700">69%</span>
+                    <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
+                      <span className="text-xs text-slate-700">Trust pledge companies more</span>
+                      <span className="text-lg font-bold text-slate-700">69%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-xl px-5 py-3 shadow-sm">
-                      <span className="text-base text-slate-700">Would influence their job decisions</span>
-                      <span className="text-2xl font-bold text-slate-700">60%</span>
+                    <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
+                      <span className="text-xs text-slate-700">Influences job decisions</span>
+                      <span className="text-lg font-bold text-slate-700">60%</span>
                     </div>
                   </div>
                 </div>
@@ -6151,12 +6150,12 @@ export default function ExportReportPage() {
             </div>
             
             {/* Footer */}
-            <div className="px-8 py-5" style={{ backgroundColor: '#434345' }}>
-              <p className="text-base text-center">
+            <div className="px-6 py-3" style={{ backgroundColor: '#434345' }}>
+              <p className="text-sm text-center">
                 <strong className="text-white">The Pledge signals intent.</strong>
-                <span className="mx-3 text-slate-500">•</span>
+                <span className="mx-2 text-slate-500">•</span>
                 <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong>
-                <span className="mx-3 text-slate-500">•</span>
+                <span className="mx-2 text-slate-500">•</span>
                 <span className="text-slate-300">Together, they demonstrate genuine commitment.</span>
               </p>
             </div>
