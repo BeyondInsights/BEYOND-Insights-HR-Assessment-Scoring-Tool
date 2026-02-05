@@ -2198,18 +2198,35 @@ export default function InteractiveReportPage() {
     const customNote = customNotes[noteKey] || '';
     
     const defaultNotes: Record<number, string> = {
-      0: '• Start with composite score and tier\n• Assessment date reflects current state\n• Overview of support elements evaluated',
-      1: '• Shaped by CAC\'s 20+ years of frontline experience\n• Validated through stakeholder research\n• Weights reflect what matters most to employees',
-      3: '• Highlight top performing dimension\n• Note areas for growth\n• Discuss meaning for employees',
-      4: '• Walk through dimension breakdown\n• Focus on highest-weighted first\n• Note tier distribution',
-      30: '• Suggested phasing - customizable\n• Phase 1: Quick wins\n• Phase 2: Strategic investments\n• Phase 3: Culture optimization',
-      31: '• 5,000+ companies globally signed\n• Pledge = intent, Index = execution\n• 81% say it matters for trust',
-      32: '• CAC can support implementation\n• Discuss next steps'
+      0: '• Highlight composite score and tier placement\n• Assessment date reflects current state\n• Total support elements evaluated',
+      1: '• CAC\'s 20+ years of frontline experience\n• Validated through stakeholder research\n• Weights reflect what matters most to employees',
+      2: '• Starting point, not a prescription\n• Adapt recommendations to your organization\n• Four steps: review, identify, engage, plan',
+      3: '• Top-performing dimension by name\n• Greatest opportunity area\n• If provisional, mention items needing confirmation',
+      4: '• Exemplary vs Emerging dimension count\n• Focus on highest-weighted dimensions first\n• Use tier colors to guide conversation',
+      18: '• Priority Gaps (red): High weight, low score - focus here\n• Core Strengths (green): Maintain these\n• Monitor (gray): Lower priority\n• Leverage (blue): Doing well in less critical areas',
+      19: '• Benchmark comparisons shown\n• Gray dots = peer organizations\n• Identify ahead/behind benchmarks\n• Set realistic improvement targets',
+      20: '• Patterns across all 13 dimensions\n• Left = strategic implication\n• Right = recommended action\n• Data-driven, not generic advice',
+      21: '• Top 5 priorities by potential impact\n• Considers score gap AND weight\n• Focus limited resources effectively',
+      22: '• Visual summary of all scores\n• Outer ring = higher score\n• Quick shape of support program',
+      23: '• Employee perspective on each dimension\n• Real impact of support\n• Build stakeholder buy-in',
+      24: '• Tier distribution across dimensions\n• Move up the tier ladder over time\n• Celebrate progress',
+      25: '• Benchmark comparison chart\n• Green = above, Red = below\n• Focus on below-benchmark areas',
+      26: '• Year-over-year tracking\n• Celebrate improvements\n• Set targets for next cycle',
+      27: '• Specific support elements\n• Green = working, Blue = in progress, Red = gaps',
+      28: '• Weighted score contribution\n• Larger segments = more impact\n• Focus on large segments with room to grow',
+      29: '• Summary statistics\n• Overall maturity indicators\n• Executive summary material',
+      30: '• Suggested phasing - customize to your timeline\n• Phase 1: Quick wins (0-6 months)\n• Phase 2: Strategic (6-18 months)\n• Phase 3: Culture (18+ months)',
+      31: '• 5,000+ companies signed pledge\n• Pledge = commitment, Index = execution\n• 81% say it matters for trust\n• 16-18% awareness gap - communicate better',
+      32: '• CAC: 20+ years supporting employees\n• Help with implementation at any phase\n• Toolkits, training, consultations available',
+      33: '• 13 dimensions, 147 support elements\n• Weighted scoring from research\n• Four tiers: Exemplary to Emerging\n• Annual reassessment recommended',
+      34: '• Thank audience for engagement\n• Reiterate commitment\n• Offer follow-up discussions\n• Provide contact information'
     };
+    const dimensionNames = ['', '', '', '', '', 'Medical Leave', 'Manager Preparedness', 'HR Capability', 'Insurance & Benefits', 'Accommodations', 'Communication', 'Employee Assistance', 'Mental Health', 'Return to Work', 'Career Protection', 'Prevention & Screening', 'Culture & Inclusion', 'Caregiver Support'];
     for (let i = 5; i <= 17; i++) {
-      defaultNotes[i] = '• Review strengths (green)\n• Highlight planning items (blue)\n• Address gaps as opportunities\n• Connect to employee impact';
+      const dimName = dimensionNames[i] || `Dimension ${i - 4}`;
+      defaultNotes[i] = `• ${dimName}: Review element breakdown\n• Green = strengths to maintain\n• Blue = actively implementing\n• Red gaps = opportunities\n• Connect to employee experience`;
     }
-    const defaultNote = defaultNotes[slideNum] || 'Focus on visual content and respond to questions.';
+    const defaultNote = defaultNotes[slideNum] || '• Review slide content\n• Connect to organization context\n• Invite questions';
     
     // Use postMessage to update the popup window - more reliable than direct DOM manipulation
     if (!isInitialRender) {
@@ -8426,7 +8443,7 @@ export default function InteractiveReportPage() {
                     </div>
                   )}
                   {(currentSlide === 2 || (currentSlide >= 18 && currentSlide <= 29) || currentSlide >= 33) && (
-                    <p className="text-slate-400 italic">No specific notes for this slide. Focus on the visual content and respond to questions.</p>
+                    <p className="text-slate-400 italic">Review the slide content and connect it to the organization&apos;s specific context. Invite questions from the audience.</p>
                   )}
                 </div>
               </div>
