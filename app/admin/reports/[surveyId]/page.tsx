@@ -2213,6 +2213,7 @@ export default function ExportReportPage() {
   // Edit Mode State
   const [editMode, setEditMode] = useState(false);
   const [showReportGuide, setShowReportGuide] = useState(false);
+  const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
   const [customInsights, setCustomInsights] = useState<Record<number, { insight: string; cacHelp: string }>>({});
   const [customExecutiveSummary, setCustomExecutiveSummary] = useState<string>('');
   const [customPatterns, setCustomPatterns] = useState<{ pattern: string; implication: string; recommendation: string }[]>([]);
@@ -3249,7 +3250,7 @@ export default function ExportReportPage() {
                   
                   <div className="grid grid-cols-4 gap-4 mb-5">
                     <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 text-center">
-                      <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center mx-auto mb-3">
+                      <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                       </div>
                       <p className="text-sm font-bold text-violet-800">HR Leaders</p>
@@ -3380,9 +3381,13 @@ export default function ExportReportPage() {
                   <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
                   <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
                   {isFoundingPartner(surveyId || '') && (
-                    <div className="mt-4 inline-flex items-center gap-2 bg-slate-800 rounded-lg px-4 py-2">
-                      <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-5 object-contain" />
-                      <span className="text-xs font-semibold text-white uppercase tracking-wider">Pledge Signatory</span>
+                    <div className="mt-3 inline-flex items-center gap-3 bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg px-4 py-2.5 shadow-sm">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        <span className="text-white text-sm font-semibold">Working with Cancer</span>
+                      </div>
+                      <div className="w-px h-4 bg-slate-600"></div>
+                      <span className="text-slate-300 text-xs font-medium uppercase tracking-wider">Pledge Signatory</span>
                     </div>
                   )}
                   {(contactName || contactEmail) && (
@@ -3522,123 +3527,110 @@ export default function ExportReportPage() {
                   <p className="text-white font-bold text-lg">{tierCounts.exemplary + tierCounts.leading} / 13 Leading+</p>
                   <p className="text-violet-400 text-sm mt-1 font-semibold">{tierCounts.exemplary} Exemplary, {tierCounts.leading} Leading</p>
                 </div>
-              
+              </div>
+            </div>
+          </div>
           
-          {/* ============ CONFIRMATORY CHECKLIST ============ */}
+          {/* ============ CONFIRMATORY CHECKLIST (Collapsible) ============ */}
           {unsureItems > 0 && (
-            <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-              {/* Header */}
-              <div className="px-12 py-6 bg-gradient-to-r from-amber-500 to-amber-600">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white text-xl">Items Requiring Confirmation</h3>
-                      <p className="text-amber-100 text-sm mt-1">These items are currently scored as Not Planned until validated</p>
-                    </div>
+            <div className="px-12 py-5 bg-white border-b border-slate-200 max-w-[1200px] mx-auto">
+              <button 
+                onClick={() => setShowConfirmatoryChecklist(!showConfirmatoryChecklist)}
+                className="w-full flex items-center justify-between px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl hover:from-amber-100 hover:to-orange-100 transition-all group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
                   </div>
-                  <div className="bg-white/20 rounded-lg px-5 py-3 text-center">
-                    <p className="text-3xl font-bold text-white">{unsureItems}</p>
-                    <p className="text-amber-100 text-xs">Items to Review</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Explanation */}
-              <div className="px-12 py-6 bg-amber-50 border-b border-amber-200">
-                <div className="flex items-start gap-4">
-                  <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <p className="text-sm text-amber-800 leading-relaxed">
-                      <strong>Why this matters:</strong> Items marked "Unsure" during the assessment represent a validation gap, not necessarily a program gap. 
-                      These items are scored as Not Planned (0 points) until confirmed, which may be affecting your dimension scores.
-                    </p>
-                    <p className="text-sm text-amber-700 mt-2">
-                      <strong>Next step:</strong> Cancer and Careers can work with your team to validate these items. If confirmed as Offered, Planning, or Assessing, 
-                      your scores will update accordingly.
-                    </p>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-amber-800 transition-colors">
+                      {unsureItems} Items Requiring Confirmation
+                    </span>
+                    <span className="text-sm text-slate-500 ml-2">
+                      Review items marked "Unsure" to validate status and update scores
+                    </span>
                   </div>
                 </div>
-              </div>
+                <div className="flex items-center gap-3">
+                  <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                    {dimensionAnalysis.filter(d => d.unsure?.length > 0).length} dimensions
+                  </span>
+                  <div className={`w-7 h-7 rounded-full bg-white border border-amber-200 flex items-center justify-center transition-transform duration-200 ${showConfirmatoryChecklist ? 'rotate-180' : ''}`}>
+                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </button>
               
-              {/* Items by Dimension */}
-              <div className="px-12 py-8">
-                <div className="space-y-6">
-                  {dimensionAnalysis
-                    .filter(d => d.unsure && d.unsure.length > 0)
-                    .sort((a, b) => b.unsure.length - a.unsure.length)
-                    .map((dim) => (
-                      <div key={dim.dim} className="border border-slate-200 rounded-xl overflow-hidden">
-                        <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: dim.tier.color }}>
-                              {dim.dim}
-                            </span>
-                            <div>
-                              <p className="font-semibold text-slate-800">{dim.name}</p>
-                              <p className="text-xs text-slate-500">Current Score: <span className="font-semibold" style={{ color: dim.tier.color }}>{dim.score}</span> · Weight: {dim.weight}%</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full">
-                              {dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''} to confirm
-                            </span>
-                          </div>
-                        </div>
-                        <div className="divide-y divide-slate-100">
-                          {dim.unsure.map((item: any, idx: number) => (
-                            <div key={idx} className="px-5 py-3 flex items-center justify-between hover:bg-slate-50">
-                              <div className="flex items-center gap-3">
-                                <div className="w-5 h-5 rounded border-2 border-amber-400 bg-amber-50 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-amber-600 text-xs font-bold">?</span>
+              {showConfirmatoryChecklist && (
+                <div className="mt-4">
+                  <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 rounded-xl overflow-hidden">
+                    {/* Explanation */}
+                    <div className="p-5 border-b border-amber-100">
+                      <p className="text-sm text-slate-700 leading-relaxed">
+                        <strong className="text-slate-800">Why this matters:</strong> Items marked "Unsure" represent a validation gap, not necessarily a program gap. 
+                        These are currently scored as <strong className="text-amber-700">Not Planned (0 points)</strong> until confirmed.
+                      </p>
+                      <p className="text-sm text-slate-600 mt-2">
+                        <strong className="text-slate-700">Next step:</strong> Cancer and Careers can work with your team to validate these items. 
+                        If confirmed as Offered, Planning, or Assessing, your scores will update accordingly.
+                      </p>
+                    </div>
+                    
+                    {/* Compact grid of dimensions with unsure items */}
+                    <div className="p-5">
+                      <div className="grid grid-cols-2 gap-4">
+                        {dimensionAnalysis
+                          .filter(d => d.unsure && d.unsure.length > 0)
+                          .sort((a, b) => b.weight - a.weight)
+                          .map((dim) => (
+                            <div key={dim.dim} className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                              <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-6 h-6 rounded flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: dim.tier.color }}>
+                                    {dim.dim}
+                                  </span>
+                                  <span className="text-sm font-medium text-slate-700">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
                                 </div>
-                                <span className="text-sm text-slate-700">{item.name}</span>
+                                <span className="text-xs text-amber-600 font-semibold">{dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''}</span>
                               </div>
-                              <div className="flex items-center gap-4">
-                                <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">
-                                  {item.benchmarkPct ? `${item.benchmarkPct}% of benchmark offers` : 'Benchmark data pending'}
-                                </span>
+                              <div className="px-4 py-2 max-h-32 overflow-y-auto">
+                                {dim.unsure.slice(0, 4).map((item: any, idx: number) => (
+                                  <div key={idx} className="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0">
+                                    <span className="text-amber-500 text-xs mt-0.5">?</span>
+                                    <span className="text-xs text-slate-600 leading-tight">{item.name}</span>
+                                  </div>
+                                ))}
+                                {dim.unsure.length > 4 && (
+                                  <p className="text-xs text-slate-400 py-1.5">+{dim.unsure.length - 4} more items</p>
+                                )}
                               </div>
                             </div>
                           ))}
-                        </div>
                       </div>
-                    ))}
-                </div>
-              </div>
-              
-              {/* CTA Footer */}
-              <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
                     </div>
-                    <div>
-                      <p className="text-white font-semibold">Ready to validate these items?</p>
-                      <p className="text-slate-300 text-sm">Cancer and Careers can schedule a review session to confirm status and update your scores.</p>
+                    
+                    {/* CTA */}
+                    <div className="px-5 py-4 bg-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <p className="text-sm text-slate-200">
+                          <strong className="text-white">Ready to validate?</strong> Cancer and Careers can schedule a review session.
+                        </p>
+                      </div>
+                      <span className="text-slate-400 text-sm">info@cancerandcareers.org</span>
                     </div>
                   </div>
-                  <div className="bg-white/10 rounded-lg px-4 py-2 border border-white/20">
-                    <p className="text-xs text-slate-400">Contact</p>
-                    <p className="text-white font-medium">info@cancerandcareers.org</p>
-                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
           
-          </div>
-            </div>
-          </div>
           
           {/* ============ SCORE COMPOSITION ============ */}
           <div id="score-composition-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
@@ -4864,7 +4856,7 @@ export default function ExportReportPage() {
                           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                             <div className="px-5 py-3 bg-gradient-to-r from-violet-700 to-purple-700 text-white text-center">
                               <p className="text-base font-semibold">{dimInfo?.name}</p>
-                              <p className="text-xs text-red-200 mt-0.5">{dimElements.length} elements in this dimension</p>
+                              <p className="text-xs text-slate-300 mt-0.5">{dimElements.length} elements in this dimension</p>
                             </div>
                             <div className="p-5">
                               <div className="flex items-center justify-center gap-8">
@@ -5868,8 +5860,10 @@ export default function ExportReportPage() {
               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-50"></div>
               <div className="relative flex items-center justify-between">
                 <div>
-                  <p className="text-red-400 text-xs font-semibold uppercase tracking-widest mb-1">Global Initiative</p>
-                  <img src="/working-with-cancer-logo.png" alt="The Working with Cancer Pledge" className="h-10 object-contain" />
+                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-2">Global Initiative</p>
+                  <div className="h-8">
+                    <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-full object-contain brightness-0 invert" />
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
@@ -5900,25 +5894,25 @@ export default function ExportReportPage() {
                 
                 {/* What Companies Commit To */}
                 <div className="bg-slate-800 rounded-xl p-6">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-red-400 mb-4">Pledge Signatories Commit To:</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">Pledge Signatories Commit To:</p>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full bg-red-500/30 flex items-center justify-center mb-3">
-                        <svg className="w-4 h-4 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
                       <p className="text-white font-medium text-sm">Job Security</p>
                       <p className="text-slate-400 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full bg-red-500/30 flex items-center justify-center mb-3">
-                        <svg className="w-4 h-4 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                      <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                       </div>
                       <p className="text-white font-medium text-sm">Open Culture</p>
                       <p className="text-slate-400 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full bg-red-500/30 flex items-center justify-center mb-3">
-                        <svg className="w-4 h-4 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                      <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                       </div>
                       <p className="text-white font-medium text-sm">Recovery Support</p>
                       <p className="text-slate-400 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
@@ -5928,7 +5922,7 @@ export default function ExportReportPage() {
               </div>
               
               {/* Research Attribution - More Prominent */}
-              <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-5 mb-6">
+              <div className="bg-gradient-to-r from-slate-700 to-slate-600 rounded-xl p-5 mb-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -5936,7 +5930,7 @@ export default function ExportReportPage() {
                     </div>
                     <div>
                       <p className="text-white font-semibold">What Employees Say About the Pledge</p>
-                      <p className="text-red-200 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
+                      <p className="text-slate-300 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
                     </div>
                   </div>
                   <div className="bg-white/20 rounded-lg px-4 py-2 text-center">
@@ -5949,25 +5943,25 @@ export default function ExportReportPage() {
               {/* Research Stats */}
               <div className="grid grid-cols-2 gap-6">
                 {/* Employees Managing Cancer */}
-                <div className="bg-red-50 rounded-xl p-5 border border-red-100">
+                <div className="bg-orange-50 rounded-xl p-5 border border-orange-100">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-[#F37021] flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
-                    <p className="text-sm font-bold text-red-800 uppercase tracking-wider">Employees Managing Cancer</p>
+                    <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Say the pledge is important</span>
-                      <span className="text-lg font-bold text-red-600">81%</span>
+                      <span className="text-lg font-bold text-[#F37021]">81%</span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                      <span className="text-lg font-bold text-red-600">81%</span>
+                      <span className="text-lg font-bold text-[#F37021]">81%</span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                      <span className="text-lg font-bold text-red-600">75%</span>
+                      <span className="text-lg font-bold text-[#F37021]">75%</span>
                     </div>
                   </div>
                 </div>
@@ -5999,11 +5993,11 @@ export default function ExportReportPage() {
             </div>
             
             {/* Footer */}
-            <div className="px-6 py-4 bg-gradient-to-r from-slate-100 to-red-50 border-t border-slate-200">
+            <div className="px-6 py-4 bg-gradient-to-r from-slate-100 to-slate-50 border-t border-slate-200">
               <p className="text-sm text-slate-700 text-center">
                 <strong className="text-slate-800">The Pledge signals intent.</strong>
                 <span className="mx-2">•</span>
-                <strong className="text-red-600">This Index measures execution.</strong>
+                <strong className="text-[#F37021]">This Index measures execution.</strong>
                 <span className="mx-2">•</span>
                 <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
               </p>
@@ -6384,8 +6378,8 @@ export default function ExportReportPage() {
                     
                     {/* 4 Research Cards - exact match to report */}
                     <div className="grid grid-cols-4 gap-4 mb-6">
-                      <div className="bg-red-50 rounded-xl p-5 border border-red-100 text-center">
-                        <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center mx-auto mb-3">
+                      <div className="bg-orange-50 rounded-xl p-5 border border-orange-100 text-center">
+                        <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         </div>
                         <p className="text-sm font-bold text-violet-800 mb-2">HR Leaders</p>
@@ -7885,8 +7879,10 @@ export default function ExportReportPage() {
                     <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 relative overflow-hidden">
                       <div className="relative flex items-center justify-between">
                         <div>
-                          <p className="text-red-400 text-xs font-semibold uppercase tracking-widest mb-1">Global Initiative</p>
-                          <img src="/working-with-cancer-logo.png" alt="The Working with Cancer Pledge" className="h-10 object-contain" />
+                          <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-2">Global Initiative</p>
+                  <div className="h-8">
+                    <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-full object-contain brightness-0 invert" />
+                  </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
@@ -7915,25 +7911,25 @@ export default function ExportReportPage() {
                       
                       {/* Pledge Commitments */}
                       <div className="bg-slate-800 rounded-xl p-5 mb-5">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-red-400 mb-4">Pledge Signatories Commit To:</p>
+                        <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">Pledge Signatories Commit To:</p>
                         <div className="grid grid-cols-3 gap-4">
                           <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                            <div className="w-8 h-8 rounded-full bg-red-500/30 flex items-center justify-center mb-3">
-                              <svg className="w-4 h-4 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
                             <p className="text-white font-medium text-sm">Job Security</p>
                             <p className="text-slate-400 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
                           </div>
                           <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                            <div className="w-8 h-8 rounded-full bg-red-500/30 flex items-center justify-center mb-3">
-                              <svg className="w-4 h-4 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
                             <p className="text-white font-medium text-sm">Open Culture</p>
                             <p className="text-slate-400 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
                           </div>
                           <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                            <div className="w-8 h-8 rounded-full bg-red-500/30 flex items-center justify-center mb-3">
-                              <svg className="w-4 h-4 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                            <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
+                              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
                             <p className="text-white font-medium text-sm">Recovery Support</p>
                             <p className="text-slate-400 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
@@ -7942,7 +7938,7 @@ export default function ExportReportPage() {
                       </div>
                       
                       {/* Research Stats Header */}
-                      <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-4 mb-5">
+                      <div className="bg-gradient-to-r from-slate-700 to-slate-600 rounded-xl p-4 mb-5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -7950,7 +7946,7 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-white font-semibold text-sm">What Employees Say About the Pledge</p>
-                              <p className="text-red-200 text-xs">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
+                              <p className="text-slate-300 text-xs">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
                             </div>
                           </div>
                           <div className="bg-white/20 rounded-lg px-3 py-1.5 text-center">
@@ -7964,23 +7960,23 @@ export default function ExportReportPage() {
                       <div className="grid grid-cols-2 gap-5">
                         <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center">
+                            <div className="w-7 h-7 rounded-full bg-[#F37021] flex items-center justify-center">
                               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
-                            <p className="text-xs font-bold text-red-800 uppercase tracking-wider">Employees Managing Cancer</p>
+                            <p className="text-xs font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
                           </div>
                           <div className="space-y-2">
                             <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Say the pledge is important</span>
-                              <span className="text-base font-bold text-red-600">81%</span>
+                              <span className="text-base font-bold text-[#F37021]">81%</span>
                             </div>
                             <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                              <span className="text-base font-bold text-red-600">81%</span>
+                              <span className="text-base font-bold text-[#F37021]">81%</span>
                             </div>
                             <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                               <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                              <span className="text-base font-bold text-red-600">75%</span>
+                              <span className="text-base font-bold text-[#F37021]">75%</span>
                             </div>
                           </div>
                         </div>
