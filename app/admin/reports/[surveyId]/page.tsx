@@ -43,18 +43,18 @@ function PolishedScoreComposition({ compositeScore, weightedDimScore, maturitySc
       <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Score Composition</h3><p className="text-sm text-slate-500 mt-0.5">How your composite score is calculated</p></div>
       <div className="p-8">
         <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
-          <div className="text-center px-6 py-4 bg-slate-50 rounded-lg border-2 border-slate-200 min-w-[140px]"><p className="text-4xl font-bold" style={{ color: compositeScore ? getScoreColor(compositeScore) : '#94a3b8' }}>{compositeScore ?? '—'}</p><p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Composite</p></div>
+          <div className="text-center px-6 py-4 bg-slate-50 rounded-lg border-2 border-slate-200 min-w-[140px]"><p className="text-4xl font-bold" style={{ color: compositeScore ? getScoreColor(compositeScore) : '#94a3b8' }}>{compositeScore ?? 'â€”'}</p><p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Composite</p></div>
           <span className="text-2xl text-slate-300 font-light">=</span>
-          {components.map((comp, idx) => (<div key={comp.id} className="flex items-center gap-4"><div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]"><p className="text-2xl font-semibold text-slate-700">{comp.score ?? '—'}</p><p className="text-xs text-slate-400 mt-0.5">{comp.label}</p><p className="text-xs text-slate-300">× {comp.weight}%</p></div>{idx < components.length - 1 && <span className="text-xl text-slate-300 font-light">+</span>}</div>))}
+          {components.map((comp, idx) => (<div key={comp.id} className="flex items-center gap-4"><div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]"><p className="text-2xl font-semibold text-slate-700">{comp.score ?? 'â€”'}</p><p className="text-xs text-slate-400 mt-0.5">{comp.label}</p><p className="text-xs text-slate-300">Ã— {comp.weight}%</p></div>{idx < components.length - 1 && <span className="text-xl text-slate-300 font-light">+</span>}</div>))}
         </div>
-        {benchmarks?.compositeScore && (<div className="flex items-center justify-center gap-6 py-3 px-4 bg-slate-50 rounded-lg border border-slate-100 mb-8 flex-wrap"><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Your Score:</span><span className="text-sm font-semibold text-slate-800">{compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Participant Benchmark:</span><span className="text-sm font-medium text-slate-600">{benchmarks.compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-1"><span className={`text-sm font-semibold ${benchDiff && benchDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} pts` : '—'}</span><span className="text-xs text-slate-400">vs benchmark</span></div></div>)}
+        {benchmarks?.compositeScore && (<div className="flex items-center justify-center gap-6 py-3 px-4 bg-slate-50 rounded-lg border border-slate-100 mb-8 flex-wrap"><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Your Score:</span><span className="text-sm font-semibold text-slate-800">{compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Participant Benchmark:</span><span className="text-sm font-medium text-slate-600">{benchmarks.compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-1"><span className={`text-sm font-semibold ${benchDiff && benchDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} pts` : 'â€”'}</span><span className="text-xs text-slate-400">vs benchmark</span></div></div>)}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {components.map((comp) => { const isExpanded = expandedCard === comp.id; const diff = comp.score && comp.benchmark ? comp.score - comp.benchmark : null; return (
             <div key={comp.id} className="border border-slate-200 rounded-lg overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-100 bg-slate-50"><div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-700">{comp.label}</span><span className="text-xs text-slate-400 font-medium">{comp.weight}%</span></div></div>
-              <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? '—'}<span className="text-sm text-slate-400 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-400">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : '—'} <span className="text-slate-400 font-normal">({comp.benchmark})</span></span></div>)}</div>
+              <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? 'â€”'}<span className="text-sm text-slate-400 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-400">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : 'â€”'} <span className="text-slate-400 font-normal">({comp.benchmark})</span></span></div>)}</div>
               <button onClick={() => setExpandedCard(isExpanded ? null : comp.id)} className="w-full mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-1 text-xs text-slate-400 hover:text-slate-600">{isExpanded ? 'Hide' : 'Show'} details {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}</button></div>
-              {isExpanded && (<div className="px-4 pb-4 bg-slate-50 border-t border-slate-100"><div className="rounded border border-slate-200 bg-white overflow-hidden mt-3"><table className="w-full text-xs"><thead><tr className="bg-slate-50 border-b border-slate-200"><th className="text-left px-3 py-2 font-medium text-slate-500">Response</th><th className="text-center px-2 py-2 font-medium text-slate-500">Bench</th><th className="text-right px-3 py-2 font-medium text-slate-500">Pts</th></tr></thead><tbody className="divide-y divide-slate-100">{comp.id === 'maturity' && (<><tr className={maturityScore === 100 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 100 ? '✓ ' : ''}Comprehensive</td><td className="text-center px-2 py-2 text-slate-400">15%</td><td className="text-right px-3 py-2">100</td></tr><tr className={maturityScore === 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 80 ? '✓ ' : ''}Enhanced</td><td className="text-center px-2 py-2 text-slate-400">22%</td><td className="text-right px-3 py-2">80</td></tr><tr className={maturityScore === 50 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 50 ? '✓ ' : ''}Moderate</td><td className="text-center px-2 py-2 text-slate-400">35%</td><td className="text-right px-3 py-2">50</td></tr><tr className={maturityScore === 20 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{maturityScore === 20 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">18%</td><td className="text-right px-3 py-2">20</td></tr><tr className={maturityScore === 0 ? 'bg-red-50' : ''}><td className="px-3 py-2">{maturityScore === 0 ? '✓ ' : ''}Minimum/None</td><td className="text-center px-2 py-2 text-slate-400">10%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'breadth' && (<><tr className={breadthScore >= 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{breadthScore >= 80 ? '✓ ' : ''}Beyond legal</td><td className="text-center px-2 py-2 text-slate-400">45%</td><td className="text-right px-3 py-2">100</td></tr><tr className={breadthScore >= 40 && breadthScore < 80 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{breadthScore >= 40 && breadthScore < 80 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">30%</td><td className="text-right px-3 py-2">50</td></tr><tr className={breadthScore < 40 ? 'bg-red-50' : ''}><td className="px-3 py-2">{breadthScore < 40 ? '✓ ' : ''}Minimum only</td><td className="text-center px-2 py-2 text-slate-400">25%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'weighted' && (<tr><td colSpan={3} className="px-3 py-3 text-slate-500 text-center">From 13 dimensions × strategic weights</td></tr>)}</tbody></table></div></div>)}
+              {isExpanded && (<div className="px-4 pb-4 bg-slate-50 border-t border-slate-100"><div className="rounded border border-slate-200 bg-white overflow-hidden mt-3"><table className="w-full text-xs"><thead><tr className="bg-slate-50 border-b border-slate-200"><th className="text-left px-3 py-2 font-medium text-slate-500">Response</th><th className="text-center px-2 py-2 font-medium text-slate-500">Bench</th><th className="text-right px-3 py-2 font-medium text-slate-500">Pts</th></tr></thead><tbody className="divide-y divide-slate-100">{comp.id === 'maturity' && (<><tr className={maturityScore === 100 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 100 ? 'âœ“ ' : ''}Comprehensive</td><td className="text-center px-2 py-2 text-slate-400">15%</td><td className="text-right px-3 py-2">100</td></tr><tr className={maturityScore === 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 80 ? 'âœ“ ' : ''}Enhanced</td><td className="text-center px-2 py-2 text-slate-400">22%</td><td className="text-right px-3 py-2">80</td></tr><tr className={maturityScore === 50 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 50 ? 'âœ“ ' : ''}Moderate</td><td className="text-center px-2 py-2 text-slate-400">35%</td><td className="text-right px-3 py-2">50</td></tr><tr className={maturityScore === 20 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{maturityScore === 20 ? 'âœ“ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">18%</td><td className="text-right px-3 py-2">20</td></tr><tr className={maturityScore === 0 ? 'bg-red-50' : ''}><td className="px-3 py-2">{maturityScore === 0 ? 'âœ“ ' : ''}Minimum/None</td><td className="text-center px-2 py-2 text-slate-400">10%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'breadth' && (<><tr className={breadthScore >= 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{breadthScore >= 80 ? 'âœ“ ' : ''}Beyond legal</td><td className="text-center px-2 py-2 text-slate-400">45%</td><td className="text-right px-3 py-2">100</td></tr><tr className={breadthScore >= 40 && breadthScore < 80 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{breadthScore >= 40 && breadthScore < 80 ? 'âœ“ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">30%</td><td className="text-right px-3 py-2">50</td></tr><tr className={breadthScore < 40 ? 'bg-red-50' : ''}><td className="px-3 py-2">{breadthScore < 40 ? 'âœ“ ' : ''}Minimum only</td><td className="text-center px-2 py-2 text-slate-400">25%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'weighted' && (<tr><td colSpan={3} className="px-3 py-3 text-slate-500 text-center">From 13 dimensions Ã— strategic weights</td></tr>)}</tbody></table></div></div>)}
             </div>); })}
         </div>
       </div>
@@ -76,7 +76,7 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
             <div className="w-10 text-center"><span className="text-xs text-slate-400">{d.weight}%</span></div>
             <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
             <div className="w-12 text-right"><span className="text-sm font-semibold" style={{ color: d.tier.color }}>{d.score}</span></div>
-            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-400">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">—</span>}</div>
+            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-400">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">â€”</span>}</div>
             <div className="w-24 flex justify-center"><span className={`text-xs font-medium px-2.5 py-1 rounded ${d.tier.bgColor} border ${d.tier.borderColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span></div>
           </div>); })}</div>
         <div className="flex items-center justify-end gap-4 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-400"><span>Scores out of 100</span><span className="flex items-center gap-1"><span className="inline-block w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500"></span>Benchmark</span></div>
@@ -110,9 +110,9 @@ function PolishedMatrix({ dimensionAnalysis, getScoreColor }: any) {
             <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT - 10} textAnchor="middle" fill="#1E40AF" fontSize="11" fontWeight="500" opacity="0.6">MAINTAIN & LEVERAGE</text>
             {showBenchmarks && dimensionAnalysis.map((d: any) => { if (d.benchmark === null) return null; const xPos = PADDING + (d.benchmark / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); return (<g key={`bench-${d.dim}`} transform={`translate(${xPos}, ${yPos})`}><circle r="10" fill="none" stroke="#94A3B8" strokeWidth="2" strokeDasharray="3,2" /></g>); })}
             {dimensionAnalysis.map((d: any) => { const xPos = PADDING + (d.score / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); const isHovered = hoveredDim === d.dim; return (<g key={d.dim} transform={`translate(${xPos}, ${yPos})`} onMouseEnter={() => setHoveredDim(d.dim)} onMouseLeave={() => setHoveredDim(null)} style={{ cursor: 'pointer' }}><circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" /><circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} /><text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="600">D{d.dim}</text>{isHovered && (<g transform="translate(25, -10)"><rect x="0" y="-12" width="150" height="55" rx="4" fill="white" stroke="#E2E8F0" /><text x="8" y="2" fontSize="11" fontWeight="600" fill="#1E293B">{d.name}</text><text x="8" y="18" fontSize="10" fill="#64748B">Score: {d.score}</text>{d.benchmark !== null && <text x="8" y="34" fontSize="10" fill="#94A3B8">Benchmark: {d.benchmark}</text>}</g>)}</g>); })}
-            <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>{[0, 25, 50, 75, 100].map((val) => (<g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}><line y1="0" y2="5" stroke="#94A3B8" strokeWidth="1" /><text y="18" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text></g>))}<text x={PADDING + PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Performance Score →</text></g>
+            <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>{[0, 25, 50, 75, 100].map((val) => (<g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}><line y1="0" y2="5" stroke="#94A3B8" strokeWidth="1" /><text y="18" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text></g>))}<text x={PADDING + PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Performance Score â†’</text></g>
             <g transform={`translate(${PADDING}, 0)`}>{[0, 5, 10, 15].map((val) => (<g key={val} transform={`translate(0, ${PADDING + PLOT_HEIGHT - (val / MAX_WEIGHT) * PLOT_HEIGHT})`}><line x1="-5" x2="0" stroke="#94A3B8" strokeWidth="1" /><text x="-10" textAnchor="end" dominantBaseline="middle" fill="#64748B" fontSize="11">{val}%</text></g>))}</g>
-            <text transform={`translate(15, ${PADDING + PLOT_HEIGHT/2}) rotate(-90)`} textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Strategic Weight ↑</text>
+            <text transform={`translate(15, ${PADDING + PLOT_HEIGHT/2}) rotate(-90)`} textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Strategic Weight â†‘</text>
           </g>
         </svg>
       </div>{showBenchmarks && (<div className="flex items-center justify-center gap-6 mt-4 text-xs text-slate-500"><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-600"></span>Your score</span><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-2 border-slate-400 border-dashed"></span>Benchmark</span></div>)}</div>
@@ -128,9 +128,9 @@ function PolishedKeyTakeaways({ dimensionAnalysis, inProgressItems }: any) {
     <div className="bg-slate-800 rounded-lg p-6 mb-6">
       <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">Key Takeaways</p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div><p className="text-xs text-slate-400 mb-1">Top Strength</p><p className="text-white font-medium">{topStrength?.name || '—'}</p>{topStrength && <p className="text-emerald-400 text-sm">Score: {topStrength.score}</p>}</div>
-        <div><p className="text-xs text-slate-400 mb-1">Biggest Gap</p><p className="text-white font-medium">{biggestGap?.name || '—'}</p>{biggestGap && <p className="text-amber-400 text-sm">Score: {biggestGap.score}</p>}</div>
-        <div><p className="text-xs text-slate-400 mb-1">Fastest Win</p><p className="text-white font-medium">{fastestWin?.name || '—'}</p>{fastestWin && <p className="text-sky-400 text-sm">{fastestWin.type} in {fastestWin.dimName}</p>}</div>
+        <div><p className="text-xs text-slate-400 mb-1">Top Strength</p><p className="text-white font-medium">{topStrength?.name || 'â€”'}</p>{topStrength && <p className="text-emerald-400 text-sm">Score: {topStrength.score}</p>}</div>
+        <div><p className="text-xs text-slate-400 mb-1">Biggest Gap</p><p className="text-white font-medium">{biggestGap?.name || 'â€”'}</p>{biggestGap && <p className="text-amber-400 text-sm">Score: {biggestGap.score}</p>}</div>
+        <div><p className="text-xs text-slate-400 mb-1">Fastest Win</p><p className="text-white font-medium">{fastestWin?.name || 'â€”'}</p>{fastestWin && <p className="text-sky-400 text-sm">{fastestWin.type} in {fastestWin.dimName}</p>}</div>
       </div>
     </div>
   );
@@ -152,7 +152,7 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
             <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-slate-100 text-slate-700">{dimension.gaps?.length || 0}</span><span className="text-xs text-slate-500">Gaps</span></div>
           </div>
           <table className="w-full"><thead><tr className="border-b border-slate-200"><th className="text-left py-2 px-3 text-xs font-medium text-slate-400 uppercase">Element</th><th className="text-center py-2 px-3 text-xs font-medium text-slate-400 uppercase w-36">Status</th><th className="text-right py-2 px-3 text-xs font-medium text-slate-400 uppercase w-20">Pts</th></tr></thead>
-          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-400 bg-slate-50'; if (el.isStrength) { statusLabel = 'Offering'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = 'Planning'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = 'Assessing'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = 'Unsure'; statusClass = 'text-slate-400 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? '—'}</td></tr>); })}</tbody></table>
+          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-400 bg-slate-50'; if (el.isStrength) { statusLabel = 'Offering'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = 'Planning'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = 'Assessing'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = 'Unsure'; statusClass = 'text-slate-400 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? 'â€”'}</td></tr>); })}</tbody></table>
         </div>
       </div>
     </div>
@@ -557,7 +557,7 @@ function getTwoStepRoadmap(
     }).sort((a, b) => b.pct - a.pct);
     strategicLift = { 
       name: withBench[0].name, 
-      reason: `${withBench[0].pct}% of participating organizations offer this—adding this would meaningfully expand your support coverage` 
+      reason: `${withBench[0].pct}% of participating organizations offer thisâ€”adding this would meaningfully expand your support coverage` 
     };
   }
   
@@ -599,7 +599,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'employee assistance fund or gap insurance',
       cacPrograms: {
         exemplary: 'Showcase your financial protection programs through CAC\'s Best Practices Library. We can connect you with benefits consultants seeking model programs to replicate.',
-        leading: 'Our Benefits Gap Analysis identifies specific coverage enhancements—like cancer-specific riders or out-of-pocket maximums—that would achieve Exemplary status.',
+        leading: 'Our Benefits Gap Analysis identifies specific coverage enhancementsâ€”like cancer-specific riders or out-of-pocket maximumsâ€”that would achieve Exemplary status.',
         progressing: 'CAC\'s Financial Protection Assessment evaluates your insurance, disability, and supplemental coverage against cancer-specific needs, with vendor recommendations.',
         emerging: 'Our Financial Wellness for Serious Illness program designs hardship funds, premium assistance, and navigation support to reduce financial barriers to care.',
         developing: 'Critical: CAC\'s Emergency Benefits Review can identify immediate coverage gaps and design interim financial support while longer-term solutions are developed.'
@@ -612,10 +612,10 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'conversation guide and scenario training',
       cacPrograms: {
         exemplary: 'Your manager training could become a CAC-certified program. We can help scale your approach across business units and document for external recognition.',
-        leading: 'Our Advanced Manager Certification adds specialized modules on complex scenarios—recurrence, terminal diagnosis, grief—to achieve comprehensive preparedness.',
+        leading: 'Our Advanced Manager Certification adds specialized modules on complex scenariosâ€”recurrence, terminal diagnosis, griefâ€”to achieve comprehensive preparedness.',
         progressing: 'CAC\'s Manager Essentials Training provides 4-hour workshops with role-play scenarios, conversation scripts, and ongoing coaching support.',
         emerging: 'Our Manager Quick-Start Kit includes conversation guides, FAQ documents, and 90-minute awareness training to build baseline confidence.',
-        developing: 'Urgent: CAC\'s Manager Emergency Toolkit provides immediate resources—scripts, escalation paths, HR support protocols—while comprehensive training is developed.'
+        developing: 'Urgent: CAC\'s Manager Emergency Toolkit provides immediate resourcesâ€”scripts, escalation paths, HR support protocolsâ€”while comprehensive training is developed.'
       }
     },
     4: { 
@@ -625,7 +625,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'centralized resource hub or concierge',
       cacPrograms: {
         exemplary: 'Partner with CAC to offer your navigation model as a benchmark for other organizations. We can facilitate knowledge-sharing with Index participants.',
-        leading: 'Our Navigation Enhancement service adds specialized resources—clinical trial matching, second opinion coordination—to achieve comprehensive support.',
+        leading: 'Our Navigation Enhancement service adds specialized resourcesâ€”clinical trial matching, second opinion coordinationâ€”to achieve comprehensive support.',
         progressing: 'CAC\'s Resource Hub Design creates a centralized portal mapping all your benefits, vendors, and support resources with clear access pathways.',
         emerging: 'Our Navigation Foundation program implements a single point of contact model with trained navigators who connect employees to appropriate resources.',
         developing: 'Critical: CAC\'s Navigation Quick-Start creates an immediate resource guide and trained HR liaison while comprehensive navigation is built.'
@@ -638,7 +638,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'remote work and schedule flexibility policies',
       cacPrograms: {
         exemplary: 'Document your accommodation practices for CAC\'s Accommodation Best Practices guide. We can facilitate sessions sharing your interactive process approach.',
-        leading: 'Our Accommodation Excellence program addresses edge cases—cognitive impacts, fatigue management, role modifications—for comprehensive flexibility.',
+        leading: 'Our Accommodation Excellence program addresses edge casesâ€”cognitive impacts, fatigue management, role modificationsâ€”for comprehensive flexibility.',
         progressing: 'CAC\'s Accommodation Framework Training teaches HR and managers the interactive process, with templates for common cancer-related accommodations.',
         emerging: 'Our Flexibility Foundation program designs remote work, schedule modification, and workload adjustment policies specific to treatment needs.',
         developing: 'Urgent: CAC\'s Accommodation Emergency Protocol creates immediate flexibility options while comprehensive policies are developed.'
@@ -677,7 +677,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'structured 90-day re-entry protocol',
       cacPrograms: {
         exemplary: 'Your RTW program is a model. CAC can help document your protocols for our Best Practices Library and facilitate peer learning sessions.',
-        leading: 'Our RTW Excellence program adds specialized components—cognitive rehabilitation, stamina building, peer mentoring—for comprehensive re-entry.',
+        leading: 'Our RTW Excellence program adds specialized componentsâ€”cognitive rehabilitation, stamina building, peer mentoringâ€”for comprehensive re-entry.',
         progressing: 'CAC\'s Return-to-Work Protocol Design creates phased re-entry templates, check-in schedules, and adjustment frameworks for sustainable transitions.',
         emerging: 'Our RTW Foundation program implements basic phased return, temporary accommodations, and manager check-in protocols.',
         developing: 'Urgent: CAC\'s RTW Quick-Start provides immediate guidance for current cases while comprehensive protocols are developed.'
@@ -703,7 +703,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'caregiver leave and flexible scheduling',
       cacPrograms: {
         exemplary: 'Your caregiver support is a differentiator. CAC can document your approach for our Caregiver Support Guide and connect you with recognition opportunities.',
-        leading: 'Our Caregiver Excellence program adds specialized resources—backup care, support groups, navigation—for comprehensive family support.',
+        leading: 'Our Caregiver Excellence program adds specialized resourcesâ€”backup care, support groups, navigationâ€”for comprehensive family support.',
         progressing: 'CAC\'s Caregiver Support Framework designs leave policies, flexibility options, and resource connections specific to caregiving needs.',
         emerging: 'Our Caregiver Foundation program creates basic leave provisions, flexible scheduling, and EAP integration for caregiver support.',
         developing: 'Urgent: CAC\'s Caregiver Quick-Start provides immediate flexibility guidelines while comprehensive support programs are developed.'
@@ -770,7 +770,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
     insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the participant average of ${benchmark}, this demonstrates exceptional commitment to employee support.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
     cacHelp = cacProgram;
   } else if (tierName === 'Leading') {
-    insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Exemplary status—consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Exemplary tier.'}`;
+    insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Exemplary statusâ€”consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Exemplary tier.'}`;
     cacHelp = cacProgram;
   } else if (tierName === 'Progressing') {
     insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
@@ -790,14 +790,14 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
 function getBenchmarkNarrative(score: number, benchmark: number | null, dimName: string): string {
   if (benchmark === null) return '';
   const diff = score - benchmark;
-  if (diff > 25) return `Exceptional performance at ${diff} points above the participant average—this represents a genuine organizational strength and commitment to employee wellbeing.`;
+  if (diff > 25) return `Exceptional performance at ${diff} points above the participant averageâ€”this represents a genuine organizational strength and commitment to employee wellbeing.`;
   if (diff > 15) return `Well above the ${benchmark} participant average by ${diff} points, indicating mature, established practices that employees likely recognize and value.`;
   if (diff > 5) return `Above benchmark by ${diff} points (participant avg: ${benchmark}), demonstrating strong commitment with opportunities to strengthen further.`;
-  if (diff > 0) return `Slightly above the ${benchmark} participant average—a good foundation to build on for differentiation.`;
-  if (diff === 0) return `Matching the participant average of ${benchmark}—an opportunity to differentiate through targeted improvements.`;
-  if (diff > -10) return `${Math.abs(diff)} points below the ${benchmark} participant benchmark—targeted improvements can close this gap within 6-12 months.`;
+  if (diff > 0) return `Slightly above the ${benchmark} participant averageâ€”a good foundation to build on for differentiation.`;
+  if (diff === 0) return `Matching the participant average of ${benchmark}â€”an opportunity to differentiate through targeted improvements.`;
+  if (diff > -10) return `${Math.abs(diff)} points below the ${benchmark} participant benchmarkâ€”targeted improvements can close this gap within 6-12 months.`;
   if (diff > -20) return `Notable gap of ${Math.abs(diff)} points below the ${benchmark} participant average warrants focused strategic attention.`;
-  return `Currently ${Math.abs(diff)} points below the participant average (${benchmark})—this is a priority area where focused improvements will meaningfully strengthen your employee support.`;
+  return `Currently ${Math.abs(diff)} points below the participant average (${benchmark})â€”this is a priority area where focused improvements will meaningfully strengthen your employee support.`;
 }
 
 // Identify meaningful cross-dimension patterns
@@ -822,7 +822,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
     patterns.push({
       pattern: `Strong Culture (${culture.score}) paired with lower Manager Preparedness (${manager.score})`,
       implication: 'Employees likely feel safe disclosing health challenges, but managers may lack confidence and tools to respond effectively. This creates risk of inconsistent support experiences.',
-      recommendation: 'Prioritize manager training with conversation guides and scenario practice. Your positive culture means managers want to help—give them the skills to do so effectively.'
+      recommendation: 'Prioritize manager training with conversation guides and scenario practice. Your positive culture means managers want to helpâ€”give them the skills to do so effectively.'
     });
   }
   
@@ -831,7 +831,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
     patterns.push({
       pattern: `Strong Insurance Benefits (${insurance.score}) with weaker Navigation (${navigation.score})`,
       implication: 'You\'ve invested in comprehensive benefits, but employees may struggle to find and access them when needed. Benefits utilization is likely below potential, reducing ROI.',
-      recommendation: 'Implement a navigation solution—single entry point, benefits concierge, or resource hub. This maximizes return on your existing benefits investment.'
+      recommendation: 'Implement a navigation solutionâ€”single entry point, benefits concierge, or resource hub. This maximizes return on your existing benefits investment.'
     });
   }
   
@@ -842,7 +842,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
       patterns.push({
         pattern: `${strongDims.length} dimensions at Leading+ level but Communication at only ${communication.score}`,
         implication: `You have strong programs in ${strongDims.slice(0, 2).map(d => d.name).join(' and ')}, but low awareness may be limiting utilization. Employees may not know these resources exist when they need them.`,
-        recommendation: 'Launch targeted awareness campaigns highlighting your strongest offerings. This is a quick win—you already have the programs, just need visibility.'
+        recommendation: 'Launch targeted awareness campaigns highlighting your strongest offerings. This is a quick winâ€”you already have the programs, just need visibility.'
       });
     }
   }
@@ -861,7 +861,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
     patterns.push({
       pattern: `Good Accommodations (${accommodations.score}) but lower Career Continuity (${career.score})`,
       implication: 'Employees can adjust their work during treatment, but may fear long-term career impact. This can lead to hidden diagnoses or premature departures despite good day-to-day support.',
-      recommendation: 'Add explicit career protection policies—promotion eligibility during medical leave, transparent communication about performance expectations, and success stories of career progression post-diagnosis.'
+      recommendation: 'Add explicit career protection policiesâ€”promotion eligibility during medical leave, transparent communication about performance expectations, and success stories of career progression post-diagnosis.'
     });
   }
   
@@ -1132,7 +1132,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 </g>
               ))}
               <text x={PLOT_WIDTH/2} y="34" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-                PERFORMANCE SCORE →
+                PERFORMANCE SCORE â†’
               </text>
             </g>
             
@@ -1151,7 +1151,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             
             {/* Y-axis label */}
             <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-              ↑ STRATEGIC IMPORTANCE
+              â†‘ STRATEGIC IMPORTANCE
             </text>
             
             {/* Data points - at true positions, no nudging */}
@@ -1686,7 +1686,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             return options.map((opt, i) => (
                               <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : 'bg-slate-50'}`}>
                                 <div className="flex items-center gap-2">
-                                  {opt.selected && <span className="text-purple-600">✓</span>}
+                                  {opt.selected && <span className="text-purple-600">âœ“</span>}
                                   <span className={opt.selected ? 'font-semibold text-purple-900' : 'text-slate-600'}>{opt.label}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -1726,7 +1726,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                 return (
                                   <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
                                     <div className="flex items-center gap-2">
-                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      {isSelected && <span className="text-blue-600">âœ“</span>}
                                       <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
                                     </div>
                                     <div className="flex items-center">
@@ -1760,7 +1760,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                 return (
                                   <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
                                     <div className="flex items-center gap-2">
-                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      {isSelected && <span className="text-blue-600">âœ“</span>}
                                       <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
                                     </div>
                                     <div className="flex items-center">
@@ -1799,7 +1799,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                 return (
                                   <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
                                     <div className="flex items-center gap-2">
-                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      {isSelected && <span className="text-blue-600">âœ“</span>}
                                       <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
                                     </div>
                                     <div className="flex items-center">
@@ -2041,7 +2041,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           return options.map((opt, i) => (
                             <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : 'bg-slate-50'}`}>
                               <div className="flex items-center gap-2">
-                                {opt.selected && <span className="text-purple-600">✓</span>}
+                                {opt.selected && <span className="text-purple-600">âœ“</span>}
                                 <span className={opt.selected ? 'font-semibold text-purple-900' : 'text-slate-700'}>{opt.label}</span>
                               </div>
                               <div className="flex items-center">
@@ -2077,7 +2077,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                               return (
                                 <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-teal-100 border-2 border-teal-400' : 'bg-slate-50'}`}>
                                   <div className="flex items-center gap-2">
-                                    {isSelected && <span className="text-teal-600">✓</span>}
+                                    {isSelected && <span className="text-teal-600">âœ“</span>}
                                     <span className={isSelected ? 'font-semibold text-teal-900' : 'text-slate-700'}>{opt.label}</span>
                                   </div>
                                   <div className="flex items-center">
@@ -2107,7 +2107,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                               return (
                                 <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-teal-100 border-2 border-teal-400' : 'bg-slate-50'}`}>
                                   <div className="flex items-center gap-2">
-                                    {isSelected && <span className="text-teal-600">✓</span>}
+                                    {isSelected && <span className="text-teal-600">âœ“</span>}
                                     <span className={isSelected ? 'font-semibold text-teal-900' : 'text-slate-700'}>{opt.label}</span>
                                   </div>
                                   <div className="flex items-center">
@@ -2147,7 +2147,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                               return (
                                 <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-orange-100 border-2 border-orange-400' : 'bg-slate-50'}`}>
                                   <div className="flex items-center gap-2">
-                                    {isSelected && <span className="text-orange-600">✓</span>}
+                                    {isSelected && <span className="text-orange-600">âœ“</span>}
                                     <span className={isSelected ? 'font-semibold text-orange-900' : 'text-slate-700'}>{opt.label}</span>
                                   </div>
                                   <div className="flex items-center">
@@ -2274,20 +2274,20 @@ export default function ExportReportPage() {
     crossDimensional: {
       title: 'Cross-Dimensional Insights',
       what: 'Identifies meaningful patterns that emerge when comparing different dimensions together. These insights reveal systemic organizational issues or opportunities that wouldn\'t be visible looking at dimensions individually.',
-      how: 'The system checks for specific pattern combinations—for example, if Culture scores high but Manager Preparedness scores low, it surfaces the insight that "employees feel safe disclosing but managers lack tools to respond." Each pattern has specific score thresholds that trigger it.',
+      how: 'The system checks for specific pattern combinationsâ€”for example, if Culture scores high but Manager Preparedness scores low, it surfaces the insight that "employees feel safe disclosing but managers lack tools to respond." Each pattern has specific score thresholds that trigger it.',
       when: 'Use these insights to understand the "why" behind your scores and identify root causes. They\'re especially valuable for leadership discussions and strategic planning.',
       questions: ['Why aren\'t employees using our benefits?', 'What systemic issues should leadership understand?', 'Are there hidden connections between our programs?', 'What organizational dynamics affect our cancer support?']
     },
     impactRanked: {
       title: 'Impact-Ranked Improvement Priorities',
       what: 'Ranks all 13 dimensions by which ones will give you the biggest "bang for your buck" if you improve them. This considers both the potential score improvement AND the dimension\'s weight in your composite score.',
-      how: 'Calculates ROI as: (potential score gain × dimension weight) × gap factor. Potential improvement varies based on your starting score—lower-scoring dimensions have more room for quick gains, while higher-scoring dimensions see more incremental improvements. Gap level indicates how many elements need attention: Few Gaps (1-2), Some Gaps (3-5), or Many Gaps (6+).',
-      when: 'Use this for tactical, short-term prioritization—deciding where to focus resources this quarter or this year.',
+      how: 'Calculates ROI as: (potential score gain Ã— dimension weight) Ã— gap factor. Potential improvement varies based on your starting scoreâ€”lower-scoring dimensions have more room for quick gains, while higher-scoring dimensions see more incremental improvements. Gap level indicates how many elements need attention: Few Gaps (1-2), Some Gaps (3-5), or Many Gaps (6+).',
+      when: 'Use this for tactical, short-term prioritizationâ€”deciding where to focus resources this quarter or this year.',
       questions: ['Where should we focus resources this quarter?', 'What will move our composite score the most?', 'Which improvements offer the best ROI?', 'What\'s the most efficient path to improvement?']
     },
     excellence: {
       title: 'Areas of Excellence',
-      what: 'Highlights your top-performing dimensions—those where you\'re already doing well and can leverage as competitive advantages.',
+      what: 'Highlights your top-performing dimensionsâ€”those where you\'re already doing well and can leverage as competitive advantages.',
       how: 'Simply identifies dimensions with the highest scores, representing your strongest current capabilities in cancer support.',
       when: 'Use these to identify best practices to share across the organization, build employer brand messaging, and understand what\'s working well.',
       questions: ['What are we doing right?', 'Which programs can we highlight for recruiting?', 'What best practices can we share?', 'Where are we leading vs. other participants?']
@@ -3211,7 +3211,7 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* The Context — Why This Work Matters */}
+            {/* The Context â€” Why This Work Matters */}
             <div className="bg-gradient-to-b from-slate-50 to-white px-12 py-10 border-b border-slate-200">
               {/* Lead stat + narrative */}
               <div className="flex items-start gap-10 mb-8">
@@ -3289,16 +3289,16 @@ export default function ExportReportPage() {
                 <div className="px-6 py-5 bg-slate-800">
                   <p className="text-sm text-center leading-relaxed">
                     <strong className="text-white">13 dimensions.</strong>
-                    <span className="text-slate-500 mx-2">•</span>
+                    <span className="text-slate-500 mx-2">â€¢</span>
                     <strong className="text-violet-400">Research-driven weights.</strong>
-                    <span className="text-slate-500 mx-2">•</span>
+                    <span className="text-slate-500 mx-2">â€¢</span>
                     <span className="text-slate-300">Grounded in the voices of HR leaders, employees, and Cancer and Careers leadership.</span>
                   </p>
                 </div>
               </div>
             </div>
             
-            {/* How to Use This Report — Collapsible */}
+            {/* How to Use This Report â€” Collapsible */}
             <div className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowReportGuide(!showReportGuide)}
@@ -3381,13 +3381,13 @@ export default function ExportReportPage() {
                   <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
                   <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
                   {isFoundingPartner(surveyId || '') && (
-                    <div className="mt-3 inline-flex items-center gap-3 bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg px-4 py-2.5 shadow-sm">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                        <span className="text-white text-sm font-semibold">Working with Cancer</span>
-                      </div>
-                      <div className="w-px h-4 bg-slate-600"></div>
-                      <span className="text-slate-300 text-xs font-medium uppercase tracking-wider">Pledge Signatory</span>
+                    <div className="mt-3 inline-flex items-center gap-3 rounded-lg px-4 py-2.5 shadow-sm" style={{ backgroundColor: '#434345' }}>
+                      <svg viewBox="0 0 300 300" className="h-6 w-auto">
+                        <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                        <path fill="#fff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                      </svg>
+                      <div className="w-px h-4 bg-white/30"></div>
+                      <span className="text-white text-xs font-medium uppercase tracking-wider">Pledge Signatory</span>
                     </div>
                   )}
                   {(contactName || contactEmail) && (
@@ -3401,7 +3401,7 @@ export default function ExportReportPage() {
                 <div className="flex items-center gap-8">
                   <div className="text-right">
                     <p className="text-slate-500 text-sm font-medium">Composite Score</p>
-                    <p className="text-6xl font-bold mt-1" style={{ color: tier?.color || '#666' }} data-export="composite-score">{compositeScore ?? '—'}</p>
+                    <p className="text-6xl font-bold mt-1" style={{ color: tier?.color || '#666' }} data-export="composite-score">{compositeScore ?? 'â€”'}</p>
                   </div>
                   {tier && (
                     <div className={`px-6 py-4 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
@@ -3464,7 +3464,7 @@ export default function ExportReportPage() {
                           <p className="text-base font-bold text-violet-800">
                             {pointsToNextTier} points from {nextTierUp.name} tier
                             {nextTierUp.name !== 'Exemplary' && (
-                              <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points from Exemplary</span>
+                              <span className="text-violet-600 font-normal ml-2">Â· {90 - (compositeScore || 0)} points from Exemplary</span>
                             )}
                           </p>
                           <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
@@ -3531,103 +3531,103 @@ export default function ExportReportPage() {
             </div>
           </div>
           
-          {/* ============ CONFIRMATORY CHECKLIST (Collapsible) ============ */}
+          {/* ============ ITEMS REQUIRING CONFIRMATION (Always visible) ============ */}
           {unsureItems > 0 && (
             <div className="px-12 py-5 bg-white border-b border-slate-200 max-w-[1200px] mx-auto">
-              <button 
-                onClick={() => setShowConfirmatoryChecklist(!showConfirmatoryChecklist)}
-                className="w-full flex items-center justify-between px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl hover:from-amber-100 hover:to-orange-100 transition-all group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                  </div>
-                  <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-amber-800 transition-colors">
-                      {unsureItems} Items Requiring Confirmation
-                    </span>
-                    <span className="text-sm text-slate-500 ml-2">
-                      Review items marked "Unsure" to validate status and update scores
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full">
-                    {dimensionAnalysis.filter(d => d.unsure?.length > 0).length} dimensions
-                  </span>
-                  <div className={`w-7 h-7 rounded-full bg-white border border-amber-200 flex items-center justify-center transition-transform duration-200 ${showConfirmatoryChecklist ? 'rotate-180' : ''}`}>
-                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-              </button>
-              
-              {showConfirmatoryChecklist && (
-                <div className="mt-4">
-                  <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 rounded-xl overflow-hidden">
-                    {/* Explanation */}
-                    <div className="p-5 border-b border-amber-100">
-                      <p className="text-sm text-slate-700 leading-relaxed">
-                        <strong className="text-slate-800">Why this matters:</strong> Items marked "Unsure" represent a validation gap, not necessarily a program gap. 
-                        These are currently scored as <strong className="text-amber-700">Not Planned (0 points)</strong> until confirmed.
-                      </p>
-                      <p className="text-sm text-slate-600 mt-2">
-                        <strong className="text-slate-700">Next step:</strong> Cancer and Careers can work with your team to validate these items. 
-                        If confirmed as Offered, Planning, or Assessing, your scores will update accordingly.
-                      </p>
+              <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 rounded-xl overflow-hidden">
+                {/* Header with Export button */}
+                <div className="px-5 py-4 border-b border-amber-100 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
                     </div>
-                    
-                    {/* Compact grid of dimensions with unsure items */}
-                    <div className="p-5">
-                      <div className="grid grid-cols-2 gap-4">
-                        {dimensionAnalysis
-                          .filter(d => d.unsure && d.unsure.length > 0)
-                          .sort((a, b) => b.weight - a.weight)
-                          .map((dim) => (
-                            <div key={dim.dim} className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-                              <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-6 h-6 rounded flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: dim.tier.color }}>
-                                    {dim.dim}
-                                  </span>
-                                  <span className="text-sm font-medium text-slate-700">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
-                                </div>
-                                <span className="text-xs text-amber-600 font-semibold">{dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''}</span>
-                              </div>
-                              <div className="px-4 py-2 max-h-32 overflow-y-auto">
-                                {dim.unsure.slice(0, 4).map((item: any, idx: number) => (
-                                  <div key={idx} className="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0">
-                                    <span className="text-amber-500 text-xs mt-0.5">?</span>
-                                    <span className="text-xs text-slate-600 leading-tight">{item.name}</span>
-                                  </div>
-                                ))}
-                                {dim.unsure.length > 4 && (
-                                  <p className="text-xs text-slate-400 py-1.5">+{dim.unsure.length - 4} more items</p>
-                                )}
-                              </div>
+                    <div>
+                      <span className="text-sm font-bold text-slate-800">{unsureItems} Items Requiring Confirmation</span>
+                      <span className="text-xs text-amber-600 font-semibold ml-3 bg-amber-100 px-2 py-0.5 rounded-full">
+                        {dimensionAnalysis.filter(d => d.unsure?.length > 0).length} dimensions
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const rows = [['Dimension', 'Item Name']];
+                      dimensionAnalysis.filter(d => d.unsure && d.unsure.length > 0).forEach(dim => {
+                        dim.unsure.forEach((item: any) => {
+                          rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, item.name]);
+                        });
+                      });
+                      const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+                      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                      const link = document.createElement('a');
+                      link.href = URL.createObjectURL(blob);
+                      link.download = `${companyName?.replace(/[^a-zA-Z0-9]/g, '_') || 'company'}_confirmation_items.csv`;
+                      link.click();
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium text-slate-700"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export CSV
+                  </button>
+                </div>
+                
+                {/* Explanation */}
+                <div className="p-5 border-b border-amber-100">
+                  <p className="text-sm text-slate-700 leading-relaxed">
+                    These items should be confirmed before finalizing your score.
+                  </p>
+                  <p className="text-sm text-slate-600 mt-2">
+                    <strong className="text-slate-700">Next step:</strong> Cancer and Careers can work with your team to determine the status of these items. 
+                    Once confirmed as Offered, Planning, Assessing, or Not Planned, your scores will be updated accordingly.
+                  </p>
+                </div>
+                
+                {/* Grid of dimensions with unsure items - show ALL items */}
+                <div className="p-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    {dimensionAnalysis
+                      .filter(d => d.unsure && d.unsure.length > 0)
+                      .sort((a, b) => b.weight - a.weight)
+                      .map((dim) => (
+                        <div key={dim.dim} className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                          <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: dim.tier.color }}>
+                                {dim.dim}
+                              </span>
+                              <span className="text-sm font-medium text-slate-700">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
                             </div>
-                          ))}
-                      </div>
-                    </div>
-                    
-                    {/* CTA */}
-                    <div className="px-5 py-4 bg-slate-800 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        <p className="text-sm text-slate-200">
-                          <strong className="text-white">Ready to validate?</strong> Cancer and Careers can schedule a review session.
-                        </p>
-                      </div>
-                      <span className="text-slate-400 text-sm">info@cancerandcareers.org</span>
-                    </div>
+                            <span className="text-xs text-amber-600 font-semibold">{dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''}</span>
+                          </div>
+                          <div className="px-4 py-2 max-h-48 overflow-y-auto">
+                            {dim.unsure.map((item: any, idx: number) => (
+                              <div key={idx} className="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 flex-shrink-0"></span>
+                                <span className="text-sm text-slate-600 leading-tight">{item.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                   </div>
                 </div>
-              )}
+                
+                {/* CTA */}
+                <div className="px-5 py-4 bg-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <p className="text-sm text-slate-200">
+                      <strong className="text-white">Ready to validate?</strong> Cancer and Careers can schedule a review session.
+                    </p>
+                  </div>
+                  <span className="text-slate-400 text-sm">info@cancerandcareers.org</span>
+                </div>
+              </div>
             </div>
           )}
           
@@ -3643,7 +3643,7 @@ export default function ExportReportPage() {
               <div className="flex items-center justify-center gap-8 flex-wrap">
                 {/* Composite Score - Static */}
                 <div className="text-center px-10 py-6 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border-2 border-slate-700 shadow-xl min-w-[180px]">
-                  <p className="text-5xl font-bold text-white">{compositeScore ?? '—'}</p>
+                  <p className="text-5xl font-bold text-white">{compositeScore ?? 'â€”'}</p>
                   <p className="text-sm text-slate-300 font-semibold uppercase tracking-wider mt-3">Composite Score</p>
                 </div>
                 
@@ -3654,10 +3654,10 @@ export default function ExportReportPage() {
                   onClick={() => setActiveScoreOverlay('weightedDim')}
                   className="text-center px-8 py-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-300 min-w-[160px] cursor-pointer hover:shadow-lg hover:border-slate-400 hover:scale-105 transition-all group"
                 >
-                  <p className="text-4xl font-bold text-slate-800">{weightedDimScore ?? '—'}</p>
+                  <p className="text-4xl font-bold text-slate-800">{weightedDimScore ?? 'â€”'}</p>
                   <p className="text-base text-slate-600 mt-2 font-semibold">Weighted Dims</p>
-                  <p className="text-sm text-slate-500 font-bold">× 90%</p>
-                  <p className="text-xs text-slate-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</p>
+                  <p className="text-sm text-slate-500 font-bold">Ã— 90%</p>
+                  <p className="text-xs text-slate-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details â†’</p>
                 </div>
                 
                 <span className="text-4xl text-slate-400 font-light">+</span>
@@ -3667,10 +3667,10 @@ export default function ExportReportPage() {
                   onClick={() => setActiveScoreOverlay('maturity')}
                   className="text-center px-8 py-5 bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl border-2 border-amber-300 min-w-[160px] cursor-pointer hover:shadow-lg hover:border-amber-400 hover:scale-105 transition-all group"
                 >
-                  <p className="text-4xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
+                  <p className="text-4xl font-bold text-amber-700">{maturityScore ?? 'â€”'}</p>
                   <p className="text-base text-amber-700 mt-2 font-semibold">Maturity</p>
-                  <p className="text-sm text-amber-600 font-bold">× 5%</p>
-                  <p className="text-xs text-amber-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</p>
+                  <p className="text-sm text-amber-600 font-bold">Ã— 5%</p>
+                  <p className="text-xs text-amber-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details â†’</p>
                 </div>
                 
                 <span className="text-4xl text-slate-400 font-light">+</span>
@@ -3680,10 +3680,10 @@ export default function ExportReportPage() {
                   onClick={() => setActiveScoreOverlay('breadth')}
                   className="text-center px-8 py-5 bg-gradient-to-br from-violet-50 to-violet-100 rounded-2xl border-2 border-violet-300 min-w-[160px] cursor-pointer hover:shadow-lg hover:border-violet-400 hover:scale-105 transition-all group"
                 >
-                  <p className="text-4xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
+                  <p className="text-4xl font-bold text-violet-700">{breadthScore ?? 'â€”'}</p>
                   <p className="text-base text-violet-700 mt-2 font-semibold">Breadth</p>
-                  <p className="text-sm text-violet-600 font-bold">× 5%</p>
-                  <p className="text-xs text-violet-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</p>
+                  <p className="text-sm text-violet-600 font-bold">Ã— 5%</p>
+                  <p className="text-xs text-violet-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details â†’</p>
                 </div>
               </div>
             </div>
@@ -3703,7 +3703,7 @@ export default function ExportReportPage() {
                           <p className="text-slate-300 mt-1">Contributes 90% of your composite score</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-4xl font-bold text-white">{weightedDimScore ?? '—'}</p>
+                          <p className="text-4xl font-bold text-white">{weightedDimScore ?? 'â€”'}</p>
                           <p className="text-sm text-slate-300">Your Score</p>
                         </div>
                       </div>
@@ -3745,7 +3745,7 @@ export default function ExportReportPage() {
                           <p className="text-amber-100 mt-1">Contributes 5% of your composite score</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-4xl font-bold text-white">{maturityScore ?? '—'}</p>
+                          <p className="text-4xl font-bold text-white">{maturityScore ?? 'â€”'}</p>
                           <p className="text-sm text-amber-100">Your Score</p>
                         </div>
                       </div>
@@ -3769,7 +3769,7 @@ export default function ExportReportPage() {
                         ].map((opt, i) => (
                           <div key={i} className={`flex justify-between items-center px-4 py-3 rounded-xl ${opt.selected ? 'bg-amber-100 border-2 border-amber-400 shadow-sm' : 'bg-slate-50'}`}>
                             <div className="flex items-center gap-3">
-                              {opt.selected && <span className="text-amber-600 text-lg">✓</span>}
+                              {opt.selected && <span className="text-amber-600 text-lg">âœ“</span>}
                               <span className={opt.selected ? 'font-semibold text-amber-900' : 'text-slate-600'}>{opt.label}</span>
                             </div>
                             <div className="flex items-center gap-6">
@@ -3872,13 +3872,13 @@ export default function ExportReportPage() {
                             <p className="text-violet-100 mt-1">Contributes 5% of your composite score</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-4xl font-bold text-white">{breadthScore ?? '—'}</p>
+                            <p className="text-4xl font-bold text-white">{breadthScore ?? 'â€”'}</p>
                             <p className="text-sm text-violet-100">Your Score</p>
                           </div>
                         </div>
                       </div>
                       <div className="px-8 py-6 space-y-6">
-                        <p className="text-slate-600">How expansive your benefits and support are—including whether you go beyond legal requirements, how structured your programs are, and how many health conditions are addressed.</p>
+                        <p className="text-slate-600">How expansive your benefits and support areâ€”including whether you go beyond legal requirements, how structured your programs are, and how many health conditions are addressed.</p>
                         
                         {/* CB3a - Beyond Legal */}
                         <div className="border border-violet-200 rounded-xl overflow-hidden">
@@ -3893,7 +3893,7 @@ export default function ExportReportPage() {
                             ].map((opt, i) => (
                               <div key={i} className={`flex justify-between items-center px-3 py-2 rounded-lg ${opt.selected ? 'bg-violet-100 border-2 border-violet-400' : 'bg-slate-50'}`}>
                                 <div className="flex items-center gap-2">
-                                  {opt.selected && <span className="text-violet-600">✓</span>}
+                                  {opt.selected && <span className="text-violet-600">âœ“</span>}
                                   <span className={opt.selected ? 'font-semibold text-violet-900' : 'text-slate-600'}>{opt.label}</span>
                                 </div>
                                 <span className={`font-semibold ${opt.selected ? 'text-violet-700' : 'text-slate-500'}`}>{opt.points} pts</span>
@@ -3913,7 +3913,7 @@ export default function ExportReportPage() {
                               const isSelected = cb3bArray.some((v: string) => v.includes(el.key) || el.label.toLowerCase().includes(v.substring(0, 10)));
                               return (
                                 <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
-                                  <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-400'}>{isSelected ? '✓' : '○'}</span>
+                                  <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-400'}>{isSelected ? 'âœ“' : 'â—‹'}</span>
                                   <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{el.label}</span>
                                 </div>
                               );
@@ -3932,7 +3932,7 @@ export default function ExportReportPage() {
                               const isSelected = isConditionSelected(condition);
                               return (
                                 <div key={i} className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
-                                  <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-400'}>{isSelected ? '✓' : '○'}</span>
+                                  <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-400'}>{isSelected ? 'âœ“' : 'â—‹'}</span>
                                   <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{condition}</span>
                                 </div>
                               );
@@ -3959,7 +3959,7 @@ export default function ExportReportPage() {
                 <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
                 <p className="text-slate-500 mt-1 text-sm">All 13 dimensions sorted by strategic weight</p>
               </div>
-              <span className="bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-lg font-semibold text-sm">👆 Click any dimension for element-level details</span>
+              <span className="bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-lg font-semibold text-sm">ðŸ‘† Click any dimension for element-level details</span>
             </div>
             <div className="px-12 py-4">
               {/* Table Header */}
@@ -4017,7 +4017,7 @@ export default function ExportReportPage() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-sm text-slate-300">—</span>
+                          <span className="text-sm text-slate-300">â€”</span>
                         )}
                       </div>
                       <div className="w-28 flex justify-center">
@@ -4051,7 +4051,7 @@ export default function ExportReportPage() {
                       : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
-                  {showBenchmarkRings ? '● Benchmarks On' : '○ Show Benchmarks'}
+                  {showBenchmarkRings ? 'â— Benchmarks On' : 'â—‹ Show Benchmarks'}
                 </button>
               </div>
             </div>
@@ -4173,7 +4173,7 @@ export default function ExportReportPage() {
                               <text y="20" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500" fontFamily="system-ui">{val}</text>
                             </g>
                           ))}
-                          <text x={PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">PERFORMANCE SCORE →</text>
+                          <text x={PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">PERFORMANCE SCORE â†’</text>
                         </g>
                         
                         {/* Y-axis */}
@@ -4188,7 +4188,7 @@ export default function ExportReportPage() {
                             );
                           })}
                         </g>
-                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">↑ STRATEGIC IMPORTANCE</text>
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">â†‘ STRATEGIC IMPORTANCE</text>
                         
                         {/* Benchmark rings at true positions + overlap indicators */}
                         {showBenchmarkRings && (() => {
@@ -4309,7 +4309,7 @@ export default function ExportReportPage() {
                         </div>
                         <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
                           <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${hoveredData.tier.bgColor} border ${hoveredData.tier.borderColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
-                          <span className="text-xs text-cyan-600 font-medium">Click for details →</span>
+                          <span className="text-xs text-cyan-600 font-medium">Click for details â†’</span>
                         </div>
                       </div>
                     )}
@@ -4558,7 +4558,7 @@ export default function ExportReportPage() {
                           ].map((opt, i) => (
                             <div key={i} className={`flex items-center justify-between px-3 py-2 rounded border ${opt.selected ? 'bg-indigo-100 border-indigo-400' : 'bg-white border-slate-200'}`}>
                               <div className="flex items-center gap-2">
-                                {opt.selected && <span className="text-indigo-600">✓</span>}
+                                {opt.selected && <span className="text-indigo-600">âœ“</span>}
                                 <span className={opt.selected ? 'font-semibold text-indigo-900 text-xs' : 'text-slate-600 text-xs'}>{opt.label}</span>
                               </div>
                               <span className={`font-bold text-sm ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>{opt.multiplier}</span>
@@ -4575,7 +4575,7 @@ export default function ExportReportPage() {
                       {/* Navigation */}
                       <div className="flex items-center gap-4">
                         <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
-                          ← Prev
+                          â† Prev
                         </button>
                         <div className="flex items-center gap-2">
                           {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
@@ -4589,7 +4589,7 @@ export default function ExportReportPage() {
                           ))}
                         </div>
                         <button onClick={() => setDimensionDetailModal(Math.min(13, dimensionDetailModal + 1))} disabled={dimensionDetailModal >= 13} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
-                          Next →
+                          Next â†’
                         </button>
                         <button onClick={() => setDimensionDetailModal(null)} className="ml-4 px-5 py-2 bg-slate-800 text-white rounded font-semibold text-sm hover:bg-slate-700">
                           Close
@@ -4650,7 +4650,7 @@ export default function ExportReportPage() {
                     <ul className="space-y-2">
                       {infoContent[infoModal].questions.map((q, i) => (
                         <li key={i} className="flex items-start gap-2 text-slate-600">
-                          <span className="text-violet-500 mt-1">•</span>
+                          <span className="text-violet-500 mt-1">â€¢</span>
                           <span>{q}</span>
                         </li>
                       ))}
@@ -4881,7 +4881,7 @@ export default function ExportReportPage() {
                                 <div className="text-center">
                                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Projected Score</p>
                                   <div className={`w-20 h-20 rounded-xl flex items-center justify-center shadow-md transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
-                                    <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : '—'}</span>
+                                    <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : 'â€”'}</span>
                                   </div>
                                 </div>
                               </div>
@@ -4954,7 +4954,7 @@ export default function ExportReportPage() {
                                         : 'border-slate-200 bg-white text-slate-600'
                                     }`}
                                   >
-                                    <option value="">—</option>
+                                    <option value="">â€”</option>
                                     {statusOptions.map(opt => (
                                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                                     ))}
@@ -5123,7 +5123,7 @@ export default function ExportReportPage() {
                                   <div className="flex flex-col gap-2">
                                     <input
                                       type="text"
-                                      value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? 'Focus on closing gaps and accelerating in-progress initiatives.'}
+                                      value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' â€¢ ') ?? 'Focus on closing gaps and accelerating in-progress initiatives.'}
                                       onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
                                       className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
                                       placeholder="Enter custom recommendations..."
@@ -5140,9 +5140,9 @@ export default function ExportReportPage() {
                                   </div>
                                 ) : (
                                   <div className="text-sm text-slate-600 space-y-1">
-                                    {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
+                                    {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' â€¢ ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
                                       <p key={i} className="flex items-start gap-2">
-                                        <span className="text-cyan-500 mt-0.5">→</span>
+                                        <span className="text-cyan-500 mt-0.5">â†’</span>
                                         <span>{rec}</span>
                                       </p>
                                     ))}
@@ -5328,7 +5328,7 @@ export default function ExportReportPage() {
             </div>
             <div className="px-12 py-10">
               <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                The following pages provide comprehensive analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                The following pages provide comprehensive analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>â€”those 
                 with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
               </p>
               <div className="grid grid-cols-2 gap-6">
@@ -5371,7 +5371,7 @@ export default function ExportReportPage() {
               </div>
               </div>
               <p className="text-base text-slate-500 mt-8 italic px-12 pb-6">
-                Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
+                Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' â€¢ ')}
               </p>
             </div>
           </div>
@@ -5489,7 +5489,7 @@ export default function ExportReportPage() {
                                 {evidence.topStrength && (
                                   <div className="flex items-start gap-2">
                                     <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                      <span className="text-emerald-600 text-sm">✓</span>
+                                      <span className="text-emerald-600 text-sm">âœ“</span>
                                     </span>
                                     <p className="text-base text-slate-700">
                                       <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
@@ -5500,7 +5500,7 @@ export default function ExportReportPage() {
                                 {evidence.biggestGap && (
                                   <div className="flex items-start gap-2">
                                     <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                      <span className="text-red-600 text-sm">✗</span>
+                                      <span className="text-red-600 text-sm">âœ—</span>
                                     </span>
                                     <p className="text-base text-slate-700">
                                       <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
@@ -5856,19 +5856,20 @@ export default function ExportReportPage() {
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             {/* Header */}
-            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 relative overflow-hidden">
+            <div className="px-12 py-6 relative overflow-hidden" style={{ backgroundColor: '#434345' }}>
               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-50"></div>
               <div className="relative flex items-center justify-between">
                 <div>
-                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-2">Global Initiative</p>
-                  <div className="h-8">
-                    <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-full object-contain brightness-0 invert" />
-                  </div>
+                  <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-2">Global Initiative</p>
+                  <svg viewBox="0 0 300 300" className="h-8 w-auto">
+                    <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                    <path fill="#fff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                  </svg>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
                     <p className="text-white text-2xl font-bold">850+</p>
-                    <p className="text-slate-300 text-xs">Companies Worldwide</p>
+                    <p className="text-white/70 text-xs">Companies Worldwide</p>
                   </div>
                 </div>
               </div>
@@ -5879,9 +5880,10 @@ export default function ExportReportPage() {
               {/* Origin + What It Is */}
               <div className="mb-8">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden flex">
-                    <div className="w-1/2 h-full bg-red-500"></div>
-                    <div className="w-1/2 h-full bg-red-100"></div>
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <path fill="#ff353c" d="M100,0 L100,100 L50,100 C22.4,100 0,77.6 0,50 C0,22.4 22.4,0 50,0 L100,0 Z"/>
+                    </svg>
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-800 text-lg mb-2">A Public Commitment to Support Employees Managing Cancer</h4>
@@ -5893,36 +5895,36 @@ export default function ExportReportPage() {
                 </div>
                 
                 {/* What Companies Commit To */}
-                <div className="bg-slate-800 rounded-xl p-6">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">Pledge Signatories Commit To:</p>
+                <div className="rounded-xl p-6" style={{ backgroundColor: '#434345' }}>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-4">Pledge Signatories Commit To:</p>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
-                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(255,53,60,0.3)' }}>
+                        <svg className="w-4 h-4" fill="none" stroke="#ff353c" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
                       <p className="text-white font-medium text-sm">Job Security</p>
-                      <p className="text-slate-400 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
+                      <p className="text-white/60 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
-                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(255,53,60,0.3)' }}>
+                        <svg className="w-4 h-4" fill="none" stroke="#ff353c" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                       </div>
                       <p className="text-white font-medium text-sm">Open Culture</p>
-                      <p className="text-slate-400 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
+                      <p className="text-white/60 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full bg-slate-500/30 flex items-center justify-center mb-3">
-                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(255,53,60,0.3)' }}>
+                        <svg className="w-4 h-4" fill="none" stroke="#ff353c" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                       </div>
                       <p className="text-white font-medium text-sm">Recovery Support</p>
-                      <p className="text-slate-400 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
+                      <p className="text-white/60 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
                     </div>
                   </div>
                 </div>
               </div>
               
               {/* Research Attribution - More Prominent */}
-              <div className="bg-gradient-to-r from-slate-700 to-slate-600 rounded-xl p-5 mb-6">
+              <div className="rounded-xl p-5 mb-6" style={{ backgroundColor: '#434345' }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -5930,11 +5932,11 @@ export default function ExportReportPage() {
                     </div>
                     <div>
                       <p className="text-white font-semibold">What Employees Say About the Pledge</p>
-                      <p className="text-slate-300 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
+                      <p className="text-white/70 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers</p>
                     </div>
                   </div>
-                  <div className="bg-white/20 rounded-lg px-4 py-2 text-center">
-                    <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Awareness Gap</p>
+                  <div className="rounded-lg px-4 py-2 text-center" style={{ backgroundColor: 'rgba(255,53,60,0.2)' }}>
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#ff353c' }}>Awareness Gap</p>
                     <p className="text-white font-bold">Only 16-18% aware</p>
                   </div>
                 </div>
@@ -5943,25 +5945,25 @@ export default function ExportReportPage() {
               {/* Research Stats */}
               <div className="grid grid-cols-2 gap-6">
                 {/* Employees Managing Cancer */}
-                <div className="bg-orange-50 rounded-xl p-5 border border-orange-100">
+                <div className="rounded-xl p-5 border" style={{ backgroundColor: '#fff5f5', borderColor: '#fecaca' }}>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-[#F37021] flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ff353c' }}>
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
-                    <p className="text-sm font-bold text-violet-800 uppercase tracking-wider">Employees Managing Cancer</p>
+                    <p className="text-sm font-bold uppercase tracking-wider" style={{ color: '#ff353c' }}>Employees Managing Cancer</p>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Say the pledge is important</span>
-                      <span className="text-lg font-bold text-[#F37021]">81%</span>
+                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                      <span className="text-lg font-bold text-[#F37021]">81%</span>
+                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
                       <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                      <span className="text-lg font-bold text-[#F37021]">75%</span>
+                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>75%</span>
                     </div>
                   </div>
                 </div>
@@ -5969,10 +5971,10 @@ export default function ExportReportPage() {
                 {/* General Population */}
                 <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#434345' }}>
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
-                    <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
+                    <p className="text-sm font-bold uppercase tracking-wider" style={{ color: '#434345' }}>All Employees</p>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
@@ -5993,13 +5995,13 @@ export default function ExportReportPage() {
             </div>
             
             {/* Footer */}
-            <div className="px-6 py-4 bg-gradient-to-r from-slate-100 to-slate-50 border-t border-slate-200">
-              <p className="text-sm text-slate-700 text-center">
-                <strong className="text-slate-800">The Pledge signals intent.</strong>
-                <span className="mx-2">•</span>
-                <strong className="text-[#F37021]">This Index measures execution.</strong>
-                <span className="mx-2">•</span>
-                <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
+            <div className="px-6 py-4 border-t border-slate-200" style={{ backgroundColor: '#434345' }}>
+              <p className="text-sm text-center">
+                <strong className="text-white">The Pledge signals intent.</strong>
+                <span className="text-white/50 mx-2">•</span>
+                <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong>
+                <span className="text-white/50 mx-2">•</span>
+                <span className="text-white/70">Together, they demonstrate genuine commitment.</span>
               </p>
             </div>
           </div>
@@ -6029,7 +6031,7 @@ export default function ExportReportPage() {
                   <p className="text-slate-700 text-base leading-relaxed">
                     Every organization enters this work from a different place. Cancer and Careers' consulting practice 
                     helps organizations understand where they are, identify where they want to be, and build a realistic 
-                    path to get there—shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
+                    path to get thereâ€”shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
                     and the HR teams supporting them.
                   </p>
                 </div>
@@ -6188,7 +6190,7 @@ export default function ExportReportPage() {
                 </div>
               </div>
               <div className="pt-3 border-t border-slate-100">
-                <p className="text-sm text-slate-400 text-center">© 2026 Cancer and Careers. All rights reserved. | Best Companies for Working with Cancer Index</p>
+                <p className="text-sm text-slate-400 text-center">Â© 2026 Cancer and Careers. All rights reserved. | Best Companies for Working with Cancer Index</p>
               </div>
             </div>
           </div>
@@ -6237,9 +6239,9 @@ export default function ExportReportPage() {
                       <div className="text-sm text-blue-800">
                         <p className="font-medium">Interactive Features:</p>
                         <ul className="mt-1 space-y-1 text-blue-700">
-                          <li>• Click any dimension to see element-level details</li>
-                          <li>• View strengths, gaps, and in-progress items</li>
-                          <li>• Compare performance against benchmark</li>
+                          <li>â€¢ Click any dimension to see element-level details</li>
+                          <li>â€¢ View strengths, gaps, and in-progress items</li>
+                          <li>â€¢ Compare performance against benchmark</li>
                         </ul>
                       </div>
                     </div>
@@ -6419,9 +6421,9 @@ export default function ExportReportPage() {
                     <div className="px-6 py-4 bg-slate-800 rounded-xl">
                       <p className="text-sm text-center leading-relaxed">
                         <strong className="text-white">13 dimensions.</strong>
-                        <span className="text-slate-500 mx-2">•</span>
+                        <span className="text-slate-500 mx-2">â€¢</span>
                         <strong className="text-amber-400">Research-driven weights.</strong>
-                        <span className="text-slate-500 mx-2">•</span>
+                        <span className="text-slate-500 mx-2">â€¢</span>
                         <span className="text-slate-300">Grounded in the voices of HR leaders, employees, and Cancer and Careers leadership.</span>
                       </p>
                     </div>
@@ -6519,7 +6521,7 @@ export default function ExportReportPage() {
                         <div className="flex items-center gap-8">
                           <div className="text-right">
                             <p className="text-slate-500 text-sm font-medium">Composite Score</p>
-                            <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
+                            <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? 'â€”'}</p>
                           </div>
                           {tier && (
                             <div className={`px-8 py-5 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
@@ -6656,7 +6658,7 @@ export default function ExportReportPage() {
                         <h3 className="font-bold text-slate-900 text-2xl">Dimension Performance</h3>
                         <p className="text-slate-500 mt-1">All 13 dimensions sorted by strategic weight</p>
                       </div>
-                      <span className="bg-cyan-100 text-cyan-700 px-4 py-2 rounded-lg font-semibold text-sm">👆 Click any dimension for element-level details</span>
+                      <span className="bg-cyan-100 text-cyan-700 px-4 py-2 rounded-lg font-semibold text-sm">ðŸ‘† Click any dimension for element-level details</span>
                     </div>
                     
                     {/* Table Header */}
@@ -6715,7 +6717,7 @@ export default function ExportReportPage() {
                                   </span>
                                 </div>
                               ) : (
-                                <span className="text-sm text-slate-300">—</span>
+                                <span className="text-sm text-slate-300">â€”</span>
                               )}
                             </div>
                             <div className="w-28 flex justify-center">
@@ -6885,7 +6887,7 @@ export default function ExportReportPage() {
                         <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. strategic weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
                       </div>
                       <div className="px-4 py-2 rounded-lg border-2 border-slate-200 text-slate-600 text-sm font-semibold">
-                        ○ Show Benchmarks
+                        â—‹ Show Benchmarks
                       </div>
                     </div>
                     
@@ -6942,7 +6944,7 @@ export default function ExportReportPage() {
                                     <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
                                   </g>
                                 ))}
-                                <text x={PLOT_WIDTH/2} y="22" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE →</text>
+                                <text x={PLOT_WIDTH/2} y="22" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE â†’</text>
                               </g>
                               
                               {/* Y-axis */}
@@ -6952,7 +6954,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">â†‘ STRATEGIC IMPORTANCE</text>
                               
                               {/* Data points - at true positions, no nudging */}
                               {(() => {
@@ -7040,7 +7042,7 @@ export default function ExportReportPage() {
                         <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. strategic weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
                       </div>
                       <div className="px-4 py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold">
-                        ● Benchmarks On
+                        â— Benchmarks On
                       </div>
                     </div>
                     
@@ -7097,7 +7099,7 @@ export default function ExportReportPage() {
                                     <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
                                   </g>
                                 ))}
-                                <text x={PLOT_WIDTH/2} y="22" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE →</text>
+                                <text x={PLOT_WIDTH/2} y="22" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE â†’</text>
                               </g>
                               
                               {/* Y-axis */}
@@ -7107,7 +7109,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">â†‘ STRATEGIC IMPORTANCE</text>
                               
                               {/* Benchmark circles (dashed) at true positions + overlap indicators */}
                               {(() => {
@@ -7327,9 +7329,9 @@ export default function ExportReportPage() {
                                     
                                     {/* Recommendations */}
                                     <div className="text-sm text-slate-600 space-y-1">
-                                      {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
+                                      {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' â€¢ ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
                                         <p key={i} className="flex items-start gap-2">
-                                          <span className="text-cyan-500 mt-0.5">→</span>
+                                          <span className="text-cyan-500 mt-0.5">â†’</span>
                                           <span>{rec}</span>
                                         </p>
                                       ))}
@@ -7509,7 +7511,7 @@ export default function ExportReportPage() {
                     </div>
                     <div className="px-12 py-10">
                       <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                        The following pages provide comprehensive analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                        The following pages provide comprehensive analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>â€”those 
                         with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
                       </p>
                       <div className="grid grid-cols-2 gap-6">
@@ -7551,7 +7553,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       <p className="text-base text-slate-500 mt-8 italic">
-                        Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
+                        Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' â€¢ ')}
                       </p>
                     </div>
                   </div>
@@ -7672,7 +7674,7 @@ export default function ExportReportPage() {
                                   {evidence.topStrength && (
                                     <div className="flex items-start gap-2">
                                       <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-emerald-600 text-sm">✓</span>
+                                        <span className="text-emerald-600 text-sm">âœ“</span>
                                       </span>
                                       <p className="text-sm text-slate-700">
                                         <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
@@ -7683,7 +7685,7 @@ export default function ExportReportPage() {
                                   {evidence.biggestGap && (
                                     <div className="flex items-start gap-2">
                                       <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-red-600 text-sm">✗</span>
+                                        <span className="text-red-600 text-sm">âœ—</span>
                                       </span>
                                       <p className="text-sm text-slate-700">
                                         <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
@@ -8007,7 +8009,7 @@ export default function ExportReportPage() {
                     
                     {/* Footer */}
                     <div className="px-12 py-4 bg-slate-800 text-center">
-                      <p className="text-slate-300 text-sm"><strong className="text-white">The Pledge signals intent.</strong> • <span className="text-orange-400 font-medium">This Index measures execution.</span> • Together, they demonstrate genuine commitment.</p>
+                      <p className="text-slate-300 text-sm"><strong className="text-white">The Pledge signals intent.</strong> â€¢ <span className="text-orange-400 font-medium">This Index measures execution.</span> â€¢ Together, they demonstrate genuine commitment.</p>
                     </div>
                   </div>
                 )}
@@ -8036,7 +8038,7 @@ export default function ExportReportPage() {
                           <p className="text-slate-700 text-base leading-relaxed">
                             Every organization enters this work from a different place. Cancer and Careers' consulting practice 
                             helps organizations understand where they are, identify where they want to be, and build a realistic 
-                            path to get there—shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
+                            path to get thereâ€”shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
                             and the HR teams supporting them.
                           </p>
                         </div>
@@ -8168,7 +8170,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       <div className="text-center mt-4 pt-4 border-t border-slate-100">
-                        <p className="text-slate-400 text-xs">© 2026 Cancer and Careers. All rights reserved. | Best Companies for Working with Cancer Index</p>
+                        <p className="text-slate-400 text-xs">Â© 2026 Cancer and Careers. All rights reserved. | Best Companies for Working with Cancer Index</p>
                       </div>
                     </div>
                   </div>
@@ -8241,7 +8243,7 @@ export default function ExportReportPage() {
                     {/* White footer */}
                     <div className="bg-white px-12 py-3 border-t border-slate-200">
                       <div className="flex items-center justify-between">
-                        <p className="text-slate-500 text-sm">© 2026 Cancer and Careers. All rights reserved.</p>
+                        <p className="text-slate-500 text-sm">Â© 2026 Cancer and Careers. All rights reserved.</p>
                         <p className="text-slate-500 text-sm">Best Companies for Working with Cancer Index</p>
                         <div className="flex items-center gap-2">
                           <span className="text-slate-400 text-xs">Powered by</span>
@@ -8327,7 +8329,7 @@ export default function ExportReportPage() {
                   onClick={() => setCurrentSlide(prev => Math.max(prev - 1, 0))}
                   disabled={currentSlide === 0}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
-                  title="Previous slide (←)"
+                  title="Previous slide (â†)"
                 >
                   Previous
                 </button>
@@ -8335,7 +8337,7 @@ export default function ExportReportPage() {
                   onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 34))}
                   disabled={currentSlide === 34}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
-                  title="Next slide (→)"
+                  title="Next slide (â†’)"
                 >
                   Next
                 </button>
@@ -8403,24 +8405,24 @@ export default function ExportReportPage() {
                       
                       <span className="text-slate-600">Next slide</span>
                       <div className="flex gap-1 justify-center">
-                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">→</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">â†’</kbd>
                         <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Space</kbd>
                         <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">N</kbd>
                       </div>
                       <div className="flex gap-1 justify-center">
-                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">→</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">â†’</kbd>
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Space</kbd>
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">N</kbd>
                       </div>
                       
                       <span className="text-slate-600">Previous slide</span>
                       <div className="flex gap-1 justify-center">
-                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">←</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">â†</kbd>
                         <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Backspace</kbd>
                         <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">P</kbd>
                       </div>
                       <div className="flex gap-1 justify-center">
-                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">←</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">â†</kbd>
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Delete</kbd>
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">P</kbd>
                       </div>
@@ -8430,9 +8432,9 @@ export default function ExportReportPage() {
                         <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Home</kbd>
                       </div>
                       <div className="flex gap-1 justify-center">
-                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Fn ←</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Fn â†</kbd>
                         <span className="text-slate-400 text-[10px]">or</span>
-                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">⌘ ↑</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">âŒ˜ â†‘</kbd>
                       </div>
                       
                       <span className="text-slate-600">Last slide</span>
@@ -8440,9 +8442,9 @@ export default function ExportReportPage() {
                         <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">End</kbd>
                       </div>
                       <div className="flex gap-1 justify-center">
-                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Fn →</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Fn â†’</kbd>
                         <span className="text-slate-400 text-[10px]">or</span>
-                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">⌘ ↓</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">âŒ˜ â†“</kbd>
                       </div>
                       
                       <span className="text-slate-600">Go to slide</span>
