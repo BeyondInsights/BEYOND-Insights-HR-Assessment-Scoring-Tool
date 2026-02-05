@@ -2291,15 +2291,24 @@ export default function ExportReportPage() {
   const openPresenterNotesWindow = () => {
     if (presenterNotesWindow && !presenterNotesWindow.closed) {
       presenterNotesWindow.focus();
+      // Return focus to main window so keyboard shortcuts still work
+      setTimeout(() => window.focus(), 100);
       return;
     }
     
     // Position window on the right side of screen (screen.width - window width - margin)
-    const rightPosition = window.screen.width - 470;
-    const notesWindow = window.open('', 'PresenterNotes', `width=450,height=700,left=${rightPosition},top=100,resizable=yes,scrollbars=yes`);
+    const windowWidth = 450;
+    const windowHeight = 700;
+    const rightPosition = window.screen.availWidth - windowWidth - 20;
+    const topPosition = 100;
+    const notesWindow = window.open('', 'PresenterNotes', `width=${windowWidth},height=${windowHeight},resizable=yes,scrollbars=yes`);
     if (notesWindow) {
+      // Move to right side after opening (more reliable across browsers)
+      notesWindow.moveTo(rightPosition, topPosition);
       setPresenterNotesWindow(notesWindow);
       renderPresenterNotesWindow(notesWindow, currentSlide, true);
+      // Return focus to main window so keyboard shortcuts still work
+      setTimeout(() => window.focus(), 200);
     }
   };
   
@@ -2328,7 +2337,7 @@ export default function ExportReportPage() {
     
     const defaultNotes: Record<number, string> = {
       0: '• Highlight the composite score and tier placement\n• Note the assessment date reflects current state\n• Mention total support elements evaluated across all dimensions',
-      1: '• Evidence-based methodology with peer-reviewed research\n• Grounded in recognized workplace health frameworks\n• First comprehensive benchmark for cancer support at work',
+      1: '• Shaped by CAC\'s 20+ years of frontline experience\n• Validated through research with HR leaders, employees, and workforce\n• Weights reflect what stakeholders say matters most',
       3: '• Call out the top-performing dimension by name\n• Note the greatest opportunity area\n• If provisional, mention items needing confirmation',
       4: '• Note how many dimensions are Exemplary vs Emerging\n• Focus discussion on highest-weighted dimensions first\n• Use the tier colors to guide the conversation',
       30: '• This is suggested phasing - can be customized\n• Phase 1: Quick wins to build momentum\n• Phase 2: Strategic medium-term investments\n• Phase 3: Long-term culture optimization',
@@ -9012,8 +9021,8 @@ export default function ExportReportPage() {
                     <div>
                       <p className="mb-2"><strong>Framework context:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Emphasize the evidence-based methodology - peer-reviewed research foundation</li>
-                        <li>Mention international standards (ILO, NICE guidelines)</li>
+                        <li>Emphasize CAC's 20+ years of frontline experience with cancer and the workplace</li>
+                        <li>Research-driven: shaped by HR leaders, employees, and general workforce input</li>
                         <li>Note this is the first comprehensive benchmark for cancer support at work</li>
                       </ul>
                     </div>
