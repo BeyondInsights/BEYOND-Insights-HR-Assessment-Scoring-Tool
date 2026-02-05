@@ -3388,8 +3388,12 @@ export default function ExportReportPage() {
                   <div className="flex items-center gap-4 mt-2">
                     <h2 className="text-4xl font-bold text-slate-900" data-export="company-name">{companyName}</h2>
                     {isWwcPledge && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#464547' }}>
-                        <img src="/working-with-cancer-logo.png" alt="WWC" className="h-5" />
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#ff353c' }}>
+                        {/* WWC Short Logo - White KO inline SVG */}
+                        <svg viewBox="0 0 300 300" className="h-5 w-5">
+                          <path fill="#fff" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                          <path fill="#fff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                        </svg>
                         <span className="text-white text-xs font-semibold uppercase tracking-wide">Pledge Signatory</span>
                       </div>
                     )}
@@ -3621,7 +3625,7 @@ export default function ExportReportPage() {
                                 </div>
                                 <span className="text-xs text-violet-600 font-semibold">{dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''}</span>
                               </div>
-                              <div className="px-4 py-2 max-h-40 overflow-y-auto">
+                              <div className="px-4 py-2">
                                 {dim.unsure.map((item: any, idx: number) => (
                                   <div key={idx} className="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0">
                                     <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0"></span>
@@ -5875,22 +5879,34 @@ export default function ExportReportPage() {
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-            {/* Header */}
-            <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(to right, #464547, #535355, #464547)' }}>
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-50"></div>
+            {/* Header - vibrant with WWC branding */}
+            <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #ff353c 0%, #e62e34 50%, #cc2930 100%)' }}>
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
+              </div>
               <div className="relative flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  {/* WWC Logo */}
-                  <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-12" />
+                  {/* WWC Short Logo - White KO version inline SVG */}
+                  <div className="w-14 h-14 flex-shrink-0">
+                    <svg viewBox="0 0 300 300" className="w-full h-full">
+                      <path fill="#fff" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                      <path fill="#fff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                    </svg>
+                  </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#ef3e42' }}>Global Initiative</p>
+                    <p className="text-white/80 text-xs font-semibold uppercase tracking-widest mb-1">Global Initiative</p>
                     <h3 className="font-bold text-white text-2xl">The Working with Cancer Pledge</h3>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
-                    <p className="text-white text-2xl font-bold">850+</p>
-                    <p className="text-slate-300 text-xs">Companies Worldwide</p>
+                  <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2 border border-white/30">
+                    <p className="text-white text-2xl font-bold">5,000+</p>
+                    <p className="text-white/80 text-xs">Companies Worldwide</p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2 border border-white/30">
+                    <p className="text-white text-2xl font-bold">40M+</p>
+                    <p className="text-white/80 text-xs">Workers Protected</p>
                   </div>
                 </div>
               </div>
@@ -5901,10 +5917,12 @@ export default function ExportReportPage() {
               {/* Origin + What It Is */}
               <div className="mb-8">
                 <div className="flex items-start gap-4 mb-6">
-                  {/* WWC Half-circle "C" icon */}
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden flex" style={{ backgroundColor: 'white' }}>
-                    <div className="w-1/2 h-full" style={{ backgroundColor: '#ef3e42' }}></div>
-                    <div className="w-1/2 h-full bg-white"></div>
+                  {/* WWC Color Logo - Short version inline SVG */}
+                  <div className="flex-shrink-0 w-14 h-14">
+                    <svg viewBox="0 0 300 300" className="w-full h-full">
+                      <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                      <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                    </svg>
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-800 text-lg mb-2">A Public Commitment to Support Employees Managing Cancer</h4>
@@ -5915,37 +5933,37 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 
-                {/* What Companies Commit To - WWC brand colors */}
-                <div className="rounded-xl p-6" style={{ backgroundColor: '#464547' }}>
-                  <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#ef3e42' }}>Pledge Signatories Commit To:</p>
+                {/* What Companies Commit To - WWC red accented, not gray dominant */}
+                <div className="rounded-xl p-6 border-2" style={{ borderColor: '#ff353c', background: 'linear-gradient(to br, #fff5f5, #ffffff)' }}>
+                  <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#ff353c' }}>Pledge Signatories Commit To:</p>
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(239, 62, 66, 0.3)' }}>
-                        <svg className="w-4 h-4" style={{ color: '#ef3e42' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
-                      <p className="text-white font-medium text-sm">Job Security</p>
-                      <p className="text-slate-400 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
+                      <p className="font-semibold text-slate-800 text-sm">Job Security</p>
+                      <p className="text-slate-500 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
                     </div>
-                    <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(239, 62, 66, 0.3)' }}>
-                        <svg className="w-4 h-4" style={{ color: '#ef3e42' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                       </div>
-                      <p className="text-white font-medium text-sm">Open Culture</p>
-                      <p className="text-slate-400 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
+                      <p className="font-semibold text-slate-800 text-sm">Open Culture</p>
+                      <p className="text-slate-500 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
                     </div>
-                    <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(239, 62, 66, 0.3)' }}>
-                        <svg className="w-4 h-4" style={{ color: '#ef3e42' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                       </div>
-                      <p className="text-white font-medium text-sm">Recovery Support</p>
-                      <p className="text-slate-400 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
+                      <p className="font-semibold text-slate-800 text-sm">Recovery Support</p>
+                      <p className="text-slate-500 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
                     </div>
                   </div>
                 </div>
               </div>
               
-              {/* Research Attribution - WWC branded */}
-              <div className="rounded-xl p-5 mb-6" style={{ background: 'linear-gradient(to right, #464547, #535355)' }}>
+              {/* Research Attribution - vibrant, not dreary */}
+              <div className="rounded-xl p-5 mb-6" style={{ background: 'linear-gradient(135deg, #ff353c, #e62e34)' }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -5953,62 +5971,62 @@ export default function ExportReportPage() {
                     </div>
                     <div>
                       <p className="text-white font-semibold">What Employees Say About the Pledge</p>
-                      <p className="text-slate-300 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
+                      <p className="text-white/80 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers</p>
                     </div>
                   </div>
-                  <div className="rounded-lg px-4 py-2 text-center" style={{ backgroundColor: 'rgba(239, 62, 66, 0.2)' }}>
-                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#ef3e42' }}>Awareness Gap</p>
-                    <p className="text-white font-bold">Only 16-18% aware</p>
+                  <div className="bg-white rounded-lg px-4 py-2 text-center shadow-lg">
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#ff353c' }}>Awareness Gap</p>
+                    <p className="font-bold text-slate-800">Only 16-18% aware</p>
                   </div>
                 </div>
               </div>
               
-              {/* Research Stats */}
+              {/* Research Stats - clean and bright */}
               <div className="grid grid-cols-2 gap-6">
-                {/* Employees Managing Cancer - WWC red themed */}
-                <div className="rounded-xl p-5 border" style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca' }}>
+                {/* Employees Managing Cancer */}
+                <div className="rounded-xl p-5 border-2" style={{ borderColor: '#ff353c', backgroundColor: '#fff5f5' }}>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ef3e42' }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ff353c' }}>
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
-                    <p className="text-sm font-bold uppercase tracking-wider" style={{ color: '#ef3e42' }}>Employees Managing Cancer</p>
+                    <p className="text-sm font-bold uppercase tracking-wider" style={{ color: '#ff353c' }}>Employees Managing Cancer</p>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
                       <span className="text-sm text-slate-700">Say the pledge is important</span>
-                      <span className="text-lg font-bold" style={{ color: '#ef3e42' }}>81%</span>
+                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
                       <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                      <span className="text-lg font-bold" style={{ color: '#ef3e42' }}>81%</span>
+                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
                       <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                      <span className="text-lg font-bold" style={{ color: '#ef3e42' }}>75%</span>
+                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>75%</span>
                     </div>
                   </div>
                 </div>
                 
-                {/* General Population - WWC gray themed */}
-                <div className="rounded-xl p-5 border" style={{ backgroundColor: '#f8f8f8', borderColor: '#e5e5e5' }}>
+                {/* General Population */}
+                <div className="rounded-xl p-5 border border-slate-200 bg-slate-50">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#464547' }}>
+                    <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
-                    <p className="text-sm font-bold uppercase tracking-wider" style={{ color: '#464547' }}>All Employees</p>
+                    <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">All Employees</p>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
                       <span className="text-sm text-slate-700">Say the pledge is important</span>
-                      <span className="text-lg font-bold" style={{ color: '#464547' }}>72%</span>
+                      <span className="text-lg font-bold text-slate-700">72%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
                       <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                      <span className="text-lg font-bold" style={{ color: '#464547' }}>69%</span>
+                      <span className="text-lg font-bold text-slate-700">69%</span>
                     </div>
-                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5">
+                    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm">
                       <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                      <span className="text-lg font-bold" style={{ color: '#464547' }}>60%</span>
+                      <span className="text-lg font-bold text-slate-700">60%</span>
                     </div>
                   </div>
                 </div>
@@ -6016,11 +6034,11 @@ export default function ExportReportPage() {
             </div>
             
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-200" style={{ background: 'linear-gradient(to right, #f5f5f5, #fef2f2)' }}>
+            <div className="px-6 py-4 border-t border-slate-200" style={{ background: 'linear-gradient(to right, #fff5f5, #ffffff, #fff5f5)' }}>
               <p className="text-sm text-slate-700 text-center">
                 <strong className="text-slate-800">The Pledge signals intent.</strong>
                 <span className="mx-2">•</span>
-                <strong style={{ color: '#ef3e42' }}>This Index measures execution.</strong>
+                <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong>
                 <span className="mx-2">•</span>
                 <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
               </p>
@@ -7898,140 +7916,134 @@ export default function ExportReportPage() {
                 {/* Slide 31: Working with Cancer Pledge - exact match to report */}
                 {currentSlide === 31 && (
                   <div className="overflow-hidden">
-                    {/* Header - WWC brand colors */}
-                    <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(to right, #464547, #535355, #464547)' }}>
+                    {/* Header - vibrant with WWC branding */}
+                    <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #ff353c 0%, #e62e34 50%, #cc2930 100%)' }}>
+                      <div className="absolute inset-0 opacity-10">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                      </div>
                       <div className="relative flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <img src="/working-with-cancer-logo.png" alt="Working with Cancer" className="h-10" />
+                          {/* WWC Short Logo - White KO inline SVG */}
+                          <div className="w-12 h-12 flex-shrink-0">
+                            <svg viewBox="0 0 300 300" className="w-full h-full">
+                              <path fill="#fff" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                              <path fill="#fff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                            </svg>
+                          </div>
                           <div>
-                            <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#ef3e42' }}>Global Initiative</p>
+                            <p className="text-white/80 text-xs font-semibold uppercase tracking-widest mb-1">Global Initiative</p>
                             <h3 className="font-bold text-white text-2xl">The Working with Cancer Pledge</h3>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 border border-white/20">
-                            <p className="text-white text-2xl font-bold">850+</p>
-                            <p className="text-slate-300 text-xs">Companies Worldwide</p>
+                          <div className="bg-white/20 backdrop-blur rounded-lg px-3 py-2 border border-white/30">
+                            <p className="text-white text-xl font-bold">5,000+</p>
+                            <p className="text-white/80 text-xs">Companies</p>
+                          </div>
+                          <div className="bg-white/20 backdrop-blur rounded-lg px-3 py-2 border border-white/30">
+                            <p className="text-white text-xl font-bold">40M+</p>
+                            <p className="text-white/80 text-xs">Workers</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="px-12 py-6 bg-gradient-to-b from-slate-50 to-white">
+                    <div className="px-12 py-5 bg-gradient-to-b from-slate-50 to-white">
                       {/* Intro Section */}
-                      <div className="flex items-start gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-full overflow-hidden flex flex-shrink-0" style={{ backgroundColor: 'white' }}>
-                          <div className="w-1/2 h-full" style={{ backgroundColor: '#ef3e42' }}></div>
-                          <div className="w-1/2 h-full bg-white"></div>
+                      <div className="flex items-start gap-3 mb-5">
+                        <div className="flex-shrink-0 w-10 h-10">
+                          <svg viewBox="0 0 300 300" className="w-full h-full">
+                            <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                            <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                          </svg>
                         </div>
                         <div>
-                          <h4 className="font-semibold text-slate-800 text-lg mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
-                          <p className="text-slate-600 text-sm leading-relaxed">
-                            Launched at Davos in January 2023 by the Publicis Foundation after CEO Arthur Sadoun went public about his own cancer diagnosis, 
-                            the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
+                          <h4 className="font-semibold text-slate-800 text-base mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
+                          <p className="text-slate-600 text-xs leading-relaxed">
+                            Launched at Davos 2023 by Publicis after CEO Arthur Sadoun went public with his diagnosis.
                           </p>
                         </div>
                       </div>
                       
-                      {/* Pledge Commitments - WWC brand colors */}
-                      <div className="rounded-xl p-5 mb-5" style={{ backgroundColor: '#464547' }}>
-                        <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#ef3e42' }}>Pledge Signatories Commit To:</p>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(239, 62, 66, 0.3)' }}>
-                              <svg className="w-4 h-4" style={{ color: '#ef3e42' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      {/* Pledge Commitments - vibrant */}
+                      <div className="rounded-xl p-4 mb-4 border-2" style={{ borderColor: '#ff353c', background: 'linear-gradient(to br, #fff5f5, #ffffff)' }}>
+                        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#ff353c' }}>Pledge Signatories Commit To:</p>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="bg-white rounded-lg p-3 border border-slate-200 shadow-sm">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
-                            <p className="text-white font-medium text-sm">Job Security</p>
-                            <p className="text-slate-400 text-xs mt-1">Protect employment for employees diagnosed with cancer</p>
+                            <p className="font-semibold text-slate-800 text-xs">Job Security</p>
                           </div>
-                          <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(239, 62, 66, 0.3)' }}>
-                              <svg className="w-4 h-4" style={{ color: '#ef3e42' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                          <div className="bg-white rounded-lg p-3 border border-slate-200 shadow-sm">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
-                            <p className="text-white font-medium text-sm">Open Culture</p>
-                            <p className="text-slate-400 text-xs mt-1">Create stigma-free environments where employees feel safe to disclose</p>
+                            <p className="font-semibold text-slate-800 text-xs">Open Culture</p>
                           </div>
-                          <div className="bg-white/10 rounded-lg p-4 border border-white/10">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(239, 62, 66, 0.3)' }}>
-                              <svg className="w-4 h-4" style={{ color: '#ef3e42' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                          <div className="bg-white rounded-lg p-3 border border-slate-200 shadow-sm">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
-                            <p className="text-white font-medium text-sm">Recovery Support</p>
-                            <p className="text-slate-400 text-xs mt-1">Provide accommodations and support for treatment and return-to-work</p>
+                            <p className="font-semibold text-slate-800 text-xs">Recovery Support</p>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Research Stats Header - WWC brand colors */}
-                      <div className="rounded-xl p-4 mb-5" style={{ background: 'linear-gradient(to right, #464547, #535355)' }}>
+                      {/* Research Stats - compact */}
+                      <div className="rounded-xl p-3 mb-4" style={{ background: 'linear-gradient(135deg, #ff353c, #e62e34)' }}>
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                            </div>
-                            <div>
-                              <p className="text-white font-semibold text-sm">What Employees Say About the Pledge</p>
-                              <p className="text-slate-300 text-xs">Research conducted by BEYOND Insights on behalf of Cancer and Careers with employees managing cancer and general workforce</p>
-                            </div>
-                          </div>
-                          <div className="rounded-lg px-3 py-1.5 text-center" style={{ backgroundColor: 'rgba(239, 62, 66, 0.2)' }}>
-                            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#ef3e42' }}>Awareness Gap</p>
-                            <p className="text-white font-bold text-sm">Only 16-18% aware</p>
+                          <p className="text-white font-semibold text-sm">What Employees Say About the Pledge</p>
+                          <div className="bg-white rounded-lg px-3 py-1.5 text-center">
+                            <p className="text-xs font-semibold" style={{ color: '#ff353c' }}>Only 16-18% aware</p>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Two-column stats - WWC brand colors */}
-                      <div className="grid grid-cols-2 gap-5">
-                        <div className="rounded-xl p-4 border" style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca' }}>
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ef3e42' }}>
-                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                      {/* Two-column stats - compact */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="rounded-xl p-3 border-2" style={{ borderColor: '#ff353c', backgroundColor: '#fff5f5' }}>
+                          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#ff353c' }}>Employees Managing Cancer</p>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between bg-white rounded px-2 py-1.5">
+                              <span className="text-xs text-slate-700">Pledge is important</span>
+                              <span className="text-sm font-bold" style={{ color: '#ff353c' }}>81%</span>
                             </div>
-                            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: '#ef3e42' }}>Employees Managing Cancer</p>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
-                              <span className="text-sm text-slate-700">Say the pledge is important</span>
-                              <span className="text-base font-bold" style={{ color: '#ef3e42' }}>81%</span>
+                            <div className="flex items-center justify-between bg-white rounded px-2 py-1.5">
+                              <span className="text-xs text-slate-700">Trust pledge companies</span>
+                              <span className="text-sm font-bold" style={{ color: '#ff353c' }}>81%</span>
                             </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
-                              <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                              <span className="text-base font-bold" style={{ color: '#ef3e42' }}>81%</span>
-                            </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
-                              <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                              <span className="text-base font-bold" style={{ color: '#ef3e42' }}>75%</span>
+                            <div className="flex items-center justify-between bg-white rounded px-2 py-1.5">
+                              <span className="text-xs text-slate-700">Influence job decisions</span>
+                              <span className="text-sm font-bold" style={{ color: '#ff353c' }}>75%</span>
                             </div>
                           </div>
                         </div>
-                        <div className="rounded-xl p-4 border" style={{ backgroundColor: '#f8f8f8', borderColor: '#e5e5e5' }}>
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: '#464547' }}>
-                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        <div className="rounded-xl p-3 border border-slate-200 bg-slate-50">
+                          <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">All Employees</p>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between bg-white rounded px-2 py-1.5">
+                              <span className="text-xs text-slate-700">Pledge is important</span>
+                              <span className="text-sm font-bold text-slate-700">72%</span>
                             </div>
-                            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: '#464547' }}>All Employees</p>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
-                              <span className="text-sm text-slate-700">Say the pledge is important</span>
-                              <span className="text-base font-bold" style={{ color: '#464547' }}>72%</span>
+                            <div className="flex items-center justify-between bg-white rounded px-2 py-1.5">
+                              <span className="text-xs text-slate-700">Trust pledge companies</span>
+                              <span className="text-sm font-bold text-slate-700">69%</span>
                             </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
-                              <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                              <span className="text-base font-bold" style={{ color: '#464547' }}>69%</span>
-                            </div>
-                            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
-                              <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                              <span className="text-base font-bold" style={{ color: '#464547' }}>60%</span>
+                            <div className="flex items-center justify-between bg-white rounded px-2 py-1.5">
+                              <span className="text-xs text-slate-700">Influence job decisions</span>
+                              <span className="text-sm font-bold text-slate-700">60%</span>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Footer - WWC brand colors */}
-                    <div className="px-12 py-4 text-center" style={{ backgroundColor: '#464547' }}>
-                      <p className="text-slate-300 text-sm"><strong className="text-white">The Pledge signals intent.</strong> • <span style={{ color: '#ef3e42' }} className="font-medium">This Index measures execution.</span> • Together, they demonstrate genuine commitment.</p>
+                    {/* Footer */}
+                    <div className="px-12 py-3" style={{ background: 'linear-gradient(to right, #fff5f5, #ffffff, #fff5f5)' }}>
+                      <p className="text-xs text-slate-700 text-center">
+                        <strong className="text-slate-800">The Pledge signals intent.</strong> • <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong> • Together, they demonstrate genuine commitment.
+                      </p>
                     </div>
                   </div>
                 )}
