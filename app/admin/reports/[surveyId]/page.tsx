@@ -2356,19 +2356,41 @@ export default function ExportReportPage() {
     const defaultNotes: Record<number, string> = {
       0: '• Highlight the composite score and tier placement\n• Note the assessment date reflects current state\n• Mention total support elements evaluated across all dimensions',
       1: '• Shaped by CAC\'s 20+ years of frontline experience\n• Validated through research with HR leaders, employees, and workforce\n• Weights reflect what stakeholders say matters most',
+      2: '• This is a starting point, not a prescription\n• Recommendations should be adapted to your organization\n• Focus on 4 steps: review strengths, identify priorities, engage stakeholders, plan phased implementation',
       3: '• Call out the top-performing dimension by name\n• Note the greatest opportunity area\n• If provisional, mention items needing confirmation',
       4: '• Note how many dimensions are Exemplary vs Emerging\n• Focus discussion on highest-weighted dimensions first\n• Use the tier colors to guide the conversation',
-      30: '• This is suggested phasing - can be customized\n• Phase 1: Quick wins to build momentum\n• Phase 2: Strategic medium-term investments\n• Phase 3: Long-term culture optimization',
-      31: '• 5,000+ companies globally signed the pledge\n• Pledge = intent, Index = execution\n• 81% of cancer employees say it matters for trust\n• Only 16-18% awareness gap - opportunity to communicate',
-      32: '• 20+ years frontline experience\n• Can support implementation at any phase\n• Discuss next steps and contacts'
+      18: '• Priority Gaps (top-left red): High weight, low score - focus here first\n• Core Strengths (top-right green): High weight, high score - maintain these\n• Monitor (bottom-left gray): Lower priority, watch for changes\n• Leverage (bottom-right blue): Doing well in less critical areas',
+      19: '• Same matrix but now showing benchmark comparisons\n• Gray dots show where other organizations score\n• Identify where you\'re ahead of or behind benchmarks\n• Use benchmarks to set realistic improvement targets',
+      20: '• These patterns emerged from analyzing across all 13 dimensions\n• Left side explains the strategic implication\n• Right side shows the recommended action\n• These are data-driven insights, not generic advice',
+      21: '• Top 5 improvement priorities ranked by potential impact\n• Considers both the score gap AND the dimension weight\n• Use this to focus limited resources effectively\n• Can discuss specific action items for each',
+      22: '• Visual summary of all dimension scores\n• Outer ring = higher score, inner = lower\n• Quick way to see overall shape of support program\n• Identify which "spokes" need strengthening',
+      23: '• Employee perspective on each dimension\n• Shows what having (or lacking) support means to real people\n• Powerful for building stakeholder buy-in\n• Can use quotes in internal communications',
+      24: '• Tier distribution across all dimensions\n• Goal is to move dimensions up the tier ladder over time\n• Even one tier improvement represents real employee impact\n• Celebrate progress, not just perfection',
+      25: '• Benchmark comparison bar chart\n• See where you stand vs. peer organizations\n• Green = above benchmark, Red = below\n• Focus improvement on below-benchmark dimensions',
+      26: '• Year-over-year progress tracking (if applicable)\n• Shows trajectory and momentum\n• Celebrate improvements, investigate declines\n• Set targets for next assessment cycle',
+      27: '• Deep dive into specific support elements\n• Green checkmarks = in place and working\n• Blue planning = in progress\n• Red gaps = opportunities for quick wins',
+      28: '• Weighted score contribution by dimension\n• Larger segments = more impact on total score\n• Focus resources on larger segments with room to grow\n• Shows why some improvements matter more than others',
+      29: '• Summary statistics and key metrics\n• Total elements assessed, confirmation rates\n• Overall program maturity indicators\n• Use for executive summary or board reporting',
+      30: '• Suggested phasing - can be customized to your timeline\n• Phase 1: Quick wins to build momentum (0-6 months)\n• Phase 2: Strategic medium-term investments (6-18 months)\n• Phase 3: Long-term culture optimization (18+ months)',
+      31: '• 5,000+ companies globally signed the pledge\n• Pledge = public commitment, Index = measurable execution\n• 81% of cancer employees say it matters for trust\n• Only 16-18% awareness gap - opportunity to communicate better',
+      32: '• CAC has 20+ years supporting employees with cancer\n• Can help with implementation at any phase\n• Resources: toolkits, training, consultations available\n• Discuss next steps and key contacts',
+      33: '• 13 dimensions, 147 total support elements\n• Weighted scoring based on stakeholder research\n• Four tiers: Exemplary, Proficient, Developing, Emerging\n• Annual reassessment recommended to track progress',
+      34: '• Thank the audience for their time and engagement\n• Reiterate commitment to supporting employees with cancer\n• Offer to schedule follow-up discussions\n• Provide contact information for questions'
     };
     
-    // Default notes for dimension slides (5-17)
+    // Default notes for dimension slides (5-17) - customize based on dimension
+    const dimensionNames = [
+      '', '', '', '', '', // 0-4 already defined above
+      'Medical Leave', 'Manager Preparedness', 'HR Capability', 'Insurance & Benefits', 
+      'Accommodations', 'Communication', 'Employee Assistance', 'Mental Health',
+      'Return to Work', 'Career Protection', 'Prevention & Screening', 'Culture & Inclusion', 'Caregiver Support'
+    ];
     for (let i = 5; i <= 17; i++) {
-      defaultNotes[i] = '• Review strengths (green) - acknowledge what works\n• Highlight planning items (blue) - show momentum\n• Address gaps constructively as opportunities\n• Connect to real employee impact';
+      const dimName = dimensionNames[i] || `Dimension ${i - 4}`;
+      defaultNotes[i] = `• ${dimName}: Review element breakdown for this dimension\n• Green items = strengths to maintain and communicate\n• Blue items = actively being implemented - show momentum\n• Red gaps = opportunities, discuss feasibility and timeline\n• Connect each element to real employee experience`;
     }
     
-    const defaultNote = defaultNotes[slideNum] || 'Focus on the visual content and respond to questions.';
+    const defaultNote = defaultNotes[slideNum] || '• Review the content on this slide\n• Connect to the organization\'s specific context\n• Invite questions and discussion';
     
     // Use postMessage to update the popup window - more reliable than direct DOM manipulation
     if (!isInitialRender) {
@@ -9115,7 +9137,7 @@ export default function ExportReportPage() {
                     </div>
                   )}
                   {(currentSlide === 2 || currentSlide >= 18 && currentSlide <= 29 || currentSlide >= 33) && (
-                    <p className="text-slate-400 italic">No specific notes for this slide. Focus on the visual content and respond to questions.</p>
+                    <p className="text-slate-400 italic">Review the slide content and connect it to the organization&apos;s specific context. Invite questions from the audience.</p>
                   )}
                 </div>
               </div>
