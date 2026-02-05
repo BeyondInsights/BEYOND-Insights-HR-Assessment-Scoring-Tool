@@ -3389,19 +3389,23 @@ export default function ExportReportPage() {
               <div className="flex items-end justify-between">
                 <div>
                   <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <h2 className="text-4xl font-bold text-slate-900" data-export="company-name">{companyName}</h2>
-                    {isWwcPledge && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#ff353c' }}>
-                        {/* WWC Short Logo - White KO inline SVG */}
-                        <svg viewBox="0 0 300 300" className="h-5 w-5">
-                          <path fill="#fff" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                          <path fill="#fff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                  <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
+                  {isWwcPledge && (
+                    <div className="mt-4 inline-flex items-center gap-4 px-5 py-3 rounded-xl border-2 shadow-sm" style={{ backgroundColor: '#f8f5f5', borderColor: '#e8e0e0' }}>
+                      {/* WWC Short Logo */}
+                      <div className="w-12 h-12 flex-shrink-0">
+                        <svg viewBox="0 0 300 300" className="w-full h-full">
+                          <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                          <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
                         </svg>
-                        <span className="text-white text-xs font-semibold uppercase tracking-wide">Pledge Signatory</span>
                       </div>
-                    )}
-                  </div>
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium">The</p>
+                        <p className="text-lg font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
+                        <p className="text-base font-semibold" style={{ color: '#434345' }}>Pledge <span style={{ color: '#ff353c' }}>Signatory</span></p>
+                      </div>
+                    </div>
+                  )}
                   {(contactName || contactEmail) && (
                     <div className="mt-3 text-base text-slate-500">
                       {contactName && <span className="font-medium text-slate-600">{contactName}</span>}
