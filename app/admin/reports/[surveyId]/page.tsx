@@ -2969,12 +2969,16 @@ export default function ExportReportPage() {
   const contactName = company.firmographics_data?.primary_contact_name || '';
   const contactEmail = company.firmographics_data?.primary_contact_email || '';
   
-  // Check if company is a WWC Pledge Signatory (from current support data or firmographics)
+  // Check if company is a WWC Pledge Signatory
+  // All Founding Partners are WWC Pledge Signatories by definition
   const currentSupportData = company.current_support_data || {};
   const or2c = currentSupportData.or2c || [];
-  const isWwcPledge = Array.isArray(or2c) && or2c.some((v: string) => 
+  const isFoundingPartner = company.is_founding_partner === true || 
+    company.payment_method === 'founding_partner' || 
+    (company.application_id && company.application_id.startsWith('FP-'));
+  const isWwcPledge = isFoundingPartner || (Array.isArray(or2c) && or2c.some((v: string) => 
     typeof v === 'string' && (v.toLowerCase().includes('working with cancer') || v.toLowerCase().includes('wwc'))
-  );
+  ));
   
   const dimensionAnalysis = Object.entries(dimensionScores)
     .map(([dim, score]) => {
@@ -5879,32 +5883,43 @@ export default function ExportReportPage() {
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-            {/* Header - vibrant with WWC branding */}
-            <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #ff353c 0%, #e62e34 50%, #cc2930 100%)' }}>
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
+            {/* Header - light background with long logo and red stat boxes */}
+            <div className="px-12 py-6 relative overflow-hidden" style={{ backgroundColor: '#f5e6e8' }}>
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-0 right-0 w-96 h-96 rounded-full -translate-y-1/2 translate-x-1/2" style={{ backgroundColor: '#ff353c' }}></div>
               </div>
               <div className="relative flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  {/* WWC Short Logo - White KO version inline SVG */}
-                  <div className="w-14 h-14 flex-shrink-0">
-                    <svg viewBox="0 0 300 300" className="w-full h-full">
-                      <path fill="#fff" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                      <path fill="#fff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                <div className="flex items-center gap-5">
+                  {/* WWC Long Logo - Color version with dark gray WW inline SVG */}
+                  <div className="h-12 flex-shrink-0" style={{ width: '240px' }}>
+                    <svg viewBox="0 0 1450 300" className="h-full w-full">
+                      <path fill="#ff353c" fillRule="evenodd" d="m972.3,70s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V70Z"/>
+                      <path fill="#434345" d="m138.18,160.02h-.42l-5.71,68.29h-29.18l-13.74-156.46h30.23l4.02,72.1h.42l4.02-72.1h22.62l4.23,72.1h.42l4.02-72.1h27.49l-13.74,156.46h-29.18l-5.5-68.29Z"/>
+                      <path fill="#434345" d="m262.5,194.48c0,23.26-13.11,35.52-34.88,35.52s-34.89-12.26-34.89-35.52v-88.8c0-23.26,12.9-35.52,34.89-35.52s34.88,12.26,34.88,35.52v88.8Zm-34.88,11.42c2.33,0,3.17-2.54,3.17-6.34v-98.95c0-3.81-.85-6.34-3.17-6.34-2.54,0-3.38,2.54-3.38,6.34v98.95c0,3.81.85,6.34,3.38,6.34Z"/>
+                      <path fill="#434345" d="m311.33,169.95c0-5.28-1.06-7.4-3.59-7.4h-2.96v65.75h-31.71V71.85h41.02c17.97,0,28.97,10.57,28.97,29.6v28.12c0,8.88-2.32,16.07-12.26,20.93,9.94,5.07,12.26,12.26,12.26,21.35v39.11c0,5.71.42,11.63,1.9,17.34h-31.71c-1.69-5.07-1.9-11.84-1.9-17.34v-41.02Zm0-67.45c0-5.29-1.06-7.4-3.59-7.4h-2.96v44.19h2.96c2.54,0,3.59-2.11,3.59-7.4v-29.39Z"/>
+                      <path fill="#434345" d="m353.82,71.85h31.29v60.47h.63l9.3-60.47h32.56l-12.69,74.63,12.69,81.82h-32.77l-9.09-66.18h-.63v66.18h-31.29V71.85Z"/>
+                      <path fill="#434345" d="m436.06,71.85h31.71v156.46h-31.71V71.85Z"/>
+                      <path fill="#434345" d="m518.73,133.59h.42v-61.74h28.97v156.46h-28.33l-11.84-68.93h-.42v68.93h-28.97V71.85h31.08l9.09,61.74Z"/>
+                      <path fill="#434345" d="m597.16,175.03h-2.96v-26.85h32.98v80.34c-9.72,0-16.28-1.9-19.24-9.52-2.75,6.34-10.78,10.99-19.66,10.99-18.39,0-29.6-12.9-29.6-36.15v-88.16c0-23.26,12.9-35.52,34.89-35.52s33.62,12.26,33.62,35.52v29.39h-30.44v-34.25c0-4.02-.85-6.56-3.17-6.56-2.54,0-3.38,2.54-3.38,6.56v98.53c0,3.81.85,6.55,3.81,6.55,2.11,0,3.17-1.9,3.17-4.44v-26.43Z"/>
+                      <path fill="#434345" d="m1038.88,71.85l18.39,156.46h-32.35l-1.69-29.18h-8.03l-1.48,29.18h-31.5l18.18-156.46h38.48Zm-22.41,102.12h5.5l-1.27-22.62-1.06-32.98h-.63l-1.27,32.98-1.27,22.62Z"/>
+                      <path fill="#434345" d="m1105.9,133.59h.42v-61.74h28.97v156.46h-28.33l-11.84-68.93h-.42v68.93h-28.97V71.85h31.08l9.09,61.74Z"/>
+                      <path fill="#434345" d="m1214.36,194.48c0,23.26-11.42,35.52-33.62,35.52s-34.89-12.26-34.89-35.52v-88.8c0-23.26,13.11-35.52,34.89-35.52s33.62,12.26,33.62,35.52v29.39h-30.45v-34.25c0-4.02-.85-6.56-3.17-6.56-2.54,0-3.38,2.54-3.38,6.56v98.74c0,3.81.85,6.34,3.38,6.34,2.32,0,3.17-2.54,3.17-6.34v-37h30.45v31.93Z"/>
+                      <path fill="#434345" d="m1224.5,71.85h54.97v25.16h-23.47v39.54h20.93v25.37h-20.93v41.23h23.47v25.16h-54.97V71.85Z"/>
+                      <path fill="#434345" d="m1327.25,169.95c0-5.28-1.06-7.4-3.6-7.4h-2.96v65.75h-31.71V71.85h41.02c17.97,0,28.96,10.57,28.96,29.6v28.12c0,8.88-2.32,16.07-12.26,20.93,9.94,5.07,12.26,12.26,12.26,21.35v39.11c0,5.71.42,11.63,1.9,17.34h-31.72c-1.69-5.07-1.9-11.84-1.9-17.34v-41.02Zm0-67.45c0-5.29-1.06-7.4-3.6-7.4h-2.96v44.19h2.96c2.54,0,3.6-2.11,3.6-7.4v-29.39Z"/>
+                      <path fill="#434345" d="m678.4,100.18h-.42l-10.78,128.12h-12.69l-14.17-156.46h11.63l10.36,127.49h.42l10.57-127.49h10.36l10.78,127.49h.42l10.36-127.49h10.99l-14.38,156.46h-12.69l-10.78-128.12Z"/>
+                      <path fill="#434345" d="m731.47,71.85h11.84v156.46h-11.84V71.85Z"/>
+                      <path fill="#434345" d="m790.03,81.79v146.52h-11.84V81.79h-19.88v-9.94h51.59v9.94h-19.88Z"/>
+                      <path fill="#434345" d="m864.66,153.67h-28.12v74.63h-11.84V71.85h11.84v71.67h28.12v-71.67h11.84v156.46h-11.84v-74.63Z"/>
                     </svg>
-                  </div>
-                  <div>
-                    <p className="text-white/80 text-xs font-semibold uppercase tracking-widest mb-1">Global Initiative</p>
-                    <h3 className="font-bold text-white text-2xl">The Working with Cancer Pledge</h3>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2 border border-white/30">
+                  {/* Stats boxes with red fill */}
+                  <div className="rounded-lg px-5 py-3 text-center" style={{ backgroundColor: '#ff353c' }}>
                     <p className="text-white text-2xl font-bold">5,000+</p>
                     <p className="text-white/80 text-xs">Companies Worldwide</p>
                   </div>
-                  <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2 border border-white/30">
+                  <div className="rounded-lg px-5 py-3 text-center" style={{ backgroundColor: '#ff353c' }}>
                     <p className="text-white text-2xl font-bold">40M+</p>
                     <p className="text-white/80 text-xs">Workers Protected</p>
                   </div>
