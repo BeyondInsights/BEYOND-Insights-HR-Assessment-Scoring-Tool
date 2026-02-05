@@ -2517,28 +2517,6 @@ export default function ExportReportPage() {
       format: [1280, 720]
     });
     
-    // Helper function to convert oklch to rgb fallback
-    const convertOklchColors = (element: HTMLElement) => {
-      const allElements = element.querySelectorAll('*');
-      allElements.forEach((el) => {
-        const htmlEl = el as HTMLElement;
-        const computed = window.getComputedStyle(htmlEl);
-        
-        // Check and convert background-color
-        if (computed.backgroundColor && computed.backgroundColor.includes('oklch')) {
-          htmlEl.style.backgroundColor = 'transparent';
-        }
-        // Check and convert color
-        if (computed.color && computed.color.includes('oklch')) {
-          htmlEl.style.color = '#1e293b'; // slate-800 fallback
-        }
-        // Check and convert border-color
-        if (computed.borderColor && computed.borderColor.includes('oklch')) {
-          htmlEl.style.borderColor = '#e2e8f0'; // slate-200 fallback
-        }
-      });
-    };
-    
     try {
       for (let i = 0; i < totalSlides; i++) {
         // Navigate to slide
@@ -2551,20 +2529,8 @@ export default function ExportReportPage() {
         const slideElement = slideContainerRef.current;
         if (!slideElement) continue;
         
-        // Clone the element to avoid modifying the original
-        const clone = slideElement.cloneNode(true) as HTMLElement;
-        clone.style.position = 'absolute';
-        clone.style.left = '-9999px';
-        clone.style.top = '0';
-        clone.style.width = '1280px';
-        clone.style.height = '720px';
-        document.body.appendChild(clone);
-        
-        // Convert any oklch colors in the clone
-        convertOklchColors(clone);
-        
-        // Capture slide
-        const canvas = await html2canvas(clone, {
+        // Capture slide with oklch color overrides
+        const canvas = await html2canvas(slideElement, {
           scale: 2,
           useCORS: true,
           allowTaint: true,
@@ -2573,19 +2539,78 @@ export default function ExportReportPage() {
           height: 720,
           logging: false,
           onclone: (clonedDoc) => {
-            // Additional color fixing in cloned document
+            // Override all oklch colors with RGB equivalents
             const style = clonedDoc.createElement('style');
             style.textContent = `
-              * { 
+              *, *::before, *::after {
                 --tw-ring-color: rgba(59, 130, 246, 0.5) !important;
+                --tw-ring-offset-color: #fff !important;
+                --tw-border-opacity: 1 !important;
+                --tw-bg-opacity: 1 !important;
+                --tw-text-opacity: 1 !important;
               }
+              .bg-white { background-color: #ffffff !important; }
+              .bg-slate-50 { background-color: #f8fafc !important; }
+              .bg-slate-100 { background-color: #f1f5f9 !important; }
+              .bg-slate-200 { background-color: #e2e8f0 !important; }
+              .bg-slate-300 { background-color: #cbd5e1 !important; }
+              .bg-slate-400 { background-color: #94a3b8 !important; }
+              .bg-slate-500 { background-color: #64748b !important; }
+              .bg-slate-600 { background-color: #475569 !important; }
+              .bg-slate-700 { background-color: #334155 !important; }
+              .bg-slate-800 { background-color: #1e293b !important; }
+              .bg-slate-900 { background-color: #0f172a !important; }
+              .bg-red-50 { background-color: #fef2f2 !important; }
+              .bg-red-100 { background-color: #fee2e2 !important; }
+              .bg-red-500 { background-color: #ef4444 !important; }
+              .bg-red-600 { background-color: #dc2626 !important; }
+              .bg-orange-50 { background-color: #fff7ed !important; }
+              .bg-orange-500 { background-color: #f97316 !important; }
+              .bg-amber-50 { background-color: #fffbeb !important; }
+              .bg-amber-100 { background-color: #fef3c7 !important; }
+              .bg-amber-500 { background-color: #f59e0b !important; }
+              .bg-yellow-50 { background-color: #fefce8 !important; }
+              .bg-green-50 { background-color: #f0fdf4 !important; }
+              .bg-green-100 { background-color: #dcfce7 !important; }
+              .bg-green-500 { background-color: #22c55e !important; }
+              .bg-emerald-50 { background-color: #ecfdf5 !important; }
+              .bg-emerald-100 { background-color: #d1fae5 !important; }
+              .bg-emerald-500 { background-color: #10b981 !important; }
+              .bg-emerald-600 { background-color: #059669 !important; }
+              .bg-cyan-100 { background-color: #cffafe !important; }
+              .bg-cyan-500 { background-color: #06b6d4 !important; }
+              .bg-cyan-600 { background-color: #0891b2 !important; }
+              .bg-blue-50 { background-color: #eff6ff !important; }
+              .bg-blue-100 { background-color: #dbeafe !important; }
+              .bg-blue-500 { background-color: #3b82f6 !important; }
+              .bg-blue-600 { background-color: #2563eb !important; }
+              .bg-violet-50 { background-color: #f5f3ff !important; }
+              .bg-violet-100 { background-color: #ede9fe !important; }
+              .bg-violet-500 { background-color: #8b5cf6 !important; }
+              .bg-violet-600 { background-color: #7c3aed !important; }
+              .text-white { color: #ffffff !important; }
+              .text-slate-400 { color: #94a3b8 !important; }
+              .text-slate-500 { color: #64748b !important; }
+              .text-slate-600 { color: #475569 !important; }
+              .text-slate-700 { color: #334155 !important; }
+              .text-slate-800 { color: #1e293b !important; }
+              .text-red-600 { color: #dc2626 !important; }
+              .text-orange-500 { color: #f97316 !important; }
+              .text-amber-500 { color: #f59e0b !important; }
+              .text-green-600 { color: #16a34a !important; }
+              .text-emerald-600 { color: #059669 !important; }
+              .text-blue-600 { color: #2563eb !important; }
+              .text-violet-600 { color: #7c3aed !important; }
+              .text-violet-700 { color: #6d28d9 !important; }
+              .border-slate-200 { border-color: #e2e8f0 !important; }
+              .border-slate-300 { border-color: #cbd5e1 !important; }
+              .border-violet-200 { border-color: #ddd6fe !important; }
+              .border-blue-200 { border-color: #bfdbfe !important; }
+              .border-cyan-200 { border-color: #a5f3fc !important; }
             `;
             clonedDoc.head.appendChild(style);
           }
         });
-        
-        // Remove clone
-        document.body.removeChild(clone);
         
         const imgData = canvas.toDataURL('image/jpeg', 0.92);
         
@@ -6122,7 +6147,7 @@ export default function ExportReportPage() {
           <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
             {/* Slide Content Area - centered */}
             <div className="flex-1 overflow-hidden flex items-center justify-center p-3">
-              <div ref={slideContainerRef} className="bg-white rounded-lg shadow-2xl w-[1280px] h-[720px] overflow-hidden" style={{ aspectRatio: '16/9' }}>
+              <div ref={slideContainerRef} className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden">
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
