@@ -1885,10 +1885,13 @@ export default function InteractiveReportPage() {
   const [showSlideNav, setShowSlideNav] = useState(false);
   const [showJumpTo, setShowJumpTo] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
+  const [presenterNotesWindow, setPresenterNotesWindow] = useState<Window | null>(null);
+  const [customNotes, setCustomNotes] = useState<Record<string, string>>({});
   
   // Info modal content
   const infoContent = {
@@ -2119,6 +2122,103 @@ export default function InteractiveReportPage() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  // Load custom presenter notes from localStorage
+  useEffect(() => {
+    const savedNotes = localStorage.getItem(`presenter_notes_${company?.survey_id || 'default'}`);
+    if (savedNotes) {
+      try {
+        setCustomNotes(JSON.parse(savedNotes));
+      } catch (e) {
+        console.error('Failed to load presenter notes:', e);
+      }
+    }
+  }, [company?.survey_id]);
+  
+  // Save custom notes to localStorage
+  const saveCustomNotes = (notes: Record<string, string>) => {
+    setCustomNotes(notes);
+    localStorage.setItem(`presenter_notes_${company?.survey_id || 'default'}`, JSON.stringify(notes));
+  };
+  
+  // Open presenter notes in separate window
+  const openPresenterNotesWindow = () => {
+    if (presenterNotesWindow && !presenterNotesWindow.closed) {
+      presenterNotesWindow.focus();
+      return;
+    }
+    
+    const notesWindow = window.open('', 'PresenterNotes', 'width=450,height=700,left=100,top=100,resizable=yes,scrollbars=yes');
+    if (notesWindow) {
+      setPresenterNotesWindow(notesWindow);
+      renderPresenterNotesWindow(notesWindow, currentSlide);
+    }
+  };
+  
+  // Render presenter notes window content
+  const renderPresenterNotesWindow = (win: Window, slideNum: number) => {
+    if (!win || win.closed) return;
+    
+    const slideNames: Record<number, string> = {
+      0: 'Title & Overview', 1: 'How Index Was Developed', 2: 'How to Use This Report',
+      3: 'Executive Summary', 4: 'Dimension Performance', 30: 'Implementation Roadmap',
+      31: 'Working with Cancer Pledge', 32: 'How CAC Can Help', 33: 'Methodology', 34: 'Thank You'
+    };
+    for (let i = 5; i <= 17; i++) slideNames[i] = `Dimension ${i - 4} Deep Dive`;
+    for (let i = 18; i <= 29; i++) slideNames[i] = `Strategic Content ${i - 17}`;
+    
+    const slideName = slideNames[slideNum] || `Slide ${slideNum + 1}`;
+    const noteKey = `slide_${slideNum}`;
+    const customNote = customNotes[noteKey] || '';
+    
+    const defaultNotes: Record<number, string> = {
+      0: '• Start with composite score and tier\n• Assessment date reflects current state\n• Overview of support elements evaluated',
+      1: '• Evidence-based methodology\n• Based on ILO, NICE international standards\n• First comprehensive benchmark',
+      3: '• Highlight top performing dimension\n• Note areas for growth\n• Discuss meaning for employees',
+      4: '• Walk through dimension breakdown\n• Focus on highest-weighted first\n• Note tier distribution',
+      30: '• Suggested phasing - customizable\n• Phase 1: Quick wins\n• Phase 2: Strategic investments\n• Phase 3: Culture optimization',
+      31: '• 5,000+ companies globally signed\n• Pledge = intent, Index = execution\n• 81% say it matters for trust',
+      32: '• CAC can support implementation\n• Discuss next steps'
+    };
+    for (let i = 5; i <= 17; i++) {
+      defaultNotes[i] = '• Review strengths (green)\n• Highlight planning items (blue)\n• Address gaps as opportunities\n• Connect to employee impact';
+    }
+    const defaultNote = defaultNotes[slideNum] || 'Focus on visual content and respond to questions.';
+    
+    win.document.open();
+    win.document.write(`<!DOCTYPE html><html><head><title>Presenter Notes - ${slideName}</title>
+      <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#1e293b;color:#e2e8f0;padding:20px}.header{background:linear-gradient(135deg,#f97316,#ea580c);margin:-20px -20px 20px -20px;padding:16px 20px;border-radius:0 0 12px 12px}.header h1{font-size:14px;color:white;opacity:0.9;margin-bottom:4px}.header h2{font-size:20px;font-weight:700;color:white}.slide-nav{display:flex;gap:8px;margin-bottom:20px}.slide-nav button{background:#334155;border:none;color:#94a3b8;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}.slide-nav button:hover{background:#475569;color:white}.section{background:#334155;border-radius:12px;padding:16px;margin-bottom:16px}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f59e0b;margin-bottom:12px}.default-notes{background:#1e293b;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#cbd5e1}.custom-notes textarea{width:100%;min-height:150px;background:#1e293b;border:2px solid #475569;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;color:#e2e8f0;resize:vertical;font-family:inherit}.custom-notes textarea:focus{outline:none;border-color:#f59e0b}.custom-notes textarea::placeholder{color:#64748b}.save-status{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#22c55e}.tip{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:8px;padding:12px;margin-top:16px;font-size:13px;color:#fdba74}</style></head>
+      <body><div class="header"><h1>SLIDE ${slideNum + 1} OF 35</h1><h2>${slideName}</h2></div>
+      <div class="slide-nav"><button onclick="window.opener.postMessage({type:'prevSlide'},'*')">← Previous</button><button onclick="window.opener.postMessage({type:'nextSlide'},'*')">Next →</button></div>
+      <div class="section"><div class="section-title">📋 Suggested Talking Points</div><div class="default-notes">${defaultNote}</div></div>
+      <div class="section"><div class="section-title">✏️ Your Custom Notes</div><div class="custom-notes"><textarea id="customNotes" placeholder="Add your own notes here...">${customNote}</textarea><div class="save-status" id="saveStatus" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>Saved</div></div></div>
+      <div class="tip">💡 <strong>Tip:</strong> This window is separate from your presentation. Share only the main report window to keep notes private.</div>
+      <script>let saveTimeout;const textarea=document.getElementById('customNotes');const saveStatus=document.getElementById('saveStatus');textarea.addEventListener('input',()=>{clearTimeout(saveTimeout);saveTimeout=setTimeout(()=>{window.opener.postMessage({type:'saveNote',slideNum:${slideNum},note:textarea.value},'*');saveStatus.style.display='flex';setTimeout(()=>saveStatus.style.display='none',2000);},500);});</script></body></html>`);
+    win.document.close();
+  };
+  
+  // Update presenter notes window when slide changes
+  useEffect(() => {
+    if (presenterNotesWindow && !presenterNotesWindow.closed && presentationMode) {
+      renderPresenterNotesWindow(presenterNotesWindow, currentSlide);
+    }
+  }, [currentSlide, presenterNotesWindow, presentationMode, customNotes]);
+  
+  // Listen for messages from presenter notes window
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'saveNote') {
+        const newNotes = { ...customNotes, [`slide_${event.data.slideNum}`]: event.data.note };
+        saveCustomNotes(newNotes);
+      } else if (event.data.type === 'prevSlide') {
+        setCurrentSlide(prev => Math.max(0, prev - 1));
+      } else if (event.data.type === 'nextSlide') {
+        setCurrentSlide(prev => Math.min(34, prev + 1));
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [customNotes]);
 
   useEffect(() => {
     // CRITICAL: Reset ALL state when token changes
@@ -5321,17 +5421,17 @@ export default function InteractiveReportPage() {
                   </div>
                   <div className="border-l-2 pl-4" style={{ borderColor: '#e5e5e5' }}>
                     <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#888' }}>The</p>
-                    <p className="text-lg font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
-                    <p className="text-sm font-medium" style={{ color: '#434345' }}>Pledge</p>
+                    <p className="text-xl font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
+                    <p className="text-base font-medium" style={{ color: '#434345' }}>Pledge</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="rounded-lg px-4 py-2 text-center shadow-md" style={{ backgroundColor: '#ff353c' }}>
-                    <p className="text-white text-xl font-bold">5,000+</p>
+                  <div className="rounded-lg px-4 py-2.5 text-center shadow-md" style={{ backgroundColor: '#ff353c' }}>
+                    <p className="text-white text-2xl font-bold">5,000+</p>
                     <p className="text-white/90 text-xs font-medium">Companies</p>
                   </div>
-                  <div className="rounded-lg px-4 py-2 text-center shadow-md" style={{ backgroundColor: '#434345' }}>
-                    <p className="text-white text-xl font-bold">40M+</p>
+                  <div className="rounded-lg px-4 py-2.5 text-center shadow-md" style={{ backgroundColor: '#434345' }}>
+                    <p className="text-white text-2xl font-bold">40M+</p>
                     <p className="text-white/90 text-xs font-medium">Workers</p>
                   </div>
                 </div>
@@ -5349,7 +5449,7 @@ export default function InteractiveReportPage() {
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900 text-base mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
+                  <h4 className="font-bold text-slate-900 text-lg mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
                   <p className="text-slate-600 text-sm leading-relaxed">
                     Launched at Davos in January 2023 by the Publicis Foundation, the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
                   </p>
@@ -5364,21 +5464,21 @@ export default function InteractiveReportPage() {
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     </div>
-                    <p className="font-bold text-slate-900 text-sm mb-1">Job Security</p>
+                    <p className="font-bold text-slate-900 text-base mb-1">Job Security</p>
                     <p className="text-slate-600 text-xs leading-relaxed">Protect employment for employees diagnosed with cancer</p>
                   </div>
                   <div className="rounded-lg p-4 shadow-md" style={{ backgroundColor: '#ff353c' }}>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2 bg-white/20">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
-                    <p className="font-bold text-white text-sm mb-1">Open Culture</p>
+                    <p className="font-bold text-white text-base mb-1">Open Culture</p>
                     <p className="text-white/90 text-xs leading-relaxed">Create stigma-free environments for disclosure</p>
                   </div>
                   <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
-                    <p className="font-bold text-slate-900 text-sm mb-1">Recovery Support</p>
+                    <p className="font-bold text-slate-900 text-base mb-1">Recovery Support</p>
                     <p className="text-slate-600 text-xs leading-relaxed">Accommodations for treatment and return-to-work</p>
                   </div>
                 </div>
@@ -5414,16 +5514,16 @@ export default function InteractiveReportPage() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
-                      <span className="text-xs text-slate-700">Pledge is important</span>
-                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
+                      <span className="text-sm text-slate-700">Pledge is important</span>
+                      <span className="text-xl font-bold" style={{ color: '#ff353c' }}>81%</span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
-                      <span className="text-xs text-slate-700">Trust pledge companies more</span>
-                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
+                      <span className="text-sm text-slate-700">Trust pledge companies more</span>
+                      <span className="text-xl font-bold" style={{ color: '#ff353c' }}>81%</span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
-                      <span className="text-xs text-slate-700">Influences job decisions</span>
-                      <span className="text-lg font-bold" style={{ color: '#ff353c' }}>75%</span>
+                      <span className="text-sm text-slate-700">Influences job decisions</span>
+                      <span className="text-xl font-bold" style={{ color: '#ff353c' }}>75%</span>
                     </div>
                   </div>
                 </div>
@@ -5437,16 +5537,16 @@ export default function InteractiveReportPage() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
-                      <span className="text-xs text-slate-700">Pledge is important</span>
-                      <span className="text-lg font-bold text-slate-700">72%</span>
+                      <span className="text-sm text-slate-700">Pledge is important</span>
+                      <span className="text-xl font-bold text-slate-700">72%</span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
-                      <span className="text-xs text-slate-700">Trust pledge companies more</span>
-                      <span className="text-lg font-bold text-slate-700">69%</span>
+                      <span className="text-sm text-slate-700">Trust pledge companies more</span>
+                      <span className="text-xl font-bold text-slate-700">69%</span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 shadow-sm">
-                      <span className="text-xs text-slate-700">Influences job decisions</span>
-                      <span className="text-lg font-bold text-slate-700">60%</span>
+                      <span className="text-sm text-slate-700">Influences job decisions</span>
+                      <span className="text-xl font-bold text-slate-700">60%</span>
                     </div>
                   </div>
                 </div>
@@ -7604,15 +7704,15 @@ export default function InteractiveReportPage() {
                           <div className="space-y-2">
                             <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2 shadow-sm">
                               <span className="text-sm text-slate-700">Say the pledge is important</span>
-                              <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
+                              <span className="text-xl font-bold" style={{ color: '#ff353c' }}>81%</span>
                             </div>
                             <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2 shadow-sm">
                               <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                              <span className="text-lg font-bold" style={{ color: '#ff353c' }}>81%</span>
+                              <span className="text-xl font-bold" style={{ color: '#ff353c' }}>81%</span>
                             </div>
                             <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2 shadow-sm">
                               <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                              <span className="text-lg font-bold" style={{ color: '#ff353c' }}>75%</span>
+                              <span className="text-xl font-bold" style={{ color: '#ff353c' }}>75%</span>
                             </div>
                           </div>
                         </div>
@@ -7626,15 +7726,15 @@ export default function InteractiveReportPage() {
                           <div className="space-y-2">
                             <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2 shadow-sm">
                               <span className="text-sm text-slate-700">Say the pledge is important</span>
-                              <span className="text-lg font-bold text-slate-700">72%</span>
+                              <span className="text-xl font-bold text-slate-700">72%</span>
                             </div>
                             <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2 shadow-sm">
                               <span className="text-sm text-slate-700">Would trust pledge companies more</span>
-                              <span className="text-lg font-bold text-slate-700">69%</span>
+                              <span className="text-xl font-bold text-slate-700">69%</span>
                             </div>
                             <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2 shadow-sm">
                               <span className="text-sm text-slate-700">Would influence their job decisions</span>
-                              <span className="text-lg font-bold text-slate-700">60%</span>
+                              <span className="text-xl font-bold text-slate-700">60%</span>
                             </div>
                           </div>
                         </div>
@@ -7980,9 +8080,9 @@ export default function InteractiveReportPage() {
                 <div className="w-px h-6 bg-slate-600 mx-2"></div>
                 
                 <button
-                  onClick={() => setShowPresenterNotes(!showPresenterNotes)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${showPresenterNotes ? 'bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
-                  title="Presenter notes"
+                  onClick={openPresenterNotesWindow}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${presenterNotesWindow && !presenterNotesWindow.closed ? 'bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                  title="Open Presenter Notes (separate window)"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -8160,8 +8260,8 @@ export default function InteractiveReportPage() {
               </div>
             )}
             
-            {/* Presenter Notes Panel */}
-            {showPresenterNotes && (
+            {/* Presenter Notes - Now opens in separate window */}
+            {false && showPresenterNotes && (
               <div className="absolute bottom-20 left-4 right-4 bg-slate-900/95 backdrop-blur rounded-xl p-5 shadow-2xl border border-slate-700 max-h-48 overflow-y-auto z-40">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
