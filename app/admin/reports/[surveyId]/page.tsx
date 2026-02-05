@@ -2187,6 +2187,10 @@ export default function ExportReportPage() {
   // Presentation mode state
   const [presentationMode, setPresentationMode] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [slideZoom, setSlideZoom] = useState(100); // percentage
+  const [showSlideNav, setShowSlideNav] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // Info modal content
   const infoContent = {
@@ -2472,12 +2476,18 @@ export default function ExportReportPage() {
 
   // Presentation mode keyboard navigation
   useEffect(() => {
-    if (!presentationMode) return;
-    
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (!presentationMode) return;
+      
       if (e.key === 'Escape') {
-        setPresentationMode(false);
-        document.exitFullscreen?.().catch(() => {});
+        if (showSlideNav) {
+          setShowSlideNav(false);
+        } else if (showKeyboardHelp) {
+          setShowKeyboardHelp(false);
+        } else {
+          setPresentationMode(false);
+          document.exitFullscreen?.().catch(() => {});
+        }
       } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         setCurrentSlide(prev => Math.min(prev + 1, 34));
@@ -2488,12 +2498,38 @@ export default function ExportReportPage() {
         setCurrentSlide(0);
       } else if (e.key === 'End') {
         setCurrentSlide(34);
+      } else if (e.key === '+' || e.key === '=') {
+        setSlideZoom(prev => Math.min(prev + 10, 150));
+      } else if (e.key === '-' || e.key === '_') {
+        setSlideZoom(prev => Math.max(prev - 10, 50));
+      } else if (e.key === '0') {
+        setSlideZoom(100);
+      } else if (e.key === 'g' || e.key === 'G') {
+        setShowSlideNav(prev => !prev);
+      } else if (e.key === '?' || e.key === 'h' || e.key === 'H') {
+        setShowKeyboardHelp(prev => !prev);
+      } else if (e.key === 'f' || e.key === 'F') {
+        if (document.fullscreenElement) {
+          document.exitFullscreen?.();
+          setIsFullscreen(false);
+        } else {
+          document.documentElement.requestFullscreen?.();
+          setIsFullscreen(true);
+        }
       }
     };
     
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [presentationMode]);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [presentationMode, showSlideNav, showKeyboardHelp]);
 
   function calculateCompanyScores(assessment: Record<string, any>) {
     const dimensionScores: Record<number, number | null> = {};
@@ -6006,7 +6042,10 @@ export default function ExportReportPage() {
           <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
             {/* Slide Content Area - centered */}
             <div className="flex-1 overflow-hidden flex items-center justify-center p-3">
-              <div className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden">
+              <div 
+                className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden transition-transform duration-200"
+                style={{ transform: `scale(${slideZoom / 100})` }}
+              >
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
@@ -7855,23 +7894,57 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* Navigation Bar - compact */}
+            {/* Navigation Bar - enhanced */}
             <div className="flex-shrink-0 bg-slate-800 px-6 py-2 flex items-center justify-between">
+              {/* Left side - slide counter and progress */}
               <div className="flex items-center gap-4">
-                <div className="text-white text-sm">
+                <button
+                  onClick={() => setShowSlideNav(true)}
+                  className="text-white text-sm hover:bg-slate-700 px-2 py-1 rounded transition-colors"
+                  title="Go to slide (G)"
+                >
                   <span className="font-bold">{currentSlide + 1}</span>
                   <span className="text-slate-400"> / 35</span>
-                </div>
+                </button>
                 <div className="w-40 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                   <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / 35) * 100}%` }}></div>
                 </div>
               </div>
               
+              {/* Center - zoom controls */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setSlideZoom(prev => Math.max(prev - 10, 50))}
+                  disabled={slideZoom <= 50}
+                  className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm"
+                  title="Zoom out (-)"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
+                </button>
+                <button
+                  onClick={() => setSlideZoom(100)}
+                  className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-medium min-w-[50px]"
+                  title="Reset zoom (0)"
+                >
+                  {slideZoom}%
+                </button>
+                <button
+                  onClick={() => setSlideZoom(prev => Math.min(prev + 10, 150))}
+                  disabled={slideZoom >= 150}
+                  className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm"
+                  title="Zoom in (+)"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                </button>
+              </div>
+              
+              {/* Right side - navigation and controls */}
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.max(prev - 1, 0))}
                   disabled={currentSlide === 0}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
+                  title="Previous slide (←)"
                 >
                   Previous
                 </button>
@@ -7879,20 +7952,158 @@ export default function ExportReportPage() {
                   onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 34))}
                   disabled={currentSlide === 34}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
+                  title="Next slide (→)"
                 >
                   Next
+                </button>
+                
+                <div className="w-px h-6 bg-slate-600 mx-2"></div>
+                
+                <button
+                  onClick={() => setShowKeyboardHelp(true)}
+                  className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
+                  title="Keyboard shortcuts (?)"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </button>
+                <button
+                  onClick={() => {
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen?.();
+                      setIsFullscreen(false);
+                    } else {
+                      document.documentElement.requestFullscreen?.();
+                      setIsFullscreen(true);
+                    }
+                  }}
+                  className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
+                  title="Toggle fullscreen (F)"
+                >
+                  {isFullscreen ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" /></svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
+                  )}
                 </button>
                 <button 
                   onClick={() => {
                     setPresentationMode(false);
                     document.exitFullscreen?.().catch(() => {});
                   }}
-                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium ml-4"
+                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium ml-2"
+                  title="Exit presentation (Esc)"
                 >
                   Exit
                 </button>
               </div>
             </div>
+            
+            {/* Keyboard Shortcuts Modal */}
+            {showKeyboardHelp && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowKeyboardHelp(false)}>
+                <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-slate-800">Keyboard Shortcuts</h3>
+                    <button onClick={() => setShowKeyboardHelp(false)} className="text-slate-400 hover:text-slate-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Next slide</span>
+                      <div className="flex gap-1">
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">→</kbd>
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Space</kbd>
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Enter</kbd>
+                      </div>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Previous slide</span>
+                      <div className="flex gap-1">
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">←</kbd>
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Backspace</kbd>
+                      </div>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">First / Last slide</span>
+                      <div className="flex gap-1">
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Home</kbd>
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">End</kbd>
+                      </div>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Zoom in / out</span>
+                      <div className="flex gap-1">
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">+</kbd>
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">-</kbd>
+                      </div>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Reset zoom</span>
+                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">0</kbd>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Go to slide</span>
+                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">G</kbd>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Toggle fullscreen</span>
+                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">F</kbd>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-600">Exit presentation</span>
+                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Esc</kbd>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Slide Navigator Modal */}
+            {showSlideNav && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowSlideNav(false)}>
+                <div className="bg-white rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-slate-800">Go to Slide</h3>
+                    <button onClick={() => setShowSlideNav(false)} className="text-slate-400 hover:text-slate-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-5 gap-2 overflow-y-auto max-h-[60vh] pr-2">
+                    {Array.from({ length: 35 }, (_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { setCurrentSlide(i); setShowSlideNav(false); }}
+                        className={`p-3 rounded-lg text-left transition-colors ${currentSlide === i ? 'bg-violet-100 border-2 border-violet-500' : 'bg-slate-50 hover:bg-slate-100 border-2 border-transparent'}`}
+                      >
+                        <div className="text-xs font-bold text-slate-800 mb-1">Slide {i + 1}</div>
+                        <div className="text-[10px] text-slate-500 leading-tight truncate">
+                          {i === 0 ? 'Title' : 
+                           i === 1 ? 'How Index Was Developed' :
+                           i === 2 ? 'How to Use This Report' :
+                           i === 3 ? 'Executive Summary' :
+                           i === 4 ? 'Dimension Performance' :
+                           i >= 5 && i <= 17 ? `D${i - 4} Deep Dive` :
+                           i === 18 || i === 19 ? 'Strategic Matrix' :
+                           i === 20 ? 'Cross-Dimensional' :
+                           i === 21 ? 'Impact Rankings' :
+                           i === 22 ? 'Areas of Excellence' :
+                           i === 23 ? 'Areas for Growth' :
+                           i === 24 ? 'In Progress' :
+                           i === 25 ? 'Strategic Recommendations' :
+                           i >= 26 && i <= 29 ? 'Recommendations' :
+                           i === 30 ? 'Implementation Roadmap' :
+                           i === 31 ? 'Working with Cancer Pledge' :
+                           i === 32 ? 'Cancer and Careers' :
+                           i === 33 ? 'Methodology' :
+                           'Thank You'}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
