@@ -1266,7 +1266,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
     currently: { bg: '#10B981', light: '#ECFDF5', text: '#065F46', label: 'Offering' },
     planning: { bg: '#3B82F6', light: '#EFF6FF', text: '#1E40AF', label: 'Planning' },
     assessing: { bg: '#F59E0B', light: '#FFFBEB', text: '#92400E', label: 'Assessing' },
-    notAble: { bg: '#EF4444', light: '#FEF2F2', text: '#991B1B', label: 'Not Able' }
+    notAble: { bg: '#EF4444', light: '#FEF2F2', text: '#991B1B', label: 'Not Planned' }
   };
 
   const getStatusInfo = (elem: any) => {
@@ -1447,7 +1447,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24 border-l border-slate-200" style={{ color: STATUS.currently.bg }}>Offering</th>
                             <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>Planning</th>
                             <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>Assessing</th>
-                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Able</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Planned</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1883,6 +1883,8 @@ export default function InteractiveReportPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideZoom, setSlideZoom] = useState(100); // percentage
   const [showSlideNav, setShowSlideNav] = useState(false);
+  const [showJumpTo, setShowJumpTo] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
@@ -2108,6 +2110,15 @@ export default function InteractiveReportPage() {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, [presentationMode, showSlideNav, showKeyboardHelp]);
+  
+  // Scroll listener for Back to Top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 800);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     // CRITICAL: Reset ALL state when token changes
@@ -2643,7 +2654,44 @@ export default function InteractiveReportPage() {
   const assessingItems = allElements.filter(e => e.isAssessing).length;
   const gapItems = allElements.filter(e => e.isGap).length;
   const unsureItems = allElements.filter(e => e.isUnsure).length;
-  const notPlannedItems = gapItems; // isGap = not_able (Not Planned), separate from Unsure
+  const notPlannedItems = gapItems;
+  
+  // Check if company is a WWC Pledge Signatory
+  const currentSupportData = company.current_support_data || {};
+  const or2c = currentSupportData.or2c || [];
+  const isFoundingPartner = company.is_founding_partner === true || 
+    company.payment_method === 'founding_partner' || 
+    (company.application_id && company.application_id.startsWith('FP-'));
+  const isWwcPledge = isFoundingPartner || (Array.isArray(or2c) && or2c.some((v: string) => 
+    typeof v === 'string' && (v.toLowerCase().includes('working with cancer') || v.toLowerCase().includes('wwc'))
+  ));
+  
+  // Section navigation for Jump To dropdown
+  const reportSections = [
+    { id: 'report-hero-section', label: 'Overview & Score', icon: '📊' },
+    { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', icon: '✅', show: unsureItems > 0 },
+    { id: 'score-composition-section', label: 'Score Composition', icon: '🧮' },
+    { id: 'dimension-performance-table', label: 'Dimension Performance', icon: '📈' },
+    { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', icon: '🎯' },
+    { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', icon: '🔗' },
+    { id: 'impact-ranked-priorities', label: 'Impact-Ranked Priorities', icon: '⚡' },
+    { id: 'areas-of-excellence', label: 'Areas of Excellence', icon: '🌟' },
+    { id: 'growth-opportunities', label: 'Growth Opportunities', icon: '📈' },
+    { id: 'initiatives-in-progress', label: 'Initiatives in Progress', icon: '🚀' },
+    { id: 'strategic-recommendations', label: 'Strategic Recommendations', icon: '💡' },
+    { id: 'implementation-roadmap', label: 'Implementation Roadmap', icon: '🗺️' },
+    { id: 'wwc-pledge-section', label: 'Working with Cancer Pledge', icon: '🤝' },
+    { id: 'cac-help-section', label: 'How CAC Can Help', icon: '🧡' },
+    { id: 'methodology-section', label: 'Methodology', icon: '📋' },
+  ].filter(s => s.show !== false);
+  
+  const scrollToSection = (id: string) => {
+    setShowJumpTo(false);
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
   
   // Provisional classification: 4+ dimensions with 40%+ Unsure responses
   const dimsWithHighUnsure = dimensionAnalysis.filter(d => {
@@ -2876,6 +2924,49 @@ export default function InteractiveReportPage() {
               <p className="text-sm text-slate-500">2026 Best Companies Index Report</p>
               <p className="font-semibold text-slate-800">{company?.firmographics_data?.company_name || company?.company_name || 'Loading...'}</p>
             </div>
+            
+            {/* Jump To Dropdown */}
+            <div className="relative ml-4">
+              <button 
+                onClick={() => setShowJumpTo(!showJumpTo)}
+                className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" /></svg>
+                Jump to
+                <svg className={`w-4 h-4 transition-transform ${showJumpTo ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {showJumpTo && (
+                <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 max-h-96 overflow-y-auto">
+                  {reportSections.map((section) => (
+                    <button
+                      key={section.id}
+                      onClick={() => scrollToSection(section.id)}
+                      className="w-full px-4 py-2.5 text-left hover:bg-slate-50 flex items-center gap-3 text-sm text-slate-700 hover:text-slate-900 transition-colors"
+                    >
+                      <span className="text-base">{section.icon}</span>
+                      <span className="font-medium">{section.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Needs Confirmation Quick Button */}
+            {unsureItems > 0 && (
+              <button 
+                onClick={() => {
+                  setShowConfirmatoryChecklist(true);
+                  setTimeout(() => {
+                    document.getElementById('confirmatory-checklist')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 100);
+                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+                style={{ backgroundColor: '#fef3e6', color: '#F37021', border: '1px solid #F37021' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                Confirm ({unsureItems})
+              </button>
+            )}
           </div>
           <button 
             onClick={() => {
@@ -3087,6 +3178,20 @@ export default function InteractiveReportPage() {
                 <div>
                   <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
                   <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
+                  {isWwcPledge && (
+                    <div className="mt-4 flex items-center gap-3">
+                      <div className="w-10 h-10 flex-shrink-0">
+                        <svg viewBox="0 0 300 300" className="w-full h-full">
+                          <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                          <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                        </svg>
+                      </div>
+                      <div className="border-l-2 pl-3" style={{ borderColor: '#ff353c' }}>
+                        <p className="text-xs font-medium text-slate-600">The <span className="font-bold text-slate-800">#workingwithcancer</span></p>
+                        <p className="text-sm font-semibold text-slate-800">Pledge <span className="font-bold" style={{ color: '#ff353c' }}>Signatory</span></p>
+                      </div>
+                    </div>
+                  )}
                   {(contactName || contactEmail) && (
                     <div className="mt-3 text-base text-slate-500">
                       {contactName && <span className="font-medium text-slate-600">{contactName}</span>}
@@ -3112,6 +3217,126 @@ export default function InteractiveReportPage() {
                 </div>
               </div>
             </div>
+            
+            {/* ============ CONFIRMATORY CHECKLIST ============ */}
+            {unsureItems > 0 && (
+              <div id="confirmatory-checklist" className="px-12 py-6 bg-white border-b border-slate-200 max-w-[1200px] mx-auto">
+                <button 
+                  onClick={() => setShowConfirmatoryChecklist(!showConfirmatoryChecklist)}
+                  className="w-full flex items-center justify-between px-6 py-4 border-2 rounded-xl transition-all group"
+                  style={{ background: 'linear-gradient(135deg, #fef7f0 0%, #fff5eb 100%)', borderColor: '#F37021' }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md" style={{ backgroundColor: '#F37021' }}>
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-lg font-bold text-slate-800 group-hover:text-[#F37021] transition-colors">
+                        Confirmatory Checklist — {unsureItems} Items Requiring Confirmation
+                      </p>
+                      <p className="text-base text-slate-600 mt-1">
+                        Review items marked "Unsure" to finalize your assessment scores
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-bold px-4 py-2 rounded-full shadow-sm" style={{ backgroundColor: '#fff5eb', color: '#F37021', border: '1px solid #F37021' }}>
+                      {dimensionAnalysis.filter(d => d.unsure?.length > 0).length} dimensions affected
+                    </span>
+                    <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center transition-transform duration-300 shadow-sm ${showConfirmatoryChecklist ? 'rotate-180' : ''}`} style={{ borderColor: '#F37021' }}>
+                      <svg className="w-5 h-5" style={{ color: '#F37021' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </button>
+                
+                {showConfirmatoryChecklist && (
+                  <div className="mt-5">
+                    <div className="bg-white border-2 rounded-xl overflow-hidden shadow-lg" style={{ borderColor: '#F37021' }}>
+                      <div className="p-6 border-b" style={{ borderColor: '#fde5d8', background: 'linear-gradient(135deg, #fffcfa 0%, #fff8f3 100%)' }}>
+                        <p className="text-base text-slate-700 leading-relaxed">
+                          These items should be confirmed before finalizing your score. Cancer and Careers can work with your team to 
+                          determine the status of these items. Once confirmed as <strong className="text-emerald-700">Offered</strong>, <strong className="text-blue-700">Planning</strong>, <strong className="text-violet-700">Assessing</strong>, or <strong className="text-slate-600">Not Planned</strong>, your scores will be updated accordingly.
+                        </p>
+                      </div>
+                      
+                      <div className="p-6">
+                        <div className="flex justify-end mb-5">
+                          <button
+                            onClick={() => {
+                              const rows = [['Dimension', 'Tier', 'Weight', 'Item Name']];
+                              dimensionAnalysis.filter(d => d.unsure && d.unsure.length > 0).forEach(dim => {
+                                dim.unsure.forEach((item: any) => {
+                                  rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, dim.tier.label, dim.weight + '%', item.name]);
+                                });
+                              });
+                              const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+                              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                              const link = document.createElement('a');
+                              link.href = URL.createObjectURL(blob);
+                              link.download = `${companyName?.replace(/[^a-zA-Z0-9]/g, '_') || 'company'}_confirmatory_items.csv`;
+                              link.click();
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border-2 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold shadow-sm"
+                            style={{ borderColor: '#F37021', color: '#F37021' }}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Export to CSV
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-5">
+                          {dimensionAnalysis
+                            .filter(d => d.unsure && d.unsure.length > 0)
+                            .sort((a, b) => b.weight - a.weight)
+                            .map((dim) => (
+                              <div key={dim.dim} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm" style={{ backgroundColor: dim.tier.color }}>
+                                      {dim.dim}
+                                    </span>
+                                    <span className="text-base font-semibold text-slate-800">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
+                                  </div>
+                                  <span className="text-sm font-bold px-3 py-1 rounded-full" style={{ backgroundColor: '#fff5eb', color: '#F37021' }}>
+                                    {dim.unsure.length} item{dim.unsure.length !== 1 ? 's' : ''}
+                                  </span>
+                                </div>
+                                <div className="px-5 py-3">
+                                  {dim.unsure.map((item: any, idx: number) => (
+                                    <div key={idx} className="flex items-start gap-3 py-2 border-b border-slate-100 last:border-0">
+                                      <span className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: '#F37021' }}></span>
+                                      <span className="text-sm text-slate-700 leading-relaxed">{item.name}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                      
+                      <div className="px-6 py-5 flex items-center justify-between" style={{ backgroundColor: '#434345' }}>
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(243, 112, 33, 0.2)' }}>
+                            <svg className="w-5 h-5" style={{ color: '#F37021' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                          </div>
+                          <p className="text-base text-slate-200">
+                            <strong className="text-white">Ready to confirm?</strong> Cancer and Careers can schedule a review session.
+                          </p>
+                        </div>
+                        <span className="text-slate-400 text-base font-medium">info@cancerandcareers.org</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             
             {/* Executive Summary */}
             <div className="px-12 py-10 bg-slate-50">
@@ -3632,7 +3857,7 @@ export default function InteractiveReportPage() {
           </div>
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
+          <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
               <div>
                 <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
@@ -4459,7 +4684,7 @@ export default function InteractiveReportPage() {
           })()}
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="areas-of-excellence" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-5 bg-emerald-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -4504,7 +4729,7 @@ export default function InteractiveReportPage() {
           </div>
           
           {/* ============ GROWTH OPPORTUNITIES ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="growth-opportunities" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-5 bg-amber-600">
               <div className="flex items-center justify-between">
                 <div>
@@ -4587,7 +4812,7 @@ export default function InteractiveReportPage() {
           )}
           
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" id="appendix-start" data-export="appendix-start">
+          <div id="strategic-recommendations" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" id="appendix-start" data-export="appendix-start">
             <div className="px-12 py-10 bg-slate-800">
               <div className="flex items-center justify-between">
                 <div>
@@ -4885,7 +5110,7 @@ export default function InteractiveReportPage() {
           </div>
           
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
+          <div id="implementation-roadmap" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -5064,7 +5289,7 @@ export default function InteractiveReportPage() {
           </div>
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="wwc-pledge-section" className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             {/* Header - Clean white/cream with full logo */}
             <div className="px-12 py-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
               <div className="absolute inset-0 opacity-5">
@@ -5242,7 +5467,7 @@ export default function InteractiveReportPage() {
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
-          <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="cac-help-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
               {/* Decorative circles */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
@@ -5343,7 +5568,7 @@ export default function InteractiveReportPage() {
           </div>
           
           {/* ============ METHODOLOGY & FOOTER ============ */}
-          <div className="ppt-break bg-slate-50 rounded-xl border border-slate-200 overflow-hidden pdf-no-break max-w-7xl mx-auto" id="appendix-end" data-export="appendix-end">
+          <div id="methodology-section" className="ppt-break bg-slate-50 rounded-xl border border-slate-200 overflow-hidden pdf-no-break max-w-7xl mx-auto" id="appendix-end" data-export="appendix-end">
             <div className="px-12 py-6 border-b border-slate-200">
               <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
             </div>
@@ -5656,6 +5881,19 @@ export default function InteractiveReportPage() {
               </div>
             </div>
           )}
+
+        {/* Back to Top Floating Button */}
+        {showBackToTop && !presentationMode && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-8 right-8 z-40 w-12 h-12 bg-slate-800 hover:bg-slate-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"
+            title="Back to top"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+          </button>
+        )}
 
         {presentationMode && (
           <div 
@@ -7743,6 +7981,15 @@ export default function InteractiveReportPage() {
                 <div className="w-px h-6 bg-slate-600 mx-2"></div>
                 
                 <button
+                  onClick={() => setShowPresenterNotes(!showPresenterNotes)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${showPresenterNotes ? 'bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                  title="Presenter notes"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
                   onClick={() => setShowKeyboardHelp(true)}
                   className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
                   title="Keyboard shortcuts (?)"
@@ -7910,6 +8157,112 @@ export default function InteractiveReportPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Presenter Notes Panel */}
+            {showPresenterNotes && (
+              <div className="absolute bottom-20 left-4 right-4 bg-slate-900/95 backdrop-blur rounded-xl p-5 shadow-2xl border border-slate-700 max-h-48 overflow-y-auto z-40">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span className="text-amber-400 text-sm font-bold uppercase tracking-wider">Presenter Notes</span>
+                  </div>
+                  <button onClick={() => setShowPresenterNotes(false)} className="text-slate-400 hover:text-white">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                <div className="text-slate-200 text-sm leading-relaxed">
+                  {currentSlide === 0 && (
+                    <div>
+                      <p className="mb-2"><strong>Key talking points:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Start with the composite score - <strong style={{ color: tier?.color }}>{compositeScore}</strong> places us in the <strong>{tier?.name}</strong> tier</li>
+                        <li>Highlight assessment date and that this represents current state</li>
+                        <li>Mention the {totalElements} support elements evaluated across {Object.keys(dimensionScores).length} dimensions</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 1 && (
+                    <div>
+                      <p className="mb-2"><strong>Framework context:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Evidence-based methodology with peer-reviewed research foundation</li>
+                        <li>Based on international standards (ILO, NICE guidelines)</li>
+                        <li>First comprehensive benchmark for cancer support at work</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 3 && (
+                    <div>
+                      <p className="mb-2"><strong>Executive summary focus:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Top dimension: <strong className="text-emerald-400">{dimensionAnalysis[0]?.name}</strong> ({dimensionAnalysis[0]?.score})</li>
+                        <li>Greatest opportunity: <strong className="text-amber-400">{dimensionAnalysis[dimensionAnalysis.length - 1]?.name}</strong></li>
+                        <li>Discuss what this means for our employees and culture</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 4 && (
+                    <div>
+                      <p className="mb-2"><strong>Dimension overview:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Exemplary dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Exemplary').length}</li>
+                        <li>Proficient dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Proficient').length}</li>
+                        <li>Developing/Foundational: {dimensionAnalysis.filter(d => d.tier.name === 'Developing' || d.tier.name === 'Foundational').length}</li>
+                        <li>Walk through the highest-weighted dimensions first</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide >= 5 && currentSlide <= 17 && (
+                    <div>
+                      <p className="mb-2"><strong>Dimension {currentSlide - 4} deep dive:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Review strengths (green) - acknowledge what is working well</li>
+                        <li>Highlight planning items (blue) - show momentum</li>
+                        <li>Address gaps constructively - frame as opportunities</li>
+                        <li>Connect to real employee impact where possible</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 30 && (
+                    <div>
+                      <p className="mb-2"><strong>Roadmap discussion:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>This is a suggested phasing - can be customized to priorities</li>
+                        <li>Phase 1 (Quick Wins): Low effort, high impact items to build momentum</li>
+                        <li>Phase 2 (Strategic): Medium-term investments for sustainable change</li>
+                        <li>Phase 3 (Optimize): Long-term culture and system enhancements</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 31 && (
+                    <div>
+                      <p className="mb-2"><strong>WWC Pledge context:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>5,000+ companies globally have signed - creates accountability</li>
+                        <li>The Pledge is about intent; this Index measures actual execution</li>
+                        <li>81% of employees managing cancer say this matters for trust</li>
+                        <li>Only 16-18% employee awareness - opportunity to communicate better</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 32 && (
+                    <div>
+                      <p className="mb-2"><strong>CAC partnership:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>20+ years of frontline experience with employees and HR teams</li>
+                        <li>Can support implementation at any phase</li>
+                        <li>Discuss next steps and who to contact</li>
+                      </ul>
+                    </div>
+                  )}
+                  {(currentSlide === 2 || (currentSlide >= 18 && currentSlide <= 29) || currentSlide >= 33) && (
+                    <p className="text-slate-400 italic">No specific notes for this slide. Focus on the visual content and respond to questions.</p>
+                  )}
                 </div>
               </div>
             )}
