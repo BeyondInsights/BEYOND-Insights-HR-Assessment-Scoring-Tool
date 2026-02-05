@@ -860,50 +860,48 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
   
   const hoveredData = hoveredDim !== null ? dimensionAnalysis.find(d => d.dim === hoveredDim) : null;
   
-  // Calculate bubble positions as percentages for HTML overlay, with overlap nudging
-  const getNudgedPositions = () => {
-    const DOT_R = 18;
-    const MIN_DIST = DOT_R * 2;
-    const positions = dimensionAnalysis.map((d: any) => {
-      const svgX = MARGIN.left + (d.score / 100) * PLOT_WIDTH;
-      const svgY = MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT));
-      return { dim: d.dim, x: svgX, y: svgY };
-    });
-    for (let i = 0; i < positions.length; i++) {
-      for (let j = i + 1; j < positions.length; j++) {
-        const dx = positions[j].x - positions[i].x;
-        const dy = positions[j].y - positions[i].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < MIN_DIST && dist > 0) {
-          const overlap = (MIN_DIST - dist) / 2 + 2;
-          const angle = Math.atan2(dy, dx);
-          positions[i].x -= Math.cos(angle) * overlap;
-          positions[i].y -= Math.sin(angle) * overlap;
-          positions[j].x += Math.cos(angle) * overlap;
-          positions[j].y += Math.sin(angle) * overlap;
-        } else if (dist === 0) {
-          positions[j].x += MIN_DIST * 0.6;
-          positions[j].y -= MIN_DIST * 0.3;
-        }
-      }
-    }
-    return positions.map(p => ({
-      dim: p.dim,
-      xPercent: (p.x / CHART_WIDTH) * 100,
-      yPercent: (p.y / CHART_HEIGHT) * 100,
-    }));
-  };
-  
-  const nudgedPositions = getNudgedPositions();
-  
-  // Calculate bubble positions as percentages for HTML overlay
+  // Calculate true bubble positions (NO nudging - dots stay at exact data positions)
   const getBubblePosition = (d: any) => {
-    const nudged = nudgedPositions.find(p => p.dim === d.dim);
-    if (nudged) return { xPercent: nudged.xPercent, yPercent: nudged.yPercent };
     const xPercent = (MARGIN.left + (d.score / 100) * PLOT_WIDTH) / CHART_WIDTH * 100;
     const yPercent = (MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT))) / CHART_HEIGHT * 100;
     return { xPercent, yPercent };
   };
+  
+  // Detect overlapping clusters - groups of dots too close together to distinguish
+  const getOverlapClusters = () => {
+    const OVERLAP_DIST = 28;
+    const positions = dimensionAnalysis.map((d: any) => ({
+      dim: d.dim,
+      x: (d.score / 100) * PLOT_WIDTH,
+      y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
+    }));
+    const visited = new Set<number>();
+    const clusters: { dims: number[]; x: number; y: number }[] = [];
+    for (let i = 0; i < positions.length; i++) {
+      if (visited.has(i)) continue;
+      const group = [i];
+      visited.add(i);
+      for (let j = i + 1; j < positions.length; j++) {
+        if (visited.has(j)) continue;
+        const dx = positions[j].x - positions[i].x;
+        const dy = positions[j].y - positions[i].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < OVERLAP_DIST) {
+          group.push(j);
+          visited.add(j);
+        }
+      }
+      if (group.length > 1) {
+        clusters.push({
+          dims: group.map(idx => positions[idx].dim).sort((a, b) => a - b),
+          x: positions[i].x,
+          y: positions[i].y,
+        });
+      }
+    }
+    return clusters;
+  };
+  const overlapClusters = getOverlapClusters();
   
   // Calculate tooltip position based on bubble location
   const getTooltipStyle = () => {
@@ -1008,41 +1006,17 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               ↑ STRATEGIC IMPORTANCE
             </text>
             
-            {/* Data points - visual only, with overlap nudging */}
+            {/* Data points - at true positions, no nudging */}
             {(() => {
-              const DOT_R = 18;
-              const MIN_DIST = DOT_R * 2;
-              const positions = dimensionAnalysis.map((d: any) => ({
-                dim: d.dim,
-                origX: (d.score / 100) * PLOT_WIDTH,
-                origY: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
-                x: (d.score / 100) * PLOT_WIDTH,
-                y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
-              }));
-              // Nudge overlapping dots apart
-              for (let i = 0; i < positions.length; i++) {
-                for (let j = i + 1; j < positions.length; j++) {
-                  const dx = positions[j].x - positions[i].x;
-                  const dy = positions[j].y - positions[i].y;
-                  const dist = Math.sqrt(dx * dx + dy * dy);
-                  if (dist < MIN_DIST && dist > 0) {
-                    const overlap = (MIN_DIST - dist) / 2 + 2;
-                    const angle = Math.atan2(dy, dx);
-                    positions[i].x -= Math.cos(angle) * overlap;
-                    positions[i].y -= Math.sin(angle) * overlap;
-                    positions[j].x += Math.cos(angle) * overlap;
-                    positions[j].y += Math.sin(angle) * overlap;
-                  } else if (dist === 0) {
-                    positions[j].x += MIN_DIST * 0.6;
-                    positions[j].y -= MIN_DIST * 0.3;
-                  }
-                }
-              }
-              return positions.map((pos) => {
-                const d = dimensionAnalysis.find((dd: any) => dd.dim === pos.dim);
+              const sorted = [...dimensionAnalysis].sort((a, b) => a.dim - b.dim);
+              return sorted.map((d: any) => {
+                const x = (d.score / 100) * PLOT_WIDTH;
+                const y = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
                 const isHovered = hoveredDim === d.dim;
+                const cluster = overlapClusters.find(c => c.dims.includes(d.dim));
+                const isHidden = cluster && d.dim !== cluster.dims[cluster.dims.length - 1];
                 return (
-                  <g key={d.dim} transform={`translate(${pos.x}, ${pos.y})`}>
+                  <g key={d.dim} transform={`translate(${x}, ${y})`} opacity={isHidden && !isHovered ? 0.92 : 1}>
                     <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
                     <circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
                     <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">
@@ -1052,6 +1026,29 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 );
               });
             })()}
+            
+            {/* Overlap callout annotations */}
+            {overlapClusters.map((cluster, idx) => {
+              const hiddenDims = cluster.dims.slice(0, -1);
+              const calloutX = cluster.x + 28;
+              const calloutY = cluster.y - 24;
+              const pillWidth = 16 + hiddenDims.length * 26;
+              return (
+                <g key={`callout-${idx}`}>
+                  <line x1={calloutX} y1={calloutY + 8} x2={cluster.x + 12} y2={cluster.y - 10} stroke="#64748B" strokeWidth="1" strokeDasharray="3 2" />
+                  <rect x={calloutX - 4} y={calloutY - 6} width={pillWidth} height={22} rx="11" fill="white" stroke="#94A3B8" strokeWidth="1" />
+                  {hiddenDims.map((dim, i) => {
+                    const d = dimensionAnalysis.find(dd => dd.dim === dim);
+                    return (
+                      <g key={dim}>
+                        <circle cx={calloutX + 6 + i * 26} cy={calloutY + 5} r="8" fill={getScoreColor(d?.score || 0)} />
+                        <text x={calloutX + 6 + i * 26} y={calloutY + 5} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
+                      </g>
+                    );
+                  })}
+                </g>
+              );
+            })}
           </g>
         </svg>
         
@@ -1078,34 +1075,45 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
         </div>
         
         {/* Tooltip */}
-        {hoveredData && (
-          <div 
-            className="absolute bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-56 z-30 pointer-events-none transition-opacity duration-150"
-            style={getTooltipStyle()}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <span className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md" style={{ backgroundColor: getScoreColor(hoveredData.score) }}>
-                D{hoveredData.dim}
-              </span>
-              <div className="flex-1">
-                <p className="font-semibold text-slate-800 text-sm leading-tight">{hoveredData.name}</p>
-              </div>
+        {/* Tooltip - shows all stacked dimensions if part of a cluster */}
+        {hoveredData && (() => {
+          const cluster = overlapClusters.find(c => c.dims.includes(hoveredData.dim));
+          const stackedDims = cluster ? cluster.dims.map(dim => dimensionAnalysis.find(d => d.dim === dim)).filter(Boolean) : [hoveredData];
+          return (
+            <div 
+              className="absolute bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-56 z-30 pointer-events-none transition-opacity duration-150"
+              style={getTooltipStyle()}
+            >
+              {stackedDims.map((sd: any, idx: number) => (
+                <div key={sd.dim} className={idx > 0 ? 'mt-3 pt-3 border-t border-slate-100' : ''}>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-md" style={{ backgroundColor: getScoreColor(sd.score) }}>
+                      D{sd.dim}
+                    </span>
+                    <div className="flex-1">
+                      <p className="font-semibold text-slate-800 text-xs leading-tight">{sd.name}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="bg-slate-50 rounded-lg px-2 py-1.5">
+                      <p className="text-slate-500 text-[10px] font-medium">Score</p>
+                      <p className="font-bold text-base" style={{ color: getScoreColor(sd.score) }}>{sd.score}</p>
+                    </div>
+                    <div className="bg-slate-50 rounded-lg px-2 py-1.5">
+                      <p className="text-slate-500 text-[10px] font-medium">Weight</p>
+                      <p className="font-bold text-base text-slate-700">{sd.weight}%</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {stackedDims.length === 1 && (
+                <div className="mt-2 pt-2 border-t border-slate-100">
+                  <span className={`text-xs font-semibold px-3 py-1 rounded-full ${hoveredData.tier.bgColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="bg-slate-50 rounded-lg px-3 py-2">
-                <p className="text-slate-500 text-xs font-medium">Score</p>
-                <p className="font-bold text-lg" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p>
-              </div>
-              <div className="bg-slate-50 rounded-lg px-3 py-2">
-                <p className="text-slate-500 text-xs font-medium">Weight</p>
-                <p className="font-bold text-lg text-slate-700">{hoveredData.weight}%</p>
-              </div>
-            </div>
-            <div className="mt-2 pt-2 border-t border-slate-100">
-              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${hoveredData.tier.bgColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
-            </div>
-          </div>
-        )}
+          );
+        })()}
         
         {/* Legend */}
         <div className="mt-3 pt-4 border-t border-slate-200 px-2">
@@ -3660,41 +3668,38 @@ export default function InteractiveReportPage() {
                   return benchmarks.dimensionScores[`d${dimNum}`] || benchmarks.dimensionScores[dimNum] || null;
                 };
                 
-                // Calculate offsets for overlapping dots
-                const calculateOffsets = () => {
+                // Detect overlap clusters (no nudging - dots stay at true positions)
+                const getOverlapClusters = () => {
+                  const OVERLAP_DIST = 28;
                   const positions = dimensionAnalysis.map((d) => ({
                     dim: d.dim,
-                    xPos: (d.score / 100) * PLOT_WIDTH,
-                    yPos: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
-                    offsetX: 0,
-                    offsetY: 0
+                    x: (d.score / 100) * PLOT_WIDTH,
+                    y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
                   }));
-                  
-                  const OVERLAP_THRESHOLD = 25;
+                  const visited = new Set<number>();
+                  const clusters: { dims: number[]; x: number; y: number }[] = [];
                   for (let i = 0; i < positions.length; i++) {
+                    if (visited.has(i)) continue;
+                    const group = [i];
+                    visited.add(i);
                     for (let j = i + 1; j < positions.length; j++) {
-                      const dx = Math.abs(positions[i].xPos - positions[j].xPos);
-                      const dy = Math.abs(positions[i].yPos - positions[j].yPos);
-                      if (dx < OVERLAP_THRESHOLD && dy < OVERLAP_THRESHOLD) {
-                        // Subtle offset - just enough to see both dots
-                        positions[i].offsetX = -8;
-                        positions[i].offsetY = -6;
-                        positions[j].offsetX = 8;
-                        positions[j].offsetY = 6;
-                      }
+                      if (visited.has(j)) continue;
+                      const dx = positions[j].x - positions[i].x;
+                      const dy = positions[j].y - positions[i].y;
+                      const dist = Math.sqrt(dx * dx + dy * dy);
+                      if (dist < OVERLAP_DIST) { group.push(j); visited.add(j); }
+                    }
+                    if (group.length > 1) {
+                      clusters.push({ dims: group.map(idx => positions[idx].dim).sort((a, b) => a - b), x: positions[i].x, y: positions[i].y });
                     }
                   }
-                  return positions;
+                  return clusters;
                 };
-                
-                const offsetPositions = calculateOffsets();
+                const presOverlapClusters = getOverlapClusters();
                 
                 const getBubblePosition = (d: any) => {
-                  const offset = offsetPositions.find(p => p.dim === d.dim);
-                  const offsetX = offset?.offsetX || 0;
-                  const offsetY = offset?.offsetY || 0;
-                  const xPercent = (MARGIN.left + (d.score / 100) * PLOT_WIDTH + offsetX) / CHART_WIDTH * 100;
-                  const yPercent = (MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT)) + offsetY) / CHART_HEIGHT * 100;
+                  const xPercent = (MARGIN.left + (d.score / 100) * PLOT_WIDTH) / CHART_WIDTH * 100;
+                  const yPercent = (MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT))) / CHART_HEIGHT * 100;
                   return { xPercent, yPercent };
                 };
                 
@@ -3798,22 +3803,39 @@ export default function InteractiveReportPage() {
                           );
                         })}
                         
-                        {/* Data points - Company scores */}
-                        {offsetPositions.map((pos) => {
-                          const d = dimensionAnalysis.find(dim => dim.dim === pos.dim)!;
-                          const xPos = pos.xPos + pos.offsetX;
-                          const yPos = pos.yPos + pos.offsetY;
+                        {/* Data points - Company scores at true positions */}
+                        {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d) => {
+                          const xPos = (d.score / 100) * PLOT_WIDTH;
+                          const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
                           const isHovered = hoveredMatrixDim === d.dim;
-                          const hasOffset = pos.offsetX !== 0 || pos.offsetY !== 0;
                           return (
                             <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
-                              {/* Connection line to actual position if offset */}
-                              {hasOffset && (
-                                <line x1={0} y1={0} x2={-pos.offsetX} y2={-pos.offsetY} stroke="#94A3B8" strokeWidth="1" strokeDasharray="3 2" />
-                              )}
                               <circle r={isHovered ? 24 : 20} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
                               <circle r={isHovered ? 20 : 16} fill={getScoreColor(d.score)} style={{ transition: 'all 0.2s ease' }} />
                               <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize={isHovered ? 12 : 11} fontWeight="800" fontFamily="system-ui">D{d.dim}</text>
+                            </g>
+                          );
+                        })}
+                        
+                        {/* Overlap callout annotations */}
+                        {presOverlapClusters.map((cluster, idx) => {
+                          const hiddenDims = cluster.dims.slice(0, -1);
+                          const calloutX = cluster.x + 30;
+                          const calloutY = cluster.y - 28;
+                          const pillWidth = 16 + hiddenDims.length * 28;
+                          return (
+                            <g key={`callout-${idx}`}>
+                              <line x1={calloutX} y1={calloutY + 8} x2={cluster.x + 14} y2={cluster.y - 12} stroke="#64748B" strokeWidth="1" strokeDasharray="3 2" />
+                              <rect x={calloutX - 4} y={calloutY - 6} width={pillWidth} height={24} rx="12" fill="white" stroke="#94A3B8" strokeWidth="1" />
+                              {hiddenDims.map((dim, i) => {
+                                const dd = dimensionAnalysis.find(d => d.dim === dim);
+                                return (
+                                  <g key={dim}>
+                                    <circle cx={calloutX + 8 + i * 28} cy={calloutY + 6} r="9" fill={getScoreColor(dd?.score || 0)} />
+                                    <text x={calloutX + 8 + i * 28} y={calloutY + 6} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="8" fontWeight="700">D{dim}</text>
+                                  </g>
+                                );
+                              })}
                             </g>
                           );
                         })}
@@ -6247,43 +6269,64 @@ export default function InteractiveReportPage() {
                               })}
                               <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
                               
-                              {/* Data points - with overlap nudging */}
+                              {/* Data points - at true positions, no nudging */}
                               {(() => {
-                                const DOT_R = 18;
-                                const MIN_DIST = DOT_R * 2;
+                                const OVERLAP_DIST = 28;
                                 const positions = dimensionAnalysis.map((d: any) => ({
                                   dim: d.dim,
                                   x: (d.score / 100) * PLOT_WIDTH,
                                   y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
                                 }));
+                                const visited = new Set<number>();
+                                const clusters: { dims: number[]; x: number; y: number }[] = [];
                                 for (let i = 0; i < positions.length; i++) {
+                                  if (visited.has(i)) continue;
+                                  const group = [i];
+                                  visited.add(i);
                                   for (let j = i + 1; j < positions.length; j++) {
+                                    if (visited.has(j)) continue;
                                     const dx = positions[j].x - positions[i].x;
                                     const dy = positions[j].y - positions[i].y;
-                                    const dist = Math.sqrt(dx * dx + dy * dy);
-                                    if (dist < MIN_DIST && dist > 0) {
-                                      const overlap = (MIN_DIST - dist) / 2 + 2;
-                                      const angle = Math.atan2(dy, dx);
-                                      positions[i].x -= Math.cos(angle) * overlap;
-                                      positions[i].y -= Math.sin(angle) * overlap;
-                                      positions[j].x += Math.cos(angle) * overlap;
-                                      positions[j].y += Math.sin(angle) * overlap;
-                                    } else if (dist === 0) {
-                                      positions[j].x += MIN_DIST * 0.6;
-                                      positions[j].y -= MIN_DIST * 0.3;
-                                    }
+                                    if (Math.sqrt(dx * dx + dy * dy) < OVERLAP_DIST) { group.push(j); visited.add(j); }
                                   }
+                                  if (group.length > 1) clusters.push({ dims: group.map(idx => positions[idx].dim).sort((a, b) => a - b), x: positions[i].x, y: positions[i].y });
                                 }
-                                return positions.map((pos) => {
-                                  const d = dimensionAnalysis.find((dd: any) => dd.dim === pos.dim);
-                                  return (
-                                    <g key={d.dim} transform={`translate(${pos.x}, ${pos.y})`}>
-                                      <circle r={18} fill="white" filter="url(#dropShadow18)" />
-                                      <circle r={15} fill={d.tier.color} />
-                                      <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
-                                    </g>
-                                  );
-                                });
+                                return (
+                                  <>
+                                    {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d: any) => {
+                                      const x = (d.score / 100) * PLOT_WIDTH;
+                                      const y = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                                      return (
+                                        <g key={d.dim} transform={`translate(${x}, ${y})`}>
+                                          <circle r={18} fill="white" filter="url(#dropShadow18)" />
+                                          <circle r={15} fill={d.tier.color} />
+                                          <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
+                                        </g>
+                                      );
+                                    })}
+                                    {clusters.map((cluster, idx) => {
+                                      const hiddenDims = cluster.dims.slice(0, -1);
+                                      const calloutX = cluster.x + 28;
+                                      const calloutY = cluster.y - 24;
+                                      const pillWidth = 16 + hiddenDims.length * 26;
+                                      return (
+                                        <g key={`s18-callout-${idx}`}>
+                                          <line x1={calloutX} y1={calloutY + 8} x2={cluster.x + 12} y2={cluster.y - 10} stroke="#64748B" strokeWidth="1" strokeDasharray="3 2" />
+                                          <rect x={calloutX - 4} y={calloutY - 6} width={pillWidth} height={22} rx="11" fill="white" stroke="#94A3B8" strokeWidth="1" />
+                                          {hiddenDims.map((dim, i) => {
+                                            const dd = dimensionAnalysis.find(d => d.dim === dim);
+                                            return (
+                                              <g key={dim}>
+                                                <circle cx={calloutX + 6 + i * 26} cy={calloutY + 5} r="8" fill={dd?.tier?.color || '#94A3B8'} />
+                                                <text x={calloutX + 6 + i * 26} y={calloutY + 5} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
+                                              </g>
+                                            );
+                                          })}
+                                        </g>
+                                      );
+                                    })}
+                                  </>
+                                );
                               })()}
                             </g>
                           </svg>
@@ -6381,99 +6424,72 @@ export default function InteractiveReportPage() {
                               })}
                               <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
                               
-                              {/* Benchmark circles (dashed) - with overlap nudging, skip null benchmarks */}
-                              {(() => {
-                                const validBench = dimensionAnalysis.filter((d: any) => d.benchmark !== null && d.benchmark !== undefined);
-                                const DOT_R = 18;
-                                const MIN_DIST = DOT_R * 2;
-                                const positions = validBench.map((d: any) => ({
-                                  dim: d.dim,
-                                  x: (d.benchmark / 100) * PLOT_WIDTH,
-                                  y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
-                                }));
-                                for (let i = 0; i < positions.length; i++) {
-                                  for (let j = i + 1; j < positions.length; j++) {
-                                    const dx = positions[j].x - positions[i].x;
-                                    const dy = positions[j].y - positions[i].y;
-                                    const dist = Math.sqrt(dx * dx + dy * dy);
-                                    if (dist < MIN_DIST && dist > 0) {
-                                      const overlap = (MIN_DIST - dist) / 2 + 2;
-                                      const angle = Math.atan2(dy, dx);
-                                      positions[i].x -= Math.cos(angle) * overlap;
-                                      positions[i].y -= Math.sin(angle) * overlap;
-                                      positions[j].x += Math.cos(angle) * overlap;
-                                      positions[j].y += Math.sin(angle) * overlap;
-                                    } else if (dist === 0) {
-                                      positions[j].x += MIN_DIST * 0.6;
-                                      positions[j].y -= MIN_DIST * 0.3;
-                                    }
-                                  }
-                                }
-                                return positions.map((pos) => (
-                                  <g key={`bench-group-${pos.dim}`}>
-                                    <circle 
-                                      cx={pos.x} 
-                                      cy={pos.y} 
-                                      r={18} 
-                                      fill="none" 
-                                      stroke="#6366F1" 
-                                      strokeWidth="2" 
-                                      strokeDasharray="4 3"
-                                      opacity="0.7"
-                                    />
-                                    <text 
-                                      x={pos.x} 
-                                      y={pos.y} 
-                                      textAnchor="middle" 
-                                      dominantBaseline="central" 
-                                      fill="#6366F1" 
-                                      fontSize="9" 
-                                      fontWeight="600"
-                                      opacity="0.8"
-                                    >
-                                      D{pos.dim}
-                                    </text>
+                              {/* Benchmark circles (dashed) - at true positions, skip null benchmarks */}
+                              {dimensionAnalysis.filter((d: any) => d.benchmark !== null && d.benchmark !== undefined).map((d: any) => {
+                                const xPos = (d.benchmark / 100) * PLOT_WIDTH;
+                                const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                                return (
+                                  <g key={`bench-group-${d.dim}`}>
+                                    <circle cx={xPos} cy={yPos} r={18} fill="none" stroke="#6366F1" strokeWidth="2" strokeDasharray="4 3" opacity="0.7" />
+                                    <text x={xPos} y={yPos} textAnchor="middle" dominantBaseline="central" fill="#6366F1" fontSize="9" fontWeight="600" opacity="0.8">D{d.dim}</text>
                                   </g>
-                                ));
-                              })()}
+                                );
+                              })}
                               
-                              {/* Data points (company) - with overlap nudging */}
+                              {/* Data points (company) - at true positions */}
                               {(() => {
-                                const DOT_R = 18;
-                                const MIN_DIST = DOT_R * 2;
+                                const OVERLAP_DIST = 28;
                                 const positions = dimensionAnalysis.map((d: any) => ({
                                   dim: d.dim,
                                   x: (d.score / 100) * PLOT_WIDTH,
                                   y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
                                 }));
+                                const visited = new Set<number>();
+                                const clusters: { dims: number[]; x: number; y: number }[] = [];
                                 for (let i = 0; i < positions.length; i++) {
+                                  if (visited.has(i)) continue;
+                                  const group = [i];
+                                  visited.add(i);
                                   for (let j = i + 1; j < positions.length; j++) {
+                                    if (visited.has(j)) continue;
                                     const dx = positions[j].x - positions[i].x;
                                     const dy = positions[j].y - positions[i].y;
-                                    const dist = Math.sqrt(dx * dx + dy * dy);
-                                    if (dist < MIN_DIST && dist > 0) {
-                                      const overlap = (MIN_DIST - dist) / 2 + 2;
-                                      const angle = Math.atan2(dy, dx);
-                                      positions[i].x -= Math.cos(angle) * overlap;
-                                      positions[i].y -= Math.sin(angle) * overlap;
-                                      positions[j].x += Math.cos(angle) * overlap;
-                                      positions[j].y += Math.sin(angle) * overlap;
-                                    } else if (dist === 0) {
-                                      positions[j].x += MIN_DIST * 0.6;
-                                      positions[j].y -= MIN_DIST * 0.3;
-                                    }
+                                    if (Math.sqrt(dx * dx + dy * dy) < OVERLAP_DIST) { group.push(j); visited.add(j); }
                                   }
+                                  if (group.length > 1) clusters.push({ dims: group.map(idx => positions[idx].dim).sort((a, b) => a - b), x: positions[i].x, y: positions[i].y });
                                 }
-                                return positions.map((pos) => {
-                                  const d = dimensionAnalysis.find((dd: any) => dd.dim === pos.dim);
-                                  return (
-                                    <g key={d.dim} transform={`translate(${pos.x}, ${pos.y})`}>
-                                      <circle r={18} fill="white" filter="url(#dropShadow19)" />
-                                      <circle r={15} fill={d.tier.color} />
-                                      <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
-                                    </g>
-                                  );
-                                });
+                                return (
+                                  <>
+                                    {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d: any) => (
+                                      <g key={d.dim} transform={`translate(${(d.score / 100) * PLOT_WIDTH}, ${PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT)})`}>
+                                        <circle r={18} fill="white" filter="url(#dropShadow19)" />
+                                        <circle r={15} fill={d.tier.color} />
+                                        <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
+                                      </g>
+                                    ))}
+                                    {clusters.map((cluster, idx) => {
+                                      const hiddenDims = cluster.dims.slice(0, -1);
+                                      const calloutX = cluster.x + 28;
+                                      const calloutY = cluster.y - 24;
+                                      const pillWidth = 16 + hiddenDims.length * 26;
+                                      return (
+                                        <g key={`s19-callout-${idx}`}>
+                                          <line x1={calloutX} y1={calloutY + 8} x2={cluster.x + 12} y2={cluster.y - 10} stroke="#64748B" strokeWidth="1" strokeDasharray="3 2" />
+                                          <rect x={calloutX - 4} y={calloutY - 6} width={pillWidth} height={22} rx="11" fill="white" stroke="#94A3B8" strokeWidth="1" />
+                                          {hiddenDims.map((dim, i) => {
+                                            const dd = dimensionAnalysis.find(d => d.dim === dim);
+                                            return (
+                                              <g key={dim}>
+                                                <circle cx={calloutX + 6 + i * 26} cy={calloutY + 5} r="8" fill={dd?.tier?.color || '#94A3B8'} />
+                                                <text x={calloutX + 6 + i * 26} y={calloutY + 5} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
+                                              </g>
+                                            );
+                                          })}
+                                        </g>
+                                      );
+                                    })}
+                                  </>
+                                );
                               })()}
                             </g>
                           </svg>
@@ -7764,7 +7780,7 @@ export default function InteractiveReportPage() {
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Esc</kbd>
                       </div>
                       
-                      <span className="text-slate-600">This help</span>
+                      <span className="text-slate-600">Keyboard Shortcuts</span>
                       <div className="flex gap-1 justify-center">
                         <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">?</kbd>
                       </div>
