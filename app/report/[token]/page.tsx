@@ -2010,6 +2010,28 @@ export default function InteractiveReportPage() {
       format: [1280, 720]
     });
     
+    // Helper function to convert oklch to rgb fallback
+    const convertOklchColors = (element: HTMLElement) => {
+      const allElements = element.querySelectorAll('*');
+      allElements.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        const computed = window.getComputedStyle(htmlEl);
+        
+        // Check and convert background-color
+        if (computed.backgroundColor && computed.backgroundColor.includes('oklch')) {
+          htmlEl.style.backgroundColor = 'transparent';
+        }
+        // Check and convert color
+        if (computed.color && computed.color.includes('oklch')) {
+          htmlEl.style.color = '#1e293b'; // slate-800 fallback
+        }
+        // Check and convert border-color
+        if (computed.borderColor && computed.borderColor.includes('oklch')) {
+          htmlEl.style.borderColor = '#e2e8f0'; // slate-200 fallback
+        }
+      });
+    };
+    
     try {
       for (let i = 0; i < totalSlides; i++) {
         // Navigate to slide
@@ -2017,24 +2039,48 @@ export default function InteractiveReportPage() {
         setExportProgress(Math.round(((i + 1) / totalSlides) * 100));
         
         // Wait for render
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 400));
         
         const slideElement = slideContainerRef.current;
         if (!slideElement) continue;
         
+        // Clone the element to avoid modifying the original
+        const clone = slideElement.cloneNode(true) as HTMLElement;
+        clone.style.position = 'absolute';
+        clone.style.left = '-9999px';
+        clone.style.top = '0';
+        clone.style.width = '1280px';
+        clone.style.height = '720px';
+        document.body.appendChild(clone);
+        
+        // Convert any oklch colors in the clone
+        convertOklchColors(clone);
+        
         // Capture slide
-        const canvas = await html2canvas(slideElement, {
+        const canvas = await html2canvas(clone, {
           scale: 2,
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#ffffff',
           width: 1280,
           height: 720,
-          windowWidth: 1280,
-          windowHeight: 720,
+          logging: false,
+          onclone: (clonedDoc) => {
+            // Additional color fixing in cloned document
+            const style = clonedDoc.createElement('style');
+            style.textContent = `
+              * { 
+                --tw-ring-color: rgba(59, 130, 246, 0.5) !important;
+              }
+            `;
+            clonedDoc.head.appendChild(style);
+          }
         });
         
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        // Remove clone
+        document.body.removeChild(clone);
+        
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
         
         if (i > 0) {
           pdf.addPage([1280, 720], 'landscape');
