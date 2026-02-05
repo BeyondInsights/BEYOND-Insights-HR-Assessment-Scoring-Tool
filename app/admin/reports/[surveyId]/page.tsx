@@ -3391,18 +3391,18 @@ export default function ExportReportPage() {
                   <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
                   <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
                   {isWwcPledge && (
-                    <div className="mt-4 inline-flex items-center gap-4 px-5 py-3 rounded-xl border-2 shadow-sm" style={{ backgroundColor: '#f8f5f5', borderColor: '#e8e0e0' }}>
-                      {/* WWC Short Logo */}
-                      <div className="w-12 h-12 flex-shrink-0">
+                    <div className="mt-5 flex items-center gap-5">
+                      {/* WWC Short Logo - larger */}
+                      <div className="w-16 h-16 flex-shrink-0">
                         <svg viewBox="0 0 300 300" className="w-full h-full">
                           <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
                           <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
                         </svg>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 font-medium">The</p>
-                        <p className="text-lg font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
-                        <p className="text-base font-semibold" style={{ color: '#434345' }}>Pledge <span style={{ color: '#ff353c' }}>Signatory</span></p>
+                        <p className="text-sm font-medium" style={{ color: '#434345' }}>The</p>
+                        <p className="text-xl font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
+                        <p className="text-lg" style={{ color: '#434345' }}>Pledge <span className="font-bold" style={{ color: '#ff353c' }}>Signatory</span></p>
                       </div>
                     </div>
                   )}
@@ -5887,15 +5887,15 @@ export default function ExportReportPage() {
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-            {/* Header - light background with long logo and red stat boxes */}
-            <div className="px-12 py-6 relative overflow-hidden" style={{ backgroundColor: '#f5e6e8' }}>
-              <div className="absolute inset-0 opacity-20">
-                <div className="absolute top-0 right-0 w-96 h-96 rounded-full -translate-y-1/2 translate-x-1/2" style={{ backgroundColor: '#ff353c' }}></div>
+            {/* Header - light warm gray background with full logo and red stat boxes */}
+            <div className="px-12 py-8 relative overflow-hidden" style={{ backgroundColor: '#f5f3f0' }}>
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-80 h-80 rounded-full -translate-y-1/2 -translate-x-1/4" style={{ backgroundColor: '#ff353c' }}></div>
               </div>
               <div className="relative flex items-center justify-between">
-                <div className="flex items-center gap-5">
-                  {/* WWC Long Logo - Color version with dark gray WW inline SVG */}
-                  <div className="h-12 flex-shrink-0" style={{ width: '240px' }}>
+                <div className="flex items-center gap-6">
+                  {/* WWC Long Logo - larger, proper size */}
+                  <div className="h-16 flex-shrink-0" style={{ width: '320px' }}>
                     <svg viewBox="0 0 1450 300" className="h-full w-full">
                       <path fill="#ff353c" fillRule="evenodd" d="m972.3,70s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V70Z"/>
                       <path fill="#434345" d="m138.18,160.02h-.42l-5.71,68.29h-29.18l-13.74-156.46h30.23l4.02,72.1h.42l4.02-72.1h22.62l4.23,72.1h.42l4.02-72.1h27.49l-13.74,156.46h-29.18l-5.5-68.29Z"/>
@@ -5916,16 +5916,21 @@ export default function ExportReportPage() {
                       <path fill="#434345" d="m864.66,153.67h-28.12v74.63h-11.84V71.85h11.84v71.67h28.12v-71.67h11.84v156.46h-11.84v-74.63Z"/>
                     </svg>
                   </div>
+                  <div className="border-l-2 pl-6" style={{ borderColor: '#ddd' }}>
+                    <p className="text-sm font-medium uppercase tracking-wider" style={{ color: '#666' }}>The</p>
+                    <p className="text-xl font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
+                    <p className="text-lg" style={{ color: '#434345' }}>Pledge</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   {/* Stats boxes with red fill */}
-                  <div className="rounded-lg px-5 py-3 text-center" style={{ backgroundColor: '#ff353c' }}>
+                  <div className="rounded-lg px-5 py-3 text-center shadow-md" style={{ backgroundColor: '#ff353c' }}>
                     <p className="text-white text-2xl font-bold">5,000+</p>
-                    <p className="text-white/80 text-xs">Companies Worldwide</p>
+                    <p className="text-white/90 text-xs font-medium">Companies Worldwide</p>
                   </div>
-                  <div className="rounded-lg px-5 py-3 text-center" style={{ backgroundColor: '#ff353c' }}>
+                  <div className="rounded-lg px-5 py-3 text-center shadow-md" style={{ backgroundColor: '#ff353c' }}>
                     <p className="text-white text-2xl font-bold">40M+</p>
-                    <p className="text-white/80 text-xs">Workers Protected</p>
+                    <p className="text-white/90 text-xs font-medium">Workers Protected</p>
                   </div>
                 </div>
               </div>
@@ -5981,16 +5986,16 @@ export default function ExportReportPage() {
                 </div>
               </div>
               
-              {/* Research Attribution - vibrant, not dreary */}
-              <div className="rounded-xl p-5 mb-6" style={{ background: 'linear-gradient(135deg, #ff353c, #e62e34)' }}>
+              {/* Research Attribution - dark gray for contrast */}
+              <div className="rounded-xl p-5 mb-6" style={{ backgroundColor: '#434345' }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255,53,60,0.2)' }}>
+                      <svg className="w-6 h-6" style={{ color: '#ff353c' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                     </div>
                     <div>
                       <p className="text-white font-semibold">What Employees Say About the Pledge</p>
-                      <p className="text-white/80 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers</p>
+                      <p className="text-slate-300 text-sm">Research conducted by BEYOND Insights on behalf of Cancer and Careers</p>
                     </div>
                   </div>
                   <div className="bg-white rounded-lg px-4 py-2 text-center shadow-lg">
@@ -6052,14 +6057,14 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-200" style={{ background: 'linear-gradient(to right, #fff5f5, #ffffff, #fff5f5)' }}>
-              <p className="text-sm text-slate-700 text-center">
-                <strong className="text-slate-800">The Pledge signals intent.</strong>
-                <span className="mx-2">•</span>
+            {/* Footer - dark gray for contrast */}
+            <div className="px-6 py-4" style={{ backgroundColor: '#434345' }}>
+              <p className="text-sm text-center">
+                <strong className="text-white">The Pledge signals intent.</strong>
+                <span className="mx-2 text-slate-400">•</span>
                 <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong>
-                <span className="mx-2">•</span>
-                <span className="text-slate-600">Together, they demonstrate genuine commitment.</span>
+                <span className="mx-2 text-slate-400">•</span>
+                <span className="text-slate-300">Together, they demonstrate genuine commitment.</span>
               </p>
             </div>
           </div>
@@ -7935,82 +7940,77 @@ export default function ExportReportPage() {
                 {/* Slide 31: Working with Cancer Pledge - exact match to report */}
                 {currentSlide === 31 && (
                   <div className="overflow-hidden">
-                    {/* Header - vibrant with WWC branding */}
-                    <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #ff353c 0%, #e62e34 50%, #cc2930 100%)' }}>
-                      <div className="absolute inset-0 opacity-10">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                      </div>
+                    {/* Header - light warm gray with long logo and red boxes */}
+                    <div className="px-10 py-5 relative overflow-hidden" style={{ backgroundColor: '#f5f3f0' }}>
                       <div className="relative flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          {/* WWC Short Logo - White KO inline SVG */}
-                          <div className="w-12 h-12 flex-shrink-0">
-                            <svg viewBox="0 0 300 300" className="w-full h-full">
-                              <path fill="#fff" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                              <path fill="#fff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                          {/* WWC Long Logo */}
+                          <div className="h-10 flex-shrink-0" style={{ width: '200px' }}>
+                            <svg viewBox="0 0 1450 300" className="h-full w-full">
+                              <path fill="#ff353c" fillRule="evenodd" d="m972.3,70s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V70Z"/>
+                              <path fill="#434345" d="m138.18,160.02h-.42l-5.71,68.29h-29.18l-13.74-156.46h30.23l4.02,72.1h.42l4.02-72.1h22.62l4.23,72.1h.42l4.02-72.1h27.49l-13.74,156.46h-29.18l-5.5-68.29Z"/>
+                              <path fill="#434345" d="m262.5,194.48c0,23.26-13.11,35.52-34.88,35.52s-34.89-12.26-34.89-35.52v-88.8c0-23.26,12.9-35.52,34.89-35.52s34.88,12.26,34.88,35.52v88.8Zm-34.88,11.42c2.33,0,3.17-2.54,3.17-6.34v-98.95c0-3.81-.85-6.34-3.17-6.34-2.54,0-3.38,2.54-3.38,6.34v98.95c0,3.81.85,6.34,3.38,6.34Z"/>
+                              <path fill="#434345" d="m311.33,169.95c0-5.28-1.06-7.4-3.59-7.4h-2.96v65.75h-31.71V71.85h41.02c17.97,0,28.97,10.57,28.97,29.6v28.12c0,8.88-2.32,16.07-12.26,20.93,9.94,5.07,12.26,12.26,12.26,21.35v39.11c0,5.71.42,11.63,1.9,17.34h-31.71c-1.69-5.07-1.9-11.84-1.9-17.34v-41.02Zm0-67.45c0-5.29-1.06-7.4-3.59-7.4h-2.96v44.19h2.96c2.54,0,3.59-2.11,3.59-7.4v-29.39Z"/>
+                              <path fill="#434345" d="m353.82,71.85h31.29v60.47h.63l9.3-60.47h32.56l-12.69,74.63,12.69,81.82h-32.77l-9.09-66.18h-.63v66.18h-31.29V71.85Z"/>
+                              <path fill="#434345" d="m436.06,71.85h31.71v156.46h-31.71V71.85Z"/>
+                              <path fill="#434345" d="m518.73,133.59h.42v-61.74h28.97v156.46h-28.33l-11.84-68.93h-.42v68.93h-28.97V71.85h31.08l9.09,61.74Z"/>
+                              <path fill="#434345" d="m597.16,175.03h-2.96v-26.85h32.98v80.34c-9.72,0-16.28-1.9-19.24-9.52-2.75,6.34-10.78,10.99-19.66,10.99-18.39,0-29.6-12.9-29.6-36.15v-88.16c0-23.26,12.9-35.52,34.89-35.52s33.62,12.26,33.62,35.52v29.39h-30.44v-34.25c0-4.02-.85-6.56-3.17-6.56-2.54,0-3.38,2.54-3.38,6.56v98.53c0,3.81.85,6.55,3.81,6.55,2.11,0,3.17-1.9,3.17-4.44v-26.43Z"/>
+                              <path fill="#434345" d="m1038.88,71.85l18.39,156.46h-32.35l-1.69-29.18h-8.03l-1.48,29.18h-31.5l18.18-156.46h38.48Zm-22.41,102.12h5.5l-1.27-22.62-1.06-32.98h-.63l-1.27,32.98-1.27,22.62Z"/>
+                              <path fill="#434345" d="m1105.9,133.59h.42v-61.74h28.97v156.46h-28.33l-11.84-68.93h-.42v68.93h-28.97V71.85h31.08l9.09,61.74Z"/>
+                              <path fill="#434345" d="m1214.36,194.48c0,23.26-11.42,35.52-33.62,35.52s-34.89-12.26-34.89-35.52v-88.8c0-23.26,13.11-35.52,34.89-35.52s33.62,12.26,33.62,35.52v29.39h-30.45v-34.25c0-4.02-.85-6.56-3.17-6.56-2.54,0-3.38,2.54-3.38,6.56v98.74c0,3.81.85,6.34,3.38,6.34,2.32,0,3.17-2.54,3.17-6.34v-37h30.45v31.93Z"/>
+                              <path fill="#434345" d="m1224.5,71.85h54.97v25.16h-23.47v39.54h20.93v25.37h-20.93v41.23h23.47v25.16h-54.97V71.85Z"/>
+                              <path fill="#434345" d="m1327.25,169.95c0-5.28-1.06-7.4-3.6-7.4h-2.96v65.75h-31.71V71.85h41.02c17.97,0,28.96,10.57,28.96,29.6v28.12c0,8.88-2.32,16.07-12.26,20.93,9.94,5.07,12.26,12.26,12.26,21.35v39.11c0,5.71.42,11.63,1.9,17.34h-31.72c-1.69-5.07-1.9-11.84-1.9-17.34v-41.02Zm0-67.45c0-5.29-1.06-7.4-3.6-7.4h-2.96v44.19h2.96c2.54,0,3.6-2.11,3.6-7.4v-29.39Z"/>
+                              <path fill="#434345" d="m678.4,100.18h-.42l-10.78,128.12h-12.69l-14.17-156.46h11.63l10.36,127.49h.42l10.57-127.49h10.36l10.78,127.49h.42l10.36-127.49h10.99l-14.38,156.46h-12.69l-10.78-128.12Z"/>
+                              <path fill="#434345" d="m731.47,71.85h11.84v156.46h-11.84V71.85Z"/>
+                              <path fill="#434345" d="m790.03,81.79v146.52h-11.84V81.79h-19.88v-9.94h51.59v9.94h-19.88Z"/>
+                              <path fill="#434345" d="m864.66,153.67h-28.12v74.63h-11.84V71.85h11.84v71.67h28.12v-71.67h11.84v156.46h-11.84v-74.63Z"/>
                             </svg>
                           </div>
-                          <div>
-                            <p className="text-white/80 text-xs font-semibold uppercase tracking-widest mb-1">Global Initiative</p>
-                            <h3 className="font-bold text-white text-2xl">The Working with Cancer Pledge</h3>
+                          <div className="border-l pl-4" style={{ borderColor: '#ddd' }}>
+                            <p className="text-xs font-medium" style={{ color: '#666' }}>The #workingwithcancer Pledge</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="bg-white/20 backdrop-blur rounded-lg px-3 py-2 border border-white/30">
-                            <p className="text-white text-xl font-bold">5,000+</p>
-                            <p className="text-white/80 text-xs">Companies</p>
+                        <div className="flex items-center gap-2">
+                          <div className="rounded-lg px-3 py-2 text-center" style={{ backgroundColor: '#ff353c' }}>
+                            <p className="text-white text-lg font-bold">5,000+</p>
+                            <p className="text-white/90 text-xs">Companies</p>
                           </div>
-                          <div className="bg-white/20 backdrop-blur rounded-lg px-3 py-2 border border-white/30">
-                            <p className="text-white text-xl font-bold">40M+</p>
-                            <p className="text-white/80 text-xs">Workers</p>
+                          <div className="rounded-lg px-3 py-2 text-center" style={{ backgroundColor: '#ff353c' }}>
+                            <p className="text-white text-lg font-bold">40M+</p>
+                            <p className="text-white/90 text-xs">Workers</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="px-12 py-5 bg-gradient-to-b from-slate-50 to-white">
-                      {/* Intro Section */}
-                      <div className="flex items-start gap-3 mb-5">
-                        <div className="flex-shrink-0 w-10 h-10">
-                          <svg viewBox="0 0 300 300" className="w-full h-full">
-                            <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                            <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-slate-800 text-base mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
-                          <p className="text-slate-600 text-xs leading-relaxed">
-                            Launched at Davos 2023 by Publicis after CEO Arthur Sadoun went public with his diagnosis.
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Pledge Commitments - vibrant */}
+                    <div className="px-10 py-4 bg-white">
+                      {/* Pledge Commitments */}
                       <div className="rounded-xl p-4 mb-4 border-2" style={{ borderColor: '#ff353c', background: 'linear-gradient(to br, #fff5f5, #ffffff)' }}>
                         <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#ff353c' }}>Pledge Signatories Commit To:</p>
                         <div className="grid grid-cols-3 gap-3">
                           <div className="bg-white rounded-lg p-3 border border-slate-200 shadow-sm">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
                             <p className="font-semibold text-slate-800 text-xs">Job Security</p>
                           </div>
                           <div className="bg-white rounded-lg p-3 border border-slate-200 shadow-sm">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
                             <p className="font-semibold text-slate-800 text-xs">Open Culture</p>
                           </div>
                           <div className="bg-white rounded-lg p-3 border border-slate-200 shadow-sm">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
                             <p className="font-semibold text-slate-800 text-xs">Recovery Support</p>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Research Stats - compact */}
-                      <div className="rounded-xl p-3 mb-4" style={{ background: 'linear-gradient(135deg, #ff353c, #e62e34)' }}>
+                      {/* Research Stats - dark gray header */}
+                      <div className="rounded-xl p-3 mb-4" style={{ backgroundColor: '#434345' }}>
                         <div className="flex items-center justify-between">
                           <p className="text-white font-semibold text-sm">What Employees Say About the Pledge</p>
                           <div className="bg-white rounded-lg px-3 py-1.5 text-center">
@@ -8019,7 +8019,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       
-                      {/* Two-column stats - compact */}
+                      {/* Two-column stats */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="rounded-xl p-3 border-2" style={{ borderColor: '#ff353c', backgroundColor: '#fff5f5' }}>
                           <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#ff353c' }}>Employees Managing Cancer</p>
@@ -8058,10 +8058,15 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Footer */}
-                    <div className="px-12 py-3" style={{ background: 'linear-gradient(to right, #fff5f5, #ffffff, #fff5f5)' }}>
-                      <p className="text-xs text-slate-700 text-center">
-                        <strong className="text-slate-800">The Pledge signals intent.</strong> • <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong> • Together, they demonstrate genuine commitment.
+                    {/* Footer - dark gray */}
+                    <div className="px-10 py-3" style={{ backgroundColor: '#434345' }}>
+                      <p className="text-xs text-center">
+                        <strong className="text-white">The Pledge signals intent.</strong>
+                        <span className="mx-2 text-slate-400">•</span>
+                        <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong>
+                        <span className="mx-2 text-slate-400">•</span>
+                        <span className="text-slate-300">Together, they demonstrate genuine commitment.</span>
+                      </p>
                       </p>
                     </div>
                   </div>
