@@ -5,8 +5,6 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 // Create Supabase client directly
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -1810,9 +1808,12 @@ export default function InteractiveReportPage() {
   // Presentation mode state
   const [presentationMode, setPresentationMode] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
-  const [exportProgress, setExportProgress] = useState(0);
-  const slideContainerRef = useRef<HTMLDivElement>(null);
+  const [slideZoom, setSlideZoom] = useState(100); // percentage
+  const [showSlideNav, setShowSlideNav] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [laserPointer, setLaserPointer] = useState(false);
+  const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
   
   // Info modal content
   const infoContent = {
@@ -1978,147 +1979,60 @@ export default function InteractiveReportPage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!presentationMode) return;
+      
       if (e.key === 'Escape') {
-        setPresentationMode(false);
-        document.exitFullscreen?.().catch(() => {});
-      } else if (e.key === 'ArrowRight' || e.key === ' ') {
+        if (showSlideNav) {
+          setShowSlideNav(false);
+        } else if (showKeyboardHelp) {
+          setShowKeyboardHelp(false);
+        } else {
+          setPresentationMode(false);
+          document.exitFullscreen?.().catch(() => {});
+        }
+      } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         setCurrentSlide(prev => Math.min(prev + 1, 34));
-      } else if (e.key === 'ArrowLeft') {
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
         e.preventDefault();
         setCurrentSlide(prev => Math.max(prev - 1, 0));
+      } else if (e.key === 'Home') {
+        setCurrentSlide(0);
+      } else if (e.key === 'End') {
+        setCurrentSlide(34);
+      } else if (e.key === '+' || e.key === '=') {
+        setSlideZoom(prev => Math.min(prev + 10, 150));
+      } else if (e.key === '-' || e.key === '_') {
+        setSlideZoom(prev => Math.max(prev - 10, 50));
+      } else if (e.key === '0') {
+        setSlideZoom(100);
+      } else if (e.key === 'g' || e.key === 'G') {
+        setShowSlideNav(prev => !prev);
+      } else if (e.key === '?' || e.key === 'h' || e.key === 'H') {
+        setShowKeyboardHelp(prev => !prev);
+      } else if (e.key === 'f' || e.key === 'F') {
+        if (document.fullscreenElement) {
+          document.exitFullscreen?.();
+          setIsFullscreen(false);
+        } else {
+          document.documentElement.requestFullscreen?.();
+          setIsFullscreen(true);
+        }
+      } else if (e.key === 'l' || e.key === 'L') {
+        setLaserPointer(prev => !prev);
       }
     };
+    
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [presentationMode]);
-
-  // PDF Export function
-  const exportToPdf = async () => {
-    if (!slideContainerRef.current || isExportingPdf) return;
-    
-    setIsExportingPdf(true);
-    setExportProgress(0);
-    
-    const totalSlides = 35; // Slides 0-34
-    const originalSlide = currentSlide;
-    
-    // Create PDF in landscape 16:9 format
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'px',
-      format: [1280, 720]
-    });
-    
-    // Helper to convert oklch to hex using canvas
-    const oklchToHex = (oklchStr: string): string | null => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return null;
-        ctx.fillStyle = oklchStr;
-        ctx.fillRect(0, 0, 1, 1);
-        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-        return `rgb(${r}, ${g}, ${b})`;
-      } catch {
-        return null;
-      }
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
-    
-    // Helper to fix oklch colors in cloned element
-    const fixOklchColors = (element: HTMLElement) => {
-      const walker = document.createTreeWalker(element, NodeFilter.SHOW_ELEMENT);
-      let node: Node | null = walker.currentNode;
-      
-      while (node) {
-        if (node instanceof HTMLElement) {
-          const computed = window.getComputedStyle(node);
-          
-          // Fix background-color
-          const bg = computed.backgroundColor;
-          if (bg && bg.includes('oklch')) {
-            const converted = oklchToHex(bg);
-            if (converted) node.style.backgroundColor = converted;
-          }
-          
-          // Fix color
-          const color = computed.color;
-          if (color && color.includes('oklch')) {
-            const converted = oklchToHex(color);
-            if (converted) node.style.color = converted;
-          }
-          
-          // Fix border-color
-          const borderColor = computed.borderColor;
-          if (borderColor && borderColor.includes('oklch')) {
-            const converted = oklchToHex(borderColor);
-            if (converted) node.style.borderColor = converted;
-          }
-          
-          // Fix outline-color
-          const outlineColor = computed.outlineColor;
-          if (outlineColor && outlineColor.includes('oklch')) {
-            const converted = oklchToHex(outlineColor);
-            if (converted) node.style.outlineColor = converted;
-          }
-        }
-        node = walker.nextNode();
-      }
-    };
-    
-    try {
-      for (let i = 0; i < totalSlides; i++) {
-        // Navigate to slide
-        setCurrentSlide(i);
-        setExportProgress(Math.round(((i + 1) / totalSlides) * 100));
-        
-        // Wait for render
-        await new Promise(resolve => setTimeout(resolve, 400));
-        
-        const slideElement = slideContainerRef.current;
-        if (!slideElement) continue;
-        
-        // Capture slide
-        const canvas = await html2canvas(slideElement, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          onclone: (_doc, clonedElement) => {
-            // Fix oklch colors in the cloned element
-            fixOklchColors(clonedElement);
-          }
-        });
-        
-        const imgData = canvas.toDataURL('image/jpeg', 0.92);
-        
-        if (i > 0) {
-          pdf.addPage([1280, 720], 'landscape');
-        }
-        
-        // Scale to fit 1280x720
-        const imgWidth = 1280;
-        const imgHeight = (canvas.height / canvas.width) * imgWidth;
-        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, 720));
-      }
-      
-      // Save PDF
-      const companyName = company?.company_name?.replace(/[^a-zA-Z0-9]/g, '_') || 'Report';
-      pdf.save(`${companyName}_Cancer_Support_Report.pdf`);
-      
-    } catch (err) {
-      console.error('PDF export error:', err);
-      alert('Error exporting PDF. Please try again.');
-    } finally {
-      // Restore original slide
-      setCurrentSlide(originalSlide);
-      setIsExportingPdf(false);
-      setExportProgress(0);
-    }
-  };
+  }, [presentationMode, showSlideNav, showKeyboardHelp]);
 
   useEffect(() => {
     // CRITICAL: Reset ALL state when token changes
@@ -5592,10 +5506,36 @@ export default function InteractiveReportPage() {
           )}
 
         {presentationMode && (
-          <div className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col">
+          <div 
+            className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col"
+            onMouseMove={(e) => {
+              if (laserPointer) {
+                setLaserPosition({ x: e.clientX, y: e.clientY });
+              }
+            }}
+            style={{ cursor: laserPointer ? 'none' : 'default' }}
+          >
+            {/* Laser Pointer */}
+            {laserPointer && (
+              <div 
+                className="pointer-events-none fixed z-[10000]"
+                style={{ 
+                  left: laserPosition.x - 8, 
+                  top: laserPosition.y - 8,
+                  transition: 'left 0.02s, top 0.02s'
+                }}
+              >
+                <div className="w-4 h-4 bg-red-500 rounded-full shadow-lg shadow-red-500/50 animate-pulse"></div>
+                <div className="absolute inset-0 w-4 h-4 bg-red-400 rounded-full animate-ping opacity-75"></div>
+              </div>
+            )}
+            
             {/* Slide Content Area - centered */}
             <div className="flex-1 overflow-hidden flex items-center justify-center p-3">
-              <div ref={slideContainerRef} className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden">
+              <div 
+                className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden transition-transform duration-200"
+                style={{ transform: `scale(${slideZoom / 100})` }}
+              >
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
                 {currentSlide === 0 && (
@@ -7444,66 +7384,242 @@ export default function InteractiveReportPage() {
               </div>
             </div>
             
-            {/* Navigation Bar - compact */}
+            {/* Navigation Bar - enhanced */}
             <div className="flex-shrink-0 bg-slate-800 px-6 py-2 flex items-center justify-between">
+              {/* Left side - slide counter and progress */}
               <div className="flex items-center gap-4">
-                <div className="text-white text-sm">
+                <button
+                  onClick={() => setShowSlideNav(true)}
+                  className="text-white text-sm hover:bg-slate-700 px-2 py-1 rounded transition-colors"
+                  title="Go to slide (G)"
+                >
                   <span className="font-bold">{currentSlide + 1}</span>
                   <span className="text-slate-400"> / 35</span>
-                </div>
+                </button>
                 <div className="w-40 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                   <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / 35) * 100}%` }}></div>
                 </div>
+                <button
+                  onClick={() => setShowSlideNav(true)}
+                  className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium flex items-center gap-1.5"
+                  title="Go to slide (G)"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                  <span>Slides</span>
+                </button>
               </div>
               
-              <div className="flex items-center gap-2">
-                {/* Export to PDF button */}
-                <button 
-                  onClick={exportToPdf}
-                  disabled={isExportingPdf}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white rounded-lg text-sm font-medium flex items-center gap-2"
+              {/* Center - zoom controls */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setSlideZoom(prev => Math.max(prev - 10, 50))}
+                  disabled={slideZoom <= 50}
+                  className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm"
+                  title="Zoom out (-)"
                 >
-                  {isExportingPdf ? (
-                    <>
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                      <span>Exporting... {exportProgress}%</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                      <span>Export PDF</span>
-                    </>
-                  )}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
+                </button>
+                <button
+                  onClick={() => setSlideZoom(100)}
+                  className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-medium min-w-[50px]"
+                  title="Reset zoom (0)"
+                >
+                  {slideZoom}%
+                </button>
+                <button
+                  onClick={() => setSlideZoom(prev => Math.min(prev + 10, 150))}
+                  disabled={slideZoom >= 150}
+                  className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm"
+                  title="Zoom in (+)"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                 </button>
                 
                 <div className="w-px h-6 bg-slate-600 mx-2"></div>
                 
+                {/* Laser Pointer Toggle */}
+                <button
+                  onClick={() => setLaserPointer(prev => !prev)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${laserPointer ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-700 hover:bg-slate-600'} text-white`}
+                  title="Laser pointer (L)"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <circle cx="12" cy="12" r="3" fill={laserPointer ? "currentColor" : "none"} />
+                    <path strokeLinecap="round" d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Right side - navigation and controls */}
+              <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.max(prev - 1, 0))}
-                  disabled={currentSlide === 0 || isExportingPdf}
+                  disabled={currentSlide === 0}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
+                  title="Previous slide (←)"
                 >
                   Previous
                 </button>
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 34))}
-                  disabled={currentSlide === 34 || isExportingPdf}
+                  disabled={currentSlide === 34}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
+                  title="Next slide (→)"
                 >
                   Next
+                </button>
+                
+                <div className="w-px h-6 bg-slate-600 mx-2"></div>
+                
+                <button
+                  onClick={() => setShowKeyboardHelp(true)}
+                  className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
+                  title="Keyboard shortcuts (?)"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </button>
+                <button
+                  onClick={() => {
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen?.();
+                      setIsFullscreen(false);
+                    } else {
+                      document.documentElement.requestFullscreen?.();
+                      setIsFullscreen(true);
+                    }
+                  }}
+                  className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
+                  title="Toggle fullscreen (F)"
+                >
+                  {isFullscreen ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" /></svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
+                  )}
                 </button>
                 <button 
                   onClick={() => {
                     setPresentationMode(false);
                     document.exitFullscreen?.().catch(() => {});
                   }}
-                  disabled={isExportingPdf}
-                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white rounded-lg text-sm font-medium ml-4"
+                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium ml-2"
+                  title="Exit presentation (Esc)"
                 >
                   Exit
                 </button>
               </div>
             </div>
+            
+            {/* Keyboard Shortcuts Modal */}
+            {showKeyboardHelp && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowKeyboardHelp(false)}>
+                <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-slate-800">Keyboard Shortcuts</h3>
+                    <button onClick={() => setShowKeyboardHelp(false)} className="text-slate-400 hover:text-slate-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Next slide</span>
+                      <div className="flex gap-1">
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">→</kbd>
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Space</kbd>
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Enter</kbd>
+                      </div>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Previous slide</span>
+                      <div className="flex gap-1">
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">←</kbd>
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Backspace</kbd>
+                      </div>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">First / Last slide</span>
+                      <div className="flex gap-1">
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Home</kbd>
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">End</kbd>
+                      </div>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Zoom in / out</span>
+                      <div className="flex gap-1">
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">+</kbd>
+                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">-</kbd>
+                      </div>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Reset zoom</span>
+                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">0</kbd>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Go to slide</span>
+                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">G</kbd>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Toggle fullscreen</span>
+                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">F</kbd>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-600">Laser pointer</span>
+                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">L</kbd>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-600">Exit presentation</span>
+                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Esc</kbd>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Slide Navigator Modal */}
+            {showSlideNav && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowSlideNav(false)}>
+                <div className="bg-white rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-slate-800">Go to Slide</h3>
+                    <button onClick={() => setShowSlideNav(false)} className="text-slate-400 hover:text-slate-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-5 gap-2 overflow-y-auto max-h-[60vh] pr-2">
+                    {Array.from({ length: 35 }, (_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { setCurrentSlide(i); setShowSlideNav(false); }}
+                        className={`p-3 rounded-lg text-left transition-colors ${currentSlide === i ? 'bg-violet-100 border-2 border-violet-500' : 'bg-slate-50 hover:bg-slate-100 border-2 border-transparent'}`}
+                      >
+                        <div className="text-xs font-bold text-slate-800 mb-1">Slide {i + 1}</div>
+                        <div className="text-[10px] text-slate-500 leading-tight truncate">
+                          {i === 0 ? 'Title' : 
+                           i === 1 ? 'How Index Was Developed' :
+                           i === 2 ? 'How to Use This Report' :
+                           i === 3 ? 'Executive Summary' :
+                           i === 4 ? 'Dimension Performance' :
+                           i >= 5 && i <= 17 ? `D${i - 4} Deep Dive` :
+                           i === 18 || i === 19 ? 'Strategic Matrix' :
+                           i === 20 ? 'Cross-Dimensional' :
+                           i === 21 ? 'Impact Rankings' :
+                           i === 22 ? 'Areas of Excellence' :
+                           i === 23 ? 'Areas for Growth' :
+                           i === 24 ? 'In Progress' :
+                           i === 25 ? 'Strategic Recommendations' :
+                           i >= 26 && i <= 29 ? 'Recommendations' :
+                           i === 30 ? 'Implementation Roadmap' :
+                           i === 31 ? 'Working with Cancer Pledge' :
+                           i === 32 ? 'Cancer and Careers' :
+                           i === 33 ? 'Methodology' :
+                           'Thank You'}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
