@@ -2490,16 +2490,18 @@ export default function ExportReportPage() {
           setPresentationMode(false);
           document.exitFullscreen?.().catch(() => {});
         }
-      } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+      } else if ((e.key === 'ArrowLeft' && e.metaKey) || (e.key === 'ArrowUp' && e.metaKey) || e.key === 'Home') {
+        e.preventDefault();
+        setCurrentSlide(0);
+      } else if ((e.key === 'ArrowRight' && e.metaKey) || (e.key === 'ArrowDown' && e.metaKey) || e.key === 'End') {
+        e.preventDefault();
+        setCurrentSlide(34);
+      } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === '>' || e.key === '.' || e.key === 'n' || e.key === 'N') {
         e.preventDefault();
         setCurrentSlide(prev => Math.min(prev + 1, 34));
-      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'Delete' || e.key === '<' || e.key === ',' || e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         setCurrentSlide(prev => Math.max(prev - 1, 0));
-      } else if (e.key === 'Home') {
-        setCurrentSlide(0);
-      } else if (e.key === 'End') {
-        setCurrentSlide(34);
       } else if (e.key === '+' || e.key === '=') {
         setSlideZoom(prev => Math.min(prev + 10, 150));
       } else if (e.key === '-' || e.key === '_') {
@@ -8050,62 +8052,132 @@ export default function ExportReportPage() {
             {/* Keyboard Shortcuts Modal */}
             {showKeyboardHelp && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowKeyboardHelp(false)}>
-                <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="bg-white rounded-xl p-6 max-w-xl w-full mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-slate-800">Keyboard Shortcuts</h3>
                     <button onClick={() => setShowKeyboardHelp(false)} className="text-slate-400 hover:text-slate-600">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <div className="space-y-3 text-sm">
+                    {/* Navigation Section */}
+                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-1">Navigation</div>
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-1.5 items-center">
+                      <div></div>
+                      <div className="text-[10px] font-semibold text-slate-400 text-center">WINDOWS</div>
+                      <div className="text-[10px] font-semibold text-slate-400 text-center">MAC</div>
+                      
                       <span className="text-slate-600">Next slide</span>
-                      <div className="flex gap-1">
-                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">→</kbd>
-                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Space</kbd>
-                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Enter</kbd>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">→</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Space</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">N</kbd>
                       </div>
-                    </div>
-                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">→</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Space</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">N</kbd>
+                      </div>
+                      
                       <span className="text-slate-600">Previous slide</span>
-                      <div className="flex gap-1">
-                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">←</kbd>
-                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Backspace</kbd>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">←</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Backspace</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">P</kbd>
                       </div>
-                    </div>
-                    <div className="flex justify-between py-1.5 border-b border-slate-100">
-                      <span className="text-slate-600">First / Last slide</span>
-                      <div className="flex gap-1">
-                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Home</kbd>
-                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">End</kbd>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">←</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Delete</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">P</kbd>
                       </div>
-                    </div>
-                    <div className="flex justify-between py-1.5 border-b border-slate-100">
-                      <span className="text-slate-600">Zoom in / out</span>
-                      <div className="flex gap-1">
-                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">+</kbd>
-                        <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">-</kbd>
+                      
+                      <span className="text-slate-600">First slide</span>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Home</kbd>
                       </div>
-                    </div>
-                    <div className="flex justify-between py-1.5 border-b border-slate-100">
-                      <span className="text-slate-600">Reset zoom</span>
-                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">0</kbd>
-                    </div>
-                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Fn ←</kbd>
+                        <span className="text-slate-400 text-[10px]">or</span>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">⌘ ↑</kbd>
+                      </div>
+                      
+                      <span className="text-slate-600">Last slide</span>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">End</kbd>
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Fn →</kbd>
+                        <span className="text-slate-400 text-[10px]">or</span>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">⌘ ↓</kbd>
+                      </div>
+                      
                       <span className="text-slate-600">Go to slide</span>
-                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">G</kbd>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">G</kbd>
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">G</kbd>
+                      </div>
                     </div>
-                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                    
+                    <div className="border-t border-slate-100 pt-2"></div>
+                    
+                    {/* View Controls Section */}
+                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">View Controls</div>
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-1.5 items-center">
+                      <div></div>
+                      <div className="text-[10px] font-semibold text-slate-400 text-center">WINDOWS</div>
+                      <div className="text-[10px] font-semibold text-slate-400 text-center">MAC</div>
+                      
+                      <span className="text-slate-600">Zoom in / out</span>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">+</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">-</kbd>
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">=</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">-</kbd>
+                      </div>
+                      
+                      <span className="text-slate-600">Reset zoom</span>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">0</kbd>
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">0</kbd>
+                      </div>
+                      
                       <span className="text-slate-600">Toggle fullscreen</span>
-                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">F</kbd>
-                    </div>
-                    <div className="flex justify-between py-1.5 border-b border-slate-100">
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">F</kbd>
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">F</kbd>
+                      </div>
+                      
                       <span className="text-slate-600">Laser pointer</span>
-                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">L</kbd>
-                    </div>
-                    <div className="flex justify-between py-1.5">
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">L</kbd>
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">L</kbd>
+                      </div>
+                      
                       <span className="text-slate-600">Exit presentation</span>
-                      <kbd className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Esc</kbd>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Esc</kbd>
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Esc</kbd>
+                      </div>
+                      
+                      <span className="text-slate-600">This help</span>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">?</kbd>
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">?</kbd>
+                      </div>
                     </div>
                   </div>
                 </div>
