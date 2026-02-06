@@ -2023,6 +2023,9 @@ export default function InteractiveReportPage() {
   const [showBenchmarkRings, setShowBenchmarkRings] = useState(false);
   const [hoveredMatrixDim, setHoveredMatrixDim] = useState<number | null>(null);
   const [additionalAnalyzedDims, setAdditionalAnalyzedDims] = useState<number[]>([]);
+
+  // Computed total slides - base 35 + any additional dimension deep dives
+  const totalSlides = 35 + additionalAnalyzedDims.length;
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [infoModal, setInfoModal] = useState<'crossDimensional' | 'impactRanked' | 'excellence' | 'growth' | 'strategicRecos' | null>(null);
   
@@ -2394,7 +2397,8 @@ export default function InteractiveReportPage() {
           slideName: slideName,
           defaultNote: defaultNote,
           customNote: customNote,
-          laserActive: laserPointer
+          laserActive: laserPointer,
+          totalSlides: totalSlides
         }, window.location.origin);
         return;
       } catch (e) {
@@ -2412,12 +2416,12 @@ export default function InteractiveReportPage() {
       <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#1e293b;color:#e2e8f0;padding:20px}.private-banner{background:#dc2626;color:white;text-align:center;padding:8px 16px;font-weight:700;font-size:12px;letter-spacing:1px;margin:-20px -20px 16px -20px}.header{background:linear-gradient(135deg,#f97316,#ea580c);padding:16px 20px;border-radius:12px;margin-bottom:16px}.header h1{font-size:14px;color:white;opacity:0.9;margin-bottom:4px}.header h2{font-size:20px;font-weight:700;color:white}.slide-nav{display:flex;gap:8px;margin-bottom:20px}.slide-nav button{background:#334155;border:none;color:#94a3b8;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}.slide-nav button:hover{background:#475569;color:white}.slide-nav button.active{background:#ef4444;color:white}.section{background:#334155;border-radius:12px;padding:16px;margin-bottom:16px}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f59e0b;margin-bottom:12px;display:flex;align-items:center;gap:8px}.section-title svg{flex-shrink:0}.default-notes{background:#1e293b;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#cbd5e1}.custom-notes textarea{width:100%;min-height:150px;background:#1e293b;border:2px solid #475569;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;color:#e2e8f0;resize:vertical;font-family:inherit}.custom-notes textarea:focus{outline:none;border-color:#f59e0b}.custom-notes textarea::placeholder{color:#64748b}.save-status{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#22c55e}.tip{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:8px;padding:12px;margin-top:16px;font-size:13px;color:#fdba74;display:flex;align-items:flex-start;gap:8px}.tip svg{flex-shrink:0;margin-top:2px}</style></head>
       <body><div id="currentSlideData" data-slide="${slideNum}"></div>
       <div class="private-banner">🔒 PRIVATE — DO NOT SHARE THIS WINDOW</div>
-      <div class="header"><h1 id="slideNumber">SLIDE ${slideNum + 1} OF 35</h1><h2 id="slideName">${slideName}</h2></div>
+      <div class="header"><h1 id="slideNumber">SLIDE ${slideNum + 1} OF ${totalSlides}</h1><h2 id="slideName">${slideName}</h2></div>
       <div class="slide-nav"><button onclick="window.opener&&window.opener.postMessage({type:'prevSlide'},window.opener.location.origin)">← Previous</button><button onclick="window.opener&&window.opener.postMessage({type:'nextSlide'},window.opener.location.origin)">Next →</button><button id="laserBtn" onclick="window.opener&&window.opener.postMessage({type:'toggleLaser'},window.opener.location.origin);this.classList.toggle('active');" style="margin-left:auto;">Laser (L)</button></div>
       <div class="section"><div class="section-title">${clipboardIcon} SUGGESTED TALKING POINTS</div><div class="default-notes" id="defaultNotesContent">${defaultNote}</div></div>
       <div class="section"><div class="section-title">${pencilIcon} YOUR CUSTOM NOTES</div><div class="custom-notes"><textarea id="customNotes" placeholder="Add your own notes here...">${customNote}</textarea><div class="save-status" id="saveStatus" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>Saved</div></div></div>
       <div class="tip">${lightbulbIcon} <strong>Tip:</strong> Arrow keys/spacebar for slides, L for laser. Move mouse to main window to aim. Share only main window.</div>
-      <script>let saveTimeout;const textarea=document.getElementById('customNotes');const saveStatus=document.getElementById('saveStatus');const expectedOrigin=window.opener?window.opener.location.origin:'*';window.addEventListener('message',(event)=>{if(expectedOrigin!=='*'&&event.origin!==expectedOrigin)return;if(event.data&&event.data.type==='updateSlide'){document.getElementById('slideNumber').textContent='SLIDE '+(event.data.slideNum+1)+' OF 35';document.getElementById('slideName').textContent=event.data.slideName;document.getElementById('defaultNotesContent').textContent=event.data.defaultNote;document.getElementById('currentSlideData').setAttribute('data-slide',String(event.data.slideNum));document.title='PRIVATE - Presenter Notes - '+event.data.slideName;const laserBtn=document.getElementById('laserBtn');if(event.data.laserActive){laserBtn.classList.add('active');}else{laserBtn.classList.remove('active');}if(document.activeElement!==textarea){textarea.value=event.data.customNote||'';}}});window.addEventListener('keydown',(e)=>{if(document.activeElement===textarea)return;if(e.key==='ArrowLeft'){e.preventDefault();window.opener&&window.opener.postMessage({type:'prevSlide'},expectedOrigin);}if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();window.opener&&window.opener.postMessage({type:'nextSlide'},expectedOrigin);}if(e.key==='l'||e.key==='L'){e.preventDefault();window.opener&&window.opener.postMessage({type:'toggleLaser'},expectedOrigin);document.getElementById('laserBtn').classList.toggle('active');}});textarea.addEventListener('input',()=>{clearTimeout(saveTimeout);const currentSlide=document.getElementById('currentSlideData').getAttribute('data-slide');saveTimeout=setTimeout(()=>{window.opener&&window.opener.postMessage({type:'saveNote',slideNum:parseInt(currentSlide),note:textarea.value},expectedOrigin);saveStatus.style.display='flex';setTimeout(()=>saveStatus.style.display='none',2000);},500);});</script></body></html>`);
+      <script>let saveTimeout;const textarea=document.getElementById('customNotes');const saveStatus=document.getElementById('saveStatus');const expectedOrigin=window.opener?window.opener.location.origin:'*';window.addEventListener('message',(event)=>{if(expectedOrigin!=='*'&&event.origin!==expectedOrigin)return;if(event.data&&event.data.type==='updateSlide'){document.getElementById('slideNumber').textContent='SLIDE '+(event.data.slideNum+1)+' OF '+event.data.totalSlides;document.getElementById('slideName').textContent=event.data.slideName;document.getElementById('defaultNotesContent').textContent=event.data.defaultNote;document.getElementById('currentSlideData').setAttribute('data-slide',String(event.data.slideNum));document.title='PRIVATE - Presenter Notes - '+event.data.slideName;const laserBtn=document.getElementById('laserBtn');if(event.data.laserActive){laserBtn.classList.add('active');}else{laserBtn.classList.remove('active');}if(document.activeElement!==textarea){textarea.value=event.data.customNote||'';}}});window.addEventListener('keydown',(e)=>{if(document.activeElement===textarea)return;if(e.key==='ArrowLeft'){e.preventDefault();window.opener&&window.opener.postMessage({type:'prevSlide'},expectedOrigin);}if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();window.opener&&window.opener.postMessage({type:'nextSlide'},expectedOrigin);}if(e.key==='l'||e.key==='L'){e.preventDefault();window.opener&&window.opener.postMessage({type:'toggleLaser'},expectedOrigin);document.getElementById('laserBtn').classList.toggle('active');}});textarea.addEventListener('input',()=>{clearTimeout(saveTimeout);const currentSlide=document.getElementById('currentSlideData').getAttribute('data-slide');saveTimeout=setTimeout(()=>{window.opener&&window.opener.postMessage({type:'saveNote',slideNum:parseInt(currentSlide),note:textarea.value},expectedOrigin);saveStatus.style.display='flex';setTimeout(()=>saveStatus.style.display='none',2000);},500);});</script></body></html>`);
     win.document.close();
   };
   
@@ -8793,10 +8797,10 @@ export default function InteractiveReportPage() {
                   title="Go to slide (G)"
                 >
                   <span className="font-bold">{currentSlide + 1}</span>
-                  <span className="text-slate-400"> / 35</span>
+                  <span className="text-slate-400"> / {totalSlides}</span>
                 </button>
                 <div className="w-40 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / 35) * 100}%` }}></div>
+                  <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }}></div>
                 </div>
                 <button
                   onClick={() => setShowSlideNav(true)}
@@ -9174,7 +9178,7 @@ export default function InteractiveReportPage() {
                     </button>
                   </div>
                   <div className="grid grid-cols-5 gap-2 overflow-y-auto max-h-[60vh] pr-2">
-                    {Array.from({ length: 35 + additionalAnalyzedDims.length }, (_, i) => (
+                    {Array.from({ length: totalSlides }, (_, i) => (
                       <button
                         key={i}
                         onClick={() => { setCurrentSlide(i); setShowSlideNav(false); }}

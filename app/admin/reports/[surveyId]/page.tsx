@@ -2251,6 +2251,9 @@ export default function ExportReportPage() {
   const [showInteractiveLinkModal, setShowInteractiveLinkModal] = useState(false);
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
   const [additionalAnalyzedDims, setAdditionalAnalyzedDims] = useState<number[]>([]);
+
+  // Computed total slides - base 35 + any additional dimension deep dives
+  const totalSlides = 35 + additionalAnalyzedDims.length;
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
@@ -2427,7 +2430,8 @@ export default function ExportReportPage() {
           slideName: slideName,
           defaultNote: defaultNote,
           customNote: customNote,
-          laserActive: laserPointer
+          laserActive: laserPointer,
+          totalSlides: totalSlides
         }, window.location.origin);
         return;
       } catch (e) {
@@ -2506,7 +2510,7 @@ export default function ExportReportPage() {
         </div>
         
         <div class="header">
-          <h1 id="slideNumber">SLIDE ${slideNum + 1} OF 35</h1>
+          <h1 id="slideNumber">SLIDE ${slideNum + 1} OF ${totalSlides}</h1>
           <h2 id="slideName">${slideName}</h2>
         </div>
         
@@ -9375,10 +9379,10 @@ export default function ExportReportPage() {
                   title="Go to slide (G)"
                 >
                   <span className="font-bold">{currentSlide + 1}</span>
-                  <span className="text-slate-400"> / 35</span>
+                  <span className="text-slate-400"> / {totalSlides}</span>
                 </button>
                 <div className="w-40 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / 35) * 100}%` }}></div>
+                  <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }}></div>
                 </div>
                 <button
                   onClick={() => setShowSlideNav(true)}
@@ -9756,7 +9760,7 @@ export default function ExportReportPage() {
                     </button>
                   </div>
                   <div className="grid grid-cols-5 gap-2 overflow-y-auto max-h-[60vh] pr-2">
-                    {Array.from({ length: 35 + additionalAnalyzedDims.length }, (_, i) => (
+                    {Array.from({ length: totalSlides }, (_, i) => (
                       <button
                         key={i}
                         onClick={() => { setCurrentSlide(i); setShowSlideNav(false); }}
