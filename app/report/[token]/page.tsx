@@ -7213,7 +7213,9 @@ export default function InteractiveReportPage() {
                                     </g>
                                   ))}
                                   {bClusters.map((cluster, ci) => {
+                                    // Skip D4 callout since it doesn't overlap enough to warrant showing
                                     const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
+                                    if (hiddenDims.length === 0) return null;
                                     return hiddenDims.map((dim, i) => {
                                       const cx = cluster.x + 26 + i * 22;
                                       const cy = cluster.y - 20;
@@ -7400,7 +7402,7 @@ export default function InteractiveReportPage() {
                                     
                                     {/* Recommendations */}
                                     <div className="text-sm text-slate-600 space-y-1">
-                                      {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
+                                      {(r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
                                         <p key={i} className="flex items-start gap-2">
                                           <span className="text-cyan-500 mt-0.5">→</span>
                                           <span>{rec}</span>
@@ -7410,22 +7412,29 @@ export default function InteractiveReportPage() {
                                   </div>
                                   
                                   {/* Metrics */}
-                                  <div className="flex items-center gap-4 flex-shrink-0">
+                                  <div className="flex items-center gap-3 flex-shrink-0">
                                     {/* Current Score */}
-                                    <div className="text-center px-4 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                    <div className="text-center px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
                                       <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-1">Current</p>
                                       <p className="text-2xl font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</p>
                                       <p className="text-xs text-slate-400">{r.tier}</p>
                                     </div>
                                     
                                     {/* Arrow */}
-                                    <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                    <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                     
-                                    {/* Potential Gain */}
-                                    <div className="text-center px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
-                                      <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Impact</p>
-                                      <p className="text-2xl font-bold text-emerald-600">+{r.potentialGain}</p>
-                                      <p className="text-xs text-emerald-500">points</p>
+                                    {/* Dimension Impact */}
+                                    <div className="text-center px-3 py-2 rounded-xl bg-blue-50 border border-blue-200">
+                                      <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Dim Impact</p>
+                                      <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain}</p>
+                                      <p className="text-xs text-blue-500">pts</p>
+                                    </div>
+                                    
+                                    {/* Composite Impact */}
+                                    <div className="text-center px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
+                                      <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Overall</p>
+                                      <p className="text-xl font-bold text-emerald-600">+{r.potentialGain}</p>
+                                      <p className="text-xs text-emerald-500">composite</p>
                                     </div>
                                   </div>
                                 </div>
@@ -7434,7 +7443,7 @@ export default function InteractiveReportPage() {
                           </div>
                         ))}
                       </div>
-                      <p className="text-xs text-slate-400 mt-6 text-center italic">Impact calculated based on dimension weight and improvement potential. Gap level indicates number of elements needing attention.</p>
+                      <p className="text-xs text-slate-400 mt-6 text-center italic">Dim Impact = potential dimension score improvement. Overall = impact on composite score (weighted by dimension importance).</p>
                     </div>
                   </div>
                 )}
