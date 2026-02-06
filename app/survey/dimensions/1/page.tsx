@@ -267,6 +267,7 @@ export default function Dimension1Page() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
               Dimension 1: Medical Leave & Flexibility
+            </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
@@ -317,7 +318,7 @@ export default function Dimension1Page() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>Use the navigation dots or arrows to review or change any response</span>
+                    <span>Click any green bar to review or change your answer to that element</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
