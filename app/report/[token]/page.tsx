@@ -1029,7 +1029,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             
             {/* Overlap callout annotations */}
             {overlapClusters.map((cluster, idx) => {
-              const hiddenDims = cluster.dims.slice(0, -1);
+              const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
               // Overlap indicator positions computed inline
               return (
                 <g key={`callout-${idx}`}>
@@ -1876,6 +1876,8 @@ export default function InteractiveReportPage() {
   const [dimensionDetailModal, setDimensionDetailModal] = useState<number | null>(null);
   const [showBenchmarkRings, setShowBenchmarkRings] = useState(false);
   const [hoveredMatrixDim, setHoveredMatrixDim] = useState<number | null>(null);
+  const [additionalAnalyzedDims, setAdditionalAnalyzedDims] = useState<number[]>([]);
+  const [showDimSelector, setShowDimSelector] = useState(false);
   const [infoModal, setInfoModal] = useState<'crossDimensional' | 'impactRanked' | 'excellence' | 'growth' | 'strategicRecos' | null>(null);
   
   // Presentation mode state
@@ -4243,7 +4245,7 @@ export default function InteractiveReportPage() {
                               </g>
                             ))}
                             {benchClusters.map((cluster, ci) => {
-                              const hiddenDims = cluster.dims.slice(0, -1);
+                              const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                               return hiddenDims.map((dim, i) => {
                                 const cx = cluster.x + 28 + i * 24;
                                 const cy = cluster.y - 22;
@@ -4275,7 +4277,7 @@ export default function InteractiveReportPage() {
                         
                         {/* Overlap callout annotations */}
                         {presOverlapClusters.map((cluster, idx) => {
-                          const hiddenDims = cluster.dims.slice(0, -1);
+                          const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                           // Overlap indicator positions computed inline
                           return (
                             <g key={`callout-${idx}`}>
@@ -5303,6 +5305,256 @@ export default function InteractiveReportPage() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+          
+          {/* Additional Analyzed Dimensions */}
+          {additionalAnalyzedDims.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1200px] mx-auto">
+              <div className="px-10 py-4 bg-slate-600 border-b border-slate-500">
+                <h3 className="font-bold text-white text-lg">Additional Dimension Analysis</h3>
+              </div>
+              <div className="divide-y-4 divide-slate-100">
+                {additionalAnalyzedDims.map((dimNum) => {
+                  const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
+                  if (!d) return null;
+                  const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
+                  const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
+                  const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
+                  const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
+                  const tierColor = getScoreColor(d.score);
+                  
+                  return (
+                    <div key={d.dim} className="border-l-4 relative ppt-break pdf-no-break" style={{ borderLeftColor: tierColor }}>
+                      <button 
+                        onClick={() => setAdditionalAnalyzedDims(prev => prev.filter(dim => dim !== dimNum))}
+                        className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-200 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition-colors z-10"
+                        title="Remove this analysis"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                      
+                      <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
+                            {d.dim}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <h4 className="text-xl font-bold text-white">{d.name}</h4>
+                              <span className="text-xs font-medium px-2 py-1 rounded bg-violet-500 text-white">Additional Analysis</span>
+                            </div>
+                            <div className="flex items-center gap-4 mt-1">
+                              <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                              <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
+                              <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                              {d.benchmark !== null && (
+                                <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {benchmarkNarrative && (
+                        <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
+                          <p className="text-base text-slate-600">{benchmarkNarrative}</p>
+                        </div>
+                      )}
+                      
+                      <div className="px-10 py-6">
+                        <div className="grid grid-cols-3 gap-6 mb-6">
+                          <div className="border border-red-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-red-50 border-b border-red-200">
+                              <h5 className="font-bold text-red-800 text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                            </div>
+                            <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                              {d.needsAttention?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.needsAttention.map((item: any, i: number) => (
+                                    <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                                      <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'}`}></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-base text-slate-400 italic">No improvement opportunities</p>}
+                            </div>
+                          </div>
+                          
+                          <div className="border border-blue-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
+                              <h5 className="font-bold text-blue-800 text-base">In Development ({d.planning?.length || 0})</h5>
+                            </div>
+                            <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                              {d.planning?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.planning.map((item: any, i: number) => (
+                                    <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-base text-slate-400 italic">No initiatives in development</p>}
+                            </div>
+                          </div>
+                          
+                          <div className="border border-emerald-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
+                              <h5 className="font-bold text-emerald-800 text-base">Current Strengths ({d.strengths?.length || 0})</h5>
+                            </div>
+                            <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                              {d.strengths?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.strengths.map((item: any, i: number) => (
+                                    <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-emerald-500 mt-2 flex-shrink-0"></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-base text-slate-400 italic">No strengths identified</p>}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            {(evidence.topStrength || evidence.biggestGap) && (
+                              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                                <h5 className="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wide">Key Evidence</h5>
+                                <div className="space-y-2">
+                                  {evidence.topStrength && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-emerald-600 text-sm">✓</span>
+                                      </span>
+                                      <p className="text-base text-slate-700">
+                                        <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                        <span className="text-slate-500"> ({evidence.topStrength.benchPct})% of participants)</span>
+                                      </p>
+                                    </div>
+                                  )}
+                                  {evidence.biggestGap && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-red-600 text-sm">✗</span>
+                                      </span>
+                                      <p className="text-base text-slate-700">
+                                        <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                        <span className="text-slate-500"> ({evidence.biggestGap.benchPct})% of participants)</span>
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            <div className="border border-slate-200 rounded-xl p-4 bg-white">
+                              <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
+                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            {(roadmap.quickWin || roadmap.strategicLift) && (
+                              <div className="border border-indigo-200 rounded-xl p-4 bg-indigo-50">
+                                <h5 className="font-bold text-indigo-800 mb-3 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
+                                <div className="space-y-3">
+                                  {roadmap.quickWin && (
+                                    <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
+                                        <span className="text-sm text-slate-500">0-60 days</span>
+                                      </div>
+                                      <p className="text-base font-medium text-slate-800">{roadmap.quickWin.name}</p>
+                                      <p className="text-sm text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
+                                    </div>
+                                  )}
+                                  {roadmap.strategicLift && (
+                                    <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">STRATEGIC</span>
+                                        <span className="text-sm text-slate-500">60-180 days</span>
+                                      </div>
+                                      <p className="text-base font-medium text-slate-800">{roadmap.strategicLift.name}</p>
+                                      <p className="text-sm text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            <div className="border border-violet-200 rounded-xl p-4 bg-violet-50">
+                              <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
+          {/* Analyze Another Dimension Button */}
+          <div className="max-w-[1200px] mx-auto mb-8">
+            <div className="relative">
+              <button
+                onClick={() => setShowDimSelector(!showDimSelector)}
+                className="w-full group px-8 py-5 bg-gradient-to-r from-slate-50 to-white border-2 border-dashed border-slate-300 hover:border-slate-400 hover:from-slate-100 hover:to-slate-50 rounded-xl transition-all flex items-center justify-center gap-3"
+              >
+                <div className="w-10 h-10 rounded-full bg-slate-200 group-hover:bg-slate-300 flex items-center justify-center transition-colors">
+                  <svg className="w-5 h-5 text-slate-500 group-hover:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-700 group-hover:text-slate-900 font-semibold text-base block">Analyze Another Dimension</span>
+                  <span className="text-slate-400 group-hover:text-slate-500 text-sm">Get detailed analysis for any additional dimension</span>
+                </div>
+              </button>
+              
+              {showDimSelector && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 p-5 z-50">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm font-semibold text-slate-700">Select a dimension to analyze:</p>
+                    <button onClick={() => setShowDimSelector(false)} className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {allDimensionsByScore
+                      .filter(d => !allDimensionsByScore.slice(0, 4).some(top => top.dim === d.dim))
+                      .filter(d => !additionalAnalyzedDims.includes(d.dim))
+                      .map(d => {
+                        const tierColor = getScoreColor(d.score);
+                        return (
+                          <button
+                            key={d.dim}
+                            onClick={() => { setAdditionalAnalyzedDims(prev => [...prev, d.dim]); setShowDimSelector(false); }}
+                            className="px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all text-left group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: tierColor }}>{d.dim}</div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-slate-700 group-hover:text-slate-900 text-sm truncate">{d.name}</p>
+                                <p className="text-xs text-slate-400">Score: {d.score} • {d.tier.name}</p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                  </div>
+                  {allDimensionsByScore.filter(d => !allDimensionsByScore.slice(0, 4).some(top => top.dim === d.dim)).filter(d => !additionalAnalyzedDims.includes(d.dim)).length === 0 && (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                      <p className="text-sm text-slate-500">All dimensions have been analyzed</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           
@@ -6801,7 +7053,7 @@ export default function InteractiveReportPage() {
                                       );
                                     })}
                                     {clusters.map((cluster, idx) => {
-                                      const hiddenDims = cluster.dims.slice(0, -1);
+                                      const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                                       // Overlap indicator positions computed inline
                                       return (
                                         <g key={`s18-callout-${idx}`}>
@@ -6950,7 +7202,7 @@ export default function InteractiveReportPage() {
                                     </g>
                                   ))}
                                   {bClusters.map((cluster, ci) => {
-                                    const hiddenDims = cluster.dims.slice(0, -1);
+                                    const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                                     return hiddenDims.map((dim, i) => {
                                       const cx = cluster.x + 26 + i * 22;
                                       const cy = cluster.y - 20;
@@ -6998,7 +7250,7 @@ export default function InteractiveReportPage() {
                                       </g>
                                     ))}
                                     {clusters.map((cluster, idx) => {
-                                      const hiddenDims = cluster.dims.slice(0, -1);
+                                      const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                                       // Overlap indicator positions computed inline
                                       return (
                                         <g key={`s19-callout-${idx}`}>
