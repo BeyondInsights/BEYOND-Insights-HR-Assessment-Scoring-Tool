@@ -8468,7 +8468,7 @@ export default function ExportReportPage() {
                       <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
-                            {recIdx + 1}
+                            {d.dim}
                           </div>
                           <div className="flex-1">
                             <h4 className="text-xl font-bold text-white">{d.name}</h4>
@@ -8487,87 +8487,87 @@ export default function ExportReportPage() {
                       {/* Benchmark Narrative */}
                       {benchmarkNarrative && (
                         <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
-                          <p className="text-base text-slate-600">{benchmarkNarrative}</p>
+                          <p className="text-sm text-slate-600">{benchmarkNarrative}</p>
                         </div>
                       )}
                       
-                      <div className="px-10 py-6">
+                      <div className="px-10 py-5">
                         {/* Current State - 3 columns */}
-                        <div className="grid grid-cols-3 gap-6 mb-6">
+                        <div className="grid grid-cols-3 gap-5 mb-5">
                           {/* Improvement Opportunities */}
                           <div className="border border-red-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                              <h5 className="font-bold text-red-800 text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                            <div className="px-4 py-2 bg-red-50 border-b border-red-200">
+                              <h5 className="font-bold text-red-800 text-sm">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white">
+                            <div className="p-3 bg-white max-h-36 overflow-y-auto">
                               {d.needsAttention?.length > 0 ? (
-                                <ul className="space-y-2">
+                                <ul className="space-y-1">
                                   {d.needsAttention.slice(0, 6).map((item: any, i: number) => (
-                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                      <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-2">
+                                      <span className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
                                         item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'
                                       }`}></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-sm text-slate-400 italic">No gaps identified</p>}
+                              ) : <p className="text-xs text-slate-400 italic">No gaps identified</p>}
                             </div>
                           </div>
                           
                           {/* In Development */}
                           <div className="border border-blue-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-                              <h5 className="font-bold text-blue-800 text-base">In Development ({d.planning?.length || 0})</h5>
+                            <div className="px-4 py-2 bg-blue-50 border-b border-blue-200">
+                              <h5 className="font-bold text-blue-800 text-sm">In Development ({d.planning?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white">
+                            <div className="p-3 bg-white max-h-36 overflow-y-auto">
                               {d.planning?.length > 0 ? (
-                                <ul className="space-y-2">
+                                <ul className="space-y-1">
                                   {d.planning.slice(0, 6).map((item: any, i: number) => (
-                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                      <span className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
+                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-2">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-sm text-slate-400 italic">No initiatives in planning</p>}
+                              ) : <p className="text-xs text-slate-400 italic">No initiatives in planning</p>}
                             </div>
                           </div>
                           
                           {/* Strengths */}
                           <div className="border border-emerald-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
-                              <h5 className="font-bold text-emerald-800 text-base">Strengths ({d.strengths?.length || 0})</h5>
+                            <div className="px-4 py-2 bg-emerald-50 border-b border-emerald-200">
+                              <h5 className="font-bold text-emerald-800 text-sm">Strengths ({d.strengths?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white">
+                            <div className="p-3 bg-white max-h-36 overflow-y-auto">
                               {d.strengths?.length > 0 ? (
-                                <ul className="space-y-2">
+                                <ul className="space-y-1">
                                   {d.strengths.slice(0, 6).map((s: any, i: number) => (
-                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                      <span className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
+                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-2">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
                                       <span>{s.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-sm text-slate-400 italic">Building toward first strengths</p>}
+                              ) : <p className="text-xs text-slate-400 italic">Building toward strengths</p>}
                             </div>
                           </div>
                         </div>
                         
-                        {/* Strategic Insight & CAC Help - 2 columns */}
-                        <div className="grid grid-cols-2 gap-6">
-                          {/* Left Column: Evidence + Insight */}
+                        {/* Bottom section - 2 columns matching report layout */}
+                        <div className="grid grid-cols-2 gap-5">
+                          {/* Left: Key Evidence + Strategic Insight */}
                           <div className="space-y-4">
                             {(evidence.topStrength || evidence.biggestGap) && (
-                              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
-                                <h5 className="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wide">Key Evidence</h5>
+                              <div className="border border-slate-200 rounded-xl p-3 bg-slate-50">
+                                <h5 className="font-bold text-slate-700 mb-2 text-xs uppercase tracking-wide">Key Evidence</h5>
                                 <div className="space-y-2">
                                   {evidence.topStrength && (
                                     <div className="flex items-start gap-2">
-                                      <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-emerald-600 text-sm">✓</span>
+                                      <span className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-emerald-600 text-xs">✓</span>
                                       </span>
-                                      <p className="text-sm text-slate-700">
+                                      <p className="text-xs text-slate-700">
                                         <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
                                         <span className="text-slate-500"> ({evidence.topStrength.benchPct}% of participants)</span>
                                       </p>
@@ -8575,10 +8575,10 @@ export default function ExportReportPage() {
                                   )}
                                   {evidence.biggestGap && (
                                     <div className="flex items-start gap-2">
-                                      <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-red-600 text-sm">✗</span>
+                                      <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-red-600 text-xs">✗</span>
                                       </span>
-                                      <p className="text-sm text-slate-700">
+                                      <p className="text-xs text-slate-700">
                                         <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
                                         <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of participants)</span>
                                       </p>
@@ -8588,45 +8588,45 @@ export default function ExportReportPage() {
                               </div>
                             )}
                             
-                            <div className="border border-slate-200 rounded-xl p-4 bg-white">
-                              <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
-                              <p className="text-sm text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                            <div className="border border-slate-200 rounded-xl p-3 bg-white">
+                              <h5 className="font-bold text-slate-800 mb-2 text-xs uppercase tracking-wide">Strategic Insight</h5>
+                              <p className="text-xs text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
                             </div>
                           </div>
                           
-                          {/* Right Column: Roadmap + CAC Help */}
+                          {/* Right: Roadmap + CAC Help */}
                           <div className="space-y-4">
                             {(roadmap.quickWin || roadmap.strategicLift) && (
-                              <div className="border border-indigo-200 rounded-xl p-4 bg-indigo-50">
-                                <h5 className="font-bold text-indigo-800 mb-3 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
-                                <div className="space-y-3">
+                              <div className="border border-indigo-200 rounded-xl p-3 bg-indigo-50">
+                                <h5 className="font-bold text-indigo-800 mb-2 text-xs uppercase tracking-wide">Recommended Roadmap</h5>
+                                <div className="space-y-2">
                                   {roadmap.quickWin && (
-                                    <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                    <div className="bg-white rounded-lg p-2 border border-indigo-100">
                                       <div className="flex items-center gap-2 mb-1">
-                                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">QUICK WIN</span>
-                                        <span className="text-xs text-slate-500">0-60 days</span>
+                                        <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">QUICK WIN</span>
+                                        <span className="text-[10px] text-slate-500">0-60 days</span>
                                       </div>
-                                      <p className="text-sm font-medium text-slate-800">{customDimRoadmaps[d.dim]?.quickWin?.name || roadmap.quickWin.name}</p>
-                                      <p className="text-xs text-slate-500 mt-1">{customDimRoadmaps[d.dim]?.quickWin?.reason || roadmap.quickWin.reason}</p>
+                                      <p className="text-xs font-medium text-slate-800">{customDimRoadmaps[d.dim]?.quickWin?.name || roadmap.quickWin.name}</p>
+                                      <p className="text-[10px] text-slate-500 mt-0.5">{customDimRoadmaps[d.dim]?.quickWin?.reason || roadmap.quickWin.reason}</p>
                                     </div>
                                   )}
                                   {roadmap.strategicLift && (
-                                    <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                    <div className="bg-white rounded-lg p-2 border border-indigo-100">
                                       <div className="flex items-center gap-2 mb-1">
-                                        <span className="px-2 py-1 bg-violet-100 text-violet-700 text-xs font-bold rounded">STRATEGIC</span>
-                                        <span className="text-xs text-slate-500">60-180 days</span>
+                                        <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded">STRATEGIC</span>
+                                        <span className="text-[10px] text-slate-500">60-180 days</span>
                                       </div>
-                                      <p className="text-sm font-medium text-slate-800">{customDimRoadmaps[d.dim]?.strategicLift?.name || roadmap.strategicLift.name}</p>
-                                      <p className="text-xs text-slate-500 mt-1">{customDimRoadmaps[d.dim]?.strategicLift?.reason || roadmap.strategicLift.reason}</p>
+                                      <p className="text-xs font-medium text-slate-800">{customDimRoadmaps[d.dim]?.strategicLift?.name || roadmap.strategicLift.name}</p>
+                                      <p className="text-[10px] text-slate-500 mt-0.5">{customDimRoadmaps[d.dim]?.strategicLift?.reason || roadmap.strategicLift.reason}</p>
                                     </div>
                                   )}
                                 </div>
                               </div>
                             )}
                             
-                            <div className="border border-orange-200 rounded-xl p-4 bg-orange-50">
-                              <h5 className="font-bold text-orange-800 mb-2 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
-                              <p className="text-sm text-orange-700">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                            <div className="border border-violet-200 rounded-xl p-3 bg-violet-50">
+                              <h5 className="font-bold text-violet-800 mb-2 text-xs uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                              <p className="text-xs text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
                             </div>
                           </div>
                         </div>
