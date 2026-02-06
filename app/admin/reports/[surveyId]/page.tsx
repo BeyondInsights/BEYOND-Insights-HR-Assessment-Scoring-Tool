@@ -216,11 +216,11 @@ const DIMENSION_STRATEGIC_INSIGHTS: Record<number, { insight: string; cacHelp: s
     cacHelp: "Our team can conduct a benefits gap analysis, evaluate supplemental coverage options, and design financial wellness programs specifically for employees facing serious illness."
   },
   3: {
-    insight: "Managers are the front line of support - they determine whether policies translate to lived experience. Without proper training, even excellent policies fail at the point of delivery.",
+    insight: "Managers are the front line of support. They determine whether policies translate to lived experience. Without proper training, even excellent policies fail at the point of delivery.",
     cacHelp: "Cancer and Careers offers manager training programs with real-world scenarios, conversation guides, and ongoing coaching to build confidence in supporting team members through health challenges."
   },
   4: {
-    insight: "Navigation is the multiplier - it determines whether employees can actually access the benefits you've invested in. Without clear pathways, benefits go unused and employees struggle alone.",
+    insight: "Navigation is the multiplier. It determines whether employees can actually access the benefits you've invested in. Without clear pathways, benefits go unused and employees struggle alone.",
     cacHelp: "We specialize in designing single-entry-point navigation systems, resource mapping, and communication strategies that maximize utilization of existing benefits investments."
   },
   5: {
@@ -244,7 +244,7 @@ const DIMENSION_STRATEGIC_INSIGHTS: Record<number, { insight: string; cacHelp: s
     cacHelp: "Cancer and Careers can help craft executive messaging, integrate cancer support into ESG reporting, and build the business case for board-level engagement."
   },
   10: {
-    insight: "Caregivers face dual burden - supporting loved ones while maintaining work performance. Without specific support, you lose productive employees who never received a diagnosis themselves.",
+    insight: "Caregivers face dual burden: supporting loved ones while maintaining work performance. Without specific support, you lose productive employees who never received a diagnosis themselves.",
     cacHelp: "Our caregiver support program design includes assessment of unique needs, policy recommendations, and peer support structures for employees in caregiving roles."
   },
   11: {
@@ -2254,6 +2254,7 @@ export default function ExportReportPage() {
   const [exportingPptx, setExportingPptx] = useState(false);
   const [exportProgress, setExportProgress] = useState({ step: '', percent: 0 });
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
+  const [confirmModal, setConfirmModal] = useState<{ show: boolean; message: string; onConfirm: () => void }>({ show: false, message: '', onConfirm: () => {} });
   const [infoModal, setInfoModal] = useState<'crossDimensional' | 'impactRanked' | 'excellence' | 'growth' | 'strategicRecos' | null>(null);
   const [whatIfModal, setWhatIfModal] = useState<boolean>(false);
   const [whatIfDimension, setWhatIfDimension] = useState<number | null>(null);
@@ -2782,16 +2783,21 @@ export default function ExportReportPage() {
   
   // Reset edits to generated defaults
   const resetEdits = () => {
-    if (confirm('Reset all customizations to insights content?')) {
-      setCustomInsights({});
-      setCustomExecutiveSummary('');
-      setCustomPatterns([]);
-      setCustomRecommendations({});
-      setCustomCrossRecommendations({});
-      setCustomRoadmap({});
-      setCustomDimRoadmaps({});
-      setHasUnsavedChanges(true);
-    }
+    setConfirmModal({
+      show: true,
+      message: 'Reset all customizations to insights content?',
+      onConfirm: () => {
+        setCustomInsights({});
+        setCustomExecutiveSummary('');
+        setCustomPatterns([]);
+        setCustomRecommendations({});
+        setCustomCrossRecommendations({});
+        setCustomRoadmap({});
+        setCustomDimRoadmaps({});
+        setHasUnsavedChanges(true);
+        setConfirmModal({ show: false, message: '', onConfirm: () => {} });
+      }
+    });
   };
   
   // Handler wrappers for button clicks
@@ -4729,14 +4735,14 @@ export default function ExportReportPage() {
                             {benchPositions.map((bp) => (
                               <g key={`bench-${bp.dim}`}>
                                 <circle cx={bp.x} cy={bp.y} r={20} fill="#E2E8F0" fillOpacity="0.8" stroke="#8B5CF6" strokeWidth="2.5" strokeDasharray="5 3" />
-                                {/* Only show D label for D7+ since lower dimensions are readable without labels */}
-                                {bp.dim >= 7 && (
+                                {/* Only show D label for dimensions that need it - skip D4 as it's readable without */}
+                                {bp.dim !== 4 && (
                                   <text x={bp.x} y={bp.y + 1} textAnchor="middle" dominantBaseline="middle" fill="#6D28D9" fontSize="10" fontWeight="800" fontFamily="system-ui">D{bp.dim}</text>
                                 )}
                               </g>
                             ))}
                             {benchClusters.map((cluster, ci) => {
-                              const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim >= 7);
+                              const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                               if (hiddenDims.length === 0) return null;
                               return hiddenDims.map((dim, i) => {
                                 const cx = cluster.x + 28 + i * 24;
@@ -6820,6 +6826,35 @@ export default function ExportReportPage() {
           </div>
         )}
 
+        {/* Custom Confirm Modal */}
+        {confirmModal.show && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h3 className="font-bold text-slate-900 text-lg">BEYOND Insights</h3>
+              </div>
+              <p className="text-slate-600 mb-6">{confirmModal.message}</p>
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={() => setConfirmModal({ show: false, message: '', onConfirm: () => {} })}
+                  className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmModal.onConfirm}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Back to Top Floating Button */}
         {showBackToTop && !presentationMode && (
           <button
@@ -8481,7 +8516,7 @@ export default function ExportReportPage() {
                         <div>
                           <h4 className="font-bold text-slate-900 text-base mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
                           <p className="text-slate-600 text-sm leading-relaxed">
-                            Launched at Davos in January 2023 by the Publicis Foundation after CEO Arthur Sadoun went public about his own cancer diagnosis.
+                            Launched at Davos in January 2023 by the Publicis Foundation, the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
                           </p>
                         </div>
                       </div>
