@@ -2026,6 +2026,9 @@ export default function InteractiveReportPage() {
 
   // Computed total slides - base 35 + any additional dimension deep dives
   const totalSlides = 35 + additionalAnalyzedDims.length;
+
+  // Computed total slides - base 35 + any additional dimension deep dives
+  const totalSlides = 35 + additionalAnalyzedDims.length;
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [infoModal, setInfoModal] = useState<'crossDimensional' | 'impactRanked' | 'excellence' | 'growth' | 'strategicRecos' | null>(null);
   
