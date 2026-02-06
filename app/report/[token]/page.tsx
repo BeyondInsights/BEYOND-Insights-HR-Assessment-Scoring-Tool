@@ -247,6 +247,9 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
       </div>
     </div>
   );
+}
+
+// ============================================
 // SCORING FUNCTIONS
 // ============================================
 
