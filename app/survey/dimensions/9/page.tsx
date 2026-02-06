@@ -302,24 +302,34 @@ const getTotalSteps = () => {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    Item {currentItemIndex + 1} of {D9A_ITEMS.length}
+                    Element {currentItemIndex + 1} of {D9A_ITEMS.length}
                   </span>
-                  <div className="flex gap-1">
-                    {D9A_ITEMS.map((item, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => goToItem(idx)}
-                        className={`h-2 transition-all duration-500 rounded-full ${
-                          ans.d9a?.[item]
-                            ? "w-8 bg-green-600 hover:bg-green-700 cursor-pointer"
-                            : idx === currentItemIndex
-                            ? "w-8 bg-blue-600"
-                            : "w-2 bg-gray-300 hover:bg-gray-400 cursor-pointer"
-                        }`}
-                        title={item}
-                        disabled={isTransitioning}
-                      />
-                    ))}
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-xs text-gray-500 mb-1">
+                      Hover over any bar to see the element name
+                    </span>
+                    <div className="flex gap-1">
+                      {D9A_ITEMS.map((item, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => goToItem(idx)}
+                          className={`h-2 transition-all duration-500 rounded-full ${
+                            ans.d9a?.[item]
+                              ? "w-8 bg-green-600 hover:bg-green-700 cursor-pointer"
+                              : idx === currentItemIndex
+                              ? "w-8 bg-blue-600"
+                              : "w-2 bg-gray-300 hover:bg-gray-400 cursor-pointer"
+                          }`}
+                          title={`${item}`}
+                          disabled={isTransitioning}
+                        />
+                      ))}
+                    </div>
+                    {Object.keys(ans.d9a || {}).length === D9A_ITEMS.length && (
+                      <span className="text-xs text-green-700 mt-1">
+                        ↑ Click any green bar to jump to that element
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -386,12 +396,20 @@ const getTotalSteps = () => {
                 </button>
 
                 {Object.keys(ans.d9a || {}).length === D9A_ITEMS.length && !isTransitioning && (
-                  <button
-                    onClick={next}
-                    className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow animate-pulse"
-                  >
-                    Continue →
-                  </button>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-xs text-gray-500 mb-1">
+                      Hover over any bar to see the element name
+                    </span>
+                    <button
+                      onClick={next}
+                      className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
+                    >
+                      Finish Section →
+                    </button>
+                    <span className="text-xs text-gray-500">
+                      Done editing? Click to proceed
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
