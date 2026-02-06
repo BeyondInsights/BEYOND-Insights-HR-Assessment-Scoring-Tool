@@ -300,24 +300,34 @@ export default function Dimension13Page() {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    Item {currentItemIndex + 1} of {D13A_ITEMS.length}
+                    Element {currentItemIndex + 1} of {D13A_ITEMS.length}
                   </span>
-                  <div className="flex gap-1">
-                    {D13A_ITEMS.map((item, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => goToItem(idx)}
-                        className={`h-2 transition-all duration-500 rounded-full ${
-                          ans.d13a?.[item]
-                            ? "w-8 bg-green-600 hover:bg-green-700 cursor-pointer"
-                            : idx === currentItemIndex
-                            ? "w-8 bg-blue-600"
-                            : "w-2 bg-gray-300 hover:bg-gray-400 cursor-pointer"
-                        }`}
-                        title={item}
-                        disabled={isTransitioning}
-                      />
-                    ))}
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-xs text-gray-500 mb-1">
+                      Hover over any bar to see the element name
+                    </span>
+                    <div className="flex gap-1">
+                      {D13A_ITEMS.map((item, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => goToItem(idx)}
+                          className={`h-2 transition-all duration-500 rounded-full ${
+                            ans.d13a?.[item]
+                              ? "w-8 bg-green-600 hover:bg-green-700 cursor-pointer"
+                              : idx === currentItemIndex
+                              ? "w-8 bg-blue-600"
+                              : "w-2 bg-gray-300 hover:bg-gray-400 cursor-pointer"
+                          }`}
+                          title={`${item}`}
+                          disabled={isTransitioning}
+                        />
+                      ))}
+                    </div>
+                    {Object.keys(ans.d13a || {}).length === D13A_ITEMS.length && (
+                      <span className="text-xs text-green-700 mt-1">
+                        ↑ Click any green bar to jump to that element
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -387,17 +397,25 @@ export default function Dimension13Page() {
                 </button>
 
                 {Object.keys(ans.d13a || {}).length === D13A_ITEMS.length && !isTransitioning && (
-                  <button
-                    onClick={next}
-                    disabled={!isStepValid()}
-                    className={`px-8 py-3 rounded-lg font-semibold transition-all ${
-                      isStepValid()
-                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer animate-pulse'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
-                    }`}
-                  >
-                    Continue →
-                  </button>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-xs text-gray-500 mb-1">
+                      Hover over any bar to see the element name
+                    </span>
+                    <button
+                      onClick={next}
+                      disabled={!isStepValid()}
+                      className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                        isStepValid()
+                          ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg cursor-pointer'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                      }`}
+                    >
+                      Finish Section →
+                    </button>
+                    <span className="text-xs text-gray-500">
+                      Done editing? Click to proceed
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
