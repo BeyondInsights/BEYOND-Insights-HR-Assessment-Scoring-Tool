@@ -538,12 +538,19 @@ function getTwoStepRoadmap(
       const bench = benchmarks[g.name] || { currently: 0, total: 1 };
       return { ...g, pct: Math.round((bench.currently / (bench.total || 1)) * 100) };
     }).sort((a, b) => b.pct - a.pct);
-    if (gapsWithBench[0].pct > 30) {
-      quickWin = { 
-        name: gapsWithBench[0].name, 
-        reason: `${gapsWithBench[0].pct}% of participating organizations already offer this` 
-      };
-    }
+    // Always show quickWin from gaps if available (removed >30% threshold)
+    quickWin = { 
+      name: gapsWithBench[0].name, 
+      reason: `${gapsWithBench[0].pct}% of participating organizations already offer this` 
+    };
+  } else if (assessing.length > 0) {
+    // If no gaps or planning, use assessing items
+    const bench = benchmarks[assessing[0].name] || { currently: 0, total: 1 };
+    const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
+    quickWin = { 
+      name: assessing[0].name, 
+      reason: `${pct}% of participating organizations offer this—consider prioritizing` 
+    };
   }
   
   // Strategic lift: Pick the gap with highest peer adoption that isn't the quick win
@@ -5928,7 +5935,7 @@ export default function ExportReportPage() {
                     <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
-                          {idx + 1}
+                          {d.dim}
                         </div>
                         <div className="flex-1">
                           <h4 className="text-xl font-bold text-white">{d.name}</h4>
