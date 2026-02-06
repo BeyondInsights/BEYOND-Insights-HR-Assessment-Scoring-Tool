@@ -205,8 +205,7 @@ const next = async () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
-              Dimension 11: Prevention, Wellness & Legal Compliance
-            </span>
+              Dimension 11: Prevention, Wellness & Legal Compliance</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
@@ -255,7 +254,7 @@ const next = async () => {
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>Use the navigation dots or arrows to review or change any response</span>
+                    <span>Click any green bar to review or change your answer to that element</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
@@ -323,7 +322,7 @@ const next = async () => {
                   </span>
                   <div className="flex flex-col items-end gap-1">
                     <span className="text-xs text-gray-500 mb-1">
-                      Hover over any bar to see the element name
+                      HINT: Hover over any bar to see the element name
                     </span>
                     <div className="flex gap-1">
                       {D11A_ITEMS.map((item, idx) => (
@@ -342,9 +341,9 @@ const next = async () => {
                         />
                       ))}
                     </div>
-                    {Object.keys(ans.d11a || {}).length === D11A_ITEMS.length && (
+                    {Object.keys(ans.d11a || {}).length > 0 && (
                       <span className="text-xs text-green-700 mt-1">
-                        ↑ Click any green bar to jump to that element
+                        ↑ Click any green bar to review or change your answer to that element
                       </span>
                     )}
                   </div>
@@ -417,9 +416,6 @@ const next = async () => {
 
                 {Object.keys(ans.d11a || {}).length === D11A_ITEMS.length && !isTransitioning && (
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-xs text-gray-500 mb-1">
-                      Hover over any bar to see the element name
-                    </span>
                     <button
                       onClick={next}
                       disabled={!isStepValid()}
@@ -429,11 +425,9 @@ const next = async () => {
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
                       }`}
                     >
-                      Finish Section →
+                      Continue to Next Question →
                     </button>
-                    <span className="text-xs text-gray-500">
-                      Done editing? Click to proceed
-                    </span>
+                      
                   </div>
                 )}
               </div>
