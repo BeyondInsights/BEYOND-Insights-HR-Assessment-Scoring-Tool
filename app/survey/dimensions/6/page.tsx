@@ -329,7 +329,7 @@ export default function Dimension6Page() {
                     Element {currentItemIndex + 1} of {D6A_ITEMS.length}
                   </span>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-xs text-gray-500 mb-1">
+                    <span className="text-sm text-gray-600 mb-1">
                       <strong>HINT:</strong> Hover over any bar to see the element name
                     </span>
                     <div className="flex gap-1">
@@ -350,8 +350,8 @@ export default function Dimension6Page() {
                       ))}
                     </div>
                     {Object.keys(ans.d6a || {}).length > 0 && (
-                      <span className="text-xs text-green-700 mt-1">
-                        ↑ <strong>Click any green bar</strong> to review or change your answer to that element
+                      <span className="text-sm text-gray-700 mt-1">
+                        ↑ Click any <strong className="text-green-600">green bar</strong> to review or change your answer to that element
                       </span>
                     )}
                   </div>
