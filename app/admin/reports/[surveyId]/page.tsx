@@ -6217,7 +6217,7 @@ export default function ExportReportPage() {
                 <h3 className="font-bold text-white text-lg">Additional Dimension Analysis</h3>
               </div>
               <div className="divide-y-4 divide-slate-100">
-                {additionalAnalyzedDims.map((dimNum) => {
+                {additionalAnalyzedDims.map((dimNum, addIdx) => {
                   const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
                   if (!d) return null;
                   const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
@@ -6227,7 +6227,7 @@ export default function ExportReportPage() {
                   const tierColor = getScoreColor(d.score);
                   
                   return (
-                    <div key={d.dim} className="border-l-4 relative" style={{ borderLeftColor: tierColor }}>
+                    <div key={d.dim} className="border-l-4 relative ppt-break pdf-no-break" style={{ borderLeftColor: tierColor }}>
                       {/* Remove button */}
                       <button 
                         onClick={() => setAdditionalAnalyzedDims(prev => prev.filter(dim => dim !== dimNum))}
@@ -6244,7 +6244,10 @@ export default function ExportReportPage() {
                             {d.dim}
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-xl font-bold text-white">{d.name}</h4>
+                            <div className="flex items-center gap-3">
+                              <h4 className="text-xl font-bold text-white">{d.name}</h4>
+                              <span className="text-xs font-medium px-2 py-1 rounded bg-violet-500 text-white">Additional Analysis</span>
+                            </div>
                             <div className="flex items-center gap-4 mt-1">
                               <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
                               <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
@@ -6331,22 +6334,89 @@ export default function ExportReportPage() {
                           </div>
                         </div>
                         
-                        {/* Strategic Insight & CAC Help */}
-                        <div className="grid grid-cols-2 gap-6">
-                          <div className="border border-violet-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-violet-50 border-b border-violet-200">
-                              <h5 className="font-bold text-violet-800 text-base">Strategic Insight</h5>
+                        {/* Key Evidence & Recommended Roadmap - 2 columns */}
+                        <div className="grid grid-cols-2 gap-6 mb-6">
+                          {/* Key Evidence */}
+                          <div className="border border-slate-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                              <h5 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Key Evidence</h5>
                             </div>
-                            <div className="p-4 bg-white">
-                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
+                            <div className="p-4 bg-white space-y-3">
+                              {evidence.strength && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-emerald-500 mt-0.5">✓</span>
+                                  <p className="text-sm text-slate-600">
+                                    <span className="text-slate-500">Strength: </span>
+                                    <strong className="text-emerald-700">{evidence.strength.name}</strong>
+                                    {evidence.strength.benchmark && <span className="text-slate-400"> ({evidence.strength.benchmark}% of participants)</span>}
+                                  </p>
+                                </div>
+                              )}
+                              {evidence.gap && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-red-500 mt-0.5">✗</span>
+                                  <p className="text-sm text-slate-600">
+                                    <span className="text-slate-500">Gap: </span>
+                                    <strong className="text-red-700">{evidence.gap.name}</strong>
+                                    {evidence.gap.benchmark && <span className="text-slate-400"> ({evidence.gap.benchmark}% of participants)</span>}
+                                  </p>
+                                </div>
+                              )}
+                              {!evidence.strength && !evidence.gap && (
+                                <p className="text-sm text-slate-400 italic">No specific evidence available</p>
+                              )}
                             </div>
                           </div>
-                          <div className="border border-orange-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-orange-50 border-b border-orange-200">
-                              <h5 className="font-bold text-orange-700 text-base">How Cancer and Careers Can Help</h5>
+                          
+                          {/* Recommended Roadmap */}
+                          <div className="border border-slate-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                              <h5 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
+                            </div>
+                            <div className="p-4 bg-white space-y-4">
+                              {roadmap.quickWin && (
+                                <div className="border-l-3 border-emerald-400 pl-3">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-bold text-white bg-emerald-500 px-2 py-0.5 rounded">QUICK WIN</span>
+                                    <span className="text-xs text-slate-400">0-60 days</span>
+                                  </div>
+                                  <p className="text-sm font-medium text-slate-700">{roadmap.quickWin.name}</p>
+                                  <p className="text-xs text-slate-500 mt-0.5">{roadmap.quickWin.rationale}</p>
+                                </div>
+                              )}
+                              {roadmap.strategic && (
+                                <div className="border-l-3 border-blue-400 pl-3">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded border border-blue-300">STRATEGIC</span>
+                                    <span className="text-xs text-slate-400">60-180 days</span>
+                                  </div>
+                                  <p className="text-sm font-medium text-slate-700">{roadmap.strategic.name}</p>
+                                  <p className="text-xs text-slate-500 mt-0.5">{roadmap.strategic.rationale}</p>
+                                </div>
+                              )}
+                              {!roadmap.quickWin && !roadmap.strategic && (
+                                <p className="text-sm text-slate-400 italic">Continue current initiatives</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Strategic Insight & CAC Help */}
+                        <div className="grid grid-cols-2 gap-6">
+                          <div className="border border-slate-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                              <h5 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Strategic Insight</h5>
                             </div>
                             <div className="p-4 bg-white">
-                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                              <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
+                            </div>
+                          </div>
+                          <div className="border border-orange-200 rounded-xl overflow-hidden bg-orange-50">
+                            <div className="px-4 py-3 bg-orange-100 border-b border-orange-200">
+                              <h5 className="font-bold text-orange-800 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                            </div>
+                            <div className="p-4">
+                              <p className="text-sm text-slate-700 leading-relaxed">{dynamicInsight.cacHelp}</p>
                             </div>
                           </div>
                         </div>
@@ -7124,12 +7194,7 @@ export default function ExportReportPage() {
               <div 
                 className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden transition-transform duration-200"
                 style={{ 
-                  transform: `scale(${
-                    // Auto-fit only D2 (slide 6) and D10 (slide 14) at 85% to prevent overflow
-                    (currentSlide === 6 || currentSlide === 14)
-                      ? Math.min(slideZoom, 85) / 100 
-                      : slideZoom / 100
-                  })`,
+                  transform: `scale(${slideZoom / 100})`,
                   transformOrigin: 'center top'
                 }}
               >
@@ -8582,6 +8647,8 @@ export default function ExportReportPage() {
                   
                   const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
                   const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
+                  const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
+                  const roadmap = getDimRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
                   const tierColor = getScoreColor(d.score);
                   
                   return (
@@ -8611,79 +8678,137 @@ export default function ExportReportPage() {
                       
                       {benchmarkNarrative && (
                         <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
-                          <p className="text-base text-slate-600">{benchmarkNarrative}</p>
+                          <p className="text-sm text-slate-600">{benchmarkNarrative}</p>
                         </div>
                       )}
                       
-                      <div className="px-10 py-6">
-                        <div className="grid grid-cols-3 gap-6 mb-6">
+                      <div className="px-10 py-4">
+                        {/* 3-column layout for content */}
+                        <div className="grid grid-cols-3 gap-4 mb-4">
                           <div className="border border-red-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                              <h5 className="font-bold text-red-800 text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                            <div className="px-3 py-2 bg-red-50 border-b border-red-200">
+                              <h5 className="font-bold text-red-800 text-sm">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white">
+                            <div className="p-3 bg-white max-h-32 overflow-y-auto">
                               {d.needsAttention?.length > 0 ? (
-                                <ul className="space-y-2">
-                                  {d.needsAttention.slice(0, 6).map((item: any, i: number) => (
-                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                      <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'}`}></span>
+                                <ul className="space-y-1">
+                                  {d.needsAttention.slice(0, 5).map((item: any, i: number) => (
+                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                      <span className={`w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0 ${item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'}`}></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-sm text-slate-400 italic">No gaps identified</p>}
+                              ) : <p className="text-xs text-slate-400 italic">No gaps identified</p>}
                             </div>
                           </div>
                           <div className="border border-blue-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-                              <h5 className="font-bold text-blue-800 text-base">In Development ({d.planning?.length || 0})</h5>
+                            <div className="px-3 py-2 bg-blue-50 border-b border-blue-200">
+                              <h5 className="font-bold text-blue-800 text-sm">In Development ({d.planning?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white">
+                            <div className="p-3 bg-white max-h-32 overflow-y-auto">
                               {d.planning?.length > 0 ? (
-                                <ul className="space-y-2">
-                                  {d.planning.slice(0, 6).map((item: any, i: number) => (
-                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                      <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></span>
+                                <ul className="space-y-1">
+                                  {d.planning.slice(0, 5).map((item: any, i: number) => (
+                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 flex-shrink-0"></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-sm text-slate-400 italic">No initiatives in development</p>}
+                              ) : <p className="text-xs text-slate-400 italic">No initiatives in development</p>}
                             </div>
                           </div>
                           <div className="border border-emerald-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
-                              <h5 className="font-bold text-emerald-800 text-base">Current Strengths ({d.strengths?.length || 0})</h5>
+                            <div className="px-3 py-2 bg-emerald-50 border-b border-emerald-200">
+                              <h5 className="font-bold text-emerald-800 text-sm">Current Strengths ({d.strengths?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white">
+                            <div className="p-3 bg-white max-h-32 overflow-y-auto">
                               {d.strengths?.length > 0 ? (
-                                <ul className="space-y-2">
-                                  {d.strengths.slice(0, 6).map((item: any, i: number) => (
-                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                      <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></span>
+                                <ul className="space-y-1">
+                                  {d.strengths.slice(0, 5).map((item: any, i: number) => (
+                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 flex-shrink-0"></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-sm text-slate-400 italic">No strengths identified</p>}
+                              ) : <p className="text-xs text-slate-400 italic">No strengths identified</p>}
                             </div>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-6">
-                          <div className="border border-violet-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-violet-50 border-b border-violet-200">
-                              <h5 className="font-bold text-violet-800 text-base">Strategic Insight</h5>
-                            </div>
-                            <div className="p-4 bg-white">
-                              <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
+                        
+                        {/* 2-column layout: Evidence + Roadmap and Insight + CAC */}
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Left: Key Evidence + Strategic Insight */}
+                          <div className="space-y-3">
+                            {(evidence.topStrength || evidence.biggestGap) && (
+                              <div className="border border-slate-200 rounded-xl p-3 bg-white">
+                                <h5 className="font-bold text-slate-800 mb-2 text-xs uppercase tracking-wide">Key Evidence</h5>
+                                <div className="space-y-2">
+                                  {evidence.topStrength && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-emerald-600 text-xs">✓</span>
+                                      </span>
+                                      <p className="text-xs text-slate-700">
+                                        <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                        <span className="text-slate-500"> ({evidence.topStrength.benchPct}% of participants)</span>
+                                      </p>
+                                    </div>
+                                  )}
+                                  {evidence.biggestGap && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-red-600 text-xs">✗</span>
+                                      </span>
+                                      <p className="text-xs text-slate-700">
+                                        <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                        <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of participants)</span>
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            <div className="border border-slate-200 rounded-xl p-3 bg-white">
+                              <h5 className="font-bold text-slate-800 mb-2 text-xs uppercase tracking-wide">Strategic Insight</h5>
+                              <p className="text-xs text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
                             </div>
                           </div>
-                          <div className="border border-orange-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-orange-50 border-b border-orange-200">
-                              <h5 className="font-bold text-orange-700 text-base">How Cancer and Careers Can Help</h5>
-                            </div>
-                            <div className="p-4 bg-white">
-                              <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                          
+                          {/* Right: Roadmap + CAC Help */}
+                          <div className="space-y-3">
+                            {(roadmap.quickWin || roadmap.strategicLift) && (
+                              <div className="border border-indigo-200 rounded-xl p-3 bg-indigo-50">
+                                <h5 className="font-bold text-indigo-800 mb-2 text-xs uppercase tracking-wide">Recommended Roadmap</h5>
+                                <div className="space-y-2">
+                                  {roadmap.quickWin && (
+                                    <div className="bg-white rounded-lg p-2 border border-indigo-100">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">QUICK WIN</span>
+                                        <span className="text-[10px] text-slate-500">0-60 days</span>
+                                      </div>
+                                      <p className="text-xs font-medium text-slate-800">{roadmap.quickWin.name}</p>
+                                      <p className="text-[10px] text-slate-500 mt-0.5">{roadmap.quickWin.reason}</p>
+                                    </div>
+                                  )}
+                                  {roadmap.strategicLift && (
+                                    <div className="bg-white rounded-lg p-2 border border-indigo-100">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 text-[10px] font-bold rounded">STRATEGIC</span>
+                                        <span className="text-[10px] text-slate-500">60-180 days</span>
+                                      </div>
+                                      <p className="text-xs font-medium text-slate-800">{roadmap.strategicLift.name}</p>
+                                      <p className="text-[10px] text-slate-500 mt-0.5">{roadmap.strategicLift.reason}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            <div className="border border-orange-200 rounded-xl p-3 bg-orange-50">
+                              <h5 className="font-bold text-orange-800 mb-2 text-xs uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                              <p className="text-xs text-orange-700">{dynamicInsight.cacHelp}</p>
                             </div>
                           </div>
                         </div>
