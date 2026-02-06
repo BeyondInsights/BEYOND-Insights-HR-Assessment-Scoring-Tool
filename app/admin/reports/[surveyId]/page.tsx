@@ -2946,10 +2946,10 @@ export default function ExportReportPage() {
         setCurrentSlide(0);
       } else if ((e.key === 'ArrowRight' && e.metaKey) || (e.key === 'ArrowDown' && e.metaKey) || e.key === 'End') {
         e.preventDefault();
-        setCurrentSlide(34);
+        setCurrentSlide(34 + additionalAnalyzedDims.length);
       } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === '>' || e.key === '.' || e.key === 'n' || e.key === 'N') {
         e.preventDefault();
-        setCurrentSlide(prev => Math.min(prev + 1, 34));
+        setCurrentSlide(prev => Math.min(prev + 1, 34 + additionalAnalyzedDims.length));
       } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'Delete' || e.key === '<' || e.key === ',' || e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         setCurrentSlide(prev => Math.max(prev - 1, 0));
@@ -7061,10 +7061,7 @@ export default function ExportReportPage() {
         {confirmModal.show && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
             <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4">
-              <div className="mb-4">
-                <img src="/bi-logo.png" alt="BEYOND Insights" className="h-10 object-contain" />
-              </div>
-              <p className="text-slate-600 mb-6">{confirmModal.message}</p>
+              <p className="text-slate-700 mb-6">{confirmModal.message}</p>
               <div className="flex justify-end gap-3">
                 <button 
                   onClick={() => setConfirmModal({ show: false, message: '', onConfirm: () => {} })}
@@ -7965,7 +7962,9 @@ export default function ExportReportPage() {
                                     </g>
                                   ))}
                                   {bClusters.map((cluster, ci) => {
-                                    const hiddenDims = cluster.dims.slice(0, -1);
+                                    // Skip D4 callout since it doesn't overlap enough to warrant showing
+                                    const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
+                                    if (hiddenDims.length === 0) return null;
                                     return hiddenDims.map((dim, i) => {
                                       const cx = cluster.x + 26 + i * 22;
                                       const cy = cluster.y - 20;
@@ -8574,8 +8573,127 @@ export default function ExportReportPage() {
                   );
                 })()}
 
+                {/* Additional Analyzed Dimensions in Presentation Mode */}
+                {additionalAnalyzedDims.length > 0 && currentSlide >= 30 && currentSlide < 30 + additionalAnalyzedDims.length && (() => {
+                  const addIdx = currentSlide - 30;
+                  const dimNum = additionalAnalyzedDims[addIdx];
+                  const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
+                  if (!d) return null;
+                  
+                  const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
+                  const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
+                  const tierColor = getScoreColor(d.score);
+                  
+                  return (
+                    <div className="overflow-hidden border-l-4" style={{ borderLeftColor: tierColor }}>
+                      {/* Header with "Additional Analysis" badge */}
+                      <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
+                            {d.dim}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <h4 className="text-xl font-bold text-white">{d.name}</h4>
+                              <span className="text-xs font-medium px-2 py-1 rounded bg-violet-500 text-white">Additional Analysis</span>
+                            </div>
+                            <div className="flex items-center gap-4 mt-1">
+                              <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                              <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
+                              <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                              {d.benchmark !== null && (
+                                <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {benchmarkNarrative && (
+                        <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
+                          <p className="text-base text-slate-600">{benchmarkNarrative}</p>
+                        </div>
+                      )}
+                      
+                      <div className="px-10 py-6">
+                        <div className="grid grid-cols-3 gap-6 mb-6">
+                          <div className="border border-red-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-red-50 border-b border-red-200">
+                              <h5 className="font-bold text-red-800 text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                            </div>
+                            <div className="p-4 bg-white">
+                              {d.needsAttention?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.needsAttention.slice(0, 6).map((item: any, i: number) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                      <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'}`}></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-sm text-slate-400 italic">No gaps identified</p>}
+                            </div>
+                          </div>
+                          <div className="border border-blue-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
+                              <h5 className="font-bold text-blue-800 text-base">In Development ({d.planning?.length || 0})</h5>
+                            </div>
+                            <div className="p-4 bg-white">
+                              {d.planning?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.planning.slice(0, 6).map((item: any, i: number) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-sm text-slate-400 italic">No initiatives in development</p>}
+                            </div>
+                          </div>
+                          <div className="border border-emerald-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
+                              <h5 className="font-bold text-emerald-800 text-base">Current Strengths ({d.strengths?.length || 0})</h5>
+                            </div>
+                            <div className="p-4 bg-white">
+                              {d.strengths?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.strengths.slice(0, 6).map((item: any, i: number) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-sm text-slate-400 italic">No strengths identified</p>}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-6">
+                          <div className="border border-violet-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-violet-50 border-b border-violet-200">
+                              <h5 className="font-bold text-violet-800 text-base">Strategic Insight</h5>
+                            </div>
+                            <div className="p-4 bg-white">
+                              <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
+                            </div>
+                          </div>
+                          <div className="border border-orange-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-orange-50 border-b border-orange-200">
+                              <h5 className="font-bold text-orange-700 text-base">How Cancer and Careers Can Help</h5>
+                            </div>
+                            <div className="p-4 bg-white">
+                              <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Slide 30: Implementation Roadmap - exact match to report */}
-                {currentSlide === 30 && (
+                {currentSlide === 30 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
                       <div className="flex items-center justify-between">
@@ -8705,7 +8823,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 31: Working with Cancer Pledge */}
-                {currentSlide === 31 && (
+                {currentSlide === 31 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     {/* Header - Clean white/cream with logo */}
                     <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
@@ -8869,7 +8987,7 @@ export default function ExportReportPage() {
 
 
                 {/* Slide 32: How Cancer and Careers Can Help - exact match to report */}
-                {currentSlide === 32 && (
+                {currentSlide === 32 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     {/* Header */}
                     <div className="px-12 py-8 bg-gradient-to-r from-[#F37021] to-orange-500 relative overflow-hidden">
@@ -8958,7 +9076,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 33: Methodology - exact match to report */}
-                {currentSlide === 33 && (
+                {currentSlide === 33 + additionalAnalyzedDims.length && (
                   <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
                     <div className="px-12 py-6 border-b border-slate-200">
                       <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
@@ -9031,7 +9149,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 34: Thank You - professional improved design */}
-                {currentSlide === 34 && (
+                {currentSlide === 34 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* White header section with logos on sides and Thank You centered */}
                     <div className="bg-white px-12 py-8">
@@ -9189,7 +9307,7 @@ export default function ExportReportPage() {
                 </button>
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 34))}
-                  disabled={currentSlide === 34}
+                  disabled={currentSlide === 34 + additionalAnalyzedDims.length}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                   title="Next slide (→)"
                 >
@@ -9463,7 +9581,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 31 && (
+                  {currentSlide === 31 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>WWC Pledge context:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -9474,7 +9592,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 32 && (
+                  {currentSlide === 32 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>CAC partnership:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -9502,7 +9620,7 @@ export default function ExportReportPage() {
                     </button>
                   </div>
                   <div className="grid grid-cols-5 gap-2 overflow-y-auto max-h-[60vh] pr-2">
-                    {Array.from({ length: 35 }, (_, i) => (
+                    {Array.from({ length: 35 + additionalAnalyzedDims.length }, (_, i) => (
                       <button
                         key={i}
                         onClick={() => { setCurrentSlide(i); setShowSlideNav(false); }}
@@ -9524,10 +9642,11 @@ export default function ExportReportPage() {
                            i === 24 ? 'In Progress' :
                            i === 25 ? 'Strategic Recommendations' :
                            i >= 26 && i <= 29 ? 'Recommendations' :
-                           i === 30 ? 'Implementation Roadmap' :
-                           i === 31 ? 'Working with Cancer Pledge' :
-                           i === 32 ? 'Cancer and Careers' :
-                           i === 33 ? 'Methodology' :
+                           i >= 30 && i < 30 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 30]}` :
+                           i === 30 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
+                           i === 31 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' :
+                           i === 32 + additionalAnalyzedDims.length ? 'Cancer and Careers' :
+                           i === 33 + additionalAnalyzedDims.length ? 'Methodology' :
                            'Thank You'}
                         </div>
                       </button>
