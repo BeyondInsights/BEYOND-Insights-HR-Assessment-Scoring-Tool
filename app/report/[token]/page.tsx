@@ -69,11 +69,11 @@ const DIMENSION_STRATEGIC_INSIGHTS: Record<number, { insight: string; cacHelp: s
     cacHelp: "Our team can conduct a benefits gap analysis, evaluate supplemental coverage options, and design financial wellness programs specifically for employees facing serious illness."
   },
   3: {
-    insight: "Managers are the front line of support - they determine whether policies translate to lived experience. Without proper training, even excellent policies fail at the point of delivery.",
+    insight: "Managers are the front line of support. They determine whether policies translate to lived experience. Without proper training, even excellent policies fail at the point of delivery.",
     cacHelp: "Cancer and Careers offers manager training programs with real-world scenarios, conversation guides, and ongoing coaching to build confidence in supporting team members through health challenges."
   },
   4: {
-    insight: "Navigation is the multiplier - it determines whether employees can actually access the benefits you've invested in. Without clear pathways, benefits go unused and employees struggle alone.",
+    insight: "Navigation is the multiplier. It determines whether employees can actually access the benefits you've invested in. Without clear pathways, benefits go unused and employees struggle alone.",
     cacHelp: "We specialize in designing single-entry-point navigation systems, resource mapping, and communication strategies that maximize utilization of existing benefits investments."
   },
   5: {
@@ -97,7 +97,7 @@ const DIMENSION_STRATEGIC_INSIGHTS: Record<number, { insight: string; cacHelp: s
     cacHelp: "Cancer and Careers can help craft executive messaging, integrate cancer support into ESG reporting, and build the business case for board-level engagement."
   },
   10: {
-    insight: "Caregivers face dual burden - supporting loved ones while maintaining work performance. Without specific support, you lose productive employees who never received a diagnosis themselves.",
+    insight: "Caregivers face dual burden: supporting loved ones while maintaining work performance. Without specific support, you lose productive employees who never received a diagnosis themselves.",
     cacHelp: "Our caregiver support program design includes assessment of unique needs, policy recommendations, and peer support structures for employees in caregiving roles."
   },
   11: {
@@ -7737,7 +7737,7 @@ export default function InteractiveReportPage() {
                         <div>
                           <h4 className="font-bold text-slate-900 text-base mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
                           <p className="text-slate-600 text-sm leading-relaxed">
-                            Launched at Davos in January 2023 by the Publicis Foundation after CEO Arthur Sadoun went public about his own cancer diagnosis.
+                            Launched at Davos in January 2023 by the Publicis Foundation, the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
                           </p>
                         </div>
                       </div>
