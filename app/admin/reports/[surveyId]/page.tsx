@@ -6612,7 +6612,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ METHODOLOGY & FOOTER ============ */}
-          <div id="methodology-section" className="ppt-break bg-slate-50 rounded-xl border border-slate-200 overflow-hidden pdf-no-break max-w-7xl mx-auto" id="appendix-end" data-export="appendix-end">
+          <div id="methodology-section" className="ppt-break bg-slate-50 rounded-xl border border-slate-200 overflow-hidden pdf-no-break max-w-7xl mx-auto" data-export="appendix-end">
             <div className="px-12 py-6 border-b border-slate-200">
               <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
             </div>
