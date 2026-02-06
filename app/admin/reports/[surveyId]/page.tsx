@@ -6334,91 +6334,79 @@ export default function ExportReportPage() {
                           </div>
                         </div>
                         
-                        {/* Key Evidence & Recommended Roadmap - 2 columns */}
-                        <div className="grid grid-cols-2 gap-6 mb-6">
-                          {/* Key Evidence */}
-                          <div className="border border-slate-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-                              <h5 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Key Evidence</h5>
-                            </div>
-                            <div className="p-4 bg-white space-y-3">
-                              {evidence.topStrength && (
-                                <div className="flex items-start gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-emerald-600 text-sm">✓</span>
-                                  </span>
-                                  <p className="text-base text-slate-700">
-                                    <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
-                                    <span className="text-slate-500"> ({evidence.topStrength.benchPct}% of participants)</span>
-                                  </p>
-                                </div>
-                              )}
-                              {evidence.biggestGap && (
-                                <div className="flex items-start gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-red-600 text-sm">✗</span>
-                                  </span>
-                                  <p className="text-base text-slate-700">
-                                    <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
-                                    <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of participants)</span>
-                                  </p>
-                                </div>
-                              )}
-                              {!evidence.topStrength && !evidence.biggestGap && (
-                                <p className="text-base text-slate-400 italic">Assessment data available in full report</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Recommended Roadmap */}
-                          <div className="border border-indigo-200 rounded-xl overflow-hidden bg-indigo-50">
-                            <div className="px-4 py-3 bg-indigo-100 border-b border-indigo-200">
-                              <h5 className="font-bold text-indigo-800 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
-                            </div>
-                            <div className="p-4 space-y-4">
-                              {roadmap.quickWin && (
-                                <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
-                                    <span className="text-sm text-slate-500">0-60 days</span>
-                                  </div>
-                                  <p className="text-base font-medium text-slate-800">{roadmap.quickWin.name}</p>
-                                  <p className="text-sm text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
-                                </div>
-                              )}
-                              {roadmap.strategicLift && (
-                                <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="px-2 py-1 bg-violet-100 text-violet-700 text-sm font-bold rounded border border-violet-300">STRATEGIC</span>
-                                    <span className="text-sm text-slate-500">60-180 days</span>
-                                  </div>
-                                  <p className="text-base font-medium text-slate-800">{roadmap.strategicLift.name}</p>
-                                  <p className="text-sm text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
-                                </div>
-                              )}
-                              {!roadmap.quickWin && !roadmap.strategicLift && (
-                                <p className="text-base text-slate-500 italic">Continue optimizing current programs</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Strategic Insight & CAC Help */}
+                        {/* Strategic Insight & CAC Help - 2 columns - EXACT MATCH TO MAIN 4 */}
                         <div className="grid grid-cols-2 gap-6">
-                          <div className="border border-slate-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-                              <h5 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Strategic Insight</h5>
-                            </div>
-                            <div className="p-4 bg-white">
+                          {/* Left Column: Evidence + Insight */}
+                          <div className="space-y-4">
+                            {(evidence.topStrength || evidence.biggestGap) && (
+                              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                                <h5 className="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wide">Key Evidence</h5>
+                                <div className="space-y-2">
+                                  {evidence.topStrength && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-emerald-600 text-sm">✓</span>
+                                      </span>
+                                      <p className="text-base text-slate-700">
+                                        <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                        <span className="text-slate-500"> ({evidence.topStrength.benchPct})% of participants)</span>
+                                      </p>
+                                    </div>
+                                  )}
+                                  {evidence.biggestGap && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-red-600 text-sm">✗</span>
+                                      </span>
+                                      <p className="text-base text-slate-700">
+                                        <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                        <span className="text-slate-500"> ({evidence.biggestGap.benchPct})% of participants)</span>
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="border border-slate-200 rounded-xl p-4 bg-white">
+                              <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
                               <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
                             </div>
                           </div>
-                          <div className="border border-orange-200 rounded-xl overflow-hidden bg-orange-50">
-                            <div className="px-4 py-3 bg-orange-100 border-b border-orange-200">
-                              <h5 className="font-bold text-orange-800 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
-                            </div>
-                            <div className="p-4">
-                              <p className="text-base text-slate-700 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                          
+                          {/* Right Column: Roadmap + CAC Help */}
+                          <div className="space-y-4">
+                            {(roadmap.quickWin || roadmap.strategicLift) && (
+                              <div className="border border-indigo-200 rounded-xl p-4 bg-indigo-50">
+                                <h5 className="font-bold text-indigo-800 mb-3 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
+                                <div className="space-y-3">
+                                  {roadmap.quickWin && (
+                                    <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
+                                        <span className="text-sm text-slate-500">0-60 days</span>
+                                      </div>
+                                      <p className="text-base font-medium text-slate-800">{roadmap.quickWin.name}</p>
+                                      <p className="text-sm text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
+                                    </div>
+                                  )}
+                                  {roadmap.strategicLift && (
+                                    <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">STRATEGIC</span>
+                                        <span className="text-sm text-slate-500">60-180 days</span>
+                                      </div>
+                                      <p className="text-base font-medium text-slate-800">{roadmap.strategicLift.name}</p>
+                                      <p className="text-sm text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="border border-violet-200 rounded-xl p-4 bg-violet-50">
+                              <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
                             </div>
                           </div>
                         </div>
