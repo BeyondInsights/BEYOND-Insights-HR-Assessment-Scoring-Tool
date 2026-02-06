@@ -2179,7 +2179,9 @@ export default function InteractiveReportPage() {
       presenterNotesWindowRef.current = notesWindow;
       setPresenterNotesOpen(true);
       renderPresenterNotesWindow(notesWindow, currentSlide, true);
-      // NOTE: Removed window.focus() - was causing window to disappear behind main window
+    } else {
+      // Popup was blocked
+      alert('Presenter notes popup was blocked by your browser. Please allow popups for this site and try again.');
     }
   };
   
@@ -2200,35 +2202,34 @@ export default function InteractiveReportPage() {
     const customNote = customNotes[noteKey] || '';
     
     const defaultNotes: Record<number, string> = {
-      0: '• Highlight composite score and tier placement\n• Assessment date reflects current state\n• Total support elements evaluated',
-      1: '• CAC\'s 20+ years of frontline experience\n• Validated through stakeholder research\n• Weights reflect what matters most to employees',
-      2: '• Starting point, not a prescription\n• Adapt recommendations to your organization\n• Four steps: review, identify, engage, plan',
-      3: '• Top-performing dimension by name\n• Greatest opportunity area\n• If provisional, mention items needing confirmation',
-      4: '• Exemplary vs Emerging dimension count\n• Focus on highest-weighted dimensions first\n• Use tier colors to guide conversation',
-      18: '• Priority Gaps (red): High weight, low score - focus here\n• Core Strengths (green): Maintain these\n• Monitor (gray): Lower priority\n• Leverage (blue): Doing well in less critical areas',
-      19: '• Benchmark comparisons shown\n• Gray dots = peer organizations\n• Identify ahead/behind benchmarks\n• Set realistic improvement targets',
-      20: '• Patterns across all 13 dimensions\n• Left = strategic implication\n• Right = recommended action\n• Data-driven, not generic advice',
-      21: '• Top 5 priorities by potential impact\n• Considers score gap AND weight\n• Focus limited resources effectively',
-      22: '• Visual summary of all scores\n• Outer ring = higher score\n• Quick shape of support program',
-      23: '• Employee perspective on each dimension\n• Real impact of support\n• Build stakeholder buy-in',
-      24: '• Tier distribution across dimensions\n• Move up the tier ladder over time\n• Celebrate progress',
-      25: '• Benchmark comparison chart\n• Green = above, Red = below\n• Focus on below-benchmark areas',
-      26: '• Year-over-year tracking\n• Celebrate improvements\n• Set targets for next cycle',
-      27: '• Specific support elements\n• Green = working, Blue = in progress, Red = gaps',
-      28: '• Weighted score contribution\n• Larger segments = more impact\n• Focus on large segments with room to grow',
-      29: '• Summary statistics\n• Overall maturity indicators\n• Executive summary material',
-      30: '• Suggested phasing - customize to your timeline\n• Phase 1: Quick wins (0-6 months)\n• Phase 2: Strategic (6-18 months)\n• Phase 3: Culture (18+ months)',
-      31: '• 5,000+ companies signed pledge\n• Pledge = commitment, Index = execution\n• 81% say it matters for trust\n• 16-18% awareness gap - communicate better',
-      32: '• CAC: 20+ years supporting employees\n• Help with implementation at any phase\n• Toolkits, training, consultations available',
-      33: '• 13 dimensions, 147 support elements\n• Weighted scoring from research\n• Four tiers: Exemplary to Emerging\n• Annual reassessment recommended',
-      34: '• Thank audience for engagement\n• Reiterate commitment\n• Offer follow-up discussions\n• Provide contact information'
+      0: '• Anchor the "so what": tier + score shows where you are vs what "leading" looks like\n• Preview: (1) confirm uncertain items, (2) agree top 2-3 priorities, (3) align on 90-day plan\n• Set expectations: this is a decision tool—not a compliance checklist',
+      1: '• Credibility: built from CAC\'s lived experience + validated with HR leaders/employees\n• Design principle: measures what drives employee outcomes (not just policy existence)\n• Benchmarks + weights reflect "what matters most," not "what\'s easiest"',
+      2: '• Four-step workflow: Confirm → Prioritize → Plan → Track\n• Use "Needs confirmation" as the first unlock: scored as Not Planned until verified\n• Focus on high-weight gaps first—small changes there move the score fastest',
+      3: '• Call the headline: top strength + biggest gap + what it implies operationally\n• Make it concrete: "If we fix X and Y, we remove highest-risk friction points"\n• If provisional: "We can\'t publish until confirmation items are resolved"',
+      4: '• Explain the shape: where you\'re strong vs where support breaks down\n• Prioritize by impact: high-weight + low score = first investment\n• Align on owners: which functions need to verify/implement',
+      18: '• Decision rule: top-left is where investment buys the most impact\n• Agree the top 2-3 moves; don\'t spread effort across low-weight "nice to haves"\n• Confirm resourcing: what can be done with policy vs vendor vs training',
+      19: '• Calibrate ambition: "Are we behind peers because of policy, execution, or awareness?"\n• Use benchmark to set targets (not to chase vanity scores)\n• Identify "quick parity" vs "differentiator" investments',
+      20: '• These patterns explain root causes (operating model issues) not isolated gaps\n• Highlight 1-2 systemic constraints and fix them once\n• Tie to employee experience: "This is where employees feel friction"',
+      21: '• Focus on the few moves that shift multiple dimensions\n• Sequence: confirm → quick wins → structural capabilities\n• Define success: what will be true in 90 days / 180 days',
+      22: '• Use it as a portfolio view: "Where are we over/under-invested?"\n• Aim for balance in the highest-weight dimensions, not symmetry across all',
+      23: '• Use this slide to build stakeholder buy-in\n• Translate score gaps into day-to-day reality\n• Powerful for internal communications',
+      24: '• Message: improving one tier in 2-3 high-weight dimensions is meaningful progress\n• Encourage momentum: "pick a ladder step and move it this cycle"',
+      25: '• Keep it simple: "Above benchmark = defend; below benchmark = focus"\n• Avoid overreacting to low-base elements—prioritize by weight + feasibility',
+      26: '• Use to reinforce cadence: quarterly check-in + annual reassessment\n• Celebrate gains; treat regressions as signals (not failures)',
+      27: '• Translate into a checklist: confirm uncertain items + pick 3 fast wins\n• Clarify dependencies: policy vs vendor vs manager enablement',
+      28: '• Explain why some gaps matter more: weight reflects employee impact\n• Align resources to weight—this is how you improve efficiently',
+      29: '• Give the exec takeaway: "what changed, what\'s pending, what\'s next"\n• Use as the "board-ready" snapshot',
+      30: '• Sequence initiatives to avoid overload: confirm → quick wins → foundational\n• Assign owners + timing; define "minimum viable launch"',
+      31: '• Frame as external credibility + internal accountability\n• Use as a comms lever once core capabilities are in place\n• 81% say it matters for trust; 16-18% awareness gap = opportunity',
+      32: '• Position CAC as accelerant: validation, implementation, training, comms\n• Propose next step: 30-minute working session to confirm items + prioritize',
+      33: '• Reassure: scoring is consistent, benchmarked, and designed for repeatability\n• Emphasize: track change over time; don\'t treat it as one-and-done',
+      34: '• Close with a decision ask: confirm top priorities + owners + next checkpoint\n• Thank the audience for their engagement'
     };
     const dimensionNames = ['', '', '', '', '', 'Medical Leave', 'Manager Preparedness', 'HR Capability', 'Insurance & Benefits', 'Accommodations', 'Communication', 'Employee Assistance', 'Mental Health', 'Return to Work', 'Career Protection', 'Prevention & Screening', 'Culture & Inclusion', 'Caregiver Support'];
     for (let i = 5; i <= 17; i++) {
-      const dimName = dimensionNames[i] || `Dimension ${i - 4}`;
-      defaultNotes[i] = `• ${dimName}: Review element breakdown\n• Green = strengths to maintain\n• Blue = actively implementing\n• Red gaps = opportunities\n• Connect to employee experience`;
+      defaultNotes[i] = '• Start with the outcome: "This dimension determines whether employees can ___ without ___"\n• Translate the table: Protect strengths (green), accelerate in-flight (blue), close 1-2 priority gaps (red)\n• Use benchmark as calibration: "Here\'s where peers are; here\'s the realistic next step"\n• End with an action: Owner + next 30-60 day step + what "done" looks like';
     }
-    const defaultNote = defaultNotes[slideNum] || '• Review slide content\n• Connect to organization context\n• Invite questions';
+    const defaultNote = defaultNotes[slideNum] || '• Review slide content and connect to organization context\n• Invite questions from the audience';
     
     // Use postMessage to update the popup window - more reliable than direct DOM manipulation
     if (!isInitialRender) {
@@ -2238,8 +2239,9 @@ export default function InteractiveReportPage() {
           slideNum: slideNum,
           slideName: slideName,
           defaultNote: defaultNote,
-          customNote: customNote
-        }, '*');
+          customNote: customNote,
+          laserActive: laserPointer
+        }, window.location.origin);
         return;
       } catch (e) {
         console.log('postMessage failed, doing full render');
@@ -2252,14 +2254,16 @@ export default function InteractiveReportPage() {
     const lightbulbIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fdba74" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>';
     
     win.document.open();
-    win.document.write(`<!DOCTYPE html><html><head><title>Presenter Notes - ${slideName}</title>
-      <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#1e293b;color:#e2e8f0;padding:20px}.header{background:linear-gradient(135deg,#f97316,#ea580c);margin:-20px -20px 20px -20px;padding:16px 20px;border-radius:0 0 12px 12px}.header h1{font-size:14px;color:white;opacity:0.9;margin-bottom:4px}.header h2{font-size:20px;font-weight:700;color:white}.slide-nav{display:flex;gap:8px;margin-bottom:20px}.slide-nav button{background:#334155;border:none;color:#94a3b8;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}.slide-nav button:hover{background:#475569;color:white}.slide-nav button.active{background:#ef4444;color:white}.section{background:#334155;border-radius:12px;padding:16px;margin-bottom:16px}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f59e0b;margin-bottom:12px;display:flex;align-items:center;gap:8px}.section-title svg{flex-shrink:0}.default-notes{background:#1e293b;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#cbd5e1}.custom-notes textarea{width:100%;min-height:150px;background:#1e293b;border:2px solid #475569;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;color:#e2e8f0;resize:vertical;font-family:inherit}.custom-notes textarea:focus{outline:none;border-color:#f59e0b}.custom-notes textarea::placeholder{color:#64748b}.save-status{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#22c55e}.tip{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:8px;padding:12px;margin-top:16px;font-size:13px;color:#fdba74;display:flex;align-items:flex-start;gap:8px}.tip svg{flex-shrink:0;margin-top:2px}</style></head>
-      <body><div id="currentSlideData" data-slide="${slideNum}"></div><div class="header"><h1 id="slideNumber">SLIDE ${slideNum + 1} OF 35</h1><h2 id="slideName">${slideName}</h2></div>
-      <div class="slide-nav"><button onclick="window.opener.postMessage({type:'prevSlide'},'*')">← Previous</button><button onclick="window.opener.postMessage({type:'nextSlide'},'*')">Next →</button><button id="laserBtn" onclick="window.opener.postMessage({type:'toggleLaser'},'*');this.classList.toggle('active');" style="margin-left:auto;">Laser (L)</button></div>
+    win.document.write(`<!DOCTYPE html><html><head><title>PRIVATE - Presenter Notes - ${slideName}</title>
+      <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#1e293b;color:#e2e8f0;padding:20px}.private-banner{background:#dc2626;color:white;text-align:center;padding:8px 16px;font-weight:700;font-size:12px;letter-spacing:1px;margin:-20px -20px 16px -20px}.header{background:linear-gradient(135deg,#f97316,#ea580c);padding:16px 20px;border-radius:12px;margin-bottom:16px}.header h1{font-size:14px;color:white;opacity:0.9;margin-bottom:4px}.header h2{font-size:20px;font-weight:700;color:white}.slide-nav{display:flex;gap:8px;margin-bottom:20px}.slide-nav button{background:#334155;border:none;color:#94a3b8;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}.slide-nav button:hover{background:#475569;color:white}.slide-nav button.active{background:#ef4444;color:white}.section{background:#334155;border-radius:12px;padding:16px;margin-bottom:16px}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f59e0b;margin-bottom:12px;display:flex;align-items:center;gap:8px}.section-title svg{flex-shrink:0}.default-notes{background:#1e293b;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#cbd5e1}.custom-notes textarea{width:100%;min-height:150px;background:#1e293b;border:2px solid #475569;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;color:#e2e8f0;resize:vertical;font-family:inherit}.custom-notes textarea:focus{outline:none;border-color:#f59e0b}.custom-notes textarea::placeholder{color:#64748b}.save-status{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#22c55e}.tip{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:8px;padding:12px;margin-top:16px;font-size:13px;color:#fdba74;display:flex;align-items:flex-start;gap:8px}.tip svg{flex-shrink:0;margin-top:2px}</style></head>
+      <body><div id="currentSlideData" data-slide="${slideNum}"></div>
+      <div class="private-banner">🔒 PRIVATE — DO NOT SHARE THIS WINDOW</div>
+      <div class="header"><h1 id="slideNumber">SLIDE ${slideNum + 1} OF 35</h1><h2 id="slideName">${slideName}</h2></div>
+      <div class="slide-nav"><button onclick="window.opener&&window.opener.postMessage({type:'prevSlide'},window.opener.location.origin)">← Previous</button><button onclick="window.opener&&window.opener.postMessage({type:'nextSlide'},window.opener.location.origin)">Next →</button><button id="laserBtn" onclick="window.opener&&window.opener.postMessage({type:'toggleLaser'},window.opener.location.origin);this.classList.toggle('active');" style="margin-left:auto;">Laser (L)</button></div>
       <div class="section"><div class="section-title">${clipboardIcon} SUGGESTED TALKING POINTS</div><div class="default-notes" id="defaultNotesContent">${defaultNote}</div></div>
       <div class="section"><div class="section-title">${pencilIcon} YOUR CUSTOM NOTES</div><div class="custom-notes"><textarea id="customNotes" placeholder="Add your own notes here...">${customNote}</textarea><div class="save-status" id="saveStatus" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>Saved</div></div></div>
       <div class="tip">${lightbulbIcon} <strong>Tip:</strong> Arrow keys/spacebar for slides, L for laser. Move mouse to main window to aim. Share only main window.</div>
-      <script>let saveTimeout;const textarea=document.getElementById('customNotes');const saveStatus=document.getElementById('saveStatus');window.addEventListener('message',(event)=>{if(event.data&&event.data.type==='updateSlide'){document.getElementById('slideNumber').textContent='SLIDE '+(event.data.slideNum+1)+' OF 35';document.getElementById('slideName').textContent=event.data.slideName;document.getElementById('defaultNotesContent').textContent=event.data.defaultNote;document.getElementById('currentSlideData').setAttribute('data-slide',String(event.data.slideNum));document.title='Presenter Notes - '+event.data.slideName;if(document.activeElement!==textarea){textarea.value=event.data.customNote||'';}}});window.addEventListener('keydown',(e)=>{if(document.activeElement===textarea)return;if(e.key==='ArrowLeft'){e.preventDefault();window.opener&&window.opener.postMessage({type:'prevSlide'},'*');}if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();window.opener&&window.opener.postMessage({type:'nextSlide'},'*');}if(e.key==='l'||e.key==='L'){e.preventDefault();window.opener&&window.opener.postMessage({type:'toggleLaser'},'*');document.getElementById('laserBtn').classList.toggle('active');}});textarea.addEventListener('input',()=>{clearTimeout(saveTimeout);const currentSlide=document.getElementById('currentSlideData').getAttribute('data-slide');saveTimeout=setTimeout(()=>{window.opener&&window.opener.postMessage({type:'saveNote',slideNum:parseInt(currentSlide),note:textarea.value},'*');saveStatus.style.display='flex';setTimeout(()=>saveStatus.style.display='none',2000);},500);});</script></body></html>`);
+      <script>let saveTimeout;const textarea=document.getElementById('customNotes');const saveStatus=document.getElementById('saveStatus');const expectedOrigin=window.opener?window.opener.location.origin:'*';window.addEventListener('message',(event)=>{if(expectedOrigin!=='*'&&event.origin!==expectedOrigin)return;if(event.data&&event.data.type==='updateSlide'){document.getElementById('slideNumber').textContent='SLIDE '+(event.data.slideNum+1)+' OF 35';document.getElementById('slideName').textContent=event.data.slideName;document.getElementById('defaultNotesContent').textContent=event.data.defaultNote;document.getElementById('currentSlideData').setAttribute('data-slide',String(event.data.slideNum));document.title='PRIVATE - Presenter Notes - '+event.data.slideName;const laserBtn=document.getElementById('laserBtn');if(event.data.laserActive){laserBtn.classList.add('active');}else{laserBtn.classList.remove('active');}if(document.activeElement!==textarea){textarea.value=event.data.customNote||'';}}});window.addEventListener('keydown',(e)=>{if(document.activeElement===textarea)return;if(e.key==='ArrowLeft'){e.preventDefault();window.opener&&window.opener.postMessage({type:'prevSlide'},expectedOrigin);}if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();window.opener&&window.opener.postMessage({type:'nextSlide'},expectedOrigin);}if(e.key==='l'||e.key==='L'){e.preventDefault();window.opener&&window.opener.postMessage({type:'toggleLaser'},expectedOrigin);document.getElementById('laserBtn').classList.toggle('active');}});textarea.addEventListener('input',()=>{clearTimeout(saveTimeout);const currentSlide=document.getElementById('currentSlideData').getAttribute('data-slide');saveTimeout=setTimeout(()=>{window.opener&&window.opener.postMessage({type:'saveNote',slideNum:parseInt(currentSlide),note:textarea.value},expectedOrigin);saveStatus.style.display='flex';setTimeout(()=>saveStatus.style.display='none',2000);},500);});</script></body></html>`);
     win.document.close();
   };
   
