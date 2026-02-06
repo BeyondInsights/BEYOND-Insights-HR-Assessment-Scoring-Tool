@@ -2334,8 +2334,12 @@ export default function ExportReportPage() {
       renderPresenterNotesWindow(notesWindow, currentSlide, true);
       // NOTE: Removed blur/focus - this was causing the window to disappear behind main window
     } else {
-      // Popup was blocked
-      alert('Presenter notes popup was blocked by your browser. Please allow popups for this site and try again.');
+      // Popup was blocked - show custom modal instead of browser alert
+      setConfirmModal({
+        show: true,
+        message: 'Presenter notes popup was blocked by your browser. Please allow popups for this site and try again.',
+        onConfirm: () => setConfirmModal({ show: false, message: '', onConfirm: () => {} })
+      });
     }
   };
   
@@ -4735,14 +4739,11 @@ export default function ExportReportPage() {
                             {benchPositions.map((bp) => (
                               <g key={`bench-${bp.dim}`}>
                                 <circle cx={bp.x} cy={bp.y} r={20} fill="#E2E8F0" fillOpacity="0.8" stroke="#8B5CF6" strokeWidth="2.5" strokeDasharray="5 3" />
-                                {/* Only show D label for dimensions that need it - skip D4 as it's readable without */}
-                                {bp.dim !== 4 && (
-                                  <text x={bp.x} y={bp.y + 1} textAnchor="middle" dominantBaseline="middle" fill="#6D28D9" fontSize="10" fontWeight="800" fontFamily="system-ui">D{bp.dim}</text>
-                                )}
+                                <text x={bp.x} y={bp.y + 1} textAnchor="middle" dominantBaseline="middle" fill="#6D28D9" fontSize="10" fontWeight="800" fontFamily="system-ui">D{bp.dim}</text>
                               </g>
                             ))}
                             {benchClusters.map((cluster, ci) => {
-                              const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
+                              const hiddenDims = cluster.dims.slice(0, -1);
                               if (hiddenDims.length === 0) return null;
                               return hiddenDims.map((dim, i) => {
                                 const cx = cluster.x + 28 + i * 24;
@@ -5849,7 +5850,7 @@ export default function ExportReportPage() {
             </div>
             <div className="px-12 py-10">
               <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>, those 
                 with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
               </p>
               <div className="grid grid-cols-2 gap-6">
@@ -6831,9 +6832,7 @@ export default function ExportReportPage() {
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
             <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                </div>
+                <Image src="/bi-logo.png" alt="BEYOND Insights" width={32} height={32} className="object-contain" />
                 <h3 className="font-bold text-slate-900 text-lg">BEYOND Insights</h3>
               </div>
               <p className="text-slate-600 mb-6">{confirmModal.message}</p>
@@ -6898,7 +6897,15 @@ export default function ExportReportPage() {
             <div className="flex-1 overflow-hidden flex items-center justify-center p-3">
               <div 
                 className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden transition-transform duration-200"
-                style={{ transform: `scale(${slideZoom / 100})` }}
+                style={{ 
+                  transform: `scale(${
+                    // Auto-fit dimension deep dives (slides 5-17) at 85% to prevent overflow
+                    currentSlide >= 5 && currentSlide <= 17 
+                      ? Math.min(slideZoom, 85) / 100 
+                      : slideZoom / 100
+                  })`,
+                  transformOrigin: 'center top'
+                }}
               >
                 
                 {/* Slide 0: Title + Stats + Context (matches Image 1) */}
@@ -8098,7 +8105,7 @@ export default function ExportReportPage() {
                     </div>
                     <div className="px-12 py-10">
                       <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                        The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                        The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>, those 
                         with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
                       </p>
                       <div className="grid grid-cols-2 gap-6">
