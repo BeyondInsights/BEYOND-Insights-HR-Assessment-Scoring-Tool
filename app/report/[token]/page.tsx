@@ -5027,7 +5027,7 @@ export default function InteractiveReportPage() {
             </div>
             <div className="px-12 py-10">
               <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>, those 
                 with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
               </p>
               <div className="grid grid-cols-2 gap-6">
@@ -7319,7 +7319,7 @@ export default function InteractiveReportPage() {
                     </div>
                     <div className="px-12 py-10">
                       <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                        The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                        The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>, those 
                         with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
                       </p>
                       <div className="grid grid-cols-2 gap-6">
