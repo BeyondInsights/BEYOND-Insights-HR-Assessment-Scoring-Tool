@@ -119,109 +119,128 @@ export function hydrateClientFromRecord(record: AssessmentRecord): void {
     return;
   }
   
+  // Import hydration guard to prevent AutoDataSync from marking these writes as dirty
+  let startHydration: (() => void) | undefined;
+  let endHydration: (() => void) | undefined;
+  try {
+    const autoSync = require('@/lib/supabase/auto-data-sync');
+    startHydration = autoSync.startHydration;
+    endHydration = autoSync.endHydration;
+  } catch (e) {
+    // Hydration guard not available, continue without it
+  }
+  
   console.log('[hydrateClientFromRecord] Starting hydration...');
   let fieldCount = 0;
   
-  // === DATA FIELDS (JSON objects) ===
-  for (const field of DATA_FIELDS) {
-    const value = (record as any)[field];
-    const localKey = DB_TO_LOCAL_KEY_MAP[field] || field;
-    
-    if (value && typeof value === 'object' && Object.keys(value).length > 0) {
-      localStorage.setItem(localKey, JSON.stringify(value));
-      fieldCount++;
-    }
-  }
+  // Start hydration guard
+  if (startHydration) startHydration();
   
-  // === COMPLETION FLAGS ===
-  // CRITICAL: Explicitly REMOVE false flags to prevent sticky localStorage
-  for (const flag of COMPLETION_FLAGS) {
-    const value = (record as any)[flag];
-    const localKey = DB_TO_LOCAL_KEY_MAP[flag] || flag;
+  try {
+    // === DATA FIELDS (JSON objects) ===
+    for (const field of DATA_FIELDS) {
+      const value = (record as any)[field];
+      const localKey = DB_TO_LOCAL_KEY_MAP[field] || field;
+      
+      if (value && typeof value === 'object' && Object.keys(value).length > 0) {
+        localStorage.setItem(localKey, JSON.stringify(value));
+        fieldCount++;
+      }
+    }
     
-    if (value === true) {
-      localStorage.setItem(localKey, 'true');
+    // === COMPLETION FLAGS ===
+    // CRITICAL: Explicitly REMOVE false flags to prevent sticky localStorage
+    for (const flag of COMPLETION_FLAGS) {
+      const value = (record as any)[flag];
+      const localKey = DB_TO_LOCAL_KEY_MAP[flag] || flag;
+      
+      if (value === true) {
+        localStorage.setItem(localKey, 'true');
+        fieldCount++;
+      } else {
+        // Explicitly remove if false/null/undefined
+        localStorage.removeItem(localKey);
+      }
+    }
+    
+    // === PAYMENT FIELDS ===
+    if (record.payment_completed === true) {
+      localStorage.setItem('payment_completed', 'true');
       fieldCount++;
     } else {
-      // Explicitly remove if false/null/undefined
-      localStorage.removeItem(localKey);
+      localStorage.removeItem('payment_completed');
     }
-  }
-  
-  // === PAYMENT FIELDS ===
-  if (record.payment_completed === true) {
-    localStorage.setItem('payment_completed', 'true');
-    fieldCount++;
-  } else {
-    localStorage.removeItem('payment_completed');
-  }
-  
-  if (record.payment_method) {
-    localStorage.setItem('payment_method', record.payment_method);
-  }
-  if (record.payment_date) {
-    localStorage.setItem('payment_date', record.payment_date);
-  }
-  
-  // === INVOICE FIELDS ===
-  if (record.invoice_data) {
-    localStorage.setItem('invoice_data', JSON.stringify(record.invoice_data));
-    fieldCount++;
-  }
-  if (record.invoice_number) {
-    localStorage.setItem('current_invoice_number', record.invoice_number);
-  }
-  
-  // === COMPANY INFO ===
-  if (record.company_name) {
-    localStorage.setItem('login_company_name', record.company_name);
-    localStorage.setItem('company_name', record.company_name);
-  }
-  
-  if (record.email) {
-    localStorage.setItem('auth_email', record.email);
-    localStorage.setItem('login_email', record.email);
-  }
-  
-  // === SUBMISSION STATUS ===
-  if (record.survey_submitted === true) {
-    localStorage.setItem('survey_fully_submitted', 'true');
-    localStorage.setItem('assessment_completion_shown', 'true');
-    fieldCount++;
-  }
-  
-  // employee_survey_opt_in can be true, false, or null
-  if (record.employee_survey_opt_in !== null && record.employee_survey_opt_in !== undefined) {
-    localStorage.setItem('employee_survey_opt_in', String(record.employee_survey_opt_in));
-    fieldCount++;
-  }
-  
-  // === IDENTITY ===
-  if (record.survey_id) {
-    localStorage.setItem('survey_id', record.survey_id);
-    localStorage.setItem('login_Survey_id', record.survey_id);
-  } else if (record.app_id) {
-    localStorage.setItem('survey_id', record.app_id);
-    localStorage.setItem('login_Survey_id', record.app_id);
-  }
-  
-  // === EXTRACT NESTED FIELDS FROM FIRMOGRAPHICS ===
-  if (record.firmographics_data) {
-    const firmo = record.firmographics_data;
-    if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName);
-    if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName);
-    if (firmo.title) localStorage.setItem('login_title', firmo.title);
-    if (firmo.companyName && !record.company_name) {
-      localStorage.setItem('login_company_name', firmo.companyName);
+    
+    if (record.payment_method) {
+      localStorage.setItem('payment_method', record.payment_method);
     }
+    if (record.payment_date) {
+      localStorage.setItem('payment_date', record.payment_date);
+    }
+    
+    // === INVOICE FIELDS ===
+    if (record.invoice_data) {
+      localStorage.setItem('invoice_data', JSON.stringify(record.invoice_data));
+      fieldCount++;
+    }
+    if (record.invoice_number) {
+      localStorage.setItem('current_invoice_number', record.invoice_number);
+    }
+    
+    // === COMPANY INFO ===
+    if (record.company_name) {
+      localStorage.setItem('login_company_name', record.company_name);
+      localStorage.setItem('company_name', record.company_name);
+    }
+    
+    if (record.email) {
+      localStorage.setItem('auth_email', record.email);
+      localStorage.setItem('login_email', record.email);
+    }
+    
+    // === SUBMISSION STATUS ===
+    if (record.survey_submitted === true) {
+      localStorage.setItem('survey_fully_submitted', 'true');
+      localStorage.setItem('assessment_completion_shown', 'true');
+      fieldCount++;
+    }
+    
+    // employee_survey_opt_in can be true, false, or null
+    if (record.employee_survey_opt_in !== null && record.employee_survey_opt_in !== undefined) {
+      localStorage.setItem('employee_survey_opt_in', String(record.employee_survey_opt_in));
+      fieldCount++;
+    }
+    
+    // === IDENTITY ===
+    if (record.survey_id) {
+      localStorage.setItem('survey_id', record.survey_id);
+      localStorage.setItem('login_Survey_id', record.survey_id);
+    } else if (record.app_id) {
+      localStorage.setItem('survey_id', record.app_id);
+      localStorage.setItem('login_Survey_id', record.app_id);
+    }
+    
+    // === EXTRACT NESTED FIELDS FROM FIRMOGRAPHICS ===
+    if (record.firmographics_data) {
+      const firmo = record.firmographics_data;
+      if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName);
+      if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName);
+      if (firmo.title) localStorage.setItem('login_title', firmo.title);
+      if (firmo.companyName && !record.company_name) {
+        localStorage.setItem('login_company_name', firmo.companyName);
+      }
+    }
+    
+    // === VERSION (for optimistic locking) ===
+    if (record.version) {
+      localStorage.setItem('assessment_version', String(record.version));
+    }
+    
+    console.log(`[hydrateClientFromRecord] ✅ Hydrated ${fieldCount} fields`);
+  } finally {
+    // End hydration guard
+    if (endHydration) endHydration();
   }
-  
-  // === VERSION (for optimistic locking) ===
-  if (record.version) {
-    localStorage.setItem('assessment_version', String(record.version));
-  }
-  
-  console.log(`[hydrateClientFromRecord] ✅ Hydrated ${fieldCount} fields`);
 }
 
 // ============================================
