@@ -270,39 +270,27 @@ exports.handler = async (event) => {
         result = await updateWithVersionCheck('survey_id', survey_id)
         matchedVia = 'survey_id'
       } else {
-        // Insert new FP record (no version check needed for INSERT)
-        console.log('[sync-assessment] Creating new FP record')
-        const insertPayload = {
-          survey_id,
-          app_id: survey_id,
-          is_founding_partner: true,
-          payment_completed: true,
-          payment_method: 'FP Comp',
-          payment_amount: 1250.00,
-          version: 1,
-          ...safeData,  // Use sanitized data
-          updated_at: new Date().toISOString(),
-          // NOTE: last_survey_edit_at intentionally omitted - DB trigger will set it on first real data
-          last_update_source: safeSource,
-          last_update_client_id: client_id || null
+        // FP records should be pre-provisioned - do NOT auto-create
+        // This prevents phantom FP records from arbitrary FP-* IDs
+        console.warn('[sync-assessment] FP record not found - FP records must be pre-provisioned:', survey_id)
+        
+        await logSyncError(supabase, {
+          survey_id: survey_id,
+          error_type: 'fp_not_provisioned',
+          source: safeSource,
+          client_id: client_id,
+          error_message: `FP record not found for ${survey_id} - must be pre-provisioned`
+        })
+        
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({
+            success: false,
+            error: 'FP record not found - please contact support',
+            rowsAffected: 0
+          })
         }
-        
-        const { data: insertResult, error: insertError } = await supabase
-          .from('assessments')
-          .insert(insertPayload)
-          .select('id, version')
-        
-        if (insertError) {
-          console.error('[sync-assessment] INSERT ERROR:', insertError)
-          return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ success: false, error: insertError.message })
-          }
-        }
-        
-        result = { success: true, rowsAffected: 1, newVersion: 1 }
-        matchedVia = 'insert'
       }
     }
     
