@@ -903,7 +903,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
 }
 
 // Calculate impact-ranked improvement priorities
-function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; effort: string; recommendation: string; recommendations: string[]; topGap: string }[] {
+function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; dimPotentialGain: number; effort: string; recommendation: string; recommendations: string[]; topGap: string }[] {
   // Realistic improvement potential varies by current score
   const getRealisticImprovement = (score: number) => {
     if (score < 40) return 25;  // Low scores: lots of quick wins available
@@ -914,8 +914,11 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
   
   return dimAnalysis
     .map(d => {
-      // Calculate potential composite score impact
+      // Calculate potential dimension score improvement
       const improvementPotential = Math.min(100 - d.score, getRealisticImprovement(d.score));
+      const dimPotentialGain = improvementPotential; // Direct dimension score gain
+      
+      // Calculate potential composite score impact
       const weightedImpact = (improvementPotential * d.weight) / 100 * 0.9; // 90% dimension weight factor
       const potentialGain = Math.round(weightedImpact * 10) / 10;
       
@@ -960,6 +963,7 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
         currentScore: d.score,
         tier: d.tier.name,
         potentialGain,
+        dimPotentialGain,
         gapLevel,
         gapScore,
         recommendation: recommendations[0], // Keep for backward compatibility
@@ -4745,7 +4749,8 @@ export default function ExportReportPage() {
                               </g>
                             ))}
                             {benchClusters.map((cluster, ci) => {
-                              const hiddenDims = cluster.dims.slice(0, -1);
+                              // Skip D4 callout since it doesn't overlap enough to warrant showing
+                              const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                               if (hiddenDims.length === 0) return null;
                               return hiddenDims.map((dim, i) => {
                                 const cx = cluster.x + 28 + i * 24;
@@ -5675,22 +5680,29 @@ export default function ExportReportPage() {
                               </div>
                               
                               {/* Metrics */}
-                              <div className="flex items-center gap-4 flex-shrink-0">
+                              <div className="flex items-center gap-3 flex-shrink-0">
                                 {/* Current Score */}
-                                <div className="text-center px-4 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                <div className="text-center px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
                                   <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-1">Current</p>
                                   <p className="text-2xl font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</p>
                                   <p className="text-xs text-slate-400">{r.tier}</p>
                                 </div>
                                 
                                 {/* Arrow */}
-                                <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                 
-                                {/* Potential Gain */}
-                                <div className="text-center px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
-                                  <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Impact</p>
-                                  <p className="text-2xl font-bold text-emerald-600">+{r.potentialGain}</p>
-                                  <p className="text-xs text-emerald-500">points</p>
+                                {/* Dimension Impact */}
+                                <div className="text-center px-3 py-2 rounded-xl bg-blue-50 border border-blue-200">
+                                  <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Dim Impact</p>
+                                  <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain}</p>
+                                  <p className="text-xs text-blue-500">pts</p>
+                                </div>
+                                
+                                {/* Composite Impact */}
+                                <div className="text-center px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
+                                  <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Overall</p>
+                                  <p className="text-xl font-bold text-emerald-600">+{r.potentialGain}</p>
+                                  <p className="text-xs text-emerald-500">composite</p>
                                 </div>
                               </div>
                             </div>
@@ -5699,7 +5711,7 @@ export default function ExportReportPage() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-slate-400 mt-6 text-center italic">Impact calculated based on dimension weight and improvement potential. Gap level indicates number of elements needing attention.</p>
+                  <p className="text-xs text-slate-400 mt-6 text-center italic">Dim Impact = potential dimension score improvement. Overall = impact on composite score (weighted by dimension importance).</p>
                 </div>
               </div>
             );
@@ -8150,22 +8162,29 @@ export default function ExportReportPage() {
                                   </div>
                                   
                                   {/* Metrics */}
-                                  <div className="flex items-center gap-4 flex-shrink-0">
+                                  <div className="flex items-center gap-3 flex-shrink-0">
                                     {/* Current Score */}
-                                    <div className="text-center px-4 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                    <div className="text-center px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
                                       <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-1">Current</p>
                                       <p className="text-2xl font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</p>
                                       <p className="text-xs text-slate-400">{r.tier}</p>
                                     </div>
                                     
                                     {/* Arrow */}
-                                    <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                    <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                     
-                                    {/* Potential Gain */}
-                                    <div className="text-center px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
-                                      <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Impact</p>
-                                      <p className="text-2xl font-bold text-emerald-600">+{r.potentialGain}</p>
-                                      <p className="text-xs text-emerald-500">points</p>
+                                    {/* Dimension Impact */}
+                                    <div className="text-center px-3 py-2 rounded-xl bg-blue-50 border border-blue-200">
+                                      <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Dim Impact</p>
+                                      <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain}</p>
+                                      <p className="text-xs text-blue-500">pts</p>
+                                    </div>
+                                    
+                                    {/* Composite Impact */}
+                                    <div className="text-center px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
+                                      <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Overall</p>
+                                      <p className="text-xl font-bold text-emerald-600">+{r.potentialGain}</p>
+                                      <p className="text-xs text-emerald-500">composite</p>
                                     </div>
                                   </div>
                                 </div>
@@ -8174,7 +8193,7 @@ export default function ExportReportPage() {
                           </div>
                         ))}
                       </div>
-                      <p className="text-xs text-slate-400 mt-6 text-center italic">Impact calculated based on dimension weight and improvement potential. Gap level indicates number of elements needing attention.</p>
+                      <p className="text-xs text-slate-400 mt-6 text-center italic">Dim Impact = potential dimension score improvement. Overall = impact on composite score (weighted by dimension importance).</p>
                     </div>
                   </div>
                 )}
