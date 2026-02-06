@@ -300,7 +300,7 @@ export default function Dimension7Page() {
                   </span>
                   <div className="flex flex-col items-end gap-1">
                     <span className="text-xs text-gray-500 mb-1">
-                      HINT: Hover over any bar to see the element name
+                      <strong>HINT:</strong> Hover over any bar to see the element name
                     </span>
                     <div className="flex gap-1">
                       {D7A_ITEMS.map((item, idx) => (
@@ -321,7 +321,7 @@ export default function Dimension7Page() {
                     </div>
                     {Object.keys(ans.d7a || {}).length > 0 && (
                       <span className="text-xs text-green-700 mt-1">
-                        ↑ Click any green bar to review or change your answer to that element
+                        ↑ <strong>Click any green bar</strong> to review or change your answer to that element
                       </span>
                     )}
                   </div>
