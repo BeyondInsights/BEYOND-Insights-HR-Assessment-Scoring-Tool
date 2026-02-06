@@ -6351,43 +6351,64 @@ export default function ExportReportPage() {
             <div className="relative">
               <button
                 onClick={() => setShowDimSelector(!showDimSelector)}
-                className="w-full px-6 py-4 bg-white border-2 border-dashed border-slate-300 hover:border-slate-400 rounded-xl text-slate-600 hover:text-slate-800 font-medium transition-all flex items-center justify-center gap-3"
+                className="w-full group px-8 py-5 bg-gradient-to-r from-slate-50 to-white border-2 border-dashed border-slate-300 hover:border-slate-400 hover:from-slate-100 hover:to-slate-50 rounded-xl transition-all flex items-center justify-center gap-3"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                Analyze Another Dimension
+                <div className="w-10 h-10 rounded-full bg-slate-200 group-hover:bg-slate-300 flex items-center justify-center transition-colors">
+                  <svg className="w-5 h-5 text-slate-500 group-hover:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-700 group-hover:text-slate-900 font-semibold text-base block">Analyze Another Dimension</span>
+                  <span className="text-slate-400 group-hover:text-slate-500 text-sm">Get detailed analysis for any additional dimension</span>
+                </div>
               </button>
               
               {showDimSelector && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 p-4 z-50">
-                  <p className="text-sm text-slate-500 mb-3">Select a dimension to analyze:</p>
-                  <div className="grid grid-cols-4 gap-2">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 p-5 z-50">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm font-semibold text-slate-700">Select a dimension to analyze:</p>
+                    <button
+                      onClick={() => setShowDimSelector(false)}
+                      className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
                     {allDimensionsByScore
                       .filter(d => !allDimensionsByScore.slice(0, 4).some(top => top.dim === d.dim))
                       .filter(d => !additionalAnalyzedDims.includes(d.dim))
-                      .map(d => (
-                        <button
-                          key={d.dim}
-                          onClick={() => {
-                            setAdditionalAnalyzedDims(prev => [...prev, d.dim]);
-                            setShowDimSelector(false);
-                          }}
-                          className="px-3 py-2 text-sm rounded-lg border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-colors text-left"
-                        >
-                          <span className="font-semibold text-slate-700">D{d.dim}</span>
-                          <span className="text-slate-500 ml-1">- {d.name}</span>
-                          <span className="block text-xs text-slate-400 mt-0.5">Score: {d.score}</span>
-                        </button>
-                      ))}
+                      .map(d => {
+                        const tierColor = getScoreColor(d.score);
+                        return (
+                          <button
+                            key={d.dim}
+                            onClick={() => {
+                              setAdditionalAnalyzedDims(prev => [...prev, d.dim]);
+                              setShowDimSelector(false);
+                            }}
+                            className="px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all text-left group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: tierColor }}>
+                                {d.dim}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-slate-700 group-hover:text-slate-900 text-sm truncate">{d.name}</p>
+                                <p className="text-xs text-slate-400">Score: {d.score} • {d.tier.name}</p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
                   </div>
                   {allDimensionsByScore.filter(d => !allDimensionsByScore.slice(0, 4).some(top => top.dim === d.dim)).filter(d => !additionalAnalyzedDims.includes(d.dim)).length === 0 && (
-                    <p className="text-sm text-slate-400 italic text-center py-4">All dimensions have been analyzed</p>
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                      <p className="text-sm text-slate-500">All dimensions have been analyzed</p>
+                    </div>
                   )}
-                  <button
-                    onClick={() => setShowDimSelector(false)}
-                    className="mt-3 w-full px-3 py-2 text-sm text-slate-500 hover:text-slate-700"
-                  >
-                    Cancel
-                  </button>
                 </div>
               )}
             </div>
@@ -7028,8 +7049,8 @@ export default function ExportReportPage() {
         {confirmModal.show && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
             <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4">
-              <div className="flex items-center gap-3 mb-4">
-                <Image src="/bi-logo.png" alt="BEYOND Insights" width={120} height={40} className="object-contain" />
+              <div className="mb-4">
+                <img src="/bi-logo.png" alt="BEYOND Insights" className="h-10 object-contain" />
               </div>
               <p className="text-slate-600 mb-6">{confirmModal.message}</p>
               <div className="flex justify-end gap-3">
@@ -7095,8 +7116,8 @@ export default function ExportReportPage() {
                 className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-full overflow-hidden transition-transform duration-200"
                 style={{ 
                   transform: `scale(${
-                    // Auto-fit dimension deep dives (slides 5-17) at 85% to prevent overflow
-                    currentSlide >= 5 && currentSlide <= 17 
+                    // Auto-fit only D2 (slide 6) and D10 (slide 14) at 85% to prevent overflow
+                    (currentSlide === 6 || currentSlide === 14)
                       ? Math.min(slideZoom, 85) / 100 
                       : slideZoom / 100
                   })`,
