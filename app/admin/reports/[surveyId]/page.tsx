@@ -2271,6 +2271,10 @@ export default function ExportReportPage() {
   // Use ref for presenter notes window to avoid re-render issues
   const presenterNotesWindowRef = useRef<Window | null>(null);
   const [presenterNotesOpen, setPresenterNotesOpen] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [laserPointer, setLaserPointer] = useState(false);
+  const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
   
   // Monitor presenter notes window - check if it's been closed externally
   useEffect(() => {
@@ -2617,10 +2621,6 @@ export default function ExportReportPage() {
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [customNotes]);
-  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [laserPointer, setLaserPointer] = useState(false);
-  const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
   
   // Info modal content
   const infoContent = {
