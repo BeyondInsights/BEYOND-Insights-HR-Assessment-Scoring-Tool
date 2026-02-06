@@ -2439,6 +2439,7 @@ export default function ExportReportPage() {
             border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;
           }
           .slide-nav button:hover { background: #475569; color: white; }
+          .slide-nav button.active { background: #ef4444; color: white; }
           .section { background: #334155; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
           .section-title { 
             font-size: 11px; font-weight: 700; text-transform: uppercase; 
@@ -2479,6 +2480,13 @@ export default function ExportReportPage() {
         <div class="slide-nav">
           <button onclick="window.opener.postMessage({type:'prevSlide'}, '*')">← Previous</button>
           <button onclick="window.opener.postMessage({type:'nextSlide'}, '*')">Next →</button>
+          <button id="laserBtn" onclick="window.opener.postMessage({type:'toggleLaser'}, '*'); this.classList.toggle('active');" style="margin-left: auto; background: #334155;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 2v2m0 16v2M2 12h2m16 0h2m-4.2-5.8l1.4-1.4M4.8 19.2l1.4-1.4m0-11.6L4.8 4.8m14.4 14.4l-1.4-1.4"/>
+            </svg>
+            Laser (L)
+          </button>
         </div>
         
         <div class="section">
@@ -2503,7 +2511,7 @@ export default function ExportReportPage() {
         </div>
         
         <div class="tip">
-          ${lightbulbIcon} <strong>Tip:</strong> Use arrow keys or spacebar here to control slides. Share only the main report window to keep notes private.
+          ${lightbulbIcon} <strong>Tip:</strong> Control slides with arrow keys/spacebar, toggle laser with L. Move mouse to main window to aim laser. Share only the main window.
         </div>
         
         <script>
@@ -2536,6 +2544,11 @@ export default function ExportReportPage() {
             if (e.key === 'ArrowRight' || e.key === ' ') {
               e.preventDefault();
               window.opener && window.opener.postMessage({ type: 'nextSlide' }, '*');
+            }
+            if (e.key === 'l' || e.key === 'L') {
+              e.preventDefault();
+              window.opener && window.opener.postMessage({ type: 'toggleLaser' }, '*');
+              document.getElementById('laserBtn').classList.toggle('active');
             }
           });
           
@@ -2576,6 +2589,8 @@ export default function ExportReportPage() {
         setCurrentSlide(prev => Math.max(0, prev - 1));
       } else if (event.data.type === 'nextSlide') {
         setCurrentSlide(prev => Math.min(34, prev + 1));
+      } else if (event.data.type === 'toggleLaser') {
+        setLaserPointer(prev => !prev);
       }
     };
     window.addEventListener('message', handleMessage);
@@ -8445,21 +8460,21 @@ export default function ExportReportPage() {
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                             </div>
                             <p className="font-bold text-slate-900 text-sm">Job Security</p>
-                            <p className="text-slate-500 text-xs mt-1">Secure jobs, salary, benefits</p>
+                            <p className="text-slate-500 text-xs mt-1 leading-relaxed">Secure jobs, salary, and benefits so employees can focus on treatment</p>
                           </div>
                           <div className="rounded-lg p-4 shadow-lg" style={{ backgroundColor: '#ff353c' }}>
                             <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-white/20">
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
                             <p className="font-bold text-white text-sm">Open Culture</p>
-                            <p className="text-white/80 text-xs mt-1">Stigma-free, safe to disclose</p>
+                            <p className="text-white/90 text-xs mt-1 leading-relaxed">Foster stigma-free environments where employees feel safe to disclose</p>
                           </div>
                           <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                             <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
                             <p className="font-bold text-slate-900 text-sm">Recovery Support</p>
-                            <p className="text-slate-500 text-xs mt-1">Flexible work & phased return</p>
+                            <p className="text-slate-500 text-xs mt-1 leading-relaxed">Provide flexible working, phased return, and personalized accommodations</p>
                           </div>
                         </div>
                       </div>
