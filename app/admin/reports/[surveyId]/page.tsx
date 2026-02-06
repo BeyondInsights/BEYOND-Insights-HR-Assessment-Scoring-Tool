@@ -1189,7 +1189,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             
             {/* Overlap indicators - small muted circles showing hidden dimensions */}
             {overlapClusters.map((cluster, idx) => {
-              const hiddenDims = cluster.dims.slice(0, -1);
+              const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
               if (hiddenDims.length === 0) return null;
               return (
                 <g key={`callout-${idx}`}>
@@ -4790,7 +4790,7 @@ export default function ExportReportPage() {
                         
                         {/* Overlap callout annotations */}
                         {presOverlapClusters.map((cluster, idx) => {
-                          const hiddenDims = cluster.dims.slice(0, -1);
+                          const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                           // Overlap indicator positions computed inline
                           return (
                             <g key={`callout-${idx}`}>
@@ -7875,7 +7875,7 @@ export default function ExportReportPage() {
                                       );
                                     })}
                                     {clusters.map((cluster, idx) => {
-                                      const hiddenDims = cluster.dims.slice(0, -1);
+                                      const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                                       // Overlap indicator positions computed inline
                                       return (
                                         <g key={`s18-callout-${idx}`}>
@@ -8074,7 +8074,7 @@ export default function ExportReportPage() {
                                       </g>
                                     ))}
                                     {clusters.map((cluster, idx) => {
-                                      const hiddenDims = cluster.dims.slice(0, -1);
+                                      const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                                       // Overlap indicator positions computed inline
                                       return (
                                         <g key={`s19-callout-${idx}`}>
