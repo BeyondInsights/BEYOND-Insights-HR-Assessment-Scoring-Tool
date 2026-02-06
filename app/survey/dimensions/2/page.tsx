@@ -21,7 +21,8 @@ const D2A_ITEMS_BASE = [
   "$0 copay for specialty drugs",
   "Hardship grants program funded by employer",
   "Tax/estate planning assistance",
-  "Short-term disability covering 60%+ of salary",  "Long-term disability covering 60%+ of salary",
+  "Short-term disability covering 60%+ of salary",
+  "Long-term disability covering 60%+ of salary",
   "Employer-paid disability insurance supplements",
   "Guaranteed job protection",
   "Accelerated life insurance benefits (partial payout for terminal / critical illness)"
@@ -199,7 +200,7 @@ export default function Dimension2Page() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
-              Dimension 2: Insurance & Financial Protection
+              Dimension 2: Insurance & Financial Protection</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
@@ -249,7 +250,7 @@ export default function Dimension2Page() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>Use the navigation dots or arrows to review or change any response</span>
+                    <span>Click any green bar to review or change your answer to that element</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-1">•</span>
