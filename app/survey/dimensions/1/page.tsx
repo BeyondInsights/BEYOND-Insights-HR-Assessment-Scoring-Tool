@@ -267,7 +267,6 @@ export default function Dimension1Page() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
               Dimension 1: Medical Leave & Flexibility
-            </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
@@ -383,11 +382,9 @@ export default function Dimension1Page() {
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
                     Element {currentItemIndex + 1} of {D1A_ITEMS.length}
-                  </span>
                   <div className="flex flex-col items-end gap-1">
                     <span className="text-xs text-gray-500 mb-1">
-                      Hover over any bar to see the element name
-                    </span>
+                      HINT: Hover over any bar to see the element name
                     <div className="flex gap-1">
                       {D1A_ITEMS.map((item, idx) => (
                         <button
@@ -405,10 +402,9 @@ export default function Dimension1Page() {
                         />
                       ))}
                     </div>
-                    {Object.keys(ans.d1a || {}).length === D1A_ITEMS.length && (
+                    {Object.keys(ans.d1a || {}).length > 0 && (
                       <span className="text-xs text-green-700 mt-1">
-                        ↑ Click any green bar to jump to that element
-                      </span>
+                        ↑ Click any green bar to review or change your answer to that element
                     )}
                   </div>
                 </div>
@@ -489,11 +485,9 @@ export default function Dimension1Page() {
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
                       }`}
                     >
-                      Finish Section →
+                      Continue to Next Question →
                     </button>
-                    <span className="text-xs text-gray-500">
-                      Done editing? Click to proceed
-                    </span>
+                      
                   </div>
                 )}
               </div>
