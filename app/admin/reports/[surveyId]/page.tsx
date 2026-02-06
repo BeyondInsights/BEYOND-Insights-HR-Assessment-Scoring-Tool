@@ -2917,6 +2917,12 @@ export default function ExportReportPage() {
         } else {
           setPresentationMode(false);
           document.exitFullscreen?.().catch(() => {});
+          // Close presenter notes window
+          if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed) {
+            presenterNotesWindowRef.current.close();
+            presenterNotesWindowRef.current = null;
+            setPresenterNotesOpen(false);
+          }
         }
       } else if ((e.key === 'ArrowLeft' && e.metaKey) || (e.key === 'ArrowUp' && e.metaKey) || e.key === 'Home') {
         e.preventDefault();
@@ -8945,6 +8951,12 @@ export default function ExportReportPage() {
                   onClick={() => {
                     setPresentationMode(false);
                     document.exitFullscreen?.().catch(() => {});
+                    // Close presenter notes window
+                    if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed) {
+                      presenterNotesWindowRef.current.close();
+                      presenterNotesWindowRef.current = null;
+                      setPresenterNotesOpen(false);
+                    }
                   }}
                   className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium ml-2"
                   title="Exit presentation (Esc)"
