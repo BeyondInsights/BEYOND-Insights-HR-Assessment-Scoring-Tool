@@ -146,14 +146,7 @@ export function SilentDataRecovery() {
             matchValue = surveyId;
             console.log('[Recovery] Found record via survey_id');
             
-            // Link user_id if authenticated
-            if (userId && !data.user_id) {
-              await supabase
-                .from('assessments')
-                .update({ user_id: userId })
-                .eq('survey_id', surveyId);
-              console.log('[Recovery] Linked user_id to record');
-            }
+            // NOTE: user_id linking removed - AutoDataSync handles this atomically
           }
         }
 
@@ -171,14 +164,7 @@ export function SilentDataRecovery() {
             matchValue = normalizedAppId;
             console.log('[Recovery] Found record via app_id');
             
-            // Link user_id if authenticated
-            if (userId && !data.user_id) {
-              await supabase
-                .from('assessments')
-                .update({ user_id: userId })
-                .eq('app_id', normalizedAppId);
-              console.log('[Recovery] Linked user_id to record');
-            }
+            // NOTE: user_id linking removed - AutoDataSync handles this atomically
           }
         }
 
