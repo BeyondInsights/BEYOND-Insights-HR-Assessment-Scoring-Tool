@@ -4391,8 +4391,8 @@ export default function InteractiveReportPage() {
                               </g>
                             ))}
                             {benchClusters.map((cluster, ci) => {
-                              // Skip D4 callout since it doesn't overlap enough to warrant showing
-                              const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
+                              // Only show D7 benchmark callout
+                              const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim === 7);
                               if (hiddenDims.length === 0) return null;
                               return hiddenDims.map((dim, i) => {
                                 const cx = cluster.x + 28 + i * 24;
@@ -6829,6 +6829,20 @@ export default function InteractiveReportPage() {
                         <div>
                           <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
                           <h2 className="text-5xl font-bold text-slate-900 mt-2">{companyName}</h2>
+                          {isWwcPledge && (
+                            <div className="mt-4 flex items-center gap-3">
+                              <div className="w-10 h-10 flex-shrink-0">
+                                <svg viewBox="0 0 300 300" className="w-full h-full">
+                                  <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                                  <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                                </svg>
+                              </div>
+                              <div className="border-l-2 pl-3" style={{ borderColor: '#ff353c' }}>
+                                <p className="text-xs font-medium text-slate-600">The <span className="font-bold text-slate-800">#workingwithcancer</span></p>
+                                <p className="text-sm font-semibold text-slate-800">Pledge <span className="font-bold" style={{ color: '#ff353c' }}>Signatory</span></p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-8">
                           <div className="text-right">
@@ -7454,8 +7468,8 @@ export default function InteractiveReportPage() {
                                     </g>
                                   ))}
                                   {bClusters.map((cluster, ci) => {
-                                    // Skip D4 callout since it doesn't overlap enough to warrant showing
-                                    const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
+                                    // Only show D7 benchmark callout
+                                    const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim === 7);
                                     if (hiddenDims.length === 0) return null;
                                     return hiddenDims.map((dim, i) => {
                                       const cx = cluster.x + 26 + i * 22;
