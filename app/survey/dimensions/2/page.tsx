@@ -315,9 +315,11 @@ export default function Dimension2Page() {
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
                     Element {currentItemIndex + 1} of {D2A_ITEMS.length}
+                  </span>
                   <div className="flex flex-col items-end gap-1">
                     <span className="text-xs text-gray-500 mb-1">
                       HINT: Hover over any bar to see the element name
+                    </span>
                     <div className="flex gap-1">
                       {D2A_ITEMS.map((item, idx) => (
                         <button
@@ -338,6 +340,7 @@ export default function Dimension2Page() {
                     {Object.keys(ans.d2a || {}).length > 0 && (
                       <span className="text-xs text-green-700 mt-1">
                         ↑ Click any green bar to review or change your answer to that element
+                      </span>
                     )}
                   </div>
                 </div>
