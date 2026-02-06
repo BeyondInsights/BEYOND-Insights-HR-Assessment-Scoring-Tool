@@ -8,7 +8,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { resolveConflictFromServer, hasConflict } from './auto-data-sync-v4'
+import { resolveConflictFromServer, hasConflict } from '@/lib/supabase/auto-data-sync'
 
 export default function SyncConflictBanner() {
   const [showBanner, setShowBanner] = useState(false)
@@ -40,7 +40,14 @@ export default function SyncConflictBanner() {
   
   const handleReload = async () => {
     setIsReloading(true)
-    await resolveConflictFromServer()
+    const success = await resolveConflictFromServer()
+    if (success) {
+      // Reload the page to get fresh data from server
+      window.location.reload()
+    } else {
+      setIsReloading(false)
+      alert('Failed to reload from server. Please try again.')
+    }
   }
   
   const handleDismiss = () => {
