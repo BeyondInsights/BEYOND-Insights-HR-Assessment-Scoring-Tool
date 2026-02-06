@@ -2257,6 +2257,9 @@ export default function ExportReportPage() {
 
   // Computed total slides - base 35 + any additional dimension deep dives
   const totalSlides = 35 + additionalAnalyzedDims.length;
+
+  // Computed total slides - base 35 + any additional dimension deep dives
+  const totalSlides = 35 + additionalAnalyzedDims.length;
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
