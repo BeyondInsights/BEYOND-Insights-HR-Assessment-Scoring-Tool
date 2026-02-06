@@ -1179,6 +1179,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             {/* Overlap indicators - small muted circles showing hidden dimensions */}
             {overlapClusters.map((cluster, idx) => {
               const hiddenDims = cluster.dims.slice(0, -1);
+              if (hiddenDims.length === 0) return null;
               return (
                 <g key={`callout-${idx}`}>
                   {hiddenDims.map((dim, i) => {
@@ -2781,7 +2782,7 @@ export default function ExportReportPage() {
   
   // Reset edits to generated defaults
   const resetEdits = () => {
-    if (confirm('Reset all customizations to auto-generated content?')) {
+    if (confirm('Reset all customizations to insights content?')) {
       setCustomInsights({});
       setCustomExecutiveSummary('');
       setCustomPatterns([]);
@@ -3807,7 +3808,7 @@ export default function ExportReportPage() {
                   <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
                     <div className="p-6">
                       <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                        This report provides a comprehensive baseline of your organization's cancer support infrastructure across 
+                        This report provides a detailed baseline of your organization's cancer support infrastructure across 
                         13 dimensions. It is designed as a <strong className="text-slate-800">starting point for strategic conversations</strong>, not 
                         a one-size-fits-all prescription.
                       </p>
@@ -4728,11 +4729,15 @@ export default function ExportReportPage() {
                             {benchPositions.map((bp) => (
                               <g key={`bench-${bp.dim}`}>
                                 <circle cx={bp.x} cy={bp.y} r={20} fill="#E2E8F0" fillOpacity="0.8" stroke="#8B5CF6" strokeWidth="2.5" strokeDasharray="5 3" />
-                                <text x={bp.x} y={bp.y + 1} textAnchor="middle" dominantBaseline="middle" fill="#6D28D9" fontSize="10" fontWeight="800" fontFamily="system-ui">D{bp.dim}</text>
+                                {/* Only show D label for D7+ since lower dimensions are readable without labels */}
+                                {bp.dim >= 7 && (
+                                  <text x={bp.x} y={bp.y + 1} textAnchor="middle" dominantBaseline="middle" fill="#6D28D9" fontSize="10" fontWeight="800" fontFamily="system-ui">D{bp.dim}</text>
+                                )}
                               </g>
                             ))}
                             {benchClusters.map((cluster, ci) => {
-                              const hiddenDims = cluster.dims.slice(0, -1);
+                              const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim >= 7);
+                              if (hiddenDims.length === 0) return null;
                               return hiddenDims.map((dim, i) => {
                                 const cx = cluster.x + 28 + i * 24;
                                 const cy = cluster.y - 22;
@@ -5266,13 +5271,15 @@ export default function ExportReportPage() {
                     if (el.isStrength) return 'currently';
                     if (el.isPlanning) return 'planning';
                     if (el.isAssessing) return 'assessing';
+                    if (el.isUnsure) return 'unsure';
                     return 'not_able';
                   };
                   
                   // Calculate current raw points from elements
                   const currentRawPoints = dimElements.reduce((sum: number, el: any) => {
                     const status = getStatusFromElement(el);
-                    return sum + STATUS_POINTS[status];
+                    // Unsure items are scored as 0 (like not_able) for calculation purposes
+                    return sum + (STATUS_POINTS[status] ?? 0);
                   }, 0);
                   const maxPoints = dimElements.length * 5;
                   
@@ -5282,7 +5289,7 @@ export default function ExportReportPage() {
                     if (newStatus) return STATUS_POINTS[newStatus];
                     // If no selection made, use current status (no change)
                     const currentStatus = getStatusFromElement(el);
-                    return STATUS_POINTS[currentStatus];
+                    return STATUS_POINTS[currentStatus] ?? 0;
                   };
                   
                   const projectedRawPoints = dimElements.reduce((sum: number, el: any) => sum + getNewPoints(el), 0);
@@ -5318,6 +5325,7 @@ export default function ExportReportPage() {
                   ];
                   
                   const getStatusLabel = (status: string) => {
+                    if (status === 'unsure') return 'Needs Confirmation';
                     const opt = statusOptions.find(o => o.value === status);
                     return opt?.label || 'Unknown';
                   };
@@ -5835,7 +5843,7 @@ export default function ExportReportPage() {
             </div>
             <div className="px-12 py-10">
               <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                The following pages provide comprehensive analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
                 with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
               </p>
               <div className="grid grid-cols-2 gap-6">
@@ -6996,7 +7004,7 @@ export default function ExportReportPage() {
                       <div className="p-6">
                         {/* First paragraph */}
                         <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                          This report provides a comprehensive baseline of your organization's cancer support infrastructure across 
+                          This report provides a detailed baseline of your organization's cancer support infrastructure across 
                           13 dimensions. It is designed as a <strong className="text-slate-800">starting point for strategic conversations</strong>, not 
                           a one-size-fits-all prescription.
                         </p>
@@ -8055,7 +8063,7 @@ export default function ExportReportPage() {
                     </div>
                     <div className="px-12 py-10">
                       <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                        The following pages provide comprehensive analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                        The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
                         with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
                       </p>
                       <div className="grid grid-cols-2 gap-6">
