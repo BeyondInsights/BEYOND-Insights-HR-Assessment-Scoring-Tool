@@ -2327,7 +2327,9 @@ export default function ExportReportPage() {
       setPresenterNotesOpen(true);
       renderPresenterNotesWindow(notesWindow, currentSlide, true);
       // NOTE: Removed blur/focus - this was causing the window to disappear behind main window
-      // User can click back to main window if they want keyboard shortcuts there
+    } else {
+      // Popup was blocked
+      alert('Presenter notes popup was blocked by your browser. Please allow popups for this site and try again.');
     }
   };
   
@@ -2355,31 +2357,31 @@ export default function ExportReportPage() {
     const customNote = customNotes[noteKey] || '';
     
     const defaultNotes: Record<number, string> = {
-      0: '• Highlight the composite score and tier placement\n• Note the assessment date reflects current state\n• Mention total support elements evaluated across all dimensions',
-      1: '• Shaped by CAC\'s 20+ years of frontline experience\n• Validated through research with HR leaders, employees, and workforce\n• Weights reflect what stakeholders say matters most',
-      2: '• This is a starting point, not a prescription\n• Recommendations should be adapted to your organization\n• Focus on 4 steps: review strengths, identify priorities, engage stakeholders, plan phased implementation',
-      3: '• Call out the top-performing dimension by name\n• Note the greatest opportunity area\n• If provisional, mention items needing confirmation',
-      4: '• Note how many dimensions are Exemplary vs Emerging\n• Focus discussion on highest-weighted dimensions first\n• Use the tier colors to guide the conversation',
-      18: '• Priority Gaps (top-left red): High weight, low score - focus here first\n• Core Strengths (top-right green): High weight, high score - maintain these\n• Monitor (bottom-left gray): Lower priority, watch for changes\n• Leverage (bottom-right blue): Doing well in less critical areas',
-      19: '• Same matrix but now showing benchmark comparisons\n• Gray dots show where other organizations score\n• Identify where you\'re ahead of or behind benchmarks\n• Use benchmarks to set realistic improvement targets',
-      20: '• These patterns emerged from analyzing across all 13 dimensions\n• Left side explains the strategic implication\n• Right side shows the recommended action\n• These are data-driven insights, not generic advice',
-      21: '• Top 5 improvement priorities ranked by potential impact\n• Considers both the score gap AND the dimension weight\n• Use this to focus limited resources effectively\n• Can discuss specific action items for each',
-      22: '• Visual summary of all dimension scores\n• Outer ring = higher score, inner = lower\n• Quick way to see overall shape of support program\n• Identify which "spokes" need strengthening',
-      23: '• Employee perspective on each dimension\n• Shows what having (or lacking) support means to real people\n• Powerful for building stakeholder buy-in\n• Can use quotes in internal communications',
-      24: '• Tier distribution across all dimensions\n• Goal is to move dimensions up the tier ladder over time\n• Even one tier improvement represents real employee impact\n• Celebrate progress, not just perfection',
-      25: '• Benchmark comparison bar chart\n• See where you stand vs. peer organizations\n• Green = above benchmark, Red = below\n• Focus improvement on below-benchmark dimensions',
-      26: '• Year-over-year progress tracking (if applicable)\n• Shows trajectory and momentum\n• Celebrate improvements, investigate declines\n• Set targets for next assessment cycle',
-      27: '• Deep dive into specific support elements\n• Green checkmarks = in place and working\n• Blue planning = in progress\n• Red gaps = opportunities for quick wins',
-      28: '• Weighted score contribution by dimension\n• Larger segments = more impact on total score\n• Focus resources on larger segments with room to grow\n• Shows why some improvements matter more than others',
-      29: '• Summary statistics and key metrics\n• Total elements assessed, confirmation rates\n• Overall program maturity indicators\n• Use for executive summary or board reporting',
-      30: '• Suggested phasing - can be customized to your timeline\n• Phase 1: Quick wins to build momentum (0-6 months)\n• Phase 2: Strategic medium-term investments (6-18 months)\n• Phase 3: Long-term culture optimization (18+ months)',
-      31: '• 5,000+ companies globally signed the pledge\n• Pledge = public commitment, Index = measurable execution\n• 81% of cancer employees say it matters for trust\n• Only 16-18% awareness gap - opportunity to communicate better',
-      32: '• CAC has 20+ years supporting employees with cancer\n• Can help with implementation at any phase\n• Resources: toolkits, training, consultations available\n• Discuss next steps and key contacts',
-      33: '• 13 dimensions, 147 total support elements\n• Weighted scoring based on stakeholder research\n• Four tiers: Exemplary, Proficient, Developing, Emerging\n• Annual reassessment recommended to track progress',
-      34: '• Thank the audience for their time and engagement\n• Reiterate commitment to supporting employees with cancer\n• Offer to schedule follow-up discussions\n• Provide contact information for questions'
+      0: '• Anchor the "so what": tier + score shows where you are vs what "leading" looks like\n• Preview the discussion: (1) confirm uncertain items, (2) agree top 2-3 priorities, (3) align on a 90-day plan\n• Set expectations: this is a decision tool—not a compliance checklist',
+      1: '• Credibility: built from CAC\'s lived experience + validated with HR leaders/employees\n• Design principle: measures what drives employee outcomes (not just policy existence)\n• Benchmarks + weights reflect "what matters most," not "what\'s easiest"',
+      2: '• Four-step workflow: Confirm → Prioritize → Plan → Track\n• Use "Needs confirmation" as the first unlock: scored as Not Planned until verified\n• Focus on high-weight gaps first—small changes there move the overall score fastest',
+      3: '• Call the headline: top strength + biggest gap + what it implies operationally\n• Make it concrete: "If we fix X and Y, we remove the highest-risk friction points"\n• If provisional: "We can\'t publish until confirmation items are resolved—here\'s the short list"',
+      4: '• Explain the shape: where you\'re strong vs where support breaks down\n• Prioritize by impact: high-weight + low score = first investment\n• Align on owners: which functions need to verify/implement (Benefits, HR Ops, Managers, Vendors)',
+      18: '• Decision rule: top-left is where investment buys the most impact\n• Agree the top 2-3 moves; don\'t spread effort across low-weight "nice to haves"\n• Confirm resourcing: what can be done with policy vs vendor vs training',
+      19: '• Calibrate ambition: "Are we behind peers because of policy, execution, or awareness?"\n• Use benchmark to set targets (not to chase vanity scores)\n• Identify "quick parity" vs "differentiator" investments',
+      20: '• These patterns explain root causes (operating model issues) not isolated gaps\n• Highlight 1-2 systemic constraints (e.g., comms + manager capability) and fix them once\n• Tie to employee experience: "This is where employees feel friction"',
+      21: '• Focus on the few moves that shift multiple dimensions\n• Sequence: confirm → quick wins → structural capabilities\n• Define success: what will be true in 90 days / 180 days',
+      22: '• Use it as a portfolio view: "Where are we over/under-invested?"\n• Aim for balance in the highest-weight dimensions, not symmetry across all\n• Identify which "spokes" need strengthening first',
+      23: '• Use this slide to build stakeholder buy-in\n• Translate score gaps into day-to-day reality (manager conversations, navigation, return-to-work)\n• Powerful for internal communications and leadership alignment',
+      24: '• Message: improving one tier in 2-3 high-weight dimensions is meaningful progress\n• Encourage momentum: "pick a ladder step and move it this cycle"\n• Celebrate progress, not just perfection',
+      25: '• Keep it simple: "Above benchmark = defend; below benchmark = focus"\n• Avoid overreacting to low-base elements—prioritize by weight + feasibility\n• Green = above benchmark, Red = below',
+      26: '• Use to reinforce cadence: quarterly check-in + annual reassessment\n• Celebrate gains; treat regressions as signals (not failures)\n• Set targets for next assessment cycle',
+      27: '• Translate into a checklist: confirm uncertain items + pick 3 fast wins\n• Clarify dependencies: policy vs vendor vs manager enablement\n• Green = strengths, Blue = in progress, Red = gaps',
+      28: '• Explain why some gaps matter more: weight reflects employee impact + stakeholder importance\n• Align resources to weight—this is how you improve efficiently\n• Larger segments = more impact on total score',
+      29: '• Give the exec takeaway: "what changed, what\'s pending confirmation, what\'s next"\n• Use as the "board-ready" snapshot\n• Total elements assessed, confirmation rates, overall maturity',
+      30: '• Sequence initiatives to avoid overload: confirm → quick wins → foundational capabilities\n• Assign owners + timing; define "minimum viable launch"\n• Phase 1 (0-6mo), Phase 2 (6-18mo), Phase 3 (18+mo)',
+      31: '• Frame as external credibility + internal accountability\n• Use as a comms lever once core capabilities are in place\n• 81% of cancer employees say it matters for trust; 16-18% awareness gap = opportunity',
+      32: '• Position CAC as accelerant: validation, implementation, training, comms\n• Propose next step: 30-minute working session to confirm items + prioritize\n• Resources: toolkits, training, consultations available',
+      33: '• Reassure: scoring is consistent, benchmarked, and designed for repeatability\n• Emphasize: track change over time; don\'t treat it as one-and-done\n• 13 dimensions, 147 elements, four tiers',
+      34: '• Close with a decision ask: confirm the top priorities + owners + next checkpoint date\n• Thank the audience for their engagement\n• Provide contact information for follow-up'
     };
     
-    // Default notes for dimension slides (5-17) - customize based on dimension
+    // Default notes for dimension slides (5-17) - McKinsey-style template
     const dimensionNames = [
       '', '', '', '', '', // 0-4 already defined above
       'Medical Leave', 'Manager Preparedness', 'HR Capability', 'Insurance & Benefits', 
@@ -2388,10 +2390,10 @@ export default function ExportReportPage() {
     ];
     for (let i = 5; i <= 17; i++) {
       const dimName = dimensionNames[i] || `Dimension ${i - 4}`;
-      defaultNotes[i] = `• ${dimName}: Review element breakdown for this dimension\n• Green items = strengths to maintain and communicate\n• Blue items = actively being implemented - show momentum\n• Red gaps = opportunities, discuss feasibility and timeline\n• Connect each element to real employee experience`;
+      defaultNotes[i] = `• Start with the outcome: "This dimension determines whether employees can ___ without ___"\n• Translate the table: Protect strengths (green), accelerate in-flight (blue), close 1-2 priority gaps (red)\n• Use benchmark as calibration: "Here\'s where peers are; here\'s the realistic next step"\n• End with an action: Owner + next 30-60 day step + what "done" looks like`;
     }
     
-    const defaultNote = defaultNotes[slideNum] || '• Review the content on this slide\n• Connect to the organization\'s specific context\n• Invite questions and discussion';
+    const defaultNote = defaultNotes[slideNum] || '• Review the content and connect to the organization\'s specific context\n• Invite questions and discussion from the audience';
     
     // Use postMessage to update the popup window - more reliable than direct DOM manipulation
     if (!isInitialRender) {
@@ -2401,8 +2403,9 @@ export default function ExportReportPage() {
           slideNum: slideNum,
           slideName: slideName,
           defaultNote: defaultNote,
-          customNote: customNote
-        }, '*');
+          customNote: customNote,
+          laserActive: laserPointer
+        }, window.location.origin);
         return;
       } catch (e) {
         console.log('postMessage failed, doing full render');
@@ -2419,7 +2422,7 @@ export default function ExportReportPage() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Presenter Notes - ${slideName}</title>
+        <title>PRIVATE - Presenter Notes - ${slideName}</title>
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body { 
@@ -2468,19 +2471,26 @@ export default function ExportReportPage() {
             display: flex; align-items: flex-start; gap: 8px;
           }
           .tip svg { flex-shrink: 0; margin-top: 2px; }
+          .private-banner { background: #dc2626; color: white; text-align: center; padding: 8px 16px; font-weight: 700; font-size: 12px; letter-spacing: 1px; margin: -20px -20px 16px -20px; }
         </style>
       </head>
       <body>
         <div id="currentSlideData" data-slide="${slideNum}"></div>
+        
+        <!-- PRIVATE WARNING BANNER -->
+        <div class="private-banner">
+          🔒 PRIVATE — DO NOT SHARE THIS WINDOW
+        </div>
+        
         <div class="header">
           <h1 id="slideNumber">SLIDE ${slideNum + 1} OF 35</h1>
           <h2 id="slideName">${slideName}</h2>
         </div>
         
         <div class="slide-nav">
-          <button onclick="window.opener.postMessage({type:'prevSlide'}, '*')">← Previous</button>
-          <button onclick="window.opener.postMessage({type:'nextSlide'}, '*')">Next →</button>
-          <button id="laserBtn" onclick="window.opener.postMessage({type:'toggleLaser'}, '*'); this.classList.toggle('active');" style="margin-left: auto; background: #334155;">
+          <button onclick="window.opener && window.opener.postMessage({type:'prevSlide'}, window.opener.location.origin)">← Previous</button>
+          <button onclick="window.opener && window.opener.postMessage({type:'nextSlide'}, window.opener.location.origin)">Next →</button>
+          <button id="laserBtn" onclick="window.opener && window.opener.postMessage({type:'toggleLaser'}, window.opener.location.origin); this.classList.toggle('active');" style="margin-left: auto; background: #334155;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
               <circle cx="12" cy="12" r="3"/>
               <path d="M12 2v2m0 16v2M2 12h2m16 0h2m-4.2-5.8l1.4-1.4M4.8 19.2l1.4-1.4m0-11.6L4.8 4.8m14.4 14.4l-1.4-1.4"/>
@@ -2518,15 +2528,26 @@ export default function ExportReportPage() {
           let saveTimeout;
           const textarea = document.getElementById('customNotes');
           const saveStatus = document.getElementById('saveStatus');
+          const expectedOrigin = window.opener ? window.opener.location.origin : '*';
           
           // Listen for slide updates from main window
           window.addEventListener('message', (event) => {
+            // Security: verify origin
+            if (expectedOrigin !== '*' && event.origin !== expectedOrigin) return;
+            
             if (event.data && event.data.type === 'updateSlide') {
               document.getElementById('slideNumber').textContent = 'SLIDE ' + (event.data.slideNum + 1) + ' OF 35';
               document.getElementById('slideName').textContent = event.data.slideName;
               document.getElementById('defaultNotesContent').textContent = event.data.defaultNote;
               document.getElementById('currentSlideData').setAttribute('data-slide', String(event.data.slideNum));
-              document.title = 'Presenter Notes - ' + event.data.slideName;
+              document.title = 'PRIVATE - Presenter Notes - ' + event.data.slideName;
+              // Sync laser button state
+              const laserBtn = document.getElementById('laserBtn');
+              if (event.data.laserActive) {
+                laserBtn.classList.add('active');
+              } else {
+                laserBtn.classList.remove('active');
+              }
               // Only update textarea if user isn't actively typing
               if (document.activeElement !== textarea) {
                 textarea.value = event.data.customNote || '';
@@ -2539,15 +2560,15 @@ export default function ExportReportPage() {
             if (document.activeElement === textarea) return; // Don't capture if typing
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
-              window.opener && window.opener.postMessage({ type: 'prevSlide' }, '*');
+              window.opener && window.opener.postMessage({ type: 'prevSlide' }, expectedOrigin);
             }
             if (e.key === 'ArrowRight' || e.key === ' ') {
               e.preventDefault();
-              window.opener && window.opener.postMessage({ type: 'nextSlide' }, '*');
+              window.opener && window.opener.postMessage({ type: 'nextSlide' }, expectedOrigin);
             }
             if (e.key === 'l' || e.key === 'L') {
               e.preventDefault();
-              window.opener && window.opener.postMessage({ type: 'toggleLaser' }, '*');
+              window.opener && window.opener.postMessage({ type: 'toggleLaser' }, expectedOrigin);
               document.getElementById('laserBtn').classList.toggle('active');
             }
           });
@@ -2560,7 +2581,7 @@ export default function ExportReportPage() {
                 type: 'saveNote',
                 slideNum: parseInt(currentSlide),
                 note: textarea.value
-              }, '*');
+              }, expectedOrigin);
               saveStatus.style.display = 'flex';
               setTimeout(() => saveStatus.style.display = 'none', 2000);
             }, 500);
