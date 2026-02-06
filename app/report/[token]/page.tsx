@@ -2090,10 +2090,10 @@ export default function InteractiveReportPage() {
         setCurrentSlide(0);
       } else if ((e.key === 'ArrowRight' && e.metaKey) || (e.key === 'ArrowDown' && e.metaKey) || e.key === 'End') {
         e.preventDefault();
-        setCurrentSlide(34);
+        setCurrentSlide(34 + additionalAnalyzedDims.length);
       } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === '>' || e.key === '.' || e.key === 'n' || e.key === 'N') {
         e.preventDefault();
-        setCurrentSlide(prev => Math.min(prev + 1, 34));
+        setCurrentSlide(prev => Math.min(prev + 1, 34 + additionalAnalyzedDims.length));
       } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'Delete' || e.key === '<' || e.key === ',' || e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         setCurrentSlide(prev => Math.max(prev - 1, 0));
@@ -2298,7 +2298,7 @@ export default function InteractiveReportPage() {
       } else if (event.data.type === 'prevSlide') {
         setCurrentSlide(prev => Math.max(0, prev - 1));
       } else if (event.data.type === 'nextSlide') {
-        setCurrentSlide(prev => Math.min(34, prev + 1));
+        setCurrentSlide(prev => Math.min(34 + additionalAnalyzedDims.length, prev + 1));
       } else if (event.data.type === 'toggleLaser') {
         setLaserPointer(prev => !prev);
       }
@@ -4252,7 +4252,9 @@ export default function InteractiveReportPage() {
                               </g>
                             ))}
                             {benchClusters.map((cluster, ci) => {
+                              // Skip D4 callout since it doesn't overlap enough to warrant showing
                               const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
+                              if (hiddenDims.length === 0) return null;
                               return hiddenDims.map((dim, i) => {
                                 const cx = cluster.x + 28 + i * 24;
                                 const cy = cluster.y - 22;
@@ -6114,7 +6116,7 @@ export default function InteractiveReportPage() {
           {whatIfModal && elementDetails && (
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }}>
               <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-                {/* Header */}
+                {/* Header - Slate color to match composite */}
                 <div className="px-8 py-5 bg-slate-700 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-60"></div>
                   <div className="relative flex items-start justify-between">
@@ -6137,9 +6139,11 @@ export default function InteractiveReportPage() {
                 </div>
                 
                 {(() => {
+                  // Show placeholder if no dimension selected
                   if (whatIfDimension === null) {
                     return (
                       <>
+                        {/* Dimension Selector */}
                         <div className="px-8 py-3 bg-slate-50 border-b border-slate-200">
                           <div className="flex items-center gap-4">
                             <label className="text-sm font-semibold text-slate-700">Dimension:</label>
@@ -6155,6 +6159,8 @@ export default function InteractiveReportPage() {
                             </select>
                           </div>
                         </div>
+                        
+                        {/* Empty State */}
                         <div className="px-8 py-16 flex flex-col items-center justify-center text-center">
                           <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
                             <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -6164,8 +6170,15 @@ export default function InteractiveReportPage() {
                           <h4 className="text-lg font-semibold text-slate-700 mb-2">Select a Dimension</h4>
                           <p className="text-sm text-slate-500 max-w-sm">Choose a dimension from the dropdown above to explore how program changes would impact your dimension score.</p>
                         </div>
+                        
+                        {/* Footer */}
                         <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
-                          <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }} className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors">Close</button>
+                          <button 
+                            onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }}
+                            className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
+                          >
+                            Close
+                          </button>
                         </div>
                       </>
                     );
@@ -6176,40 +6189,60 @@ export default function InteractiveReportPage() {
                   const dimWeight = DEFAULT_DIMENSION_WEIGHTS[whatIfDimension] || 0;
                   const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
                   const dimWeightPct = Math.round((dimWeight / totalWeight) * 100);
+                  
+                  // Use the ACTUAL dimension score as baseline (includes geo multipliers, follow-up blending, etc.)
                   const actualDimScore = dimInfo?.score || 0;
                   
-                  const STATUS_POINTS: Record<string, number> = { 'currently': 5, 'planning': 3, 'assessing': 2, 'not_able': 0 };
+                  // Point values for each status
+                  const STATUS_POINTS: Record<string, number> = {
+                    'currently': 5,
+                    'planning': 3,
+                    'assessing': 2,
+                    'not_able': 0
+                  };
                   
                   const getStatusFromElement = (el: any) => {
                     if (el.isStrength) return 'currently';
                     if (el.isPlanning) return 'planning';
                     if (el.isAssessing) return 'assessing';
+                    if (el.isUnsure) return 'unsure';
                     return 'not_able';
                   };
                   
-                  const currentRawPoints = dimElements.reduce((sum: number, el: any) => sum + STATUS_POINTS[getStatusFromElement(el)], 0);
+                  // Calculate current raw points from elements
+                  const currentRawPoints = dimElements.reduce((sum: number, el: any) => {
+                    const status = getStatusFromElement(el);
+                    // Unsure items are scored as 0 (like not_able) for calculation purposes
+                    return sum + (STATUS_POINTS[status] ?? 0);
+                  }, 0);
                   const maxPoints = dimElements.length * 5;
                   
+                  // Calculate projected points with changes - only count elements where user made a selection
                   const getNewPoints = (el: any) => {
                     const newStatus = whatIfChanges[el.name];
                     if (newStatus) return STATUS_POINTS[newStatus];
-                    return STATUS_POINTS[getStatusFromElement(el)];
+                    // If no selection made, use current status (no change)
+                    const currentStatus = getStatusFromElement(el);
+                    return STATUS_POINTS[currentStatus] ?? 0;
                   };
                   
                   const projectedRawPoints = dimElements.reduce((sum: number, el: any) => sum + getNewPoints(el), 0);
                   
                   // Calculate projected dimension score directly from raw points
+                  // This gives accurate results: if all elements are Offering, score = 100
                   const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
                   const currentRawScore = maxPoints > 0 ? Math.round((currentRawPoints / maxPoints) * 100) : 0;
                   const rawScoreChange = projectedRawScore - currentRawScore;
                   
                   // For dimensions without follow-ups, projected = raw score
-                  // For dimensions with follow-ups (D1, D3, D12, D13), show change relative to actual
+                  // For dimensions with follow-ups (D1, D3, D12, D13), the actual score may differ from raw
+                  // In that case, we show the change relative to current actual score
                   const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
                   const projectedDimScore = hasFollowUps 
                     ? Math.min(100, Math.max(0, actualDimScore + rawScoreChange))
                     : projectedRawScore;
                   
+                  // Composite impact based on score change
                   const actualScoreChange = projectedDimScore - actualDimScore;
                   const compositeImpact = Math.round((actualScoreChange * dimWeightPct / 100) * 0.9 * 10) / 10;
                   const currentComposite = companyScores?.compositeScore || 0;
@@ -6240,16 +6273,26 @@ export default function InteractiveReportPage() {
                   
                   return (
                     <>
+                      {/* Dimension Selector */}
                       <div className="px-8 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <label className="text-sm font-semibold text-slate-700">Dimension:</label>
-                          <select value={whatIfDimension || ''} onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); }} className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white min-w-[320px]">
+                          <select 
+                            value={whatIfDimension || ''} 
+                            onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); }}
+                            className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
+                          >
                             <option value="" disabled>Select a dimension...</option>
-                            {dimensionAnalysis.map((d: any) => (<option key={d.dim} value={d.dim}>D{d.dim}: {d.name} (Score: {d.score})</option>))}
+                            {dimensionAnalysis.map((d: any) => (
+                              <option key={d.dim} value={d.dim}>D{d.dim}: {d.name} (Score: {d.score})</option>
+                            ))}
                           </select>
                         </div>
                         {hasChanges && (
-                          <button onClick={() => setWhatIfChanges({})} className="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-2 px-3 py-1.5 hover:bg-violet-50 rounded-lg">
+                          <button 
+                            onClick={() => setWhatIfChanges({})}
+                            className="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-2 px-3 py-1.5 hover:bg-violet-50 rounded-lg transition-colors"
+                          >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                             Reset
                           </button>
@@ -6296,6 +6339,7 @@ export default function InteractiveReportPage() {
                         </div>
                       </div>
                       
+                      {/* Column Headers */}
                       <div className="px-8 py-2 bg-slate-100 border-b border-slate-200 flex items-center">
                         <div className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</div>
                         <div className="w-32 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Currently</div>
@@ -6303,6 +6347,7 @@ export default function InteractiveReportPage() {
                         <div className="w-40 text-center text-xs font-semibold text-violet-600 uppercase tracking-wider">What If?</div>
                       </div>
                       
+                      {/* Elements List - Compact */}
                       <div className="px-8 overflow-y-auto max-h-[calc(92vh-400px)]">
                         <div className="divide-y divide-slate-100">
                           {dimElements.map((el: any, idx: number) => {
@@ -6314,14 +6359,54 @@ export default function InteractiveReportPage() {
                             const isImprovement = newPts > currentPts;
                             
                             return (
-                              <div key={idx} className={`flex items-center py-2.5 transition-colors ${hasChange ? (isImprovement ? 'bg-emerald-50' : 'bg-red-50') : 'hover:bg-slate-50'}`}>
-                                <div className="flex-1 min-w-0 pr-4"><p className="text-sm text-slate-700 truncate">{el.name}</p></div>
-                                <div className={`w-32 text-center text-sm ${currentStatus === 'currently' ? 'text-emerald-600 font-medium' : currentStatus === 'planning' ? 'text-blue-600' : currentStatus === 'assessing' ? 'text-amber-600' : 'text-slate-400'}`}>{getStatusLabel(currentStatus)}</div>
-                                <div className="w-8 flex justify-center"><svg className={`w-4 h-4 ${hasChange ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></div>
+                              <div key={idx} className={`flex items-center py-2.5 transition-colors ${
+                                hasChange 
+                                  ? isImprovement 
+                                    ? 'bg-emerald-50' 
+                                    : 'bg-red-50'
+                                  : 'hover:bg-slate-50'
+                              }`}>
+                                <div className="flex-1 min-w-0 pr-4">
+                                  <p className="text-sm text-slate-700 truncate">{el.name}</p>
+                                </div>
+                                
+                                <div className={`w-32 text-center text-sm ${
+                                  currentStatus === 'currently' ? 'text-emerald-600 font-medium' :
+                                  currentStatus === 'planning' ? 'text-blue-600' :
+                                  currentStatus === 'assessing' ? 'text-amber-600' :
+                                  'text-slate-400'
+                                }`}>
+                                  {getStatusLabel(currentStatus)}
+                                </div>
+                                
+                                <div className="w-8 flex justify-center">
+                                  <svg className={`w-4 h-4 ${hasChange ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                  </svg>
+                                </div>
+                                
                                 <div className="w-40">
-                                  <select value={simulatedStatus || ''} onChange={(e) => { const v = e.target.value; if (v === '' || v === currentStatus) { const { [el.name]: _, ...rest } = whatIfChanges; setWhatIfChanges(rest); } else { setWhatIfChanges({ ...whatIfChanges, [el.name]: v }); }}} className={`w-full text-sm px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 ${hasChange ? 'border-violet-400 bg-violet-100 text-violet-800 font-medium' : 'border-slate-200 bg-white text-slate-600'}`}>
+                                  <select
+                                    value={simulatedStatus || ''}
+                                    onChange={(e) => {
+                                      const newVal = e.target.value;
+                                      if (newVal === '' || newVal === currentStatus) {
+                                        const { [el.name]: _, ...rest } = whatIfChanges;
+                                        setWhatIfChanges(rest);
+                                      } else {
+                                        setWhatIfChanges({ ...whatIfChanges, [el.name]: newVal });
+                                      }
+                                    }}
+                                    className={`w-full text-sm px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 ${
+                                      hasChange 
+                                        ? 'border-violet-400 bg-violet-100 text-violet-800 font-medium' 
+                                        : 'border-slate-200 bg-white text-slate-600'
+                                    }`}
+                                  >
                                     <option value="">—</option>
-                                    {statusOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.label}</option>))}
+                                    {statusOptions.map(opt => (
+                                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
                                   </select>
                                 </div>
                               </div>
@@ -6330,9 +6415,17 @@ export default function InteractiveReportPage() {
                         </div>
                       </div>
                       
+                      {/* Footer */}
                       <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                        <p className="text-xs text-slate-400">{hasChanges ? `${changesCount} change${changesCount !== 1 ? 's' : ''} simulated` : 'Select elements above to simulate changes'}</p>
-                        <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }} className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors">Close</button>
+                        <p className="text-xs text-slate-400">
+                          {hasChanges ? `${changesCount} change${changesCount !== 1 ? 's' : ''} simulated` : 'Select elements above to simulate changes'}
+                        </p>
+                        <button 
+                          onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }}
+                          className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
+                        >
+                          Close
+                        </button>
                       </div>
                     </>
                   );
@@ -6340,6 +6433,7 @@ export default function InteractiveReportPage() {
               </div>
             </div>
           )}
+          
 
         {/* Back to Top Floating Button */}
         {showBackToTop && !presentationMode && (
@@ -7036,6 +7130,7 @@ export default function InteractiveReportPage() {
                                   x: (d.score / 100) * PLOT_WIDTH,
                                   y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
                                 }));
+                                // Detect clusters
                                 const visited = new Set<number>();
                                 const clusters: { dims: number[]; x: number; y: number }[] = [];
                                 for (let i = 0; i < positions.length; i++) {
@@ -8605,7 +8700,7 @@ export default function InteractiveReportPage() {
                   Previous
                 </button>
                 <button 
-                  onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 34))}
+                  onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 34 + additionalAnalyzedDims.length))}
                   disabled={currentSlide === 34 + additionalAnalyzedDims.length}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                   title="Next slide (→)"
