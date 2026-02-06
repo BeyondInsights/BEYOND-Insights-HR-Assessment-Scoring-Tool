@@ -2239,6 +2239,8 @@ export default function ExportReportPage() {
   const [savingEdits, setSavingEdits] = useState(false);
   const [showInteractiveLinkModal, setShowInteractiveLinkModal] = useState(false);
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
+  const [additionalAnalyzedDims, setAdditionalAnalyzedDims] = useState<number[]>([]);
+  const [showDimSelector, setShowDimSelector] = useState(false);
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
   const [customDimRoadmaps, setCustomDimRoadmaps] = useState<Record<number, { 
@@ -6196,6 +6198,201 @@ export default function ExportReportPage() {
             </div>
           </div>
           
+          {/* Additional Analyzed Dimensions */}
+          {additionalAnalyzedDims.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1200px] mx-auto">
+              <div className="px-10 py-4 bg-slate-600 border-b border-slate-500">
+                <h3 className="font-bold text-white text-lg">Additional Dimension Analysis</h3>
+              </div>
+              <div className="divide-y-4 divide-slate-100">
+                {additionalAnalyzedDims.map((dimNum) => {
+                  const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
+                  if (!d) return null;
+                  const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
+                  const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
+                  const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
+                  const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
+                  const tierColor = getScoreColor(d.score);
+                  
+                  return (
+                    <div key={d.dim} className="border-l-4 relative" style={{ borderLeftColor: tierColor }}>
+                      {/* Remove button */}
+                      <button 
+                        onClick={() => setAdditionalAnalyzedDims(prev => prev.filter(dim => dim !== dimNum))}
+                        className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-200 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition-colors z-10"
+                        title="Remove this analysis"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                      
+                      {/* Dimension Header */}
+                      <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
+                            {d.dim}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-xl font-bold text-white">{d.name}</h4>
+                            <div className="flex items-center gap-4 mt-1">
+                              <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                              <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
+                              <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                              {d.benchmark !== null && (
+                                <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Benchmark Narrative */}
+                      {benchmarkNarrative && (
+                        <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
+                          <p className="text-base text-slate-600">{benchmarkNarrative}</p>
+                        </div>
+                      )}
+                      
+                      <div className="px-10 py-6">
+                        {/* Current State - 3 columns */}
+                        <div className="grid grid-cols-3 gap-6 mb-6">
+                          {/* Improvement Opportunities */}
+                          <div className="border border-red-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-red-50 border-b border-red-200">
+                              <h5 className="font-bold text-red-800 text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                            </div>
+                            <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                              {d.needsAttention?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.needsAttention.map((item: any, i: number) => (
+                                    <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                                      <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'}`}></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-base text-slate-400 italic">No improvement opportunities identified</p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* In Development */}
+                          <div className="border border-blue-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
+                              <h5 className="font-bold text-blue-800 text-base">In Development ({d.planning?.length || 0})</h5>
+                            </div>
+                            <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                              {d.planning?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.planning.map((item: any, i: number) => (
+                                    <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-base text-slate-400 italic">No initiatives in development</p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Current Strengths */}
+                          <div className="border border-emerald-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
+                              <h5 className="font-bold text-emerald-800 text-base">Current Strengths ({d.strengths?.length || 0})</h5>
+                            </div>
+                            <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                              {d.strengths?.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {d.strengths.map((item: any, i: number) => (
+                                    <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-emerald-500 mt-2 flex-shrink-0"></span>
+                                      <span>{item.name}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-base text-slate-400 italic">No strengths identified</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Strategic Insight & CAC Help */}
+                        <div className="grid grid-cols-2 gap-6">
+                          <div className="border border-violet-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-violet-50 border-b border-violet-200">
+                              <h5 className="font-bold text-violet-800 text-base">Strategic Insight</h5>
+                            </div>
+                            <div className="p-4 bg-white">
+                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
+                            </div>
+                          </div>
+                          <div className="border border-orange-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-orange-50 border-b border-orange-200">
+                              <h5 className="font-bold text-orange-700 text-base">How Cancer and Careers Can Help</h5>
+                            </div>
+                            <div className="p-4 bg-white">
+                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
+          {/* Analyze Another Dimension Button */}
+          <div className="max-w-[1200px] mx-auto mb-8">
+            <div className="relative">
+              <button
+                onClick={() => setShowDimSelector(!showDimSelector)}
+                className="w-full px-6 py-4 bg-white border-2 border-dashed border-slate-300 hover:border-slate-400 rounded-xl text-slate-600 hover:text-slate-800 font-medium transition-all flex items-center justify-center gap-3"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                Analyze Another Dimension
+              </button>
+              
+              {showDimSelector && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 p-4 z-50">
+                  <p className="text-sm text-slate-500 mb-3">Select a dimension to analyze:</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {allDimensionsByScore
+                      .filter(d => !allDimensionsByScore.slice(0, 4).some(top => top.dim === d.dim))
+                      .filter(d => !additionalAnalyzedDims.includes(d.dim))
+                      .map(d => (
+                        <button
+                          key={d.dim}
+                          onClick={() => {
+                            setAdditionalAnalyzedDims(prev => [...prev, d.dim]);
+                            setShowDimSelector(false);
+                          }}
+                          className="px-3 py-2 text-sm rounded-lg border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-colors text-left"
+                        >
+                          <span className="font-semibold text-slate-700">D{d.dim}</span>
+                          <span className="text-slate-500 ml-1">- {d.name}</span>
+                          <span className="block text-xs text-slate-400 mt-0.5">Score: {d.score}</span>
+                        </button>
+                      ))}
+                  </div>
+                  {allDimensionsByScore.filter(d => !allDimensionsByScore.slice(0, 4).some(top => top.dim === d.dim)).filter(d => !additionalAnalyzedDims.includes(d.dim)).length === 0 && (
+                    <p className="text-sm text-slate-400 italic text-center py-4">All dimensions have been analyzed</p>
+                  )}
+                  <button
+                    onClick={() => setShowDimSelector(false)}
+                    className="mt-3 w-full px-3 py-2 text-sm text-slate-500 hover:text-slate-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
           <div id="implementation-roadmap" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
@@ -6832,8 +7029,7 @@ export default function ExportReportPage() {
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
             <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4">
               <div className="flex items-center gap-3 mb-4">
-                <Image src="/bi-logo.png" alt="BEYOND Insights" width={32} height={32} className="object-contain" />
-                <h3 className="font-bold text-slate-900 text-lg">BEYOND Insights</h3>
+                <Image src="/bi-logo.png" alt="BEYOND Insights" width={120} height={40} className="object-contain" />
               </div>
               <p className="text-slate-600 mb-6">{confirmModal.message}</p>
               <div className="flex justify-end gap-3">
