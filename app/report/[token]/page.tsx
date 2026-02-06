@@ -6219,13 +6219,17 @@ export default function InteractiveReportPage() {
                   const hasChanges = changesCount > 0;
                   
                   const statusOptions = [
-                    { value: 'currently', label: 'Offering' },
-                    { value: 'planning', label: 'Planning' },
-                    { value: 'assessing', label: 'Assessing' },
-                    { value: 'not_able', label: 'Not Planned' }
+                    { value: 'currently', label: 'Offering', color: 'emerald' },
+                    { value: 'planning', label: 'Planning', color: 'blue' },
+                    { value: 'assessing', label: 'Assessing', color: 'amber' },
+                    { value: 'not_able', label: 'Not Planned', color: 'slate' }
                   ];
                   
-                  const getStatusLabel = (status: string) => statusOptions.find(o => o.value === status)?.label || 'Unknown';
+                  const getStatusLabel = (status: string) => {
+                    if (status === 'unsure') return 'Needs Confirmation';
+                    const opt = statusOptions.find(o => o.value === status);
+                    return opt?.label || 'Unknown';
+                  };
                   
                   const getScoreBgColor = (score: number) => {
                     if (score >= 80) return 'from-emerald-500 to-emerald-600';
