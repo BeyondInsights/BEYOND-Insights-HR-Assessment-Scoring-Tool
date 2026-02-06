@@ -329,7 +329,7 @@ export default function Dimension6Page() {
                     Element {currentItemIndex + 1} of {D6A_ITEMS.length}
                   </span>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-sm text-gray-600 mb-1">
+                    <span className="text-sm text-gray-600 mb-1 pointer-events-none">
                       <strong>HINT:</strong> Hover over any bar to see the element name
                     </span>
                     <div className="flex gap-1">
