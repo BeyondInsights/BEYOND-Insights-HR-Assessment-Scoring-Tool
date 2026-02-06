@@ -6342,60 +6342,62 @@ export default function ExportReportPage() {
                               <h5 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Key Evidence</h5>
                             </div>
                             <div className="p-4 bg-white space-y-3">
-                              {evidence.strength && (
+                              {evidence.topStrength && (
                                 <div className="flex items-start gap-2">
-                                  <span className="text-emerald-500 mt-0.5">✓</span>
-                                  <p className="text-sm text-slate-600">
-                                    <span className="text-slate-500">Strength: </span>
-                                    <strong className="text-emerald-700">{evidence.strength.name}</strong>
-                                    {evidence.strength.benchmark && <span className="text-slate-400"> ({evidence.strength.benchmark}% of participants)</span>}
+                                  <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-emerald-600 text-sm">✓</span>
+                                  </span>
+                                  <p className="text-base text-slate-700">
+                                    <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                    <span className="text-slate-500"> ({evidence.topStrength.benchPct}% of participants)</span>
                                   </p>
                                 </div>
                               )}
-                              {evidence.gap && (
+                              {evidence.biggestGap && (
                                 <div className="flex items-start gap-2">
-                                  <span className="text-red-500 mt-0.5">✗</span>
-                                  <p className="text-sm text-slate-600">
-                                    <span className="text-slate-500">Gap: </span>
-                                    <strong className="text-red-700">{evidence.gap.name}</strong>
-                                    {evidence.gap.benchmark && <span className="text-slate-400"> ({evidence.gap.benchmark}% of participants)</span>}
+                                  <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-red-600 text-sm">✗</span>
+                                  </span>
+                                  <p className="text-base text-slate-700">
+                                    <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                    <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of participants)</span>
                                   </p>
                                 </div>
                               )}
-                              {!evidence.strength && !evidence.gap && (
-                                <p className="text-sm text-slate-400 italic">No specific evidence available</p>
+                              {!evidence.topStrength && !evidence.biggestGap && (
+                                <p className="text-base text-slate-400 italic">Assessment data available in full report</p>
                               )}
                             </div>
                           </div>
                           
                           {/* Recommended Roadmap */}
-                          <div className="border border-slate-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-                              <h5 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
+                          <div className="border border-indigo-200 rounded-xl overflow-hidden bg-indigo-50">
+                            <div className="px-4 py-3 bg-indigo-100 border-b border-indigo-200">
+                              <h5 className="font-bold text-indigo-800 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
                             </div>
-                            <div className="p-4 bg-white space-y-4">
+                            <div className="p-4 space-y-4">
                               {roadmap.quickWin && (
-                                <div className="border-l-3 border-emerald-400 pl-3">
+                                <div className="bg-white rounded-lg p-3 border border-indigo-100">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs font-bold text-white bg-emerald-500 px-2 py-0.5 rounded">QUICK WIN</span>
-                                    <span className="text-xs text-slate-400">0-60 days</span>
+                                    <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
+                                    <span className="text-sm text-slate-500">0-60 days</span>
                                   </div>
-                                  <p className="text-sm font-medium text-slate-700">{roadmap.quickWin.name}</p>
-                                  <p className="text-xs text-slate-500 mt-0.5">{roadmap.quickWin.rationale}</p>
+                                  <p className="text-base font-medium text-slate-800">{roadmap.quickWin.name}</p>
+                                  <p className="text-sm text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
                                 </div>
                               )}
-                              {roadmap.strategic && (
-                                <div className="border-l-3 border-blue-400 pl-3">
+                              {roadmap.strategicLift && (
+                                <div className="bg-white rounded-lg p-3 border border-indigo-100">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded border border-blue-300">STRATEGIC</span>
-                                    <span className="text-xs text-slate-400">60-180 days</span>
+                                    <span className="px-2 py-1 bg-violet-100 text-violet-700 text-sm font-bold rounded border border-violet-300">STRATEGIC</span>
+                                    <span className="text-sm text-slate-500">60-180 days</span>
                                   </div>
-                                  <p className="text-sm font-medium text-slate-700">{roadmap.strategic.name}</p>
-                                  <p className="text-xs text-slate-500 mt-0.5">{roadmap.strategic.rationale}</p>
+                                  <p className="text-base font-medium text-slate-800">{roadmap.strategicLift.name}</p>
+                                  <p className="text-sm text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
                                 </div>
                               )}
-                              {!roadmap.quickWin && !roadmap.strategic && (
-                                <p className="text-sm text-slate-400 italic">Continue current initiatives</p>
+                              {!roadmap.quickWin && !roadmap.strategicLift && (
+                                <p className="text-base text-slate-500 italic">Continue optimizing current programs</p>
                               )}
                             </div>
                           </div>
@@ -6408,7 +6410,7 @@ export default function ExportReportPage() {
                               <h5 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Strategic Insight</h5>
                             </div>
                             <div className="p-4 bg-white">
-                              <p className="text-sm text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
+                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
                             </div>
                           </div>
                           <div className="border border-orange-200 rounded-xl overflow-hidden bg-orange-50">
@@ -6416,7 +6418,7 @@ export default function ExportReportPage() {
                               <h5 className="font-bold text-orange-800 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
                             </div>
                             <div className="p-4">
-                              <p className="text-sm text-slate-700 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                              <p className="text-base text-slate-700 leading-relaxed">{dynamicInsight.cacHelp}</p>
                             </div>
                           </div>
                         </div>
@@ -8648,7 +8650,7 @@ export default function ExportReportPage() {
                   const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
                   const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
                   const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
-                  const roadmap = getDimRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
+                  const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
                   const tierColor = getScoreColor(d.score);
                   
                   return (
