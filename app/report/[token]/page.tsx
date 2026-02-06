@@ -2024,7 +2024,7 @@ export default function InteractiveReportPage() {
   
   // Reset edits to generated defaults
   const resetEdits = () => {
-    if (confirm('Reset all customizations to auto-generated content?')) {
+    if (confirm('Reset all customizations to insights content?')) {
       setCustomInsights({});
       setCustomExecutiveSummary('');
       setCustomPatterns([]);
@@ -3318,7 +3318,7 @@ export default function InteractiveReportPage() {
                   <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
                     <div className="p-6">
                       <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                        This report provides a comprehensive baseline of your organization's cancer support infrastructure across 
+                        This report provides a detailed baseline of your organization's cancer support infrastructure across 
                         13 dimensions. It is designed as a <strong className="text-slate-800">starting point for strategic conversations</strong>, not 
                         a one-size-fits-all prescription.
                       </p>
@@ -5027,7 +5027,7 @@ export default function InteractiveReportPage() {
             </div>
             <div className="px-12 py-10">
               <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                The following pages provide comprehensive analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
                 with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
               </p>
               <div className="grid grid-cols-2 gap-6">
@@ -6261,7 +6261,7 @@ export default function InteractiveReportPage() {
                       <div className="p-6">
                         {/* First paragraph */}
                         <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                          This report provides a comprehensive baseline of your organization's cancer support infrastructure across 
+                          This report provides a detailed baseline of your organization's cancer support infrastructure across 
                           13 dimensions. It is designed as a <strong className="text-slate-800">starting point for strategic conversations</strong>, not 
                           a one-size-fits-all prescription.
                         </p>
@@ -7319,7 +7319,7 @@ export default function InteractiveReportPage() {
                     </div>
                     <div className="px-12 py-10">
                       <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                        The following pages provide comprehensive analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
+                        The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>—those 
                         with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
                       </p>
                       <div className="grid grid-cols-2 gap-6">
