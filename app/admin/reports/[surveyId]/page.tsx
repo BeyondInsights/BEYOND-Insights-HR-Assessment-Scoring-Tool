@@ -2357,31 +2357,31 @@ export default function ExportReportPage() {
     const customNote = customNotes[noteKey] || '';
     
     const defaultNotes: Record<number, string> = {
-      0: '• Anchor the "so what": tier + score shows where you are vs what "leading" looks like\n• Preview the discussion: (1) confirm uncertain items, (2) agree top 2-3 priorities, (3) align on a 90-day plan\n• Set expectations: this is a decision tool—not a compliance checklist',
-      1: '• Credibility: built from CAC\'s lived experience + validated with HR leaders/employees\n• Design principle: measures what drives employee outcomes (not just policy existence)\n• Benchmarks + weights reflect "what matters most," not "what\'s easiest"',
-      2: '• Four-step workflow: Confirm → Prioritize → Plan → Track\n• Use "Needs confirmation" as the first unlock: scored as Not Planned until verified\n• Focus on high-weight gaps first—small changes there move the overall score fastest',
-      3: '• Call the headline: top strength + biggest gap + what it implies operationally\n• Make it concrete: "If we fix X and Y, we remove the highest-risk friction points"\n• If provisional: "We can\'t publish until confirmation items are resolved—here\'s the short list"',
-      4: '• Explain the shape: where you\'re strong vs where support breaks down\n• Prioritize by impact: high-weight + low score = first investment\n• Align on owners: which functions need to verify/implement (Benefits, HR Ops, Managers, Vendors)',
-      18: '• Decision rule: top-left is where investment buys the most impact\n• Agree the top 2-3 moves; don\'t spread effort across low-weight "nice to haves"\n• Confirm resourcing: what can be done with policy vs vendor vs training',
-      19: '• Calibrate ambition: "Are we behind peers because of policy, execution, or awareness?"\n• Use benchmark to set targets (not to chase vanity scores)\n• Identify "quick parity" vs "differentiator" investments',
-      20: '• These patterns explain root causes (operating model issues) not isolated gaps\n• Highlight 1-2 systemic constraints (e.g., comms + manager capability) and fix them once\n• Tie to employee experience: "This is where employees feel friction"',
-      21: '• Focus on the few moves that shift multiple dimensions\n• Sequence: confirm → quick wins → structural capabilities\n• Define success: what will be true in 90 days / 180 days',
-      22: '• Use it as a portfolio view: "Where are we over/under-invested?"\n• Aim for balance in the highest-weight dimensions, not symmetry across all\n• Identify which "spokes" need strengthening first',
-      23: '• Use this slide to build stakeholder buy-in\n• Translate score gaps into day-to-day reality (manager conversations, navigation, return-to-work)\n• Powerful for internal communications and leadership alignment',
-      24: '• Message: improving one tier in 2-3 high-weight dimensions is meaningful progress\n• Encourage momentum: "pick a ladder step and move it this cycle"\n• Celebrate progress, not just perfection',
-      25: '• Keep it simple: "Above benchmark = defend; below benchmark = focus"\n• Avoid overreacting to low-base elements—prioritize by weight + feasibility\n• Green = above benchmark, Red = below',
-      26: '• Use to reinforce cadence: quarterly check-in + annual reassessment\n• Celebrate gains; treat regressions as signals (not failures)\n• Set targets for next assessment cycle',
-      27: '• Translate into a checklist: confirm uncertain items + pick 3 fast wins\n• Clarify dependencies: policy vs vendor vs manager enablement\n• Green = strengths, Blue = in progress, Red = gaps',
-      28: '• Explain why some gaps matter more: weight reflects employee impact + stakeholder importance\n• Align resources to weight—this is how you improve efficiently\n• Larger segments = more impact on total score',
-      29: '• Give the exec takeaway: "what changed, what\'s pending confirmation, what\'s next"\n• Use as the "board-ready" snapshot\n• Total elements assessed, confirmation rates, overall maturity',
-      30: '• Sequence initiatives to avoid overload: confirm → quick wins → foundational capabilities\n• Assign owners + timing; define "minimum viable launch"\n• Phase 1 (0-6mo), Phase 2 (6-18mo), Phase 3 (18+mo)',
-      31: '• Frame as external credibility + internal accountability\n• Use as a comms lever once core capabilities are in place\n• 81% of cancer employees say it matters for trust; 16-18% awareness gap = opportunity',
-      32: '• Position CAC as accelerant: validation, implementation, training, comms\n• Propose next step: 30-minute working session to confirm items + prioritize\n• Resources: toolkits, training, consultations available',
-      33: '• Reassure: scoring is consistent, benchmarked, and designed for repeatability\n• Emphasize: track change over time; don\'t treat it as one-and-done\n• 13 dimensions, 147 elements, four tiers',
-      34: '• Close with a decision ask: confirm the top priorities + owners + next checkpoint date\n• Thank the audience for their engagement\n• Provide contact information for follow-up'
+      0: 'Anchor the "so what": the tier and score show where you are today versus what "leading" looks like. Preview the discussion—first confirm any uncertain items, then agree on the top 2-3 priorities, and align on a 90-day action plan. Set expectations that this is a decision tool, not a compliance checklist.',
+      1: 'Emphasize credibility: this Index was built from CAC\'s 20+ years of lived experience and validated through research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper. Benchmarks and weights reflect what stakeholders say matters most.',
+      2: 'Walk through the four-step workflow: Confirm → Prioritize → Plan → Track. Explain that "Needs confirmation" items are the first unlock—they\'re scored as Not Planned until verified. Focus attention on high-weight gaps first, since small changes there move the overall score fastest.',
+      3: 'Call the headline clearly: name the top strength, the biggest gap, and what it implies operationally. Make it concrete—"If we fix X and Y, we remove the highest-risk friction points for employees and managers." If provisional, note that publishing requires resolving confirmation items first.',
+      4: 'Explain the shape of their program: where they\'re strong versus where support breaks down. Prioritize by impact—high weight plus low score equals first investment. Align on owners: which functions need to verify or implement (Benefits, HR Ops, Managers, Vendor partners).',
+      18: 'The decision rule is simple: top-left quadrant is where investment buys the most impact. Agree on the top 2-3 moves and don\'t spread effort across low-weight "nice to haves." Confirm resourcing: what can be done through policy changes versus vendor partnerships versus training.',
+      19: 'Use this to calibrate ambition. Ask: "Are we behind peers because of policy gaps, execution issues, or awareness problems?" Use benchmarks to set realistic targets, not to chase vanity scores. Distinguish between "quick parity" moves and true "differentiator" investments.',
+      20: 'These patterns explain root causes—operating model issues, not isolated gaps. Highlight 1-2 systemic constraints (like communications plus manager capability) that can be fixed once to unlock multiple improvements. Tie each pattern to where employees actually feel friction.',
+      21: 'Focus on the few moves that shift multiple dimensions at once. Sequence the work: confirm items first, then quick wins, then structural capabilities. Define what success looks like in 90 days and 180 days.',
+      22: 'Use this as a portfolio view: "Where are we over-invested versus under-invested?" Aim for balance in the highest-weight dimensions rather than perfect symmetry across all. Identify which "spokes" need strengthening first.',
+      23: 'This slide builds stakeholder buy-in by showing real employee impact. Translate score gaps into day-to-day reality—manager conversations, navigating treatment, return-to-work experiences. These quotes are powerful for internal communications and leadership alignment.',
+      24: 'The message here: improving by one tier in 2-3 high-weight dimensions represents meaningful progress. Encourage momentum—"pick a ladder step and move it this cycle." Celebrate progress, not just perfection.',
+      25: 'Keep the takeaway simple: above benchmark means defend and maintain; below benchmark means focus and improve. Avoid overreacting to low-base elements—prioritize by weight and feasibility instead.',
+      26: 'Use this to reinforce the cadence: quarterly check-ins plus annual reassessment. Celebrate gains and treat any regressions as signals to investigate, not failures. Set specific targets for the next assessment cycle.',
+      27: 'Translate this into an actionable checklist: confirm the uncertain items and pick 3 fast wins to pursue. Clarify dependencies for each item—does it require policy change, vendor coordination, or manager enablement?',
+      28: 'Explain why some gaps matter more than others: weight reflects both employee impact and stakeholder importance. Aligning resources to weight is how you improve efficiently. The larger segments have more impact on the total score.',
+      29: 'Give the executive takeaway: what changed, what\'s pending confirmation, and what comes next. This slide works as the "board-ready" snapshot with total elements assessed, confirmation rates, and overall maturity indicators.',
+      30: 'Sequence initiatives to avoid overload: confirm items first, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define "minimum viable launch" for the first phase.',
+      31: 'Frame the Pledge as external credibility plus internal accountability. It\'s a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% are aware their employer signed—that gap is an opportunity.',
+      32: 'Position CAC as an accelerant: we provide validation, implementation support, training, and communications resources. Propose a concrete next step—a 30-minute working session to confirm items and prioritize actions.',
+      33: 'Reassure the audience: scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.',
+      34: 'Close with a decision ask: confirm the top priorities, assign owners, and set the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.'
     };
     
-    // Default notes for dimension slides (5-17) - McKinsey-style template
+    // Default notes for dimension slides (5-17) - flowing prose template
     const dimensionNames = [
       '', '', '', '', '', // 0-4 already defined above
       'Medical Leave', 'Manager Preparedness', 'HR Capability', 'Insurance & Benefits', 
@@ -2390,10 +2390,10 @@ export default function ExportReportPage() {
     ];
     for (let i = 5; i <= 17; i++) {
       const dimName = dimensionNames[i] || `Dimension ${i - 4}`;
-      defaultNotes[i] = `• Start with the outcome: "This dimension determines whether employees can ___ without ___"\n• Translate the table: Protect strengths (green), accelerate in-flight (blue), close 1-2 priority gaps (red)\n• Use benchmark as calibration: "Here\'s where peers are; here\'s the realistic next step"\n• End with an action: Owner + next 30-60 day step + what "done" looks like`;
+      defaultNotes[i] = `Start with the outcome this dimension determines—what employees can or cannot do when support is present or absent. Walk through the element breakdown: green items are strengths to protect and communicate, blue items show momentum on initiatives in progress, and red gaps are the opportunities to discuss. Use the benchmark to calibrate where peers typically are and what a realistic next step looks like. End with a clear action: who owns this, what\'s the 30-60 day next step, and what does "done" look like.`;
     }
     
-    const defaultNote = defaultNotes[slideNum] || '• Review the content and connect to the organization\'s specific context\n• Invite questions and discussion from the audience';
+    const defaultNote = defaultNotes[slideNum] || 'Review the content and connect it to the organization\'s specific context. Invite questions and discussion from the audience.';
     
     // Use postMessage to update the popup window - more reliable than direct DOM manipulation
     if (!isInitialRender) {
@@ -2598,7 +2598,7 @@ export default function ExportReportPage() {
     if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed && presentationMode) {
       renderPresenterNotesWindow(presenterNotesWindowRef.current, currentSlide, false);
     }
-  }, [currentSlide, presentationMode, customNotes, presenterNotesOpen]);
+  }, [currentSlide, presentationMode, customNotes, presenterNotesOpen, laserPointer]);
   
   // Listen for messages from presenter notes window
   useEffect(() => {
