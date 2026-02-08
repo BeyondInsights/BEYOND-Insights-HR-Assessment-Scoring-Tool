@@ -6297,9 +6297,28 @@ export default function ExportReportPage() {
                         <p className="text-slate-400 text-sm">Connecting the dots across your assessment</p>
                       </div>
                     </div>
-                    <p className="text-slate-300 text-sm leading-relaxed max-w-2xl ml-[52px]">
-                      These patterns reveal where <span className="text-white font-medium">one weaker area may be limiting the impact</span> of stronger programs elsewhere. These are the hidden bottlenecks that often explain why good investments underperform.
-                    </p>
+                    <div className="ml-[52px] flex items-center gap-6">
+                      <p className="text-slate-300 text-sm leading-relaxed max-w-2xl">
+                        These patterns reveal where <span className="text-white font-medium">one weaker area may be limiting the impact</span> of stronger programs elsewhere. These are the hidden bottlenecks that often explain why good investments underperform.
+                      </p>
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="10" cy="10" r="6" />
+                            <path d="M14.5 14.5L20 20" strokeLinecap="round" />
+                          </svg>
+                          <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns.length}</span> bottlenecks identified</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="8" />
+                            <circle cx="12" cy="12" r="4" />
+                            <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+                          </svg>
+                          <span className="text-slate-300 text-sm">Each with <span className="text-white font-semibold">actionable recommendation</span></span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <button 
                     onClick={() => setInfoModal('crossDimensional')}
@@ -6308,36 +6327,6 @@ export default function ExportReportPage() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     Learn More
                   </button>
-                </div>
-                {/* Quick context bar */}
-                <div className="relative mt-4 pt-4 border-t border-white/10">
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">
-                        {/* Custom magnifying glass with nodes icon */}
-                        <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="10" cy="10" r="6" />
-                          <path d="M14.5 14.5L20 20" strokeLinecap="round" />
-                          <circle cx="8" cy="9" r="1.5" fill="currentColor" stroke="none" />
-                          <circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none" />
-                          <path d="M8.5 9.5L11.5 10.5" strokeWidth="1" />
-                        </svg>
-                      </div>
-                      <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns.length}</span> bottleneck{patterns.length !== 1 ? 's' : ''} identified</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">
-                        {/* Custom target/bullseye with arrow icon */}
-                        <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="8" />
-                          <circle cx="12" cy="12" r="4" />
-                          <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
-                          <path d="M12 2v4M22 12h-4" strokeLinecap="round" />
-                        </svg>
-                      </div>
-                      <span className="text-slate-300 text-sm">Each with <span className="text-white font-semibold">actionable recommendation</span></span>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -6532,9 +6521,10 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   
-                  {/* Year 1 Roadmap Summary */}
-                  <div className="mb-6 p-5 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
-                    <div className="flex items-center justify-between">
+                  {/* Year 1 Roadmap Summary - Two separate cards */}
+                  <div className="mb-6 grid grid-cols-2 gap-4">
+                    {/* Roadmap Card */}
+                    <div className="p-5 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center">
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
@@ -6544,25 +6534,24 @@ export default function ExportReportPage() {
                           <p className="text-lg text-slate-800">Advance <span className="font-bold">{totalElementsY1}</span> support elements across <span className="font-bold">5</span> priority dimensions</p>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center gap-6">
-                        <div className="text-right">
-                          <p className="text-xs text-slate-500 uppercase font-semibold">Impact on Overall Composite Score</p>
+                    </div>
+                    
+                    {/* Impact Card */}
+                    <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                      <p className="text-xs text-slate-500 uppercase font-semibold mb-3 text-center">Impact on Overall Composite Score</p>
+                      <div className="flex items-center justify-center gap-6">
+                        <div className="text-center">
+                          <p className="text-xs text-slate-400 uppercase mb-1">Current</p>
+                          <p className="text-2xl font-bold text-slate-500">{compositeScore || '--'}</p>
                         </div>
-                        <div className="flex items-center gap-3 px-5 py-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-                          <div className="text-center">
-                            <p className="text-xs text-slate-400 uppercase">Current</p>
-                            <p className="text-2xl font-bold text-slate-500">{compositeScore || '--'}</p>
-                          </div>
-                          <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                          <div className="text-center">
-                            <p className="text-xs text-slate-400 uppercase">Year 1</p>
-                            <p className="text-2xl font-bold text-slate-800">{projectedCompositeY1}</p>
-                          </div>
-                          <div className="pl-3 border-l border-slate-200 text-center">
-                            <p className="text-xs text-slate-400 uppercase">Gain</p>
-                            <p className="text-2xl font-bold text-amber-600">+{totalGainY1.toFixed(1)}</p>
-                          </div>
+                        <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        <div className="text-center">
+                          <p className="text-xs text-slate-400 uppercase mb-1">Year 1</p>
+                          <p className="text-2xl font-bold text-slate-800">{projectedCompositeY1}</p>
+                        </div>
+                        <div className="pl-4 border-l border-slate-200 text-center">
+                          <p className="text-xs text-slate-400 uppercase mb-1">Gain</p>
+                          <p className="text-2xl font-bold text-amber-600">+{totalGainY1.toFixed(1)}</p>
                         </div>
                       </div>
                     </div>
@@ -6584,9 +6573,9 @@ export default function ExportReportPage() {
                             <span className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold text-white">{idx + 1}</span>
                             <h4 className="font-semibold text-white text-lg">{r.dimName}</h4>
                           </div>
-                          <div className="bg-white/20 px-4 py-1.5 rounded-lg">
-                            <span className="text-white/80 text-xs">Contribution to Projected Composite Score:</span>
-                            <span className="text-white text-base font-bold ml-2">+{r.potentialGain12}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-white/70 text-sm">Contribution to Projected Composite Score:</span>
+                            <span className="text-white text-lg font-semibold">+{r.potentialGain12}</span>
                           </div>
                         </div>
                         
@@ -6637,21 +6626,25 @@ export default function ExportReportPage() {
                               )}
                             </div>
                             
-                            {/* DIMENSION IMPACT - narrower but well-styled */}
-                            <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-4 flex flex-col justify-center">
-                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-3">Dimension Score</p>
-                              <div className="flex items-center justify-center gap-2">
-                                <div className="text-center">
-                                  <p className="text-xl font-bold text-slate-400">{r.currentScore}</p>
-                                  <p className="text-[10px] text-slate-400 uppercase">Current</p>
+                            {/* DIMENSION SCORE - better styled */}
+                            <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-4">
+                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-4">Dimension Score</p>
+                              <div className="text-center">
+                                <div className="flex items-baseline justify-center gap-3 mb-2">
+                                  <div>
+                                    <span className="text-2xl font-bold text-slate-400">{r.currentScore}</span>
+                                    <p className="text-[10px] text-slate-400 uppercase mt-0.5">Current</p>
+                                  </div>
+                                  <span className="text-slate-300 text-lg">→</span>
+                                  <div>
+                                    <span className="text-2xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                    <p className="text-[10px] text-slate-400 uppercase mt-0.5">Year 1</p>
+                                  </div>
                                 </div>
-                                <span className="text-slate-300">→</span>
-                                <div className="text-center">
-                                  <p className="text-xl font-bold text-slate-700">{r.projectedScore12}</p>
-                                  <p className="text-[10px] text-slate-400 uppercase">Year 1</p>
+                                <div className={`inline-block px-3 py-1 rounded-lg ${colors.light} border ${colors.bg.replace('bg-', 'border-').replace('700', '200')}`}>
+                                  <span className={`text-lg font-bold ${colors.accent}`}>+{r.dimPotentialGain12}</span>
                                 </div>
                               </div>
-                              <p className={`text-center text-lg font-bold mt-2 ${colors.accent}`}>+{r.dimPotentialGain12}</p>
                             </div>
                           </div>
                         </div>
@@ -9982,9 +9975,10 @@ export default function ExportReportPage() {
                                 <span className="w-6 h-6 rounded bg-white/20 flex items-center justify-center text-sm font-bold text-white">{idx + 1}</span>
                                 <h4 className="font-semibold text-white text-sm">{r.dimName}</h4>
                               </div>
-                              <div className="text-xs text-white">
-                                <span className="text-white/70">Dim: {r.currentScore}→{r.projectedScore12}</span>
-                                <span className="ml-2 bg-white/20 px-2 py-0.5 rounded font-semibold">Composite +{r.potentialGain12}</span>
+                              <div className="text-xs text-white flex items-center gap-2">
+                                <span className="text-white/70">Dim: {r.currentScore}→{r.projectedScore12} (+{r.dimPotentialGain12})</span>
+                                <span className="text-white/70">|</span>
+                                <span className="text-white font-semibold">Composite +{r.potentialGain12}</span>
                               </div>
                             </div>
                             <div className={`p-3 ${colors.light} grid grid-cols-2 gap-4`}>
