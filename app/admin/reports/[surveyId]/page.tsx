@@ -2581,8 +2581,8 @@ export default function ExportReportPage() {
     slideNames[32 + addDimCount] = 'Implementation Roadmap';
     slideNames[33 + addDimCount] = 'Working with Cancer Pledge';
     slideNames[34 + addDimCount] = 'How CAC Can Help';
-    slideNames[35 + addDimCount] = 'Methodology';
-    slideNames[36 + addDimCount] = 'Thank You';
+    slideNames[35 + addDimCount] = 'Thank You';
+    slideNames[36 + addDimCount] = 'Methodology';
     
     const slideName = slideNames[slideNum] || `Slide ${slideNum + 1}`;
     const noteKey = `slide_${slideNum}`;
@@ -3192,7 +3192,7 @@ export default function ExportReportPage() {
         setCurrentSlide(37 + additionalAnalyzedDims.length);
       } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === '>' || e.key === '.' || e.key === 'n' || e.key === 'N') {
         e.preventDefault();
-        setCurrentSlide(prev => Math.min(prev + 1, 36 + additionalAnalyzedDims.length));
+        setCurrentSlide(prev => Math.min(prev + 1, 37 + additionalAnalyzedDims.length));
       } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'Delete' || e.key === '<' || e.key === ',' || e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         setCurrentSlide(prev => Math.max(prev - 1, 0));
@@ -11069,8 +11069,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 36: Methodology - exact match to report */}
-                {currentSlide === 36 + additionalAnalyzedDims.length && (
+                {/* Slide 37: Methodology - appendix */}
+                {currentSlide === 37 + additionalAnalyzedDims.length && (
                   <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
                     <div className="px-12 py-6 border-b border-slate-200">
                       <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
@@ -11170,8 +11170,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 37: Thank You - professional improved design */}
-                {currentSlide === 37 + additionalAnalyzedDims.length && (
+                {/* Slide 36: Thank You */}
+                {currentSlide === 36 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* White header section with logos on sides and Thank You centered */}
                     <div className="bg-white px-12 py-8">
@@ -11328,7 +11328,7 @@ export default function ExportReportPage() {
                   Previous
                 </button>
                 <button 
-                  onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 36 + additionalAnalyzedDims.length))}
+                  onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 37 + additionalAnalyzedDims.length))}
                   disabled={currentSlide === 37 + additionalAnalyzedDims.length}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                   title="Next slide (→)"
@@ -11843,22 +11843,22 @@ export default function ExportReportPage() {
                   )}
                   {currentSlide === 36 + additionalAnalyzedDims.length && (
                     <div>
-                      <p className="mb-2"><strong>Methodology overview:</strong></p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Reassure the audience that scoring is consistent and benchmarked</li>
-                        <li>The key message: track change over time, not a one-and-done exercise</li>
-                        <li>Answer any questions about how scores were calculated</li>
-                      </ul>
-                    </div>
-                  )}
-                  {currentSlide === 37 + additionalAnalyzedDims.length && (
-                    <div>
                       <p className="mb-2"><strong>Thank you &amp; next steps:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Close with a decision ask: confirm top priorities, assign owners, set next checkpoint</li>
                         <li>Thank the audience for their engagement</li>
                         <li>Provide contact information for follow-up questions</li>
                         <li>Remind them of the CAC resources available</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 37 + additionalAnalyzedDims.length && (
+                    <div>
+                      <p className="mb-2"><strong>Methodology overview:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Reassure the audience that scoring is consistent and benchmarked</li>
+                        <li>The key message: track change over time, not a one-and-done exercise</li>
+                        <li>Answer any questions about how scores were calculated</li>
                       </ul>
                     </div>
                   )}
@@ -11907,8 +11907,8 @@ export default function ExportReportPage() {
                            i === 33 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
                            i === 34 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' :
                            i === 35 + additionalAnalyzedDims.length ? 'How CAC Can Help' :
-                           i === 36 + additionalAnalyzedDims.length ? 'Methodology' :
-                           i === 37 + additionalAnalyzedDims.length ? 'Thank You' :
+                           i === 36 + additionalAnalyzedDims.length ? 'Thank You' :
+                           i === 37 + additionalAnalyzedDims.length ? 'Methodology' :
                            `Slide ${i + 1}`}
                         </div>
                       </button>
