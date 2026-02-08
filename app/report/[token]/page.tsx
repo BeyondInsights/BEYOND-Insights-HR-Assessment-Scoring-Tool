@@ -4005,7 +4005,9 @@ export default function ExportReportPage() {
     setShowJumpTo(false);
     const el = document.getElementById(id);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const yOffset = -120; // Increased offset to ensure section header is fully visible
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
   
@@ -11628,8 +11630,8 @@ export default function ExportReportPage() {
             
             {/* Keyboard Shortcuts Modal */}
             {showKeyboardHelp && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowKeyboardHelp(false)}>
-                <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4" onClick={() => setShowKeyboardHelp(false)}>
+                <div className="bg-white rounded-xl p-6 max-w-2xl w-full shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-slate-800">Keyboard Shortcuts</h3>
                     <button onClick={() => setShowKeyboardHelp(false)} className="text-slate-400 hover:text-slate-600">
@@ -11637,11 +11639,14 @@ export default function ExportReportPage() {
                     </button>
                   </div>
                   <div className="text-sm">
+                    {/* Column headers */}
+                    <div className="grid grid-cols-[1fr_minmax(160px,auto)_minmax(160px,auto)] gap-x-6 mb-3">
+                      <div></div>
+                      <div className="text-xs font-bold text-slate-500 text-center py-2 bg-slate-50 rounded">WINDOWS</div>
+                      <div className="text-xs font-bold text-blue-600 text-center py-2 bg-blue-50 rounded">MAC</div>
+                    </div>
                     {/* Single unified grid for both sections */}
                     <div className="grid grid-cols-[1fr_minmax(160px,auto)_minmax(160px,auto)] gap-x-6 gap-y-1.5 items-center">
-                      <div></div>
-                      <div className="text-[10px] font-semibold text-slate-400 text-center">WINDOWS</div>
-                      <div className="text-[10px] font-semibold text-slate-400 text-center">MAC</div>
                       
                       {/* Navigation Section Header */}
                       <div className="col-span-3 text-xs font-semibold text-slate-400 uppercase tracking-wider pt-1">Navigation</div>
