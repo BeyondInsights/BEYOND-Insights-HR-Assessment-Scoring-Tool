@@ -2880,7 +2880,7 @@ export default function ExportReportPage() {
     },
     excellence: {
       title: 'Areas of Excellence',
-      what: 'Highlights your top-performing dimensions—those where you\'re delivering strong support and can leverage as competitive advantages.',
+      what: 'Highlights your top-performing dimensions where you\'re delivering strong support and can leverage as competitive advantages.',
       how: 'Identifies dimensions with the highest scores, representing your strongest capabilities in supporting employees managing cancer.',
       when: 'Use these to identify best practices to share across the organization, build employer brand messaging, and understand what\'s working well.',
       questions: ['What are we doing right?', 'Which programs can we highlight for recruiting?', 'What best practices can we share?', 'Where are we leading vs. other participants?']
