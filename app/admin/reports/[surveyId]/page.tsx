@@ -6521,37 +6521,40 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   
-                  {/* Year 1 Roadmap Summary - Two separate cards */}
+                  {/* Year 1 Roadmap & Impact Summary - Header style boxes */}
                   <div className="mb-6 grid grid-cols-2 gap-4">
-                    {/* Roadmap Card */}
-                    <div className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-700 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Year 1 Roadmap</p>
-                          <p className="text-sm text-slate-700">Advance <span className="font-bold">{totalElementsY1}</span> support elements across <span className="font-bold">5</span> priority dimensions</p>
-                        </div>
+                    {/* Roadmap Card - Header style */}
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-4 py-2.5 bg-slate-700 flex items-center gap-3">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        <span className="font-semibold text-white">YEAR 1 ROADMAP</span>
+                      </div>
+                      <div className="px-4 py-3 bg-slate-50">
+                        <p className="text-sm text-slate-700">Advance <span className="font-bold">{totalElementsY1}</span> support elements across <span className="font-bold">5</span> priority dimensions</p>
+                        <p className="text-xs text-slate-500 mt-1">Prioritized by impact on overall composite score and implementation readiness</p>
                       </div>
                     </div>
                     
-                    {/* Impact Card */}
-                    <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-                      <p className="text-xs text-slate-500 uppercase font-semibold mb-4 text-center">Impact on Overall Composite Score</p>
-                      <div className="flex items-center justify-center gap-8">
-                        <div className="text-center">
-                          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Current Score</p>
-                          <p className="text-2xl font-bold text-slate-500">{compositeScore || '--'}</p>
-                        </div>
-                        <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                        <div className="text-center">
-                          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Projected Year 1 Score</p>
-                          <p className="text-2xl font-bold text-slate-800">{projectedCompositeY1}</p>
-                        </div>
-                        <div className="pl-6 border-l border-slate-200 text-center">
-                          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Gain</p>
-                          <p className="text-2xl font-bold text-amber-600">+{totalGainY1.toFixed(1)}</p>
+                    {/* Impact Card - Header style */}
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-4 py-2.5 bg-amber-600 text-center">
+                        <span className="font-semibold text-white">IMPACT ON OVERALL COMPOSITE SCORE</span>
+                      </div>
+                      <div className="px-4 py-3 bg-white">
+                        <div className="flex items-center justify-center gap-8">
+                          <div className="text-center">
+                            <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Current Score</p>
+                            <p className="text-2xl font-bold text-slate-500">{compositeScore || '--'}</p>
+                          </div>
+                          <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                          <div className="text-center">
+                            <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Projected Year 1</p>
+                            <p className="text-2xl font-bold text-slate-800">{projectedCompositeY1}</p>
+                          </div>
+                          <div className="pl-6 border-l border-slate-200 text-center">
+                            <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Gain</p>
+                            <p className="text-2xl font-bold text-amber-600">+{totalGainY1.toFixed(1)}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -6626,21 +6629,21 @@ export default function ExportReportPage() {
                               )}
                             </div>
                             
-                            {/* DIMENSION SCORE - 3 vertical rows */}
+                            {/* DIMENSION SCORE - polished with consistent spacing */}
                             <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-4">
-                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-3">Dimension Score</p>
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between px-2">
-                                  <span className="text-xs text-slate-500">Current Score:</span>
-                                  <span className="text-lg font-bold text-slate-400">{r.currentScore}</span>
+                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-4">Dimension Score</p>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-slate-500">Current Score:</span>
+                                  <span className="text-xl font-bold text-slate-400">{r.currentScore}</span>
                                 </div>
-                                <div className="flex items-center justify-between px-2">
-                                  <span className="text-xs text-slate-500">Projected Year 1 Score:</span>
-                                  <span className="text-lg font-bold text-slate-800">{r.projectedScore12}</span>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-slate-500">Projected Year 1:</span>
+                                  <span className="text-xl font-bold text-slate-800">{r.projectedScore12}</span>
                                 </div>
-                                <div className={`flex items-center justify-between px-3 py-1.5 rounded-lg ${colors.light}`}>
-                                  <span className="text-xs font-medium text-slate-600">Year 1 Gain:</span>
-                                  <span className={`text-lg font-bold ${colors.accent}`}>+{r.dimPotentialGain12}</span>
+                                <div className={`flex items-center justify-between px-3 py-2 rounded-lg bg-slate-100`}>
+                                  <span className="text-sm font-medium text-slate-600">Year 1 Gain:</span>
+                                  <span className={`text-xl font-bold ${colors.accent}`}>+{r.dimPotentialGain12}</span>
                                 </div>
                               </div>
                             </div>
@@ -9950,13 +9953,17 @@ export default function ExportReportPage() {
                             <span className="font-semibold">Stand Up</span> or <span className="font-semibold">Design + Scope</span>
                           </div>
                         </div>
-                        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                          <p className="text-[10px] text-slate-500 uppercase font-semibold mb-1">Impact on Overall Composite</p>
-                          <div className="flex items-center justify-center gap-2">
-                            <span className="text-lg font-bold text-slate-500">{compositeScore || '--'}</span>
-                            <span className="text-amber-500">→</span>
-                            <span className="text-lg font-bold text-slate-800">{projectedCompositeY1}</span>
-                            <span className="text-base font-bold text-amber-600">(+{totalGainY1.toFixed(1)})</span>
+                        <div className="rounded-lg border border-slate-200 overflow-hidden">
+                          <div className="px-3 py-1.5 bg-amber-600 text-center">
+                            <span className="font-semibold text-white text-xs">IMPACT ON COMPOSITE</span>
+                          </div>
+                          <div className="px-3 py-2 bg-white">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-lg font-bold text-slate-500">{compositeScore || '--'}</span>
+                              <span className="text-amber-500">→</span>
+                              <span className="text-lg font-bold text-slate-800">{projectedCompositeY1}</span>
+                              <span className="text-base font-bold text-amber-600">(+{totalGainY1.toFixed(1)})</span>
+                            </div>
                           </div>
                         </div>
                       </div>
