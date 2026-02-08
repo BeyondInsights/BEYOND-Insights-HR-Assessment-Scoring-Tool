@@ -9925,19 +9925,27 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="p-6 flex-1">
-                      {/* Summary row */}
-                      <div className="mb-4 grid grid-cols-3 gap-3">
+                    <div className="p-5 flex-1">
+                      {/* Accelerate & Build Definitions - 2 col like main report */}
+                      <div className="mb-3 grid grid-cols-2 gap-3">
                         <div className="rounded-lg border border-slate-200 overflow-hidden">
                           <div className="px-3 py-2 bg-slate-700 flex items-center justify-between">
                             <div className="flex items-center gap-1.5">
                               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                               <span className="font-semibold text-white text-sm">ACCELERATE</span>
+                              <span className="text-slate-300 text-xs">(converts work already in motion)</span>
                             </div>
                             <span className="bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded">{totalAccel}</span>
                           </div>
-                          <div className="px-3 py-2 bg-slate-50 text-xs text-slate-600">
-                            <span className="font-semibold">Implement</span> or <span className="font-semibold">Active Planning</span>
+                          <div className="px-3 py-2 bg-slate-50 grid grid-cols-2 gap-2 text-center">
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700">Implement</p>
+                              <p className="text-[10px] text-slate-500">Planning → Offering</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700">Active Planning</p>
+                              <p className="text-[10px] text-slate-500">Assessing → Planning</p>
+                            </div>
                           </div>
                         </div>
                         <div className="rounded-lg border border-slate-200 overflow-hidden">
@@ -9945,11 +9953,33 @@ export default function ExportReportPage() {
                             <div className="flex items-center gap-1.5">
                               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                               <span className="font-semibold text-white text-sm">BUILD</span>
+                              <span className="text-indigo-200 text-xs">(introduces net-new capabilities)</span>
                             </div>
                             <span className="bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded">{totalBuild}</span>
                           </div>
-                          <div className="px-3 py-2 bg-indigo-50 text-xs text-slate-600">
-                            <span className="font-semibold">Stand Up</span> or <span className="font-semibold">Design + Scope</span>
+                          <div className="px-3 py-2 bg-indigo-50 grid grid-cols-2 gap-2 text-center">
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700">Stand Up</p>
+                              <p className="text-[10px] text-slate-500">Not Offered → Offering</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700">Design + Scope</p>
+                              <p className="text-[10px] text-slate-500">Not Offered → Planning</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Year 1 Roadmap & Impact - 2 col like main report */}
+                      <div className="mb-3 grid grid-cols-2 gap-3">
+                        <div className="rounded-lg border border-slate-200 overflow-hidden">
+                          <div className="px-3 py-2 bg-slate-700 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                            <span className="font-semibold text-white text-sm">YEAR 1 ROADMAP</span>
+                          </div>
+                          <div className="px-3 py-2 bg-slate-50">
+                            <p className="text-xs text-slate-700">Advance <span className="font-bold">{totalElementsY1}</span> support elements across <span className="font-bold">5</span> priority dimensions</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5">Prioritized by impact on overall composite score</p>
                           </div>
                         </div>
                         <div className="rounded-lg border border-slate-200 overflow-hidden">
@@ -9957,11 +9987,20 @@ export default function ExportReportPage() {
                             <span className="font-semibold text-white text-xs">IMPACT ON OVERALL COMPOSITE SCORE</span>
                           </div>
                           <div className="px-3 py-2 bg-white">
-                            <div className="flex items-center justify-center gap-3">
-                              <span className="text-lg font-bold text-slate-500">{compositeScore || '--'}</span>
+                            <div className="flex items-center justify-center gap-4">
+                              <div className="text-center">
+                                <p className="text-[9px] text-slate-400 uppercase">Current</p>
+                                <p className="text-lg font-bold text-slate-500">{compositeScore || '--'}</p>
+                              </div>
                               <span className="text-amber-500">→</span>
-                              <span className="text-lg font-bold text-slate-800">{projectedCompositeY1}</span>
-                              <span className="text-base font-bold text-amber-600">(+{totalGainY1.toFixed(1)})</span>
+                              <div className="text-center">
+                                <p className="text-[9px] text-slate-400 uppercase">Year 1</p>
+                                <p className="text-lg font-bold text-slate-800">{projectedCompositeY1}</p>
+                              </div>
+                              <div className="text-center pl-3 border-l border-slate-200">
+                                <p className="text-[9px] text-slate-400 uppercase">Gain</p>
+                                <p className="text-lg font-bold text-amber-600">+{totalGainY1.toFixed(1)}</p>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -10079,19 +10118,27 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="p-6 flex-1">
-                      {/* Summary row */}
-                      <div className="mb-4 grid grid-cols-3 gap-3">
+                    <div className="p-5 flex-1">
+                      {/* Accelerate & Build Definitions - 2 col like main report */}
+                      <div className="mb-3 grid grid-cols-2 gap-3">
                         <div className="rounded-lg border border-slate-200 overflow-hidden">
                           <div className="px-3 py-2 bg-slate-700 flex items-center justify-between">
                             <div className="flex items-center gap-1.5">
                               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                               <span className="font-semibold text-white text-sm">ACCELERATE</span>
+                              <span className="text-slate-300 text-xs">(converts work already in motion)</span>
                             </div>
                             <span className="bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded">{totalAccel}</span>
                           </div>
-                          <div className="px-3 py-2 bg-slate-50 text-xs text-slate-600">
-                            <span className="font-semibold">Implement</span> or <span className="font-semibold">Active Planning</span>
+                          <div className="px-3 py-2 bg-slate-50 grid grid-cols-2 gap-2 text-center">
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700">Implement</p>
+                              <p className="text-[10px] text-slate-500">Planning → Offering</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700">Active Planning</p>
+                              <p className="text-[10px] text-slate-500">Assessing → Planning</p>
+                            </div>
                           </div>
                         </div>
                         <div className="rounded-lg border border-slate-200 overflow-hidden">
@@ -10099,11 +10146,33 @@ export default function ExportReportPage() {
                             <div className="flex items-center gap-1.5">
                               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                               <span className="font-semibold text-white text-sm">BUILD</span>
+                              <span className="text-indigo-200 text-xs">(introduces net-new capabilities)</span>
                             </div>
                             <span className="bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded">{totalBuild}</span>
                           </div>
-                          <div className="px-3 py-2 bg-indigo-50 text-xs text-slate-600">
-                            <span className="font-semibold">Stand Up</span> or <span className="font-semibold">Design + Scope</span>
+                          <div className="px-3 py-2 bg-indigo-50 grid grid-cols-2 gap-2 text-center">
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700">Stand Up</p>
+                              <p className="text-[10px] text-slate-500">Not Offered → Offering</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700">Design + Scope</p>
+                              <p className="text-[10px] text-slate-500">Not Offered → Planning</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Year 1 Roadmap & Impact - 2 col like main report */}
+                      <div className="mb-3 grid grid-cols-2 gap-3">
+                        <div className="rounded-lg border border-slate-200 overflow-hidden">
+                          <div className="px-3 py-2 bg-slate-700 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                            <span className="font-semibold text-white text-sm">YEAR 1 ROADMAP</span>
+                          </div>
+                          <div className="px-3 py-2 bg-slate-50">
+                            <p className="text-xs text-slate-700">Advance <span className="font-bold">{totalElementsY1}</span> support elements across <span className="font-bold">5</span> priority dimensions</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5">Prioritized by impact on overall composite score</p>
                           </div>
                         </div>
                         <div className="rounded-lg border border-slate-200 overflow-hidden">
@@ -10111,11 +10180,20 @@ export default function ExportReportPage() {
                             <span className="font-semibold text-white text-xs">IMPACT ON OVERALL COMPOSITE SCORE</span>
                           </div>
                           <div className="px-3 py-2 bg-white">
-                            <div className="flex items-center justify-center gap-3">
-                              <span className="text-lg font-bold text-slate-500">{compositeScore || '--'}</span>
+                            <div className="flex items-center justify-center gap-4">
+                              <div className="text-center">
+                                <p className="text-[9px] text-slate-400 uppercase">Current</p>
+                                <p className="text-lg font-bold text-slate-500">{compositeScore || '--'}</p>
+                              </div>
                               <span className="text-amber-500">→</span>
-                              <span className="text-lg font-bold text-slate-800">{projectedCompositeY1}</span>
-                              <span className="text-base font-bold text-amber-600">(+{totalGainY1.toFixed(1)})</span>
+                              <div className="text-center">
+                                <p className="text-[9px] text-slate-400 uppercase">Year 1</p>
+                                <p className="text-lg font-bold text-slate-800">{projectedCompositeY1}</p>
+                              </div>
+                              <div className="text-center pl-3 border-l border-slate-200">
+                                <p className="text-[9px] text-slate-400 uppercase">Gain</p>
+                                <p className="text-lg font-bold text-amber-600">+{totalGainY1.toFixed(1)}</p>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -10676,9 +10754,9 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slides 29-32: 4 Strategic Rec Cards */}
-                {currentSlide >= 29 && currentSlide <= 32 && (() => {
-                  const recIdx = currentSlide - 29;
+                {/* Slides 30-33: 4 Strategic Rec Cards */}
+                {currentSlide >= 30 && currentSlide <= 33 && (() => {
+                  const recIdx = currentSlide - 30;
                   const d = strategicPriorityDims[recIdx];
                   if (!d) return <div className="p-10 text-center text-slate-500">Recommendation data not available</div>;
                   
@@ -12212,9 +12290,9 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide >= 29 && currentSlide <= 32 && (
+                  {currentSlide >= 30 && currentSlide <= 33 && (
                     <div>
-                      <p className="mb-2"><strong>Recommendation {currentSlide - 28}:</strong></p>
+                      <p className="mb-2"><strong>Recommendation {currentSlide - 29}:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Review the specific action items in this recommendation</li>
                         <li>Discuss feasibility and resource requirements</li>
@@ -12223,7 +12301,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {additionalAnalyzedDims.length > 0 && currentSlide >= 32 && currentSlide < 32 + additionalAnalyzedDims.length && (
+                  {additionalAnalyzedDims.length > 0 && currentSlide >= 34 && currentSlide < 34 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Additional dimension analysis:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
