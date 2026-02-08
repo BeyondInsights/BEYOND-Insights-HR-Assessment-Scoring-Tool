@@ -6265,18 +6265,18 @@ export default function ExportReportPage() {
                 </div>
                 <div className="relative flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                         </svg>
                       </div>
                       <div>
                         <h3 className="font-bold text-white text-2xl tracking-tight">Cross-Dimensional Insights</h3>
-                        <p className="text-slate-400 text-sm mt-0.5">Connecting the dots across your assessment</p>
+                        <p className="text-slate-400 text-sm">Connecting the dots across your assessment</p>
                       </div>
                     </div>
-                    <p className="text-slate-300 text-base leading-relaxed max-w-2xl mt-4">
+                    <p className="text-slate-300 text-sm leading-relaxed max-w-2xl ml-[52px]">
                       These patterns reveal where <span className="text-white font-medium">one weaker area may be limiting the impact</span> of stronger programs elsewhere. These are the hidden bottlenecks that often explain why good investments underperform.
                     </p>
                   </div>
@@ -6289,12 +6289,12 @@ export default function ExportReportPage() {
                   </button>
                 </div>
                 {/* Quick context bar */}
-                <div className="relative mt-6 pt-5 border-t border-white/10">
-                  <div className="flex items-center gap-8">
+                <div className="relative mt-4 pt-4 border-t border-white/10">
+                  <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">
                         {/* Custom magnifying glass with nodes icon */}
-                        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <circle cx="10" cy="10" r="6" />
                           <path d="M14.5 14.5L20 20" strokeLinecap="round" />
                           <circle cx="8" cy="9" r="1.5" fill="currentColor" stroke="none" />
@@ -6305,9 +6305,9 @@ export default function ExportReportPage() {
                       <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns.length}</span> bottleneck{patterns.length !== 1 ? 's' : ''} identified</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">
                         {/* Custom target/bullseye with arrow icon */}
-                        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <circle cx="12" cy="12" r="8" />
                           <circle cx="12" cy="12" r="4" />
                           <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
@@ -6321,25 +6321,25 @@ export default function ExportReportPage() {
               </div>
 
               {/* Pattern Cards */}
-              <div className="p-8">
-                <div className="space-y-5">
+              <div className="p-6">
+                <div className="space-y-4">
                   {patterns.map((p, idx) => (
                     <div key={idx} className="group relative">
                       {/* Priority indicator */}
-                      <div className="absolute -left-3 top-6 w-6 h-6 rounded-full bg-slate-800 text-white text-xs font-bold flex items-center justify-center shadow-lg border-2 border-white z-10">
+                      <div className="absolute -left-2.5 top-4 w-5 h-5 rounded-full bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center shadow-lg border-2 border-white z-10">
                         {idx + 1}
                       </div>
                       
-                      <div className="ml-4 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                      <div className="ml-3 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                         {/* Pattern header */}
-                        <div className="px-8 py-5 border-b border-slate-100 bg-white">
+                        <div className="px-6 py-3 border-b border-slate-100 bg-white">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
-                              <h4 className="font-bold text-slate-900 text-lg leading-snug">{p.pattern}</h4>
+                              <h4 className="font-bold text-slate-900 text-base leading-snug">{p.pattern}</h4>
                             </div>
                             <div className="flex-shrink-0">
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-semibold">
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 text-white text-[10px] font-semibold">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
                                 Priority {idx + 1}
@@ -6351,27 +6351,27 @@ export default function ExportReportPage() {
                         {/* Two-column content */}
                         <div className="grid grid-cols-2 divide-x divide-slate-100">
                           {/* Implication */}
-                          <div className="px-8 py-6">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center">
-                                <svg className="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="px-6 py-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-5 h-5 rounded bg-slate-100 flex items-center justify-center">
+                                <svg className="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                                 </svg>
                               </div>
-                              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">What This Means</span>
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">What This Means</span>
                             </div>
                             <p className="text-slate-600 text-sm leading-relaxed">{p.implication}</p>
                           </div>
                           
                           {/* Recommendation */}
-                          <div className="px-8 py-6 bg-slate-50/50">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="w-6 h-6 rounded bg-slate-800 flex items-center justify-center">
-                                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="px-6 py-4 bg-slate-50/50">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                 </svg>
                               </div>
-                              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                              <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
                                 Recommended Action
                                 {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
                               </span>
@@ -6381,7 +6381,7 @@ export default function ExportReportPage() {
                                 <textarea
                                   value={customCrossRecommendations[idx] ?? p.recommendation}
                                   onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
-                                  className="w-full text-sm text-slate-700 leading-relaxed bg-white border border-slate-300 rounded-lg px-4 py-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 resize-y"
+                                  className="w-full text-sm text-slate-700 leading-relaxed bg-white border border-slate-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 resize-y"
                                   placeholder="Enter custom recommendation..."
                                 />
                                 {customCrossRecommendations[idx] && (
@@ -6407,11 +6407,11 @@ export default function ExportReportPage() {
                 </div>
 
                 {/* Bottom guidance */}
-                <div className="mt-8 pt-6 border-t border-slate-200">
-                  <div className="flex items-start gap-4 p-5 bg-gradient-to-r from-violet-600 to-violet-700 rounded-xl">
-                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                <div className="mt-6 pt-4 border-t border-slate-200">
+                  <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-violet-600 to-violet-700 rounded-xl">
+                    <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                       {/* Custom conversation/strategy icon */}
-                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <rect x="3" y="4" width="18" height="14" rx="2" />
                         <path d="M7 9h10M7 13h6" strokeLinecap="round" />
                         <circle cx="17" cy="13" r="1.5" fill="currentColor" stroke="none" />
@@ -6444,25 +6444,15 @@ export default function ExportReportPage() {
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
                 {/* Header */}
-                <div className="px-10 py-6 bg-gradient-to-r from-teal-700 via-teal-800 to-slate-800 relative overflow-hidden">
-                  <div className="absolute inset-0 opacity-10">
-                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                      <defs>
-                        <pattern id="impactGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                          <path d="M 20 0 L 0 20" stroke="white" strokeWidth="0.5" fill="none"/>
-                        </pattern>
-                      </defs>
-                      <rect width="100%" height="100%" fill="url(#impactGrid)" />
-                    </svg>
-                  </div>
-                  <div className="relative flex items-center justify-between">
+                <div className="px-10 py-6 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
+                  <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                      <p className="text-teal-100 mt-1 text-base font-medium">Year 1 projections based on committed execution of in-flight work + new capabilities</p>
+                      <p className="text-slate-300 mt-1 text-base">Strategic roadmap for advancing your cancer support program</p>
                     </div>
                     <button 
                       onClick={() => setInfoModal('impactRanked')}
-                      className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur"
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       How It Works
@@ -6470,76 +6460,105 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 
-                {/* Summary Stats - Separate Cards */}
-                <div className="px-8 py-6 bg-slate-50 border-b border-slate-200">
+                {/* Summary Stats - Muted Colors */}
+                <div className="px-8 py-5 bg-slate-50 border-b border-slate-200">
                   <div className="grid grid-cols-4 gap-4">
-                    {/* Projected Score Card */}
-                    <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                    {/* Projected Score */}
+                    <div className="bg-white rounded-xl p-4 border border-slate-200">
                       <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">Projected Score</p>
                       <div className="flex items-center gap-2">
                         <span className="text-2xl font-bold text-slate-400">{compositeScore || '--'}</span>
-                        <div className="flex flex-col items-center">
-                          <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                        </div>
-                        <span className="text-2xl font-bold text-emerald-600">{projectedCompositeY1}</span>
+                        <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        <span className="text-2xl font-bold text-slate-800">{projectedCompositeY1}</span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">Year 1 projection</p>
+                      <p className="text-xs text-slate-500 mt-1">Long-term projection</p>
                     </div>
                     
-                    {/* Gap Closure Card */}
-                    <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-4 shadow-sm">
-                      <p className="text-xs text-teal-100 font-semibold uppercase tracking-wide mb-2">Gap to {nextTierUp?.name || 'Next Tier'}</p>
+                    {/* Gap Closure */}
+                    <div className="bg-slate-700 rounded-xl p-4">
+                      <p className="text-xs text-slate-300 font-semibold uppercase tracking-wide mb-2">Progress to {nextTierUp?.name || 'Next Tier'}</p>
                       <div className="flex items-baseline gap-1">
                         <span className="text-3xl font-black text-white">{gapClosurePct}%</span>
-                        <span className="text-sm text-teal-100 font-medium">closed</span>
+                        <span className="text-sm text-slate-300">of gap closed</span>
                       </div>
-                      <p className="text-xs text-teal-100 mt-1">{pointsToNextTier?.toFixed(1) || '--'} pts remaining</p>
+                      <p className="text-xs text-slate-400 mt-1">{pointsToNextTier?.toFixed(1) || '--'} pts remaining</p>
                     </div>
                     
-                    {/* Elements Progressed Card */}
-                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 shadow-sm">
-                      <p className="text-xs text-blue-100 font-semibold uppercase tracking-wide mb-2">Elements Progressed</p>
+                    {/* Elements Progressed */}
+                    <div className="bg-slate-600 rounded-xl p-4">
+                      <p className="text-xs text-slate-300 font-semibold uppercase tracking-wide mb-2">Support Elements Advanced</p>
                       <div className="flex items-baseline gap-1">
                         <span className="text-3xl font-black text-white">{totalElementsY1}</span>
-                        <span className="text-sm text-blue-100 font-medium">total</span>
+                        <span className="text-sm text-slate-300">elements</span>
                       </div>
-                      <p className="text-xs text-blue-100 mt-1">across Top 5 dimensions</p>
+                      <p className="text-xs text-slate-400 mt-1">across top 5 dimensions</p>
                     </div>
                     
-                    {/* Composite Impact Card */}
-                    <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 shadow-sm">
-                      <p className="text-xs text-emerald-100 font-semibold uppercase tracking-wide mb-2">Composite Impact</p>
+                    {/* Composite Impact */}
+                    <div className="bg-teal-700 rounded-xl p-4">
+                      <p className="text-xs text-teal-200 font-semibold uppercase tracking-wide mb-2">Total Score Impact</p>
                       <div className="flex items-baseline gap-1">
                         <span className="text-3xl font-black text-white">+{totalGainY1.toFixed(1)}</span>
-                        <span className="text-sm text-emerald-100 font-medium">pts</span>
+                        <span className="text-sm text-teal-200">pts</span>
                       </div>
-                      <p className="text-xs text-emerald-100 mt-1">+{incrementalY1.toFixed(1)} beyond 90-day</p>
+                      <p className="text-xs text-teal-300 mt-1">+{incrementalY1.toFixed(1)} beyond near-term</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="p-8">
-                  {/* Two-Track Legend - Filled Cards */}
+                  {/* Two-Track Explanation - Visual Cards */}
                   <div className="mb-6 grid grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    {/* Accelerate Card */}
+                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         </div>
                         <div>
-                          <p className="font-bold text-blue-900 text-sm">Accelerate</p>
-                          <p className="text-xs text-blue-700 mt-0.5">Move in-flight work forward: Planning→Offering, Assessing→Offering/Planning</p>
+                          <p className="font-bold text-slate-800 text-base">Accelerate</p>
+                          <p className="text-xs text-slate-500">Move in-flight work forward</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded font-medium text-xs">Planning</span>
+                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                          <span className="px-2 py-1 bg-teal-600 text-white rounded font-medium text-xs">Offering</span>
+                          <span className="text-slate-500 text-xs ml-2">Complete implementation</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded font-medium text-xs">Assessing</span>
+                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                          <span className="px-2 py-1 bg-slate-500 text-white rounded font-medium text-xs">Planning</span>
+                          <span className="text-slate-500 text-xs ml-2">Begin active development</span>
                         </div>
                       </div>
                     </div>
-                    <div className="bg-gradient-to-r from-violet-50 to-violet-100 rounded-xl p-4 border border-violet-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    
+                    {/* Build Card */}
+                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-lg bg-teal-700 flex items-center justify-center">
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                         </div>
                         <div>
-                          <p className="font-bold text-violet-900 text-sm">Build</p>
-                          <p className="text-xs text-violet-700 mt-0.5">Launch new capabilities: Not Planned→Offering/Planning/Assessing</p>
+                          <p className="font-bold text-slate-800 text-base">Build</p>
+                          <p className="text-xs text-slate-500">Introduce new support elements</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded font-medium text-xs">Not Offered</span>
+                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                          <span className="px-2 py-1 bg-teal-600 text-white rounded font-medium text-xs">Offering</span>
+                          <span className="text-slate-500 text-xs ml-2">Full implementation</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded font-medium text-xs">Not Offered</span>
+                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                          <span className="px-2 py-1 bg-slate-500 text-white rounded font-medium text-xs">Planning</span>
+                          <span className="text-slate-500 text-xs ml-2">Begin development</span>
                         </div>
                       </div>
                     </div>
@@ -6548,145 +6567,124 @@ export default function ExportReportPage() {
                   {/* Priority Cards */}
                   <div className="space-y-4">
                     {rankings.slice(0, 5).map((r, idx) => {
-                      const tag = getPriorityTag(r);
-                      const incrementalDim = r.potentialGain12 - r.potentialGain;
+                      // Calculate totals for display
+                      const accelTotal = r.accelerateToOffering12 + r.accelerateToPlanning12;
+                      const buildTotal = r.buildToOffering12 + r.buildToPlanning12;
+                      
                       return (
-                      <div key={r.dimNum} className={`relative rounded-xl overflow-hidden transition-all hover:shadow-lg ${
-                        idx === 0 ? 'border-2 border-teal-400 bg-white shadow-md' : 
-                        idx === 1 ? 'border-2 border-teal-300 bg-white' : 
-                        'border border-slate-200 bg-white hover:border-slate-300'
+                      <div key={r.dimNum} className={`rounded-xl overflow-hidden border ${
+                        idx === 0 ? 'border-2 border-teal-500 shadow-md' : 
+                        idx === 1 ? 'border-2 border-teal-400' : 
+                        'border-slate-200'
                       }`}>
+                        {/* Dimension Header */}
+                        <div className={`px-5 py-3 flex items-center justify-between ${
+                          idx === 0 ? 'bg-teal-600' : 
+                          idx === 1 ? 'bg-teal-500' : 
+                          'bg-slate-100'
+                        }`}>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-2xl font-black ${idx < 2 ? 'text-white' : 'text-slate-400'}`}>
+                              {idx + 1}
+                            </span>
+                            <h4 className={`font-bold text-lg ${idx < 2 ? 'text-white' : 'text-slate-800'}`}>
+                              {r.dimName}
+                            </h4>
+                          </div>
+                          
+                          {/* Score Progression */}
+                          <div className={`flex items-center gap-4 px-4 py-2 rounded-lg ${idx < 2 ? 'bg-white/20' : 'bg-white border border-slate-200'}`}>
+                            <div className="text-center">
+                              <p className={`text-[10px] font-medium uppercase ${idx < 2 ? 'text-white/70' : 'text-slate-500'}`}>Current</p>
+                              <p className={`text-xl font-bold ${idx < 2 ? 'text-white' : ''}`} style={idx >= 2 ? { color: getScoreColor(r.currentScore) } : {}}>{r.currentScore}</p>
+                            </div>
+                            <svg className={`w-4 h-4 ${idx < 2 ? 'text-white/50' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                            <div className="text-center">
+                              <p className={`text-[10px] font-medium uppercase ${idx < 2 ? 'text-white/70' : 'text-slate-500'}`}>Near-term</p>
+                              <p className={`text-xl font-bold ${idx < 2 ? 'text-white' : 'text-slate-600'}`}>{r.projectedScore}</p>
+                            </div>
+                            <svg className={`w-4 h-4 ${idx < 2 ? 'text-white/50' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                            <div className="text-center">
+                              <p className={`text-[10px] font-semibold uppercase ${idx < 2 ? 'text-teal-200' : 'text-teal-600'}`}>Long-term</p>
+                              <p className={`text-xl font-bold ${idx < 2 ? 'text-white' : 'text-teal-700'}`}>{r.projectedScore12}</p>
+                            </div>
+                          </div>
+                        </div>
                         
-                        <div className="flex">
-                          {/* Priority Number */}
-                          <div className={`flex items-center justify-center w-14 text-2xl font-black ${
-                            idx === 0 ? 'bg-gradient-to-b from-teal-600 to-teal-700 text-white' : 
-                            idx === 1 ? 'bg-gradient-to-b from-teal-500 to-teal-600 text-white' : 
-                            'bg-slate-100 text-slate-400'
-                          }`}>
-                            {idx + 1}
-                          </div>
-                          
-                          {/* Main Content */}
-                          <div className="flex-1 p-4">
-                            {/* Header Row */}
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-bold text-slate-900 text-base">{r.dimName}</h4>
-                                {r.hasMomentum && (
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wide">
-                                    Momentum
-                                  </span>
+                        {/* Content */}
+                        <div className="p-5 bg-white">
+                          <div className="grid grid-cols-2 gap-6">
+                            {/* Accelerate Column */}
+                            <div>
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-6 h-6 rounded bg-slate-700 flex items-center justify-center">
+                                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                </div>
+                                <span className="font-bold text-slate-800 text-sm uppercase tracking-wide">Accelerate</span>
+                                <span className="text-xs text-slate-500">({accelTotal} in-flight elements)</span>
+                              </div>
+                              
+                              <div className="space-y-2 pl-8">
+                                {r.accelerateToOffering12 > 0 && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-700">Move <span className="font-semibold">{r.accelerateToOffering12}</span> from</span>
+                                    <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-xs font-medium">Planning</span>
+                                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                    <span className="px-1.5 py-0.5 bg-teal-600 text-white rounded text-xs font-medium">Offering</span>
+                                  </div>
                                 )}
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide ${
-                                  tag.label === 'Quick Win' ? 'bg-teal-100 text-teal-800 border border-teal-300' : 'bg-slate-100 text-slate-700 border border-slate-300'
-                                }`}>{tag.label}</span>
-                              </div>
-                              
-                              {/* Score Journey */}
-                              <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
-                                <div className="text-center">
-                                  <p className="text-[10px] text-slate-500 font-medium uppercase">Current</p>
-                                  <p className="text-lg font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</p>
-                                </div>
-                                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                                <div className="text-center">
-                                  <p className="text-[10px] text-slate-500 font-medium uppercase">90-day</p>
-                                  <p className="text-lg font-bold text-blue-600">{r.projectedScore}</p>
-                                </div>
-                                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                                <div className="text-center">
-                                  <p className="text-[10px] text-emerald-600 font-semibold uppercase">Year 1</p>
-                                  <p className="text-lg font-bold text-emerald-600">{r.projectedScore12}</p>
-                                </div>
+                                {r.accelerateToPlanning12 > 0 && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-700">Move <span className="font-semibold">{r.accelerateToPlanning12}</span> from</span>
+                                    <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-xs font-medium">Assessing</span>
+                                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                    <span className="px-1.5 py-0.5 bg-slate-500 text-white rounded text-xs font-medium">Planning</span>
+                                  </div>
+                                )}
+                                {accelTotal === 0 && (
+                                  <p className="text-sm text-slate-500 italic">No elements currently in progress</p>
+                                )}
                               </div>
                             </div>
                             
-                            {/* Two-Track Breakdown - Cleaner Layout */}
-                            <div className="grid grid-cols-2 gap-3 mb-3">
-                              {/* Accelerate Track */}
-                              <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-1.5">
-                                    <div className="w-5 h-5 rounded bg-blue-500 flex items-center justify-center">
-                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                    </div>
-                                    <span className="text-xs font-bold text-blue-900 uppercase">Accelerate</span>
-                                  </div>
-                                  <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">{r.accelerateToOffering12 + r.accelerateToPlanning12} elements</span>
+                            {/* Build Column */}
+                            <div>
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-6 h-6 rounded bg-teal-700 flex items-center justify-center">
+                                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                                 </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                  {r.accelerateToOffering12 > 0 && (
-                                    <span className="text-xs font-medium px-2 py-1 bg-blue-500 text-white rounded">{r.accelerateToOffering12} → Offering</span>
-                                  )}
-                                  {r.accelerateToPlanning12 > 0 && (
-                                    <span className="text-xs font-medium px-2 py-1 bg-blue-200 text-blue-800 rounded">{r.accelerateToPlanning12} → Planning</span>
-                                  )}
-                                  {r.accelerateToOffering12 === 0 && r.accelerateToPlanning12 === 0 && (
-                                    <span className="text-xs text-blue-600 italic">No in-flight work</span>
-                                  )}
-                                </div>
+                                <span className="font-bold text-slate-800 text-sm uppercase tracking-wide">Build</span>
+                                <span className="text-xs text-slate-500">({buildTotal} new elements)</span>
                               </div>
                               
-                              {/* Build Track */}
-                              <div className="bg-violet-50 rounded-lg p-3 border border-violet-200">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-1.5">
-                                    <div className="w-5 h-5 rounded bg-violet-500 flex items-center justify-center">
-                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                    </div>
-                                    <span className="text-xs font-bold text-violet-900 uppercase">Build</span>
+                              <div className="space-y-2 pl-8">
+                                {r.buildToOffering12 > 0 && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-700">Introduce <span className="font-semibold">{r.buildToOffering12}</span> new to</span>
+                                    <span className="px-1.5 py-0.5 bg-teal-600 text-white rounded text-xs font-medium">Offering</span>
                                   </div>
-                                  <span className="text-xs font-semibold text-violet-700 bg-violet-100 px-2 py-0.5 rounded">{r.buildToOffering12 + r.buildToPlanning12} new</span>
-                                </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                  {r.buildToOffering12 > 0 && (
-                                    <span className="text-xs font-medium px-2 py-1 bg-violet-500 text-white rounded">{r.buildToOffering12} → Offering</span>
-                                  )}
-                                  {r.buildToPlanning12 > 0 && (
-                                    <span className="text-xs font-medium px-2 py-1 bg-violet-200 text-violet-800 rounded">{r.buildToPlanning12} → Planning</span>
-                                  )}
-                                  {r.buildToOffering12 === 0 && r.buildToPlanning12 === 0 && (
-                                    <span className="text-xs text-violet-600 italic">Focus on acceleration</span>
-                                  )}
-                                </div>
+                                )}
+                                {r.buildToPlanning12 > 0 && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-700">Introduce <span className="font-semibold">{r.buildToPlanning12}</span> new to</span>
+                                    <span className="px-1.5 py-0.5 bg-slate-500 text-white rounded text-xs font-medium">Planning</span>
+                                  </div>
+                                )}
+                                {buildTotal === 0 && (
+                                  <p className="text-sm text-slate-500 italic">Focus on accelerating existing work</p>
+                                )}
                               </div>
                             </div>
-                            
-                            {/* Recommendations */}
-                            {editMode ? (
-                              <input
-                                type="text"
-                                value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? ''}
-                                onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
-                                className="w-full text-sm text-slate-700 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                placeholder="Enter custom recommendations..."
-                              />
-                            ) : (
-                              <div className="text-sm text-slate-700 flex flex-wrap gap-x-4 gap-y-1">
-                                {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || []).map((rec: string, i: number) => (
-                                  <span key={i} className="flex items-center gap-1.5">
-                                    <span className="text-teal-500 font-bold">→</span>
-                                    <span>{rec}</span>
-                                  </span>
-                                ))}
-                              </div>
-                            )}
                           </div>
                           
-                          {/* Impact Metrics Panel */}
-                          <div className="flex flex-col justify-center gap-3 px-4 py-3 bg-slate-50 border-l border-slate-200 min-w-[130px]">
-                            <div className="text-center">
-                              <p className="text-[10px] text-slate-600 font-semibold uppercase tracking-wide">Dim Impact</p>
-                              <p className="text-xl font-black text-blue-600">+{r.dimPotentialGain12}</p>
-                              <p className="text-[10px] text-slate-500 font-medium">{r.headroomPct12}% headroom</p>
-                            </div>
-                            <div className="w-full h-px bg-slate-200"></div>
-                            <div className="text-center">
-                              <p className="text-[10px] text-slate-600 font-semibold uppercase tracking-wide">Composite</p>
-                              <p className="text-xl font-black text-emerald-600">+{r.potentialGain12}</p>
-                              <p className="text-[10px] text-emerald-600 font-medium">+{incrementalDim.toFixed(1)} vs 90-day</p>
-                            </div>
+                          {/* Impact Summary */}
+                          <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                            <p className="text-sm text-slate-600">
+                              <span className="font-medium">Dimension impact:</span> +{r.dimPotentialGain12} pts ({r.headroomPct12}% of remaining headroom)
+                              <span className="mx-3 text-slate-300">|</span>
+                              <span className="font-medium">Overall impact:</span> +{r.potentialGain12} composite pts
+                            </p>
+                            <p className="text-xs text-slate-500 italic">Work with Cancer and Careers to prioritize specific elements</p>
                           </div>
                         </div>
                       </div>
@@ -6694,11 +6692,11 @@ export default function ExportReportPage() {
                     })}
                   </div>
                   
-                  {/* Footer - Cleaner */}
+                  {/* Footer */}
                   <div className="mt-6 pt-4 border-t border-slate-200">
-                    <p className="text-xs text-slate-600 text-center">
-                      Year 1 projections assume <span className="font-semibold text-blue-600">committed execution</span>. 
-                      Dimensions with <span className="font-semibold text-amber-600">momentum</span> (2+ in-flight elements) achieve more aggressive goals through higher Assessing→Offering conversion and scaled Build capacity.
+                    <p className="text-sm text-slate-600 text-center">
+                      Projections based on systematic advancement of support elements through the maturity stages. 
+                      Near-term estimates reflect quick wins; long-term estimates assume sustained organizational commitment.
                     </p>
                   </div>
                 </div>
